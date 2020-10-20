@@ -29,8 +29,6 @@
 // So same motion vectors buffer is use for all scenario, so if deferred define a motion vectors buffer, the same is reuse for forward case.
 // THis is similar to NormalBuffer
 
-// TODO: CAUTION: current DecodeMotionVector is not used in motion vector / TAA pass as it come from Postprocess stack
-// This will be fix when postprocess will be integrated into HD, but it mean that we must not change the
 // EncodeMotionVector / DecodeMotionVector code for now, i.e it must do nothing like it is doing currently.
 // Design note: We assume that motion vector/distortion fit into a single buffer (i.e not spread on several buffer)
 void EncodeMotionVector(float2 motionVector, out float4 outBuffer)
@@ -87,7 +85,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs p
 
         uint stripeSize = 8;
 
-        int lightLayers = (builtinData.renderingLayers & _DebugLightLayersMask) & 0xFF;
+        int lightLayers = builtinData.renderingLayers & _DebugLightLayersMask;
         uint layerId = 0, layerCount = countbits(lightLayers);
 
         result = float3(0, 0, 0);

@@ -8,87 +8,100 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
-        RenderTargetHandle[] m_ColorAttachments;
-        RenderTargetHandle m_DepthBufferAttachment;
+        static ShaderTagId s_ShaderTagLit = new ShaderTagId("Lit");
+        static ShaderTagId s_ShaderTagSimpleLit = new ShaderTagId("SimpleLit");
+        static ShaderTagId s_ShaderTagUnlit = new ShaderTagId("Unlit");
+        static ShaderTagId s_ShaderTagUniversalGBuffer = new ShaderTagId("UniversalGBuffer");
+        static ShaderTagId s_ShaderTagUniversalMaterialType = new ShaderTagId("UniversalMaterialType");
+
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render GBuffer");
 
         DeferredLights m_DeferredLights;
-        bool m_HasDepthPrepass;
 
-        ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render GBuffer");
+        ShaderTagId[] m_ShaderTagValues;
+        RenderStateBlock[] m_RenderStateBlocks;
 
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
 
         public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, DeferredLights deferredLights)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(GBufferPass));
             base.renderPassEvent = evt;
+
             m_DeferredLights = deferredLights;
-            m_HasDepthPrepass = false;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
-            if (stencilState.enabled)
-            {
-                m_RenderStateBlock.stencilReference = stencilReference;
-                m_RenderStateBlock.mask = RenderStateMask.Stencil;
-                m_RenderStateBlock.stencilState = stencilState;
-            }
-        }
+            m_RenderStateBlock.stencilState = stencilState;
+            m_RenderStateBlock.stencilReference = stencilReference;
+            m_RenderStateBlock.mask = RenderStateMask.Stencil;
 
-        public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments, bool hasDepthPrepass)
-        {
-            m_DepthBufferAttachment = depthTexture;
-            m_ColorAttachments = colorAttachments;
-            m_HasDepthPrepass = hasDepthPrepass;
+            m_ShaderTagValues = new ShaderTagId[4];
+            m_ShaderTagValues[0] = s_ShaderTagLit;
+            m_ShaderTagValues[1] = s_ShaderTagSimpleLit;
+            m_ShaderTagValues[2] = s_ShaderTagUnlit;
+            m_ShaderTagValues[3] = new ShaderTagId(); // Special catch all case for materials where UniversalMaterialType is not defined or the tag value doesn't match anything we know.
+
+            m_RenderStateBlocks = new RenderStateBlock[4];
+            m_RenderStateBlocks[0] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialLit);
+            m_RenderStateBlocks[1] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialSimpleLit);
+            m_RenderStateBlocks[2] = DeferredLights.OverwriteStencil(m_RenderStateBlock, (int)StencilUsage.MaterialMask, (int)StencilUsage.MaterialUnlit);
+            m_RenderStateBlocks[3] = m_RenderStateBlocks[0];
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
+            RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
+
             // Create and declare the render targets used in the pass
-            for (int i = 0; i < m_DeferredLights.GBufferSliceCount; ++i)
+            for (int i = 0; i < gbufferAttachments.Length; ++i)
             {
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
                 if (i != m_DeferredLights.GBufferLightingIndex)
                 {
                     RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
+                    gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
+                    gbufferSlice.stencilFormat = GraphicsFormat.None;
                     gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
-                    cmd.GetTemporaryRT(m_ColorAttachments[i].id, gbufferSlice);
+                    cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
                 }
             }
 
-            RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[m_DeferredLights.GBufferSliceCount];
-            for (int i = 0; i < colorAttachmentIdentifiers.Length; ++i)
-                colorAttachmentIdentifiers[i] = m_ColorAttachments[i].Identifier();
-
-            ConfigureTarget(colorAttachmentIdentifiers, m_DepthBufferAttachment.Identifier());
-
-            // If depth-prepass exists, do not clear depth here or we will lose it.
-            // Lighting buffer is cleared independently regardless of what we ask for here.
-            ConfigureClear(m_HasDepthPrepass ? ClearFlag.None : ClearFlag.Depth, Color.black);
+            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
+            // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
+            // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
+            ConfigureClear(ClearFlag.None, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
+            CommandBuffer gbufferCommands = CommandBufferPool.Get();
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
-                if (m_DeferredLights.AccurateGbufferNormals)
-                    gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-                else
-                    gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
+                // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
+                // If we detect we are in such case (camera isin  overlay mode), we clear the highest bits of stencil we have control of and use them to
+                // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
+                if (m_DeferredLights.IsOverlay)
+                    m_DeferredLights.ClearStencilPartial(gbufferCommands);
 
-                gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
-
-                context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
+                context.ExecuteCommandBuffer(gbufferCommands);
                 gbufferCommands.Clear();
-
-                DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
+                ShaderTagId lightModeTag = s_ShaderTagUniversalGBuffer;
+                DrawingSettings drawingSettings = CreateDrawingSettings(lightModeTag, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
+                ShaderTagId universalMaterialTypeTag = s_ShaderTagUniversalMaterialType;
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings/*, ref m_RenderStateBlock*/);
+                NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
+                NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+                tagValues.Dispose();
+                stateBlocks.Dispose();
+
+                // Render objects that did not match any shader pass with error shader
+                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);
             }
             context.ExecuteCommandBuffer(gbufferCommands);
             CommandBufferPool.Release(gbufferCommands);
@@ -96,9 +109,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
-            for (int i = 0; i < m_ColorAttachments.Length; ++i)
+            RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
+
+            for (int i = 0; i < gbufferAttachments.Length; ++i)
                 if (i != m_DeferredLights.GBufferLightingIndex)
-                    cmd.ReleaseTemporaryRT(m_ColorAttachments[i].id);
+                    cmd.ReleaseTemporaryRT(gbufferAttachments[i].id);
         }
     }
 }

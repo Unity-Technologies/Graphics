@@ -16,7 +16,7 @@ void EncodeIntoStandardGBuffer( StandardBSDFData standardBSDFData
     NormalData normalData;
     normalData.normalWS = standardBSDFData.normalWS;
     normalData.perceptualRoughness = standardBSDFData.perceptualRoughness;
-    EncodeIntoNormalBuffer(normalData, uint2(0, 0), outGBuffer1);
+    EncodeIntoNormalBuffer(normalData, outGBuffer1);
 
 	// GBuffer2
     outGBuffer2.rgb = FastLinearToSRGB(standardBSDFData.fresnel0);

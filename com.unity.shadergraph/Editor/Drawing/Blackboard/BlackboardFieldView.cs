@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
@@ -17,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         readonly GraphData m_Graph;
         public GraphData graph => m_Graph;
+        internal delegate void BlackBoardCallback();
 
         ShaderInput m_Input;
 
@@ -67,6 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         private Action m_inspectorUpdateTrigger;
+        private BlackBoardCallback BlackBoardUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
         public string inspectorTitle
@@ -85,11 +86,33 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardFieldView(GraphData graph, ShaderInput input, Texture icon, string text, string typeText) : base(icon, text, typeText)
+        public void InspectorUpdateTrigger()
+        {
+            if (m_inspectorUpdateTrigger != null)
+                m_inspectorUpdateTrigger();
+        }
+
+        private void UpdateTypeText()
+        {
+            if(shaderInput is AbstractShaderProperty asp)
+            {
+                typeText = asp.GetPropertyTypeString();
+            }
+        }
+
+        public BlackboardFieldView(GraphData graph, ShaderInput input, BlackBoardCallback updateBlackboardView,
+            Texture icon, string text, string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
             m_Input = input;
+            this.BlackBoardUpdateTrigger = updateBlackboardView;
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
+        }
+
+        ~BlackboardFieldView()
+        {
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTypeText;
         }
 
         public object GetObjectToInspect()
@@ -130,6 +153,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_Graph.isSubGraph,
                     m_Graph,
                     ChangeExposedField,
+                    ChangeDisplayNameField,
                     ChangeReferenceNameField,
                     () => m_Graph.ValidateGraph(),
                     () => m_Graph.OnKeywordChanged(),
@@ -148,6 +172,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Input.generatePropertyBlock = newValue;
             icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+        }
+        void ChangeDisplayNameField(string newValue)
+        {
+            if (newValue != m_Input.displayName)
+            {
+                m_Input.displayName = newValue;
+                m_Graph.SanitizeGraphInputName(m_Input);
+                this.BlackBoardUpdateTrigger();
+            }
         }
 
         void ChangeReferenceNameField(string newValue)

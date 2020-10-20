@@ -63,8 +63,6 @@ namespace UnityEditor.ShaderGraph
             VtAddressMode_Wrap = 0,
             [InspectorName("Clamp")]
             VtAddressMode_Clamp = 1,
-            [InspectorName("Udim")]
-            VtAddressMode_Udim = 2
         }
 
         public enum FilterMode
@@ -90,6 +88,24 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
+        AddressMode m_AddressMode = AddressMode.VtAddressMode_Wrap;
+        public AddressMode addressMode
+        {
+            get
+            {
+                return m_AddressMode;
+            }
+            set
+            {
+                if (m_AddressMode == value)
+                    return;
+
+                m_AddressMode = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         LodCalculation m_LodCalculation = LodCalculation.VtLevel_Automatic;
         public LodCalculation lodCalculation
         {
@@ -103,7 +119,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_LodCalculation = value;
-                UpdateNodeAfterDeserialization();       // rebuilds all slots
+                RebuildAllSlots(true);       // LOD calculation may have associated slots that need to be updated
                 Dirty(ModificationScope.Topological);   // slots ShaderStageCapability could have changed, so trigger Topo change
             }
         }
@@ -127,7 +143,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        bool m_NoFeedback;
+        bool m_NoFeedback;          // aka !AutomaticStreaming
         public bool noFeedback
         {
             get
@@ -140,7 +156,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_NoFeedback = value;
-                UpdateNodeAfterDeserialization();       // rebuilds all slots
+                RebuildAllSlots(true);
                 Dirty(ModificationScope.Topological);   // slots ShaderStageCapability could have changed, so trigger Topo change
             }
         }
@@ -154,23 +170,34 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-        private int outputLayerSlotCount = 0;
         public override void Setup()
         {
-            // the default is to show all 4 slots, so we don't lose any existing connections
-            int layerCount = kMaxLayers;
-            var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
-            if (vtProperty != null)
-            {
-                layerCount = vtProperty?.value?.layers?.Count ?? kMaxLayers;
-            }
-            if (outputLayerSlotCount != layerCount)
-                UpdateLayerOutputSlots(layerCount);
+            UpdateLayerOutputSlots(true);
         }
 
         // rebuilds the number of output slots, and also updates their ShaderStageCapability
-        void UpdateLayerOutputSlots(int layerCount, List<int> usedSlots = null)
+        private int outputLayerSlotCount = 0;
+        void UpdateLayerOutputSlots(bool inspectProperty, List<int> usedSlots = null)
         {
+            // the default is to show all 4 slots, so we don't lose any existing connections
+            int layerCount = kMaxLayers;
+
+            if (inspectProperty)
+            {
+                var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProperty != null)
+                {
+                    layerCount = vtProperty?.value?.layers?.Count ?? kMaxLayers;
+                }
+                if (outputLayerSlotCount == layerCount)
+                {
+                    if (usedSlots != null)
+                        for (int i = 0; i < layerCount; i++)
+                            usedSlots.Add(OutputSlotIds[i]);
+                    return;
+                }
+            }
+
             for (int i = 0; i < kMaxLayers; i++)
             {
                 int outputID = OutputSlotIds[i];
@@ -201,7 +228,7 @@ namespace UnityEditor.ShaderGraph
             outputLayerSlotCount = layerCount;
         }
 
-        public override void UpdateNodeAfterDeserialization()
+        public void RebuildAllSlots(bool inspectProperty)
         {
             List<int> usedSlots = new List<int>();
 
@@ -214,7 +241,7 @@ namespace UnityEditor.ShaderGraph
             // at this point we can't tell how many output slots we will have (because we can't find the VT property yet)
             // so, we create all of the possible output slots, so any edges created will connect properly
             // then we can trim down the set of slots later..
-            UpdateLayerOutputSlots(kMaxLayers, usedSlots);
+            UpdateLayerOutputSlots(inspectProperty, usedSlots);
 
             // Create slots
 
@@ -245,13 +272,26 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(usedSlots, true);
         }
 
+        public override void UpdateNodeAfterDeserialization()
+        {
+            RebuildAllSlots(false);
+        }
+
         const string k_NoPropertyConnected = "A VirtualTexture property must be connected to the VT slot";
         public override void ValidateNode()
         {
             base.ValidateNode();
             if (!IsSlotConnected(VirtualTextureInputId))
             {
-                owner.AddValidationError(objectId, k_NoPropertyConnected, ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, k_NoPropertyConnected);
+            }
+            else
+            {
+                var vtProp = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProp == null)
+                {
+                    owner.AddValidationError(objectId, $"VT slot is not connected to a valid VirtualTexture property");
+                }
             }
         }
 
@@ -296,159 +336,166 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        string GetFunctionName()
+        string GetFunctionName(out List<int> layerIndices)
         {
-            return GetVariableNameForNode();
-        }
+            string name = "SampleVirtualTexture_" + addressMode + "_" + lodCalculation + "_" + m_SampleQuality;
+            layerIndices = new List<int>();
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
-        {
-            string functionName = GetFunctionName();
-
-            registry.ProvideFunction(functionName, s =>
+            if (IsSlotConnected(VirtualTextureInputId))
             {
-                if (IsSlotConnected(VirtualTextureInputId))
+                var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProperty != null)
                 {
-                    var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
                     int layerCount = vtProperty.value.layers.Count;
-
-                    var layerOutputVariableNames = new List<string>();
-                    var layerOutputLayerIndex = new List<int>();
-
                     for (int layer = 0; layer < layerCount; layer++)
                     {
                         if (IsSlotConnected(OutputSlotIds[layer]))
                         {
-                            layerOutputVariableNames.Add("Layer"+layer);
-                            layerOutputLayerIndex.Add(layer);
+                            layerIndices.Add(layer);
+                            name = name + "_" + layer;
                         }
                     }
+                }
+            }
 
-                    if (layerOutputVariableNames.Count > 0)
+            return name;
+        }
+
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            string functionName = GetFunctionName(out var layerOutputLayerIndex);
+
+            if (layerOutputLayerIndex.Count <= 0)
+                return;
+
+            registry.ProvideFunction(functionName, s =>
+            {
+                string lodExpr = "0.0f";
+                string dxExpr = "0.0f";
+                string dyExpr = "0.0f";
+
+                // function header
+                s.AppendIndentation();
+                s.Append("float4 ");
+                s.Append(functionName);
+                s.Append("(float2 uv");
+                switch (lodCalculation)
+                {
+                    case LodCalculation.VtLevel_Lod:
+                        s.Append(", float lod");
+                        lodExpr = "lod";
+                        break;
+                    case LodCalculation.VtLevel_Bias:
+                        s.Append(", float bias");
+                        lodExpr = "bias";
+                        break;
+                    case LodCalculation.VtLevel_Derivatives:
+                        s.Append(", float2 dx, float2 dy");
+                        dxExpr = "dx";
+                        dyExpr = "dy";
+                        break;
+                }
+                s.Append(", VTPropertyWithTextureType vtProperty");
+                for (int i = 0; i < layerOutputLayerIndex.Count; i++)
+                {
+                    s.Append(", out float4 Layer" + layerOutputLayerIndex[i]);
+                }
+                s.Append(")");
+                s.AppendNewLine();
+
+                // function body
+                using (s.BlockScope())
+                {
+                    AppendVtParameters(
+                        s,
+                        "uv",
+                        lodExpr,
+                        dxExpr,
+                        dyExpr,
+                        m_AddressMode,
+                        FilterMode.VtFilter_Anisotropic,
+                        m_LodCalculation,
+                        UvSpace.VtUvSpace_Regular,
+                        m_SampleQuality);
+
+                    s.AppendLine("StackInfo info = PrepareVT(vtProperty.vtProperty, vtParams);");
+
+                    for (int i = 0; i < layerOutputLayerIndex.Count; i++)
                     {
-                        string lodExpr = "0.0f";
-                        string dxExpr = "0.0f";
-                        string dyExpr = "0.0f";
-
-                        // function header
-                        s.AppendIndentation();
-                        s.Append("float4 ");
-                        s.Append(functionName);
-                        s.Append("(float2 uv");
-                        switch (lodCalculation)
-                        {
-                            case LodCalculation.VtLevel_Lod:
-                                s.Append(", float lod");
-                                lodExpr = "lod";
-                                break;
-                            case LodCalculation.VtLevel_Bias:
-                                s.Append(", float bias");
-                                lodExpr = "bias";
-                                break;
-                            case LodCalculation.VtLevel_Derivatives:
-                                s.Append(", float2 dx, float2 dy");
-                                dxExpr = "dx";
-                                dyExpr = "dy";
-                                break;
-                        }
-                        s.Append(", VTPropertyWithTextureType vtProperty");
-                        for (int i = 0; i < layerOutputVariableNames.Count; i++)
-                        {
-                            s.Append(", out float4 " + layerOutputVariableNames[i]);
-                        }
-                        s.Append(")");
-                        s.AppendNewLine();
-
-                        // function body
-                        using (s.BlockScope())
-                        {
-                            AppendVtParameters(
-                                s,
-                                "uv",
-                                lodExpr,
-                                dxExpr,
-                                dyExpr,
-                                AddressMode.VtAddressMode_Wrap,
-                                FilterMode.VtFilter_Anisotropic,
-                                m_LodCalculation,
-                                UvSpace.VtUvSpace_Regular,
-                                m_SampleQuality);
-
-                            s.AppendLine("StackInfo info = PrepareVT(vtProperty.vtProperty, vtParams);");
-
-                            for (int i = 0; i < layerOutputVariableNames.Count; i++)
-                            {
-                                // sample virtual texture layer
-                                int layer = layerOutputLayerIndex[i];
-                                string layerOutputVariable = layerOutputVariableNames[i];
-                                AppendVtSample(s, "vtProperty", "vtParams", "info", layer, layerOutputVariable);
-                            }
-
-                            s.AppendLine("return GetResolveOutput(info);");
-                        }
+                        // sample virtual texture layer
+                        int layer = layerOutputLayerIndex[i];
+                        AppendVtSample(s, "vtProperty", "vtParams", "info", layer, "Layer" + layer);
                     }
+
+                    s.AppendLine("return GetResolveOutput(info);");
                 }
             });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
+            bool success = false;
             if (IsSlotConnected(VirtualTextureInputId))
             {
                 var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
-                int layerCount = vtProperty.value.layers.Count;
-
-                var layerOutputVariables = new List<string>();
-                for (int i = 0; i < layerCount; i++)
+                if (vtProperty != null)
                 {
-                    if (IsSlotConnected(OutputSlotIds[i]))
+                    var layerOutputVariables = new List<string>();
+                    int layerCount = vtProperty.value.layers.Count;
+                    for (int i = 0; i < layerCount; i++)
                     {
-                        // declare output variables up front
-                        string layerOutputVariable = GetVariableNameForSlot(OutputSlotIds[i]);
-                        sb.AppendLine("$precision4 " + layerOutputVariable + ";");
-                        layerOutputVariables.Add(layerOutputVariable);
+                        if (IsSlotConnected(OutputSlotIds[i]))
+                        {
+                            // declare output variables up front
+                            string layerOutputVariable = GetVariableNameForSlot(OutputSlotIds[i]);
+                            sb.AppendLine("$precision4 " + layerOutputVariable + ";");
+                            layerOutputVariables.Add(layerOutputVariable);
+                        }
                     }
-                }
 
-                if (layerOutputVariables.Count > 0)
-                {
-                    // assign feedback variable
-                    sb.AppendIndentation();
-                    if (!noFeedback)
+                    if (layerOutputVariables.Count > 0)
                     {
-                        sb.Append("float4 ");
-                        sb.Append(GetFeedbackVariableName());
-                        sb.Append(" = ");
-                    }
-                    sb.Append(GetFunctionName());
-                    sb.Append("(");
-                    sb.Append(GetSlotValue(UVInputId, generationMode));
-                    switch (lodCalculation)
-                    {
-                        case LodCalculation.VtLevel_Lod:
-                        case LodCalculation.VtLevel_Bias:
-                            sb.Append(", ");
-                            sb.Append((lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode));
-                            break;
-                        case LodCalculation.VtLevel_Derivatives:
-                            sb.Append(", ");
-                            sb.Append(GetSlotValue(DxInputId, generationMode));
-                            sb.Append(", ");
-                            sb.Append(GetSlotValue(DyInputId, generationMode));
-                            break;
-                    }
-                    sb.Append(", ");
-                    sb.Append(vtProperty.referenceName);
-                    foreach (string layerOutputVariable in layerOutputVariables)
-                    {
+                        // assign feedback variable
+                        sb.AppendIndentation();
+                        if (!noFeedback)
+                        {
+                            sb.Append("float4 ");
+                            sb.Append(GetFeedbackVariableName());
+                            sb.Append(" = ");
+                        }
+                        sb.Append(GetFunctionName(out var unused));
+                        sb.Append("(");
+                        sb.Append(GetSlotValue(UVInputId, generationMode));
+                        switch (lodCalculation)
+                        {
+                            case LodCalculation.VtLevel_Lod:
+                            case LodCalculation.VtLevel_Bias:
+                                sb.Append(", ");
+                                sb.Append((lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode));
+                                break;
+                            case LodCalculation.VtLevel_Derivatives:
+                                sb.Append(", ");
+                                sb.Append(GetSlotValue(DxInputId, generationMode));
+                                sb.Append(", ");
+                                sb.Append(GetSlotValue(DyInputId, generationMode));
+                                break;
+                        }
                         sb.Append(", ");
-                        sb.Append(layerOutputVariable);
+                        sb.Append(vtProperty.referenceName);
+                        foreach (string layerOutputVariable in layerOutputVariables)
+                        {
+                            sb.Append(", ");
+                            sb.Append(layerOutputVariable);
+                        }
+                        sb.Append(");");
+                        sb.AppendNewLine();
+                        success = true;
                     }
-                    sb.Append(");");
-                    sb.AppendNewLine();
                 }
             }
-            else
+
+
+            if (!success)
             {
                 // set all outputs to zero
                 for (int i = 0; i < kMaxLayers; i++)

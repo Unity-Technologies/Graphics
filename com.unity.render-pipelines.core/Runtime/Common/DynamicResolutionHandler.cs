@@ -53,6 +53,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public DynamicResUpscaleFilter filter { get; set; }
 
+        /// <summary>
+        /// The viewport of the final buffer. This is likely the resolution the dynamic resolution starts from before any scaling. Note this is NOT the target resolution the rendering will happen in
+        /// but the resolution the scaled rendered result will be upscaled to. 
+        /// </summary>
+        public Vector2Int finalViewport { get; set; }
+
 
         private DynamicResolutionType type;
 
@@ -159,7 +165,8 @@ namespace UnityEngine.Rendering
                     ScalableBufferManager.ResizeBuffers(m_CurrentFraction, m_CurrentFraction);
                 }
 
-                OnResolutionChange();
+                if(OnResolutionChange != null)
+                    OnResolutionChange();
             }
             else
             {
@@ -169,7 +176,8 @@ namespace UnityEngine.Rendering
                     if(ScalableBufferManager.widthScaleFactor != m_PrevHWScaleWidth  ||
                         ScalableBufferManager.heightScaleFactor != m_PrevHWScaleHeight)
                     {
-                        OnResolutionChange();
+                        if (OnResolutionChange != null)
+                            OnResolutionChange();
                     }
                 }
             }

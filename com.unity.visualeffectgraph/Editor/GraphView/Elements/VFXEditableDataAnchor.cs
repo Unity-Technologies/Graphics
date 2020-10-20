@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXEditableDataAnchor.Create");
 
             var anchor = new VFXEditableDataAnchor(controller.orientation, controller.direction, controller.portType, node);
-            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
+            anchor.m_EdgeConnector = new VFXEdgeConnector(anchor);
             anchor.controller = controller;
             anchor.AddManipulator(anchor.m_EdgeConnector);
             Profiler.EndSample();
@@ -107,14 +107,19 @@ namespace UnityEditor.VFX.UI
         void BuildProperty()
         {
             Profiler.BeginSample("VFXNodeUI.BuildProperty");
+
+            float effectiveWidth = -1;
             if (m_PropertyRM != null)
             {
                 Remove(m_PropertyRM);
+                effectiveWidth = m_PropertyRM.effectiveLabelWidth;
             }
             m_PropertyRM = PropertyRM.Create(controller, VFXNodeUI.DefaultLabelWidth);
             if (m_PropertyRM != null)
             {
                 Add(m_PropertyRM);
+                if (effectiveWidth >= 0)
+                    m_PropertyRM.SetLabelWidth(effectiveWidth);
             }
             Profiler.EndSample();
         }

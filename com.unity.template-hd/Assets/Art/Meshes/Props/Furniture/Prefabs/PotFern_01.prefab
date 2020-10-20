@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5779762625305321348}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: PotFern_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -116,6 +116,10 @@ PrefabInstance:
     - target: {fileID: 5526574617740364595, guid: 53cdc053120460648a44ca37fd4d63cd, type: 3}
       propertyPath: m_Name
       value: Pot_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 8258072415922696164, guid: 53cdc053120460648a44ca37fd4d63cd, type: 3}
+      propertyPath: m_LODs.Array.data[1].screenRelativeHeight
+      value: 0.0054428815
       objectReference: {fileID: 0}
     - target: {fileID: 8856627243092031776, guid: 53cdc053120460648a44ca37fd4d63cd, type: 3}
       propertyPath: m_LocalPosition.x

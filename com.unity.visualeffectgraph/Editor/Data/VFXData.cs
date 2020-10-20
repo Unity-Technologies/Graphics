@@ -67,6 +67,9 @@ namespace UnityEditor.VFX
                 case VFXDataType.SpawnEvent:
                     newVFXData = ScriptableObject.CreateInstance<VFXDataSpawner>();
                     break;
+                case VFXDataType.OutputEvent:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataOutputEvent>();
+                    break;
                 default:                        return null;
             }
             newVFXData.m_Parent = graph;
@@ -125,6 +128,7 @@ namespace UnityEditor.VFX
         }
 
         public virtual void FillDescs(
+            VFXCompileErrorReporter reporter,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
@@ -435,7 +439,7 @@ namespace UnityEditor.VFX
 
                     if (context.contextType != VFXContextType.Init)
                         onlyInit = false;
-                    if (context.contextType != VFXContextType.Output)
+                    if (context.contextType != VFXContextType.Output && context.contextType != VFXContextType.Filter)
                         onlyOutput = false;
                     if (context.contextType != VFXContextType.Update)
                     {

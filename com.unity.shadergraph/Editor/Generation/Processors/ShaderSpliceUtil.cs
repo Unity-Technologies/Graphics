@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Data.Util;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -54,15 +53,15 @@ namespace UnityEditor.ShaderGraph
 
             // outputs
             ShaderStringBuilder result;
-            List<string> sourceAssetDependencyPaths;
+            AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, List<string> sourceAssetDependencyPaths, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
                 this.templatePaths = templatePaths;
-                this.sourceAssetDependencyPaths = sourceAssetDependencyPaths;
+                this.assetCollection = assetCollection;
                 this.result = outShaderCodeResult ?? new ShaderStringBuilder();
                 includedFiles = new HashSet<string>();
             }
@@ -79,8 +78,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     includedFiles.Add(filePath);
 
-                    if (sourceAssetDependencyPaths != null)
-                        sourceAssetDependencyPaths.Add(filePath);
+                    if (assetCollection != null)
+                    {
+                        GUID guid = AssetDatabase.GUIDFromAssetPath(filePath);
+                        if (!guid.Empty())
+                            assetCollection.AddAssetDependency(guid, AssetCollection.Flags.SourceDependency);
+                    }
 
                     string[] templateLines = File.ReadAllLines(filePath);
                     foreach (string line in templateLines)

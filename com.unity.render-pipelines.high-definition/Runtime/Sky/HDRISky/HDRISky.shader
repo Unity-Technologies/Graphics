@@ -13,9 +13,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma multi_compile_local _ SKY_MOTION
     #pragma multi_compile_local _ USE_FLOWMAP
 
-    #pragma multi_compile_local _ USE_CLOUD_MAP
-    #pragma multi_compile_local _ USE_CLOUD_MOTION
-
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
@@ -37,7 +34,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SDF2D.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -186,7 +182,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return IsHit(sdf, dir.y);
     }
 
-    float3 GetDistordedSkyColor(float3 dir)
+    float3 GetSkyColor(float3 dir)
     {
 #if SKY_MOTION
         if (dir.y >= 0 || !_UpperHemisphere)
@@ -218,12 +214,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 #endif
 
         return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
-    }
-
-    float3 GetSkyColor(float3 dir)
-    {
-        float3 sky = GetDistordedSkyColor(dir);
-        return ApplyCloudLayer(dir, sky);
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
@@ -265,7 +255,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
         // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-        uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+        uint renderingLayers = GetMeshRenderingLightLayer();
         float3 shadow3;
         ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, renderingLayers, shadow3);
         shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
@@ -359,8 +349,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         depth = GetDepthWithBackplate(input);
 
-        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-
         NormalData normalData;
         normalData.normalWS            = float3(0, 1, 0);
         normalData.perceptualRoughness = 1.0f;
@@ -368,7 +356,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float4 gbufferNormal = 0;
 
         if (depth != UNITY_RAW_FAR_CLIP_VALUE)
-            EncodeIntoNormalBuffer(normalData, posInput.positionSS, gbufferNormal);
+            EncodeIntoNormalBuffer(normalData, gbufferNormal);
 
         return gbufferNormal;
     }

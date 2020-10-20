@@ -46,7 +46,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // The light cluster is in actual world space coordinates, 
     #ifdef USE_LIGHT_CLUSTER
     // Get the actual world space position
-    float3 actualWSPos = GetAbsolutePositionWS(posInput.positionWS);
+    float3 actualWSPos = posInput.positionWS;
     #endif
 
     #ifdef USE_LIGHT_CLUSTER
@@ -119,7 +119,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         #else
         EnvLightData envLightData = _EnvLightDatasRT[envLightIdx];
         #endif
-        envLightData.multiplier = _EnvLightDatas[envLightIdx].multiplier;
 
         if (reflectionHierarchyWeight < 1.0)
         {

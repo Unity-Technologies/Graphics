@@ -12,7 +12,6 @@ using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using System.Reflection;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
-using Data.Util;
 using UnityEditor.ProjectWindowCallback;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
@@ -140,7 +139,16 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var sgNode in subGraphNodes)
                 {
-                    if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
+                    var asset = sgNode?.asset;
+                    if (asset == null)
+                    {
+                        // cannot read the asset; might be recursive but we can't tell... should we return "maybe"?
+                        // I think to be minimally intrusive to the user we can assume "No" in this case,
+                        // even though this may miss recursions in extraordinary cases.
+                        // it's more important to allow the user to save their files than to catch 100% of recursions
+                        continue;
+                    }
+                    else if ((asset.assetGuid == overwriteGUID) || asset.descendents.Contains(overwriteGUID))
                     {
                         if (context != null)
                         {
@@ -282,12 +290,18 @@ namespace UnityEditor.ShaderGraph
         {
             //.shader files are not cool with " in the middle of a property name (eg.  Vector1_81B203C2("fo"o"o", Float) = 0)
             name = name.Replace("\"", "_");
+
+            return DeduplicateName(existingNames, duplicateFormat, name);
+        }
+
+        internal static string DeduplicateName(IEnumerable<string> existingNames, string duplicateFormat, string name)
+        {
             if (!existingNames.Contains(name))
                 return name;
 
             string escapedDuplicateFormat = Regex.Escape(duplicateFormat);
 
-            // Escaped format will escape string interpolation, so the escape caracters must be removed for these.
+            // Escaped format will escape string interpolation, so the escape characters must be removed for these.
             escapedDuplicateFormat = escapedDuplicateFormat.Replace(@"\{0}", @"{0}");
             escapedDuplicateFormat = escapedDuplicateFormat.Replace(@"\{1}", @"{1}");
 

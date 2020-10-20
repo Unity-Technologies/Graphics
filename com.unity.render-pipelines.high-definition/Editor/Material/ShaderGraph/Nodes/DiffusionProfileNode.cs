@@ -7,13 +7,15 @@ using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "Diffusion Profile")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DiffusionProfileNode")]
     [FormerName("UnityEditor.ShaderGraph.DiffusionProfileNode")]
-    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode
+    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         public DiffusionProfileNode()
         {
@@ -110,19 +112,14 @@ namespace UnityEditor.Rendering.HighDefinition
             sb.AppendLine(string.Format("float {0} = asfloat(uint({1}));", GetVariableNameForSlot(0), hash));
         }
 
-        public override void Setup()
+        public AbstractShaderProperty AsShaderProperty()
         {
-            base.Setup();
-
-            var hdPipelineAsset = HDRenderPipeline.currentAsset;
-
-            if (hdPipelineAsset == null)
-                return;
-
-            if (diffusionProfile != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
-            {
-                //owner.AddSetupError(tempId, $"Diffusion profile '{diffusionProfile.name}' is not referenced in the current HDRP asset", ShaderCompilerMessageSeverity.Warning);
-            }
+            var prop = new DiffusionProfileShaderProperty { value = diffusionProfile };
+            if (diffusionProfile != null)
+                prop.displayName = diffusionProfile.name;
+            return prop;
         }
+
+        public int outputSlotId => kOutputSlotId;
     }
 }

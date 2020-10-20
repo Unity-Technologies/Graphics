@@ -1,131 +1,181 @@
 target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
+target_branch_editor_ci: ci/editor-pinning # specifies the branch on which editor pinning is done
 target_editor: trunk # specifies the target editor used for some package/preview publish jobs
-editors: # applied for all yml files. Override this by specifying override_editors (in the same format) in a specific metafile
-  - version: trunk
+editors: # applied for all yml files
+  - track: trunk
+    name: trunk
     rerun_strategy: on-new-revision
-    cmd: -u trunk
-  - version: fast-trunk
+    editor_pinning: True
+    nightly: True
+  - track: 2020.2
+    name: 2020.2
     rerun_strategy: on-new-revision
-    cmd: -u trunk --fast
-  - version: CUSTOM-REVISION
+    editor_pinning: True
+    # fast: True
+    abv_pr: True
+    nightly: True
+  - track: CUSTOM-REVISION
+    name: CUSTOM-REVISION
     rerun_strategy: always
-    cmd: -u $CUSTOM_REVISION
-test_platforms:
-  Standalone: --suite=playmode --platform=Standalone
-  playmode: --suite=playmode
-  playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  playmode_RenderGraph: --suite=playmode --extra-editor-arg="-rendergraph-tests"
-  editmode: --suite=editor --platform=editmode
-project_platforms:
+    editor_pinning: False
+    fast: False
+build_configs:
+  - name: il2cpp_apiNet2
+    scripting_backend: IL2CPP
+    api_level: NET_2_0
+  - name: il2cpp_apiNet4
+    scripting_backend: IL2CPP
+    api_level: NET_4_6
+  - name: mono_apiNet2
+    scripting_backend: Mono2x
+    api_level: NET_2_0
+  - name: mono_apiNet4
+    scripting_backend: Mono2x
+    api_level: NET_4_6
+color_spaces:
+  - Linear
+  - gamma
+platforms:
   Win:
     name: Win
     os: windows
     apis:
-      DX11: -force-d3d11
-      DX12: -force-d3d12
-      Vulkan: -force-vulkan
+      - name: DX11
+        cmd: -force-d3d11
+      - name: DX12
+        cmd: -force-d3d12
+      - name: Vulkan
+        cmd: -force-vulkan
     components:
       - editor
       - il2cpp
-    agent_default:
-      type: Unity::VM::GPU
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    agent_standalone_build:
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+      editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    agent_package: 
       type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.xlarge
-    agent_editmode:
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
+      image: package-ci/win10:stable
       flavor: b1.large
-  OSX_Metal:
+    copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+    editorpath: .\.Editor
+  OSX:
     name: OSX
     os: macos
     apis:
-      Metal:  
+      - name: Metal
+        exclude_test_platforms:
+          - editmode
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - playmode_XR
+          - Standalone
     components:
       - editor
       - il2cpp
-    agent_default:
-      type: Unity::metal::macmini
-      image: slough-ops/macos-10.14-xcode:stable
-      flavor: m1.mac
-  OSX_OpenGLCore:
-    name: OSX
-    os: macos
-    apis:
-      OpenGLCore: 
-    components:
-      - editor
-      - il2cpp 
-    exclude_test_platforms:
-      - Standalone
-    agent_default:
+    agents_project_Metal:
+      default:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    agents_project_OpenGLCore:
+      default:
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
+    agent_package: 
       type: Unity::VM::osx
-      image: buildfarm/mac:stable
+      image: package-ci/mac:stable
       flavor: m1.mac
+    copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+    editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
   Linux:
     name: Linux
     os: linux
     apis: 
-      OpenGLCore: -force-glcore
-      Vulkan: -force-vulkan
+      - name: OpenGLCore
+        cmd: -force-glcore
+        exclude_test_platforms:
+          - Standalone
+          - playmode_XR
+      - name: Vulkan
+        cmd: -force-vulkan
+        exclude_test_platforms:
+          - playmode_XR
     components:
       - editor
       - il2cpp
-    exclude_test_platforms:
-      - playmode_XR
-    agent_default:
-      type: Unity::VM::GPU
-      image: cds-ops/ubuntu-18.04-base:stable
-      flavor: b1.large
-    agent_editmode:
-      type: Unity::VM
-      image: cds-ops/ubuntu-18.04-base:stable
-      flavor: b1.large
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+      editmode:
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.xlarge
   Android:
     name: Android
     os: android
     apis:
-      OpenGLES3: 
-      Vulkan:
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - editmode
+          - playmode
+          - playmode_XR
+      - name: Vulkan
+      - name: Vulkan
+        exclude_test_platforms:
+          - editmode
+          - playmode
+          - playmode_XR
     components:
       - editor
       - il2cpp
       - android
-    exclude_test_platforms:
-      - editmode
-      - playmode
-      - playmode_XR
-    agent_default:
-      type: Unity::mobile::android
-      image: mobile/android-execution-r19:stable
-      flavor: b1.large
-    agent_standalone_build:
-      type: Unity::VM
-      image: mobile/android-execution-r19:stable
-      flavor: b1.large
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
   iPhone:
     name: iPhone
     os: ios
     apis:
-      Metal:
+      - name: Metal
+        exclude_test_platforms:
+          - editmode
+          - playmode
+          - playmode_XR
     components:
       - editor
       - iOS
-    exclude_test_platforms:
-      - editmode
-      - playmode
-      - playmode_XR
-    agent_default:
-      type: Unity::mobile::iPhone
-      image: mobile/macos-10.13-testing:stable
-      flavor: b1.medium
-    agent_standalone_build:
-      type: Unity::VM::osx
-      image: mobile/macos-10.13-testing:stable
-      flavor: b1.large
+    agents_project:
+      default:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
 non_project_agents:
   cds_ops_ubuntu_small:
     type: Unity::VM
@@ -135,6 +185,10 @@ non_project_agents:
     type: Unity::VM
     image: package-ci/ubuntu:stable
     flavor: b1.large
+  package_ci_ubuntu_small:
+    type: Unity::VM
+    image: package-ci/ubuntu:stable
+    flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
     image: package-ci/win10:stable

@@ -7,10 +7,10 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         TextureHandle CreateAmbientOcclusionTexture(RenderGraph renderGraph)
         {
-            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" }, HDShaderIDs._AmbientOcclusionTexture);
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" });
         }
 
-        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo)
+        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -19,26 +19,39 @@ namespace UnityEngine.Rendering.HighDefinition
             // So we can't rely on automatic pass stripping. This is why we have to be explicit here.
             if (IsActive(hdCamera, settings))
             {
+                using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.AmbientOcclusion)))
                 {
-                    EnsureRTSize(settings, hdCamera);
+                    float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
+                    if (settings.fullResolution != m_RunningFullRes)
+                    {
+                        m_RunningFullRes = settings.fullResolution;
+                        scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
+                    }
 
-                    var historyRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
-                    var currentHistory = renderGraph.ImportTexture(historyRT);
-                    var outputHistory = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion));
+                    hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
 
-                    Vector2 historySize = new Vector2(historyRT.referenceSize.x * historyRT.scaleFactor.x,
-                                  historyRT.referenceSize.y * historyRT.scaleFactor.y);
-                    var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
+                        return m_RaytracingAmbientOcclusion.RenderRTAO(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectors, rayCountTexture, frameCount, shaderVariablesRaytracing);
+                    else
+                    {
+                        var historyRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
+                        var currentHistory = renderGraph.ImportTexture(historyRT);
+                        var outputHistory = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion));
 
-                    var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount, depthMipInfo);
+                        Vector2 historySize = new Vector2(historyRT.referenceSize.x * historyRT.scaleFactor.x,
+                                      historyRT.referenceSize.y * historyRT.scaleFactor.y);
+                        var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
 
-                    var packedData = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
-                    result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);
+                        var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount, depthMipInfo);
+
+                        var packedData = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
+                        result = DenoiseAO(renderGraph, aoParameters, depthPyramid, motionVectors, packedData, currentHistory, outputHistory);
+                    }
                 }
             }
             else
             {
-                result = renderGraph.ImportTexture(TextureXR.GetBlackTexture(), HDShaderIDs._AmbientOcclusionTexture);
+                result = renderGraph.defaultResources.blackTextureXR;
             }
             return result;
         }
@@ -61,14 +74,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
                 passData.packedData = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
-                { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed data" }));
+                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed data" }));
                 passData.depthPyramid = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
 
                 builder.SetRenderFunc(
                 (RenderAOPassData data, RenderGraphContext ctx) =>
                 {
-                    RenderAO(data.parameters, ctx.resources.GetTexture(data.packedData), ctx.resources.GetTexture(data.depthPyramid), ctx.resources.GetTexture(data.normalBuffer), ctx.cmd);
+                    RenderAO(data.parameters, data.packedData, data.depthPyramid, data.normalBuffer, ctx.cmd);
                 });
 
                 return passData.packedData;
@@ -88,6 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DenoiseAO(    RenderGraph             renderGraph,
                                     in RenderAOParameters   parameters,
+                                    TextureHandle           depthTexture,
                                     TextureHandle           motionVectors,
                                     TextureHandle           aoPackedData,
                                     TextureHandle           currentHistory,
@@ -111,26 +125,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 passData.packedDataBlurred = builder.CreateTransientTexture(
-                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" });
+                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "AO Packed blurred data" });
 
-                var format = parameters.fullResolution ? GraphicsFormat.R8_UNorm : GraphicsFormat.R32_UInt;
                 if (parameters.fullResolution)
                     passData.denoiseOutput = builder.WriteTexture(CreateAmbientOcclusionTexture(renderGraph));
                 else
-                    passData.denoiseOutput = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R32_UInt, name = "Final Half Res AO Packed" }));
+                    passData.denoiseOutput = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one * 0.5f, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R32_SFloat, name = "Final Half Res AO Packed" }));
 
                 denoiseOutput = passData.denoiseOutput;
 
                 builder.SetRenderFunc(
                 (DenoiseAOPassData data, RenderGraphContext ctx) =>
                 {
-                    var res = ctx.resources;
                     DenoiseAO(  data.parameters,
-                                res.GetTexture(data.packedData),
-                                res.GetTexture(data.packedDataBlurred),
-                                res.GetTexture(data.currentHistory),
-                                res.GetTexture(data.outputHistory),
-                                res.GetTexture(data.denoiseOutput),
+                                data.packedData,
+                                data.packedDataBlurred,
+                                data.currentHistory,
+                                data.outputHistory,
+                                data.motionVectors,
+                                data.denoiseOutput,
                                 ctx.cmd);
                 });
 
@@ -138,17 +151,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     return passData.denoiseOutput;
             }
 
-            return UpsampleAO(renderGraph, parameters, denoiseOutput);
+            return UpsampleAO(renderGraph, parameters, denoiseOutput, depthTexture);
         }
 
         class UpsampleAOPassData
         {
             public RenderAOParameters   parameters;
+            public TextureHandle        depthTexture;
             public TextureHandle        input;
             public TextureHandle        output;
         }
 
-        TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input)
+        TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input, TextureHandle depthTexture)
         {
             using (var builder = renderGraph.AddRenderPass<UpsampleAOPassData>("Upsample GTAO", out var passData, ProfilingSampler.Get(HDProfileId.UpSampleSSAO)))
             {
@@ -156,12 +170,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = parameters;
                 passData.input = builder.ReadTexture(input);
+                passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.output = builder.WriteTexture(CreateAmbientOcclusionTexture(renderGraph));
 
                 builder.SetRenderFunc(
                 (UpsampleAOPassData data, RenderGraphContext ctx) =>
                 {
-                    UpsampleAO(data.parameters, ctx.resources.GetTexture(data.input), ctx.resources.GetTexture(data.output), ctx.cmd);
+                    UpsampleAO(data.parameters, data.depthTexture, data.input, data.output, ctx.cmd);
                 });
 
                 return passData.output;

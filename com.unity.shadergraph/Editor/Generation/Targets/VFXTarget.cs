@@ -1,8 +1,12 @@
+#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
@@ -47,7 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
-            return true;
+            return base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -57,23 +61,30 @@ namespace UnityEditor.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           lit);
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness,         lit);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           lit);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission,           lit);
+            context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, alphaTest);
+        }
+
+        enum MaterialMode
+        {
+            Unlit,
+            Lit
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Lit", new Toggle() { value = m_Lit }, (evt) =>
+            context.AddProperty("Material", new EnumField(MaterialMode.Unlit) { value = m_Lit ? MaterialMode.Lit : MaterialMode.Unlit }, evt =>
             {
-                if (Equals(m_Lit, evt.newValue))
+                var newLit = (MaterialMode)evt.newValue == MaterialMode.Lit;
+                if (Equals(m_Lit, newLit))
                     return;
 
-                registerUndo("Change Lit");
-                m_Lit = evt.newValue;
+                registerUndo("Change Material Lit");
+                m_Lit = newLit;
                 onChange();
             });
 
-            context.AddProperty("Alpha Test", new Toggle() { value = m_AlphaTest }, (evt) =>
+            context.AddProperty("Alpha Clipping", new Toggle() { value = m_AlphaTest }, (evt) =>
             {
                 if (Equals(m_AlphaTest, evt.newValue))
                     return;
@@ -134,3 +145,4 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
+#endif

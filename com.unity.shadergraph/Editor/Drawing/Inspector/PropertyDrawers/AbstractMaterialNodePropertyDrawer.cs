@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
@@ -11,7 +10,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 
-namespace Drawing.Inspector.PropertyDrawers
+namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(AbstractMaterialNode))]
     public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer
@@ -32,6 +31,23 @@ namespace Drawing.Inspector.PropertyDrawers
             VisualElement nodeSettings = new VisualElement();
             var nameLabel = PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold);
             nodeSettings.Add(nameLabel);
+            if (node.sgVersion < node.latestVersion)
+            {
+                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node", () =>
+                {
+                    m_setNodesAsDirtyCallback?.Invoke();
+                    node.owner.owner.RegisterCompleteObjectUndo($"Update {node.name} Node");
+                    node.ChangeVersion(node.latestVersion);
+                    inspectorUpdateDelegate?.Invoke();
+                    m_updateNodeViewsCallback?.Invoke();
+                    node.Dirty(ModificationScope.Graph);
+                });
+            
+                if (help != null)
+                {
+                    nodeSettings.Insert(0, help);
+                }
+            }
             EnumField precisionField = null;
             if(node.canSetPrecision)
             {

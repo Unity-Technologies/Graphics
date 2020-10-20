@@ -94,10 +94,10 @@ void RayGenAreaShadows()
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+    const float3 positionWS = posInput.positionWS;
 
     // Compute the view vector on the surface
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    float3 viewWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
@@ -109,7 +109,7 @@ void RayGenAreaShadows()
     misInput.viewWS = viewWS;
     misInput.positionWS = positionWS;
     misInput.rectDimension = lightData.size.xy;
-    misInput.rectWSPos = GetAbsolutePositionWS(lightData.positionRWS);
+    misInput.rectWSPos = lightData.positionRWS;
 
     // Setup and check the spherical rectangle
     SphQuad squad;
@@ -281,7 +281,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 
 // Texture that holds the raytracing data
 TEXTURE2D_X(_RaytracingDirectionBuffer);
-TEXTURE2D_X(_RaytracingDistanceBuffer);
+TEXTURE2D_X(_RayTracingLengthBuffer);
 
 [shader("raygeneration")]
 void RayGenAreaShadowSingle()
@@ -321,7 +321,6 @@ void RayGenAreaShadowSingle()
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -329,10 +328,10 @@ void RayGenAreaShadowSingle()
 
     // Read the ray distance
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
-    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
+    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
-    float3 rayOrigin = positionWS + rayDirection * rayDistance - lightData.forward * _RaytracingRayBias;
-    float3 rayDestination = positionWS + normalData.normalWS * _RaytracingRayBias;
+    float3 rayOrigin = posInput.positionWS + rayDirection * rayDistance - lightData.forward * _RaytracingRayBias;
+    float3 rayDestination = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
     rayDistance = length(rayDestination - rayOrigin);
     rayDirection = (rayDestination - rayOrigin) / rayDistance;
 
@@ -361,7 +360,7 @@ void RayGenAreaShadowSingle()
 RW_TEXTURE2D_X(float, _RaytracedShadowIntegration);
 RW_TEXTURE2D_X(float, _RaytracingDistanceBufferRW);
 RW_TEXTURE2D_X(float, _VelocityBuffer);
-float _DirectionalLightAngle;
+float _DirectionalMaxRayLength;
 
 [shader("raygeneration")]
 void RayGenDirectionalShadowSingle()
@@ -396,7 +395,6 @@ void RayGenDirectionalShadowSingle()
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -404,14 +402,14 @@ void RayGenDirectionalShadowSingle()
 
     // Read the ray distance
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
-    float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias;
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
     rayDescriptor.Origin = rayOrigin;
     rayDescriptor.Direction = rayDirection;
     rayDescriptor.TMin = 0.0;
-    rayDescriptor.TMax = 1000.0;
+    rayDescriptor.TMax = _DirectionalMaxRayLength;
 
     // Create and init the RayIntersection structure for this
     RayIntersection rayIntersection;
@@ -463,7 +461,6 @@ void RayGenDirectionalColorShadowSingle()
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -471,14 +468,14 @@ void RayGenDirectionalColorShadowSingle()
 
     // Read the ray distance
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentPixelCoord).xyz;
-    float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias;
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
     rayDescriptor.Origin = rayOrigin;
     rayDescriptor.Direction = rayDirection;
     rayDescriptor.TMin = 0.0;
-    rayDescriptor.TMax = 1000.0;
+    rayDescriptor.TMax = _DirectionalMaxRayLength;
 
     // Create and init the RayIntersection structure for this
     RayIntersection rayIntersection;
@@ -495,7 +492,7 @@ void RayGenDirectionalColorShadowSingle()
         rayDescriptor.Origin = rayOrigin;
         rayDescriptor.Direction = rayDirection;
         rayDescriptor.TMin = 0.0;
-        rayDescriptor.TMax = 1000.0;
+        rayDescriptor.TMax = _DirectionalMaxRayLength;
         rayIntersection.color = float3(1.0, 1.0, 1.0);
         rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 
@@ -529,7 +526,7 @@ void RayGenShadowSegmentSingle()
         return;
 
     // Read the ray distance
-    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
+    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
     // If the distance is negative, it means the rays is a visible intersection.
     if (rayDistance < 0.0)
@@ -556,14 +553,13 @@ void RayGenShadowSegmentSingle()
 
     // Compute the world space position of the source pixel
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Recompute the ray parameters
-    float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias; 
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias; 
     float3 rayDestination = rayOrigin + rayDirection.xyz * (rayDistance -_RaytracingRayBias);
 
     // Re-normalize using t
@@ -617,7 +613,7 @@ void RayGenSemiTransparentShadowSegmentSingle()
         return;
 
     // Read the ray distance
-    float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentPixelCoord).x;
+    float rayDistance = LOAD_TEXTURE2D_X(_RayTracingLengthBuffer, currentPixelCoord).x;
 
     // If the distance is negative, it means the rays is a visible intersection.
     if (rayDistance < 0.0)
@@ -643,14 +639,13 @@ void RayGenSemiTransparentShadowSegmentSingle()
 
     // Compute the world space position of the source pixel
     PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
     DecodeFromNormalBuffer(currentPixelCoord, normalData);
 
     // Recompute the ray parameters
-    float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias; 
+    float3 rayOrigin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias; 
     float3 rayDestination = rayOrigin + rayDirection.xyz * (rayDistance -_RaytracingRayBias);
 
     // Re-normalize using t

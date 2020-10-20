@@ -1,6 +1,7 @@
 Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 {
     HLSLINCLUDE
+        #pragma exclude_renderers gles
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -20,8 +21,9 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         TEXTURE2D_X(_DofTexture);
         TEXTURE2D_X(_FullCoCTexture);
 
-        float4 _SourceTex_TexelSize;
-        float4 _DofTexture_TexelSize;
+        float4 _SourceSize;
+        float4 _HalfSourceSize;
+        float4 _DownSampleScaleFactor;
         float4 _CoCParams;
         float4 _BokehKernel[SAMPLE_COUNT];
 
@@ -30,27 +32,12 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         #define MaxRadius       _CoCParams.z
         #define RcpAspect       _CoCParams.w
 
-        half FragCoC(FullscreenVaryings input) : SV_Target
+        half FragCoC(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            uint w;
-            uint h;
-#if defined(SHADER_API_GLCORE)
-            // GetDimensions will use textureQueryLevels in OpenGL and that's not
-            // supported in OpenGL 4.1 or below. In that case we use _SourceTex_TexelSize
-            // which is fine as we don't support dynamic scaling in OpenGL.
-            w = _SourceTex_TexelSize.z;
-            h = _SourceTex_TexelSize.w;
-#elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-            uint x;
-            _CameraDepthTexture.GetDimensions(w, h, x);
-#else
-            _CameraDepthTexture.GetDimensions(w, h);
-#endif
-
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(w, h) * uv).x;
+            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _SourceSize.xy * uv).x;
             float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
             half coc = (1.0 - FocusDist / linearEyeDepth) * MaxCoC;
@@ -60,7 +47,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             return saturate((farCoC + nearCoC + 1.0) * 0.5);
         }
 
-        half4 FragPrefilter(FullscreenVaryings input) : SV_Target
+        half4 FragPrefilter(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -86,7 +73,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 
         #else
 
-            float3 duv = _SourceTex_TexelSize.xyx * float3(0.5, 0.5, -0.5);
+            float3 duv = _SourceSize.zwz * float3(0.5, 0.5, -0.5);
             float2 uv0 = uv - duv.xy;
             float2 uv1 = uv - duv.zy;
             float2 uv2 = uv + duv.zy;
@@ -130,7 +117,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             half coc = (-cocMin > cocMax ? cocMin : cocMax) * MaxRadius;
 
             // Premultiply CoC
-            avg *= smoothstep(0, _SourceTex_TexelSize.y * 2.0, abs(coc));
+            avg *= smoothstep(0, _SourceSize.w * 2.0, abs(coc));
 
         #if defined(UNITY_COLORSPACE_GAMMA)
             avg = SRGBToLinear(avg);
@@ -150,20 +137,20 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             half farCoC = max(min(samp0.a, samp.a), 0.0);
 
             // Compare the CoC to the sample distance & add a small margin to smooth out
-            const half margin = _SourceTex_TexelSize.y * 2.0;
+            const half margin = _SourceSize.w * _DownSampleScaleFactor.w * 2.0;
             half farWeight = saturate((farCoC - dist + margin) / margin);
             half nearWeight = saturate((-samp.a - dist + margin) / margin);
 
             // Cut influence from focused areas because they're darkened by CoC premultiplying. This is only
             // needed for near field
-            nearWeight *= step(_SourceTex_TexelSize.y, -samp.a);
+            nearWeight *= step(_SourceSize.w * _DownSampleScaleFactor.w, -samp.a);
 
             // Accumulation
             farAcc += half4(samp.rgb, 1.0) * farWeight;
             nearAcc += half4(samp.rgb, 1.0) * nearWeight;
         }
 
-        half4 FragBlur(FullscreenVaryings input) : SV_Target
+        half4 FragBlur(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -197,13 +184,13 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             return half4(rgb, alpha);
         }
 
-        half4 FragPostBlur(FullscreenVaryings input) : SV_Target
+        half4 FragPostBlur(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // 9-tap tent filter with 4 bilinear samples
-            float4 duv = _SourceTex_TexelSize.xyxy * float4(0.5, 0.5, -0.5, 0);
+            float4 duv = _SourceSize.zwzw * _DownSampleScaleFactor.zwzw * float4(0.5, 0.5, -0.5, 0);
             half4 acc;
             acc  = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - duv.xy);
             acc += SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - duv.zy);
@@ -212,7 +199,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             return acc * 0.25;
         }
 
-        half4 FragComposite(FullscreenVaryings input) : SV_Target
+        half4 FragComposite(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
@@ -222,7 +209,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
             coc = (coc - 0.5) * 2.0 * MaxRadius;
 
             // Convert CoC to far field alpha value
-            float ffa = smoothstep(_SourceTex_TexelSize.y * 2.0, _SourceTex_TexelSize.y * 4.0, coc);
+            float ffa = smoothstep(_SourceSize.w * 2.0, _SourceSize.w * 4.0, coc);
 
             half4 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv);
 

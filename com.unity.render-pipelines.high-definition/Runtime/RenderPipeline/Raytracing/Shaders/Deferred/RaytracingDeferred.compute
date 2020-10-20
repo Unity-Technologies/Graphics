@@ -22,13 +22,13 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl"
 
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 #define RAYTRACING_DEFERRED_TILE_SIZE 8
 
@@ -68,16 +68,14 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // First let's compute the position of the pixel from which the ray has been shot
     PositionInputs sourcePosInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(sourcePosInput.positionWS);
+    float3 positionWS = sourcePosInput.positionWS;
 
     // Then compute the pos input of the intersection vertice
     float3 rayDirection = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, currentCoord).xyz;
     float rayDistance = LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentCoord).x;
     float3 intersectionPositionWS = positionWS + rayDirection * rayDistance;
 
-    PositionInputs posInput;
-    posInput.positionWS = GetCameraRelativePositionWS(intersectionPositionWS);
-    posInput.positionSS = currentCoord;
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, intersectionPositionWS);
 
     float3 V = -rayDirection;
 
@@ -88,12 +86,17 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     ZERO_INITIALIZE(BuiltinData, builtinData);
     uint  featureFlags = UINT_MAX;
     DecodeFromGBuffer(currentCoord, featureFlags, bsdfData, builtinData);
+    builtinData.renderingLayers = DEFAULT_LIGHT_LAYERS;
+    builtinData.shadowMask0 = 1.0;
+    builtinData.shadowMask1 = 1.0;
+    builtinData.shadowMask2 = 1.0;
+    builtinData.shadowMask3 = 1.0;
 
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     // Evaluate the complete lighting
     LightLoopOutput lightLoopOutput;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(V, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0),  float3(0.0, 0.0, 0.0), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;
@@ -104,7 +107,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     ApplyFogAttenuation(positionWS, rayDirection, rayDistance, finalColor, true);
     // Expose, clamp and inverse exposure
     finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier());
-    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 0.0);
+    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
 }
 
 // Input textures for the diffuse deferred lightloop that we will be executing
@@ -172,18 +175,17 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
     // We are evaluating a diffuse signal so view does not matter, let's pick the one that is guaranteed to be right (for some reason the LTC code fails if V == N)
     float3 viewWS = LOAD_TEXTURE2D_X(_DirectionTextureRW, currentCoord).xyz;
+    float3 intersectionPositionWS = LOAD_TEXTURE2D_X(_PositionTextureRW, currentCoord).xyz;
 
     // Create the pos input
-    PositionInputs posInput;
-    posInput.positionWS = GetCameraRelativePositionWS(LOAD_TEXTURE2D_X(_PositionTextureRW, currentCoord).xyz);
-    posInput.positionSS = currentCoord;
+    PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, intersectionPositionWS);
 
     // Compute the prelight data
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
     
     // Evaluate lighting
     LightLoopOutput lightLoopOutput;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 0.0, float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), lightLoopOutput);
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;
@@ -191,5 +193,5 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
     // Read the previous value and combine with the current lighting
     float3 previousValue = _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)].xyz;
-    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(previousValue + throughput * diffuseLighting, 0.0);
+    _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(previousValue + throughput * diffuseLighting, 1.0);
 }

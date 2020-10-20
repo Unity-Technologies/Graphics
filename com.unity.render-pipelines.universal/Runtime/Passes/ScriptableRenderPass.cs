@@ -4,6 +4,19 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Input requirements for <c>ScriptableRenderPass</c>.
+    /// </summary>
+    /// <seealso cref="ConfigureInput"/>
+    [Flags]
+    public enum ScriptableRenderPassInput
+    {
+        None = 0,
+        Depth = 1 << 0,
+        Normal = 1 << 1,
+        Color = 1 << 2,
+    }
+
     // Note: Spaced built-in events so we can add events in between them
     // We need to leave room as we sort render passes based on event.
     // Users can also inject render pass events in a specific point by doing RenderPassEvent + offset
@@ -12,19 +25,80 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RenderPassEvent
     {
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering any other passes in the pipeline.
+        /// Camera matrices and stereo rendering are not setup this point.
+        /// You can use this to draw to custom input textures used later in the pipeline, f.ex LUT textures.
+        /// </summary>
         BeforeRendering = 0,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering shadowmaps.
+        /// Camera matrices and stereo rendering are not setup this point.
+        /// </summary>
         BeforeRenderingShadows = 50,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering shadowmaps.
+        /// Camera matrices and stereo rendering are not setup this point.
+        /// </summary>
         AfterRenderingShadows = 100,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering prepasses, f.ex, depth prepass.
+        /// Camera matrices and stereo rendering are already setup at this point.
+        /// </summary>
         BeforeRenderingPrepasses = 150,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering prepasses, f.ex, depth prepass.
+        /// Camera matrices and stereo rendering are already setup at this point.
+        /// </summary>
         AfterRenderingPrePasses = 200,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering opaque objects.
+        /// </summary>
         BeforeRenderingOpaques = 250,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering opaque objects.
+        /// </summary>
         AfterRenderingOpaques = 300,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering the sky.
+        /// </summary>
         BeforeRenderingSkybox = 350,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering the sky.
+        /// </summary>
         AfterRenderingSkybox = 400,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering transparent objects.
+        /// </summary>
         BeforeRenderingTransparents = 450,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering transparent objects.
+        /// </summary>
         AfterRenderingTransparents = 500,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering post-processing effects.
+        /// </summary>
         BeforeRenderingPostProcessing = 550,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering post-processing effects but before final blit, post-processing AA effects and color grading.
+        /// </summary>
         AfterRenderingPostProcessing = 600,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering all effects.
+        /// </summary>
         AfterRendering = 1000,
     }
 
@@ -50,6 +124,15 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
+        /// <summary>
+        /// The input requirements for the <c>ScriptableRenderPass</c>, which has been set using <c>ConfigureInput</c>
+        /// </summary>
+        /// <seealso cref="ConfigureInput"/>
+        public ScriptableRenderPassInput input
+        {
+            get => m_Input;
+        }
+
         public ClearFlag clearFlag
         {
             get => m_ClearFlag;
@@ -60,11 +143,14 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        /// A ProfilingSampler for the entire pass. Used by higher level objects such as ScriptableRenderer etc.
+        protected internal ProfilingSampler profilingSampler { get; set; }
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+        ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
@@ -77,6 +163,18 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
+            profilingSampler = new ProfilingSampler(nameof(ScriptableRenderPass));
+        }
+
+        /// <summary>
+        /// Configures Input Requirements for this render pass.
+        /// This method should be called inside <c>ScriptableRendererFeature.AddRenderPasses</c>.
+        /// </summary>
+        /// <param name="passInput">ScriptableRenderPassInput containing information about what requirements the pass needs.</param>
+        /// <seealso cref="ScriptableRendererFeature.AddRenderPasses"/>
+        public void ConfigureInput(ScriptableRenderPassInput passInput)
+        {
+            m_Input = passInput;
         }
 
         /// <summary>

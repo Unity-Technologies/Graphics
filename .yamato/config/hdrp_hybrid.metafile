@@ -2,10 +2,24 @@ project:
   name: HDRP_Hybrid
   folder: HDRP_HybridTests
 test_platforms:
-  - playmode
-  - playmode_XR
-  # - editmode
-  - Standalone
+  - type: playmode
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
+      - --compilation-errors-as-warnings
+  # - type: editmode
+  #  extra_utr_flags:
+  #    - --compilation-errors-as-warnings
+  - type: Standalone
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
+    extra_utr_flags_build:
+      - --compilation-errors-as-warnings
+    timeout:
+      OSX_Metal: 2400
 platforms:
   - name: Win
     apis:
@@ -19,10 +33,28 @@ platforms:
     apis: 
       - OpenGLCore
       - Vulkan
+build_configs:
+#- name: il2cpp_apiNet2
+#  scripting_backend: IL2CPP
+#  api_level: NET_2_0
+#- name: il2cpp_apiNet4
+#  scripting_backend: IL2CPP
+#  api_level: NET_4_6
+- name: mono_apiNet2
+  scripting_backend: Mono2x
+  api_level: NET_2_0
+#- name: mono_apiNet4
+#  scripting_backend: Mono2x
+#  api_level: NET_4_6
+color_spaces:
+  - Linear
+#  - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR

@@ -145,6 +145,19 @@ namespace UnityEditor.Rendering.HighDefinition
             string sourceName
         ) => LevelAndGUILayout<bool, ToggleFieldGUI>(self, label, sourceValue, sourceName);
 
+        /// <summary>Draws the level popup and the associated value in a field style GUI with an Enum field.</summary>
+        /// <param name="self">The scalable setting value to draw.</param>
+        /// <param name="label">The label to use for the field.</param>
+        /// <param name="sourceValue">The associated scalable setting. This one defines the levels for this value.</param>
+        /// <param name="sourceName">A string describing the source of the scalable settings. Usually the name of the containing asset.</param>
+        public static void LevelAndEnumGUILayout<H>
+        (
+            this SerializedScalableSettingValue self,
+            GUIContent label,
+            ScalableSetting<H> sourceValue,
+            string sourceName
+        ) where H : Enum => LevelAndGUILayout<H, EnumFieldGUI<H>>(self, label, sourceValue, sourceName);
+
         /// <summary>
         /// Draw the level enum popup for a scalable setting value.
         ///
@@ -418,6 +431,52 @@ namespace UnityEditor.Rendering.HighDefinition
                 SerializedScalableSettingValue self,
                 GUIContent label,
                 ScalableSetting<bool> sourceValue,
+                string sourceName
+            )
+            {
+                EditorGUI.LabelField(fieldRect, $"---");
+            }
+        }
+
+        struct EnumFieldGUI<H> : IFieldGUI<H>
+        {
+            public void CustomGUI(
+                Rect fieldRect,
+                SerializedScalableSettingValue self,
+                GUIContent label,
+                ScalableSetting<H> sourceValue,
+                string sourceName
+            )
+            {
+                // Due to a constraint in the scalability setting, we cannot simply precise the H type as an Enum in the struct declaration.
+                // this shenanigans are not pretty, but we do not fall into a high complexity everytime we want to support a new enum.
+                Enum data = (Enum)Enum.Parse(typeof(H), self.@override.intValue.ToString());
+                self.@override.intValue = (int)(object)EditorGUI.EnumPopup(fieldRect, data);
+            }
+
+            public void LevelValueDescriptionGUI(
+                Rect fieldRect,
+                SerializedScalableSettingValue self,
+                GUIContent label,
+                ScalableSetting<H> sourceValue,
+                string sourceName
+            )
+            {
+                var enabled = GUI.enabled;
+                GUI.enabled = false;
+                // See the comment in the function above.
+                var defaultValue = (Enum)(Enum.GetValues(typeof(H)).GetValue(0));
+                EditorGUI.EnumPopup(fieldRect, sourceValue != null ? (Enum)(object)(sourceValue[self.level.intValue]) : defaultValue);
+                fieldRect.x += 25;
+                fieldRect.width -= 25;
+                GUI.enabled = enabled;
+            }
+
+            public void MixedValueDescriptionGUI(
+                Rect fieldRect,
+                SerializedScalableSettingValue self,
+                GUIContent label,
+                ScalableSetting<H> sourceValue,
                 string sourceName
             )
             {

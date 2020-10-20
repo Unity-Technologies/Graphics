@@ -7,7 +7,6 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering;
-using Data.Interfaces;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
@@ -15,7 +14,6 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
-using Drawing.Inspector.PropertyDrawers;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -153,6 +151,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTitle;
         }
 
         public bool FindPort(SlotReference slotRef, out ShaderPort port)
@@ -342,7 +342,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string ConvertToShader(GenerationMode mode)
         {
-            var generator = new Generator(node.owner, node, mode, node.name);
+            var generator = new Generator(node.owner, node, mode, node.name, null);
             return generator.generatedShader;
         }
 
@@ -442,7 +442,54 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
                 title = subGraphNode.asset.name;
             else
-                title = node.name;
+            {
+                if (node.sgVersion < node.latestVersion)
+                {
+                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    {
+                        title = node.name + $" (Deprecated V{node.sgVersion})";
+                    }
+                    else
+                    {
+                        title = node.name + $" (Deprecated)";
+                    }
+                }
+                else
+                {
+                    title = node.name;
+                }
+            }
+        }
+
+        void UpdateShaderPortsForSlots(bool inputSlots, List<MaterialSlot> allSlots, ShaderPort[] slotShaderPorts)
+        {
+            VisualElement portContainer = inputSlots ? inputContainer : outputContainer;
+            var existingPorts = portContainer.Query<ShaderPort>().ToList();
+            foreach (ShaderPort shaderPort in existingPorts)
+            {
+                var currentSlotId = shaderPort.slot.id;
+                int newSlotIndex = allSlots.FindIndex(s => s.id == currentSlotId);
+                if (newSlotIndex < 0)
+                {
+                    // slot doesn't exist anymore, remove it
+                    if (inputSlots)
+                        portContainer.Remove(shaderPort.parent);    // remove parent (includes the InputView)
+                    else
+                        portContainer.Remove(shaderPort);
+                }
+                else
+                {
+                    var newSlot = allSlots[newSlotIndex];
+                    slotShaderPorts[newSlotIndex] = shaderPort;
+
+                    // these should probably be in an UpdateShaderPort(shaderPort, newSlot) function
+                    shaderPort.slot = newSlot;
+                    shaderPort.portName = newSlot.displayName;
+
+                    if (inputSlots) // input slots also have to update the InputView
+                        UpdatePortInputView(shaderPort);
+                }
+            }
         }
 
         public void OnModified(ModificationScope scope)
@@ -460,54 +507,35 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case ModificationScope.Topological:
                 {
                     var slots = node.GetSlots<MaterialSlot>().ToList();
+                    // going to record the corresponding ShaderPort to each slot, so we can order them later
+                    ShaderPort[] slotShaderPorts = new ShaderPort[slots.Count];
 
-                    var inputPorts = inputContainer.Query<ShaderPort>().ToList();
-                    foreach (var port in inputPorts)
+                    // update existing input and output ports
+                    UpdateShaderPortsForSlots(true, slots, slotShaderPorts);
+                    UpdateShaderPortsForSlots(false, slots, slotShaderPorts);
+
+                    // check if there are any new slots that must create new ports
+                    for (int i = 0; i < slots.Count; i++)
                     {
-                        var currentSlot = port.slot;
-                        var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
-                        if (newSlot == null)
-                        {
-                            // Slot doesn't exist anymore, remove it
-                            inputContainer.Remove(port.parent);
-                        }
-                        else
-                        {
-                            port.slot = newSlot;
-                            UpdatePortInput(port);
-
-                            slots.Remove(newSlot);
-                        }
+                        if (slotShaderPorts[i] == null)
+                            slotShaderPorts[i] = AddShaderPortForSlot(slots[i]);
                     }
 
-                    var outputPorts = outputContainer.Children().OfType<ShaderPort>().ToList();
-                    foreach (var port in outputPorts)
+                    // make sure they are in the right order
+                    // by bringing each port to front in declaration order
+                    // note that this sorts input and output containers at the same time
+                    foreach (var shaderPort in slotShaderPorts)
                     {
-                        var currentSlot = port.slot;
-                        var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
-                        if (newSlot == null)
+                        if (shaderPort != null)
                         {
-                            outputContainer.Remove(port);
-                        }
-                        else
-                        {
-                            port.slot = newSlot;
-                            slots.Remove(newSlot);
+                            if (shaderPort.slot.isInputSlot)
+                                shaderPort.parent.BringToFront();
+                            else
+                                shaderPort.BringToFront();
                         }
                     }
-
-                    AddSlots(slots);
-
-                    slots.Clear();
-                    slots.AddRange(node.GetSlots<MaterialSlot>());
-
-                    if (inputContainer.childCount > 0)
-                        inputContainer.Sort((x, y) => slots.IndexOf(x.Q<ShaderPort>().slot) - slots.IndexOf(y.Q<ShaderPort>().slot));
-                    if (outputContainer.childCount > 0)
-                        outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
 
                     break;
-
                 }
             }
 
@@ -520,39 +548,44 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AddSlots(IEnumerable<MaterialSlot> slots)
+        ShaderPort AddShaderPortForSlot(MaterialSlot slot)
         {
-            foreach (var slot in slots)
-            {
-                if (slot.hidden)
-                    continue;
+            if (slot.hidden)
+                return null;
 
-                var port = ShaderPort.Create(slot, m_ConnectorListener);
-                if (slot.isOutputSlot)
+            ShaderPort port = ShaderPort.Create(slot, m_ConnectorListener);
+            if (slot.isOutputSlot)
+            {
+                outputContainer.Add(port);
+            }
+            else
+            {
+                var portContainer = new VisualElement();
+                portContainer.style.flexDirection = FlexDirection.Row;
+                var portInputView = new PortInputView(slot) { style = { position = Position.Absolute } };
+                portContainer.Add(portInputView);
+                portContainer.Add(port);
+                inputContainer.Add(portContainer);
+
+                // Update active state
+                if (node.isActive)
                 {
-                    outputContainer.Add(port);
+                    portInputView.RemoveFromClassList("disabled");
                 }
                 else
                 {
-                    var portContainer = new VisualElement();
-                    portContainer.style.flexDirection = FlexDirection.Row;
-                    var portInputView = new PortInputView(slot) {style = {position = Position.Absolute}};
-                    portContainer.Add(portInputView);
-                    portContainer.Add(port);
-                    inputContainer.Add(portContainer);
-
-                    // Update active state
-                    if(node.isActive)
-                    {
-                        portInputView.RemoveFromClassList("disabled");
-                    }
-                    else
-                    {
-                        portInputView.AddToClassList("disabled");
-                    }
+                    portInputView.AddToClassList("disabled");
                 }
-                port.OnDisconnect = OnEdgeDisconnected;
             }
+            port.OnDisconnect = OnEdgeDisconnected;
+
+            return port;
+        }
+
+        void AddSlots(IEnumerable<MaterialSlot> slots)
+        {
+            foreach (var slot in slots)
+                AddShaderPortForSlot(slot);
         }
 
         void OnEdgeDisconnected(Port obj)
@@ -568,11 +601,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in inputContainer.Query<ShaderPort>().ToList())
+            var portList = inputContainer.Query<ShaderPort>().ToList();
+            portList.AddRange(outputContainer.Query<ShaderPort>().ToList());
+            foreach (var anchor in portList)
             {
                 var slot = anchor.slot;
                 anchor.portName = slot.displayName;
                 anchor.visualClass = slot.concreteValueType.ToClassName();
+
                 if (GetPortInputView(anchor, out var portInputView))
                 {
                     portInputView.UpdateSlotType();
@@ -587,7 +623,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void UpdatePortInput(ShaderPort port)
+        void UpdatePortInputView(ShaderPort port)
         {
             if (GetPortInputView(port, out var portInputView))
             {
@@ -686,6 +722,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
                 m_PreviewRenderData = null;
             }
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTitle;
         }
     }
 }

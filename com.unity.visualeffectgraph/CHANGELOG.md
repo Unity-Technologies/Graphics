@@ -4,6 +4,46 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.2.0] - 2020-10-19
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.1.0] - 2020-10-12
+### Added
+- Compare operator can take int and uint as inputs
+- New operator : Sample Signed distance field
+- New WorldToViewportPoint operator
+- New ViewportToWorldPoint operator
+- Added Output Event Handler API
+- Added Output Event Handler Samples
+- Added ExposedProperty custom Property Drawer
+- Error display within the graph.
+
+### Fixed
+- Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
+- Fix for node window staying when clicking elsewhere
+- Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
+- Missing System Seed in new dynamic built-in operator.
+- Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- Correctly frame the whole graph, when opening the Visual Effect Editor
+- Optimize display of inspector when there is a lot of exposed VFX properties.
+- fixes the user created vfx default resources that were ignored unless loaded
+- fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
+- fix issue with multiselection and objectfields [Case 1250378](https://issuetracker.unity3d.com/issues/vfx-removing-texture-asset-while-multiediting-working-incorrectly)
+- Normals with non uniform scales are correctly computed [Case 1246989](https://issuetracker.unity3d.com/product/unity/issues/guid/1246989/)
+- Fix exposed Texture2DArray and Cubemap types from shader graph not being taken into account in Output Mesh [Case 1265221](https://issuetracker.unity3d.com/product/unity/issues/guid/1265221/)
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
+- GPU Evaluation of Construct Matrix
+- Random Per-Component on Set Attribute in Spawn Context [Case 1279294](https://issuetracker.unity3d.com/product/unity/issues/guid/1279294/)
+- Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
+- Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
+- Fix  https://issuetracker.unity3d.com/issues/ux-cant-drag-a-noodle-out-of-trigger-blocks
+- Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
+- Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
+- Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
+
 ## [10.0.0] - 2019-06-10
 ### Added
 - Tooltips for Attributes
@@ -29,7 +69,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New built-in operator providing new times access
 - More efficient update modes inspector
 - Ability to read attribute in spawn context through graph
+- Added save button to save only the current visual effect graph.
 - Added Degrees / Radians conversion subgraphs in samples
+- uint parameter can be seen as an enum.
+- New TransformVector4 operator
+- New GetTextureDimensions operator
+- Output Event context for scripting API event retrieval.
+- per-particle GPU Frustum culling
+- Compute culling of particle which have their alive attribute set to false in output
+- Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
+- Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -115,6 +164,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - De-nicified attribute name (conserve case) in Set Custom Attribute title
 - Changed the default "No Asset" message when opening the visual effect graph window
 - Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
+- Fix creation of StringPropertyRM
+- Enum fields having headers show the header in the inspector as well.
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added

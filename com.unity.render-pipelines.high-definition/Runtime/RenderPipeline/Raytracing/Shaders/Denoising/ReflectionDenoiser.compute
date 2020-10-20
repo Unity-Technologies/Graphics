@@ -30,6 +30,7 @@ TEXTURE2D_X(_HistoryBuffer);
 RW_TEXTURE2D_X(float4, _DenoiseOutputTextureRW);
 // Value that tells us if the current history should be discarded based on scene-level data
 float _HistoryValidity;
+int _SingleReflectionBounce;
 
 [numthreads(REFLECTION_FILTER_TILE_SIZE, REFLECTION_FILTER_TILE_SIZE, 1)]
 void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -62,6 +63,16 @@ void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
 
     // If the validity of the history is lower than a given threshold, we do not want to use it
     if (historyRaw.w < REFLECTION_HISTORY_REJECTION_THRESHOLD)
+    {
+        _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
+        return;
+    }
+
+    // Decode the normal data
+    NormalData normalData;
+    DecodeFromNormalBuffer(centerCoord, normalData);
+    // If this is close to a perfectly smooth surface, we do not want to use the history (it introduced unwanted ghosting)
+    if (_SingleReflectionBounce == 1 && PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) > 0.99)
     {
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
         return;
@@ -144,7 +155,7 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
     const BilateralData center = TapBilateralData(centerCoord);
 
     // Compute the effective radius we should be using for the filtering
-    float3 viewWS = normalize(_WorldSpaceCameraPos - center.position);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(center.position);
     float2 mappingUV = float2(dot(viewWS, center.normal), center.roughness);
     float2 radiusScale = SAMPLE_TEXTURE2D_LOD(_ReflectionFilterMapping, s_linear_clamp_sampler, mappingUV, 0.0f).xy;
     #if FINAL_PASS
@@ -165,9 +176,13 @@ void BILATERAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupT
         float3 colorSum = float3(0.0, 0.0, 0.0);
         float wSum = 0.0;
 
-        uint2 tapCoord = centerCoord - effectiveRadius * passIncr;
+        int2 tapCoord = centerCoord - effectiveRadius * passIncr;
         for (int r = -effectiveRadius; r <= effectiveRadius; ++r, tapCoord += passIncr)
         {
+            // Make sure the pixel coord we are trying to use is in the screen (not out of bounds)
+            if (tapCoord.x >= _ScreenSize.x || tapCoord.x < 0 || tapCoord.y >= _ScreenSize.y || tapCoord.y < 0)
+                continue;
+
             // Compute the weight (skip computation for the center)
             const BilateralData tapData = TapBilateralData(tapCoord);
             float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, tapData) : 1.0;

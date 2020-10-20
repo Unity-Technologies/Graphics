@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public TileDepthRangePass(RenderPassEvent evt, DeferredLights deferredLights, int passIndex)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(TileDepthRangePass));
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
             m_PassIndex = passIndex;
@@ -25,10 +26,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_PassIndex == 0 && m_DeferredLights.HasTileDepthRangeExtraPass())
             {
                 int alignment = 1 << DeferredConfig.kTileDepthInfoIntermediateLevel;
-                int depthInfoWidth = (m_DeferredLights.m_RenderWidth + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
-                int depthInfoHeight = (m_DeferredLights.m_RenderHeight + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
+                int depthInfoWidth = (m_DeferredLights.RenderWidth + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
+                int depthInfoHeight = (m_DeferredLights.RenderHeight + alignment - 1) >> DeferredConfig.kTileDepthInfoIntermediateLevel;
 
-                outputTex = m_DeferredLights.m_DepthInfoTexture;
+                outputTex = m_DeferredLights.DepthInfoTexture;
                 desc = new RenderTextureDescriptor(depthInfoWidth, depthInfoHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
             }
             else
@@ -36,7 +37,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int tileDepthRangeWidth = m_DeferredLights.GetTiler(0).TileXCount;
                 int tileDepthRangeHeight = m_DeferredLights.GetTiler(0).TileYCount;
 
-                outputTex = m_DeferredLights.m_TileDepthInfoTexture;
+                outputTex = m_DeferredLights.TileDepthInfoTexture;
                 desc = new RenderTextureDescriptor(tileDepthRangeWidth, tileDepthRangeHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R32_UInt, 0);
             }
             cmd.GetTemporaryRT(outputTex.id, desc, FilterMode.Point);
@@ -58,8 +59,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(m_DeferredLights.m_TileDepthInfoTexture.id);
-            m_DeferredLights.m_TileDepthInfoTexture = RenderTargetHandle.CameraTarget;
+            cmd.ReleaseTemporaryRT(m_DeferredLights.TileDepthInfoTexture.id);
+            m_DeferredLights.TileDepthInfoTexture = RenderTargetHandle.CameraTarget;
         }
     }
 }

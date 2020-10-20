@@ -94,6 +94,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shadowTint;
         public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
+        public SerializedProperty shadowAlwaysDrawDynamic;
+        public SerializedProperty shadowUpdateUponTransformChange;
         public SerializedScalableSettingValue shadowResolution;
 
         // Bias control
@@ -408,6 +410,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 shadowTint = o.Find("m_ShadowTint");
                 penumbraTint = o.Find("m_PenumbraTint");
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
+                shadowAlwaysDrawDynamic = o.Find("m_AlwaysDrawDynamicShadows");
+                shadowUpdateUponTransformChange = o.Find("m_UpdateShadowOnLightMovement");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
 				slopeBias = o.Find("m_SlopeBias");
@@ -472,8 +476,10 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Update();
 
             lightGameObject.Update();
-            deportedAreaLightEmissiveMeshMotionVector?.serializedObject.Update();
-            deportedAreaLightEmissiveMeshLayer?.serializedObject.Update();
+            if (deportedAreaLightEmissiveMeshMotionVector.IsTargetAlive())
+                deportedAreaLightEmissiveMeshMotionVector?.serializedObject.Update();
+            if (deportedAreaLightEmissiveMeshLayer.IsTargetAlive())
+                deportedAreaLightEmissiveMeshLayer?.serializedObject.Update();
         }
 
         void ApplyInternal(bool withDeportedEmissiveMeshData)
@@ -482,8 +488,10 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.ApplyModifiedProperties();
             if (withDeportedEmissiveMeshData)
             {
-                deportedAreaLightEmissiveMeshMotionVector?.serializedObject.ApplyModifiedProperties();
-                deportedAreaLightEmissiveMeshLayer?.serializedObject.ApplyModifiedProperties();
+                if (deportedAreaLightEmissiveMeshMotionVector.IsTargetAlive())
+                    deportedAreaLightEmissiveMeshMotionVector?.serializedObject.ApplyModifiedProperties();
+                if (deportedAreaLightEmissiveMeshLayer.IsTargetAlive())
+                    deportedAreaLightEmissiveMeshLayer?.serializedObject.ApplyModifiedProperties();
             }
         }
 

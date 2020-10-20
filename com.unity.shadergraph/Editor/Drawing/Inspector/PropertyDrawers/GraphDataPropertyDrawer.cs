@@ -1,13 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Data.Interfaces;
-using Drawing.Views;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditorInternal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
@@ -20,9 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
         ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
 
-        Dictionary<string, bool> m_TargetFoldouts = new Dictionary<string, bool>();
-
-        List<string> userOrderedTargetNameList = new List<string>();
+        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
@@ -49,65 +49,57 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             element.Add(new PropertyRow(targetSettingsLabel));
 
-            var targetNameList = graphData.validTargets.Select(x => x.displayName);
+            var targetList = new ReorderableListView<JsonData<Target>>(
+                graphData.m_ActiveTargets,
+                "Active Targets",
+                false,      // disallow reordering (active list is sorted)
+                target => target.value.displayName);
 
-            element.Add(new PropertyRow(new Label("Targets")), (row) =>
+            targetList.GetAddMenuOptions = () => graphData.GetPotentialTargetDisplayNames();
+
+            targetList.OnAddMenuItemCallback +=
+                (list, addMenuOptionIndex, addMenuOption) =>
                 {
-                    row.Add(new IMGUIContainer(() => {
-                        EditorGUI.BeginChangeCheck();
-                        var activeTargetBitmask = EditorGUILayout.MaskField(graphData.activeTargetBitmask, targetNameList.ToArray(), GUILayout.Width(100f));
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            RegisterActionToUndo("Change active Targets");
-                            graphData.activeTargetBitmask = activeTargetBitmask;
-                            graphData.UpdateActiveTargets();
-                            m_postChangeTargetSettingsCallback();
-                        }
-                    }));
-                });
+                    RegisterActionToUndo("Add Target");
+                    graphData.SetTargetActive(addMenuOptionIndex);
+                    m_postChangeTargetSettingsCallback();
+                };
 
+            targetList.RemoveItemCallback +=
+                (list, itemIndex) =>
+                {
+                    RegisterActionToUndo("Remove Target");
+                    graphData.SetTargetInactive(list[itemIndex].value);
+                    m_postChangeTargetSettingsCallback();
+                };
 
-            // Initialize from the active targets whenever user changes them
-            // Is there a way to retain order even with that?
-            if (userOrderedTargetNameList.Count != graphData.activeTargets.Count())
-            {
-                var activeTargetNames = graphData.activeTargets.Select(x => x.displayName);
-                userOrderedTargetNameList = activeTargetNames.ToList();
-            }
-
-            var reorderableTextListView = new ReorderableListView<string>(userOrderedTargetNameList);
-            reorderableTextListView.OnListReorderedCallback += list =>
-            {
-                userOrderedTargetNameList = (List<string>)list;
-                onChange();
-            };
-            element.Add(reorderableTextListView);
+            element.Add(targetList);
 
             // Iterate active TargetImplementations
-            foreach(var targetName in reorderableTextListView.TextList)
+            foreach(var target in graphData.activeTargets)
             {
                 // Ensure enabled state is being tracked and get value
-                bool foldoutActive = true;
-                if(!m_TargetFoldouts.TryGetValue(targetName, out foldoutActive))
+                bool foldoutActive;
+                if (!m_TargetFoldouts.TryGetValue(target, out foldoutActive))
                 {
-                    m_TargetFoldouts.Add(targetName, foldoutActive);
+                    foldoutActive = true;
+                    m_TargetFoldouts.Add(target, foldoutActive);
                 }
 
                 // Create foldout
-                var foldout = new Foldout() { text = targetName, value = foldoutActive, name = "foldout" };
+                var foldout = new Foldout() { text = target.displayName, value = foldoutActive, name = "foldout" };
                 element.Add(foldout);
                 foldout.AddToClassList("MainFoldout");
                 foldout.RegisterValueChangedCallback(evt =>
                 {
                     // Update foldout value and rebuild
-                    m_TargetFoldouts[targetName] = evt.newValue;
+                    m_TargetFoldouts[target] = evt.newValue;
                     foldout.value = evt.newValue;
                     onChange();
                 });
 
-                if(foldout.value)
+                if (foldout.value)
                 {
-                    var target = graphData.validTargets.Find(x => x.displayName == targetName);
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
                     target.GetPropertiesGUI(ref context, onChange, RegisterActionToUndo);
@@ -133,7 +125,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision) newValue); },
                 graphData.concretePrecision,
                 "Precision",
-                ConcretePrecision.Float,
+                ConcretePrecision.Single,
                 out var propertyVisualElement));
 
             propertySheet.Add(GetSettings(graphData, () => this.m_postChangeTargetSettingsCallback()));
@@ -149,4 +141,3 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         }
     }
 }
-

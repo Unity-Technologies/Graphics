@@ -4,9 +4,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class DBufferManager : MRTBufferManager
     {
-        ComputeBuffer   m_PropertyMaskBuffer;
-        ComputeShader   m_ClearPropertyMaskBufferShader;
-        int m_ClearPropertyMaskBufferKernel;
 
 
         public DBufferManager()
@@ -16,37 +13,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public RTHandle[] GetRTHandles() { return m_RTs; }
-
-        public ComputeBuffer propertyMaskBuffer
-        {
-            get
-            {
-                return m_PropertyMaskBuffer;
-            }
-        }
-
-        public int clearPropertyMaskBufferKernel
-        {
-            get
-            {
-                return m_ClearPropertyMaskBufferKernel;
-            }
-        }
-
-        public ComputeShader clearPropertyMaskBufferShader
-        {
-            get
-            {
-                return m_ClearPropertyMaskBufferShader;
-            }
-        }
-
-        public int GetPropertyMaskBufferSize(int width, int height)
-        {
-            int propertyMaskBufferSize = ((width + 7) / 8) * ((height + 7) / 8);
-            propertyMaskBufferSize = ((propertyMaskBufferSize + 63) / 64) * 64;
-            return propertyMaskBufferSize;
-        }
 
         public override void CreateBuffers()
         {
@@ -61,26 +27,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void InitializeHDRPResouces(HDRenderPipelineAsset asset)
-        {
-            m_ClearPropertyMaskBufferShader = asset.renderPipelineResources.shaders.decalClearPropertyMaskBufferCS;
-            m_ClearPropertyMaskBufferKernel = m_ClearPropertyMaskBufferShader.FindKernel("CSMain");
-        }
-
-        public void ReleaseResolutionDependentBuffers()
-        {
-            if(m_PropertyMaskBuffer != null)
-            {
-                m_PropertyMaskBuffer.Dispose();
-                m_PropertyMaskBuffer = null;
-            }
-        }
-
-        public void AllocResolutionDependentBuffers(int width, int height)
-        {
-            m_PropertyMaskBuffer = new ComputeBuffer(GetPropertyMaskBufferSize(width, height), 4);
-        }
-
         override public void DestroyBuffers()
         {
             base.DestroyBuffers();
@@ -92,6 +38,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetGlobalTexture(m_TextureShaderIDs[i], TextureXR.GetBlackTexture());
             }
+
+            cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, TextureXR.GetBlackTexture());
         }
     }
 }

@@ -11,7 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         bool UsesRayTracingQualityMode()
         {
-            return mode.overrideState && mode == RayTracingMode.Quality;
+            // The default value is set to quality. So we should be in quality if not overriden or we have an override set to quality
+            return !mode.overrideState || mode == RayTracingMode.Quality;
         }
 
         bool UsesRayTracing()
@@ -212,8 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private IntParameter m_RayMaxIterations = new IntParameter(32);
 
         [SerializeField, FormerlySerializedAs("rayLength")]
-        [Tooltip("Controls the length of reflection rays.")]
-        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(50.0f, 0f, 50f);
+        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
 
         [SerializeField, FormerlySerializedAs("clampValue")]
         [Tooltip("Controls the clamp of intensity.")]

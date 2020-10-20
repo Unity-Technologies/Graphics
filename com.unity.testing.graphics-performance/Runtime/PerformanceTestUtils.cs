@@ -9,6 +9,12 @@ public static class PerformanceTestUtils
 {
     public static TestSceneAsset testScenesAsset = PerformanceTestSettings.GetTestSceneDescriptionAsset();
 
+    /// <summary>
+    /// Note that you need to call this function using yield return LoadScene(...) Otherwise the scene doesn't have the time to load properly.
+    /// </summary>
+    /// <param name="sceneName"></param>
+    /// <param name="hdAsset"></param>
+    /// <returns>Call yield return LoadScene()</returns>
     public static IEnumerator LoadScene(string sceneName, RenderPipelineAsset hdAsset)
     {
         if (GraphicsSettings.renderPipelineAsset != hdAsset)
@@ -20,6 +26,11 @@ public static class PerformanceTestUtils
         yield return null;
     }
 
+    /// <summary>
+    /// This function finds the PerformanceTestSceneSettings component in your scene and use it to allocate the render texture for the test camera.
+    /// Don't forget to call CleanupTestSceneIfNeeded to release the render texture.
+    /// </summary>
+    /// <returns></returns>
     public static PerformanceTestSceneSettings SetupTestScene()
     {
         var sceneSettings = GameObject.FindObjectOfType<PerformanceTestSceneSettings>();
@@ -39,6 +50,9 @@ public static class PerformanceTestUtils
         return sceneSettings;
     }
 
+    /// <summary>
+    /// Call this function to release the allocated render texture.
+    /// </summary>
     public static void CleanupTestSceneIfNeeded()
     {
         var settings = GameObject.FindObjectOfType<PerformanceTestSceneSettings>();

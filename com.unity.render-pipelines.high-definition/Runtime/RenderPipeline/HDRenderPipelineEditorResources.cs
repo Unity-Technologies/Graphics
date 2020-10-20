@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         })]
         [SerializeField]
         internal DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
-        
+
         [Reload("Editor/RenderPipelineResources/DefaultSettingsVolumeProfile.asset")]
         public VolumeProfile defaultSettingsVolumeProfile;
 
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material defaultParticleMat;
             [Reload("Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat")]
             public Material defaultTerrainMat;
-            [Reload("Editor/RenderPipelineResources/Materials/GUITextureBlit2SRGB.mat")]
+            [Reload("Editor/RenderPipelineResources/Material/GUITextureBlit2SRGB.mat")]
             public Material GUITextureBlit2SRGB;
         }
 
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShaderGraphResources shaderGraphs;
         public LookDevResources lookDev;
     }
-    
+
     [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]
     class HDRenderPipelineEditorResourcesEditor : UnityEditor.Editor
     {
