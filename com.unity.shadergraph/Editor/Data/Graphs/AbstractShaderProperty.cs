@@ -4,6 +4,115 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
+    [Serializable]
+    public abstract class AbstractShaderProperty : ShaderInput
+    {
+        public abstract PropertyType propertyType { get; }
+
+        internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
+
+        // user selected precision setting
+        [SerializeField]
+        Precision m_Precision = Precision.Inherit;
+
+        // shortcut to check whether HYBRID renderer GPU instanced path is enabled ...  TODO: REMOVE THIS
+        public bool gpuInstanced
+        {
+            get { return overrideHLSLDeclaration && (hlslDeclarationOverride == HLSLDeclaration.HybridPerInstance); }
+        }
+
+        internal virtual HLSLDeclaration GetDefaultHLSLDeclaration()
+        {
+            if (overrideHLSLDeclaration)
+                return hlslDeclarationOverride;
+            // default Behavior switches between UnityPerMaterial and Global based on Exposed checkbox
+            if (generatePropertyBlock)
+                return HLSLDeclaration.UnityPerMaterial;
+            else
+                return HLSLDeclaration.Global;
+        }
+
+        internal virtual bool AllowHLSLDeclaration(HLSLDeclaration decl) => true;
+
+        [SerializeField]
+        internal bool overrideHLSLDeclaration = false;
+
+        [SerializeField]
+        internal HLSLDeclaration hlslDeclarationOverride;
+
+        internal Precision precision
+        {
+            get => m_Precision;
+            set => m_Precision = value;
+        }
+
+        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
+        public ConcretePrecision concretePrecision => m_ConcretePrecision;
+        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
+        {
+            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
+        }
+
+        [SerializeField]
+        bool m_Hidden = false;
+        public bool hidden
+        {
+            get => m_Hidden;
+            set => m_Hidden = value;
+        }
+
+        internal string hideTagString => hidden ? "[HideInInspector]" : "";
+
+        // reference names are the HLSL declaration name / property block ref name
+        internal virtual void GetPropertyReferenceNames(List<string> result)
+        {
+            result.Add(referenceName);
+        }
+
+        // display names are used as the UI name in the property block / show up in the Material Inspector
+        internal virtual void GetPropertyDisplayNames(List<string> result)
+        {
+            result.Add(displayName);
+        }
+
+        // the simple interface for simple properties
+        internal virtual string GetPropertyBlockString()
+        {
+            return string.Empty;
+        }
+
+        // the more complex interface for complex properties (defaulted for simple properties)
+        internal virtual void AppendPropertyBlockStrings(ShaderStringBuilder builder)
+        {
+            builder.AppendLine(GetPropertyBlockString());
+        }
+
+        internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
+
+        internal abstract string GetPropertyAsArgumentString();
+        internal abstract AbstractMaterialNode ToConcreteNode();
+        internal abstract PreviewProperty GetPreviewMaterialProperty();
+
+        public virtual string GetPropertyTypeString()
+        {
+            string depString = $" (Deprecated{(ShaderGraphPreferences.allowDeprecatedBehaviors ? " V" + sgVersion : "" )})" ;
+            return propertyType.ToString() + (sgVersion < latestVersion ? depString : "");
+        }
+    }
+    
+    [Serializable]
+    public abstract class AbstractShaderProperty<T> : AbstractShaderProperty
+    {
+        [SerializeField]
+        T m_Value;
+
+        public virtual T value
+        {
+            get => m_Value;
+            set => m_Value = value;
+        }
+    }
+
     // class for extracting deprecated data from older versions of AbstractShaderProperty
     class LegacyShaderPropertyData
     {
@@ -91,7 +200,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 {"float4x4", "half4x4"}
         };
 
-        static string[] kObjectTypeStrings = new string[(int) HLSLType._CUSTOM - (int) HLSLType.FirstObjectType]
+        static string[] kObjectTypeStrings = new string[(int)HLSLType._CUSTOM - (int)HLSLType.FirstObjectType]
         {
                 "TEXTURE2D",
                 "TEXTURE3D",
@@ -132,120 +241,6 @@ namespace UnityEditor.ShaderGraph.Internal
             //ssb.Append(" // ");
             //ssb.Append(declaration.ToString());
             ssb.AppendNewLine();
-        }
-    }
-
-    [Serializable]
-    public abstract class AbstractShaderProperty : ShaderInput
-    {
-        public abstract PropertyType propertyType { get; }
-
-        internal override ConcreteSlotValueType concreteShaderValueType => propertyType.ToConcreteShaderValueType();
-
-        // user selected precision setting
-        [SerializeField]
-        Precision m_Precision = Precision.Inherit;
-
-        // indicates user wishes to support the HYBRID renderer GPU instanced path
-        public bool gpuInstanced
-        {
-            get { return overrideHLSLDeclaration && (hlslDeclarationOverride == HLSLDeclaration.HybridPerInstance); }
-        }
-
-        internal virtual HLSLDeclaration GetDefaultHLSLDeclaration()
-        {
-            if (overrideHLSLDeclaration)
-                return hlslDeclarationOverride;
-            // default Behavior switches between UnityPerMaterial and Global based on Exposed checkbox
-            if (generatePropertyBlock)
-                return HLSLDeclaration.UnityPerMaterial;
-            else
-                return HLSLDeclaration.Global;
-        }
-
-        internal virtual bool AllowHLSLDeclaration(HLSLDeclaration decl) => true;
-
-        [SerializeField]
-        internal bool overrideHLSLDeclaration = false;
-
-        [SerializeField]
-        internal HLSLDeclaration hlslDeclarationOverride;
-
-        internal Precision precision
-        {
-            get => m_Precision;
-            set => m_Precision = value;
-        }
-
-        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
-        public ConcretePrecision concretePrecision => m_ConcretePrecision;
-        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
-        {
-            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
-        }
-
-        [SerializeField]
-        bool m_Hidden = false;
-        public bool hidden
-        {
-            get => m_Hidden;
-            set => m_Hidden = value;
-        }
-
-        internal string hideTagString => hidden ? "[HideInInspector]" : "";
-
-        // simple properties use a single name; these functions cover that case
-        // complex properties can override thes function to produce multiple reference names
-
-        // reference names are the HLSL declaration name / property block ref name
-        internal virtual void GetPropertyReferenceNames(List<string> result)
-        {
-            result.Add(referenceName);
-        }
-
-        // display names are used as the UI name in the property block / show up in the Material Inspector
-        internal virtual void GetPropertyDisplayNames(List<string> result)
-        {
-            result.Add(displayName);
-        }
-
-        // the simple interface for simple properties
-        internal virtual string GetPropertyBlockString()
-        {
-            return string.Empty;
-        }
-
-        // the more complex interface for complex properties (defaulted for simple properties)
-        internal virtual void AppendPropertyBlockStrings(ShaderStringBuilder builder)
-        {
-            builder.AppendLine(GetPropertyBlockString());
-        }
-
-        // TODO: name modifier callback?
-        internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
-
-
-        internal abstract string GetPropertyAsArgumentString();
-        internal abstract AbstractMaterialNode ToConcreteNode();
-        internal abstract PreviewProperty GetPreviewMaterialProperty();
-
-        public virtual string GetPropertyTypeString()
-        {
-            string depString = $" (Deprecated{(ShaderGraphPreferences.allowDeprecatedBehaviors ? " V" + sgVersion : "" )})" ;
-            return propertyType.ToString() + (sgVersion < latestVersion ? depString : "");
-        }
-    }
-    
-    [Serializable]
-    public abstract class AbstractShaderProperty<T> : AbstractShaderProperty
-    {
-        [SerializeField]
-        T m_Value;
-
-        public virtual T value
-        {
-            get => m_Value;
-            set => m_Value = value;
         }
     }
 }

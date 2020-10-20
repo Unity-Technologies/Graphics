@@ -30,6 +30,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
+        // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice
         internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => (decl != HLSLDeclaration.HybridPerInstance);
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
@@ -39,7 +40,6 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._Texture2D, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
-            // action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl));
         }
 
         internal override string GetPropertyAsArgumentString()

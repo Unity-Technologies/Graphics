@@ -198,7 +198,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override bool isAlwaysExposed => true;
 
-        public override void OnAfterMultiDeserialize(string json)
+        public override void OnAfterDeserialize(string json)
         {
             // VT shader properties must always be exposed
             generatePropertyBlock = true;
