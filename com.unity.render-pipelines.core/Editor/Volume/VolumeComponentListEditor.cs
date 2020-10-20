@@ -67,34 +67,6 @@ namespace UnityEditor.Rendering
             ReloadDocumentation();
         }
 
-        static void ReloadDocumentation()
-        {
-            if (m_EditorDocumentationURLs == null)
-                m_EditorDocumentationURLs = new Dictionary<Type, string>();
-            m_EditorDocumentationURLs.Clear();
-
-            string GetVolumeComponentDocumentation(Type component)
-            {
-                var attrs = component.GetCustomAttributes(false);
-                foreach (var attr in attrs)
-                {
-                    if (attr is HelpURLAttribute attrDocumentation)
-                        return attrDocumentation.URL;
-                }
-
-                // There is no documentation for this volume component.
-                return null;
-            }
-
-            // Gets the list of all available component editors
-            var componentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>();
-            foreach (var componentType in componentTypes)
-            {
-                if (!m_EditorDocumentationURLs.ContainsKey(componentType))
-                    m_EditorDocumentationURLs.Add(componentType, GetVolumeComponentDocumentation(componentType));
-            }
-        }
-
         /// <summary>
         /// Creates a new instance of <see cref="VolumeComponentListEditor"/> to use in an
         /// existing editor.
@@ -538,6 +510,33 @@ namespace UnityEditor.Rendering
             string typeData = clipboard.Substring(clipboard.IndexOf('|') + 1);
             Undo.RecordObject(targetComponent, "Paste Settings");
             JsonUtility.FromJsonOverwrite(typeData, targetComponent);
+        }
+
+        static void ReloadDocumentation()
+        {
+            if (m_EditorDocumentationURLs == null)
+                m_EditorDocumentationURLs = new Dictionary<Type, string>();
+            m_EditorDocumentationURLs.Clear();
+
+            string GetVolumeComponentDocumentation(Type component)
+            {
+                var attrs = component.GetCustomAttributes(false);
+                foreach (var attr in attrs)
+                {
+                    if (attr is HelpURLAttribute attrDocumentation)
+                        return attrDocumentation.URL;
+                }
+
+                // There is no documentation for this volume component.
+                return null;
+            }
+
+            var componentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>();
+            foreach (var componentType in componentTypes)
+            {
+                if (!m_EditorDocumentationURLs.ContainsKey(componentType))
+                    m_EditorDocumentationURLs.Add(componentType, GetVolumeComponentDocumentation(componentType));
+            }
         }
     }
 }
