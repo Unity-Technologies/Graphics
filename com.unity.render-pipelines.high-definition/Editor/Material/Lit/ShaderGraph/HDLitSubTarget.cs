@@ -191,8 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            var features = SurfaceOptionPropertyBlock.Features.Lit | (litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None ? SurfaceOptionPropertyBlock.Features.HasRefraction : 0);
-            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(features, litData));
+            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, litData));
             if (systemData.surfaceType == SurfaceType.Transparent)
                 blockList.AddPropertyBlock(new DistortionPropertyBlock());
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());

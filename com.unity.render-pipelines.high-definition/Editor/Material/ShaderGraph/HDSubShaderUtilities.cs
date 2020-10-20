@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess, bool hasRefraction)
+        public static System.Collections.Generic.List<HDRenderQueue.RenderQueueType> GetRenderingPassList(bool opaque, bool needAfterPostProcess)
         {
             // We can't use RenderPipelineManager.currentPipeline here because this is called before HDRP is created by SG window
             var result = new System.Collections.Generic.List<HDRenderQueue.RenderQueueType>();
@@ -233,8 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                if (!hasRefraction)
-                    result.Add(HDRenderQueue.RenderQueueType.PreRefraction);
+                result.Add(HDRenderQueue.RenderQueueType.PreRefraction);
                 result.Add(HDRenderQueue.RenderQueueType.Transparent);
                 result.Add(HDRenderQueue.RenderQueueType.LowTransparent);
                 if (needAfterPostProcess)

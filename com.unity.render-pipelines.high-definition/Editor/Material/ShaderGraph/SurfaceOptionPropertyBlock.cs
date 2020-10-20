@@ -19,11 +19,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             None                    = 0,
             ShowDoubleSidedNormal   = 1 << 0,
-            HasRefraction           = 1 << 1,
             All                     = ~0,
 
             Unlit                   = Lit ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
-            Lit                     = All ^ HasRefraction, // Refraction is not enabled by default
+            Lit                     = All,
         }
 
         class Styles
@@ -46,17 +45,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.TryChangeRenderingPass(systemData.renderQueueType);
             });
 
-            // TODO: if HasRefraction, convert render queue before refraction to default (transparent only)
-            // + remove before refraction from the list
-
-            bool hasRefraction = (enabledFeatures & Features.HasRefraction) != 0; 
             context.globalIndentLevel++;
-            var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, enabledFeatures == Features.Unlit, hasRefraction); // Show after post process for unlit shaders
+            var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, enabledFeatures == Features.Unlit); // Show after post process for unlit shaders
             var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderQueueType) : HDRenderQueue.GetTransparentEquivalent(systemData.renderQueueType);
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-
-            if (renderingPassValue == HDRenderQueue.RenderQueueType.PreRefraction && hasRefraction)
-                renderingPassValue = HDRenderQueue.RenderQueueType.Transparent;
 
             context.AddProperty(renderingPassText, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
             {

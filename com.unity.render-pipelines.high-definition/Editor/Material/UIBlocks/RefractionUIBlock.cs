@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent transmittanceColorText = new GUIContent("Transmittance Color", "Specifies the Transmittance Color (RGB) for this Material.");
             public static GUIContent atDistanceText = new GUIContent("Transmittance Absorption Distance", "Sets the absorption distance reference in meters.");
             public static string refractionBlendModeWarning = "Refraction is only supported with the Blend Mode value Alpha. Please, set the Blend Mode to Alpha in the Surface Options to hide this mesage.";
+            public static string refractionRenderingPassWarning = "Refraction is not supported with the rendering pass Pre-Refraction. Please, use a different rendering pass.";
         }
 
         protected MaterialProperty refractionModel = null;
@@ -65,11 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnGUI()
         {
-            var isPrepass = materials.All(m => HDRenderQueue.k_RenderQueue_PreRefraction.Contains(m.renderQueue));
-
-            if (refractionModel != null
-                // Refraction is not available for pre-refraction objects
-                && !isPrepass)
+            if (refractionModel != null)
             {
                 materialEditor.ShaderProperty(refractionModel, Styles.refractionModelText);
                 var mode = (ScreenSpaceRefraction.RefractionModel)refractionModel.floatValue;
@@ -123,9 +120,19 @@ namespace UnityEditor.Rendering.HighDefinition
                         break;
                 }
             
-                if (refractionModel.floatValue != 0 && blendMode != null && blendMode.floatValue != (int)BlendMode.Alpha)
+                if (refractionModel.floatValue != 0 && blendMode != null)
                 {
-                    EditorGUILayout.HelpBox(Styles.refractionBlendModeWarning, MessageType.Warning);
+                    if (blendMode.floatValue != (int)BlendMode.Alpha)
+                        EditorGUILayout.HelpBox(Styles.refractionBlendModeWarning, MessageType.Warning);
+
+                    // Check for multi-selection render queue different values
+                    if (materials.Length == 1 || materials.All(m => m.renderQueue == materials[0].renderQueue))
+                    {
+                        var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(materials[0].renderQueue);
+
+                        if (renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction)
+                            EditorGUILayout.HelpBox(Styles.refractionRenderingPassWarning, MessageType.Warning);
+                    }
                 }
             }
         }

@@ -71,6 +71,8 @@ Unity exposes this section if you select **Transparent** from the **Surface Type
 
 :warning: When you enabled the **Refraction**, make sure to use the **Blend Mode** **Alpha**, otherwise the effect will not work as expected. A similar warning will be displayed in the material inspector if you enabled refraction with a **Blend Mode** different than **Alpha**.
 
+You can also note that Refraction is not supported when using the rendering pass **Pre-Refraction**, a warning about it will show up in the material inspector and shader graph inspector in case your setup is incorrect.
+
 <a name="EmissionInputs"></a>
 
 ### Emission inputs
