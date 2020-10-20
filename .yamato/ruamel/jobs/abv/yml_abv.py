@@ -12,7 +12,7 @@ def create_abv_ymls(metafile):
         yml[job.job_id] = job.yml
 
         if editor.get("nightly"):
-            job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"], metafile["nightly"], metafile["target_branch"])
+            job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"], metafile["nightly"], metafile["target_branch"], metafile["abv"]["build_configs"], metafile["abv"]["color_spaces"])
             yml[job.job_id] = job.yml
 
         job = ABV_TrunkVerificationJob(editor, metafile["trunk_verification"]["dependencies"])

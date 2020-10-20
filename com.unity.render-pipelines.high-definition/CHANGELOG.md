@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.2.0] - 2020-10-19
+
+### Added
+
+### Fixed
+- Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
+- Fixed an issue when rendering into texture where alpha would not default to 1.0 when using 11_11_10 color buffer in non-dev builds.
+
+### Changed
+
 ## [10.1.0] - 2020-10-12
 
 ### Added
@@ -37,6 +47,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added scalability settings for the planar reflection resolution.
 - Added tests for AOV stacking and UI rendering in the graphics compositor.
 - Added a new ray tracing only function that samples the specular part of the materials.
+- Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
+- Added the support of eye shader for ray tracing.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -159,6 +171,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed profiling scope for quality RTGI.
 - Fixed the denoising and multi-sample not being used for smooth multibounce RTReflections.
 - Fixed issue where multiple cameras would cause GC each frame.
+- Fixed after post process rendering pass options not showing for unlit ShaderGraphs.
+- Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed null reference in the Undo callback of the graphics compositor 
+- Fixed cullmode for SceneSelectionPass.
+- Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
+- Baked reflection probes now correctly use static sky for ambient lighting.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -194,6 +212,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove a rendergraph debug option to clear resources on release from UI.
 - added SV_PrimitiveID in the VaryingMesh structure for fulldebugscreenpass as well as primitiveID in FragInputs
 - Changed which local frame is used for multi-bounce RTReflections.
+- Move System Generated Values semantics out of VaryingsMesh structure.
+- Other forms of FSAA are silently deactivated, when path tracing is on.
+- Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
 
 ## [10.0.0] - 2019-06-10
 
