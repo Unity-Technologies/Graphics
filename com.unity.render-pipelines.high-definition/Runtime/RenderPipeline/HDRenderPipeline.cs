@@ -369,6 +369,8 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ResourcesInitialized = false;
 #endif
 
+        internal bool reflectionProbeBaking { get; set; }
+
         /// <summary>
         /// HDRenderPipeline constructor.
         /// </summary>

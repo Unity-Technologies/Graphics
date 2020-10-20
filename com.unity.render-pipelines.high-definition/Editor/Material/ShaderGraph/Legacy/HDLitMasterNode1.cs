@@ -187,5 +187,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public int m_MaterialNeedsUpdateHash;
         public string m_ShaderGUIOverride;
         public bool m_OverrideEnabled;
+        public bool m_DrawBeforeRefraction;
     }
 }

@@ -971,5 +971,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly string kDecalStencilWriteMask = "_DecalStencilWriteMask";
         public static readonly string kDecalStencilRef = "_DecalStencilRef";
+
+        public static readonly string kRefractionModel = "_RefractionModel";
     }
 }
