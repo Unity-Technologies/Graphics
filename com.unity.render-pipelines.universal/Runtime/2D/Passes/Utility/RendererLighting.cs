@@ -347,7 +347,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), depthTarget);
-                cmd.ClearRenderTarget(true, true, k_NormalClearColor);
+                cmd.ClearRenderTarget(false, true, k_NormalClearColor);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
