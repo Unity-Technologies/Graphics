@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Internal
         // 2 - original (broken color space) with HLSLDeclaration override
         // 3 - fixed color space with HLSLDeclaration override
         public override int latestVersion => 3;
+        public const int deprecatedVersion = 2;
 
         internal ColorShaderProperty()
         {
