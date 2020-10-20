@@ -229,10 +229,10 @@ namespace UnityEditor.Rendering
                             title,
                             editor.baseProperty,
                             editor.activeProperty,
-                            GetDocumentationURL(editor),
                             pos => OnContextClick(pos, editor.target, id),
                             editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
-                            () => editor.isInAdvancedMode ^= true
+                            () => editor.isInAdvancedMode ^= true,
+                            GetDocumentationURL(editor)
                             );
 
                     if (displayContent)
