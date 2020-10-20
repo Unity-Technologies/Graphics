@@ -111,7 +111,7 @@ namespace UnityEditor.ShaderGraph
             if (instancedCount > 0)
             {
                 builder.AppendLine("// Hybrid instanced properties");
-                foreach (var prop in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
+                foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
                     h.AppendTo(builder);
             }
             builder.AppendLine("CBUFFER_END");
@@ -125,7 +125,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
                 {
                     var n = h.name;
-                    string type = asdfasdf(h.type, h.concretePrecision);     // prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
+                    string type = h.GetValueTypeString();
                     builder.AppendLine($"    UNITY_DOTS_INSTANCED_PROP({type}, {n})");
                 }
                 builder.AppendLine("UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)");
@@ -133,8 +133,8 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("// DOTS instancing usage macros");
                 foreach (var h in hlslProps.Where(h => h.declaration == HLSLDeclaration.HybridPerInstance))
                 {
-                    var n = h.Name;
-                    string type = asdfasdf(h.type, h.concretePrecision);    // prop.concreteShaderValueType.ToShaderString(prop.concretePrecision);
+                    var n = h.name;
+                    string type = h.GetValueTypeString();
                     builder.AppendLine($"#define {n} UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO({type}, Metadata_{n})");
                 }
                 builder.AppendLine("#endif");

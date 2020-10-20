@@ -100,6 +100,13 @@ namespace UnityEditor.ShaderGraph.Internal
                 "SAMPLER",
         };
 
+        public string GetValueTypeString()
+        {
+            if (type < HLSLType.FirstObjectType)
+                return kValueTypeStrings[(int)type, (int)precision];
+            return null;
+        }
+
         public void AppendTo(ShaderStringBuilder ssb, Func<string, string> nameModifier = null)
         {
             var mName = nameModifier?.Invoke(name) ?? name;
