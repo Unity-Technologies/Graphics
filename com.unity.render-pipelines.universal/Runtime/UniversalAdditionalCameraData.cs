@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_StopNaN = false;
         [SerializeField] bool m_Dithering = false;
         [SerializeField] bool m_ClearDepth = true;
-        [SerializeField] bool m_AllowXRRendering = true;
+        [SerializeField] bool m_AllowXRRendering = false;
 
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]

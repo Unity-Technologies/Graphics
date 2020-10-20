@@ -8,6 +8,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using Object = UnityEngine.Object;
+#if ENABLE_VR && ENABLE_XR_MODULE
+using UnityEngine.XR;
+#endif
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -193,11 +196,19 @@ namespace UnityEditor.Rendering.Universal
             foreach (var cameraTarget in targets)
             {
                 var additionData = (cameraTarget as Component).gameObject.GetComponent<UniversalAdditionalCameraData>();
-                if(additionData == null)
+                if (additionData == null)
+                {
                     additionData = (cameraTarget as Component).gameObject.AddComponent<UniversalAdditionalCameraData>();
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    List<XRDisplaySubsystemDescriptor> displayDescriptors = new List<XRDisplaySubsystemDescriptor>();
+                    SubsystemManager.GetSubsystemDescriptors(displayDescriptors);
+                    additionData.allowXRRendering = displayDescriptors.Count > 0;
+#endif
+                }
                 m_AdditionalCameraDatas[cameraTarget] = additionData;
                 additionalCameraList.Add(additionData);
             }
+
             m_ErrorIcon = EditorGUIUtility.Load("icons/console.erroricon.sml.png") as Texture2D;
             validCameras.Clear();
             errorCameras.Clear();
@@ -718,6 +729,8 @@ namespace UnityEditor.Rendering.Universal
             int selectedValue = !settings.allowMSAA.boolValue ? 0 : 1;
             settings.allowMSAA.boolValue = EditorGUI.IntPopup(controlRect, Styles.allowMSAA, selectedValue, Styles.displayedCameraOptions, Styles.cameraOptions) == 1;
             EditorGUI.EndProperty();
+
+            // XRTODO: check XRSubsystem.running and show tooltips box and playmode check
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
