@@ -211,7 +211,7 @@ Planar reflection probe filtering is a process that combines the result of plana
 
 ### Distortion
 
-Distortion effect now support a rough distortion effect which is disabled by default. Disabling Rough Distortion allow to save the cost of generating a color pyramid for the effect and instead rely on a copy of the screen.
+The distortion effect now supports a rough distortion which is disabled by default. Disabling Rough Distortion saves resources as the effect does not generate a color pyramid and instead uses a copy of the screen.
 
 ### Platform stability
 
