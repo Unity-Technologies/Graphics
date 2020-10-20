@@ -413,7 +413,7 @@ float2 ComputeBoundsOfSphereOnProjectivePlane(float3 C, float r, float projScale
     float lenSqOC = dot(C.xz, C.xz);
     float lenSqOB = lenSqOC - r * r;
     // If |OB'| = 0 or |OC'| = 0, the bounding planes tangent to the sphere do not exist.
-    if (min(lenSqOB, lenSqOC) > 0)
+    if (lenSqOB > 0)
     {
         float lenOB = sqrt(lenSqOB);
         // |OB' x OC'| = |OB'| * |OC'| * Sin[a'].
@@ -808,8 +808,10 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupLightIndex]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
+    bool isCulled = ndcAaBbMinPt.w > ndcAaBbMaxPt.w;
+
     // (5) Intersect the bounding frustum with the bounding sphere.
-    if (radius > 0)
+    if (!isCulled && (radius > 0))
     {
         // Occasionally, a CSG intersection of a bounding sphere and a bounding frustum
         // results in a tighter AABB when compared to using the frustum alone.
