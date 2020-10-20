@@ -991,7 +991,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.volumetricDimmer, s_Styles.volumetricDimmer);
                 EditorGUILayout.Slider(serialized.volumetricShadowDimmer, 0.0f, 1.0f, s_Styles.volumetricShadowDimmer);
-                EditorGUILayout.PropertyField(serialized.volumetricFadeDistance, s_Styles.volumetricFadeDistance);
+                HDLightType lightType = serialized.type;
+                if (lightType != HDLightType.Directional)
+                {
+                    EditorGUILayout.PropertyField(serialized.volumetricFadeDistance, s_Styles.volumetricFadeDistance);
+                }
             }
         }
 
