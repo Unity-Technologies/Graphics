@@ -199,6 +199,12 @@ This version of HDRP introduces a new injection point for custom post-processing
 
 HDRP, being a high-end modern renderer, contains a lot of compute shader passes. Up until now, to define variations of some compute shaders, HDRP had to manually declare new kernels for each variation. From this version, every compute shader in HDRP uses Unity's multi-compile API which makes maintenance easier, but more importantly allows HDRP to strip shaders that you do not need to improve compilation times.
 
+### Screen Space Reflection
+
+![](Images/HDRP-SSRImprovement.png)
+
+HDRP improves the Screen Space Reflection by providing a new implementation 'PBR Accumulation'
+
 ### Planar reflection probe filtering
 
 ![](Images/PlanarReflectionFiltering-Feature.png)
