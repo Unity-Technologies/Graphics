@@ -328,7 +328,6 @@ namespace UnityEngine.Rendering.Universal
         public bool drawSpotLightFrustum   = false;
 
         //TODO:
-        // - spot light frustum
         // - perhaps add a point param to drawPlane, and use it to align/move the plane gizmo along the plane (i.e the gizmo tracks the point)
         // - better UI and controls
         //
