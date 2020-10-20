@@ -58,7 +58,8 @@ namespace UnityEditor.ShaderGraph
             properties.Add(new PreviewProperty(PropertyType.Texture2D)
             {
                 name = GetVariableNameForSlot(OutputSlotId),
-                textureValue = texture
+                textureValue = texture,
+                texture2DDefaultType = Texture2DShaderProperty.DefaultType.White
             });
         }
 

@@ -376,7 +376,7 @@ namespace UnityEditor.VFX.UI
             string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
             if (!string.IsNullOrEmpty(filePath))
             {
-                VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
+                VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
 
                 VFXViewWindow.currentWindow.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
             }
@@ -600,6 +600,8 @@ namespace UnityEditor.VFX.UI
                 if (nodeController == null)
                     return;
                 target = GetNodeByController(nodeController);
+                if (target == null)
+                    return;
                 targetParent = target.parent;
                 target = (target as VFXNodeUI).titleContainer;
                 alignement = SpriteAlignment.LeftCenter;
@@ -1079,6 +1081,7 @@ namespace UnityEditor.VFX.UI
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
+                    newElement.controller.model.RefreshErrors(controller.graph);
                 }
                 Profiler.EndSample();
 
