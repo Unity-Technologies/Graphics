@@ -87,5 +87,4 @@ namespace UnityEngine.Rendering.Universal
         public SkyIntensityParameter(SkyIntensityMode value, bool overrideState = false)
             : base(value, overrideState) { }
     }
-
 }
