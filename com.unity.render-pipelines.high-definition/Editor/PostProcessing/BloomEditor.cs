@@ -43,8 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             EditorGUILayout.LabelField("Bloom", EditorStyles.miniLabel);
             PropertyField(m_Threshold);
             PropertyField(m_Intensity);
@@ -59,16 +57,22 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
 
-                using (new QualityScope(this))
-                {
-                    PropertyField(m_Resolution);
-                    PropertyField(m_HighQualityPrefiltering);
-                    PropertyField(m_HighQualityFiltering);
-                }
-
                 PropertyField(m_Anamorphic);
             }
+
+            base.OnInspectorGUI();
         }
+
+        public override void OnQualityGUI()
+        {
+            if (isInAdvancedMode)
+            {
+                PropertyField(m_Resolution);
+                PropertyField(m_HighQualityPrefiltering);
+                PropertyField(m_HighQualityFiltering);
+            }
+        }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)

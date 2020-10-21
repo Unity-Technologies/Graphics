@@ -27,12 +27,13 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Intensity);
 
             base.OnInspectorGUI();
-
-            using (new QualityScope(this))
-            {
-                PropertyField(m_MaxSamples);
-            }
         }
+
+        public override void OnQualityGUI()
+        {
+            PropertyField(m_MaxSamples);
+        }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)

@@ -42,13 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_Intensity);
 
-            base.OnInspectorGUI();
-
-            using (new QualityScope(this))
-            {
-                PropertyField(m_SampleCount);
-            }
-
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);
 
@@ -58,7 +51,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_CameraRotClamp);
                 PropertyField(m_CameraMotionBlur);
             }
+
+            base.OnInspectorGUI();
         }
+
+        public override void OnQualityGUI()
+        {
+            PropertyField(m_SampleCount);
+        }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
