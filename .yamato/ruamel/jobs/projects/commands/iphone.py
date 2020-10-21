@@ -7,7 +7,7 @@ def _cmd_base(project_folder, platform, editor):
     return []
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space)
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
 
     base = [
@@ -29,7 +29,7 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
     return base
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space)
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
 
     base = [
@@ -50,7 +50,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space)
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
 
     base = [
@@ -72,7 +72,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 
         
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space)
+    utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder)
 
 
     base = [

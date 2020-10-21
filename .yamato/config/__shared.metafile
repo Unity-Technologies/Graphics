@@ -40,6 +40,7 @@ test_platforms:
       - [all]: --reruncount=2
       - [all]: --player-connection-ip=auto
       - [all]: --artifacts_path=test-results
+      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=WindowsEditor
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
@@ -47,6 +48,8 @@ test_platforms:
       - [Win_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+      - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
     utr_flags_build:
       - [all]: --suite=playmode
       - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
@@ -55,7 +58,7 @@ test_platforms:
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       - [all]: --testproject=.
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=TestProjects\[PROJECT_FOLDER]
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=TestProjects\<PROJECT_FOLDER>
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=WindowsEditor
       - [Win_DX11, Win_DX12, Win_Vulkan, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=../../players 
@@ -78,8 +81,11 @@ test_platforms:
     utr_flags:
       - [all]: --suite=playmode
       - [all]: --testproject=.
+      - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       - [all]: --editor-location=.Editor
+      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
       - [all]: --artifacts_path=test-results
+      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
       - [all]: --reruncount=2
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
@@ -93,8 +99,11 @@ test_platforms:
       - [all]: --platform=editmode
       - [iPhone_Metal]: --platform=iOS
       - [all]: --testproject=.
+      - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       - [all]: --editor-location=.Editor
+      - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
       - [all]: --artifacts_path=test-results
+      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
       - [all]: --reruncount=2
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"

@@ -1,6 +1,6 @@
 from .constants import *
 
-def extract_flags(utr_flags, platform_name, api_name, build_config, color_space):
+def extract_flags(utr_flags, platform_name, api_name, build_config, color_space, project_folder):
     '''Given a list of utr flags (composed of flags under shared + project metafiles), filters out and returns flags relevant for this platform_api.
     Adds scripting backend colorspace flags
     '''
@@ -20,10 +20,9 @@ def extract_flags(utr_flags, platform_name, api_name, build_config, color_space)
                     flag_key = flag_keys[0]
 
                 # handle all dynamic flags
-                if 'scripting-backend'.lower() in flag.lower():
-                    flag = flag.replace('<SCRIPTING_BACKEND>',build_config["scripting_backend"])
-                if 'colorspace'.lower() in flag.lower():
-                    flag = flag.replace('<COLORSPACE>',color_space)
+                flag = flag.replace('<SCRIPTING_BACKEND>',build_config["scripting_backend"])
+                flag = flag.replace('<COLORSPACE>',color_space)
+                flag = flag.replace('<PROJECT_FOLDER>',project_folder)
 
                 # check if such a flag is already present, if it is then overwrite. otherwise just append it
                 existing_indices = [i for i, existing_flag in enumerate(flags) if flag_key in existing_flag]

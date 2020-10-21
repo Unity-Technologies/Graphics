@@ -70,7 +70,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_apiNet4_Linear_
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-testCategory Performance" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects\[PROJECT_FOLDER] --timeout=2700
+                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-testCategory Performance" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects\BoatAttack --timeout=2700
     artifacts:
         logs:
             paths:
@@ -197,7 +197,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_apiNet4_Linear_
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-testCategory Performance" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects\[PROJECT_FOLDER] --timeout=2700
+                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-testCategory Performance" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects\BoatAttack --timeout=2700
     artifacts:
         logs:
             paths:
