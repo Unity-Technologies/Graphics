@@ -288,7 +288,6 @@ Shader "HDRP/Lit"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
     #pragma shader_feature_local _TRANSPARENT_WRITES_MOTION_VEC
 

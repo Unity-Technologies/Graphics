@@ -1266,15 +1266,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
-        public static KeywordDescriptor BlendModePreserveSpecularLighting = new KeywordDescriptor
-        {
-            displayName = "BlendMode Preserve Specular Lighting",
-            referenceName = "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-        };
-
         public static KeywordDescriptor AddPrecomputedVelocity = new KeywordDescriptor
         {
             displayName = "Add Precomputed Velocity",

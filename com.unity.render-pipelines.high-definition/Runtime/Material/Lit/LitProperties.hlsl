@@ -113,6 +113,7 @@ float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
 float _BlendMode;
+float _EnableBlendModePreserveSpecularLighting;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;

@@ -105,9 +105,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetInt("_SrcBlend", 1);
                 material.SetInt("_DstBlend", 10);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
                 material.renderQueue = 3000;
             }
@@ -210,9 +210,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetInt("_SrcBlend", 1);
                 material.SetInt("_DstBlend", 10);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
                 material.renderQueue = 3000;
             }
