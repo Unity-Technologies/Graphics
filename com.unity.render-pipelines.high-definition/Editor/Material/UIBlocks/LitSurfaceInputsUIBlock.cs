@@ -116,6 +116,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kMetallic = "_Metallic";
         MaterialProperty[] metallicRemapMin = new MaterialProperty[kMaxLayerCount];
         const string kMetallicRemapMin = "_MetallicRemapMin";
+        MaterialProperty[] metallicRemapMax = new MaterialProperty[kMaxLayerCount];
+        const string kMetallicRemapMax = "_MetallicRemapMax";
         MaterialProperty[] smoothness = new MaterialProperty[kMaxLayerCount];
         const string kSmoothness = "_Smoothness";
         MaterialProperty[] smoothnessRemapMin = new MaterialProperty[kMaxLayerCount];
@@ -273,6 +275,7 @@ namespace UnityEditor.Rendering.HighDefinition
             baseColorMap = FindPropertyLayered(kBaseColorMap, m_LayerCount);
             metallic = FindPropertyLayered(kMetallic, m_LayerCount);
             metallicRemapMin = FindPropertyLayered(kMetallicRemapMin, m_LayerCount);
+            metallicRemapMax = FindPropertyLayered(kMetallicRemapMax, m_LayerCount);
             smoothness = FindPropertyLayered(kSmoothness, m_LayerCount);
             smoothnessRemapMin = FindPropertyLayered(kSmoothnessRemapMin, m_LayerCount);
             smoothnessRemapMax = FindPropertyLayered(kSmoothnessRemapMax, m_LayerCount);
@@ -389,13 +392,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (hasMetallic)
                 {
                     float metallicMin = metallicRemapMin[m_LayerIndex].floatValue;
-                    float metallicMax = metallic[m_LayerIndex].floatValue;
+                    float metallicMax = metallicRemapMax[m_LayerIndex].floatValue;
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref metallicMin, ref metallicMax, 0.0f, 1.0f);
                     if (EditorGUI.EndChangeCheck())
                     {
                         metallicRemapMin[m_LayerIndex].floatValue = metallicMin;
-                        metallic[m_LayerIndex].floatValue = metallicMax;
+                        metallicRemapMax[m_LayerIndex].floatValue = metallicMax;
                     }
                 }
 

@@ -14,6 +14,7 @@ Shader "HDRP/Lit"
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _MaskMap("MaskMap", 2D) = "white" {}
         _MetallicRemapMin("MetallicRemapMin", Float) = 0.0
+        _MetallicRemapMax("MetallicRemapMax", Float) = 1.0
         _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
         _AORemapMin("AORemapMin", Float) = 0.0

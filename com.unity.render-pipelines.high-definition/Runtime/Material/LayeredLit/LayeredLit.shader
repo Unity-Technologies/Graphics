@@ -29,6 +29,11 @@ Shader "HDRP/LayeredLit"
         _MetallicRemapMin2("MetallicRemapMin2", Range(0.0, 1.0)) = 0.0
         _MetallicRemapMin3("MetallicRemapMin3", Range(0.0, 1.0)) = 0.0
 
+        _MetallicRemapMax0("MetallicRemapMax0", Range(0.0, 1.0)) = 1.0
+        _MetallicRemapMax1("MetallicRemapMax1", Range(0.0, 1.0)) = 1.0
+        _MetallicRemapMax2("MetallicRemapMax2", Range(0.0, 1.0)) = 1.0
+        _MetallicRemapMax3("MetallicRemapMax3", Range(0.0, 1.0)) = 1.0
+
         _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 0.5
         _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 0.5
         _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 0.5

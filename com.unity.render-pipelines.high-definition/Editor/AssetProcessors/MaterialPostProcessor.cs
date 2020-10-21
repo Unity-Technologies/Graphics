@@ -202,6 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
              ExposedDecalInputsFromShaderGraph,
              FixIncorrectEmissiveColorSpace,
              ExposeRefraction,
+             MetallicRemapping,
         };
 
         #region Migrations
@@ -605,6 +606,22 @@ namespace UnityEditor.Rendering.HighDefinition
                     material.SetFloat(kRefractionModel, refractionModel);
                 }
                 HDShaderUtils.ResetMaterialKeywords(material);
+            }
+        }
+
+        static void MetallicRemapping(Material material, HDShaderUtils.ShaderID id)
+        {
+            // Lit shaders now have metallic remapping for the mask map
+            if (id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
+             || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+            {
+                const string kMetallic = "_Metallic";
+                const string kMetallicRemapMax = "_MetallicRemapMax";
+                if (material.HasProperty(kMetallic) && material.HasProperty(kMetallicRemapMax))
+                {
+                    var metallic = material.GetFloat(kMetallic);
+                    material.SetFloat(kMetallicRemapMax, metallic);
+                }
             }
         }
 
