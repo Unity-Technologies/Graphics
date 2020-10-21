@@ -56,10 +56,6 @@ int GetCoCBucket(float cocSize)
     return 0;
 #endif
 
-#ifdef UNIFORM_WEIGHTS
-    return 0;
-#endif
-
     // Threshold to split near, far and in-focus range. We don't need to expose this parameter, as the algorithm is robust against it
     const float dofThreshold = 6;
 
@@ -307,13 +303,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // back to front alpha blending of the near, far and in-focus buckets
     for (int j = 0; j < NUM_BUCKETS; ++j)
     {
-        // Reference: "Next Generation Post-Processing in Call of Duty Advanced Warfare", Advances in real-time rendering, Siggraph 2014
-        // See slide 102 for the normalization factor for the alpha. The 2x factor (see slide 103) also helps with the far layers for 
-        // large amounts of defocus blur, but this might need more investigation.
-        float alpha = saturate(totalColor[j].w * 2 * rcp(GetNumSamples(maxCoC[j], maxRadius))* rcp(GetSampleWeight(maxCoC[j])));
-        outColor = (1.0 - alpha) * outColor + alpha * totalColor[j];
+        float alpha = saturate(totalColor[j].w);
+        outColor = (1.0 - alpha) * outColor + totalColor[j];
 #ifdef ENABLE_ALPHA
-        outAlpha = (1.0 - alpha) * outAlpha + alpha * totalAlpha[j];
+        outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[j];
 #endif
     }
     outColor.xyz = outColor.xyz * rcp(outColor.w);
