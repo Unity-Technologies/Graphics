@@ -26,13 +26,9 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
-        #base.extend(unity_config)
+        base = extra_cmds + base
 
-    return  base
+    return base
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
@@ -45,13 +41,9 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
-        #base.extend(unity_config)
+        base = extra_cmds + base
 
-    return  base
+    return base
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
@@ -61,12 +53,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
     
     base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
-    
-    # if not test_platform['is_performance']:
-    #     base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
-    # else:
-    #     base.append(f'{TEST_PROJECTS_DIR}/{project_folder}/utr {" ".join(utr_args)}')
-
     
     return base
 
@@ -79,12 +65,8 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
-        #base.extend(unity_config)
-    
+        base = extra_cmds + base
+
     return base
 
 def extra_perf_cmd(project_folder):   

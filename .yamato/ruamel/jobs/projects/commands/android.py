@@ -27,10 +27,7 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
+        base = extra_cmds + base
     return base
 
 
@@ -55,10 +52,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
+        base = extra_cmds + base
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):   
@@ -99,10 +93,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
+        base = extra_cmds + base
     return base
 
 

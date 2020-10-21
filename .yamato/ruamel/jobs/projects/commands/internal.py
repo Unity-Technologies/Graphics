@@ -16,25 +16,23 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
-
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
-
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
-
-    base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
-    base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    base = [
+        f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+        ]
     
     return base
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder)
-    
     return _cmd_base(project_folder, platform, utr_args, editor)
