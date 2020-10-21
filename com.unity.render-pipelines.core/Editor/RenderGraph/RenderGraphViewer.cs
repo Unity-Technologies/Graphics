@@ -87,6 +87,7 @@ public class RenderGraphViewer : EditorWindow
     readonly StyleColor m_ImportedResourceColor = new StyleColor(new Color(0.3f, 0.75f, 0.75f));
     readonly StyleColor m_CulledPassColor = new StyleColor(Color.black);
     readonly StyleColor m_ResourceHighlightColor = new StyleColor(Color.white);
+    readonly StyleColor m_ResourceLifeHighLightColor = new StyleColor(new Color32(103, 103, 103, 255));
     StyleColor m_OriginalResourceLifeColor;
     StyleColor m_OriginalPassColor;
     StyleColor m_OriginalResourceColor;
@@ -194,12 +195,18 @@ public class RenderGraphViewer : EditorWindow
 
     void MouseEnterResourceCallback(MouseEnterEvent evt, (int index, int resourceType) info)
     {
+        CellElement resourceLifetime = m_ResourceElementsInfo[info.resourceType][info.index].lifetime as CellElement;
+        resourceLifetime.SetColor(m_ResourceLifeHighLightColor);
+
         UpdatePassColor(info, m_ResourceColorRead, m_ResourceColorWrite);
         UpdateResourceLabelColor(info, m_ResourceHighlightColor);
     }
 
     void MouseLeaveResourceCallback(MouseLeaveEvent evt, (int index, int resourceType) info)
     {
+        CellElement resourceLifetime = m_ResourceElementsInfo[info.resourceType][info.index].lifetime as CellElement;
+        resourceLifetime.SetColor(m_OriginalResourceLifeColor);
+
         var resource = m_CurrentRenderGraph.GetDebugData().resourceLists[info.resourceType][info.index];
         UpdatePassColor(info, m_OriginalPassColor, m_OriginalPassColor);
         UpdateResourceLabelColor(info, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor); ;
