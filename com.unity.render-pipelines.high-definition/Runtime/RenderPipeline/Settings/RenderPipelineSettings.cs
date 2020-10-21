@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 customBufferFormat = CustomBufferFormat.R8G8B8A8,
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
+                supportPrepasslessDecals = true,
                 supportDecalLayers = false,
                 decalLayerName0 = "Decal Layer default",
                 decalLayerName1 = "Decal Layer 1",
@@ -227,6 +228,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Engine
         /// <summary>Support decals.</summary>
         public bool supportDecals;
+        /// <summary>Support prepassless decals.</summary>
+        public bool supportPrepasslessDecals;
         /// <summary>Support decal Layers.</summary>
         public bool supportDecalLayers;
         /// <summary>Name for decal layer 0.</summary>
