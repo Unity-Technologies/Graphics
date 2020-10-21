@@ -485,7 +485,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
             uint objectIndex = FetchIndex(lightStart, offset);
 #if PRE_FILTER_LIGHT_LIST
             LightData light = _LightDatas[objectIndex];
-            if (light.volumetricLightDimmer > 0 && validLightCount < MAX_SUPPORTED_LIGHTS)
+            if (light.volumetricLightDimmer > 0 && validLightCount < MAX_SUPPORTED_LIGHTS && objectIndex < _EnvLightIndexShift)
             {
                 gs_localLightList[groupIdx][validLightCount++] = objectIndex;
             }
