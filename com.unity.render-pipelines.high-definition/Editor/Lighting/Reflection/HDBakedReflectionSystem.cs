@@ -376,12 +376,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdPipeline))
             {
-                Debug.LogWarning("HDBakedReflectionSystem work with HDRP, " +
-                    "please switch your render pipeline or use another reflection system");
+                Debug.LogWarning("HDBakedReflectionSystem only works with HDRP, " +
+                    "please switch your render pipeline or use another reflection probe system.");
                 return false;
             }
-            
 
+            hdPipeline.reflectionProbeBaking = true;
 
             var cubemapSize = (int)hdPipeline.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
             // We force RGBAHalf as we don't support 11-11-10 textures (only RT)
@@ -448,6 +448,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             cubeRT.Release();
+
+            hdPipeline.reflectionProbeBaking = false;
 
             return true;
         }
