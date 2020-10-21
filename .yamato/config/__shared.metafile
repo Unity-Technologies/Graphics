@@ -71,6 +71,9 @@ test_platforms:
       - [Win_Vulkan]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear"
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
+      - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
   - type: playmode
     utr_flags:
       - [all]: --suite=playmode
