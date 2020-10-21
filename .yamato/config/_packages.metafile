@@ -61,5 +61,4 @@ agent_pack: package_ci_win_large
 agent_publish: package_ci_win_large 
 agent_publish_all: package_ci_ubuntu_large 
 publish_all_tracks:
-  - trunk
   - 2020.2
