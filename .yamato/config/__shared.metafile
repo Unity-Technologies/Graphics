@@ -6,8 +6,8 @@ editors: # applied for all yml files
     name: 2019.4
     rerun_strategy: on-new-revision
     editor_pinning: False
-    nightly: True
-    weekly: False
+    nightly: False
+    weekly: True
   - track: 2019.4
     name: fast-2019.4
     rerun_strategy: on-new-revision
