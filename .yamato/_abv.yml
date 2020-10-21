@@ -37,6 +37,13 @@ all_project_ci_nightly_2020.1:
         recurring:
           -  branch: 8.x.x/release
              frequency: 0 * * ?
+all_project_ci_weekly_2020.1:
+    name: _Weekly ABV against 2020.1
+    dependencies: []
+    triggers:
+        recurring:
+          -  branch: 8.x.x/release
+             frequency: weekly
 trunk_verification_2020.1:
     name: Trunk verification - 2020.1
     dependencies:
