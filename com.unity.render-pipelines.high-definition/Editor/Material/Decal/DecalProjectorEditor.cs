@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_UVBiasProperty;
         SerializedProperty m_AffectsTransparencyProperty;
         SerializedProperty m_Size;
+        SerializedProperty[] m_SizeValues;
+        SerializedProperty m_OffsetZ;
         SerializedProperty m_FadeFactor;
         SerializedProperty m_DecalLayerMask;
 
@@ -125,6 +127,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_Size = serializedObject.FindProperty("m_Size");
+            m_SizeValues = new[]
+            {
+                m_Size.FindPropertyRelative("x"),
+                m_Size.FindPropertyRelative("y"),
+                m_Size.FindPropertyRelative("z"),
+            };
+            m_OffsetZ = serializedObject.FindProperty("m_Offset").FindPropertyRelative("z");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
         }
@@ -365,8 +374,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.EndHorizontal();
 
                 EditorGUILayout.Space();
-
-                EditorGUILayout.PropertyField(m_Size, k_SizeContent);
+                
+                Rect rect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
+                EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
+                EditorGUI.BeginProperty(rect, k_SizeSubContent[2], m_SizeValues[2]);
+                EditorGUI.BeginProperty(rect, k_SizeContent, m_OffsetZ);
+                float[] size = new float[3] { m_SizeValues[0].floatValue, m_SizeValues[1].floatValue, m_SizeValues[2].floatValue };
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.MultiFloatField(rect, k_SizeContent, k_SizeSubContent, size);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_SizeValues[0].floatValue = Mathf.Max(0, size[0]);
+                    m_SizeValues[1].floatValue = Mathf.Max(0, size[1]);
+                    m_SizeValues[2].floatValue = Mathf.Max(0, size[2]);
+                    m_OffsetZ.floatValue = m_SizeValues[2].floatValue * 0.5f;
+                }
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
+                
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
                 bool decalLayerEnabled = false;
