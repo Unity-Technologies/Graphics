@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SampleCubemapProperty
+  m_Name: SampleReflectedCubemapProperty
   m_Shader: {fileID: -6465566751694194690, guid: b0e726e44403d2346bc0efbac129f619,
     type: 3}
   m_ShaderKeywords: 
