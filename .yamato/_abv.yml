@@ -69,8 +69,6 @@ all_project_ci_fast-2019.4:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-2019.4
          rerun: on-new-revision
-    triggers:
-        expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
 trunk_verification_fast-2019.4:
     name: Trunk verification - fast-2019.4
     dependencies:
