@@ -7,6 +7,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_URP
   build_configs:
     - mono_apiNet2
+    - il2cpp_apiNet4
   color_spaces: 
     - Linear
 nightly:
@@ -23,14 +24,14 @@ nightly:
     - project: Universal
       platform: Android
       api: OpenGLES3
-      build_config: mono_apiNet2
+      build_config: il2cpp_apiNet4
       color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Android
       api: Vulkan
-      build_config: mono_apiNet2
+      build_config: il2cpp_apiNet4
       color_space: Linear
       test_platforms:
         - Standalone
@@ -48,6 +49,7 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode
+        - playmode_XR
     - project: Universal
       platform: Win
       api: DX12
@@ -57,6 +59,7 @@ nightly:
         - Standalone
         - editmode
         - playmode
+        # - playmode_XR # uncomment once bug fixed on XR side
     - project: URPUpdate
       platform: Win
       api: DX11
