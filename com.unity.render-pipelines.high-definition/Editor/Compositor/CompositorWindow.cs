@@ -109,12 +109,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 CompositionUtils.SetDefaultLayers(compositor);
 
                 Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
-                var undoID = Undo.GetCurrentGroup();
-                Undo.RegisterCreatedObjectUndo(go, "");
-                Undo.CollapseUndoOperations(undoID);
+                Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
             }
-
-            if (compositor)
+            else if (compositor)
             {
                 string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
                 Undo.RecordObject(compositor, message);
@@ -162,6 +159,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (m_Editor == null || m_Editor.target == null || m_Editor.isDirty || m_RequiresRedraw)
             {
+                if (m_Editor != null)
+                {
+                    // Remember the previously selected layer when recreating the Editor
+                    s_SelectionIndex = m_Editor.selectionIndex;
+                }
                 m_Editor = (CompositionManagerEditor)Editor.CreateEditor(compositor);
                 m_RequiresRedraw = false;
                 m_Editor.defaultSelection = s_SelectionIndex;
