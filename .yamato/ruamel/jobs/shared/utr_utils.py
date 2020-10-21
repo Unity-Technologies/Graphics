@@ -31,7 +31,7 @@ def extract_flags(utr_flags, platform_name, api_name, build_config, color_space)
                     flags[existing_indices[0]]=flag
                 else:
                     flags.append(flag)
-    return flags
+    return sorted(flags)
 
 
 

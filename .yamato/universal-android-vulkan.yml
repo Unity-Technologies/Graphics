@@ -19,7 +19,7 @@ Universal_Android_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -48,7 +48,7 @@ Build_Universal_Android_Vulkan_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects\[PROJECT_FOLDER] --timeout=2700
     artifacts:
         logs:
             paths:
@@ -73,7 +73,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_apiNet4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -102,7 +102,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_apiNet4_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects\[PROJECT_FOLDER] --timeout=2700
     artifacts:
         logs:
             paths:
@@ -129,7 +129,7 @@ Universal_Android_Vulkan_playmode_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -154,7 +154,7 @@ Universal_Android_Vulkan_playmode_il2cpp_apiNet4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -179,7 +179,7 @@ Universal_Android_Vulkan_editmode_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -204,7 +204,7 @@ Universal_Android_Vulkan_editmode_il2cpp_apiNet4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -229,7 +229,7 @@ Universal_Android_Vulkan_playmode_XR_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -254,7 +254,7 @@ Universal_Android_Vulkan_playmode_XR_il2cpp_apiNet4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -277,7 +277,7 @@ Universal_Android_Vulkan_Standalone_mono_apiNet2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -306,7 +306,7 @@ Build_Universal_Android_Vulkan_Player_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects\[PROJECT_FOLDER] --timeout=2700
     artifacts:
         logs:
             paths:
@@ -331,7 +331,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_apiNet4_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -360,7 +360,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_apiNet4_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects\[PROJECT_FOLDER] --timeout=2700
     artifacts:
         logs:
             paths:
@@ -387,7 +387,7 @@ Universal_Android_Vulkan_playmode_mono_apiNet2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -412,7 +412,7 @@ Universal_Android_Vulkan_playmode_il2cpp_apiNet4_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -437,7 +437,7 @@ Universal_Android_Vulkan_editmode_mono_apiNet2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -462,7 +462,7 @@ Universal_Android_Vulkan_editmode_il2cpp_apiNet4_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -487,7 +487,7 @@ Universal_Android_Vulkan_playmode_XR_mono_apiNet2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -512,7 +512,7 @@ Universal_Android_Vulkan_playmode_XR_il2cpp_apiNet4_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -536,7 +536,7 @@ Universal_Android_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -568,7 +568,7 @@ Build_Universal_Android_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects\[PROJECT_FOLDER] --timeout=2700
     artifacts:
         logs:
             paths:
@@ -597,7 +597,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -629,7 +629,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=2700 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                  utr --build-only --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects\[PROJECT_FOLDER] --timeout=2700
     artifacts:
         logs:
             paths:
@@ -660,7 +660,7 @@ Universal_Android_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -689,7 +689,7 @@ Universal_Android_Vulkan_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -718,7 +718,7 @@ Universal_Android_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -747,7 +747,7 @@ Universal_Android_Vulkan_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -776,7 +776,7 @@ Universal_Android_Vulkan_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -805,7 +805,7 @@ Universal_Android_Vulkan_playmode_XR_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests"
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
