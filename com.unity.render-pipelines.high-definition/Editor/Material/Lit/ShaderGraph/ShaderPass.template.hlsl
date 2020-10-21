@@ -20,7 +20,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     $SurfaceDescription.IridescenceMask:            surfaceData.iridescenceMask =           surfaceDescription.IridescenceMask;
     $SurfaceDescription.IridescenceThickness:       surfaceData.iridescenceThickness =      surfaceDescription.IridescenceThickness;
 
-    #ifdef _HAS_REFRACTION
+    #if defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN)
         if (_EnableSSRefraction)
         {
             $SurfaceDescription.RefractionIndex:            surfaceData.ior =                       surfaceDescription.RefractionIndex;

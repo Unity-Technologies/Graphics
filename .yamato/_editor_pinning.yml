@@ -107,57 +107,6 @@ editor-pinning-merge-revisions-trunk-abv:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
-editor-pinning-merge-revisions-2020.2:
-    name: Merge [2020.2] revisions to master [no ABV]
-    agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.small
-    variables:
-        CI: true
-    commands:
-      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  python3 -m pipenv install --dev
-      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
-      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-      -  sudo apt-get update
-      -  sudo apt-get install yamato-parser -y
-      -  |5-
-
-                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
-                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
-                         exit 1
-                     fi
-      -  git config --global user.name "noreply@unity3d.com"
-      -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track 2020.2
-editor-pinning-merge-revisions-2020.2-abv:
-    name: Merge [2020.2] revisions to master [ABV]
-    allow_failure: true
-    dependencies:
-      -  .yamato/_abv.yml#all_project_ci_2020.2
-    agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.small
-    variables:
-        CI: true
-    commands:
-      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
-      -  python3 -m pipenv install --dev
-      -  curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -
-      -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
-      -  sudo apt-get update
-      -  sudo apt-get install yamato-parser -y
-      -  |5-
-
-                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
-                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
-                         exit 1
-                     fi
-      -  git config --global user.name "noreply@unity3d.com"
-      -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track 2020.2
 editor-pinning-merge-all:
     name: Merge all [no ABV] [no CI]
     agent:
@@ -168,7 +117,6 @@ editor-pinning-merge-all:
         CI: true
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk
-      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-2020.2
     commands:
       -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  python3 -m pipenv install --dev
@@ -201,7 +149,6 @@ editor-pinning-merge-all-abv:
         CI: true
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk-abv
-      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-2020.2-abv
     commands:
       -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  python3 -m pipenv install --dev
