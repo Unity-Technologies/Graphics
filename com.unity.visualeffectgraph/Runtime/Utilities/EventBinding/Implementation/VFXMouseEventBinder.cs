@@ -40,35 +40,67 @@ namespace UnityEngine.VFX.Utility
             }
         }
 
-        private void OnMouseDown()
+        private void DoOnMouseDown()
         {
             if (activation == Activation.OnMouseDown) SendEventToVisualEffect();
         }
 
-        private void OnMouseUp()
+        private void DoOnMouseUp()
         {
             if (activation == Activation.OnMouseUp) SendEventToVisualEffect();
         }
 
-        private void OnMouseDrag()
+        private void DoOnMouseDrag()
         {
             if (activation == Activation.OnMouseDrag) SendEventToVisualEffect();
         }
 
-        private void OnMouseOver()
+        private void DoOnMouseOver()
         {
             if (activation == Activation.OnMouseOver) SendEventToVisualEffect();
         }
 
-        private void OnMouseEnter()
+        private void DoOnMouseEnter()
         {
             if (activation == Activation.OnMouseEnter) SendEventToVisualEffect();
         }
 
-        private void OnMouseExit()
+        private void DoOnMouseExit()
         {
             if (activation == Activation.OnMouseExit) SendEventToVisualEffect();
         }
+
+#if !PLATFORM_ANDROID && !PLATFORM_IOS
+        private void OnMouseDown()
+        {
+            DoOnMouseDown();
+        }
+
+        private void OnMouseUp()
+        {
+            DoOnMouseUp();
+        }
+
+        private void OnMouseDrag()
+        {
+            DoOnMouseDrag();
+        }
+
+        private void OnMouseOver()
+        {
+            DoOnMouseOver();
+        }
+
+        private void OnMouseEnter()
+        {
+            DoOnMouseEnter();
+        }
+
+        private void OnMouseExit()
+        {
+            DoOnMouseExit();
+        }
+#endif
     }
 }
 #endif
