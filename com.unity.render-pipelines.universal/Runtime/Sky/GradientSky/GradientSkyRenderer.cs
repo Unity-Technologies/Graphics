@@ -28,8 +28,6 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = cameraData.camera;
 
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-
             var gradientSky = (GradientSky)cameraData.visualSky.skySettings;
             m_GradientSkyMaterial.SetColor(_GradientBottom, gradientSky.bottom.value);
             m_GradientSkyMaterial.SetColor(_GradientMiddle, gradientSky.middle.value);
@@ -41,8 +39,6 @@ namespace UnityEngine.Rendering.Universal
             m_PropertyBlock.SetMatrix(SkyShaderConstants._PixelCoordToViewDirWS, cameraData.pixelCoordToViewDirMatrix);
 
             CoreUtils.DrawFullScreen(cmd, m_GradientSkyMaterial, m_PropertyBlock, 0);
-
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
         public override SphericalHarmonicsL2 GetAmbientProbe(ref CameraData cameraData)

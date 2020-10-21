@@ -91,8 +91,6 @@ namespace UnityEngine.Rendering.Universal
 
             Camera camera = cameraData.camera;
 
-            cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-
             m_HDRISkyMaterial.SetTexture(_Cubemap, hdriSky.hdriSky.value);
             m_HDRISkyMaterial.SetVector(_SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
 
@@ -103,8 +101,6 @@ namespace UnityEngine.Rendering.Universal
             m_PropertyBlock.SetMatrix(SkyShaderConstants._PixelCoordToViewDirWS, cameraData.pixelCoordToViewDirMatrix);
 
             CoreUtils.DrawFullScreen(cmd, m_HDRISkyMaterial, m_PropertyBlock, shaderPass);
-
-            cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
         public override SphericalHarmonicsL2 GetAmbientProbe(ref CameraData cameraData)

@@ -164,7 +164,8 @@ Shader "Hidden/Universal Render Pipeline/Sky/HDRISky"
             return float4(output, exposure);
         }
 
-        float4 RenderBackplate(Varyings input, float exposure)
+        struct SkyAndBackplate { float4 sky : SV_Target; float depth : SV_Depth; };
+        SkyAndBackplate RenderBackplate(Varyings input, float exposure)
         {
             float3 viewDirWS = -GetSkyViewDirWS(input.positionCS.xy);
 
@@ -174,14 +175,16 @@ Shader "Hidden/Universal Render Pipeline/Sky/HDRISky"
             float blend;
             if (IsBackplateHitWithBlend(finalPos, blend, viewDirWS))
             {
-                depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - _WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
+                depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos, UNITY_MATRIX_VP).z;
             }
 
-            float4 results = 0;
+            SkyAndBackplate results;
+            results.depth = depth;
+
             if (depth == UNITY_RAW_FAR_CLIP_VALUE)
-                results = RenderSky(input, exposure);
+                results.sky = RenderSky(input, exposure);
             else
-                results = RenderSkyWithBackplate(input, finalPos, exposure, viewDirWS, blend, depth);
+                results.sky = RenderSkyWithBackplate(input, finalPos, exposure, viewDirWS, blend, depth);
 
             return results;
         }
@@ -192,7 +195,7 @@ Shader "Hidden/Universal Render Pipeline/Sky/HDRISky"
             return RenderSky(input, 1.0); // TODO CurrentExposureMultiplier
         }
 
-        float4 FragRenderBackplate(Varyings input) : SV_Target
+        SkyAndBackplate FragRenderBackplate(Varyings input)
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             return RenderBackplate(input, 1.0); // TODO CurrentExposureMultiplier
@@ -220,7 +223,7 @@ Shader "Hidden/Universal Render Pipeline/Sky/HDRISky"
             Name "SkyRenderWithBackplate"
             Cull Off
             ZTest LEqual
-            ZWrite Off
+            ZWrite On
             Blend Off
 
             HLSLPROGRAM
