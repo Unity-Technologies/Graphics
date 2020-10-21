@@ -214,6 +214,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Note: For zero radius we still go through the loop (for one iteration). We can avoid the cost of computing weigths if we early exit (at the cost of extra code complexity).
     float totalRings = maxRadius > 0 ? NumRings : 0;
 
+#ifdef ENABLE_ALPHA
+    CTYPE originalColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;;
+#endif
+
     // Iterate over the octaweb pattern and gather the DoF samples
     for (float ring = totalRings; ring >= 0; ring -= 1.0)
     {
@@ -312,6 +316,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     outColor.xyz = outColor.xyz * rcp(outColor.w);
 
 #ifdef ENABLE_ALPHA
+    // Preserve the original value of the pixels with zero alpha.
+    // The second line with the lerp+smoothstep combination avoids a hard transition in edge cases
+    //outColor.xyz = outAlpha > 0 ? outColor.xyz : originalColor.xyz;
+    outColor.xyz = lerp(originalColor.xyz, outColor.xyz, smoothstep(0, 0.01, outAlpha));
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(outColor.xyz, outAlpha * rcp(outColor.w));
 #else
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = outColor.xyz;
