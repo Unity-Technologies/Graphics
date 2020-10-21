@@ -15,9 +15,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
   color_spaces:
     - Linear
 weekly:
-  extra_dependencies: [] # additional project jobs to run weekly
-nightly:
-  extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
+  extra_dependencies: # additional project jobs to run weekly
     - project: Smoke_Test
       platform: Win
       api: DX11
@@ -35,6 +33,8 @@ nightly:
       api: Vulkan
       test_platforms:
         - Standalone
+nightly:
+  extra_dependencies: [] # additional project jobs to run nightly (in addition to ABV)
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal

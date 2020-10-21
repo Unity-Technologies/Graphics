@@ -10,7 +10,13 @@ class ABV_AllProjectCiWeeklyJob():
 
 
     def get_job_definition(self, editor, projects, extra_dependencies, target_branch):
-        dependencies = []
+        # define dependencies
+        dependencies = [
+            {
+                'path': f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["name"])}',
+                'rerun': editor["rerun_strategy"]
+            },
+        ]
         for dep in extra_dependencies:
             if dep.get("all"):
                 dependencies.append({
