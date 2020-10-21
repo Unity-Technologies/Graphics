@@ -160,7 +160,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
+            #pragma target 4.5
 
             // -------------------------------------
             // Material Keywords

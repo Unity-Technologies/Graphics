@@ -302,6 +302,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
@@ -336,6 +338,8 @@ Shader "Hidden/Universal Render Pipeline/TileDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers d3d11_9x gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
