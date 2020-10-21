@@ -38,6 +38,7 @@
     * [Output Point](Context-OutputPoint.md)
     * [Output Primitive](Context-OutputPrimitive.md)
     * Shared Output Settings
+      * [Global Settings](Context-OutputSharedSettings.md)
       * [Lit Output Settings](Context-OutputLitSettings.md)
     * [Spawn](Context-Spawn.md)
     * [Update Particle](Context-Update.md) 
