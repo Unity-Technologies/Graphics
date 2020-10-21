@@ -284,7 +284,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 handle.center = decalProjector.offset;
                 handle.size = decalProjector.size;
-                handle.DrawHull(editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV);
+                bool inEditMode = editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV;
+                handle.DrawHull(inEditMode);
 
                 Quaternion arrowRotation = Quaternion.LookRotation(Vector3.down, Vector3.right);
                 float arrowSize = decalProjector.size.z * 0.25f;
@@ -302,17 +303,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 //Handles.DrawLine(projectedPivot, projectedPivot + decalProjector.m_Size.y * 0.5f * Vector3.up);
                 //Handles.DrawLine(projectedPivot, projectedPivot + decalProjector.m_Size.z * 0.5f * Vector3.forward);
 
-                //draw UV
-                Color face = Color.green;
-                face.a = 0.1f;
-                Vector2 size = new Vector2(
-                    (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * decalProjector.size.x,
-                    (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
-                    );
-                Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.uvBias.x * size.x, decalProjector.uvBias.y * size.y);
-                using (new Handles.DrawingScope(face, Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (decalProjector.size * 0.5f + decalProjector.offset.z * Vector3.back), decalProjector.transform.rotation, Vector3.one)))
+                //draw UV and bolder edges
+                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (decalProjector.size * 0.5f + decalProjector.offset.z * Vector3.back), decalProjector.transform.rotation, Vector3.one)))
                 {
-                    Handles.DrawSolidRectangleWithOutline(new Rect(start, size), face, Color.white);
+                    if (inEditMode)
+                    {
+                        Vector2 size = new Vector2(
+                            (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * decalProjector.size.x,
+                            (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
+                            );
+                        Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.uvBias.x * size.x, decalProjector.uvBias.y * size.y);
+                        Handles.DrawDottedLines(
+                            new Vector3[]
+                            {
+                                start,                              start + new Vector2(size.x, 0),
+                                start + new Vector2(size.x, 0),     start + size,
+                                start + size,                       start + new Vector2(0, size.y),
+                                start + new Vector2(0, size.y),     start
+                            },
+                            5f);
+                    }
+
+                    Vector2 halfSize = decalProjector.size * .5f;
+                    Vector2 halfSize2 = new Vector2(halfSize.x, -halfSize.y);
+                    Vector2 center = (Vector2)projectedPivot + halfSize;
+                    Handles.DrawLine(center - halfSize,  center - halfSize2, 3f);
+                    Handles.DrawLine(center - halfSize2, center + halfSize, 3f);
+                    Handles.DrawLine(center + halfSize,  center + halfSize2, 3f);
+                    Handles.DrawLine(center + halfSize2, center - halfSize, 3f);
                 }
             }
         }
