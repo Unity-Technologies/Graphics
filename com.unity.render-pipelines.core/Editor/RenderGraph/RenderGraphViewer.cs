@@ -8,12 +8,31 @@ using System.Collections.Generic;
 
 public class RenderGraphViewer : EditorWindow
 {
-    public const float kRenderPassWidth = 20.0f;
-    public const float kResourceHeight = 15.0f;
-
     static class Style
     {
         public static readonly GUIContent title = EditorGUIUtility.TrTextContent("Render Graph Viewer");
+    }
+
+    public const float kRenderPassWidth = 20.0f;
+    public const float kResourceHeight = 15.0f;
+
+    class CellElement : VisualElement
+    {
+        public CellElement(int idxStart, int idxEnd)
+        {
+            style.borderBottomLeftRadius = style.borderTopLeftRadius = style.borderBottomRightRadius = style.borderTopRightRadius = 5;
+            style.borderBottomWidth = style.borderTopWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderBottomColor = style.borderTopColor = style.borderLeftColor = style.borderRightColor = new Color(0f, 0f, 0f, 1f);
+            style.backgroundColor = (Color)new Color32(88, 88, 88, 255);
+            style.height = kResourceHeight;
+            style.left = idxStart * kRenderPassWidth;
+            style.width = (idxEnd - idxStart + 1) * kRenderPassWidth;
+        }
+
+        public void SetColor(StyleColor color)
+        {
+            style.backgroundColor = color;
+        }
     }
 
     [MenuItem("Window/Render Pipeline/Render Graph Viewer", false, 10006)]
@@ -63,11 +82,11 @@ public class RenderGraphViewer : EditorWindow
     VisualElement m_HeaderElement;
     VisualElement m_GraphViewerElement;
 
-    StyleColor m_ResourceColorRead = new StyleColor(new Color(0.2f, 1.0f, 0.2f));
-    StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
-    StyleColor m_ImportedResourceColor = new StyleColor(new Color(0.3f, 0.75f, 0.75f));
-    StyleColor m_CulledPassColor = new StyleColor(Color.black);
-    StyleColor m_ResourceHighlightColor = new StyleColor(Color.white);
+    readonly StyleColor m_ResourceColorRead = new StyleColor(new Color(0.2f, 1.0f, 0.2f));
+    readonly StyleColor m_ResourceColorWrite = new StyleColor(new Color(1.0f, 0.2f, 0.2f));
+    readonly StyleColor m_ImportedResourceColor = new StyleColor(new Color(0.3f, 0.75f, 0.75f));
+    readonly StyleColor m_CulledPassColor = new StyleColor(Color.black);
+    readonly StyleColor m_ResourceHighlightColor = new StyleColor(Color.white);
     StyleColor m_OriginalResourceLifeColor;
     StyleColor m_OriginalPassColor;
     StyleColor m_OriginalResourceColor;
@@ -106,16 +125,16 @@ public class RenderGraphViewer : EditorWindow
         {
             foreach (int resourceRead in pass.resourceReadLists[type])
             {
-                VisualElement resourceLifetime = m_ResourceElementsInfo[type][resourceRead].lifetime;
+                CellElement resourceLifetime = m_ResourceElementsInfo[type][resourceRead].lifetime as CellElement;
                 if (resourceLifetime != null)
-                    resourceLifetime.style.backgroundColor = colorRead;
+                    resourceLifetime.SetColor(colorRead);
             }
 
             foreach (int resourceWrite in pass.resourceWriteLists[type])
             {
-                VisualElement resourceLifetime = m_ResourceElementsInfo[type][resourceWrite].lifetime;
+                CellElement resourceLifetime = m_ResourceElementsInfo[type][resourceWrite].lifetime as CellElement;
                 if (resourceLifetime != null)
-                    resourceLifetime.style.backgroundColor = colorWrite;
+                    resourceLifetime.SetColor(colorWrite);
             }
         }
     }
@@ -144,7 +163,7 @@ public class RenderGraphViewer : EditorWindow
             VisualElement passElement = m_PassElementsInfo[consumer].pass;
             if (passElement != null)
             {
-                VisualElement passButton = passElement.Q("PassNameButton");
+                VisualElement passButton = passElement.Q("PassCell");
                 passButton.style.backgroundColor = colorRead;
             }
         }
@@ -158,7 +177,7 @@ public class RenderGraphViewer : EditorWindow
             VisualElement passElement = m_PassElementsInfo[producer].pass;
             if (passElement != null)
             {
-                VisualElement passButton = passElement.Q("PassNameButton");
+                VisualElement passButton = passElement.Q("PassCell");
                 passButton.style.backgroundColor = colorWrite;
             }
         }
@@ -186,35 +205,37 @@ public class RenderGraphViewer : EditorWindow
         UpdateResourceLabelColor(info, resource.imported ? m_ImportedResourceColor : m_OriginalResourceColor); ;
     }
 
-    VisualElement CreateRenderPassLabel(string name, int index, bool culled)
+    VisualElement CreateRenderPass(string name, int index, bool culled)
     {
-        var labelContainer = new VisualElement();
-        labelContainer.style.width = kRenderPassWidth;
-        labelContainer.style.overflow = Overflow.Visible;
-        labelContainer.style.flexDirection = FlexDirection.ColumnReverse;
-        labelContainer.style.minWidth = kRenderPassWidth;
+        var container = new VisualElement();
+        container.style.width = kRenderPassWidth;
+        container.style.overflow = Overflow.Visible;
+        container.style.flexDirection = FlexDirection.ColumnReverse;
+        container.style.minWidth = kRenderPassWidth;
 
-        var button = new Button();
-        button.name = "PassNameButton";
-        button.style.marginBottom = 0.0f;
-        button.style.marginLeft = 0.0f;
-        button.style.marginRight = 0.0f;
-        button.style.marginTop = 0.0f;
-        button.RegisterCallback<MouseEnterEvent, int>(MouseEnterPassCallback, index);
-        button.RegisterCallback<MouseLeaveEvent, int>(MouseLeavePassCallback, index);
+        var cell = new Button();
+        cell.name = "PassCell";
+        cell.style.marginBottom = 0.0f;
+        cell.style.marginLeft = 0.0f;
+        cell.style.marginRight = 0.0f;
+        cell.style.marginTop = 0.0f;
+        cell.RegisterCallback<MouseEnterEvent, int>(MouseEnterPassCallback, index);
+        cell.RegisterCallback<MouseLeaveEvent, int>(MouseLeavePassCallback, index);
+
+        m_OriginalPassColor = cell.style.backgroundColor;
+
         if (culled)
-            button.style.backgroundColor = m_CulledPassColor;
-        labelContainer.Add(button);
+            cell.style.backgroundColor = m_CulledPassColor;
 
-        m_OriginalPassColor = button.style.backgroundColor;
+        container.Add(cell);
 
         var label = new Label(name);
         label.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 0.0f, -45.0f));
-        labelContainer.Add(label);
+        container.Add(label);
 
         label.RegisterCallback<GeometryChangedEvent>(RenderPassLabelChanged);
 
-        return labelContainer;
+        return container;
     }
 
     void ResourceNamesContainerChanged(GeometryChangedEvent evt)
@@ -368,7 +389,7 @@ public class RenderGraphViewer : EditorWindow
             }
             else
             {
-                var passElement = CreateRenderPassLabel(pass.name, passIndex, pass.culled);
+                var passElement = CreateRenderPass(pass.name, passIndex, pass.culled);
                 m_PassElementsInfo[passIndex].pass = passElement;
                 m_PassElementsInfo[passIndex].remap = finalPassCount;
                 passNamesElement.Add(passElement);
@@ -415,23 +436,13 @@ public class RenderGraphViewer : EditorWindow
             m_ResourceElementsInfo[resourceType][index].resourceLabel = label;
             resourceNamesContainer.Add(label);
 
-            var newButton = new Button();
-            newButton.style.position = Position.Relative;
-            newButton.style.left = m_PassElementsInfo[resource.creationPassIndex].remap * kRenderPassWidth;
-            newButton.style.width = (m_PassElementsInfo[resource.releasePassIndex].remap - m_PassElementsInfo[resource.creationPassIndex].remap + 1) * kRenderPassWidth;
-            newButton.style.marginBottom = 0.0f;
-            newButton.style.marginLeft = 0.0f;
-            newButton.style.marginRight = 0.0f;
-            newButton.style.marginTop = 0.0f;
-            newButton.style.height = kResourceHeight;
+            var newCell = new CellElement(m_PassElementsInfo[resource.creationPassIndex].remap, m_PassElementsInfo[resource.releasePassIndex].remap);
+            newCell.RegisterCallback<MouseEnterEvent, (int, int)>(MouseEnterResourceCallback, (index, resourceType));
+            newCell.RegisterCallback<MouseLeaveEvent, (int, int)>(MouseLeaveResourceCallback, (index, resourceType));
+            m_OriginalResourceLifeColor = newCell.style.backgroundColor;
+            resourcesLifeTimeElement.Add(newCell);
 
-            newButton.RegisterCallback<MouseEnterEvent, (int, int)>(MouseEnterResourceCallback, (index, resourceType));
-            newButton.RegisterCallback<MouseLeaveEvent, (int, int)>(MouseLeaveResourceCallback, (index, resourceType));
-
-            resourcesLifeTimeElement.Add(newButton);
-
-            m_OriginalResourceLifeColor = newButton.style.color;
-            m_ResourceElementsInfo[resourceType][index++].lifetime = newButton;
+            m_ResourceElementsInfo[resourceType][index++].lifetime = newCell;
         }
 
         resourceElement.Add(resourceNamesContainer);
