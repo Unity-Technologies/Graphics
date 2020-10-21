@@ -54,9 +54,9 @@ void PrefetchData(uint groupIndex, uint2 groupOrigin, uint sliceIndex)
 
     for (int i = 0; i < 2; ++i)
     {
-        int sampleID = i + (groupIndex * 2);
-        int offsetX = sampleID % FILTER_SIZE_1D;
-        int offsetY = sampleID / FILTER_SIZE_1D;
+        uint sampleID = i + (groupIndex * 2);
+        uint offsetX = sampleID % FILTER_SIZE_1D;
+        uint offsetY = sampleID / FILTER_SIZE_1D;
 
         int3 sampleCoord = int3(clamp(originXY.x + offsetX, 0, _VBufferViewportSize.x - 1),
                                 clamp(originXY.y + offsetY, 0, _VBufferViewportSize.y - 1),
@@ -115,7 +115,7 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
             // Tap from LDS
             int2 tapAddress = (groupThreadId + 1) + int2(idx2, idx);
-            int ldsTapAddress = tapAddress.x % FILTER_SIZE_1D + tapAddress.y * FILTER_SIZE_1D;
+            uint ldsTapAddress = uint(tapAddress.x) % FILTER_SIZE_1D + tapAddress.y * FILTER_SIZE_1D;
             float4 currentValue = GetSample(ldsTapAddress);
 
             // Compute the weight for this tap

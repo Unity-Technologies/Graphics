@@ -94,7 +94,7 @@ void ComputeMaxZ(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_Gro
     uint threadIdx = groupThreadId.y * GROUP_SIZE + groupThreadId.x;
 
     float currDepth = -1;
-    if (all(dispatchThreadId.xy < _ScreenSize.xy))
+    if (all((float2)(dispatchThreadId.xy) < _ScreenSize.xy))
         currDepth = GetDepthToDownsample(dispatchThreadId.xy);
 
     float maxDepth = ParallelReduction(gid, threadIdx, currDepth);
