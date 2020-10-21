@@ -90,7 +90,7 @@
 
 ## Texture
 
-|[Cubemap Asset](Cubemap-Asset-Node.md)|[Sample Cubemap](Sample-Cubemap-Node.md)|
+|[Cubemap Asset](Cubemap-Asset-Node.md)|[Sample Cubemap](Sample-Cubemap-Node.md)|[Sample Cubemap](Sample-Reflected-Cubemap-Node.md)|
 |:--------:|:------:|
 |[![Image](images/CubemapAssetNodeThumb.png)](Combine-Node)|![](images/SampleCubemapNodeThumb.png)|
 | Defines a constant Cubemap Asset for use in the shader. | Samples a Cubemap and returns a Vector 4 color value for use in the shader. |
