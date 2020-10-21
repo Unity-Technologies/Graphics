@@ -143,7 +143,8 @@ namespace UnityEditor.ShaderGraph
             }
 #endif
 
-            // declare non-batchable properties
+            builder.AppendNewLine();
+            builder.AppendLine("// Object and Global properties");
             foreach (var h in hlslProps)
                 if (h.declaration == HLSLDeclaration.Global)
                     h.AppendTo(builder);
