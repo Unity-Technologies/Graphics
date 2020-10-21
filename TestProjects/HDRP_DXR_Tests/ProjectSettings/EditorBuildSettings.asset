@@ -230,4 +230,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/6001_Alembic.unity
     guid: 163e04c0245b93648808a42b7f45ce0d
+  - enabled: 1
+    path: Assets/Scenes/7000_QuadChannelTexCoord.unity
+    guid: 93bf762e6d528a640b338bfa061dfffb
   m_configObjects: {}
