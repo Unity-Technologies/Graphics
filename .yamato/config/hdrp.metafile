@@ -1,5 +1,5 @@
 project:
-  name: HDRP 
+  name: HDRP
   folder: HDRP_Tests
   folder_standalone: HDRP_RuntimeTests
 test_platforms:
@@ -7,7 +7,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+      - --extra-editor-arg="-xr-tests"
   - type: editmode
   - type: Standalone
     timeout:
@@ -44,7 +44,7 @@ platforms:
     apis:
       - Metal
   - name: Linux
-    apis: 
+    apis:
       - Vulkan
 all:
   dependencies:
@@ -76,4 +76,4 @@ all:
     #  api: Vulkan
     #  test_platforms:
     #    - editmode
-    #    # - playmode        
+    #    # - playmode
