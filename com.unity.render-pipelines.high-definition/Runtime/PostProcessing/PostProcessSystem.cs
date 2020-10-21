@@ -3853,6 +3853,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public System.Random    random;
             public bool             useFXAA;
             public bool             enableAlpha;
+            public bool             keepAlpha;
 
             public bool             filmGrainEnabled;
             public Texture          filmGrainTexture;
@@ -3874,6 +3875,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.flipY = flipY;
             parameters.random = m_Random;
             parameters.enableAlpha = m_EnableAlpha;
+            parameters.keepAlpha = m_KeepAlpha;
 
             var dynResHandler = DynamicResolutionHandler.instance;
             bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
@@ -3982,7 +3984,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             finalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, alphaTexture);
-            finalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, 1.0f);
+            finalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, parameters.keepAlpha ? 1.0f : 0.0f);
 
             if (parameters.enableAlpha)
                 finalPassMaterial.EnableKeyword("ENABLE_ALPHA");
