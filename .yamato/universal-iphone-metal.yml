@@ -129,8 +129,8 @@ Universal_iPhone_Metal_playmode_il2cpp_apiNet4_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_iPhone_Metal_editmode_mono_apiNet2_Linear_trunk:
-    name: Universal on iPhone_Metal_editmode_mono_apiNet2_Linear on version trunk
+Universal_iPhone_Metal_playmode_XR_mono_apiNet2_Linear_trunk:
+    name: Universal on iPhone_Metal_playmode_XR_mono_apiNet2_Linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -142,14 +142,14 @@ Universal_iPhone_Metal_editmode_mono_apiNet2_Linear_trunk:
       -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=iOS --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_iPhone_Metal_editmode_il2cpp_apiNet4_Linear_trunk:
-    name: Universal on iPhone_Metal_editmode_il2cpp_apiNet4_Linear on version trunk
+Universal_iPhone_Metal_playmode_XR_il2cpp_apiNet4_Linear_trunk:
+    name: Universal on iPhone_Metal_playmode_XR_il2cpp_apiNet4_Linear on version trunk
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -161,7 +161,7 @@ Universal_iPhone_Metal_editmode_il2cpp_apiNet4_Linear_trunk:
       -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=iOS --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
+      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -315,8 +315,8 @@ Universal_iPhone_Metal_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
-Universal_iPhone_Metal_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_iPhone_Metal_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
+    name: Universal on iPhone_Metal_playmode_XR_mono_apiNet2_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -329,7 +329,7 @@ Universal_iPhone_Metal_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=iOS --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -338,8 +338,8 @@ Universal_iPhone_Metal_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
-Universal_iPhone_Metal_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Universal on iPhone_Metal_editmode_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+Universal_iPhone_Metal_playmode_XR_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
+    name: Universal on iPhone_Metal_playmode_XR_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::iPhone
         image: mobile/macos-10.13-testing:stable
@@ -352,7 +352,7 @@ Universal_iPhone_Metal_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=iOS --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
+      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:

@@ -21,6 +21,8 @@ platforms:
       - name: Metal
         exclude_test_platforms:
           - name: playmode_XR
+          - name: playmode
+          - name: editmode
       - name: OpenGLCore
         exclude_test_platforms:
           - name: playmode_XR
