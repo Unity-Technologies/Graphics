@@ -800,7 +800,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool use4RTs = m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) ||
-                // Merge the two settings TODO_FCC
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
             {
                 // Return all black textures for default values.

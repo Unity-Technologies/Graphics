@@ -654,8 +654,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderTransparentDepthPrepass(RenderGraph renderGraph, HDCamera hdCamera, in PrepassOutput prepassOutput, CullingResults cull)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPrepass) ||
-                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPrepass))
                 return;
 
             using (var builder = renderGraph.AddRenderPass<ForwardPassData>("Transparent Depth Prepass", out var passData, ProfilingSampler.Get(HDProfileId.TransparentDepthPrepass)))
@@ -679,8 +678,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderTransparentDepthPostpass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, CullingResults cull)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPostpass) ||
-                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentPostpass))
                 return;
 
             using (var builder = renderGraph.AddRenderPass<ForwardPassData>("Transparent Depth Postpass", out var passData, ProfilingSampler.Get(HDProfileId.TransparentDepthPostpass)))
@@ -902,8 +900,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render All forward error
             RenderForwardError(renderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, cullingResults);
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent) &&
-                hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent))
             {
                 var lowResTransparentBuffer = RenderLowResTransparent(renderGraph, hdCamera, prepassOutput.downsampledDepthBuffer, cullingResults);
                 UpsampleTransparent(renderGraph, hdCamera, colorBuffer, lowResTransparentBuffer, prepassOutput.downsampledDepthBuffer);
