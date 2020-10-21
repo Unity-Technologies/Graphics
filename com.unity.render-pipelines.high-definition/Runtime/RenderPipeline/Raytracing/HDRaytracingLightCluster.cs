@@ -305,6 +305,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     Light light = currentLight.gameObject.GetComponent<Light>();
                     if (light == null || !light.enabled) continue;
 
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !currentLight.includeForRayTracing)
+                        continue;
+
                     // Reserve space in the cookie atlas
                     m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
 
