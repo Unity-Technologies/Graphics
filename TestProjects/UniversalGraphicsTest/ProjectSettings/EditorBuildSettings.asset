@@ -301,7 +301,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/144_SSAO_RenderToBackBuffer.unity
     guid: b23d8daad85b546c883dbbdc58ab8fef
+  - enabled: 1
+    path: Assets/Scenes/145_SoftParticlesStackWithPP.unity
+    guid: 7b2479971db0f4b1b87c121244585fe5
   m_configObjects: {}
-  m_configObjects:
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 13858d33c7f214305af3f1b67ea8f9da,
-      type: 2}

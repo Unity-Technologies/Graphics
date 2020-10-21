@@ -20,11 +20,12 @@ Motion Blur includes [more options](More-Options.md) that you must manually expo
 | **Property**                       | **Description**                                              |
 | ---------------------------------- | ------------------------------------------------------------ |
 | **Intensity**                      | Set the strength of the Motion Blur effect. This scales the magnitude of the velocities present in the velocity buffer. Set this value to 0 to disable Motion Blur. |
+| **Quality**                        | Specifies the quality level to use for this effect. Each quality level applies different preset values. Unity also stops you from editing the properties that the preset overrides. If you want to set your own values for every property, select **Custom**. |
 | **Sample Count**                   | Set the maximum number of sample points HDRP uses to compute the Motion Blur effect. Higher values increase the quality and produce a smoother blur. Higher values also increase the resource intensity of the effect. |
 | **Maximum Velocity**               | Use the slider to set the maximum velocity, in pixels, that HDRP allows for all sources of motion blur except Camera rotation. This clamps any value above this threshold to the threshold value. Higher values result in a more intense blur, and an increase in resource intensity. |
 | **Minimum Velocity**               | Use the slider to set the minimum velocity, in pixels, that triggers motion blur. Higher values mean that HDRP does not calculate Motion Blur for slow-moving GameObjects. This decreases the resource intensity. |
 | **Camera Rotation Velocity Clamp** | Use the slider to set the maximum velocity that HDRP allows Camera rotation to contribute to the velocities of GameObjects. This value is expressed in terms of screen fraction. Higher values result in Camera rotation giving wider blurs. |
-| **Camera Motion Blur**             | This option can be toggled off to remove the contribution of the camera movement from the motion blur. |
+| **Camera Motion Blur**             | Indicates whether camera movement contributes to motion blur. Disable this property to stop camera movement from contributing to motion blur. |
 
 ## Details
 

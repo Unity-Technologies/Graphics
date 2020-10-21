@@ -6,27 +6,18 @@
 All_URPUpdate_trunk:
     name: All URPUpdate CI - trunk
     dependencies:
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_trunk
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_trunk
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#All_URPUpdate_Top_Asset_Store_trunk
-         rerun: on-new-revision
-All_URPUpdate_2020.2:
-    name: All URPUpdate CI - 2020.2
-    dependencies:
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-urpupdate_top_asset_store.yml#All_URPUpdate_Top_Asset_Store_2020.2
          rerun: on-new-revision
 All_URPUpdate_CUSTOM-REVISION:
     name: All URPUpdate CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-urpupdate_top_asset_store.yml#All_URPUpdate_Top_Asset_Store_CUSTOM-REVISION
          rerun: always
