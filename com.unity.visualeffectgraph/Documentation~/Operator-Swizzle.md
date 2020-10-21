@@ -2,7 +2,9 @@
 
 Menu Path : **Operator > Math > Vector**
 
-The **Swizzle** [uniform Operator](Operators.md#uniform-operators) swizzles the input vector’s components and outputs them into an output vector, based on a swizzle **Mask** string.
+The **Swizzle** [uniform Operator](Operators.md#uniform-operators) rearranges the input vector’s components and outputs them into an output vector, based on a swizzle **Mask** string.
+
+For example, a vector of (x,y,z,w) can swizzle to (y,x,x,z).
 
 ## Operator settings
 

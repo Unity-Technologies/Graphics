@@ -15,13 +15,13 @@ This works similarly to a [switch statement](https://docs.microsoft.com/en-us/do
 | **Property**          | **Type**     | **Description**                                              |
 | --------------------- | ------------ | ------------------------------------------------------------ |
 | **Entry Count**       | Unsigned int | The number of cases to test. The maximum value is **32**.    |
-| **Custom Case Value** | bool         | (**Inspector**) A boolean that indicates whether the Operator uses custom case integers or the default natural number list. |
+| **Custom Case Value** | bool         | (**Inspector**) When enabled, you can specify custom case integers for each case. Otherwise, this Operator uses the default natural. |
 
 ## Operator properties
 
 | **Input**      | **Type**                                | **Description**                                              |
 | -------------- | --------------------------------------- | ------------------------------------------------------------ |
-| **Test Value** | int                                     | Input integer value which is going to be tested with cases entries. If you enable **Custom Case Value** and this value matches more than one case, this Operator outputs the first entry that matches. |
+| **Test Value** | int                                     | Input integer value which is going to be tested with the case entries. If you enable **Custom Case Value** and this value matches more than one case, this Operator outputs the first entry that matches. |
 | **Case 0**     | int                                     | The value to test for the first case. If you assign this port, it overrides the value this Operator checks **Test Value** against. The default value for this port is **0**. This port only appears if you enable **Custom Case Value**. |
 | **Value 0**    | [Configurable](#operator-configuration) | The value to output if **Test Value** matches **Case 0**.    |
 | **Case 1**     | int                                     | The value to test for the first case. If you assign this port, it overrides the value this Operator checks **Test Value** against. The default value for this port is **1**. This port only appears if you enable **Custom Case Value**. |

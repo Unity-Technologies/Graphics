@@ -4,35 +4,35 @@
 
 Menu Path : **Operator > Logic > Probability Sampling**
 
-The **Probability Sampling** Operator performs a kind of switch/case operation where a weight controls the probability of selecting a case. If all weights are equals, this Operator produces a uniform distribution of the different output values.
+The **Probability Sampling** Operator performs a kind of switch/case operation where a weight controls the probability of selecting a case. If all weights are equal, this Operator produces a uniform distribution of the different output values.
 
-![img](https://lh4.googleusercontent.com/j-GAv5xQpX_j87pcJuGevMq6zKOR-rG5h8B_gPrHpbj-FDC37kGKwDInppv3q8Kl8TW16aoowGOLMVCNkR9EMbXOGYcocUlDk98K4VgcYVhKF1rnpE7vlkAp9IGiDN--8rB8bgu3)
+![img](Images/Operator-ProbabilitySamplingExample.gif)
 
 ## Operator settings
 
 | **Setting**           | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
 | **Integrated Random** | (**Inspector**) Specifies whether this Operator generates the random number itself, or if it allows you to input a custom random number instead. |
-| **Seed**              | Defines the scope of the random number. For more information, see [Random Number](Operator-RandomNumber.md#oprerator-settings). This setting only appears if you **Integrated Random**. |
-| **Constant**          | Specifies whether the generated random number is constant or not. For more information, see [Random Number](Operator-RandomNumber.md#oprerator-settings). This setting only appears if you **Integrated Random**. |
+| **Seed**              | Defines the scope of the random number. For more information, see [Random Number](Operator-RandomNumber.md#oprerator-settings).<br/>This setting only appears if you enable **Integrated Random**. |
+| **Constant**          | Specifies whether the generated random number is constant or not. For more information, see [Random Number](Operator-RandomNumber.md#oprerator-settings).<br/>This setting only appears if you enable **Integrated Random**. |
 | **Entry Count**       | The number of cases to test. The maximum value is **32**.    |
 
 ## Operator properties
 
 | **Input**    | **Type**                                | **Description**                                              |
 | ------------ | --------------------------------------- | ------------------------------------------------------------ |
-| **Weight 0** | float                                   | The weight for the first value. The larger this value is, compared to the rest of the weights, the higher the chance the Operator selects the first value. |
+| **Weight 0** | float                                   | The weight for the first value. The larger this value is compared to the rest of the weights, the higher the chance the Operator selects the first value. |
 | **Value 0**  | [Configurable](#operator-configuration) | The value to output if the Operator selects **Weight 0**.    |
-| **Weight 1** | float                                   | The weight for the second value. The larger this value is, compared to the rest of the weights, the higher the chance the Operator selects the second value. |
+| **Weight 1** | float                                   | The weight for the second value. The larger this value is compared to the rest of the weights, the higher the chance the Operator selects the second value. |
 | **Value 1**  | [Configurable](#operator-configuration) | The value to output if the Operator selects **Weight 1**.    |
 | **Weight N** | float                                   | To expose more cases, increase the **Entry Count**.          |
 | **Value N**  | [Configurable](#operator-configuration) | To expose more cases, increase the **Entry Count**.          |
-| **Rand**     | float                                   | The value this Operator uses to choose a value among the from the weights. This should be between **0** and **1**.This property only appears if you disable **Integrated Random**. |
-| **Hash**     | uint                                    | The value this Operator uses to create a constant random value. This property only appears is you enable **Constant**. |
+| **Rand**     | float                                   | The value this Operator uses to choose a value from amongst the weights. This should be between **0** and **1**.This property only appears if you disable **Integrated Random**. |
+| **Hash**     | uint                                    | The value this Operator uses to create a constant random value. This property only appears if you enable **Constant**. |
 
 | **Output** | **Type**                                | **Description**                                              |
 | ---------- | --------------------------------------- | ------------------------------------------------------------ |
-| **Output** | [Configurable](#operator-configuration) | The value where the corresponding case entry is equal to input value or default if there isn’t any match. |
+| **Output** | [Configurable](#operator-configuration) | The value where the corresponding case entry is equal to **Input** value or, if there isn’t any match, **Default**. |
 
 ## Operator configuration
 
