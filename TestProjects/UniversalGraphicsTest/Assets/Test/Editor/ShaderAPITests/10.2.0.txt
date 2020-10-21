@@ -1,0 +1,3893 @@
+{
+    "version": "10.2.0",
+    "date": "10/22/2020 12:17:03 AM",
+    "files": [
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl",
+            "functions": []
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl",
+            "functions": [
+                {
+                    "functionName": "SampleSceneDepth",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float SampleSceneDepth(float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "LoadSceneDepth",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float LoadSceneDepth(uint2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "uint2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl",
+            "functions": [
+                {
+                    "functionName": "SampleSceneNormals",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 SampleSceneNormals(float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "LoadSceneNormals",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 LoadSceneNormals(uint2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "uint2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl",
+            "functions": [
+                {
+                    "functionName": "SampleSceneColor",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 SampleSceneColor(float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "LoadSceneColor",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 LoadSceneColor(uint2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "uint2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl",
+            "functions": []
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl",
+            "functions": []
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl",
+            "functions": [
+                {
+                    "functionName": "DistanceAttenuation",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)",
+                            "parameters": [
+                                {
+                                    "name": "distanceSqr",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "distanceAttenuation",
+                                    "type": "half2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "AngleAttenuation",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half AngleAttenuation(half3 spotDirection, half3 lightDirection, half2 spotAttenuation)",
+                            "parameters": [
+                                {
+                                    "name": "spotDirection",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDirection",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "spotAttenuation",
+                                    "type": "half2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetPerObjectLightIndexOffset",
+                    "variations": [
+                        {
+                            "returnType": "uint",
+                            "functionAPI": "uint GetPerObjectLightIndexOffset()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetPerObjectLightIndex",
+                    "variations": [
+                        {
+                            "returnType": "int",
+                            "functionAPI": "int GetPerObjectLightIndex(uint index)",
+                            "parameters": [
+                                {
+                                    "name": "index",
+                                    "type": "uint",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetAdditionalLightsCount",
+                    "variations": [
+                        {
+                            "returnType": "int",
+                            "functionAPI": "int GetAdditionalLightsCount()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ReflectivitySpecular",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half ReflectivitySpecular(half3 specular)",
+                            "parameters": [
+                                {
+                                    "name": "specular",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "OneMinusReflectivityMetallic",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half OneMinusReflectivityMetallic(half metallic)",
+                            "parameters": [
+                                {
+                                    "name": "metallic",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "InitializeBRDFDataDirect",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "inline void InitializeBRDFDataDirect(half3 diffuse, half3 specular, half reflectivity, half oneMinusReflectivity, half smoothness, inout half alpha, out BRDFData outBRDFData)",
+                            "parameters": [
+                                {
+                                    "name": "diffuse",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specular",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "reflectivity",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "oneMinusReflectivity",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "smoothness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "alpha",
+                                    "type": "half",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "outBRDFData",
+                                    "type": "BRDFData",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "InitializeBRDFData",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, inout half alpha, out BRDFData outBRDFData)",
+                            "parameters": [
+                                {
+                                    "name": "albedo",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "metallic",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specular",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "smoothness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "alpha",
+                                    "type": "half",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "outBRDFData",
+                                    "type": "BRDFData",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ConvertF0ForClearCoat15",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 ConvertF0ForClearCoat15(half3 f0)",
+                            "parameters": [
+                                {
+                                    "name": "f0",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "InitializeBRDFDataClearCoat",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)",
+                            "parameters": [
+                                {
+                                    "name": "clearCoatMask",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "clearCoatSmoothness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "baseBRDFData",
+                                    "type": "BRDFData",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "outBRDFData",
+                                    "type": "BRDFData",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "EnvironmentBRDFSpecular",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 EnvironmentBRDFSpecular(BRDFData brdfData, half fresnelTerm)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "fresnelTerm",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "EnvironmentBRDF",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "indirectDiffuse",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "indirectSpecular",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "fresnelTerm",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "EnvironmentBRDFClearCoat",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatMask, half3 indirectSpecular, half fresnelTerm)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "clearCoatMask",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "indirectSpecular",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "fresnelTerm",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "DirectBRDFSpecular",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "DirectBDRF",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS, bool specularHighlightsOff)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specularHighlightsOff",
+                                    "type": "bool",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "DirectBRDF",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleAmbientOcclusion",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half SampleAmbientOcclusion(float2 normalizedScreenSpaceUV)",
+                            "parameters": [
+                                {
+                                    "name": "normalizedScreenSpaceUV",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleSH",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 SampleSH(half3 normalWS)",
+                            "parameters": [
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleSHVertex",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 SampleSHVertex(half3 normalWS)",
+                            "parameters": [
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleSHPixel",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 SampleSHPixel(half3 L2Term, half3 normalWS)",
+                            "parameters": [
+                                {
+                                    "name": "L2Term",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleLightmap",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 SampleLightmap(float2 lightmapUV, half3 normalWS)",
+                            "parameters": [
+                                {
+                                    "name": "lightmapUV",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GlossyEnvironmentReflection",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)",
+                            "parameters": [
+                                {
+                                    "name": "reflectVector",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "perceptualRoughness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "occlusion",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SubtractDirectMainLightFromLightmap",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3 bakedGI)",
+                            "parameters": [
+                                {
+                                    "name": "mainLight",
+                                    "type": "Light",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "bakedGI",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GlobalIllumination",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,half3 bakedGI, half occlusion,half3 normalWS, half3 viewDirectionWS)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "brdfDataClearCoat",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "clearCoatMask",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "bakedGI",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "occlusion",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "bakedGI",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "occlusion",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "MixRealtimeAndBakedGI",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI)",
+                            "parameters": [
+                                {
+                                    "name": "light",
+                                    "type": "Light",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "bakedGI",
+                                    "type": "half3",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)",
+                            "parameters": [
+                                {
+                                    "name": "light",
+                                    "type": "Light",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "bakedGI",
+                                    "type": "half3",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "shadowMask",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "LightingLambert",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 LightingLambert(half3 lightColor, half3 lightDir, half3 normal)",
+                            "parameters": [
+                                {
+                                    "name": "lightColor",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDir",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normal",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "LightingSpecular",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 viewDir, half4 specular, half smoothness)",
+                            "parameters": [
+                                {
+                                    "name": "lightColor",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDir",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normal",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDir",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specular",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "smoothness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "LightingPhysicallyBased",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,half3 lightColor, half3 lightDirectionWS, half lightAttenuation,half3 normalWS, half3 viewDirectionWS,half clearCoatMask, bool specularHighlightsOff)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "brdfDataClearCoat",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightColor",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightAttenuation",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "clearCoatMask",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specularHighlightsOff",
+                                    "type": "bool",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool specularHighlightsOff)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "brdfDataClearCoat",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "light",
+                                    "type": "Light",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "clearCoatMask",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specularHighlightsOff",
+                                    "type": "bool",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "light",
+                                    "type": "Light",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightColor",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightAttenuation",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "light",
+                                    "type": "Light",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specularHighlightsOff",
+                                    "type": "bool",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS, bool specularHighlightsOff)",
+                            "parameters": [
+                                {
+                                    "name": "brdfData",
+                                    "type": "BRDFData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightColor",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightAttenuation",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "viewDirectionWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specularHighlightsOff",
+                                    "type": "bool",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "VertexLighting",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 VertexLighting(float3 positionWS, half3 normalWS)",
+                            "parameters": [
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "UniversalFragmentPBR",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)",
+                            "parameters": [
+                                {
+                                    "name": "inputData",
+                                    "type": "InputData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "surfaceData",
+                                    "type": "SurfaceData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,half smoothness, half occlusion, half3 emission, half alpha)",
+                            "parameters": [
+                                {
+                                    "name": "inputData",
+                                    "type": "InputData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "albedo",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "metallic",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specular",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "smoothness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "occlusion",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "emission",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "alpha",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "UniversalFragmentBlinnPhong",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)",
+                            "parameters": [
+                                {
+                                    "name": "inputData",
+                                    "type": "InputData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "diffuse",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specularGloss",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "smoothness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "emission",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "alpha",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "LightweightFragmentPBR",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,half smoothness, half occlusion, half3 emission, half alpha)",
+                            "parameters": [
+                                {
+                                    "name": "inputData",
+                                    "type": "InputData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "albedo",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "metallic",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specular",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "smoothness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "occlusion",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "emission",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "alpha",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "LightweightFragmentBlinnPhong",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)",
+                            "parameters": [
+                                {
+                                    "name": "inputData",
+                                    "type": "InputData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "diffuse",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "specularGloss",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "smoothness",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "emission",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "alpha",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl",
+            "functions": [
+                {
+                    "functionName": "MetaVertexPosition",
+                    "variations": [
+                        {
+                            "returnType": "float4",
+                            "functionAPI": "float4 MetaVertexPosition(float4 positionOS, float2 uv1, float2 uv2, float4 uv1ST, float4 uv2ST)",
+                            "parameters": [
+                                {
+                                    "name": "positionOS",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "uv1",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "uv2",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "uv1ST",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "uv2ST",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "MetaFragment",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 MetaFragment(MetaInput input)",
+                            "parameters": [
+                                {
+                                    "name": "input",
+                                    "type": "MetaInput",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl",
+            "functions": [
+                {
+                    "functionName": "MixParticleColor",
+                    "variations": [
+                        {
+                            "returnType": "float4",
+                            "functionAPI": "float4 MixParticleColor(float4 baseColor, float4 particleColor, float4 colorAddSubDiff)",
+                            "parameters": [
+                                {
+                                    "name": "baseColor",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "particleColor",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "colorAddSubDiff",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SoftParticles",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float SoftParticles(float near, float far, float4 projection)",
+                            "parameters": [
+                                {
+                                    "name": "near",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "far",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "projection",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "CameraFade",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half CameraFade(float near, float far, float4 projection)",
+                            "parameters": [
+                                {
+                                    "name": "near",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "far",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "projection",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "AlphaModulate",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 AlphaModulate(half3 albedo, half alpha)",
+                            "parameters": [
+                                {
+                                    "name": "albedo",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "alpha",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "Distortion",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 Distortion(float4 baseColor, float3 normal, half strength, half blend, float4 projection)",
+                            "parameters": [
+                                {
+                                    "name": "baseColor",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normal",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "strength",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "blend",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "projection",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "BlendTexture",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 BlendTexture(TEXTURE2D_PARAM(_Texture, sampler_Texture), float2 uv, float3 blendUv)",
+                            "parameters": [
+                                {
+                                    "name": "None",
+                                    "type": "TEXTURE2D_PARAM(_Texture, sampler_Texture)",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "blendUv",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleNormalTS",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = 1.0h)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "blendUv",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "None",
+                                    "type": "TEXTURE2D_PARAM(bumpMap, sampler_bumpMap)",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "scale",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetParticleColor",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 GetParticleColor(half4 color)",
+                            "parameters": [
+                                {
+                                    "name": "color",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetParticleTexcoords",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void GetParticleTexcoords(out float2 outputTexcoord, out float3 outputTexcoord2AndBlend, in float4 inputTexcoords, in float inputBlend)",
+                            "parameters": [
+                                {
+                                    "name": "outputTexcoord",
+                                    "type": "float2",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "outputTexcoord2AndBlend",
+                                    "type": "float3",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "inputTexcoords",
+                                    "type": "float4",
+                                    "functionArg": "in",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "inputBlend",
+                                    "type": "float",
+                                    "functionArg": "in",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void GetParticleTexcoords(out float2 outputTexcoord, in float2 inputTexcoord)",
+                            "parameters": [
+                                {
+                                    "name": "outputTexcoord",
+                                    "type": "float2",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "inputTexcoord",
+                                    "type": "float2",
+                                    "functionArg": "in",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/ParticlesInstancing.hlsl",
+            "functions": [
+                {
+                    "functionName": "ParticleInstancingMatrices",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void ParticleInstancingMatrices(out float4x4 objectToWorld, out float4x4 worldToObject)",
+                            "parameters": [
+                                {
+                                    "name": "objectToWorld",
+                                    "type": "float4x4",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "worldToObject",
+                                    "type": "float4x4",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ParticleInstancingSetup",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void ParticleInstancingSetup()",
+                            "parameters": []
+                        },
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void ParticleInstancingSetup() ",
+                            "parameters": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl",
+            "functions": [
+                {
+                    "functionName": "PackAONormal",
+                    "variations": [
+                        {
+                            "returnType": "float4",
+                            "functionAPI": "float4 PackAONormal(float ao, float3 n)",
+                            "parameters": [
+                                {
+                                    "name": "ao",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "n",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetPackedNormal",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 GetPackedNormal(float4 p)",
+                            "parameters": [
+                                {
+                                    "name": "p",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetPackedAO",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float GetPackedAO(float4 p)",
+                            "parameters": [
+                                {
+                                    "name": "p",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "EncodeAO",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float EncodeAO(float x)",
+                            "parameters": [
+                                {
+                                    "name": "x",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "CompareNormal",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float CompareNormal(float3 d1, float3 d2)",
+                            "parameters": [
+                                {
+                                    "name": "d1",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "d2",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetScreenSpacePosition",
+                    "variations": [
+                        {
+                            "returnType": "float2",
+                            "functionAPI": "float2 GetScreenSpacePosition(float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "CosSin",
+                    "variations": [
+                        {
+                            "returnType": "float2",
+                            "functionAPI": "float2 CosSin(float theta)",
+                            "parameters": [
+                                {
+                                    "name": "theta",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "UVRandom",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float UVRandom(float u, float v)",
+                            "parameters": [
+                                {
+                                    "name": "u",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "v",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "PickSamplePoint",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 PickSamplePoint(float2 uv, float randAddon, int index)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "randAddon",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "index",
+                                    "type": "int",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "RawToLinearDepth",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float RawToLinearDepth(float rawDepth)",
+                            "parameters": [
+                                {
+                                    "name": "rawDepth",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleAndGetLinearDepth",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float SampleAndGetLinearDepth(float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ReconstructViewPos",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "depth",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "p11_22",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "p13_31",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ReconstructNormal",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 ReconstructNormal(float2 uv, float depth, float3 vpos, float2 p11_22, float2 p13_31)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "depth",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "vpos",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "p11_22",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "p13_31",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleDepthNormalView",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void SampleDepthNormalView(float2 uv, float2 p11_22, float2 p13_31, out float depth, out float3 normal, out float3 vpos)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "p11_22",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "p13_31",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "depth",
+                                    "type": "float",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normal",
+                                    "type": "float3",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "vpos",
+                                    "type": "float3",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SSAO",
+                    "variations": [
+                        {
+                            "returnType": "float4",
+                            "functionAPI": "float4 SSAO(Varyings input) : SV_Target",
+                            "parameters": [
+                                {
+                                    "name": "input",
+                                    "type": "Varyings",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "Blur",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 Blur(float2 uv, float2 delta) : SV_Target",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "delta",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "BlurSmall",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float BlurSmall(float2 uv, float2 delta)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "delta",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "HorizontalBlur",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 HorizontalBlur(Varyings input) : SV_Target",
+                            "parameters": [
+                                {
+                                    "name": "input",
+                                    "type": "Varyings",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "VerticalBlur",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 VerticalBlur(Varyings input) : SV_Target",
+                            "parameters": [
+                                {
+                                    "name": "input",
+                                    "type": "Varyings",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "FinalBlur",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 FinalBlur(Varyings input) : SV_Target",
+                            "parameters": [
+                                {
+                                    "name": "input",
+                                    "type": "Varyings",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl",
+            "functions": [
+                {
+                    "functionName": "shadergraph_LWSampleSceneDepth",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float shadergraph_LWSampleSceneDepth(float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "shadergraph_LWSampleSceneColor",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 shadergraph_LWSampleSceneColor(float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "shadergraph_LWBakedGI",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 shadergraph_LWBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap, bool applyScaling)",
+                            "parameters": [
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "uvStaticLightmap",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "uvDynamicLightmap",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "applyScaling",
+                                    "type": "bool",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "shadergraph_LWReflectionProbe",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)",
+                            "parameters": [
+                                {
+                                    "name": "viewDir",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalOS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lod",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "shadergraph_LWFog",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void shadergraph_LWFog(float3 position, out float4 color, out float density)",
+                            "parameters": [
+                                {
+                                    "name": "position",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "color",
+                                    "type": "float4",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "density",
+                                    "type": "float",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl",
+            "functions": []
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl",
+            "functions": [
+                {
+                    "functionName": "GetScaledScreenParams",
+                    "variations": [
+                        {
+                            "returnType": "float4",
+                            "functionAPI": "float4 GetScaledScreenParams()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "IsPerspectiveProjection",
+                    "variations": [
+                        {
+                            "returnType": "bool",
+                            "functionAPI": "bool IsPerspectiveProjection()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetCameraPositionWS",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 GetCameraPositionWS()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetCurrentViewPosition",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 GetCurrentViewPosition()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetViewForwardDir",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 GetViewForwardDir()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetWorldSpaceViewDir",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 GetWorldSpaceViewDir(float3 positionWS)",
+                            "parameters": [
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetWorldSpaceNormalizeViewDir",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)",
+                            "parameters": [
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetLeftHandedViewSpaceMatrices",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMatrix)",
+                            "parameters": [
+                                {
+                                    "name": "viewMatrix",
+                                    "type": "float4x4",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "projMatrix",
+                                    "type": "float4x4",
+                                    "functionArg": "out",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "AlphaDiscard",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)",
+                            "parameters": [
+                                {
+                                    "name": "alpha",
+                                    "type": "real",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "cutoff",
+                                    "type": "real",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "offset",
+                                    "type": "real",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "OutputAlpha",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half OutputAlpha(half outputAlpha, half surfaceType = 0.0)",
+                            "parameters": [
+                                {
+                                    "name": "outputAlpha",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "surfaceType",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "NormalizeNormalPerVertex",
+                    "variations": [
+                        {
+                            "returnType": "real3",
+                            "functionAPI": "real3 NormalizeNormalPerVertex(real3 normalWS)",
+                            "parameters": [
+                                {
+                                    "name": "normalWS",
+                                    "type": "real3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "NormalizeNormalPerPixel",
+                    "variations": [
+                        {
+                            "returnType": "real3",
+                            "functionAPI": "real3 NormalizeNormalPerPixel(real3 normalWS)",
+                            "parameters": [
+                                {
+                                    "name": "normalWS",
+                                    "type": "real3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ComputeScreenPos",
+                    "variations": [
+                        {
+                            "returnType": "float4",
+                            "functionAPI": "float4 ComputeScreenPos(float4 positionCS)",
+                            "parameters": [
+                                {
+                                    "name": "positionCS",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ComputeFogFactor",
+                    "variations": [
+                        {
+                            "returnType": "real",
+                            "functionAPI": "real ComputeFogFactor(float z)",
+                            "parameters": [
+                                {
+                                    "name": "z",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ComputeFogIntensity",
+                    "variations": [
+                        {
+                            "returnType": "real",
+                            "functionAPI": "real ComputeFogIntensity(real fogFactor)",
+                            "parameters": [
+                                {
+                                    "name": "fogFactor",
+                                    "type": "real",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "MixFogColor",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)",
+                            "parameters": [
+                                {
+                                    "name": "fragColor",
+                                    "type": "real3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "fogColor",
+                                    "type": "real3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "fogFactor",
+                                    "type": "real",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "MixFog",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 MixFog(real3 fragColor, real fogFactor)",
+                            "parameters": [
+                                {
+                                    "name": "fragColor",
+                                    "type": "real3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "fogFactor",
+                                    "type": "real",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "TransformScreenUV",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void TransformScreenUV(inout float2 uv, float screenHeight)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "screenHeight",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void TransformScreenUV(inout float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "TransformNormalizedScreenUV",
+                    "variations": [
+                        {
+                            "returnType": "void",
+                            "functionAPI": "void TransformNormalizedScreenUV(inout float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "inout",
+                                    "hasFunctionArgs": true,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetNormalizedScreenSpaceUV",
+                    "variations": [
+                        {
+                            "returnType": "float2",
+                            "functionAPI": "float2 GetNormalizedScreenSpaceUV(float2 positionCS)",
+                            "parameters": [
+                                {
+                                    "name": "positionCS",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "float2",
+                            "functionAPI": "float2 GetNormalizedScreenSpaceUV(float4 positionCS)",
+                            "parameters": [
+                                {
+                                    "name": "positionCS",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "TransformStereoScreenSpaceTex",
+                    "variations": [
+                        {
+                            "returnType": "float2",
+                            "functionAPI": "    float2 TransformStereoScreenSpaceTex(float2 uv, float w)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "w",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "UnityStereoTransformScreenSpaceTex",
+                    "variations": [
+                        {
+                            "returnType": "float2",
+                            "functionAPI": "    float2 UnityStereoTransformScreenSpaceTex(float2 uv)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl",
+            "functions": [
+                {
+                    "functionName": "GetMainLightShadowParams",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 GetMainLightShadowParams()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetAdditionalLightShadowParams",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 GetAdditionalLightShadowParams(int lightIndex)",
+                            "parameters": [
+                                {
+                                    "name": "lightIndex",
+                                    "type": "int",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleScreenSpaceShadowmap",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half SampleScreenSpaceShadowmap(float4 shadowCoord)",
+                            "parameters": [
+                                {
+                                    "name": "shadowCoord",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleShadowmapFiltered",
+                    "variations": [
+                        {
+                            "returnType": "real",
+                            "functionAPI": "real SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)",
+                            "parameters": [
+                                {
+                                    "name": "None",
+                                    "type": "TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap)",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "shadowCoord",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "samplingData",
+                                    "type": "ShadowSamplingData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleShadowmap",
+                    "variations": [
+                        {
+                            "returnType": "real",
+                            "functionAPI": "real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)",
+                            "parameters": [
+                                {
+                                    "name": "None",
+                                    "type": "TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap)",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "shadowCoord",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "samplingData",
+                                    "type": "ShadowSamplingData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "shadowParams",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "isPerspectiveProjection",
+                                    "type": "bool",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": true
+                                }
+                            ]
+                        },
+                        {
+                            "returnType": "real",
+                            "functionAPI": "real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), ShadowSamplingData samplingData, half shadowStrength, bool isPerspectiveProjection = true)",
+                            "parameters": [
+                                {
+                                    "name": "shadowCoord",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "None",
+                                    "type": "TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap)",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "samplingData",
+                                    "type": "ShadowSamplingData",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "shadowStrength",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "isPerspectiveProjection",
+                                    "type": "bool",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ComputeCascadeIndex",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half ComputeCascadeIndex(float3 positionWS)",
+                            "parameters": [
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "TransformWorldToShadowCoord",
+                    "variations": [
+                        {
+                            "returnType": "float4",
+                            "functionAPI": "float4 TransformWorldToShadowCoord(float3 positionWS)",
+                            "parameters": [
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "MainLightRealtimeShadow",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half MainLightRealtimeShadow(float4 shadowCoord)",
+                            "parameters": [
+                                {
+                                    "name": "shadowCoord",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "AdditionalLightRealtimeShadow",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)",
+                            "parameters": [
+                                {
+                                    "name": "lightIndex",
+                                    "type": "int",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetShadowFade",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half GetShadowFade(float3 positionWS)",
+                            "parameters": [
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "MixRealtimeAndBakedShadows",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)",
+                            "parameters": [
+                                {
+                                    "name": "realtimeShadow",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "bakedShadow",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "shadowFade",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "BakedShadow",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half BakedShadow(half4 shadowMask, half4 occlusionProbeChannels)",
+                            "parameters": [
+                                {
+                                    "name": "shadowMask",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "occlusionProbeChannels",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "MainLightShadow",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)",
+                            "parameters": [
+                                {
+                                    "name": "shadowCoord",
+                                    "type": "float4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "shadowMask",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "occlusionProbeChannels",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "AdditionalLightShadow",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half AdditionalLightShadow(int lightIndex, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)",
+                            "parameters": [
+                                {
+                                    "name": "lightIndex",
+                                    "type": "int",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "shadowMask",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "occlusionProbeChannels",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetShadowCoord",
+                    "variations": [
+                        {
+                            "returnType": "float4",
+                            "functionAPI": "float4 GetShadowCoord(VertexPositionInputs vertexInput)",
+                            "parameters": [
+                                {
+                                    "name": "vertexInput",
+                                    "type": "VertexPositionInputs",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ApplyShadowBias",
+                    "variations": [
+                        {
+                            "returnType": "float3",
+                            "functionAPI": "float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)",
+                            "parameters": [
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "normalWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "lightDirection",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "ApplyShadowFade",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float ApplyShadowFade(float shadowAttenuation, float3 positionWS)",
+                            "parameters": [
+                                {
+                                    "name": "shadowAttenuation",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "positionWS",
+                                    "type": "float3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetMainLightShadowStrength",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half GetMainLightShadowStrength()",
+                            "parameters": []
+                        }
+                    ]
+                },
+                {
+                    "functionName": "GetAdditionalLightShadowStrenth",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half GetAdditionalLightShadowStrenth(int lightIndex)",
+                            "parameters": [
+                                {
+                                    "name": "lightIndex",
+                                    "type": "int",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl",
+            "functions": []
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl",
+            "functions": [
+                {
+                    "functionName": "Alpha",
+                    "variations": [
+                        {
+                            "returnType": "half",
+                            "functionAPI": "half Alpha(half albedoAlpha, half4 color, half cutoff)",
+                            "parameters": [
+                                {
+                                    "name": "albedoAlpha",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "color",
+                                    "type": "half4",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "cutoff",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleAlbedoAlpha",
+                    "variations": [
+                        {
+                            "returnType": "half4",
+                            "functionAPI": "half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_PARAM(albedoAlphaMap, sampler_albedoAlphaMap))",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleNormal",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = 1.0h)",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "None",
+                                    "type": "TEXTURE2D_PARAM(bumpMap, sampler_bumpMap)",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "scale",
+                                    "type": "half",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "SampleEmission",
+                    "variations": [
+                        {
+                            "returnType": "half3",
+                            "functionAPI": "half3 SampleEmission(float2 uv, half3 emissionColor, TEXTURE2D_PARAM(emissionMap, sampler_emissionMap))",
+                            "parameters": [
+                                {
+                                    "name": "uv",
+                                    "type": "float2",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                },
+                                {
+                                    "name": "emissionColor",
+                                    "type": "half3",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl",
+            "functions": [
+                {
+                    "functionName": "PackMaterialFlags",
+                    "variations": [
+                        {
+                            "returnType": "float",
+                            "functionAPI": "float PackMaterialFlags(uint materialFlags)",
+                            "parameters": [
+                                {
+                                    "name": "materialFlags",
+                                    "type": "uint",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "functionName": "UnpackMaterialFlags",
+                    "variations": [
+                        {
+                            "returnType": "uint",
+                            "functionAPI": "uint UnpackMaterialFlags(float packedMaterialFlags)",
+                            "parameters": [
+                                {
+                                    "name": "packedMaterialFlags",
+                                    "type": "float",
+                                    "functionArg": "",
+                                    "hasFunctionArgs": false,
+                                    "isOptional": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl",
+            "functions": []
+        },
+        {
+            "name": "com.unity.render-pipelines.universal/ShaderLibrary/UniversalDOTSInstancing.hlsl",
+            "functions": []
+        }
+    ]
+}
