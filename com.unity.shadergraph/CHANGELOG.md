@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
 - Fixed SampleTexture2DLOD node to return opaque black on unsupported platforms [1241602]
 - ShaderGraph now detects when a SubGraph is deleted while being used by a SubGraph node, and displays appropriate errors [1206438]
+- Fixed an issue where the Main Preview window rendered too large on small monitors during first open. [1254392]
+- Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
+- Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
+- Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
 
 ## [10.1.0] - 2020-10-12
 
