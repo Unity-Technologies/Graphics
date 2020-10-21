@@ -72,5 +72,4 @@ all:
       build_config: mono_apiNet2
       color_space: Linear
       test_platforms:
-        - Standalone
         - playmode 
