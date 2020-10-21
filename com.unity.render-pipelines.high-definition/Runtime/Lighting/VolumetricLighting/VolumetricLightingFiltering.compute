@@ -55,8 +55,8 @@ void PrefetchData(uint groupIndex, uint2 groupOrigin, uint sliceIndex)
     for (int i = 0; i < 2; ++i)
     {
         uint sampleID = i + (groupIndex * 2);
-        uint offsetX = sampleID % FILTER_SIZE_1D;
-        uint offsetY = sampleID / FILTER_SIZE_1D;
+        int offsetX = sampleID % FILTER_SIZE_1D;
+        int offsetY = sampleID / FILTER_SIZE_1D;
 
         int3 sampleCoord = int3(clamp(originXY.x + offsetX, 0, _VBufferViewportSize.x - 1),
                                 clamp(originXY.y + offsetY, 0, _VBufferViewportSize.y - 1),
