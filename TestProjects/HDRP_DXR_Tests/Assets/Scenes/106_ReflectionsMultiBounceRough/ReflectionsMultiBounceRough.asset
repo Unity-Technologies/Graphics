@@ -71,7 +71,6 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 50
     min: 0
-    max: 50
   m_ClampValue:
     m_OverrideState: 1
     m_Value: 10
@@ -153,3 +152,7 @@ MonoBehaviour:
   extendCameraCulling:
     m_OverrideState: 1
     m_Value: 1
+  directionalShadowRayLength:
+    m_OverrideState: 0
+    m_Value: 1000
+    min: 0.01
