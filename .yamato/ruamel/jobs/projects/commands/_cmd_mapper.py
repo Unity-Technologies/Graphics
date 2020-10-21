@@ -1,4 +1,4 @@
-from . import win, osx_openglcore, osx_metal, linux, android,  linux_split, iphone
+from . import win, osx_openglcore, osx_metal, linux, android, iphone, internal
 
 cmd_map = {
     'win' : {
@@ -36,8 +36,13 @@ cmd_map = {
         'playmode': iphone.cmd_playmode,
         'standalone' : iphone.cmd_standalone,
         'standalone_build' : iphone.cmd_standalone_build
-    }
-    
+    },
+    'internal' : {
+        'editmode': internal.cmd_editmode,
+        'playmode': internal.cmd_playmode,
+        'standalone' : internal.cmd_standalone,
+        'standalone_build' : internal.cmd_standalone_build
+    }  
 }
 
 
