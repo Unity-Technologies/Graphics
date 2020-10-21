@@ -20,13 +20,12 @@ platforms:
       - name: mono_apiNet2
     color_spaces:
       - Linear
-    overrides:
-      agents_project:
-        default:
-          type: Unity::VM::GPU
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.large
-          model: rtx2080
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+        model: rtx2080
 all:
   dependencies:
     - platform: Win
@@ -37,5 +36,4 @@ all:
         - Standalone
         - playmode
         - playmode_XR
-        - playmode_NonRenderGraph
 

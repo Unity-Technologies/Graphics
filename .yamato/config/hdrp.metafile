@@ -115,6 +115,5 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        - playmode_NonRenderGraph
     - project: HDRP_Hybrid
       all: true

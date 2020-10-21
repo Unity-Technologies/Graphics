@@ -20,12 +20,9 @@ platforms:
     apis:
       - name: Metal
         exclude_test_platforms:
-          - name: playmode_XR
-          - name: playmode
           - name: editmode
       - name: OpenGLCore
         exclude_test_platforms:
-          - name: playmode_XR
           - name: Standalone
     build_configs:
       - name: mono_apiNet2
@@ -36,10 +33,7 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
-          - name: playmode_XR
       - name: Vulkan
-        exclude_test_platforms:
-          - name: playmode_XR
     build_configs:
       - name: mono_apiNet2
     color_spaces:

@@ -12,14 +12,10 @@ test_platforms:
   - type: playmode
     utr_flags:
       - [all]: --compilation-errors-as-warnings
-  - type: editmode
-    utr_flags:
-      - [all]: --compilation-errors-as-warnings
 platforms:
   - name: Win
     apis:
       - name: DX11
-      - name: DX12
       - name: Vulkan
     build_configs:
       - name: mono_apiNet2
@@ -30,10 +26,6 @@ platforms:
       - name: Metal
         exclude_test_platforms:
           - name: playmode_XR
-      - name: OpenGLCore
-        exclude_test_platforms:
-          - name: playmode_XR
-          - name: Standalone
     build_configs:
       - name: mono_apiNet2
     color_spaces:
@@ -54,7 +46,13 @@ platforms:
   - name: Android
     apis:
       - name: OpenGLES3
+        exclude_test_platforms:
+          - name: playmode
+          - name: playmode_XR
       - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode
+          - name: playmode_XR
     build_configs:
       - name: mono_apiNet2
     color_spaces:

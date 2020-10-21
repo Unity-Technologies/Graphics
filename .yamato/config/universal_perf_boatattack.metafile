@@ -9,7 +9,6 @@ test_platforms:
       - [all]: --performance-project-id=BoatAttack
     utr_flags_build:
       - [all]: --extra-editor-arg="-executemethod Editor.Setup"
-      - [all]: --extra-editor-arg="-testCategory Performance"
       - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
       - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
       - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
@@ -18,49 +17,27 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
-  - type: editmode
-    name: performance_editmode_build
-    is_performance: True
-    utr_flags:
-      - [all]: --report-performance-data
-      - [all]: --performance-project-id=BoatAttack
-      - [all]: --testfilter=Build
+      - [all]: --category=URP
+#  - type: editmode
+#    name: performance_editmode_build
+#    is_performance: True
+#    utr_flags:
+#      - [all]: --report-performance-data
+#      - [all]: --performance-project-id=BoatAttack
+#      - [all]: --testfilter=Build
 platforms:
   - name: Win
     apis:
       - name: DX11
-      - name: Vulkan
     build_configs:
       - name: il2cpp_apiNet4
       - name: mono_apiNet2
-    color_spaces:
-      - Linear
-  - name: OSX
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-          - name: playmode_XR
-      - name: OpenGLCore
-        exclude_test_platforms:
-          - name: playmode_XR
-          - name: Standalone
-    build_configs:
-      - name: il2cpp_apiNet4
     color_spaces:
       - Linear
   - name: Android
     apis: 
       - name: Vulkan
       - name: OpenGLES3
-    build_configs:
-      - name: il2cpp_apiNet4
-    color_spaces:
-      - Linear
-  - name: iPhone
-    apis: 
-      - name: Metal
-        exclude_test_platforms:
-          - name: playmode_XR
     build_configs:
       - name: il2cpp_apiNet4
     color_spaces:

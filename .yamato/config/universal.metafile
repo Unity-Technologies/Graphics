@@ -57,7 +57,15 @@ platforms:
   - name: Android
     apis:
       - name: OpenGLES3
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
       - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
     build_configs:
       - name: il2cpp_apiNet4
       - name: mono_apiNet2
@@ -67,10 +75,12 @@ platforms:
     apis:
       - name: Metal
         exclude_test_platforms:
+          - name: playmode
           - name: editmode
+          - name: playmode_XR
     build_configs:
-      - name: mono_apiNet2
       - name: il2cpp_apiNet4
+      - name: mono_apiNet2
     color_spaces:
       - Linear
 all:
