@@ -22,4 +22,5 @@
 |Returns true if any of the components of the input In is not a number (NaN).|Returns true if both the inputs A and B are false.|
 |[**Not**](Not-Node.md)|[**Or**](Or-Node.md)|
 |![Image](images/NotNodeThumb.png)|![Image](images/OrNodeThumb.png)|
-|Returns the opposite of input In. If In is true the output will be false, otherwise it will be true.|Returns true if either of the inputs A and B are true.|
+|Returns the opposite of input In. If In is true, the output is false. Otherwise, it returns true.|Returns true if either input A or input B is true.|
+
