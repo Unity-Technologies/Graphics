@@ -113,6 +113,15 @@ Shader "Hidden/Universal Render Pipeline/Sky/HDRISky"
             return sdf < 0.0f && dirY < 0.0f && _WorldSpaceCameraPos.y > _GroundLevel;
         }
 
+        bool IsBackplateHit(out float3 positionOnBackplatePlane, float3 dir)
+        {
+            float sdf;
+            float localScale;
+            IsBackplateCommon(sdf, localScale, positionOnBackplatePlane, dir);
+
+            return IsHit(sdf, dir.y);
+        }
+
         bool IsBackplateHitWithBlend(out float3 positionOnBackplatePlane, out float blend, float3 dir)
         {
             float sdf;
@@ -201,6 +210,26 @@ Shader "Hidden/Universal Render Pipeline/Sky/HDRISky"
             return RenderBackplate(input, 1.0); // TODO CurrentExposureMultiplier
         }
 
+        float GetDepthWithBackplate(Varyings input)
+        {
+            float3 viewDirWS = -GetSkyViewDirWS(input.positionCS.xy);
+
+            float depth = UNITY_RAW_FAR_CLIP_VALUE;
+
+            float3 finalPos;
+            if (IsBackplateHit(finalPos, viewDirWS))
+            {
+                depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos, UNITY_MATRIX_VP).z;
+            }
+
+            return depth;
+        }
+
+        float FragPrerenderBackplate(Varyings input) : SV_Depth
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            return GetDepthWithBackplate(input);
+        }
 
         ENDHLSL
 
@@ -229,6 +258,20 @@ Shader "Hidden/Universal Render Pipeline/Sky/HDRISky"
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment FragRenderBackplate
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "SkyPrerenderBackplate"
+            Cull Off
+            ZTest LEqual
+            ZWrite On
+            Blend Off
+
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment FragPrerenderBackplate
             ENDHLSL
         }
     }

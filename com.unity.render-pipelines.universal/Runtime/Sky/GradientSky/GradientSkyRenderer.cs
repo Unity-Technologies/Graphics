@@ -26,8 +26,6 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RenderSky(ref CameraData cameraData, CommandBuffer cmd)
         {
-            Camera camera = cameraData.camera;
-
             var gradientSky = (GradientSky)cameraData.visualSky.skySettings;
             m_GradientSkyMaterial.SetColor(_GradientBottom, gradientSky.bottom.value);
             m_GradientSkyMaterial.SetColor(_GradientMiddle, gradientSky.middle.value);

@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
 
         static readonly int SHADER_PASS_SKY = 0;
         static readonly int SHADER_PASS_SKY_WITH_BACKPLATE = 1;
+        static readonly int SHADER_PASS_SKY_BACKPLATE_PRERENDER = 2;
 
         static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
         static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
@@ -81,6 +82,23 @@ namespace UnityEngine.Rendering.Universal
             return new Vector4(Mathf.Cos(localPhi), Mathf.Sin(localPhi), hdriSky.plateTexOffset.value.x, hdriSky.plateTexOffset.value.y);
         }
 
+        public override void PrerenderSky(ref CameraData cameraData, CommandBuffer cmd)
+        {
+            var hdriSky = (HDRISky)cameraData.visualSky.skySettings;
+            if (!hdriSky.enableBackplate.value)
+                return;
+
+            float intensity, phi, backplatePhi;
+            GetParameters(out intensity, out phi, out backplatePhi, hdriSky);
+
+            m_HDRISkyMaterial.SetVector(_BackplateParameters0, GetBackplateParameters0(hdriSky));
+            m_HDRISkyMaterial.SetVector(_BackplateParameters1, GetBackplateParameters1(backplatePhi, hdriSky));
+
+            m_PropertyBlock.SetMatrix(SkyShaderConstants._PixelCoordToViewDirWS, cameraData.pixelCoordToViewDirMatrix);
+
+            CoreUtils.DrawFullScreen(cmd, m_HDRISkyMaterial, m_PropertyBlock, SHADER_PASS_SKY_BACKPLATE_PRERENDER);
+        }
+
         public override void RenderSky(ref CameraData cameraData, CommandBuffer cmd)
         {
             var hdriSky = (HDRISky)cameraData.visualSky.skySettings;
@@ -88,8 +106,6 @@ namespace UnityEngine.Rendering.Universal
 
             float intensity, phi, backplatePhi;
             GetParameters(out intensity, out phi, out backplatePhi, hdriSky);
-
-            Camera camera = cameraData.camera;
 
             m_HDRISkyMaterial.SetTexture(_Cubemap, hdriSky.hdriSky.value);
             m_HDRISkyMaterial.SetVector(_SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
