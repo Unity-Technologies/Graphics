@@ -13,7 +13,7 @@ VFX_URP_Win_DX11_Standalone_mono_apiNet2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
-      -  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -40,7 +40,7 @@ Build_VFX_URP_Win_DX11_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear"
+                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -67,7 +67,7 @@ VFX_URP_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -83,7 +83,7 @@ VFX_URP_Win_DX11_Standalone_mono_apiNet2_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
-      -  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -110,7 +110,7 @@ Build_VFX_URP_Win_DX11_Player_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear"
+                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -137,7 +137,7 @@ VFX_URP_Win_DX11_playmode_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -154,7 +154,7 @@ VFX_URP_Win_DX11_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_URP/utr.bat
-      -  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --player-load-path=../../players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -184,7 +184,7 @@ Build_VFX_URP_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear"
+                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --player-save-path=../../players --build-only --timeout=1200 --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:
@@ -215,7 +215,7 @@ VFX_URP_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11"
+                  cd TestProjects/VisualEffectGraph_URP && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear"
     artifacts:
         logs:
             paths:

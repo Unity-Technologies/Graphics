@@ -51,6 +51,8 @@ test_platforms:
       - [Win_DX11]: --extra-editor-arg="-force-d3d11"
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan]: --extra-editor-arg="-force-vulkan"
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
     utr_flags_build:
       - [all]: --suite=playmode
       - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
@@ -73,6 +75,8 @@ test_platforms:
       - [Win_DX11]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX11Linear"
       - [Win_DX12]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsDX12Linear"
       - [Win_Vulkan]: --extra-editor-arg="-executemethod CustomBuild.BuildWindowsVulkanLinear"
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
   - type: playmode
     utr_flags:
       - [all]: --suite=playmode
@@ -84,6 +88,8 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
   - type: editmode
     utr_flags:
       - [all]: --suite=editor
@@ -97,6 +103,8 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
 platforms:
   Win:
     name: Win

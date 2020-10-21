@@ -21,7 +21,7 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
 
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"])
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"],build_config, color_space)
 
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
@@ -39,20 +39,7 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
 
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"])
-    base = _cmd_base(project_folder, platform, utr_args, editor)
-    
-    extra_cmds = extra_perf_cmd(project_folder)
-    unity_config = install_unity_config(project_folder)
-    extra_cmds = extra_cmds + unity_config
-    if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
-    
-    return base
-
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space)
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
     extra_cmds = extra_perf_cmd(project_folder)
@@ -68,7 +55,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
 
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"])
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space)
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
     extra_cmds = extra_perf_cmd(project_folder)

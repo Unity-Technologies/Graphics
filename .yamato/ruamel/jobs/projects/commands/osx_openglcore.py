@@ -12,16 +12,16 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
 
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"])
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space)
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"])
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space)
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"])
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space)
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):

@@ -19,7 +19,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --compilation-errors-as-warnings
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -48,7 +48,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1800 --compilation-errors-as-warnings
+                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1800 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
@@ -75,7 +75,7 @@ Universal_Hybrid_Android_OpenGLES3_playmode_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings
+                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -100,7 +100,7 @@ Universal_Hybrid_Android_OpenGLES3_editmode_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -123,7 +123,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --compilation-errors-as-warnings
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -152,7 +152,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1800 --compilation-errors-as-warnings
+                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1800 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
@@ -179,7 +179,7 @@ Universal_Hybrid_Android_OpenGLES3_playmode_mono_apiNet2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings
+                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -204,7 +204,7 @@ Universal_Hybrid_Android_OpenGLES3_editmode_mono_apiNet2_Linear_2020.2:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -228,7 +228,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_CUSTOM-REVISIO
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --compilation-errors-as-warnings
+                 utr --suite=playmode --platform=Android --player-load-path=players --reruncount=2 --player-connection-ip=auto --artifacts_path=test-results --timeout=1200 --editor-location=WindowsEditor --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -260,7 +260,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_CUSTOM-REVIS
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1800 --compilation-errors-as-warnings
+                  utr --suite=playmode --platform=Android --testproject=TestProjects\[PROJECT_FOLDER] --editor-location=WindowsEditor --player-save-path=players --build-only --timeout=1800 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
     artifacts:
         logs:
             paths:
@@ -291,7 +291,7 @@ Universal_Hybrid_Android_OpenGLES3_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings
+                 utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -320,7 +320,7 @@ Universal_Hybrid_Android_OpenGLES3_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --compilation-errors-as-warnings
+                 utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
