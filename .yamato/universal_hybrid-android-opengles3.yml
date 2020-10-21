@@ -48,7 +48,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --build-only --compilation-errors-as-warnings --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects\UniversalHybridTest --timeout=1800
+                  utr --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects\UniversalHybridTest --timeout=1800
     artifacts:
         logs:
             paths:
@@ -156,7 +156,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_CUSTOM-REVIS
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --build-only --compilation-errors-as-warnings --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects\UniversalHybridTest --timeout=1800
+                  utr --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects\UniversalHybridTest --timeout=1800
     artifacts:
         logs:
             paths:

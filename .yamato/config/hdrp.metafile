@@ -50,7 +50,7 @@ platforms:
     apis:
       - name: Metal
         exclude_test_platforms:
-          - name: playmode_XR
+          - name: editmode
     build_configs:
       - name: mono_apiNet2
     color_spaces:
