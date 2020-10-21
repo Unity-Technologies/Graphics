@@ -271,7 +271,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                     ringHits[j] += bucketWeight;
 #endif
 #ifdef ENABLE_ALPHA
-                    RING_ALPHA[j] = sampleColor.w * weight;
+                    RING_ALPHA[j] += sampleColor.w * weight;
 #endif
                 }
             }
