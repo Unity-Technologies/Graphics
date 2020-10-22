@@ -707,7 +707,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
 
-                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, taaEnabled);
+                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, null, taaEnabled);
 
                                 m_Pool.Recycle(fullresCoC);
                             }
@@ -1863,7 +1863,14 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofDilateCS = m_Resources.shaders.depthOfFieldDilateCS;
             parameters.dofDilateKernel = parameters.dofDilateCS.FindKernel("KMain");
             parameters.dofMipCS = m_Resources.shaders.depthOfFieldMipCS;
-            parameters.dofMipColorKernel = parameters.dofMipCS.FindKernel(m_EnableAlpha ? "KMainColorAlpha" : "KMainColor");
+            if (!m_DepthOfField.physicallyBased)
+            {
+                parameters.dofMipColorKernel = parameters.dofMipCS.FindKernel(m_EnableAlpha ? "KMainColorAlpha" : "KMainColor");
+            }
+            else
+            {
+                parameters.dofMipColorKernel = parameters.dofMipCS.FindKernel(m_EnableAlpha ? "KMainColorCopyAlpha" : "KMainColorCopy");
+            }
             parameters.dofMipCoCKernel = parameters.dofMipCS.FindKernel("KMainCoC");
             parameters.dofMipSafeCS = m_Resources.shaders.depthOfFieldMipSafeCS;
             parameters.dofPrefilterCS = m_Resources.shaders.depthOfFieldPrefilterCS;
@@ -2536,7 +2543,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, bool taaEnabled)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, bool taaEnabled)
         {
             float scale = 1f / (float)dofParameters.resolution;
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
@@ -2610,6 +2617,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip5, fullresCoC, 5);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip6, fullresCoC, 6);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 31) / 32, (dofParameters.camera.actualHeight + 31) / 32, dofParameters.camera.viewCount);
+
+                // DoF color pyramid
+                if (sourcePyramid != null)
+                {
+                    cs = dofParameters.dofMipCS;
+                    kernel = dofParameters.dofMipColorKernel;
+
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source, 0);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, sourcePyramid, 0);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, sourcePyramid, 1);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, sourcePyramid, 2);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, sourcePyramid, 3);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, sourcePyramid, 4);
+
+                    int tx = ((dofParameters.camera.actualWidth >> 1) + 7) / 8;
+                    int ty = ((dofParameters.camera.actualHeight >> 1) + 7) / 8;
+                    cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
+                }
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
@@ -2623,7 +2648,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, 0.0f, 0.0f));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, 0.0f));
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);

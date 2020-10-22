@@ -458,6 +458,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "DoF Destination");
                     passData.destination = builder.WriteTexture(dest);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
+                    passData.taaEnabled = taaEnabled;
 
                     if (!m_DepthOfField.physicallyBased)
                     {
@@ -531,8 +532,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             });
                         }
 
-                        passData.taaEnabled = taaEnabled;
-
                         passData.bokehNearKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.nearSampleCount * dofParameters.nearSampleCount, sizeof(uint)) { name = "Bokeh Near Kernel" });
                         passData.bokehFarKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.farSampleCount * dofParameters.farSampleCount, sizeof(uint)) { name = "Bokeh Far Kernel" });
                         passData.bokehIndirectCmd = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "Bokeh Indirect Cmd" });
@@ -565,10 +564,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
 
+                        passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                        { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
+
                         builder.SetRenderFunc(
                         (DepthofFieldData data, RenderGraphContext ctx) =>
                         {
-                            DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.taaEnabled);
+                            DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.taaEnabled);
                         });
 
                         source = passData.destination;

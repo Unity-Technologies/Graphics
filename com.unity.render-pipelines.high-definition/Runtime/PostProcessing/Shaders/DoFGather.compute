@@ -307,6 +307,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // back to front alpha blending of the near, far and in-focus buckets
     for (int j = 0; j < NUM_BUCKETS; ++j)
     {
+        // Note: earlier we were also using a normalization term for the alpha from the CoD slides, but it created some artifcats.
+        // Perhaps this requires more investigation.
         float alpha = saturate(totalColor[j].w);
         outColor = (1.0 - alpha) * outColor + totalColor[j];
 #ifdef ENABLE_ALPHA
