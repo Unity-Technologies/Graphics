@@ -28,6 +28,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
+- Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
 
 ## [10.1.0] - 2020-10-12
 
