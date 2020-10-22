@@ -83,6 +83,12 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty maskmapSmoothness = new MaterialProperty();
         const string kMaskmapSmoothness = "_MaskmapSmoothness";
 
+        MaterialProperty metallicRemapMin = new MaterialProperty();
+        const string kMetallicRemapMin = "_MetallicRemapMin";
+
+        MaterialProperty metallicRemapMax = new MaterialProperty();
+        const string kMetallicRemapMax = "_MetallicRemapMax";
+
         MaterialProperty AORemapMin = new MaterialProperty();
         const string kAORemapMin = "_AORemapMin";
 
@@ -94,12 +100,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialProperty smoothnessRemapMax = new MaterialProperty();
         const string kSmoothnessRemapMax = "_SmoothnessRemapMax";
-
-        MaterialProperty metallicRemapMin = new MaterialProperty();
-        const string kMetallicRemapMin = "_MetallicRemapMin";
-
-        MaterialProperty metallicScale = new MaterialProperty();
-        const string kMetallicScale = "_MetallicScale";
 
 
         MaterialProperty AO = new MaterialProperty();
@@ -158,12 +158,12 @@ namespace UnityEditor.Rendering.HighDefinition
             maskmapMetal = FindProperty(kMaskmapMetal);
             maskmapAO = FindProperty(kMaskmapAO);
             maskmapSmoothness = FindProperty(kMaskmapSmoothness);
+            metallicRemapMin = FindProperty(kMetallicRemapMin);
+            metallicRemapMax = FindProperty(kMetallicRemapMax);
             AORemapMin = FindProperty(kAORemapMin);
             AORemapMax = FindProperty(kAORemapMax);
             smoothnessRemapMin = FindProperty(kSmoothnessRemapMin);
             smoothnessRemapMax = FindProperty(kSmoothnessRemapMax);
-            metallicRemapMin = FindProperty(kMetallicRemapMin);
-            metallicScale = FindProperty(kMetallicScale);
             AO = FindProperty(kAO);
             smoothness = FindProperty(kSmoothness);
             metallic = FindProperty(kMetallic);
@@ -230,13 +230,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (perChannelMask)
                 {
                     float MetalRemapMinValue = metallicRemapMin.floatValue;
-                    float MetalRemapMaxValue = metallicScale.floatValue;
+                    float MetalRemapMaxValue = metallicRemapMax.floatValue;
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref MetalRemapMinValue, ref MetalRemapMaxValue, 0.0f, 1.0f);
                     if (EditorGUI.EndChangeCheck())
                     {
                         metallicRemapMin.floatValue = MetalRemapMinValue;
-                        metallicScale.floatValue = MetalRemapMaxValue;
+                        metallicRemapMax.floatValue = MetalRemapMaxValue;
                     }
 
                     float AORemapMinValue = AORemapMin.floatValue;

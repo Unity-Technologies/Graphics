@@ -611,17 +611,35 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void MetallicRemapping(Material material, HDShaderUtils.ShaderID id)
         {
+            const string kMetallicRemapMax = "_MetallicRemapMax";
+
             // Lit shaders now have metallic remapping for the mask map
             if (id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
              || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
             {
                 const string kMetallic = "_Metallic";
-                const string kMetallicRemapMax = "_MetallicRemapMax";
                 if (material.HasProperty(kMetallic) && material.HasProperty(kMetallicRemapMax))
                 {
                     var metallic = material.GetFloat(kMetallic);
                     material.SetFloat(kMetallicRemapMax, metallic);
                 }
+            }
+            else if (id == HDShaderUtils.ShaderID.Decal)
+            {
+                HDShaderUtils.ResetMaterialKeywords(material);
+                var serializedMaterial = new SerializedObject(material);
+
+                const string kMetallicScale = "_MetallicScale";
+                float metallicScale = 1.0f;
+                if (TryFindProperty(serializedMaterial, kMetallicScale, SerializedType.Float, out var propertyMetallicScale, out _, out _))
+                {
+                    metallicScale = propertyMetallicScale.floatValue;
+                    RemoveSerializedFloat(serializedMaterial, kMetallicScale);
+                }
+
+                serializedMaterial.ApplyModifiedProperties();
+
+                material.SetFloat(kMetallicRemapMax, metallicScale);
             }
         }
 

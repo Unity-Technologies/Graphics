@@ -410,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
                         m_ScalingBAndRemappingM.z = m_Material.GetFloat("_MetallicRemapMin");
-                        m_ScalingBAndRemappingM.w = m_Material.GetFloat("_MetallicScale");
+                        m_ScalingBAndRemappingM.w = m_Material.GetFloat("_MetallicRemapMax");
                     }
                     else
                     {
