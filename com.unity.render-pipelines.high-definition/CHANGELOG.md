@@ -24,6 +24,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
 - Claryfied doc for the LayeredLit material.
+- Fix an issue that caused issues of usability of editor if a very high resolution is set by mistake and then reverted back to a smaller resolution.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
