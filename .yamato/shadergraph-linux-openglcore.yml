@@ -43,46 +43,6 @@ ShaderGraph_Linux_OpenGLCore_editmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
-ShaderGraph_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_2020.2:
-    name: ShaderGraph on Linux_OpenGLCore_playmode_mono_apiNet2_Linear on version 2020.2
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
-      -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-glcore"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/Logs/*.log"
-ShaderGraph_Linux_OpenGLCore_editmode_mono_apiNet2_Linear_2020.2:
-    name: ShaderGraph on Linux_OpenGLCore_editmode_mono_apiNet2_Linear on version 2020.2
-    agent:
-        type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
-      -  chmod +x TestProjects/ShaderGraph/utr
-      -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-glcore"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/ShaderGraph/Logs/*.log"
 ShaderGraph_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     name: ShaderGraph on Linux_OpenGLCore_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
     agent:
