@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+- Renamed the existing Sample Cubemap Node to Sample Reflected Cubemap Node, and created a new Sample Cubemap Node that samples cubemaps with a direction.
 
 ### Fixed
 - Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
