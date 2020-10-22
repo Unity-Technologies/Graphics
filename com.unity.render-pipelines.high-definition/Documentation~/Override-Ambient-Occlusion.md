@@ -2,11 +2,11 @@
 
 The **Ambient Occlusion** override is a real-time, full-screen lighting effect available in the High Definition Render Pipeline (HDRP). This effect approximates [ambient occlusion](https://en.wikipedia.org/wiki/Ambient_occlusion) in the current field of view. It approximates the intensity and position of ambient light on a GameObject’s surface, based on the light in the Scene and the environment around the GameObject. To achieve this, it darkens creases, holes, intersections, and surfaces that are close to one another. In real life, these areas tend to block out, or occlude, ambient light, and therefore appear darker.
 
-For information on how to use a Texture to specify ambient occlusion caused by details present in a GameObject's Material but not on it's surface geometry, see [Ambient Occlusion](Ambient-Occlusion.html).
+For information on how to use a Texture to specify ambient occlusion caused by details present in a GameObject's Material but not on it's surface geometry, see [Ambient Occlusion](Ambient-Occlusion.md).
 
 ## Using Ambient Occlusion
 
-**Ambient Occlusion** uses the [Volume](Volumes.html) framework, so to enable and modify **Ambient Occlusion** properties, you must add an **Ambient Occlusion** override to a [Volume](Volumes.html) in your Scene. To add **Ambient Occlusion** to a Volume:
+**Ambient Occlusion** uses the [Volume](Volumes.md) framework, so to enable and modify **Ambient Occlusion** properties, you must add an **Ambient Occlusion** override to a [Volume](Volumes.md) in your Scene. To add **Ambient Occlusion** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click on **Ambient Occlusion**. 
@@ -15,6 +15,8 @@ For information on how to use a Texture to specify ambient occlusion caused by d
 ## Properties
 
 ![](Images/OverrideAmbientOcclusion1.png)
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
@@ -26,6 +28,7 @@ For information on how to use a Texture to specify ambient occlusion caused by d
 | **Full Resolution**          | Enable the checkbox to process the ambient occlusion algorithm in full resolution. This improves quality significantly but is a resource-intensive operation and has an impact on performance. Disable the checkbox to process the ambient occlusion algorithm at half the resolution your application runs at. This setting is disabled by default. |
 | **Temporal Accumulation**    | Enable the checkbox to accumulate the result of AO over time. This will lead to better quality, but it might result in artifacts like non instant convergence and ghosting. **Note:** This mode will not lead to good results if motion vectors are not available. |
 | **Ghosting Reduction**       | This is only available when Temporal Accumulation is enabled.<br />Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise. Moving the value closer to 1 will reduce the ghosting, at expense of more visible temporal noise. |
+| **Bilateral Aggressiveness** | This is only available when Temporal Accumulation is enabled.<br />Higher this value, the less lenient with depth differences the spatial filter is and therefore more likely is to reject samples that are at different depth values. Increasing this for could reduce white halos where AO should be around objects. |
 | **Bilateral Upsample**       | Enable the checkbox to upsample the low resolution AO through bilateral upsampling. This preserves sharp edges better, however it is slightly more expensive and might result is more visible aliasing.  **Note:** This mode is available only when Full Resolution is set to false. |
 | **Direction Count**       | Determines how many directions are searched for occlusion, increasing this will impact performance considerably.  **Note:** This mode is available only when Temporal Accumulation is set to false. |
 | **Blur sharpness**       | Determines the sharpness of the non-temporal blur. Higher values preserve sharp features better (with higher risk of noise), lower values have a softer look. **Note:** This mode is available only when Temporal Accumulation is set to false. |

@@ -14,9 +14,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
     internal class AdditionalCompositorData : MonoBehaviour
     {
         public Texture clearColorTexture = null;
+        public RenderTexture clearDepthTexture = null;
         public bool clearAlpha = true;    // Clearing the alpha allows the post process to run only on the pixels covered by a stacked camera (and not the previous ones).
         public BackgroundFitMode imageFitMode = BackgroundFitMode.Stretch;
         public List<CompositionFilter> layerFilters;
+        public float alphaMax = 1.0f;
+        public float alphaMin = 0.0f;
 
         public void Init(List<CompositionFilter> layerFilters, bool clearAlpha)
         {
@@ -27,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public void ResetData()
         {
             clearColorTexture = null;
+            clearDepthTexture = null;
             clearAlpha = true;
             imageFitMode = BackgroundFitMode.Stretch;
 
@@ -36,6 +40,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 layerFilters = null;
             }
 
+            alphaMax = 1.0f;
+            alphaMin = 0.0f;
         }
     }
 }

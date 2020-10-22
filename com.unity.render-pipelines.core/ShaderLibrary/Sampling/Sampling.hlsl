@@ -120,6 +120,18 @@ real2 SampleDiskUniform(real u1, real u2)
     return r * real2(cosPhi, sinPhi);
 }
 
+// Performs cubic sampling of the unit disk.
+real2 SampleDiskCubic(real u1, real u2)
+{
+    real r   = u1;
+    real phi = TWO_PI * u2;
+
+    real sinPhi, cosPhi;
+    sincos(phi, sinPhi, cosPhi);
+
+    return r * real2(cosPhi, sinPhi);
+}
+
 real3 SampleConeUniform(real u1, real u2, real cos_theta)
 {
     float r0 = cos_theta + u1 * (1.0f - cos_theta);

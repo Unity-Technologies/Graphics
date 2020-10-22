@@ -10,7 +10,7 @@ Some **Data Types** have associated [Property Types](Property-Types.md) for expo
 
 | Name        | Color           | Description |
 |:------------|:----------------|:------------|
-| Vector 1 | Light Blue | A **Vector 1** or scalar value |
+| Float    | Light Blue | A **Float** or scalar value |
 | Vector 2 | Green | A **Vector 2** value |
 | Vector 3 | Yellow | A **Vector 3** value |
 | Vector 4 | Pink | A **Vector 4** value |
@@ -25,8 +25,9 @@ Some **Data Types** have associated [Property Types](Property-Types.md) for expo
 | Texture 2D Array | Red | A [Texture 2D Array](https://docs.unity3d.com/Manual/class-TextureImporter.html) asset |
 | Texture 3D | Red | A [Texture 3D](https://docs.unity3d.com/Manual/class-TextureImporter.html) asset |
 | Cubemap | Red | A [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) asset |
-| Gradient | Grey | A **Gradient** value. Defined as a struct in the generated shader |
-| SamplerState | Grey | A state used for sampling a texture |
+| Virtual Texture | Gray | A [Texture Stack](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-use-in-shader-graph.html) |
+| Gradient | Gray | A **Gradient** value. Defined as a struct in the generated shader |
+| SamplerState | Gray | A state used for sampling a texture |
 
 ## Promoting/Truncating
 
@@ -40,7 +41,7 @@ One notable exception to this is the [Multiply Node](Multiply-Node.md) which all
 
 ### Dynamic Vector
 
-The **Dynamic Vector** type allows connected edges of any **Vector** type. All connected edges are automatically truncated to the type with the lowest dimension, unless the lowest dimension is 1, in which case the **Vector 1** is promoted.
+The **Dynamic Vector** type allows connected edges of any **Vector** type. All connected edges are automatically truncated to the type with the lowest dimension, unless the lowest dimension is 1, in which case the **Float** is promoted.
 
 ### Dynamic Matrix
 

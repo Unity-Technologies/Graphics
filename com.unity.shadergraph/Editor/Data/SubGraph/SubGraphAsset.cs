@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
 
         public List<string> children = new List<string>();          // guids of direct USED SUBGRAPH file dependencies
 
-        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level
+        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level, SHOULD LIST EVEN MISSING DESCENDENTS
 
         public ShaderStageCapability effectiveShaderStage;
 
@@ -86,7 +86,9 @@ namespace UnityEditor.ShaderGraph
             if(m_SubGraphData == null)
             {
                 m_SubGraphData = new SubGraphData();
+                m_SubGraphData.OverrideObjectId(assetGuid, "_subGraphData");
             }
+
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
             m_SubGraphData.nodeProperties.Clear();

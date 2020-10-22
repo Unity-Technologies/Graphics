@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < newNames.Length; ++i)
                 {
                     if (matGraphEditWindow.selectedGuid == AssetDatabase.AssetPathToGUID(newNames[i]))
-                        matGraphEditWindow.assetName = Path.GetFileNameWithoutExtension(newNames[i]).Split('/').Last();
+                        matGraphEditWindow.UpdateTitle();
                 }
             }
         }
@@ -87,7 +87,8 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            var changedFiles = movedAssets.Union(importedAssets)
+            // moved or imported subgraphs or HLSL files should notify open shadergraphs that they need to handle them
+            var changedFiles = movedAssets.Concat(importedAssets).Concat(deletedAssets)
                 .Where(x => x.EndsWith(ShaderSubGraphImporter.Extension, StringComparison.InvariantCultureIgnoreCase)
                 || CustomFunctionNode.s_ValidExtensions.Contains(Path.GetExtension(x)))
                 .Select(AssetDatabase.AssetPathToGUID)

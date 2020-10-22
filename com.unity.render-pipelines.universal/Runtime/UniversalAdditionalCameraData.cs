@@ -222,8 +222,22 @@ namespace UnityEngine.Rendering.Universal
                     Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
                     return null;
                 }
-
                 return m_Cameras;
+            }
+        }
+
+        internal void UpdateCameraStack()
+        {
+#if UNITY_EDITOR
+            Undo.RecordObject(this, "Update camera stack");
+#endif
+            int prev = m_Cameras.Count;
+            m_Cameras.RemoveAll(cam => cam == null);
+            int curr = m_Cameras.Count;
+            int removedCamsCount = prev - curr;
+            if (removedCamsCount != 0)
+            {
+                Debug.LogWarning(name + ": " + removedCamsCount + " camera overlay" + (removedCamsCount > 1 ? "s" : "") + " no longer exists and will be removed from the camera stack.");
             }
         }
 
@@ -280,7 +294,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ScriptableRenderer scriptableRenderer
         {
-            get => UniversalRenderPipeline.asset.GetRenderer(m_RendererIndex);
+            get => UniversalRenderPipeline.asset?.GetRenderer(m_RendererIndex);
         }
 
         /// <summary>

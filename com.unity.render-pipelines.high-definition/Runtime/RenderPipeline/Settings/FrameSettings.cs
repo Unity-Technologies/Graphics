@@ -152,6 +152,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: Distortion, tooltip: "When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings (Depends on \"Distortion\" in current HDRP Asset).")]
         Distortion = 14,
+        /// <summary>When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings.</summary>
+        [FrameSettingsField(0, autoName: RoughDistortion, customOrderInGroup: 16, positiveDependencies: new[] { Distortion }, tooltip: "When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings (Depends on \"Distortion\" in current HDRP Asset).")]
+        RoughDistortion = 67,
         /// <summary>When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Post-process", customOrderInGroup: 17, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         Postprocess = 15,
@@ -393,9 +396,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 (uint)FrameSettingsField.ObjectMotionVectors,
                 (uint)FrameSettingsField.Decals,
-                (uint)FrameSettingsField.DecalLayers,                
+                (uint)FrameSettingsField.DecalLayers,
                 (uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
                 (uint)FrameSettingsField.Distortion,
+                (uint)FrameSettingsField.RoughDistortion,
                 (uint)FrameSettingsField.Postprocess,
                 (uint)FrameSettingsField.CustomPostProcess,
                 (uint)FrameSettingsField.StopNaN,
@@ -467,9 +471,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 (uint)FrameSettingsField.ObjectMotionVectors,
                 (uint)FrameSettingsField.Decals,
-                (uint)FrameSettingsField.DecalLayers,  
+                (uint)FrameSettingsField.DecalLayers,
                 //(uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
                 //(uint)FrameSettingsField.Distortion,
+                //(uint)FrameSettingsField.RoughDistortion,
                 //(uint)FrameSettingsField.Postprocess,
                 //(uint)FrameSettingsField.CustomPostProcess,
                 //(uint)FrameSettingsField.AfterPostprocess,
@@ -525,6 +530,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.DecalLayers,
                 (uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
                 (uint)FrameSettingsField.Distortion,
+                (uint)FrameSettingsField.RoughDistortion,
                 //(uint)FrameSettingsField.Postprocess,
                 //(uint)FrameSettingsField.CustomPostProcess,
                 //(uint)FrameSettingsField.AfterPostprocess,
@@ -778,7 +784,10 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.DecalLayers] &= renderPipelineSettings.supportDecalLayers && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
+            bool distortion = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RoughDistortion] &= distortion && !msaa && !preview;
+
+
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
 
             bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
@@ -791,12 +800,21 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= renderPipelineSettings.supportCustomPass;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPass] &= camera.cameraType != CameraType.Preview;
 
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.CustomPostProcess] &= camera.cameraType != CameraType.Preview;
+
             // Deferred opaque are always using Fptl. Forward opaque can use Fptl or Cluster, transparent use cluster.
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
+
+            // We disable reflection probes and planar reflections in regular preview rendering for two reasons.
+            // - Performance: Realtime reflection are 99% not necessary in previews
+            // - Static lighting consistency: When rendering a planar probe from a preview camera it may induce a recomputing of the static lighting
+            //   but with the preview lights which are different from the ones in the scene and will change the result inducing flickering.
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReflectionProbe] &= !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.PlanarProbe] &= !preview;
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>

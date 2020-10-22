@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -26,12 +28,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public DoCopyAlphaParameters parameters;
             public TextureHandle source;
             public TextureHandle outputAlpha;
-        }
-
-        class GuardBandPassData
-        {
-            public ClearWithGuardBandsParameters parameters;
-            public TextureHandle source;
         }
 
         class StopNaNPassData
@@ -124,6 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public CASParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+
+            public ComputeBufferHandle casParametersBuffer;
         }
 
         class DepthofFieldData
@@ -131,6 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public DepthOfFieldParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+            public TextureHandle depthBuffer;
             public TextureHandle motionVecTexture;
             public TextureHandle pingNearRGB;
             public TextureHandle pongNearRGB;
@@ -145,8 +144,26 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle dilationPingPongRT;
             public TextureHandle prevCoC;
             public TextureHandle nextCoC;
+
+            public ComputeBufferHandle bokehNearKernel;
+            public ComputeBufferHandle bokehFarKernel;
+            public ComputeBufferHandle bokehIndirectCmd;
+            public ComputeBufferHandle nearBokehTileList;
+            public ComputeBufferHandle farBokehTileList;
+
             public bool taaEnabled;
         }
+
+        class CustomPostProcessData
+        {
+            public TextureHandle source;
+            public TextureHandle destination;
+            public TextureHandle depthBuffer;
+            public TextureHandle normalBuffer;
+            public HDCamera hdCamera;
+            public CustomPostProcessVolumeComponent customPostProcess;
+        }
+
         TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -210,23 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return renderGraph.defaultResources.whiteTextureXR;
-        }
-
-        TextureHandle ClearWithGuardBands(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
-        {
-            using (var builder = renderGraph.AddRenderPass<GuardBandPassData>("Guard Band Clear", out var passData, ProfilingSampler.Get(HDProfileId.GuardBandClear)))
-            {
-                passData.source = builder.WriteTexture(source);
-                passData.parameters = PrepareClearWithGuardBandsParameters(hdCamera);
-
-                builder.SetRenderFunc(
-                (GuardBandPassData data, RenderGraphContext ctx) =>
-                {
-                    ClearWithGuardBands(data.parameters, ctx.cmd, data.source);
-                });
-
-                return passData.source;
-            }
         }
 
         TextureHandle StopNaNsPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -352,7 +352,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.motionVecTexture = builder.ReadTexture(motionVectors);
                 passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
                 passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
-                if (passData.parameters.camera.resetPostProcessingHistory)
+                if (passData.parameters.resetPostProcessingHistory)
                 {
                     passData.prevHistory = builder.WriteTexture(passData.prevHistory);
                 }
@@ -417,7 +417,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source)
         {
-
             bool postDoFTAAEnabled = false;
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
             bool taaEnabled = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing;
@@ -448,6 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (var builder = renderGraph.AddRenderPass<DepthofFieldData>("Depth of Field", out var passData, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                 {
                     passData.source = builder.ReadTexture(source);
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.parameters = dofParameters;
                     passData.prevCoC = builder.ReadTexture(prevCoCHandle);
                     passData.nextCoC = builder.WriteTexture(builder.ReadTexture(nextCoCHandle));
@@ -533,6 +533,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         passData.taaEnabled = taaEnabled;
 
+                        passData.bokehNearKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.nearSampleCount * dofParameters.nearSampleCount, sizeof(uint)) { name = "Bokeh Near Kernel" });
+                        passData.bokehFarKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.farSampleCount * dofParameters.farSampleCount, sizeof(uint)) { name = "Bokeh Far Kernel" });
+                        passData.bokehIndirectCmd = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "Bokeh Indirect Cmd" });
+                        passData.nearBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Near Tile List" });
+                        passData.farBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Far Tile List" });
+
                         builder.SetRenderFunc(
                         (DepthofFieldData data, RenderGraphContext ctx) =>
                         {
@@ -543,8 +549,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                 mipsHandles[i] = data.mips[i];
                             }
 
-                            DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
-                                           data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture, data.taaEnabled);
+                            ((ComputeBuffer)data.nearBokehTileList).SetCounterValue(0u);
+                            ((ComputeBuffer)data.farBokehTileList).SetCounterValue(0u);
+
+                            DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
+                                           data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture,
+                                           data.bokehNearKernel, data.bokehFarKernel, data.bokehIndirectCmd, data.nearBokehTileList, data.farBokehTileList, data.taaEnabled);
                         });
 
                         source = passData.destination;
@@ -583,7 +593,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
                     passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
                     passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
-                    if (passData.parameters.camera.resetPostProcessingHistory)
+                    if (passData.parameters.resetPostProcessingHistory)
                     {
                         passData.prevHistory = builder.WriteTexture(passData.prevHistory);
                     }
@@ -844,10 +854,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
                     passData.destination = builder.WriteTexture(dest); ;
 
+                    passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
+
                     builder.SetRenderFunc(
                     (CASData data, RenderGraphContext ctx) =>
                     {
-                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination);
+                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination, data.casParametersBuffer);
                     });
 
                     source = passData.destination;
@@ -874,6 +886,90 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal void DoUserAfterOpaqueAndSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+                return;
+
+            using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterOpaqueAndSky)))
+            {
+                TextureHandle source = colorBuffer;
+                bool needBlitToColorBuffer = DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforeTransparentCustomPostProcesses);
+
+                if (needBlitToColorBuffer)
+                {
+                    HDRenderPipeline.BlitCameraTexture(renderGraph, source, colorBuffer);
+                }
+            }
+        }
+
+        bool DoCustomPostProcess(RenderGraph renderGraph, HDCamera hdCamera, ref TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, List<string> postProcessList)
+        {
+            bool customPostProcessExecuted = false;
+            foreach (var typeString in postProcessList)
+            {
+                var customPostProcessComponentType = Type.GetType(typeString);
+                if (customPostProcessComponentType == null)
+                    continue;
+
+                var stack = hdCamera.volumeStack;
+
+                if (stack.GetComponent(customPostProcessComponentType) is CustomPostProcessVolumeComponent customPP)
+                {
+                    customPP.SetupIfNeeded();
+
+                    if (customPP is IPostProcessComponent pp && pp.IsActive())
+                    {
+                        if (hdCamera.camera.cameraType != CameraType.SceneView || customPP.visibleInSceneView)
+                        {
+                            using (var builder = renderGraph.AddRenderPass<CustomPostProcessData>(customPP.name, out var passData))
+                            {
+                                // TODO RENDERGRAPH
+                                // These buffer are always bound in custom post process for now.
+                                // We don't have the information that they are being used or not.
+                                // Until we can upgrade CustomPP to be full render graph, we'll always read and bind them globally.
+                                passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                                passData.normalBuffer = builder.ReadTexture(normalBuffer);
+
+                                passData.source = builder.ReadTexture(source);
+                                passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
+                                passData.hdCamera = hdCamera;
+                                passData.customPostProcess = customPP;
+                                builder.SetRenderFunc(
+                                (CustomPostProcessData data, RenderGraphContext ctx) =>
+                                {
+                                    // Temporary: see comment above
+                                    ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
+                                    ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+
+                                    data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
+                                });
+
+                                customPostProcessExecuted = true;
+                                source = passData.destination;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return customPostProcessExecuted;
+        }
+
+        TextureHandle CustomPostProcessPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source, TextureHandle depthBuffer, TextureHandle normalBuffer, List<string> postProcessList, HDProfileId profileId)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+                return source;
+
+            using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(profileId)))
+            {
+                DoCustomPostProcess(renderGraph, hdCamera, ref source, depthBuffer, normalBuffer, postProcessList);
+            }
+
+            return source;
+        }
+
         public void Render(RenderGraph renderGraph,
                             HDCamera hdCamera,
                             BlueNoise blueNoise,
@@ -881,10 +977,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             TextureHandle afterPostProcessTexture,
                             TextureHandle depthBuffer,
                             TextureHandle depthBufferMipChain,
+                            TextureHandle normalBuffer,
                             TextureHandle motionVectors,
                             TextureHandle finalRT,
                             bool flipY)
         {
+            renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 
             var source = colorBuffer;
             TextureHandle alphaTexture = DoCopyAlpha(renderGraph, hdCamera, source);
@@ -894,22 +992,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled)
             {
-
-                source = ClearWithGuardBands(renderGraph, hdCamera, source);
-
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);
 
-
-                //if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                //{
-                //    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforeTAA)))
-                //    {
-                //        foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses)
-                //            RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
-                //    }
-                //}
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses, HDProfileId.CustomPostProcessBeforeTAA);
 
                 // Temporal anti-aliasing goes first
                 if (m_AntialiasingFS)
@@ -924,15 +1011,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                //                if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                //                {
-                //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforePP)))
-                //                    {
-                //                        foreach (var typeString in HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses)
-                //                            RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
-                //                    }
-                //                }
-
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.beforePostProcessCustomPostProcesses, HDProfileId.CustomPostProcessBeforePP);
 
                 source = DepthOfFieldPass(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
 
@@ -951,15 +1030,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 source = UberPass(renderGraph, hdCamera, logLutOutput, bloomTexture, source);
                 m_HDInstance.PushFullScreenDebugTexture(renderGraph, source, FullScreenDebugMode.ColorLog);
 
-                //                if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
-                //                {
-                //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessAfterPP)))
-                //                    {
-                //                        foreach (var typeString in HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses)
-                //                            RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
-                //                    }
-                //                }
-
+                source = CustomPostProcessPass(renderGraph, hdCamera, source, depthBuffer, normalBuffer, HDRenderPipeline.defaultAsset.afterPostProcessCustomPostProcesses, HDProfileId.CustomPostProcessAfterPP);
 
                 source = FXAAPass(renderGraph, hdCamera, source);
 
@@ -970,6 +1041,8 @@ namespace UnityEngine.Rendering.HighDefinition
             source = ContrastAdaptiveSharpeningPass(renderGraph, hdCamera, source);
 
             FinalPass(renderGraph, hdCamera, afterPostProcessTexture, alphaTexture, finalRT, source, blueNoise, flipY);
+
+            renderGraph.EndProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
         }
 
         class FinalPassData

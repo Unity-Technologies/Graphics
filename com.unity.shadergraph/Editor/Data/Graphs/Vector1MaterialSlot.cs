@@ -18,7 +18,18 @@ namespace UnityEditor.ShaderGraph
         float m_DefaultValue;
 
         [SerializeField]
-        string[] m_Labels;
+        string[] m_Labels; // this can be null, which means fallback to k_LabelDefaults
+
+        static readonly string[] k_LabelDefaults = { "X" };
+        string[] labels
+        {
+            get
+            {
+                if ((m_Labels == null) || (m_Labels.Length != k_LabelDefaults.Length))
+                    return k_LabelDefaults;
+                return m_Labels;
+            }
+        }
 
         public Vector1MaterialSlot()
         {
@@ -31,13 +42,14 @@ namespace UnityEditor.ShaderGraph
             SlotType slotType,
             float value,
             ShaderStageCapability stageCapability = ShaderStageCapability.All,
-            string label1 = "X",
+            string label1 = null,
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
             m_DefaultValue = value;
             m_Value = value;
-            m_Labels = new[] { label1 };
+            if (label1 != null)
+                m_Labels = new[] { label1 };
         }
 
         public float defaultValue { get { return m_DefaultValue; } }
@@ -52,7 +64,7 @@ namespace UnityEditor.ShaderGraph
 
         public override VisualElement InstantiateControl()
         {
-            return new MultiFloatSlotControlView(owner, m_Labels, () => new Vector4(value, 0f, 0f, 0f), (newValue) => value = newValue.x);
+            return new MultiFloatSlotControlView(owner, labels, () => new Vector4(value, 0f, 0f, 0f), (newValue) => value = newValue.x);
         }
 
         protected override string ConcreteSlotValueAsVariable()
@@ -83,7 +95,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(PropertyType.Vector1)
+            var pp = new PreviewProperty(PropertyType.Float)
             {
                 name = name,
                 floatValue = value,

@@ -6,23 +6,16 @@
 All_Universal_Hybrid_trunk:
     name: All Universal_Hybrid CI - trunk
     dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_trunk
+      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_trunk
-         rerun: on-new-revision
-All_Universal_Hybrid_fast-trunk:
-    name: All Universal_Hybrid CI - fast-trunk
-    dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_fast-trunk
+      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
 All_Universal_Hybrid_CUSTOM-REVISION:
     name: All Universal_Hybrid CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

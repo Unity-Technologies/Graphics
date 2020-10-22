@@ -15,7 +15,7 @@ This document covers:
 ## Hardware requirements
 
 Full ray tracing hardware acceleration is available on following GPUs:
-- NVIDIA GeForce RTX 2060, RTX 2080 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti
+- NVIDIA GeForce RTX 2060, RTX 2060 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti, and
 NVIDIA TITAN RTX
 - NVIDIA Quadro RTX 3000 (laptop only), RTX 4000, RTX 5000, RTX 6000, RTX 8000
 
@@ -49,7 +49,7 @@ Once you have completed one of these, move onto [Final setup](#FinalSetup).
 
 ### Render Pipeline Wizard setup
 
-You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html) to set up ray tracing in your HDRP Project.
+You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ray tracing in your HDRP Project.
 
 1. To open the Render Pipeline Wizard, go to Window > Render Pipeline and select HD Render Pipeline Wizard.
 2. Select the HDRP + DXR tab.
@@ -95,7 +95,7 @@ Next, you need to disable static batching, because HDRP does not support this fe
 
 #### HDRP Asset configuration
 
-Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.html). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
+Now that Unity is running in DirectX 12, and you have disabled [static batching](https://docs.unity3d.com/Manual/DrawCallBatching.html), enable and configure ray tracing in your [HDRP Asset](HDRP-Asset.md). The previous steps configured Unity to support ray tracing; the following step enables it in your HDRP Unity Project.
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
 2. In the Rendering section, enable Realtime Ray Tracing. This triggers a recompilation, which makes ray tracing available in your HDRP Project.
@@ -142,7 +142,7 @@ Now that your HDRP Project supports ray tracing, there are a few steps you must 
 
 #### Frame Settings
 
-To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.html) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.html) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
+To make HDRP calculates ray tracing effects for [Cameras](HDRP-Camera.md) in your Scene, make sure your Cameras use [Frame Settings](Frame-Settings.md) that have ray tracing enabled. You can enable ray tracing for all Cameras by default, or you can enable ray tracing for specific Cameras in your Scene.
 
 To enable ray tracing by default:
 
@@ -156,19 +156,28 @@ To enable ray tracing for a specific Camera:
 2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
 3. in the **Rendering** section, enable **Ray Tracing**.
 
+<a name="FinalSetup-BuildSettings"></a>
+
+#### Build settings
+
+To build your Project to a Unity Player, ray tracing requires that the build uses 64 bits architecture. To set your build to use 64 bits architecture:
+
+1. Open the Build Settings window (menu: **File > Build Settings**).
+2. From the **Architecture** drop-down, select **x86_64**.
+
 <a name="RayTracingEffectsOverview"></a>
 
 ## Ray tracing effects overview
 
 HDRP uses ray tracing to replace some of its screen space effects, shadowing techniques, and Mesh rendering techniques.
 
-- [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.html) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.html) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
-- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.html) replaces [contact shadows](Override-Contact-Shadows.html) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
-- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.html) is an alternative to Light Probes and lightmaps in HDRP.
-- [Ray-Traced Reflections](Ray-Traced-Reflections.html) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.html) that uses a ray-traced reflection technique that can use off-screen data.
-- [Ray-Traced Shadows](Ray-Traced-Shadows.html) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.html).
-- [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.html) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
-- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.html) replaces [subsurface scattering](Subsurface-Scattero,g.html) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
+- [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.md) replaces [screen space ambient occlusion](Override-Ambient-Occlusion.md) with a more accurate, ray-traced, ambient occlusion technique that can use off screen data.
+- [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.md) replaces [contact shadows](Override-Contact-Shadows.md) with a more accurate, ray-traced, contact shadow technique that can use off screen data.
+- [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md) is an alternative to Light Probes and lightmaps in HDRP.
+- [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
+- [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
+- [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
+- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattero,g.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
 
 ## Ray tracing mode
 
@@ -198,15 +207,12 @@ This Project is already set up with ray tracing support.
 
 ## Advice and supported feature of preview ray tracing
 
-DX12 and DXR are currently in preview and are thus missing some functionnality. 
-When you enable DX12, Unity shows this error message:
-d3d12: generating mipmaps for array textures is not yet supported.
-
 There is no support for ray tracing on other platform than DX12 for now.
 
 HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support vertex animation.
-- Does not support tessellation
-- Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset)
+- Does not supports decals.
+- Does not support tessellation.
+- Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support VFX and Terrain.
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.

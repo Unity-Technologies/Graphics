@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.Universal
             m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
             m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
             var editorObj = new SerializedObject(this);
-            m_FalseBool =  editorObj.FindProperty(nameof(falseBool));
+            m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
             m_RenderPipelineAssetsFoldout = new SavedBool($"{target.GetType()}.RenderPipelineAssetsFoldout", true);
             m_RenderPipeLineAssets = new List<ValueTuple<string,string>>();
@@ -96,8 +96,10 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            if(m_RendererFeatures == null)
+            if (m_RendererFeatures == null)
                 OnEnable();
+            else if (m_RendererFeatures.arraySize != m_Editors.Count)
+                UpdateEditorList();
 
             serializedObject.Update();
             DrawRendererFeatureList();
@@ -361,7 +363,6 @@ namespace UnityEditor.Rendering.Universal
         private void ForceSave()
         {
             EditorUtility.SetDirty(target);
-            AssetDatabase.SaveAssets();
         }
     }
 }

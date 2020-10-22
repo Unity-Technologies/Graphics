@@ -1,6 +1,6 @@
 # Converting a Project from the Built-in Renderer to the High Definition Render Pipeline
 
-The High Definition Render Pipeline (HDRP) uses a new set of [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and [lighting units](Physical-Light-Units.html), both of which are incompatible with the Built-in Renderer. To upgrade a Unity Project to HDRP, you must first convert all of your [Materials](#MaterialConversion) and Shaders, then adjust individual [Light](#LightAdjustment) settings accordingly.
+The High Definition Render Pipeline (HDRP) uses a new set of [Shaders](https://docs.unity3d.com/Manual/class-Shader.html) and [lighting units](Physical-Light-Units.md), both of which are incompatible with the Built-in Renderer. To upgrade a Unity Project to HDRP, you must first convert all of your [Materials](#MaterialConversion) and Shaders, then adjust individual [Light](#LightAdjustment) settings accordingly.
 
 This document explains how to convert the **3D With Extras** template Project to HDRP, but you can use the same workflow to convert your own Project. To follow this document and upgrade the **3D With Extras** Project, create a Project that uses the **3D With Extras** template. To do this:
 
@@ -27,7 +27,7 @@ Firstly, to install HDRP, add the High Definition RP package to your Unity Proje
 
 HDRP is now available to use in your Project. Note that when you install HDRP, Unity automatically attaches two HDRP-specific components to GameObjects in your Scene. It attaches the **HD Additional Light Data** component to Lights, and the **HD Additional Camera Data** component to Cameras. If you do not set your Project to use HDRP, and any HDRP component is present in your Scene, Unity throws errors. To fix these errors, see the following instructions on how to set up HDRP in your Project.
 
-To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html).
+To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md).
 
 1. Open the Render Pipeline Wizard window (menu **Window > Render Pipeline > HD Render Pipeline Wizard**).
 
@@ -35,7 +35,7 @@ To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.html).
 
 HDRP is now set up inside your Project, but your Scene does not render correctly and uses the magenta error Shader to display GameObjects. This is because GameObjects in the Scene still use Shaders made for the Built-in Renderer. To find out how to upgrade Built-in Shaders to HDRP Shaders, see the [Upgrading Materials](#MaterialConversion) section.
 
-HDRP includes its own [implementation for post-processing](Post-Processing-Main.html) and no longer supports the Post Processing package. If you are converting the **3D With Extras** Project, or if your own Project uses the Post Processing package, remove the Post Processing package from the Project. To do this:
+HDRP includes its own [implementation for post-processing](Post-Processing-Main.md) and no longer supports the Post Processing package. If you are converting the **3D With Extras** Project, or if your own Project uses the Post Processing package, remove the Post Processing package from the Project. To do this:
 
 1. In the Unity Editor, open the Package Manager window (menu: **Window > Package Manager**).
 
@@ -61,7 +61,11 @@ You can find these options in either:
 
 * The Render Pipeline Wizard window, inside the **Project Migration Quick-links** section.
 
-This process can not automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion).
+This process cannot automatically upgrade custom Materials or Shaders to HDRP. You must [convert custom Materials and Shaders manually](#ManualConversion). This process also cannot upgrade particle shaders. Even though HDRP does not support particle shaders, it does provide some Shader Graphs that are compatible with the [Built-in Particle System](https://docs.unity3d.com/Manual/Built-inParticleSystem.html). These Shader Graphs work in a similar way to the built-in particle shaders. To use these Shader Graphs, import the **Particle System Shader Samples** sample:
+
+1. Open the Package Manager window (menu: **Window > Package Manager**).
+2. Find and click the **High Definition RP** entry.
+3. In the package information for **High Definition RP**, go to the **Samples** section and click the **Import into Project** button next to **Particle System Shader Samples**.
 
 <a name="ManualConversion"></a>
 
@@ -71,24 +75,24 @@ The HDRP Material converter automatically converts Built-in Standard and Unlit M
 
 #### Mask maps
 
-The Built-in Shader to HDRP Shader conversion process combines the different Material maps of the Built-in Standard Shader into the separate RGBA channels of the mask map in the HDRP [Lit Material](Lit-Shader.html). For information on which color channel each map goes in, see [mask map](Mask-Map-and-Detail-Map.html#MaskMap).
+The Built-in Shader to HDRP Shader conversion process combines the different Material maps of the Built-in Standard Shader into the separate RGBA channels of the mask map in the HDRP [Lit Material](Lit-Shader.md). For information on which color channel each map goes in, see [mask map](Mask-Map-and-Detail-Map.md#MaskMap).
 
 #### Detail maps
 
-The Built-in Shader to HDRP Shader conversion process combines the different detail maps of the Built-in Standard Shader into the separate RGBA channels of the detail map in the HDRP [Lit Material](Lit-Shader.html). It also adds a smoothness detail too. For information on which color channel each map goes in, see [detail map](Mask-Map-and-Detail-Map.html#DetailMap).
+The Built-in Shader to HDRP Shader conversion process combines the different detail maps of the Built-in Standard Shader into the separate RGBA channels of the detail map in the HDRP [Lit Material](Lit-Shader.md). It also adds a smoothness detail too. For information on which color channel each map goes in, see [detail map](Mask-Map-and-Detail-Map.md#DetailMap).
 
 <a name="LightAdjustment"></a>
 
 ## Adjusting lighting
 
-HDRP uses [physical Light units](Physical-Light-Units.html) to control the intensity of Lights. These units do not match the arbitrary units that the Built-in render pipeline uses.
+HDRP uses [physical Light units](Physical-Light-Units.md) to control the intensity of Lights. These units do not match the arbitrary units that the Built-in render pipeline uses.
 
-For light intensity units, directional Lights use [Lux](Physical-Light-Units.html#Lux) and all other Lights can use [Lumen](Physical-Light-Units.html#Lumen), [Candela](Physical-Light-Units.html#Candela), [EV](Physical-Light-Units.html#EV), or simulate Lux at a certain distance.
+For light intensity units, directional Lights use [Lux](Physical-Light-Units.md#Lux) and all other Lights can use [Lumen](Physical-Light-Units.md#Lumen), [Candela](Physical-Light-Units.md#Candela), [EV](Physical-Light-Units.md#EV), or simulate Lux at a certain distance.
 
 To set up lighting in your HDRP Project:
 
-1. Add the default sky [Volume](Volumes.html) to your Scene to set up ambient lighting (menu **GameObject > Volume > Sky and Fog Volume**).
-2. Set the [Environment Lighting](Environment-Lighting.html) to use this new sky:
+1. Add the default sky [Volume](Volumes.md) to your Scene to set up ambient lighting (menu **GameObject > Volume > Sky and Fog Volume**).
+2. Set the [Environment Lighting](Environment-Lighting.md) to use this new sky:
 
     1. Open the Lighting window (menu: **Window > Rendering > Lighting Settings**).
 
@@ -103,7 +107,7 @@ To set up lighting in your HDRP Project:
     2. Create a new Volume Profile for this Volume. To do this, open the Inspector for the Volume and click the **New** button.
 
     3. Add a **Shadows** override (**Add Override > Shadowing > Shadows**), then enable **Max Distance** and set it to **50**.
-4. On the Light that represents the Sun (which is the Light component on the **Directional Light** GameObject), set the **Intensity** to **100000** and the **Color** to white. Then, to see the sun in the sky, go to the **General** panel, enable [More Options](More-Options.html), and set the **Angular Diameter** to **3**.
+4. On the Light that represents the Sun (which is the Light component on the **Directional Light** GameObject), set the **Intensity** to **100000** and the **Color** to white. Then, to see the sun in the sky, go to the **Shape** section and set the **Angular Diameter** to **3**.
 5. The Scene is now over-exposed. To fix this, select the **Global Settings** GameObject you created in step **3a** and add an **Exposure** override to its Volume component (**Add Override > Exposure**). Then, set the **Mode** to **Automatic**.
 6. To refresh the exposure, go to the Scene view and enable **Animate Materials**.
     ![](Images/UpgradingToHDRP2.png)
@@ -118,7 +122,7 @@ To set up lighting in your HDRP Project:
 
     2. Change the **Intensity** to **17000** **Lumen**. This is to represent two 8500 Lumen light bulbs.
 
-    3. In the **Emission** section, enable [More Options](More-Options.html).
+    3. In the **Emission** section, enable [More Options](More-Options.md).
 
     4. Enable the **Reflector** checkbox. This simulates a reflective surface behind the spot Light to adjust the visual intensity.
 9. Make the light bulb Material emissive:
@@ -131,7 +135,7 @@ To set up lighting in your HDRP Project:
 
 ## Post-processing
 
-HDRP no longer supports the **Post Processing** package and instead includes its own [implementation for post-processing](Post-Processing-Main.html). To convert the Scene to HDRP post-processing:
+HDRP no longer supports the **Post Processing** package and instead includes its own [implementation for post-processing](Post-Processing-Main.md). To convert the Scene to HDRP post-processing:
 
 1. In the Hierarchy, delete the **Post-process Volume** GameObject.
 

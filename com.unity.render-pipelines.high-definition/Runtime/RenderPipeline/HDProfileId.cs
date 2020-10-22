@@ -11,14 +11,18 @@ namespace UnityEngine.Rendering.HighDefinition
         HTileForSSS,
         RenderSSAO,
         ResolveStencilBuffer,
+        AmbientOcclusion,
         HorizonSSAO,
         DenoiseSSAO,
         UpSampleSSAO,
         ScreenSpaceShadows,
+        ScreenSpaceShadowsDebug,
         BuildLightList,
+        GenerateLightAABBs,
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
         Distortion,
+        AccumulateDistortion,
         ApplyDistortion,
         DepthPrepass,
         TransparentDepthPrepass,
@@ -34,7 +38,14 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrTracing,
         SsrReprojection,
         PrepareForTransparentSsr,
-        SsgiPass,
+
+        // SSGI
+        SSGIPass,
+        SSGITrace,
+        SSGIDenoise,
+        SSGIConvert,
+        SSGIUpscale,
+
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
@@ -51,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthPyramid,
         PostProcessing,
         AfterPostProcessing,
+        RenderFullScreenDebug,
         RenderDebug,
         DisplayLightVolume,
         ClearBuffers,
@@ -104,8 +116,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
+        RaytracingDebugCluster,
         // RTR
-        RaytracingIntegrateReflection,
+        RaytracingReflectionDirectionGeneration,
+        RaytracingReflectionEvaluation,
+        RaytracingReflectionUpscaleGeneration,
         RaytracingFilterReflection,
         // RTAO
         RaytracingAmbientOcclusion,
@@ -114,12 +129,28 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Shadows
         RaytracingDirectionalLightShadow,
         RaytracingLightShadow,
+        RaytracingSphereLightShadow,
+        RaytracingAreaLightShadow,
         // RTGI
-        RaytracingIntegrateIndirectDiffuse,
+        RaytracingIndirectDiffuseDirectionGeneration,
+        RaytracingIndirectDiffuseEvaluation,
+        RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        // RTSSS
+        RaytracingSSS,
+        RaytracingSSSTrace,
+        RaytracingSSSCompose,
+        // RTShadow
+        RaytracingWriteShadow,
+        // Other ray tracing
         RaytracingDebugOverlay,
         RayTracingRecursiveRendering,
         RayTracingPrepass,
+        // RT Deferred Lighting
+        RaytracingDeferredLighting,
+        // Denoisers
+        TemporalFilter,
+        DiffuseFilter,
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
@@ -128,11 +159,15 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,
+        RenderCachedPunctualShadowMaps,
         RenderDirectionalShadowMaps,
         RenderAreaShadowMaps,
+        RenderCachedAreaShadowMaps,
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
+        BlitPunctualMixedCachedShadowMaps,
+        BlitAreaMixedCachedShadowMaps,
 
         // Profile sampler for tile pass
         LightLoopPushGlobalParameters,
@@ -160,7 +195,6 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
-        GuardBandClear,
         AlphaCopy,
         StopNaNs,
         FixedExposure,
@@ -191,6 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        FinalImageHistogram,
         CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
@@ -200,6 +235,14 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
+
+        AOVExecute,
+        // Enum AOVBuffers
+        AOVOutput,
+        AOVColor,
+        AOVDepthStencil,
+        AOVNormals,
+        AOVMotionVectors,
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
