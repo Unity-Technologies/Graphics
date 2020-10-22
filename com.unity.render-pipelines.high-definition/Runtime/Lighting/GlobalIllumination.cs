@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Traced-Global-Illumination" + Documentation.endURL)]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         bool UsesQualityMode()
@@ -241,8 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RTGI
         [SerializeField, FormerlySerializedAs("rayLength")]
-        [Tooltip("Controls the length of GI rays.")]
-        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(50.0f, 0f, 50f);
+        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
 
         [SerializeField, FormerlySerializedAs("clampValue")]
         [Tooltip("Controls the clamp of intensity.")]

@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string renderQueue
         {
-            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, false));
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderQueueType, systemData.sortPriority, systemData.alphaTest, false));
         }
 
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/ShaderPass.template";
@@ -198,7 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Regular alpha test is only done if artist haven't ask to use the specific alpha test shadow one
-            bool isShadowPass               = context.pass.lightMode == "ShadowCaster";
+            bool isShadowPass               = (context.pass.lightMode == "ShadowCaster") || (context.pass.lightMode == "VisibilityDXR");
             bool isTransparentDepthPrepass  = context.pass.lightMode == "TransparentDepthPrepass";
 
             // Shadow use the specific alpha test only if user have ask to override it
@@ -289,7 +289,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 overrideReferenceName = "_RenderQueueType",
                 hidden = true,
-                value = (int)systemData.renderingPass,
+                value = (int)systemData.renderQueueType,
             });
 
             //See SG-ADDITIONALVELOCITY-NOTE
@@ -350,7 +350,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
 
             // No sorting priority for shader graph preview
-            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest, false);
+            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderQueueType, offset: 0, alphaTest: systemData.alphaTest, false);
 
             LightingShaderGraphGUI.SetupMaterialKeywordsAndPass(material);
         }

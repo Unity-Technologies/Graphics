@@ -16,9 +16,9 @@ def _get_editors(metafile, shared, latest_editor_versions):
     '''Retrieves the editors from shared metafile, if not overriden by 'override_editors' in metafile.'''
     editors = shared['editors']
     for editor in editors:
-        if str(editor['track']).lower() != 'CUSTOM-REVISION'.lower():
+        if editor["editor_pinning"]:
             editor['revisions'] = {}
-            revisions = [{k:v} for k,v in latest_editor_versions['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
+            revisions = [{k:v} for k,v in latest_editor_versions[editor['track']]['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
             for rev in revisions:
                 for k,v in rev.items(): # TODO loops over the single dict value, see if there is a better way
                     editor['revisions'][k] = v
@@ -82,6 +82,9 @@ def _unfold_platforms(metafile, shared):
                     for agent_key, agent_name in platform_meta['overrides'][override_key].items():
                         if isinstance(agent_name, str):
                             platform_formatted[override_key][agent_key] = shared['non_project_agents'][agent_name]
+
+        platform_formatted["extra_utr_flags"] = [] if not platform_meta.get("extra_utr_flags") else platform_meta.get("extra_utr_flags")
+        platform_formatted["extra_utr_flags_build"] = [] if not platform_meta.get("extra_utr_flags_build") else platform_meta.get("extra_utr_flags_build")
 
         formatted_platforms.append(platform_formatted)
     return formatted_platforms 

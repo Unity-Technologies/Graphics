@@ -102,8 +102,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return maxViews;
         }
-
+#if UNITY_2021_1_OR_NEWER
+        internal List<(Camera, XRPass)> SetupFrame(List<Camera> cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#else
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#endif
         {
             bool xrActive = RefreshXrSdk();
 
@@ -274,6 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AddPassToFrame(Camera camera, XRPass xrPass)
         {
+            xrPass.UpdateOcclusionMesh();
             framePasses.Add((camera, xrPass));
         }
 

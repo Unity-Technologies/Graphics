@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MaxVelocityInPixels;
         SerializedDataParameter m_MinVelInPixels;
 
-        //  Advanced properties 
+        //  Advanced properties
         SerializedDataParameter m_CameraRotClamp;
         SerializedDataParameter m_DepthCmpScale;
         SerializedDataParameter m_CameraMotionBlur;
@@ -44,9 +44,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            GUI.enabled = useCustomValue;
-            PropertyField(m_SampleCount);
-            GUI.enabled = true;
+            using (new EditorGUI.DisabledScope(!useCustomValue))
+            {
+                PropertyField(m_SampleCount);
+            }
 
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);

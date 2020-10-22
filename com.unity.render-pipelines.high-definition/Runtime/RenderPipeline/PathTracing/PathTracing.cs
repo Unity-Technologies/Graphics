@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Path Tracing effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Ray Tracing/Path Tracing (Preview)")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Tracing-Path-Tracing" + Documentation.endURL)]
     public sealed class PathTracing : VolumeComponent
     {
         /// <summary>
@@ -80,8 +81,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
 
             m_RadianceTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: "PathTracingFrameBuffer");
+            enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+            name: "PathTracingFrameBuffer");
         }
 
         void ReleasePathTracing()

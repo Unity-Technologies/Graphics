@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(FinalBlitPass));
+
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
         }

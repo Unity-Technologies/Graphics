@@ -1,6 +1,7 @@
-# Upgrading HDRP from 8.x to 9.x-preview/10.x
+# Upgrading HDRP from 8.x to 10.x
 
-In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 8.x to 9.x-preview/10.x. Note that version 9.-x-preview is compatible with Unity 2020.1 but includes several features from 10.x. However, this package will not be maintained in the future.
+In the High Definition Render Pipeline (HDRP), some features work differently between major versions. This document helps you upgrade HDRP from 8.x to 10.x. 
+Note that package version 9.x-preview has now been published. It is compatible with Unity 2020.1 and includes some features from 10.x. However, this package was for feedback purposes and will not be maintained in the future.
 
 ## Constant Buffer API
 
@@ -47,6 +48,8 @@ From 10.x, if you previously used the **UseEmissiveIntensity** property in eithe
 For project migrating from old 9.x.x-preview package. There is a change in the order of enum of Exposure that may shift the current exposure mode to another one in Exposure Volume. This will need to be corrected manually by reselecting the correct Exposure mode.
 
 From 10.x, the debug lens attenuation has been removed, however the lens attenuation can now be set in the HDRP Default setting Panel as either modelling a perfect lens or an imperfect one. 
+
+From 10.x, the [Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always uses the color pyramid HDRP generates after the Before Refraction transparent pass. This means the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). Previously the content depended on whether the Distortion effect was active.
 
 ## Shadows
 
@@ -143,9 +146,20 @@ by respectively
 ```
 For an example of best practices to apply decals to a material, see the `ApplyDecalToSurfaceData()` function in the LitDecalData.hlsl file.
 
-From Unity 2020.2, the Raytracing keyword in Shader Graph has been renamed to Raytracing Quality and the RAYTRACING_SHADER_GRAPH_LOW and RAYTRACING_SHADER_GRAPH_HIGH defines are now RAYTRACING_SHADER_GRAPH_DEFAULT and RAYTRACING_SHADER_GRAPH_RAYTRACED respectively. Unless you used these defines in custom Shader code, you do not need to do anything because Shader Graph automatically regenerates its Shaders with the correct defines when you load the Project.
+From 10.x, the decal functions prototype in shader code has changed. A new vertex normal parameters have been added to allow to handle angle based fading.
+The prototype for the function `GetDecalSurfaceData()` has changed from:
+`DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)`
+to:
+ `DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)`
 
-From 10.x, HDRP adds a new fullscreen debug pass named `FullScreenDebug`. Any object using a material which doesn't contain this pass will no be rendered during the fullscreen debug pass.
+The prototype for the function `ApplyDecalToSurfaceData()` in various Material has changed from:
+`void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)`
+to:
+ `void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)`
+
+From 10.x, HDRP adds a new fullscreen debug pass named `FullScreenDebug`. Any object using a material based on a shader which doesn't contain this pass will no be rendered during the fullscreen debug pass.
+
+From Unity 2020.2, the Raytracing keyword in Shader Graph has been renamed to Raytracing Quality and the RAYTRACING_SHADER_GRAPH_LOW and RAYTRACING_SHADER_GRAPH_HIGH defines are now RAYTRACING_SHADER_GRAPH_DEFAULT and RAYTRACING_SHADER_GRAPH_RAYTRACED respectively. Unless you used these defines in custom Shader code, you do not need to do anything because Shader Graph automatically regenerates its Shaders with the correct defines when you load the Project.
 
 From Unity 2020.2, a parameter `positionNDC` has been added to the function `SampleEnv`. It's prototype has changed from:
 `float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, int sliceIdx = 0)`
@@ -154,7 +168,24 @@ to:
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
-## raytracing
+From 10.x, the shader keywords _BLENDMODE_ALPHA _BLENDMODE_ADD and _BLENDMODE_PRE_MULTIPLY have been removed. They are no longer used and the property _Blendmode is used instead.
+For example in Material.hlsl, the following lines:
+```
+    #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
+        return float4(diffuseLighting * opacity + specularLighting, opacity);
+```
+is replace by 
+```
+    if (_BlendMode == BLENDMODE_ALPHA || _BlendMode == BLENDMODE_ADDITIVE)
+        return float4(diffuseLighting * opacity + specularLighting, opacity);
+```
+This reduced the number of shader variant. In case of custom shader it can be required to move the include of Material.hlsl after the declaration of the property _Blendmode.
+
+From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Planar-Reflection-Probe.md). Now, when a shader samples a probe's environment map, it samples from mip level 0 if the LightData.roughReflections parameter is enabled (has a value of 1.0). You must update your custom shaders to take this behavior into account.
+For example, the call in the Lit shader has been updated to:
+`float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
+
+## Raytracing
 
 From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.
 
