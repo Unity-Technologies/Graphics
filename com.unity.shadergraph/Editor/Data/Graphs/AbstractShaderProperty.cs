@@ -208,6 +208,9 @@ namespace UnityEditor.ShaderGraph.Internal
                 "SAMPLER",
         };
 
+        [Obsolete("gpuInstanced is no longer used")]
+        public bool gpuInstanced { get { return false; } set { } }
+
         public string GetValueTypeString()
         {
             if (type < HLSLType.FirstObjectType)
