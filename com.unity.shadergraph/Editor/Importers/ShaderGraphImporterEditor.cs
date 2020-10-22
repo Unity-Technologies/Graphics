@@ -54,45 +54,49 @@ namespace UnityEditor.ShaderGraph
                 return graphObject.graph;
             }
 
-            if (GUILayout.Button("Open Shader Editor"))
+            AssetImporter importer = target as AssetImporter;
+            if (importer != null)
             {
-                AssetImporter importer = target as AssetImporter;
-                Debug.Assert(importer != null, "importer != null");
-                ShowGraphEditWindow(importer.assetPath);
-            }
-            if (GUILayout.Button("View Generated Shader"))
-            {
-                AssetImporter importer = target as AssetImporter;
-                string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
-                string path = String.Format("Temp/GeneratedFromGraph-{0}.shader", assetName.Replace(" ", ""));
+                if (GUILayout.Button("Open Shader Editor"))
+                    ShowGraphEditWindow(importer.assetPath);
 
-                var graphData = GetGraphData(importer);
-                var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
-                if (GraphUtil.WriteToFile(path, generator.generatedShader))
-                    GraphUtil.OpenFile(path);
-            }
-            if (Unsupported.IsDeveloperMode())
-            {
-                if (GUILayout.Button("View Preview Shader"))
+                if (GUILayout.Button("View Generated Shader"))
                 {
-                    AssetImporter importer = target as AssetImporter;
+                    if (importer.assetPath != null)
+                    {
+                        string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
+                        string path = String.Format("Temp/GeneratedFromGraph-{0}.shader", assetName.Replace(" ", ""));
+
+                        var graphData = GetGraphData(importer);
+                        var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
+
+                        // hold shift to not bother opening the resulting file...
+                        if (GraphUtil.WriteToFile(path, generator.generatedShader) && !Event.current.shift)
+                            GraphUtil.OpenFile(path);
+                    }
+                }
+
+                if (Unsupported.IsDeveloperMode())
+                {
+                    if (GUILayout.Button("View Preview Shader"))
+                    {
+                        string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
+                        string path = String.Format("Temp/GeneratedFromGraph-{0}-Preview.shader", assetName.Replace(" ", ""));
+
+                        var graphData = GetGraphData(importer);
+                        var generator = new Generator(graphData, null, GenerationMode.Preview, $"{assetName}-Preview", null);
+                        if (GraphUtil.WriteToFile(path, generator.generatedShader))
+                            GraphUtil.OpenFile(path);
+                    }
+                }
+                if (GUILayout.Button("Copy Shader"))
+                {
                     string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
-                    string path = String.Format("Temp/GeneratedFromGraph-{0}-Preview.shader", assetName.Replace(" ", ""));
 
                     var graphData = GetGraphData(importer);
-                    var generator = new Generator(graphData, null, GenerationMode.Preview, $"{assetName}-Preview", null);
-                    if (GraphUtil.WriteToFile(path, generator.generatedShader))
-                        GraphUtil.OpenFile(path);
+                    var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
+                    GUIUtility.systemCopyBuffer = generator.generatedShader;
                 }
-            }
-            if (GUILayout.Button("Copy Shader"))
-            {
-                AssetImporter importer = target as AssetImporter;
-                string assetName = Path.GetFileNameWithoutExtension(importer.assetPath);
-
-                var graphData = GetGraphData(importer);
-                var generator = new Generator(graphData, null, GenerationMode.ForReals, assetName, null);
-                GUIUtility.systemCopyBuffer = generator.generatedShader;
             }
 
             ApplyRevertGUI();
