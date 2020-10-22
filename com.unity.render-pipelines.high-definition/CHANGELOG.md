@@ -14,6 +14,7 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - Added a rough distortion frame setting and and info box on distortion materials.
 - Adding support of 4 channel tex coords for ray tracing (case 1265309).
+- Making the reflection and refractions of cubemaps distance based.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)

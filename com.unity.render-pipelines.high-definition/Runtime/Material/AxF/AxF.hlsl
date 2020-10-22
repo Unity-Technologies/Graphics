@@ -2530,8 +2530,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     envSamplingDirForBottomLayer = GetModifiedEnvSamplingDir(lightData, bsdfData.clearcoatNormalWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, preLightData.iblPerceptualRoughness, NdotV);
 
     // Note: using _influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)    
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
+    float intersectionDistance = 0.0;
+    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight, intersectionDistance);
     // ...here the normal is only used for normal fading mode of the influence volume.
+
+    // If this is a cubemap, we want to affect the roughness to fake distance based roughness
+    if (IsEnvIndexCubemapNoSky(lightData.envIndex)) // Cubemap only
+        preLightData.iblPerceptualRoughness = ComputeDistanceBaseRoughness(intersectionDistance, length(envSamplingDirForBottomLayer), preLightData.iblPerceptualRoughness);
 
     // Another problem with having even two fetch directions is the reflection hierarchy that only supports one weight.
     // (TODO: We could have a vector tracking multiplied weights already applied per lobe that we update and that is 
@@ -2559,7 +2564,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // for BRDFColor and flakes, see GetPreLightData.
 
     // Note: we don't use GetModifiedEnvSamplingDir() per lobe here, and see comment above about reflection hierarchy.
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
+    float unusedDistance = 0.0;
+    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight, unusedDistance);
 
     #if USE_COOK_TORRANCE_MULTI_LOBES
 
@@ -2622,8 +2628,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         // Evaluate clearcoat sampling direction
         float   unusedWeight = 0.0;
+        float   unusedDistance = 0.0;
         float3  lightWS_Clearcoat = preLightData.iblDominantDirectionWS_Clearcoat;
-        EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, lightWS_Clearcoat, unusedWeight);
+        EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, lightWS_Clearcoat, unusedWeight, unusedDistance);
 
         // Attenuate environment lighting under the clearcoat by the complement to the Fresnel term
         //todo_energy:
