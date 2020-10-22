@@ -582,15 +582,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (taaEnabled && m_DepthOfField.physicallyBased)
             {
                 bool postDof = true;
-                var taaParams = PrepareTAAParameters(hdCamera, postDof);
-
 
                 using (var builder = renderGraph.AddRenderPass<TemporalAntiAliasingData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
                 {
                     GrabTemporalAntialiasingHistoryTextures(hdCamera, out var prevHistory, out var nextHistory, postDof);
 
                     passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareTAAParameters(hdCamera);
+                    passData.parameters = PrepareTAAParameters(hdCamera, postDof);
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
                     passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
