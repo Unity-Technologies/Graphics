@@ -739,7 +739,6 @@ public static class ShaderParser
         // Create a dictionary of functions in current packages
         Dictionary<string, ShaderFunction> curFunctionsDict = CreateDictFromFile(curFile);
 
-        bool hasLoggedFileError = false;
         ShaderFunction[] prevFunctions = prevFile.functions;
         for (int p = 0; p < prevFunctions.Length; p++)
         {

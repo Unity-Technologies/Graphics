@@ -3,6 +3,7 @@
 // 2. Major version change, functions in deprecated.hlsl are allowed to disappear!
 // 3. Should be a breakage ==> Prev: a(float one) & a(float one, float two) => a(float one) & a(float one, float two = 1.0)
 
+using System;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
@@ -75,19 +76,29 @@ class ShaderTests
         }
     }
 
+
+    static readonly string s_ShaderAPIFolder = Path.Combine(Directory.GetCurrentDirectory(), "Assets", "Test", "Editor", "ShaderAPITests");
     private struct GraphicsPackageInfo
     {
+        // This variable retrieved from the JSON file
+#pragma warning disable 649
         public string version;
+#pragma warning restore 649
         public int majorVersion;
         public int minorVersion;
         public int patchVersion;
-        public string name;
-        public string description;
-        public string unity;
-        public string unityRelease;
-        public string displayName;
-        public string dependencies;
-        public string keywords;
+        //public string name;
+        //public string description;
+        //public string unity;
+        //public string unityRelease;
+        //public string displayName;
+        //public string dependencies;
+        //public string keywords;
+    }
+
+    private static int GetPackageVal(int major, int minor, int patch)
+    {
+        return major * 1000000 + minor * 1000 + patch;
     }
 
     private static string GetGraphicsDirectory()
@@ -147,62 +158,42 @@ class ShaderTests
         return ShaderParser.CreateShaderAPIList(graphicsDirectory, dirs, searchPatterns);
     }
 
-    static readonly string s_ShaderAPIFolder = Path.Combine(Directory.GetCurrentDirectory(), "Assets", "Test", "Editor", "ShaderAPITests");
     private static bool GetPreviousPackageInfo(GraphicsPackageInfo curPackageInfo, out string filePath, out string version)
     {
+        version = "";//curPackageInfo.majorVersion + "." + curPackageInfo.minorVersion + "." + curPackageInfo.patchVersion;
+        filePath = "";//Path.Combine(s_ShaderAPIFolder, version);
+        int curPackageVal = GetPackageVal(curPackageInfo.majorVersion,curPackageInfo.minorVersion, curPackageInfo.patchVersion);
+
         string[] shaderAPIFiles = Directory.GetFiles(s_ShaderAPIFolder, "*.txt");
 
-        string shaderAPIToCompareWith = null;
-        //int closestMajor = 9;
-        int closestMinor = 9;
-        int closestPatch = 9;
-        string closestFileName = "";
+        int closestFileVal = Int32.MaxValue;
+        string closestFile = null;
         for (int i = 0; i < shaderAPIFiles.Length; i++)
         {
             string shaderAPIPath = shaderAPIFiles[i];
             string fileName = Path.GetFileName(shaderAPIPath);
             SplitVersionToInts(fileName, out int majorVersion, out int minorVersion, out int patchVersion);
 
-            if (curPackageInfo.majorVersion != majorVersion) continue;
-            if (curPackageInfo.minorVersion == minorVersion && curPackageInfo.patchVersion == patchVersion) continue;
+            int thisPackageVal = GetPackageVal(majorVersion, minorVersion, patchVersion);
+            if (thisPackageVal > curPackageVal)
+                continue;
 
-            //int diffMajor = majorVersion - curPackageInfo.majorVersion;
-            int diffMinor = curPackageInfo.minorVersion - minorVersion;
-            int diffPatch = curPackageInfo.patchVersion - patchVersion;
-
-            //if (closestMajor > diffMajor)
-            //{
-            //    closestMinor = diffMinor;
-            //    closestPatch = diffPatch;
-            //    closestFileName = fileName;
-            //    shaderAPIToCompareWith = fileName;
-            //}
-            if (closestMinor > diffMinor)
+            int diff = curPackageVal - thisPackageVal;
+            if (diff < closestFileVal)
             {
-                closestMinor = diffMinor;
-                closestPatch = diffPatch;
-                closestFileName = fileName;
-                shaderAPIToCompareWith = fileName;
-            }
-            else if (closestPatch > diffPatch)
-            {
-                closestMinor = diffMinor;
-                closestPatch = diffPatch;
-                closestFileName = fileName;
-                shaderAPIToCompareWith = fileName;
+                closestFileVal = diff;
+                closestFile = fileName;
             }
         }
 
-        if (shaderAPIToCompareWith == null)
+        if (closestFile == null)
         {
-            filePath = "";
-            version = "";
             return false;
         }
 
-        filePath = Path.Combine(s_ShaderAPIFolder, shaderAPIToCompareWith);
-        version = closestFileName;
-
+        SplitVersionToInts(closestFile, out int closestMajor, out int closestMinor, out int closestPatch);
+        filePath = Path.Combine(s_ShaderAPIFolder, closestFile);
+        version = closestMajor + "." + closestMinor + "." + closestPatch;
         return true;
     }
 }
