@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
+- Claryfied doc for the LayeredLit material.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
