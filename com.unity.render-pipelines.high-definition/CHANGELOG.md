@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 - Claryfied doc for the LayeredLit material.
+- Various improvements for the Volumetric Fog.
 
 ## [10.1.0] - 2020-10-12
 
