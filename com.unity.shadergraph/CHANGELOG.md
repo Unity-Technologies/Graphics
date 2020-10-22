@@ -14,7 +14,7 @@ The version number for this package has increased due to a version update of a r
 ### Added
 
 ### Changed
-- Rename the current Sample Cubemap Node -> Sample Reflected Cubemap Node and create a new Sample Cubemap Node which sample cubemap with a direction
+- Renamed the existing Sample Cubemap Node to Sample Reflected Cubemap Node, and created a new Sample Cubemap Node that samples cubemaps with a direction.
 
 ### Fixed
 - Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]

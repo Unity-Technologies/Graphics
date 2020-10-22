@@ -2,7 +2,7 @@
 
 ## Description
 
-Samples a **Cubemap** and returns a **Vector 4** color value for use in the shader. Requires **Direction** inputs in world space to sample the **Cubemap**. You can achieve a blurring effect by sampling at a different Level of Detail using the **LOD** input. You can also define a custom **Sampler State** using the **Sampler** input.
+Samples a **Cubemap** and returns a **Vector 4** color value for use in the shader. Requires a **Direction** input in world space to sample the **Cubemap**. You can achieve a blurring effect by sampling at a different Level of Detail using the **LOD** input. You can also define a custom **Sampler State** using the **Sampler** input.
 
 ## Ports
 
