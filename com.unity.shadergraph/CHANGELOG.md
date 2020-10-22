@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+- Removed unnecessary HDRP constant declarations used by Material inspector from the UnityPerMaterial cbuffer [1285701]
+- Virtual Texture properties are now forced to be Exposed, as they do not work otherwise [1256374]
 
 ### Fixed
 - Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
@@ -20,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
 - Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
+- Fixed an issue where ShaderGraph could not read matrices from a Material or MaterialPropertyBlock while rendering with SRP batcher [1256374]
+- Fixed an issue where user setting a property to not Exposed, Hybrid-Instanced would result in a non-Hybrid Global property [1285700]
 
 ## [10.1.0] - 2020-10-12
 
