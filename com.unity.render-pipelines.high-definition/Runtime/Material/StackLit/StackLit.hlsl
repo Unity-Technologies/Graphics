@@ -4350,7 +4350,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
 
-        float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness[i], intersectionDistance, sliceIndex);
+        float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness[i], intersectionDistance);
 
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;
