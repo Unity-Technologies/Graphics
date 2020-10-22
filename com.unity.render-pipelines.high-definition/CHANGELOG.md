@@ -22,6 +22,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed upside down XR occlusion mesh.
+- Fixed issue with TAA causing bleeding of a view into another when multiple views are visible.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
