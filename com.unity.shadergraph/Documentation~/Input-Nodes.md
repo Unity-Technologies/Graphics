@@ -8,13 +8,13 @@
 | Defines a constant Boolean value in the shader. | Defines a constant Vector 4 value in the shader using a Color field. |
 |[**Constant**](Constant-Node.md)|[**Integer**](Integer-Node.md)|
 |![Image](images/ConstantNodeThumb.png)|![Image](images/IntegerNodeThumb.png)|
-|Defines a Vector 1 of a mathematical constant value in the shader.|Defines a constant Vector 1 value in the shader using an Integer field.|
+|Defines a Float of a mathematical constant value in the shader.|Defines a constant Float value in the shader using an Integer field.|
 |[**Slider**](Slider-Node.md)|[**Time**](Time-Node.md)|
 |![Image](images/SliderNodeThumb.png)|![Image](images/TimeNodeThumb.png)|
-|Defines a constant Vector 1 value in the shader using a Slider field.|Provides access to various Time parameters in the shader.|
-|[**Vector 1**](Vector-1-Node.md)|[**Vector 2**](Vector-2-Node.md)|
+|Defines a constant Float value in the shader using a Slider field.|Provides access to various Time parameters in the shader.|
+|[**Float**](Float.md)|[**Vector 2**](Vector-2-Node.md)|
 |![Image](images/Vector1NodeThumb.png)|![Image](images/Vector2NodeThumb.png)|
-|Defines a Vector 1 value in the shader.|Defines a Vector 2 value in the shader.|
+|Defines a Float value in the shader.|Defines a Vector 2 value in the shader.|
 |[**Vector 3**](Vector-3-Node.md)|[**Vector 4**](Vector-4-Node.md)|
 |![Image](images/Vector3NodeThumb.png)|![Image](images/Vector4NodeThumb.png)|
 |Defines a Vector 3 value in the shader.|Defines a Vector 4 value in the shader.|
@@ -55,7 +55,11 @@
 |![Image](images/Matrix4x4NodeThumb.png)|![Image](images/TransformationMatrixNodeThumb.png)|
 |Defines a constant Matrix 4x4 value in the shader.|Defines a constant Matrix 4x4 value for a default Unity Transformation Matrix in the shader.|
 
-
+## Mesh Deformation
+| [Compute Deformation Node](Compute-Deformation-Node)         | [Linear Blend Skinning Node](Linear-Blend-Skinning-Node)     |
+| :----------------------------------------------------------- | :----------------------------------------------------------- |
+| ![Image](images/ComputeDeformationNodeThumb.png)             | ![Image](images/LinearBlendSkinningNodeThumb.png)            |
+| Passes compute deformed vertex data to a vertex shader. Only works with the [DOTS Hybrid Renderer](https://docs.unity3d.com/Packages/com.unity.rendering.hybrid@latest/). | Applies Linear Blend Vertex Skinning. Only works with the [DOTS Hybrid Renderer](https://docs.unity3d.com/Packages/com.unity.rendering.hybrid@latest/). |
 
 ## PBR
 

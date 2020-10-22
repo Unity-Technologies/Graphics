@@ -65,6 +65,9 @@ class YMLJob():
     def add_artifacts_test_results(self):
         self.yml['artifacts']['logs']['paths'].append(dss(PATH_TEST_RESULTS_padded)) 
 
+    def add_artifacts_project_logs(self, project_folder):
+        self.yml['artifacts']['logs']['paths'].append(dss(f'TestProjects/{project_folder}/Logs/*.log')) 
+
     def add_artifacts_players(self):
         self.yml['artifacts']['players']['paths'].append(dss(PATH_PLAYERS_padded)) 
 

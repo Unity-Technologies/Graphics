@@ -30,6 +30,9 @@ EditorBuildSettings:
     path: Assets/Scenes/105_ReflectionsAndGlobalIlluminationCollision.unity
     guid: 1531a86794539a5409d036038ffbcbad
   - enabled: 1
+    path: Assets/Scenes/106_ReflectionsMultiBounceRough.unity
+    guid: 6ea352d11ef71204089ff0b18223c824
+  - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
   - enabled: 1
@@ -224,4 +227,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/6000_VertexFormats.unity
     guid: 6788ab4459664394f96537c7ad864afb
+  - enabled: 1
+    path: Assets/Scenes/6001_Alembic.unity
+    guid: 163e04c0245b93648808a42b7f45ce0d
+  - enabled: 1
+    path: Assets/Scenes/7000_QuadChannelTexCoord.unity
+    guid: 93bf762e6d528a640b338bfa061dfffb
   m_configObjects: {}

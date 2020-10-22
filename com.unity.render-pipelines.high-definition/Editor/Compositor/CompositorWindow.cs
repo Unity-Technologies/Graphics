@@ -156,6 +156,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (m_Editor == null || m_Editor.target == null || m_Editor.isDirty || m_RequiresRedraw)
             {
+                if (m_Editor != null)
+                {
+                    // Remember the previously selected layer when recreating the Editor
+                    s_SelectionIndex = m_Editor.selectionIndex;
+                }
                 m_Editor = (CompositionManagerEditor)Editor.CreateEditor(compositor);
                 m_RequiresRedraw = false;
                 m_Editor.defaultSelection = s_SelectionIndex;
@@ -190,17 +195,24 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             GraphData.onSaveGraph -= MarkShaderAsDirty;
 
             Undo.undoRedoPerformed -= UndoCallback;
-            s_SelectionIndex = m_Editor.selectionIndex;
+            s_SelectionIndex = m_Editor ? m_Editor.selectionIndex : -1;
         }
 
         void UndoCallback()
         {
             // Undo-redo might change the layer order, so we need to redraw the compositor UI and also refresh the layer setup
+            if (!m_Editor)
+            {
+                return;
+            }
+
             m_Editor.CacheSerializedObjects();
             m_RequiresRedraw = true;
             s_SelectionIndex = m_Editor.selectionIndex;
 
             CompositionManager compositor = CompositionManager.GetInstance();
+            // The compositor might be null even if the CompositionManagerEditor is not (in case the user switches from a scene with a compositor to a scene without one)
+            if (compositor)
             {
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(compositor);

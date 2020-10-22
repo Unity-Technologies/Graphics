@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview
         {
-            get { return asset != null; }
+            get { return true; }
         }
 
         public override PreviewMode previewMode
@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var outputSlots = new List<MaterialSlot>();
                 GetOutputSlots(outputSlots);
-                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Float;
+                var outputPrecision = asset != null ? asset.outputPrecision : ConcretePrecision.Single;
                 foreach (var slot in outputSlots)
                 {
                     sb.AppendLine($"{slot.concreteValueType.ToShaderString(outputPrecision)} {GetVariableNameForSlot(slot.id)} = {slot.GetDefaultValue(GenerationMode.ForReals)};");
@@ -243,7 +243,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var feedbackSlot in asset.vtFeedbackVariables)
             {
                 string feedbackVar = GetVariableNameForNode() + "_" + feedbackSlot;
-                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), feedbackVar);
+                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single), feedbackVar);
                 arguments.Add(feedbackVar);
             }
 
@@ -255,11 +255,17 @@ namespace UnityEditor.ShaderGraph
             UpdateSlots();
         }
 
-        public void Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencies)
         {
+            if (!changedFileDependencies.Contains(subGraphGuid))
+            {
+                return false;
+            }
+
             if (asset == null)
             {
-                return;
+                // asset missing or deleted
+                return true;
             }
 
             if (changedFileDependencies.Contains(asset.assetGuid) || asset.descendents.Any(changedFileDependencies.Contains))
@@ -269,13 +275,15 @@ namespace UnityEditor.ShaderGraph
 
                 if (hasError)
                 {
-                    return;
+                    return true;
                 }
 
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
                 Dirty(ModificationScope.Graph);
             }
+
+            return true;
         }
 
         public virtual void UpdateSlots()
@@ -413,7 +421,7 @@ namespace UnityEditor.ShaderGraph
                         break;
                 }
 
-                AddSlot(slot, false);       // always replace to force reordering of the slots
+                AddSlot(slot);
                 validNames.Add(id);
             }
 
@@ -423,11 +431,14 @@ namespace UnityEditor.ShaderGraph
             {
                 var newSlot = MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
                     slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage, slot.hidden);
-                AddSlot(newSlot, false);    // always replace to force reordering of the slots
+                AddSlot(newSlot);
                 validNames.Add(slot.id);
             }
 
             RemoveSlotsNameNotMatching(validNames, true);
+
+            // sort slot order to match subgraph property order
+            SetSlotOrder(validNames);
         }
 
         void ValidateShaderStage()

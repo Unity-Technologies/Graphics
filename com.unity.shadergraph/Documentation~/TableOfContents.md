@@ -72,7 +72,7 @@
             * [Integer](Integer-Node)  
             * [Slider](Slider-Node)  
             * [Time](Time-Node)  
-            * [Vector 1](Vector-1-Node)  
+            * [Float](Float)  
             * [Vector 2](Vector-2-Node)  
             * [Vector 3](Vector-3-Node)  
             * [Vector 4](Vector-4-Node)  
@@ -98,6 +98,9 @@
             * [Matrix 3x3](Matrix-3x3-Node)  
             * [Matrix 4x4](Matrix-4x4-Node)  
             * [Transformation Matrix](Transformation-Matrix-Node)  
+        * Mesh Deformation
+          * [Compute Deformation](Compute-Deformation-Node)    
+          * [Linear Blend Skinning](Linear-Blend-Skinning-Node)
         * PBR 
             * [Dielectric Specular](Dielectric-Specular-Node)  
             * [Metal Reflectance](Metal-Reflectance-Node)
@@ -112,7 +115,8 @@
             * [Screen](Screen-Node)
         * Texture  
             * [Cubemap Asset](Cubemap-Asset-Node) 
-            * [Sample Cubemap](Sample-Cubemap-Node)  
+            * [Sample Cubemap](Sample-Cubemap-Node)
+            * [Sample Reflected Cubemap](Sample-Reflected-Cubemap-Node)
             * [Sample Texture 2D](Sample-Texture-2D-Node)  
             * [Sample Texture 2D Array](Sample-Texture-2D-Array-Node)  
             * [Sample Texture 2D LOD](Sample-Texture-2D-LOD-Node)  
@@ -199,10 +203,7 @@
             * [Noise Sine Wave](Noise-Sine-Wave-Node)  
             * [Sawtooth Wave](Sawtooth-Wave-Node)
             * [Square Wave](Square-Wave-Node)  
-            * [Triangle Wave](Triangle-Wave-Node)    
-    * Mesh Deformation
-        * [Compute Deformation](Compute-Deformation-Node)    
-        * [Linear Blend Skinning](Linear-Blend-Skinning-Node)    
+            * [Triangle Wave](Triangle-Wave-Node)        
     * [Procedural](Procedural-Nodes)
         * Noise   
             * [Gradient Noise](Gradient-Noise-Node)  

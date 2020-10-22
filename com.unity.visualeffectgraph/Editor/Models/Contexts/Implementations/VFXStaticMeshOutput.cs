@@ -140,9 +140,18 @@ namespace UnityEditor.VFX
                                         case TextureDimension.Tex3D:
                                             propertyType = typeof(Texture3D);
                                             break;
+                                        case TextureDimension.Cube:
+                                            propertyType = typeof(Cubemap);
+                                            break;
+                                        case TextureDimension.Tex2DArray:
+                                            propertyType = typeof(Texture2DArray);
+                                            break;
+                                        case TextureDimension.CubeArray:
+                                            propertyType = typeof(CubemapArray);
+                                            break;
                                         default:
-                                            break;     // TODO
-                                    }
+                                            break;
+                                        }
                                     propertyValue = mat.GetTexture(propertyNameId);
                                     break;
                                 }

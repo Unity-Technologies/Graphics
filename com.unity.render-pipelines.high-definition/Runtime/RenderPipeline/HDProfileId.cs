@@ -116,6 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
+        RaytracingDebugCluster,
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
@@ -158,11 +159,15 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,
+        RenderCachedPunctualShadowMaps,
         RenderDirectionalShadowMaps,
         RenderAreaShadowMaps,
+        RenderCachedAreaShadowMaps,
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
+        BlitPunctualMixedCachedShadowMaps,
+        BlitAreaMixedCachedShadowMaps,
 
         // Profile sampler for tile pass
         LightLoopPushGlobalParameters,
