@@ -710,6 +710,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, colorPyramid, taaEnabled);
 
                                 m_Pool.Recycle(fullresCoC);
+                                m_Pool.Recycle(colorPyramid);
                             }
                             PoolSource(ref source, destination);
 
