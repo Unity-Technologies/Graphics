@@ -27,7 +27,6 @@ The version number for this package has increased due to a version update of a r
 - Fixing exceptions in the console when putting the SSGI in low quality mode (render graph).
 - Fixed issue where Default Volume Profile Asset change in project settings was not added to the undo stack (case 1285268).
 
-
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 
