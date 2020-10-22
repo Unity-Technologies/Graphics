@@ -184,8 +184,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float stratum = fmod(posInputs.positionSS.x + posInputs.positionSS.y, 2.0f);
 
     int sampleOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
-    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, sampleOffset);
-    float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 8 + sampleOffset);
+    // Note: adjusting pseudo-randomly the sampleOffset for each pixel seems to considerably improve the sampling
+    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, posInputs.positionSS.x + 3 * posInputs.positionSS.y + sampleOffset);
+    float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 3 * posInputs.positionSS.x + posInputs.positionSS.y + sampleOffset);
 
     // Note: For zero radius we still go through the loop (for one iteration). We can avoid the cost of computing weigths if we early exit (at the cost of extra code complexity).
     float totalRings = maxRadius > 0 ? NumRings : 0;
