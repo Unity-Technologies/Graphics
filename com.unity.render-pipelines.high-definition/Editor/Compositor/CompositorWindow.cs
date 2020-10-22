@@ -156,6 +156,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (m_Editor == null || m_Editor.target == null || m_Editor.isDirty || m_RequiresRedraw)
             {
+                if (m_Editor != null)
+                {
+                    // Remember the previously selected layer when recreating the Editor
+                    s_SelectionIndex = m_Editor.selectionIndex;
+                }
                 m_Editor = (CompositionManagerEditor)Editor.CreateEditor(compositor);
                 m_RequiresRedraw = false;
                 m_Editor.defaultSelection = s_SelectionIndex;

@@ -200,19 +200,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var cam = p.baseCameraSettings;
 
-            // In XR mode, some settings can't be changed because the values come from the device
-            if (p.xrRendering.boolValue)
-            {
-                cam.orthographic.boolValue = false;
-                cam.fovAxisMode.intValue = (int)Camera.FieldOfViewAxis.Vertical;
-                p.projectionMatrixMode.intValue = (int)ProjectionMatrixMode.Implicit;
-            }
-
             Rect perspectiveRect = EditorGUILayout.GetControlRect();
 
             ProjectionType projectionType;
             EditorGUI.BeginProperty(perspectiveRect, projectionContent, cam.orthographic);
-            EditorGUI.BeginDisabledGroup(p.xrRendering.boolValue);
             {
                 projectionType = cam.orthographic.boolValue ? ProjectionType.Orthographic : ProjectionType.Perspective;
 
@@ -221,9 +212,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                     cam.orthographic.boolValue = (projectionType == ProjectionType.Orthographic);
             }
-            EditorGUI.EndDisabledGroup();
             EditorGUI.EndProperty();
-
+            
             if (cam.orthographic.hasMultipleDifferentValues)
                 return;
 
@@ -238,7 +228,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool isPhysicalCamera = p.projectionMatrixMode.intValue == (int)ProjectionMatrixMode.PhysicalPropertiesBased;
 
                 var rect = EditorGUILayout.GetControlRect();
-                EditorGUI.BeginDisabledGroup(p.xrRendering.boolValue);
 
                 var guiContent = EditorGUI.BeginProperty(rect, FOVAxisModeContent, cam.fovAxisMode);
                 EditorGUI.showMixedValue = cam.fovAxisMode.hasMultipleDifferentValues;
@@ -296,7 +285,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
                 }
 
-                EditorGUI.EndDisabledGroup();
                 EditorGUILayout.Space();
             }
         }
