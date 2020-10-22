@@ -506,7 +506,6 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
 
-                // TODO: need to test this actually works with VFX
                 ShaderStringBuilder builder = new ShaderStringBuilder();
                 property.ForeachHLSLProperty(h => h.AppendTo(builder));
 
