@@ -37,7 +37,4 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 
 ## Limitations
 
-To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated during the previous frame. Depending on your [HDRP Asset](HDRP-Asset.md) settings, the content of this color buffer may vary.
-- With **Rough Refraction** enabled and **Distortion** disabled, the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). 
-- With both **Rough Refraction** and **Distortion** enabled, the color buffer includes all transparent GameObjects.
-- With both **Rough Refraction** and **Distortion** disabled, the color buffer includes all transparent GameObjects.
+To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated during the previous frame. The color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). 
