@@ -55,7 +55,7 @@ float3x3 ScaledRotation3x3(float3 xAxis, float3 yAxis, float3 zAxis)
 float3x3 Invert3x3(float3x3 R)
 {
     float3x3 C   = transpose(R); // Row to column
-    float    det = dot(C[0], cross(C[1], C[2]));
+    float    det = dot(C[0],cross(C[1], C[2]));
     float3x3 adj = float3x3(cross(C[1], C[2]),
                             cross(C[2], C[0]),
                             cross(C[0], C[1]));
@@ -71,15 +71,19 @@ float4x4 Homogenize3x3(float3x3 R)
     return M;
 }
 
-float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
+// a: aspect ratio.
+// p: distance to the projection plane.
+// n: distance to the near plane.
+// f: distance to the far plane.
+float4x4 PerspectiveProjection4x4(float a, float p, float n, float f)
 {
-    float b = (f + n) * rcp(f - n);    // Z in [-1, 1]
-    float c = -2 * f * n * rcp(f - n); // No Z-reversal
+    float b = (f + n) * rcp(f - n);
+    float c = -2 * f * n * rcp(f - n);
 
-    return float4x4(g/a, 0, 0, 0,
-                      0, g, 0, 0,
-                      0, 0, b, c,
-                      0, 0, 1, 0);
+    return float4x4(p/a, 0, 0, 0,
+                      0, p, 0, 0,  // No Y-flip
+                      0, 0, b, c,  // Z in [-1, 1], no Z-reversal
+                      0, 0, 1, 0); // No W-flip
 }
 
 // The intervals must be defined s.t.
