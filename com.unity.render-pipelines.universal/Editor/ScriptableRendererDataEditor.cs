@@ -58,7 +58,6 @@ namespace UnityEditor.Rendering.Universal
             {
                 m_SaveAsset = false;
                 EditorUtility.SetDirty(target);
-                AssetDatabase.SaveAssets();
             }
         }
 
