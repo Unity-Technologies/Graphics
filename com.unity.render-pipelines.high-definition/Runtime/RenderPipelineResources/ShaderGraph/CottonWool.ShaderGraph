@@ -2114,7 +2114,7 @@
     "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
     "m_ObjectId": "3d6b7e982fe64bf2a7a58fac415510c0",
     "m_Id": 0,
-    "m_DisplayName": "use Thread Map",
+    "m_DisplayName": "Use Thread Map",
     "m_SlotType": 1,
     "m_Priority": 2147483647,
     "m_Hidden": false,
@@ -3071,7 +3071,13 @@
         "z": 0.0
     },
     "m_Labels": [],
-    "m_ColorMode": 1
+    "m_ColorMode": 1,
+    "m_DefaultColor": {
+        "r": 0.5,
+        "g": 0.5,
+        "b": 0.5,
+        "a": 1.0
+    }
 }
 
 {
@@ -3301,7 +3307,13 @@
         "z": 0.0
     },
     "m_Labels": [],
-    "m_ColorMode": 0
+    "m_ColorMode": 0,
+    "m_DefaultColor": {
+        "r": 0.5,
+        "g": 0.5,
+        "b": 0.5,
+        "a": 1.0
+    }
 }
 
 {
@@ -4664,7 +4676,13 @@
         "z": 0.0
     },
     "m_Labels": [],
-    "m_ColorMode": 0
+    "m_ColorMode": 0,
+    "m_DefaultColor": {
+        "r": 0.5,
+        "g": 0.5,
+        "b": 0.5,
+        "a": 1.0
+    }
 }
 
 {
@@ -5796,7 +5814,7 @@
     "m_Guid": {
         "m_GuidSerialized": "dd9abbb7-9633-411e-91d0-5ba041ed0dda"
     },
-    "m_Name": "use Thread Map",
+    "m_Name": "Use Thread Map",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "_useThreadMap",
     "m_GeneratePropertyBlock": true,
