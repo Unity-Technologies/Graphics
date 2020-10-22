@@ -26,6 +26,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
 - Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
+- Fixed a bug where non-word characters in an enum keyword reference name would break the graph. [1270168](https://issuetracker.unity3d.com/product/unity/issues/guid/1270168)
 
 ## [10.1.0] - 2020-10-12
 
@@ -55,7 +56,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
 - Fixed an issue with how unknown nodes were treated during validation
 - Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
-- Fixed a bug where non-word characters in an enum keyword reference name would break the graph. [1270168](https://issuetracker.unity3d.com/product/unity/issues/guid/1270168)
 - Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
 - Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
 - Fixed a bug where properties copied over with their graph inputs would not hook up correctly in a new graph [1274306]
