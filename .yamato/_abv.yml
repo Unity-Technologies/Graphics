@@ -18,8 +18,8 @@ all_project_ci_2019.4:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_2019.4
          rerun: on-new-revision
-all_project_ci_nightly_2019.4:
-    name: _Nightly ABV against 2019.4
+all_project_ci_weekly_2019.4:
+    name: _Weekly ABV against 2019.4
     dependencies:
       -  path: .yamato/_abv.yml#all_project_ci_2019.4
          rerun: on-new-revision
@@ -32,7 +32,7 @@ all_project_ci_nightly_2019.4:
     triggers:
         recurring:
           -  branch: 7.x.x/release
-             frequency: 0 * * ?
+             frequency: weekly
 trunk_verification_2019.4:
     name: Trunk verification - 2019.4
     dependencies:
@@ -69,8 +69,6 @@ all_project_ci_fast-2019.4:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-2019.4
          rerun: on-new-revision
-    triggers:
-        expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
 trunk_verification_fast-2019.4:
     name: Trunk verification - fast-2019.4
     dependencies:

@@ -5,8 +5,8 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
-nightly:
-  extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
+weekly:
+  extra_dependencies: # additional project jobs to run weekly
     - project: Smoke_Test
       platform: Win
       api: DX11
@@ -14,6 +14,8 @@ nightly:
         - playmode
         - editmode
         - Standalone
+nightly:
+  extra_dependencies: [] # additional project jobs to run nightly (in addition to ABV)
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
