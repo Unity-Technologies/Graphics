@@ -4,7 +4,8 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [11.0.0] - YYYY-MM-DD
+## [11.0.0] - 2020-10-21
+
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
 - Optimized 2D Renderer performance by rendering the normal buffer at the same lower resolution as the light buffers.
