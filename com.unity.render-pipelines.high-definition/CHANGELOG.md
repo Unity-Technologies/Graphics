@@ -28,6 +28,7 @@ The version number for this package has increased due to a version update of a r
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 - Claryfied doc for the LayeredLit material.
+- Various improvements for the Volumetric Fog.
 
 ## [10.1.0] - 2020-10-12
 
