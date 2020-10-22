@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Debug = UnityEngine.Debug;
 using System.IO;
-using System.Net;
 using System.Text;
 using UnityEngine;
 
@@ -258,7 +256,7 @@ public static class ShaderParser
      * Public functions...
      *******************************/
 
-    public static bool SplitVersionToInts(string versionString, out int majorVersion, out int minorVersion, out int patchVersion)
+    public static bool SplitVersionInfo(string versionString, out int majorVersion, out int minorVersion, out int patchVersion)
     {
         majorVersion = 0;
         minorVersion = 0;
