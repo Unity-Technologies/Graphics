@@ -41,8 +41,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
 
             m_Enable = Unpack(o.Find(x => x.enable));
@@ -73,6 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HalfResolutionDenoiser = Unpack(o.Find(x => x.halfResolutionDenoiser));
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
             m_SecondDenoiserPass = Unpack(o.Find(x => x.secondDenoiserPass));
+
+            base.OnEnable();
         }
 
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");

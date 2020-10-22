@@ -23,8 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
@@ -34,6 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
             m_DepthCmpScale = Unpack(o.Find(x => x.depthComparisonExtent));
             m_CameraMotionBlur = Unpack(o.Find(x => x.cameraMotionBlur));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()

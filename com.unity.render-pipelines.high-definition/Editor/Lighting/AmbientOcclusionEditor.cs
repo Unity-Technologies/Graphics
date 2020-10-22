@@ -37,8 +37,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<AmbientOcclusion>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
@@ -61,6 +59,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Denoise = Unpack(o.Find(x => x.denoise));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()

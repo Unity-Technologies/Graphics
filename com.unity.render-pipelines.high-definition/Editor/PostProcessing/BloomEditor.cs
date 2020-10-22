@@ -24,8 +24,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<Bloom>(serializedObject);
 
             m_Threshold = Unpack(o.Find(x => x.threshold));
@@ -39,6 +37,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
             m_Anamorphic = Unpack(o.Find(x => x.anamorphic));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()

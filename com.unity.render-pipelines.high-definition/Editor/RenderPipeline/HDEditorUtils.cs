@@ -242,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.EndProperty();
         }
-        
+
 
         /// <summary>
         /// Should be placed between BeginProperty / EndProperty
@@ -299,7 +299,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         internal class IndentScope : GUI.Scope
         {
-            public IndentScope(int offset = 15)
+            public IndentScope(int offset = 16)
             {
                 // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
                 // This scope is a work-around for this issue.

@@ -13,12 +13,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<ChromaticAberration>(serializedObject);
+
             m_SpectralLUT = Unpack(o.Find(x => x.spectralLut));
             m_Intensity = Unpack(o.Find(x => x.intensity));
             m_MaxSamples = Unpack(o.Find("m_MaxSamples"));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()

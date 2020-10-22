@@ -21,8 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<ContactShadows>(serializedObject);
 
             m_Enable = Unpack(o.Find(x => x.enable));
@@ -36,6 +34,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Opacity = Unpack(o.Find(x => x.opacity));
             m_Bias = Unpack(o.Find(x => x.rayBias));
             m_Thickness = Unpack(o.Find(x => x.thicknessScale));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()

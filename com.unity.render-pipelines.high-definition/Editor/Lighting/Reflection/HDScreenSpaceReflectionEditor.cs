@@ -39,8 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
             m_Enable                        = Unpack(o.Find(x => x.enabled));
             m_RayTracing                    = Unpack(o.Find(x => x.rayTracing));
@@ -70,6 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Quality
             m_SampleCount                   = Unpack(o.Find(x => x.sampleCount));
             m_BounceCount                   = Unpack(o.Find(x => x.bounceCount));
+
+            base.OnEnable();
         }
 
         static public readonly GUIContent k_RayTracingText = EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections.");
