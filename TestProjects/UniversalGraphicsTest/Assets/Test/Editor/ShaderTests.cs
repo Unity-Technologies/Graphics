@@ -10,7 +10,7 @@ using UnityEngine;
 
 class ShaderTests
 {
-    [Test]
+    //[Test]
     public static void CreateShaderAPIFile()
     {
         if (!GetCurrentPackageInfo(out var curPackageInfo))
