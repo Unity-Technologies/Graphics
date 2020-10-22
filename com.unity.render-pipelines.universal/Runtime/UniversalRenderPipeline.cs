@@ -716,7 +716,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
             // Multiple cameras could render into the same XR display and they should share the same MSAA level.
-            if (cameraData.xrRendering)
+            if (cameraData.xrRendering && rendererSupportsMSAA)
                 msaaSamples = XRSystem.GetMSAALevel();
 #endif
 
@@ -803,6 +803,12 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.renderer = asset.scriptableRenderer;
             }
 
+            // Disables post if GLes2
+            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+
+            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
+            cameraData.resolveFinalTarget = resolveFinalTarget;
+
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
             // of camera stacking breaking render pass execution implicitly.
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
@@ -811,12 +817,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
             }
-
-            // Disables post if GLes2
-            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-
-            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
-            cameraData.resolveFinalTarget = resolveFinalTarget;
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
 

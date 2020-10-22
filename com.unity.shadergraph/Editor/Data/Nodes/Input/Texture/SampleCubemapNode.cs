@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEditor.ShaderGraph.CubemapNode")]
-    [Title("Input", "Texture", "Sample Cubemap")]
+    [Title("Input", "Texture", "Sample Reflected Cubemap")]
     class SampleCubemapNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
     {
         public const int OutputSlotId = 0;
@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
 
         public SampleCubemapNode()
         {
-            name = "Sample Cubemap";
+            name = "Sample Reflected Cubemap";
             UpdateNodeAfterDeserialization();
         }
 
@@ -84,6 +84,13 @@ namespace UnityEditor.ShaderGraph
                 return CoordinateSpace.Object.ToNeededCoordinateSpace();
             else
                 return NeededCoordinateSpace.None;
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+
+            name = "Sample Reflected Cubemap";
         }
     }
 }
