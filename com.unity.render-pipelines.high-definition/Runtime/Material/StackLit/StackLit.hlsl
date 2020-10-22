@@ -4348,14 +4348,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             R[i] = lerp(R[i], preLightData.iblR[i], saturate(smoothstep(0, 1, roughness * roughness)));
         }
 
-        float intersectionDistance = 0.0;
-        EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i], intersectionDistance);
+        float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
 
-        // If this is a cubemap, we want to affect the roughness to fake distance based roughness
-        if (IsEnvIndexCubemapNoSky(lightData.envIndex)) // Cubemap only
-            preLightData.iblPerceptualRoughness[i] = ComputeDistanceBaseRoughness(intersectionDistance, length(R[i]), preLightData.iblPerceptualRoughness[i]);
-
-        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+        float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness[i], intersectionDistance, sliceIndex);
 
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;

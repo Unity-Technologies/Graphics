@@ -522,14 +522,16 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 // Environment map share function
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
+// From Moving Frostbite to PBR document
 // This function fakes the roughness based integration of reflection probes by adjusting the roughness value
-float ComputeDistanceBaseRoughness(float distInteresectionToShadedPoint, float distInteresectionToProbeCenter, float linearRoughness)
+float ComputeDistanceBaseRoughness(float distIntersectionToShadedPoint, float distIntersectionToProbeCenter, float perceptualRoughness)
 {
-    float newLinearRoughness = clamp(distInteresectionToShadedPoint / distInteresectionToProbeCenter * linearRoughness , 0, linearRoughness);
-    return lerp (newLinearRoughness, linearRoughness, linearRoughness);
+    float newPerceptualRoughness = clamp(distIntersectionToShadedPoint / distIntersectionToProbeCenter * perceptualRoughness, 0, perceptualRoughness);
+    return lerp(newPerceptualRoughness, perceptualRoughness, perceptualRoughness);
 }
 
-void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData light, int influenceShapeType, inout float3 R, inout float weight, inout float projectionDistance)
+// return projectionDistance, can be used in ComputeDistanceBaseRoughness formula
+float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData light, int influenceShapeType, inout float3 R, inout float weight)
 {
     // Guideline for reflection volume: In HDRenderPipeline we separate the projection volume (the proxy of the scene) from the influence volume (what pixel on the screen is affected)
     // However we add the constrain that the shape of the projection and influence volume is the same (i.e if we have a sphere shape projection volume, we have a shape influence).
@@ -545,7 +547,7 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     float3 positionPS = WorldToProxyPosition(light, worldToPS, positionWS);
     float3 dirPS = mul(R, worldToPS);
 
-    projectionDistance = 0;
+    float projectionDistance = 0;
 
     // Process the projection
     // In Unity the cubemaps are capture with the localToWorld transform of the component.
@@ -571,6 +573,20 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // Smooth weighting
     weight = Smoothstep01(weight);
     weight *= light.weight;
+
+    return projectionDistance;
+}
+
+// Call SampleEnv function with distance based roughness
+float4 SampleEnvWithDistanceBaseRoughness(LightLoopContext lightLoopContext, PositionInputs posInput, EnvLightData lightData, float3 R, float perceptualRoughness, float intersectionDistance, int sliceIdx = 0)
+{
+    // Only apply distance based roughness for non-sky reflection probe
+    if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES && IsEnvIndexCubemap(lightData.envIndex))
+    {
+        perceptualRoughness = ComputeDistanceBaseRoughness(intersectionDistance, length(R), perceptualRoughness);
+    }
+
+    return SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(perceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC, sliceIdx);
 }
 
 void InversePreExposeSsrLighting(inout float4 ssrLighting)

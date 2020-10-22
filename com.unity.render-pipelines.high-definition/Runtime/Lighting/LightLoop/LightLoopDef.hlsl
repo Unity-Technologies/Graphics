@@ -70,7 +70,6 @@ EnvLightData InitSkyEnvLightData(int envIndex)
 }
 
 bool IsEnvIndexCubemap(int index)   { return index >= 0; }
-bool IsEnvIndexCubemapNoSky(int index)   { return index > 0; }
 bool IsEnvIndexTexture2D(int index) { return index < 0; }
 
 // Clamp the UVs to avoid edge beelding caused by bilinear filtering on the edge of the atlas.
