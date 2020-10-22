@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The default intensity value for directional lights in Lux
         /// </summary>
-        public const float k_DefaultDirectionalLightIntensity = Mathf.PI; // In lux
+        public const float k_DefaultDirectionalLightIntensity = 100000; // In lux
         /// <summary>
         /// The default intensity value for punctual lights in Lumen
         /// </summary>
@@ -1438,7 +1438,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_UpdateShadowOnLightMovement = false;
         /// <summary>
         /// Whether a cached shadow map will be automatically updated when the light transform changes (more than a given threshold set via cachedShadowTranslationUpdateThreshold
-        /// and cachedShadowAngleUpdateThreshold). 
+        /// and cachedShadowAngleUpdateThreshold).
         /// </summary>
         /// <value></value>
         public bool updateUponLightMovement
@@ -1479,7 +1479,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         float m_CachedShadowAngularThreshold = 0.5f;
         /// <summary>
-        /// If any transform angle of the light is over this threshold (in degrees) since last update, a cached shadow which is set to update upon light movement 
+        /// If any transform angle of the light is over this threshold (in degrees) since last update, a cached shadow which is set to update upon light movement
         /// (updateUponLightMovement from script or Update on Light Movement in UI) is updated.
         /// </summary>
         public float cachedShadowAngleUpdateThreshold
@@ -2156,7 +2156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadowRequest.isInCachedAtlas = isSampledFromCache;
                 shadowRequest.isMixedCached = updateType == ShadowMapUpdateType.Mixed;
-                shadowRequest.shouldUseCachedShadowData = false;  
+                shadowRequest.shouldUseCachedShadowData = false;
 
                 Vector2 viewportSize = resolutionRequest.resolution;
 
