@@ -13,14 +13,14 @@ class ShaderTests
     [Test]
     public static void CreateShaderAPIFile()
     {
-        // Get the Shader API for the project
-        PackageFunctionsSaveData results = RetrieveCurrentShaderAPI();
-
         if (!GetCurrentPackageInfo(out var curPackageInfo))
         {
             Debug.Log("Unable to find current package version");
             return;
         }
+
+        // Get the Shader API for the project
+        PackageFunctionsSaveData results = RetrieveCurrentShaderAPI(curPackageInfo);
 
         // Save to disk
         ShaderParser.SavePackageFileToDisk(results, GetGraphicsDirectory(), GetSaveFilePath(curPackageInfo.version));
@@ -57,22 +57,29 @@ class ShaderTests
             Assert.Fail("Unable to load \"" + prevPackageFilePath + "\"");
 
         // Fetch all functions in the current version
-        PackageFunctionsSaveData currentShaderAPI = RetrieveCurrentShaderAPI();
+        PackageFunctionsSaveData currentShaderAPI = RetrieveCurrentShaderAPI(curPackageInfo);
+
+        // Determine what kind of package change this is...
+        ShaderParser.SplitVersionToInts(prevShaderAPI.version, out int prevMajorVersion, out int prevMinorVersion, out int prevPatchVersion);
+        ShaderParser.SplitVersionToInts(currentShaderAPI.version, out int curMajorVersion, out int curMinorVersion, out int curPatchVersion);
+        bool isAMajorVersionChange = curMajorVersion > prevMajorVersion;
+        bool isAMinorVersionChange = curMinorVersion > prevMinorVersion;
+        string changeType = ((isAMajorVersionChange) ? "Major" : (isAMinorVersionChange) ? "Minor" : "Patch") + " version change.";
 
         // Compare the two packages
-        bool testPassed = ShaderParser.ComparePackageFunctions(prevShaderAPI, currentShaderAPI, out string log);
+        bool testPassed = ShaderParser.ComparePackageFunctions(isAMajorVersionChange, prevShaderAPI, currentShaderAPI, out string log);
 
 
         // Logging...
         if (testPassed)
         {
             Debug.Log(log);
-            Assert.Pass("Comparing URP versions \"" + curPackageInfo.version + "\" and \"" + prevPackageVersion + "\" succeeded!");
+            Assert.Pass("Comparing URP versions \"" + curPackageInfo.version + "\" and \"" + prevPackageVersion + "\" succeeded!\n" + changeType);
         }
         else
         {
             Debug.Log(log);
-            Assert.Fail("Comparing URP versions \"" + curPackageInfo.version + "\" and \"" + prevPackageVersion + "\" failed!\n");
+            Assert.Fail("Comparing URP versions \"" + curPackageInfo.version + "\" and \"" + prevPackageVersion + "\" failed!\n" + changeType);
         }
     }
 
@@ -116,28 +123,14 @@ class ShaderTests
         return Path.Combine(GetSaveDirectoryPath(), version + ".txt");
     }
 
-    private static bool SplitVersionToInts(string versionString, out int majorVersion, out int minorVersion, out int patchVersion)
-    {
-        majorVersion = 0;
-        minorVersion = 0;
-        patchVersion = 0;
-
-        string[] versions = versionString.Split('.');
-        if (!int.TryParse(versions[0], out majorVersion)) return false;
-        if (!int.TryParse(versions[1], out minorVersion)) return false;
-        if (!int.TryParse(versions[2], out patchVersion)) return false;
-
-        return true;
-    }
-
     private static bool GetCurrentPackageInfo(out GraphicsPackageInfo packageInfo)
     {
         string urpPackageJsonFile = Path.Combine(GetGraphicsDirectory(), "com.unity.render-pipelines.universal", "package.json");
         packageInfo = JsonUtility.FromJson<GraphicsPackageInfo>(File.ReadAllText(urpPackageJsonFile));
-        return SplitVersionToInts(packageInfo.version, out packageInfo.majorVersion, out packageInfo.minorVersion, out packageInfo.patchVersion);
+        return ShaderParser.SplitVersionToInts(packageInfo.version, out packageInfo.majorVersion, out packageInfo.minorVersion, out packageInfo.patchVersion);
     }
 
-    private static PackageFunctionsSaveData RetrieveCurrentShaderAPI()
+    private static PackageFunctionsSaveData RetrieveCurrentShaderAPI(GraphicsPackageInfo graphicsPackageInfo)
     {
         // Graphics Directory path...
         string graphicsDirectory = GetGraphicsDirectory();
@@ -155,7 +148,7 @@ class ShaderTests
         string[] searchPatterns = {"*.hlsl"};
 
         // Create the Save data
-        return ShaderParser.CreateShaderAPIList(graphicsDirectory, dirs, searchPatterns);
+        return ShaderParser.CreateShaderAPIList(graphicsPackageInfo.version, graphicsDirectory, dirs, searchPatterns);
     }
 
     private static bool GetPreviousPackageInfo(GraphicsPackageInfo curPackageInfo, out string filePath, out string version)
@@ -172,7 +165,7 @@ class ShaderTests
         {
             string shaderAPIPath = shaderAPIFiles[i];
             string fileName = Path.GetFileName(shaderAPIPath);
-            SplitVersionToInts(fileName, out int majorVersion, out int minorVersion, out int patchVersion);
+            ShaderParser.SplitVersionToInts(fileName, out int majorVersion, out int minorVersion, out int patchVersion);
 
             int thisPackageVal = GetPackageVal(majorVersion, minorVersion, patchVersion);
             if (thisPackageVal > curPackageVal)
@@ -191,7 +184,7 @@ class ShaderTests
             return false;
         }
 
-        SplitVersionToInts(closestFile, out int closestMajor, out int closestMinor, out int closestPatch);
+        ShaderParser.SplitVersionToInts(closestFile, out int closestMajor, out int closestMinor, out int closestPatch);
         filePath = Path.Combine(s_ShaderAPIFolder, closestFile);
         version = closestMajor + "." + closestMinor + "." + closestPatch;
         return true;

@@ -86,8 +86,9 @@ public struct ShaderParameter
 public static class ShaderParser
 {
     private const string k_Inline = "inline";
+    private const string kDeprecatedFilePath = "com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl";
 
-    public enum TokenState
+    private enum TokenState
     {
         TypeOrParamArgs,
         Name,
@@ -253,13 +254,31 @@ public static class ShaderParser
         }
     };
 
-    public static PackageFunctionsSaveData CreateShaderAPIList(string rootDirectory, string[] directories, string[] searchPatterns = null)
+    /*******************************
+     * Public functions...
+     *******************************/
+
+    public static bool SplitVersionToInts(string versionString, out int majorVersion, out int minorVersion, out int patchVersion)
+    {
+        majorVersion = 0;
+        minorVersion = 0;
+        patchVersion = 0;
+
+        string[] versions = versionString.Split('.');
+        if (!int.TryParse(versions[0], out majorVersion)) return false;
+        if (!int.TryParse(versions[1], out minorVersion)) return false;
+        if (!int.TryParse(versions[2], out patchVersion)) return false;
+
+        return true;
+    }
+
+    public static PackageFunctionsSaveData CreateShaderAPIList(string version, string rootDirectory, string[] directories, string[] searchPatterns = null)
     {
         if (searchPatterns == null)
             searchPatterns = new[] {""};
 
         PackageFunctionsSaveData packageFunctions = new PackageFunctionsSaveData();
-        packageFunctions.version = "10.2.0";
+        packageFunctions.version = version;
         packageFunctions.date = DateTime.Now.ToString();
 
         List<FileFunctionsSaveData> filesData = new List<FileFunctionsSaveData>();
@@ -340,9 +359,7 @@ public static class ShaderParser
         }
     }
 
-    private const string kDashesString = "----------------------------";
-    private const string kDeprecatedFilePath = "com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl";
-    public static bool ComparePackageFunctions(PackageFunctionsSaveData prevPackage, PackageFunctionsSaveData currentPackages, out string log)
+    public static bool ComparePackageFunctions(bool isAMajorVersionChange, PackageFunctionsSaveData prevPackage, PackageFunctionsSaveData currentPackage, out string log)
     {
         bool passedTest = true;
         StringBuilder allLogSB = new StringBuilder();
@@ -350,7 +367,7 @@ public static class ShaderParser
         StringBuilder errorLogSB = new StringBuilder();
 
         // Find deprecated functions in the current package...
-        bool foundDeprecatedFile = FindFile(kDeprecatedFilePath, currentPackages, out FileFunctionsSaveData deprecatedFile);
+        bool foundDeprecatedFile = FindFile(kDeprecatedFilePath, currentPackage, out FileFunctionsSaveData deprecatedFile);
         Dictionary<string, ShaderFunction> deprecatedFunctionsDict = (foundDeprecatedFile) ? CreateDictFromFile(deprecatedFile) : new Dictionary<string, ShaderFunction>();
 
         // For each file...
@@ -360,44 +377,39 @@ public static class ShaderParser
             StringBuilder changedSB = new StringBuilder();
             StringBuilder errorSB = new StringBuilder();
 
-
             FileFunctionsSaveData prevFile = prevPackage.files[i];
+            bool isDeprecatedFile = prevFile.name == deprecatedFile.name;
             string fileName = prevFile.name;
+            int numOfFunctions = prevFile.functions.Length;
+
+            if (numOfFunctions == 0)
+            {
+                allLogSB.AppendLine(fileName + "\n\tNo Functions.\n");
+                continue;
+            }
 
             // Find the same file and functions in the current package
             // If we didn't find it, we must check the deprecated file for the functions...
-            if (!FindFile(fileName, currentPackages, out FileFunctionsSaveData curFile))
+            if (!FindFile(fileName, currentPackage, out FileFunctionsSaveData curFile))
             {
                 if (!foundDeprecatedFile)
                 {
-                    Debug.LogError("Missing file: \"" + fileName + "\"");
+                    string error = fileName + "\n\tUnable to find the current functions in this file or in deprectated.hlsl.\n";
+                    allLogSB.AppendLine(error);
+                    errorLogSB.AppendLine(error);
                     passedTest = false;
+                    continue;
                 }
             }
 
-            string dashes = "";
-            for (int j = 0; j < fileName.Length; j++)
-            {
-                dashes += "-";
-            }
+            // Compare the functions in the previous file to the current one + deprecated...
+            passedTest &= CompareFunctions(isAMajorVersionChange, isDeprecatedFile, prevFile, curFile, deprecatedFunctionsDict, ref allSB, ref changedSB, ref errorSB);
 
-            // For each function name in the previous file...
-            int numOfFunctions = prevFile.functions.Length;
-            if (numOfFunctions > 0)
-            {
-                passedTest &= CompareFunctions(prevFile, curFile, deprecatedFunctionsDict, ref allSB, ref changedSB, ref errorSB);
-
-                allLogSB.AppendLine(fileName + "\n" + allSB);
-                if (changedSB.Length > 0)
-                    changedLogSB.AppendLine(fileName + "\n" + changedSB);
-                if (errorSB.Length > 0)
-                    errorLogSB.AppendLine(fileName + "\n" + errorSB);
-            }
-            else
-            {
-                allLogSB.AppendLine(fileName + "\n\tNo Functions.\n");
-            }
-
+            allLogSB.AppendLine(fileName + "\n" + allSB);
+            if (changedSB.Length > 0)
+                changedLogSB.AppendLine(fileName + "\n" + changedSB);
+            if (errorSB.Length > 0)
+                errorLogSB.AppendLine(fileName + "\n" + errorSB);
         }
 
         if (passedTest)
@@ -421,10 +433,9 @@ public static class ShaderParser
         return passedTest;
     }
 
-    /*
-     *
-     *
-     */
+    /*******************************
+     * Private functions...
+     *******************************/
 
     private static ShaderFunction[] ParseFile(string fileName)
     {
@@ -732,7 +743,7 @@ public static class ShaderParser
         }
     }
 
-    private static bool CompareFunctions(FileFunctionsSaveData prevFile, FileFunctionsSaveData curFile, Dictionary<string, ShaderFunction> deprecatedFunctionsDict, ref StringBuilder allLogSB, ref StringBuilder changedLogSB, ref StringBuilder errorLogSB)
+    private static bool CompareFunctions(bool isAMajorVersionChange, bool isDeprecatedFile, FileFunctionsSaveData prevFile, FileFunctionsSaveData curFile, Dictionary<string, ShaderFunction> deprecatedFunctionsDict, ref StringBuilder allLogSB, ref StringBuilder changedLogSB, ref StringBuilder errorLogSB)
     {
         bool foundAllFunctionsAndVariations = true;
 
@@ -747,13 +758,13 @@ public static class ShaderParser
             curFunctionsDict.TryGetValue(prevFunctionName, out var curFunction);
 
             // Make sure we have all the variations of that function in the same file or deprecated...
-            foundAllFunctionsAndVariations &= CompareFunctionVariations(prevFunction, curFunction, deprecatedFunctionsDict, ref allLogSB, ref changedLogSB, ref errorLogSB);
+            foundAllFunctionsAndVariations &= CompareFunctionVariations(isAMajorVersionChange, isDeprecatedFile, prevFunction, curFunction, deprecatedFunctionsDict, ref allLogSB, ref changedLogSB, ref errorLogSB);
         }
 
         return foundAllFunctionsAndVariations;
     }
 
-    private static bool CompareFunctionVariations(ShaderFunction prevFunction, ShaderFunction curFunction, Dictionary<string, ShaderFunction> deprecatedFunctionsDict, ref StringBuilder allLogSB, ref StringBuilder changedLogSB, ref StringBuilder errorLogSB)
+    private static bool CompareFunctionVariations(bool isAMajorVersionChange, bool isDeprecatedFile, ShaderFunction prevFunction, ShaderFunction curFunction, Dictionary<string, ShaderFunction> deprecatedFunctionsDict, ref StringBuilder allLogSB, ref StringBuilder changedLogSB, ref StringBuilder errorLogSB)
     {
         bool foundAllVariations = true;
 
@@ -794,12 +805,18 @@ public static class ShaderParser
                     if (foundVariation)
                         break;
                 }
+
+                if (foundVariation)
+                {
+                    LogMoved(prevVariation.functionAPI, ref allLogSB);
+                    LogMoved(prevVariation.functionAPI, ref changedLogSB);
+                    continue;
+                }
             }
 
-            if (foundVariation)
+            if (isDeprecatedFile && isAMajorVersionChange)
             {
-                LogMoved(prevVariation.functionAPI, ref allLogSB);
-                LogMoved(prevVariation.functionAPI, ref changedLogSB);
+                LogRemoved(prevVariation.functionAPI, ref allLogSB);
                 continue;
             }
 
@@ -819,6 +836,11 @@ public static class ShaderParser
     private static void LogMoved(string functionAPI, ref StringBuilder sb)
     {
         sb.AppendLine("\tMoved -> " + functionAPI + " -> \"" + kDeprecatedFilePath + "\"");
+    }
+
+    private static void LogRemoved(string functionAPI, ref StringBuilder sb)
+    {
+        sb.AppendLine("\tRemoved -> " + functionAPI);
     }
 
     private static void LogFailed(string functionAPI, ref StringBuilder sb)
