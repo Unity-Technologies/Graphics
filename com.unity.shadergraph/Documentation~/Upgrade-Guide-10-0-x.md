@@ -4,6 +4,10 @@
 
 Shader Graph has renamed the **Vector 1** property as **Float** in both the Vector 1 node and the exposed parameter list. The **Float** precision was also renamed as **Single**. Behavior is exactly the same, and only the names have changed.
 
+## Renamed Sample Cubemap
+
+Shader Graph has renamed the previous Sample Cubemap Node **to** Sample Reflected Cubemap**,** and **has** added a new Sample Cubemap**,** which **uses** world space direction.
+
 ## Master Stack graph output
 
 Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack.md) solution for defining graph output in 10.0. You can still open all graphs created in previous versions, because Shader Graph automatically upgrades them. This page describes the expected behavior and explains when you might need to perform manual upgrade steps.
@@ -31,7 +35,7 @@ After the upgrade, you can add any required Block nodes that went missing, and r
 
 ### Upgrade cross-pipeline Master Nodes to the Master Stack
 
-If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project.
+If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project. With Master Stacks, when you switch from one render pipeline to another, you must reimport your Shader Graph assets to update the Material Inspector for any Materials in your project. 
 
 In URP, you can now find all PBR Master Node settings in the URP Lit Target. The Unlit Master Node settings are in the URP Unlit Target. These settings are the same, and the final shader should appear the same as before the upgrade. 
 

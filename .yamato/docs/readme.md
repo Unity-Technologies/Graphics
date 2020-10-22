@@ -26,6 +26,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### ABV related changes (_abv.metafile)
 - Add a new project to ABV: add the project name (the one used inside the project’s own metafile, e.g. Universal) under abv.projects 
 - Add a new job to Nightly: add the dependency under nightly.extra_dependencies (these dependencies run in addition to ABV)
+- Add a new job to Weekly: add the dependency under weekly.extra_dependencies
 - Add job to trunk verification: add the dependency under trunk_verification.dependencies
 
 ### Project related changes (project_name.metafile)
@@ -45,9 +46,6 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - Change `target_editor` to the target editor track for this branch (this is used e.g. for dependencies of *packages#publish_*, *preview_publish#publish_*  and *preview_publish#wait_for_nightly*) (e.g. for 9.x.x this would correspond to `2020.1`)
     - Change `target_branch` to the current branch (this is used for ci triggers, such as ABV  (*all_project_ci*) jobs) (e.g. for 9.x.x this would correspond to `9.x.x/release`)
     - Change `target_branch_editor_ci` to the correct ci branch (editor pinning branch)
-  - In *__abv.metafile* :
-    - Change `abv.trigger_editors` to the editor against which to trigger the ABV (*all_project_ci*) job (typically `fast-*` editor)  (e.g. for 9.x.x this would correspond to `fast-2020.1`)
-    - Change `nightly.allowed_editors` to contain the editors for which to run nightly (*all_project_ci_nightly*) jobs (e.g. for 9.x.x this would correspond to `2020.1`)
   - In *__editor.metafile*:
     - Change `editor_tracks` to correct track (trunk, 2020.1, etc)
   - In *_packages.metafile*:
@@ -55,6 +53,36 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 
 ### If trunk track changes:
   - Change `trunk_track` in `_editor.metafile`
+
+### Custom test platforms:
+- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
+- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
+- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
+- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
+- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `extra_utr_flags_build` (scroll down to see project metafile docs)
+  ```
+    - type: playmode
+      name: playmode_perf_build
+      extra_utr_flags:
+        - --scripting-backend=il2cpp
+        - --timeout=1200
+        - --performance-project-id=URP_Performance
+        - --testfilter=Build
+        - --suite=Editor
+  ```
+  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
+  ```
+  iPhone:
+    name: iPhone
+    os: ios
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+        - editmode
+        - ...
+        - playmode_perf_build
+  ```
+
 
 ### Custom test platforms:
 - There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
@@ -157,13 +185,49 @@ target_branch: master
 # target editor version used for this branch 
 target_editor: trunk
 
-# editors applied for all yml files (overridable) (list)
+# editors applied for all yml files (overridable) (bunch of examples)
 editors: 
-  - version: trunk
-    rerun_strategy: always
-    cmd: -u trunk # used only by editor job
-  - ...
+  # run editor pinning for trunk, and set up a recurrent nightly and weekly
+  - track: trunk 
+    name: trunk #name used in job ids
+    rerun_strategy: on-new-revision
+    editor_pinning: True  #use editor pinning for this track
+    nightly: True  #run the _Nightly job nightly
+    weekly: True  #run the _Weekly job weekly
+  
+  # run editor pinning for 2020.2, and set up a recurrent nightly
+  - track: 2020.2
+    name: 2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: True
+    nightly: True
+  
+  # don't use editor pinning for 2020.2, use --fast flag with editor priming instead. 
+  # trigger ABV on fast-2020.2 on PRs, but disable the recurrent _Nightly job
+  - track: 2020.2
+    name: fast-2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: False  #don't use editor pinning, let it use editor-priming instead
+    fast: True  #use --fast flag (so get the latest built revision)
+    abv_pr: True  #trigger ABV on PRs (so run fast-2020.2 like before editor pinning)
+    nightly: False  #don't run nightly on this editor
 
+  # don't use editor pinning for 2020.2, use editor priming instead 
+  # don't trigger ABV on latest-2020.2 on PRs, and disable the recurrent _Nightly job
+  - track: 2020.2
+    name: latest-2020.2
+    rerun_strategy: on-new-revision
+    editor_pinning: False
+    fast: False #don't use --fast flag (get the latest possibly not-build revision)
+    abv_pr: False  #dont trigger ABV on PRs for this editor
+    nightly: False  #dont run nightly for this editor
+
+  # run custom revision as usual (editor priming)
+  - track: CUSTOM-REVISION
+    name: CUSTOM-REVISION
+    rerun_strategy: always
+    editor_pinning: False #custom revision always has editor pinning as false
+    fast: False  #custom revision always has fast as false
 # specifies platform details for each platform 
 platforms:
   Win:
@@ -260,16 +324,12 @@ non_project_agents:
 ### _abv.metafile: contains configurations for ABV jobs
 ```
 abv: # all_project_ci (ABV) job configuration 
-  trigger_editors: # editor(s) for which to create a PR trigger
-    - fast-trunk
   projects: # projects to include in ABV by calling All_{project} jobs
     - name: Universal
     - name: Universal_Stereo
     - ...
 
 nightly: # all_project_ci_nightly job configuration
-  allowed_editors: # editor(s) for which to create nightly jobs
-    - trunk
   extra_dependencies: # project jobs to run in addition to ABV
     - project: Universal # use this format to run a specific job
       platform: Android
@@ -280,6 +340,14 @@ nightly: # all_project_ci_nightly job configuration
       all: true  
     - ...  
 
+weekly: # all_project_ci_nightly job configuration
+  extra_dependencies: # project jobs to run in addition to ABV
+    - project: HDRP # use this format to run a specific job
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode_NonRenderGraph
+    - ...
 smoke_test: # smoke tests configuration. Agents refer back to __shared.metafile
   folder: SRP_SmokeTest
   agent: sdet_win_large # (used for editmode)
