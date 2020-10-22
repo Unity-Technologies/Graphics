@@ -25,6 +25,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
 - Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
+- Fixed the subgraph slot sorting function [1286805]
 
 ## [10.1.0] - 2020-10-12
 
