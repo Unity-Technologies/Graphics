@@ -6,14 +6,15 @@ editors: # applied for all yml files
     name: 2020.1
     rerun_strategy: on-new-revision
     editor_pinning: False
-    nightly: True
+    nightly: False
+    weekly: True
   - track: 2020.1
     name: fast-2020.1
     rerun_strategy: on-new-revision
     editor_pinning: False
     nightly: False
     fast: True
-    abv_pr: True
+    abv_pr: False
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: always
@@ -46,7 +47,7 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-    agent_package: 
+    agent_package:
       type: Unity::VM
       image: package-ci/win10:stable
       flavor: b1.large
@@ -75,7 +76,7 @@ platforms:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
-    agent_package: 
+    agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:stable
       flavor: m1.mac
@@ -84,7 +85,7 @@ platforms:
   Linux:
     name: Linux
     os: linux
-    apis: 
+    apis:
       - name: OpenGLCore
         cmd: -force-glcore
         exclude_test_platforms:
