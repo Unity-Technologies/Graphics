@@ -35,9 +35,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CreatePropertyGUI();
 
             AddProperty(Styles.enableClearCoat, () => litData.clearCoat, (newValue) => litData.clearCoat = newValue);
-            AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
-            AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
-            AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
+            if (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering)
+            {
+                AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
+            }
+            if (systemData.surfaceType == SurfaceType.Transparent)
+            {
+                AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
+                if (litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None)
+                {
+                    if (systemData.blendMode != BlendMode.Alpha)
+                        AddHelpBox(RefractionUIBlock.Styles.refractionBlendModeWarning, MessageType.Warning);
+                    if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction)
+                        AddHelpBox(RefractionUIBlock.Styles.refractionRenderingPassWarning, MessageType.Warning);
+                }
+            }
+            if (litData.materialType == HDLitData.MaterialType.SpecularColor)
+            {
+                AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
+            }
         }
     }
 }

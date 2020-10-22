@@ -1871,6 +1871,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
         {
+            // For the generic case, we consider that all probes have mip maps. The more specific case will override this attribute.
+            envLightData.roughReflections = 1.0f;
+
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
 
@@ -1910,6 +1913,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // We need to collect the set of parameters required for the filtering
                         IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters = new IBLFilterBSDF.PlanarTextureFilteringParameters();
+                        planarTextureFilteringParameters.smoothPlanarReflection = !probe.settings.roughReflections;
                         planarTextureFilteringParameters.probeNormal = Vector3.Normalize(hdCamera.camera.transform.position - renderData.capturePosition);
                         planarTextureFilteringParameters.probePosition = probe.gameObject.transform.position;
                         planarTextureFilteringParameters.captureCameraDepthBuffer = planarProbe.realtimeDepthTexture;
@@ -1943,6 +1947,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_TextureCaches.env2DAtlasScaleOffset[fetchIndex] = scaleOffset;
                         m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
+
+                        // Propagate the smoothness information to the env light data
+                        envLightData.roughReflections = probe.settings.roughReflections ? 1.0f : 0.0f;
 
                         var capturedForwardWS = renderData.captureRotation * Vector3.forward;
                         //capturedForwardWS.z *= -1; // Transform to RHS standard

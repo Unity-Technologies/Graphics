@@ -152,7 +152,10 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            m_Data = null;
+        }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
 
@@ -183,7 +186,6 @@ namespace UnityEditor.ShaderGraph.Internal
                     propertyIndexSet.Add(propertyIndex);
                 }
             }
-            EnsureProperties();
             var propertyIndices = propertyIndexSet.ToArray();
             Array.Sort(propertyIndices);
             var filteredProperties = propertyIndices.Select(i => properties[i]).ToArray();

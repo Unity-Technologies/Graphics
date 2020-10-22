@@ -111,7 +111,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (titleAttribute != null)
                 {
                     var node = (AbstractMaterialNode) Activator.CreateInstance(type);
-                    AddEntries(node, titleAttribute.title, nodeEntries);
+                    if(ShaderGraphPreferences.allowDeprecatedBehaviors && node.latestVersion > 0)
+                    {
+                        for(int i = 0; i <= node.latestVersion; ++i)
+                        {
+                            var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
+                            depNode.ChangeVersion(i);
+                            AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                        }
+                    }
+                    else
+                    {
+                        AddEntries(node, titleAttribute.title, nodeEntries);
+                    }
                 }
             }
 
@@ -298,7 +310,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
-                return false;
+                return true;
 
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
             var node = CopyNodeForGraph(nodeEntry.node);
@@ -312,12 +324,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(node is BlockNode blockNode)
             {
                 if(!(target is ContextView contextView))
-                    return false;
+                    return true;
 
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
                 if(contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
-                    return false;
+                    return true;
                 
                 // Insert block to Data
                 blockNode.owner = m_Graph;
@@ -352,6 +364,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
         {
             var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
+            if (ShaderGraphPreferences.allowDeprecatedBehaviors && oldNode.sgVersion != newNode.sgVersion)
+            {
+                newNode.ChangeVersion(oldNode.sgVersion);
+            }
             if (newNode is SubGraphNode subgraphNode)
             {
                 subgraphNode.asset = ((SubGraphNode)oldNode).asset;
