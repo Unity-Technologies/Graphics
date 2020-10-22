@@ -10,13 +10,6 @@ All_ShaderGraph_Stereo_trunk:
          rerun: on-new-revision
       -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-All_ShaderGraph_Stereo_2020.2:
-    name: All ShaderGraph_Stereo CI - 2020.2
-    dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_apiNet2_Linear_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_apiNet2_Linear_2020.2
-         rerun: on-new-revision
 All_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: All ShaderGraph_Stereo CI - CUSTOM-REVISION
     dependencies:
