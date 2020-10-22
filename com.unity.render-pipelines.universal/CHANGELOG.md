@@ -62,6 +62,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue wehre XR mirror view selector stuck. 
 - Fixed GLES2 shader compilation.
 - Fixed issue with lens distortion breaking rendering when enabled and its intensity is 0.
+- Fixed mixed lighting subtractive and shadowmask modes for deferred renderer.
 - Fixed issue that caused motion blur to not work in XR.
 - Fixed issue where multiple cameras would cause GC each frame. [case 1259717](https://issuetracker.unity3d.com/issues/urp-scriptablerendercontext-dot-getcamera-array-dot-resize-creates-garbage-every-frame-when-more-than-one-camera-is-active)
 - Fixed Missing camera cannot be removed after scene is saved by removing the Missing camera label. [case 1252255](https://issuetracker.unity3d.com/issues/universal-rp-missing-camera-cannot-be-removed-from-camera-stack-after-scene-is-saved)
