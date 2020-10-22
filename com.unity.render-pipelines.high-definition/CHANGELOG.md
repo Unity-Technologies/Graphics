@@ -23,7 +23,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
-- Claryfied doc for the LayeredLit material.
+- Clarified doc for the LayeredLit material.
+- Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
