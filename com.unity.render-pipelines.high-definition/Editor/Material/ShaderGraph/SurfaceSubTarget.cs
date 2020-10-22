@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string renderQueue
         {
-            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, false));
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderQueueType, systemData.sortPriority, systemData.alphaTest, false));
         }
 
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/ShaderPass.template";
@@ -290,7 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 overrideReferenceName = "_RenderQueueType",
                 hidden = true,
-                value = (int)systemData.renderingPass,
+                value = (int)systemData.renderQueueType,
             });
 
             //See SG-ADDITIONALVELOCITY-NOTE
@@ -351,7 +351,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
 
             // No sorting priority for shader graph preview
-            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest, false);
+            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderQueueType, offset: 0, alphaTest: systemData.alphaTest, false);
 
             LightingShaderGraphGUI.SetupMaterialKeywordsAndPass(material);
         }

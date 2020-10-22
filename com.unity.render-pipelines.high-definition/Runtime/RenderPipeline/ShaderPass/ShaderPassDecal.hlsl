@@ -7,7 +7,7 @@
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
-#if defined(UNITY_REVERSED_Z)
+#if UNITY_REVERSED_Z
 	input.vmesh.positionCS.z -= _DecalMeshDepthBias;
 #else
 	input.vmesh.positionCS.z += _DecalMeshDepthBias;
