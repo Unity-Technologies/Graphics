@@ -30,7 +30,7 @@ Varyings VertQuad(Attributes input)
     output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
 
 #if UNITY_UV_STARTS_AT_TOP
-    // Unity viewport converntion is bottom left as origin. Adjust Scalebias to read the correct region.
+    // Unity viewport convention is bottom left as origin. Adjust Scalebias to read the correct region.
     _ScaleBias.w = 1 - _ScaleBias.w - _ScaleBias.y;
 #endif
     output.texcoord = GetQuadTexCoord(input.vertexID) * _ScaleBias.xy + _ScaleBias.zw;
