@@ -6,7 +6,7 @@ Shader Graph has renamed the **Vector 1** property as **Float** in both the Vect
 
 ## Renamed Sample Cubemap
 
-Shader Graph has renamed the previous Sample Cubemap Node in Sample Reflected Cubemap and have added a new Sample Cubemap which used world space direction.
+Shader Graph has renamed the previous Sample Cubemap Node **to** Sample Reflected Cubemap**,** and **has** added a new Sample Cubemap**,** which **uses** world space direction.
 
 ## Master Stack graph output
 
