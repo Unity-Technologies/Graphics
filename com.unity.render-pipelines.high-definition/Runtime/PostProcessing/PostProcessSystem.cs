@@ -706,8 +706,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: true);
 
                                 var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
-
-                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, null, taaEnabled);
+                                var colorPyramid = m_Pool.Get(Vector2.one, m_ColorFormat, true);
+                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, colorPyramid, taaEnabled);
 
                                 m_Pool.Recycle(fullresCoC);
                             }
