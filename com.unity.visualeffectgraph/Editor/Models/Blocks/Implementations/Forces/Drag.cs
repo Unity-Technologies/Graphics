@@ -54,10 +54,10 @@ namespace UnityEditor.VFX.Block
                 string source = string.Empty;
                 if (UseParticleSize)
                 {
-                    source = string.Format(@"
-float2 side = {0};
+                    source = @"
+float2 side = size * float2(scaleX, scaleY);
 dragCoefficient *= side.x * side.y;
-", UseParticleSize ? "size * (scaleX, scaleY)" : VFXAttribute.kDefaultSize + " * float2(1, 1)");
+";
                 }
 
                 return source + "velocity *= max(0.0,(1.0 - (dragCoefficient * deltaTime) / mass));";

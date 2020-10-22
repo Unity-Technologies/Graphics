@@ -22,24 +22,25 @@ def create_project_ymls(metafile):
     project = metafile["project"]
     for platform in metafile['platforms']:
         for api in platform['apis'] or [""]:
-            if platform["name"]=='Android':
-                m=5
+            
             yml = {}
             for editor in metafile['editors']:
-                for test_platform in metafile['test_platforms']:
+                for build_config in metafile['build_configs']:
+                    for test_platform in metafile['test_platforms']:
+                        for color_space in metafile['color_spaces']:
 
-                    if test_platform['name'].lower() not in map(str.lower, api.get('exclude_test_platforms', [])):
+                            if test_platform['name'].lower() not in map(str.lower, api.get('exclude_test_platforms', [])):
 
-                        if test_platform['name'].lower() == 'standalone':
-                            job = Project_StandaloneJob(project, editor, platform, api, test_platform)
-                            yml[job.job_id] = job.yml
+                                if test_platform['type'].lower() == 'standalone':
+                                    job = Project_StandaloneJob(project, editor, platform, api, test_platform, build_config, color_space)
+                                    yml[job.job_id] = job.yml
+                                        
+                                    if job.build_job is not None:
+                                        yml[job.build_job.job_id] = job.build_job.yml
                                 
-                            if job.build_job is not None:
-                                yml[job.build_job.job_id] = job.build_job.yml
-                        
-                        else: 
-                            job = Project_NotStandaloneJob(project, editor, platform, api, test_platform)
-                            yml[job.job_id] = job.yml
+                                else: 
+                                    job = Project_NotStandaloneJob(project, editor, platform, api, test_platform, build_config, color_space)
+                                yml[job.job_id] = job.yml
                     
             # store yml per [project]-[platform]-[api]
             yml_file = project_filepath_specific(project["name"], platform["name"], api["name"])

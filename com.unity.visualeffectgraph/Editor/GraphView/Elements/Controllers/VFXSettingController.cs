@@ -18,11 +18,14 @@ namespace UnityEditor.VFX.UI
 
         public System.Type portType { get { return m_SettingType; } }
 
-        public void Init(IVFXSlotContainer owner, string name, System.Type type)
+        public VFXViewController viewController { private set; get; }
+
+        public void Init(VFXViewController viewController,IVFXSlotContainer owner, string name, System.Type type)
         {
             m_Owner = owner;
             m_Name = name;
             m_SettingType = type;
+            this.viewController = viewController;
         }
 
         public string name
@@ -133,5 +136,7 @@ namespace UnityEditor.VFX.UI
         public override void ApplyChanges()
         {
         }
+        void IPropertyRMProvider.StartLiveModification() { viewController.errorRefresh = false; }
+        void IPropertyRMProvider.EndLiveModification() { viewController.errorRefresh = true; }
     }
 }

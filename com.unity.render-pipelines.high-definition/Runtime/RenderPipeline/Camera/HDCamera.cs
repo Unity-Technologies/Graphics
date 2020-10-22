@@ -174,6 +174,26 @@ namespace UnityEngine.Rendering.HighDefinition
             public GPULightType lightType;
         }
 
+        /// <summary>
+        /// Enum that lists the various history slots that require tracking of their validity
+        /// </summary>
+        internal enum HistoryEffectSlot
+        {
+            GlobalIllumination0,
+            GlobalIllumination1,
+            Count
+        }
+
+        /// <summary>
+        // Enum that lists the various history slots that require tracking of their validity
+        /// </summary>
+        internal struct HistoryEffectValidity
+        {
+            public int frameCount;
+            public bool fullResolution;
+            public bool rayTraced;
+        }
+
         internal Vector4[]              frustumPlaneEquations;
         internal int                    taaFrameIndex;
         internal float                  taaSharpenStrength;
@@ -199,8 +219,10 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Camera                 parentCamera = null; // Used for recursive rendering, e.g. a reflection in a scene view.
 
         // This property is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
-        // This avoid ghosting and many other problems that may happen due to an unwanted history usge
+        // This avoid ghosting and many other problems that may happen due to an unwanted history usage
         internal ShadowHistoryUsage[]   shadowHistoryUsage = null;
+        // This property allows us to track for the various history accumulation based effects, the last registered validity frame ubdex of each effect as well as the resolution at which it was built.
+        internal HistoryEffectValidity[] historyEffectUsage = null;
 
         internal SkyUpdateContext       m_LightingOverrideSky = new SkyUpdateContext();
 
@@ -350,6 +372,25 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowHistoryUsage[screenSpaceShadowIndex].lightType = lightType;
         }
 
+        internal bool EffectHistoryValidity(HistoryEffectSlot slot, bool fullResolution, bool rayTraced)
+        {
+            return (historyEffectUsage[(int)slot].frameCount == (cameraFrameCount - 1))
+                    && (historyEffectUsage[(int)slot].fullResolution == fullResolution)
+                    && (historyEffectUsage[(int)slot].rayTraced == rayTraced);
+        }
+
+        internal void PropagateEffectHistoryValidity(HistoryEffectSlot slot, bool fullResolution, bool rayTraced)
+        {
+            historyEffectUsage[(int)slot].fullResolution = fullResolution;
+            historyEffectUsage[(int)slot].frameCount = (int)cameraFrameCount;
+            historyEffectUsage[(int)slot].rayTraced = rayTraced;
+        }
+
+        internal uint GetCameraFrameCount()
+        {
+            return cameraFrameCount;
+        }
+
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
 
         internal HDCamera(Camera cam)
@@ -390,11 +431,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool IsVolumetricReprojectionEnabled()
         {
             bool a = Fog.IsVolumetricFogEnabled(this);
-            bool b = frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
-            bool c = camera.cameraType == CameraType.Game;
-            bool d = Application.isPlaying;
+            // We only enable volumetric re projection if we are processing the game view or a scene view with animated materials on
+            bool b = camera.cameraType == CameraType.Game || (camera.cameraType == CameraType.SceneView && CoreUtils.AreAnimatedMaterialsEnabled(camera));
+            bool c = frameSettings.IsEnabled(FrameSettingsField.ReprojectionForVolumetrics);
 
-            return a && b && c && d;
+            return a && b && c;
         }
 
         // Pass all the systems that may want to update per-camera data here.
@@ -416,6 +457,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shadowHistoryUsage == null || shadowHistoryUsage.Length != hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots)
             {
                 shadowHistoryUsage = new ShadowHistoryUsage[hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots];
+            }
+
+            // Make sure that the shadow history identification array is allocated and is at the right size
+            if (historyEffectUsage == null || historyEffectUsage.Length != (int)HistoryEffectSlot.Count)
+            {
+                historyEffectUsage = new HistoryEffectValidity[(int)HistoryEffectSlot.Count];
+                for(int i = 0; i < (int)HistoryEffectSlot.Count; ++i)
+                {
+                    // We invalidate all the frame indices for the first usage
+                    historyEffectUsage[i].frameCount = -1;
+                }
             }
 
             // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
@@ -800,7 +852,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
-                visualSky.cloudLayer = volumeStack.GetComponent<CloudLayer>();
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
