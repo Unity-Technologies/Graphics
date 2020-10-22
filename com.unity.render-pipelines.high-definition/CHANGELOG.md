@@ -11,6 +11,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed a null reference exception when creating a diffusion profile asset.
+- Fixed the diffusion profile not being registered as a dependency of the ShaderGraph.
 
 ## [10.2.0] - 2020-10-19
 
