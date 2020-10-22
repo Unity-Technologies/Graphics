@@ -19,11 +19,12 @@ namespace UnityEditor.Rendering
             if (EditorGUI.EndChangeCheck())
             {
                 // Texture field can accept any texture (to allow Cube Render Texture) but we still check the dimension to avoid errors
-                if (newTexture.dimension == TextureDimension.Cube)
+                if (newTexture != null && newTexture.dimension == TextureDimension.Cube)
                     value.objectReferenceValue = newTexture;
                 else
                 {
-                    Debug.LogError($"{newTexture} is not a Cubemap. Only textures of Cubemap dimension can be assigned to this field.");
+                    if (newTexture != null)
+                        Debug.LogError($"{newTexture} is not a Cubemap. Only textures of Cubemap dimension can be assigned to this field.");
                     value.objectReferenceValue = null;
                 }
             }
