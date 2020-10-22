@@ -236,7 +236,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
             // Note: We have generated only 4 additional mip levels, so don't go any deeper than that
-            float lod = min(4, log2(2 * radius / RING_DENSITY));
+            float lod = min(4, log2(2 * PI * radius / numSamples));
             CTYPE sampleColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, sampleTC * _ScreenSize.zw, lod).CTYPE_SWIZZLE;
             float sampleCoC = GetCoCRadius(sampleTC);
 
