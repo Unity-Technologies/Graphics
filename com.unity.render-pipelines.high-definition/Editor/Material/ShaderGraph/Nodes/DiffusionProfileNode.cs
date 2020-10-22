@@ -125,12 +125,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {
-            Debug.Log(assetCollection);
             if ((diffusionProfile != null) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(diffusionProfile, out string guid, out long localId))
             {
                 // diffusion profile is a ScriptableObject, so this is an artifact dependency
-                Debug.Log(guid);
-                assetCollection.AddAssetDependency(new GUID(guid), AssetCollection.Flags.ArtifactDependency);
+                assetCollection.AddAssetDependency(new GUID(guid), AssetCollection.Flags.ArtifactDependency | AssetCollection.Flags.IncludeInExportPackage);
             }
         }
     }
