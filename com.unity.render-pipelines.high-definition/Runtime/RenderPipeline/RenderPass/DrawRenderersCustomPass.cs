@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 stencilState = new StencilState(false),
             };
 
-            PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
+            PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.GetBakedLightingWithShadowMaskRenderConfig() : HDUtils.GetBakedLightingRenderConfig();
 
             var result = new RendererListDesc(shaderPasses, ctx.cullingResults, ctx.hdCamera.camera)
             {
