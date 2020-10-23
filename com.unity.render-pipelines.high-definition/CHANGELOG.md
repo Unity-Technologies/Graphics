@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Changed
+- Improved the punctual light shadow rescale algorithm.
+
 ## [10.2.0] - 2020-10-19
 
 ### Added
@@ -22,6 +25,9 @@ The version number for this package has increased due to a version update of a r
 - Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed upside down XR occlusion mesh.
+- Fixed precision issue with the atmospheric fog.
+- Claryfied doc for the LayeredLit material.
+- Fixing exceptions in the console when putting the SSGI in low quality mode (render graph).
 - Fixed issue with TAA causing bleeding of a view into another when multiple views are visible.
 
 ### Changed
@@ -63,6 +69,7 @@ The version number for this package has increased due to a version update of a r
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
 - Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
+- Added frame setting for Virtual Texturing. 
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -190,6 +197,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Baked reflection probes now correctly use static sky for ambient lighting.
+- Use draggable fields for float scalable settings
+- Fixed undo after enabling compositor.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
