@@ -227,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 //QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
                 if(ShaderGraphPreferences.allowDeprecatedBehaviors && si is ColorShaderProperty csp)
                 {
-                    gm.AddItem(new GUIContent($"Color (Deprecated)"), false, () => AddInputRow(new ColorShaderProperty(0), true));
+                    gm.AddItem(new GUIContent($"Color (Deprecated)"), false, () => AddInputRow(new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), true));
                 }
             }
             gm.AddSeparator($"/");
