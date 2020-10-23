@@ -403,8 +403,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
 
         // Binned lighting
-        public static int s_CoarseXyTileEntryLimit = 64; // Per category; before pruning, so, in practice, the number is lower
-        public static int s_FineXyTileEntryLimit   = 16; // Per category; after pruning, so the number is exact
+        // For performance reasons, keep all sizes in powers of 2.
+        // The first 2 entries are reserved for the metadata.
+        public static int s_CoarseXyTileEntryLimit = 64 - 2; // Per category; before pruning, so the number is lower in practice
+        public static int s_FineXyTileEntryLimit   = 16 - 2; // Per category; after pruning, so the number is exact
         public static int s_CoarseXyTileSize       = 64;
         public static int s_FineXyTileSize         = 8;
         public static int s_zBinCount              = 8192;
@@ -3548,14 +3550,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return resources;
         }
 
-        //static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
-        //{
-        //    cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
-        //    cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
+        static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
+        {
+            cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
+            cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
 
-        //    int groupSize = 64;
-        //    cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
-        //}
+            int groupSize = 64;
+            cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
+        }
 
         static void ClearLightLists(    in BuildGPULightListParameters parameters,
                                         in BuildGPULightListResources resources,

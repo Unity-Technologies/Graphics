@@ -94,7 +94,18 @@ bool IntervalsOverlap(float2 i1, float2 i2)
     float l = max(i1.x, i2.x); // Lower bound of the intersection interval
     float u = min(i1.y, i2.y); // Upper bound of the intersection interval
 
-    return l <= u;             // Is the interval non-empty?
+    return l <= u;             // Is the intersection non-empty?
+}
+
+// The intervals must be defined s.t.
+// the 'x' component holds the lower bound and
+// the 'y' component holds the upper bound.
+bool IntervalsOverlap(uint2 i1, uint2 i2)
+{
+    uint l = max(i1.x, i2.x); // Lower bound of the intersection interval
+    uint u = min(i1.y, i2.y); // Upper bound of the intersection interval
+
+    return l <= u;            // Is the intersection non-empty?
 }
 
 uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
@@ -148,7 +159,8 @@ uint ComputeXyTileIndex(uint2 tileCoord)
 // xyTile: output of ComputeXyTileIndex.
 uint ComputeXyTileBufferIndex(uint xyTile, uint category, uint eye)
 {
-    uint stride = XY_TILE_ENTRY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+     // We use 'uint' buffer rather than a 'uint16_t[n]'.
+    uint stride = (XY_TILE_ENTRY_LIMIT + 2) / 2; // The first 2 entries are reserved for the metadata
     uint offset = IndexFromCoordinate(uint4(0, 0, category, eye),
                                       uint3(XY_TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
 
