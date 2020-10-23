@@ -83,6 +83,7 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
+      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
   - type: playmode
     utr_flags:
       - [all]: --suite=playmode
