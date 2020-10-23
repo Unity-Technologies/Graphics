@@ -1030,7 +1030,8 @@ namespace UnityEditor.ShaderGraph
         {
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
-                throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
+                return;
+                //throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
             m_Edges.Remove(e as Edge);
 
             BlockNode b = null;
@@ -1048,6 +1049,7 @@ namespace UnityEditor.ShaderGraph
             if (m_NodeEdges.TryGetValue(output.objectId, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
+            m_AddedEdges.Remove(e);
             m_RemovedEdges.Add(e);
             if(b != null)
             {
@@ -1118,6 +1120,21 @@ namespace UnityEditor.ShaderGraph
         {
             var edges = new List<IEdge>();
             GetEdges(s, edges);
+            return edges;
+        }
+
+        public void GetEdges(AbstractMaterialNode node, List<IEdge> foundEdges)
+        {
+            if (m_NodeEdges.TryGetValue(node.objectId, out var edges))
+            {
+                foundEdges.AddRange(edges);
+            }
+        }
+
+        public IEnumerable<IEdge> GetEdges(AbstractMaterialNode node)
+        {
+            List<IEdge> edges = new List<IEdge>();
+            GetEdges(node, edges);
             return edges;
         }
 
