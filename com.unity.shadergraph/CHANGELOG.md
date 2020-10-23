@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
 - Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
+- Fixed a bug where non-word characters in an enum keyword reference name would break the graph. [1270168](https://issuetracker.unity3d.com/product/unity/issues/guid/1270168)
 
 ## [10.1.0] - 2020-10-12
 
