@@ -132,6 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP renders custom passes contained in CustomPassVolume components.</summary>
         [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
         CustomPass = 6,
+        /// <summary>When enabled, HDRP can use virtual texturing.</summary>
+        [FrameSettingsField(0, autoName: VirtualTexturing, customOrderInGroup: 105, tooltip: "When enabled, HDRP can use virtual texturing.")]
+        VirtualTexturing = 67,
 
         /// <summary>When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: MotionVectors, customOrderInGroup: 12, tooltip: "When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings (Depends on \"Motion Vectors\" in current HDRP Asset).")]
@@ -247,8 +250,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Reflections.</summary>
         [FrameSettingsField(1, displayedName: "Screen Space Reflection", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections (Depends on \"Screen Space Reflection\" in current HDRP Asset).")]
         SSR = 23,
-        /// <summary>When enabled, Cameras using these Frame Settings calculate Transparent Screen Space Reflections.</summary>
-        [FrameSettingsField(1, displayedName: "On Transparent", customOrderInGroup: 25, positiveDependencies: new[] { SSR }, tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections on transparent objects.")]
+        /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Reflections on transparent objects.</summary>
+        [FrameSettingsField(1, displayedName: "Transparents receive SSR", customOrderInGroup: 25, positiveDependencies: new[] { SSR }, tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Reflections on transparent objects.")]
         TransparentSSR = 94,
         /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.</summary>
         [FrameSettingsField(1, displayedName: "Screen Space Ambient Occlusion", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion (Depends on \"Screen Space Ambient Occlusion\" in current HDRP Asset).")]
@@ -393,6 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.TransparentPrepass,
                 (uint)FrameSettingsField.TransparentPostpass,
                 (uint)FrameSettingsField.CustomPass,
+                (uint)FrameSettingsField.VirtualTexturing,
                 (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 (uint)FrameSettingsField.ObjectMotionVectors,
                 (uint)FrameSettingsField.Decals,
@@ -468,6 +472,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.TransparentPrepass,
                 (uint)FrameSettingsField.TransparentPostpass,
                 (uint)FrameSettingsField.CustomPass,
+                (uint)FrameSettingsField.VirtualTexturing,
                 (uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 (uint)FrameSettingsField.ObjectMotionVectors,
                 (uint)FrameSettingsField.Decals,
@@ -524,6 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.TransparentPrepass,
                 (uint)FrameSettingsField.TransparentPostpass,
                 (uint)FrameSettingsField.CustomPass,
+                (uint)FrameSettingsField.VirtualTexturing,
                 //(uint)FrameSettingsField.MotionVectors, // Enable/disable whole motion vectors pass (Camera + Object).
                 //(uint)FrameSettingsField.ObjectMotionVectors,
                 (uint)FrameSettingsField.Decals,
