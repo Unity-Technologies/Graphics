@@ -19,9 +19,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
         /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
-        public PerObjectData GetBakedLightingRenderConfig() => k_RendererConfigurationBakedLighting;
+        public static PerObjectData GetBakedLightingRenderConfig() => k_RendererConfigurationBakedLighting;
         /// <summary>Returns the render configuration for baked static lighting with shadow masks, this value can be used in a RendererListDesc call to render Lit objects when shadow masks are enabled.</summary>
-        public PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => k_RendererConfigurationBakedLightingWithShadowMask;
+        public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => k_RendererConfigurationBakedLightingWithShadowMask;
 
         /// <summary>Default HDAdditionalReflectionData</summary>
         static internal HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
