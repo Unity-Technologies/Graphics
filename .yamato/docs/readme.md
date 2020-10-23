@@ -26,6 +26,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### ABV related changes (_abv.metafile)
 - Add a new project to ABV: add the project name (the one used inside the project’s own metafile, e.g. Universal) under abv.projects 
 - Add a new job to Nightly: add the dependency under nightly.extra_dependencies (these dependencies run in addition to ABV)
+- Add a new job to Weekly: add the dependency under weekly.extra_dependencies
 - Add job to trunk verification: add the dependency under trunk_verification.dependencies
 
 ### Project related changes (project_name.metafile)
@@ -186,12 +187,13 @@ target_editor: trunk
 
 # editors applied for all yml files (overridable) (bunch of examples)
 editors: 
-  # run editor pinning for trunk, and set up a recurrent nightly
+  # run editor pinning for trunk, and set up a recurrent nightly and weekly
   - track: trunk 
     name: trunk #name used in job ids
     rerun_strategy: on-new-revision
     editor_pinning: True  #use editor pinning for this track
     nightly: True  #run the _Nightly job nightly
+    weekly: True  #run the _Weekly job weekly
   
   # run editor pinning for 2020.2, and set up a recurrent nightly
   - track: 2020.2
@@ -338,6 +340,14 @@ nightly: # all_project_ci_nightly job configuration
       all: true  
     - ...  
 
+weekly: # all_project_ci_nightly job configuration
+  extra_dependencies: # project jobs to run in addition to ABV
+    - project: HDRP # use this format to run a specific job
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode_NonRenderGraph
+    - ...
 smoke_test: # smoke tests configuration. Agents refer back to __shared.metafile
   folder: SRP_SmokeTest
   agent: sdet_win_large # (used for editmode)

@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MaxVelocityInPixels;
         SerializedDataParameter m_MinVelInPixels;
 
-        //  Advanced properties 
+        //  Advanced properties
         SerializedDataParameter m_CameraRotClamp;
         SerializedDataParameter m_DepthCmpScale;
         SerializedDataParameter m_CameraMotionBlur;
