@@ -4,9 +4,9 @@
 
 Shader Graph has renamed the **Vector 1** property as **Float** in both the Vector 1 node and the exposed parameter list. The **Float** precision was also renamed as **Single**. Behavior is exactly the same, and only the names have changed.
 
-## Renamed Sample Cubemap
+## Renamed Sample Cubemap Node
 
-Shader Graph has renamed the previous Sample Cubemap Node **to** Sample Reflected Cubemap**,** and **has** added a new Sample Cubemap**,** which **uses** world space direction.
+Shader Graph has renamed the previous Sample Cubemap Node to [Sample Reflected Cubemap Node](Sample-Reflected-Cubemap-Node.md), and has added a new [Sample Cubemap Node](Sample-Cubemap-Node.md), which uses world space direction.
 
 ## Master Stack graph output
 
