@@ -496,12 +496,24 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
-        static void EnterEditModeWithoutPreservingUV(ShortcutArguments args) =>
+        static void EnterEditModeWithoutPreservingUV(ShortcutArguments args)
+        {
+            //If editor is not there, then the selected GameObject does not contains a DecalProjector
+            if (s_Owner == null || s_Owner.Equals(null))
+                return;
+
             ChangeEditMode(k_EditShapeWithoutPreservingUV, (s_Owner as DecalProjectorEditor).GetBoundsGetter(), s_Owner);
+        }
 
         [Shortcut("HDRP/Decal: Handle changing size cropping UV", typeof(SceneView), KeyCode.Keypad2, ShortcutModifiers.Action)]
-        static void EnterEditModePreservingUV(ShortcutArguments args) =>
+        static void EnterEditModePreservingUV(ShortcutArguments args)
+        {
+            //If editor is not there, then the selected GameObject does not contains a DecalProjector
+            if (s_Owner == null || s_Owner.Equals(null))
+                return;
+
             ChangeEditMode(k_EditShapePreservingUV, (s_Owner as DecalProjectorEditor).GetBoundsGetter(), s_Owner);
+        }
 
         //[TODO: add editable pivot. Uncomment this when ready]
         //[Shortcut("HDRP/Decal: Handle changing pivot position while preserving UV position", typeof(SceneView), KeyCode.Keypad3, ShortcutModifiers.Action)]
