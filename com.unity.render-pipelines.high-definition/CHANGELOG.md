@@ -25,7 +25,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
 - Fixed issue with TAA and no motion vectors.
-
+- Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
