@@ -40,6 +40,7 @@ platforms:
       - name: OpenGLES3
     build_configs:
       - name: il2cpp_apiNet4
+      - name: mono_apiNet2
     color_spaces:
       - Linear
 all:
