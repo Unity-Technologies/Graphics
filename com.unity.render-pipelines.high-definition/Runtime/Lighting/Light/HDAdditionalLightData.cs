@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The default intensity value for directional lights in Lux
         /// </summary>
-        public const float k_DefaultDirectionalLightIntensity = 100000; // In lux
+        public const float k_DefaultDirectionalLightIntensity = Mathf.PI; // In lux
         /// <summary>
         /// The default intensity value for punctual lights in Lumen
         /// </summary>
@@ -1986,7 +1986,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // ease out and invert the curve, give more importance to closer distances
                 distance01 = 1.0f - Mathf.Pow(distance01, 2);
 
-                // normalized ratio between light range and distance 
+                // normalized ratio between light range and distance
                 float range01 = Mathf.Clamp01(visibleLight.range / Vector3.Distance(camera.transform.position, visibleLight.GetPosition()));
 
                 float scaleFactor01 = Mathf.Max(distance01, range01);
@@ -2611,7 +2611,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case HDLightType.Directional:
                     lightData.lightUnit = LightUnit.Lux;
-                    lightData.intensity = k_DefaultDirectionalLightIntensity;
+                    lightData.intensity = k_DefaultDirectionalLightIntensity / Mathf.PI * 100000.0f; // Change back to just k_DefaultDirectionalLightIntensity on 11.0.0 (can't change constant as it's a breaking change)
                     break;
                 case HDLightType.Area: // Rectangle by default when light is created
                     switch (lightData.areaLightShape)
