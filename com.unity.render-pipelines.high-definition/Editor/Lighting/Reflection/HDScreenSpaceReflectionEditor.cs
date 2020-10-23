@@ -107,14 +107,28 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+
         void RayTracingPerformanceModeGUI()
         {
-            // Revert all of the indentation at this point since it will be formatted differently in the quality GUI.
-            using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
+            base.OnInspectorGUI();
+
+            using (new QualityScope(this))
             {
-                // Performance GUI is entirely composed of quality settings. Defer drawing this to the base and handle
-                // drawing it in OnQualityGUI.
-                base.OnInspectorGUI();
+                EditorGUI.indentLevel++;
+                PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
+                PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
+                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                PropertyField(m_RayLength, k_RayLengthText);
+                PropertyField(m_ClampValue, k_ClampValueText);
+                PropertyField(m_UpscaleRadius, k_UpscaleRadiusText);
+                PropertyField(m_FullResolution, k_FullResolutionText);
+                PropertyField(m_Denoise, k_DenoiseText);
+                {
+                    EditorGUI.indentLevel++;
+                    PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUI.indentLevel--;
             }
         }
 
@@ -189,58 +203,33 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
 
                 base.OnInspectorGUI();
-            }
-        }
 
-        public override void OnQualityGUI()
-        {
-            // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
-                m_RayTracing.value.boolValue)
-            {
-                PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
-                PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
-                m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
-                PropertyField(m_RayLength, k_RayLengthText);
-                PropertyField(m_ClampValue, k_ClampValueText);
-                PropertyField(m_UpscaleRadius, k_UpscaleRadiusText);
-                PropertyField(m_FullResolution, k_FullResolutionText);
-                PropertyField(m_Denoise, k_DenoiseText);
+                using (new QualityScope(this))
                 {
                     EditorGUI.indentLevel++;
-                    PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                    PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
+                    m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
                     EditorGUI.indentLevel--;
                 }
             }
-            // SSR
-            else
-            {
-                PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
-                m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
-            }
         }
-
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
                 settings = new QualitySettingsBlob();
 
             // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
-                m_RayTracing.value.boolValue)
-            {
-                settings.Save<float>(m_MinSmoothness);
-                settings.Save<float>(m_SmoothnessFadeStart);
-                settings.Save<float>(m_RayLength);
-                settings.Save<float>(m_ClampValue);
-                settings.Save<int>(m_UpscaleRadius);
-                settings.Save<bool>(m_FullResolution);
-                settings.Save<bool>(m_Denoise);
-                settings.Save<int>(m_DenoiserRadius);
-            }
+            settings.Save<float>(m_MinSmoothness);
+            settings.Save<float>(m_SmoothnessFadeStart);
+            settings.Save<float>(m_RayLength);
+            settings.Save<float>(m_ClampValue);
+            settings.Save<int>(m_UpscaleRadius);
+            settings.Save<bool>(m_FullResolution);
+            settings.Save<bool>(m_Denoise);
+            settings.Save<int>(m_DenoiserRadius);
+
             // SSR
-            else
-                settings.Save<int>(m_RayMaxIterations);
+            settings.Save<int>(m_RayMaxIterations);
 
             return settings;
         }
@@ -248,44 +237,33 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void LoadSettingsFromObject(QualitySettingsBlob settings)
         {
             // RTR
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
-                m_RayTracing.value.boolValue)
-            {
-                settings.TryLoad<float>(ref m_MinSmoothness);
-                settings.TryLoad<float>(ref m_SmoothnessFadeStart);
-                settings.TryLoad<float>(ref m_RayLength);
-                settings.TryLoad<float>(ref m_ClampValue);
-                settings.TryLoad<int>(ref m_UpscaleRadius);
-                settings.TryLoad<bool>(ref m_FullResolution);
-                settings.TryLoad<bool>(ref m_Denoise);
-                settings.TryLoad<int>(ref m_DenoiserRadius);
-            }
+            settings.TryLoad<float>(ref m_MinSmoothness);
+            settings.TryLoad<float>(ref m_SmoothnessFadeStart);
+            settings.TryLoad<float>(ref m_RayLength);
+            settings.TryLoad<float>(ref m_ClampValue);
+            settings.TryLoad<int>(ref m_UpscaleRadius);
+            settings.TryLoad<bool>(ref m_FullResolution);
+            settings.TryLoad<bool>(ref m_Denoise);
+            settings.TryLoad<int>(ref m_DenoiserRadius);
+
             // SSR
-            else
-                settings.TryLoad<int>(ref m_RayMaxIterations);
+            settings.TryLoad<int>(ref m_RayMaxIterations);
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
         {
             // RTR
-            // Note: We need to handle the raytracing case like this (instead of not caring), because some SSR settings
-            // (ie Min Smoothness), are note quality settings, but they are for RTR. Because of that, by switching between
-            // custom blob / presets, normal settings in SSR mode will be modified, which we don't want.
-            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
-                m_RayTracing.value.boolValue)
-            {
-                CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
-                CopySetting(ref m_SmoothnessFadeStart, settings.lightingQualitySettings.RTRSmoothnessFadeStart[level]);
-                CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTRRayLength[level]);
-                CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTRClampValue[level]);
-                CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTRUpScaleRadius[level]);
-                CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTRFullResolution[level]);
-                CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
-                CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadius[level]);
-            }
+            CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
+            CopySetting(ref m_SmoothnessFadeStart, settings.lightingQualitySettings.RTRSmoothnessFadeStart[level]);
+            CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTRRayLength[level]);
+            CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTRClampValue[level]);
+            CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTRUpScaleRadius[level]);
+            CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTRFullResolution[level]);
+            CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
+            CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadius[level]);
+
             // SSR
-            else
-                CopySetting(ref m_RayMaxIterations, settings.lightingQualitySettings.SSRMaxRaySteps[level]);
+            CopySetting(ref m_RayMaxIterations, settings.lightingQualitySettings.SSRMaxRaySteps[level]);
         }
     }
 }

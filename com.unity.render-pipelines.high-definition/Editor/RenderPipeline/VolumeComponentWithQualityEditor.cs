@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -22,9 +21,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 public bool   state;
                 public object value;
             }
-
+            
             Dictionary<int, QualitySetting> settings = new Dictionary<int, QualitySetting>();
-
+            
             public static bool IsEqual (QualitySettingsBlob left, QualitySettingsBlob right)
             {
                 if (right == null && left == null)
@@ -67,13 +66,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 return hash;
             }
 
-            // Save a setting to the quality blob.
+            // Save a setting to the quality blob. 
             public void Save<T>(SerializedDataParameter setting) where T : struct
             {
                 QualitySetting s;
                 s.state = setting.overrideState.boolValue;
                 s.value = setting.value.GetInline<T>();
-
+                
                 int key = Hash(setting);
 
                 if (settings.ContainsKey(key))
@@ -100,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Scoped quality setting change checker.
+        /// Scoped quality setting change checker. 
         /// </summary>
         public struct QualityScope : IDisposable
         {
@@ -157,13 +156,9 @@ namespace UnityEditor.Rendering.HighDefinition
             int prevQualityLevel = m_QualitySetting.value.intValue;
 
             EditorGUI.BeginChangeCheck();
-
-            // Provide some spacing between the quality properties and the preceding properties.
-            EditorGUILayout.Space();
-
             PropertyField(m_QualitySetting);
 
-            // When a quality preset changes, we want to detect and reflect the settings in the UI. PropertyFields mirror the contents of one memory location, so
+            // When a quality preset changes, we want to detect and reflect the settings in the UI. PropertyFields mirror the contents of one memory loccation, so
             // the idea is that we copy the presets to that location. This logic is optional, if volume components don't override the helper functions at the end,
             // they will continue to work, but the preset settings will not be reflected in the UI.
             if (EditorGUI.EndChangeCheck())
@@ -189,7 +184,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
                     if (pipeline != null)
                     {
-                        // If we switch from a custom quality level, then save these values so we can re-use them if the user switches back
+                        // If we switch from a custom quality level, then save these values so we can re-use them if teh user switches back
                         if (prevQualityLevel == k_CustomQuality)
                         {
                             QualitySettingsBlob history = null;
@@ -203,7 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 // Only keep track of custom settings for components that implement the new interface (and return not null)
                                 history = SaveCustomQualitySettingsAsObject();
                                 if (history != null)
-                                {
+                                {   
                                     s_CustomSettingsHistory.Add(serializedObject.targetObject, history);
                                 }
 
@@ -213,31 +208,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
-
-            // Draw the quality settings. Provide some indentation and check for any changes.
-            using (new HDEditorUtils.IndentScope())
-            {
-                GUI.enabled = GUI.enabled && overrideState;
-
-                using (new QualityScope(this))
-                {
-                    OnQualityGUI();
-                }
-
-                GUI.enabled = true;
-            }
         }
 
         protected bool useCustomValue => m_QualitySetting.value.intValue == k_CustomQuality;
         protected bool overrideState => m_QualitySetting.overrideState.boolValue;
-
+        
         /// <summary>
         /// This utility can be used to copy a value into a volume component setting visible in the inspector.
         /// </summary>
         protected static void CopySetting<T>(ref SerializedDataParameter setting, T value) where T : struct
         {
             setting.value.SetInline(value);
-
+            
             // Force enable the override state, to indicate that these values are actually used.
             setting.overrideState.boolValue = true;
         }
@@ -261,11 +243,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// This function should be overriden by a volume component to load a custom preset setting from an opaque binary blob (as returned from SaveCustomQualitySettingsAsObject)
         /// </summary>
         public virtual void LoadSettingsFromObject(QualitySettingsBlob settings) { }
-
-        /// <summary>
-        /// This function should be overriden by a volume component to draw its quality settings.
-        /// </summary>
-        public virtual void OnQualityGUI() { }
 
     }
 

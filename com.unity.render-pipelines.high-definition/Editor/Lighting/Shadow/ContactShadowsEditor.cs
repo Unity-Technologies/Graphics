@@ -57,14 +57,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_Thickness, EditorGUIUtility.TrTextContent("Thickness", "Controls the thickness of the objects found along the ray, essentially thickening the contact shadows."));
 
                 base.OnInspectorGUI();
+
+                using (new QualityScope(this))
+                {
+                    PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
+                }
             }
         }
-
-        public override void OnQualityGUI()
-        {
-            PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Controls the number of samples HDRP uses for ray casting."));
-        }
-
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)

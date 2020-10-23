@@ -87,7 +87,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 DrawFocusSettings(mode);
             }
 
+            EditorGUILayout.Space();
+
             base.OnInspectorGUI();
+
+            using (new HDEditorUtils.IndentScope())
+            {
+                // Draw the quality controls
+                GUI.enabled = GUI.enabled && base.overrideState;
+                DrawQualitySettings();
+                GUI.enabled = true;
+            }
         }
 
         void DrawFocusSettings(int mode)
@@ -108,24 +118,27 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public override void OnQualityGUI()
+        void DrawQualitySettings()
         {
-            EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
-            PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
-            PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
-
-            EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
-            PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
-            PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
-
-            if (isInAdvancedMode)
+            using (new QualityScope(this))
             {
-                EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-                PropertyField(m_Resolution);
-                PropertyField(m_HighQualityFiltering);
-                PropertyField(m_PhysicallyBased);
-                if (m_PhysicallyBased.value.boolValue == true)
-                    EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
+                EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
+                PropertyField(m_NearSampleCount, Styles.k_NearSampleCount);
+                PropertyField(m_NearMaxBlur, Styles.k_NearMaxBlur);
+
+                EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
+                PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
+                PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
+
+                if (isInAdvancedMode)
+                {
+                    EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
+                    PropertyField(m_Resolution);
+                    PropertyField(m_HighQualityFiltering);
+                    PropertyField(m_PhysicallyBased);
+                    if (m_PhysicallyBased.value.boolValue == true)
+                        EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
+                }
             }
         }
 
