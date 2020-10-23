@@ -106,6 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
+            public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections.");
             
             public static GUIContent opaqueCullModeText = new GUIContent("Cull Mode", "For opaque objects, change the cull mode of the object.");
 
@@ -762,7 +763,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)
-                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRText);
+                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRTransparentText);
                 else
                     materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }

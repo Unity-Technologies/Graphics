@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty(supportDecalsText, () => lightingData.receiveDecals, (newValue) => lightingData.receiveDecals = newValue);
 
                 if (systemData.surfaceType == SurfaceType.Transparent)
-                    AddProperty(receivesSSRText, () => lightingData.receiveSSRTransparent, (newValue) => lightingData.receiveSSRTransparent = newValue);
+                    AddProperty(receivesSSRTransparentText, () => lightingData.receiveSSRTransparent, (newValue) => lightingData.receiveSSRTransparent = newValue);
                 else
                     AddProperty(receivesSSRText, () => lightingData.receiveSSR, (newValue) => lightingData.receiveSSR = newValue);
                 
