@@ -26,11 +26,13 @@ The version number for this package has increased due to a version update of a r
 - Fixed precision issue with the atmospheric fog.
 - Fixed issue with TAA and no motion vectors.
 - Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
+- Fixed bounding box generation that resulted in incorrect light culling (case 3875925).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 - Claryfied doc for the LayeredLit material.
 - Various improvements for the Volumetric Fog.
+- Use draggable fields for float scalable settings
 
 ## [10.1.0] - 2020-10-12
 
@@ -68,6 +70,7 @@ The version number for this package has increased due to a version update of a r
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
 - Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
+- Added bounding sphere support to screen-space axis-aligned bounding box generation pass.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -195,7 +198,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Baked reflection probes now correctly use static sky for ambient lighting.
-- Use draggable fields for float scalable settings
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
