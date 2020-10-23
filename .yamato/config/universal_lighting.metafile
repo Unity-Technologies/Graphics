@@ -2,10 +2,17 @@ project:
   name: URP_Lighting
   folder: UniversalGraphicsTest_Lighting
 test_platforms:
-  - Standalone
-  - playmode
-  - playmode_XR
-  - editmode
+  - type: Standalone
+    timeout:
+      OSX_Metal: 2400
+    timeout_build:
+      Android: 1800
+  - type: playmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
+  - type: editmode
 platforms:
   - name: Win
     apis:

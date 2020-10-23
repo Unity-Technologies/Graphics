@@ -1,20 +1,25 @@
 target_branch: 7.x.x/release # specifies the branch on which recurrent or pr triggers are created, etc
-target_editor: 2019.3 # specifies the target editor used for some package/preview publish jobs
-editors: # applied for all yml files. Override this by specifying override_editors (in the same format) in a specific metafile
-  - version: 2019.3
+# target_branch_editor_ci: ci/editor-pinning # specifies the branch on which editor pinning is done
+target_editor: 2019.4 # specifies the target editor used for some package/preview publish jobs
+editors: # applied for all yml files
+  - track: 2019.4
+    name: 2019.4
     rerun_strategy: on-new-revision
-    cmd: -u 2019.3
-  - version: fast-2019.3
+    editor_pinning: False
+    nightly: False
+    weekly: True
+  - track: 2019.4
+    name: fast-2019.4
     rerun_strategy: on-new-revision
-    cmd: -u 2019.3 --fast
-  - version: CUSTOM-REVISION
+    editor_pinning: False
+    nightly: False
+    fast: True
+    abv_pr: False
+  - track: CUSTOM-REVISION
+    name: CUSTOM-REVISION
     rerun_strategy: always
-    cmd: -u $CUSTOM_REVISION
-test_platforms:
-  Standalone: --suite=playmode --platform=Standalone
-  playmode: --suite=playmode
-  playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  editmode: --suite=editor --platform=editmode
+    editor_pinning: False
+    fast: False
 platforms:
   Win:
     name: Win
@@ -42,7 +47,7 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-    agent_package: 
+    agent_package:
       type: Unity::VM
       image: package-ci/win10:stable
       flavor: b1.large
@@ -53,6 +58,8 @@ platforms:
     os: macos
     apis:
       - name: Metal
+        exclude_test_platforms:
+          - editmode
       - name: OpenGLCore
         exclude_test_platforms:
           - Standalone
@@ -67,9 +74,9 @@ platforms:
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
-    agent_package: 
+    agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:stable
       flavor: m1.mac
@@ -78,7 +85,7 @@ platforms:
   Linux:
     name: Linux
     os: linux
-    apis: 
+    apis:
       - name: OpenGLCore
         cmd: -force-glcore
         exclude_test_platforms:
@@ -100,6 +107,10 @@ platforms:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
         flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.xlarge
   Android:
     name: Android
     os: android
@@ -157,6 +168,10 @@ non_project_agents:
     type: Unity::VM
     image: package-ci/ubuntu:stable
     flavor: b1.large
+  package_ci_ubuntu_small:
+    type: Unity::VM
+    image: package-ci/ubuntu:stable
+    flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
     image: package-ci/win10:stable
