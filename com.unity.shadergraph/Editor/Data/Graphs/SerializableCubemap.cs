@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Internal
 #pragma warning restore 649
         }
 
-        // used to load a Texture2DArray ref guid without loading the texture
+        // used to get a Cubemap ref guid without loading the cubemap asset itself into memory
         [Serializable]
         class MinimalCubemapHelper
         {

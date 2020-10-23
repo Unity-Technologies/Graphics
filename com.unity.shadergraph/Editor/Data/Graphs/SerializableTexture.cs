@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Internal
 #pragma warning restore 649
         }
 
-        // used to load a texture ref guid without loading the texture
+        // used to get a Texture ref guid without loading the texture asset itself into memory
         [Serializable]
         class MinimalTextureHelper
         {
