@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
 - Fixed an issue where ShaderGraph could not read matrices from a Material or MaterialPropertyBlock while rendering with SRP batcher [1256374]
 - Fixed an issue where user setting a property to not Exposed, Hybrid-Instanced would result in a non-Hybrid Global property [1285700]
+- Fixed an upgrade issue where old ShaderGraph files with a weird/bugged state would break on update to master stack [1255011]
 
 ## [10.1.0] - 2020-10-12
 
