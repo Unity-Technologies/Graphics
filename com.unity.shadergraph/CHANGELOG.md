@@ -30,6 +30,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
 - Fixed an issue where ShaderGraph could not read matrices from a Material or MaterialPropertyBlock while rendering with SRP batcher [1256374]
 - Fixed an issue where user setting a property to not Exposed, Hybrid-Instanced would result in a non-Hybrid Global property [1285700]
+- All textures in a ShaderGraph, even those not used, will now be pulled into an Exported Package [1283902]
 
 ## [10.1.0] - 2020-10-12
 
