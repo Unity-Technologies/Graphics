@@ -4,11 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2020-10-21
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.2.0] - 2020-10-19
 
 ### Added
 - Added a rough distortion frame setting and and info box on distortion materials.
 - Adding support of 4 channel tex coords for ray tracing (case 1265309).
+- Added a help button on the volume component toolbar for documentation.
 - Added the status check of default camera frame settings in the DXR wizard.
 
 ### Fixed
@@ -18,9 +24,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed upside down XR occlusion mesh.
+- Fixed precision issue with the atmospheric fog.
+- Fixed issue with TAA and no motion vectors.
+- Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
+- Claryfied doc for the LayeredLit material.
+- Various improvements for the Volumetric Fog.
 - Now the DXR wizard displays the name of the target asset that needs to be changed.
 
 ## [10.1.0] - 2020-10-12
@@ -186,6 +197,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Baked reflection probes now correctly use static sky for ambient lighting.
+- Use draggable fields for float scalable settings
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
