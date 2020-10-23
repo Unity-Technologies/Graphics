@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Big Tile buffer
-                if (passData.buildGPULightListParameters.runBigTilePrepass)
+                if (passData.buildGPULightListParameters.binEntities)
                 {
                     var nrBigTilesX = (m_MaxCameraWidth + 63) / 64;
                     var nrBigTilesY = (m_MaxCameraHeight + 63) / 64;

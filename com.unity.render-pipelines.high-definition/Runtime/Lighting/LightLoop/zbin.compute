@@ -20,13 +20,13 @@ StructuredBuffer<float2> _wBoundsBuffer : register(t0); // {w_min, w_max}
 // The size of the buffer can be computed as follows:
 // Z_BIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (4 bytes per range).
 // For example (1080p): 8192 * 5 * 1 * 4 = 160 KiB.
-RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {start << 16 | end}
+RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {last << 16 | first}
 
 /* ------------------------------ Utilities --------------------------------- */
 
 // Repackage to work around ridiculous constant buffer limitations of HLSL.
-static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
+static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 
 /* ------------------------------ Implementation ---------------------------- */
 
@@ -96,7 +96,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     }
 
     uint outputIndex = ComputeZBinBufferIndex(bin, cat, eye);
-    uint outputRange = (first > last) ? 0 : (first << 16) | (last + 1);
+    uint outputRange = (last << 16) | first;
 
     _zBinBuffer[outputIndex] = outputRange;
 }

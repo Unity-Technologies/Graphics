@@ -1,11 +1,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
 
-// don't support Buffer yet in unity
-StructuredBuffer<uint>  g_vBigTileLightList;
-StructuredBuffer<uint>  g_vLightListGlobal;
-StructuredBuffer<uint>  g_vLayeredOffsetsBuffer;
-StructuredBuffer<float> g_logBaseBuffer;
+#if (defined(COARSE_BINNING) || defined(FINE_BINNING))
+	// TODO: we don't need both at the same time, so perhaps just declare one?
+	StructuredBuffer<uint> _CoarseXyTileBuffer;
+	StructuredBuffer<uint> _FineXyTileBuffer;
+	StructuredBuffer<uint> _zBinBuffer;
+#endif
 
 #ifdef USE_INDIRECT
     StructuredBuffer<uint> g_TileFeatureFlags;

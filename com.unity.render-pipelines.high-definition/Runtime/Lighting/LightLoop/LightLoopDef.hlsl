@@ -146,35 +146,59 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 
-// Careful, this may not work if 'TextureXR.hlsl' has not already been included.
-uint GetEyeIndex()
-{
-#if defined(UNITY_STEREO_INSTANCING_ENABLED)
-    return unity_StereoEyeIndex;
-#else
-    return 0;
-#endif
-}
+#if (defined(COARSE_BINNING) || defined(FINE_BINNING))
 
-#if defined(COARSE_BINNING)
-
-bool TryLoadPunctualLightData(uint i, uint xyTile, uint zBin, out LightData data)
+bool TryLoadPunctualLightData(inout uint i, uint xyTile, uint zBin, out LightData data)
 {
     bool b = false;
-    uint n = _PunctualLightCount;
+    uint n = XY_TILE_ENTRY_LIMIT;
 
-    if (i < n)
+    // These values are loop-invariant. They do not depend on the value of 'i'.
+    // They will only be computed once per category, not once per function call.
+    const uint xyTileBufferIndex = ComputeXyTileBufferIndex(xyTile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
+    const uint firstTileEntry    = XY_TILE_BUFFER[xyTileBufferIndex];
+
+    const uint zBinBufferIndex   = ComputeZBinBufferIndex(    zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
+    const uint packedIndexRange  = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
+
+    // TODO: add a range check for the tile here.
+    const bool isTileEmpty = firstTileEntry   == UINT16_MAX;
+    const bool isBinEmpty  = packedIndexRange == UINT16_MAX;
+
+    if (!isTileEmpty && !isBinEmpty)
     {
-        data = _PunctualLightData[i];
-        b    = true;
+        const uint firstEntityIndex = packedIndexRange & UINT16_MAX;
+        const uint  lastEntityIndex = packedIndexRange >> 16;
+
+        // The part below will be actually executed during every function call.
+        while (i < n)
+        {
+            // This is a valid buffer index.
+            uint entityIndexPair = XY_TILE_BUFFER[xyTileBufferIndex + (i / 2)];        // 16-bit indices
+            uint entityIndex     = BitFieldExtract(entityIndexPair, 16 * (i & 1), 16); // Order: first Lo, then Hi bits
+
+            // Entity indices are stored in the ascending order.
+            // We can distinguish 3 cases:
+            if (entityIndex < firstEntityIndex)
+            {
+                i++; // Skip this entity; continue the search
+            }
+            else if (entityIndex <= lastEntityIndex)
+            {
+                data = _PunctualLightData[entityIndex];
+
+                b = true; // Found a valid index
+                break;    // Avoid incrementing 'i' further
+            }
+            else // if (lastEntityIndex < entityIndex)
+            {
+                break;    // Avoid incrementing 'i' further
+            }
+        }
     }
 
     return b;
 }
-
-#elif defined(FINE_BINNING)
-
-/* ... */
 
 #else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 

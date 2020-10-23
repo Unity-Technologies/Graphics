@@ -59,7 +59,7 @@ float3x3 Invert3x3(float3x3 R)
     float3x3 adj = float3x3(cross(C[1], C[2]),
                             cross(C[2], C[0]),
                             cross(C[0], C[1]));
-    return rcp(det) * adj;
+    return rcp(det) * adj; // Adjugate / Determinant
 }
 
 float4x4 Homogenize3x3(float3x3 R)
@@ -102,17 +102,19 @@ uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
     return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
 }
 
-uint ComputeZBinBufferIndex(uint bin, uint category, uint eye)
+uint ComputeZBinBufferIndex(uint zBin, uint category, uint eye)
 {
-    return IndexFromCoordinate(uint3(bin, category, eye),
+    return IndexFromCoordinate(uint3(zBin, category, eye),
                                uint2(Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
 #ifndef NO_SHADERVARIABLESGLOBAL_HLSL
 
-uint ComputeZBinFromLinearDepth(float w)
+// Cannot be used to index directly into the buffer.
+// Use ComputeZBinBufferIndex for that purpose.
+uint ComputeZBinIndex(float linearDepth)
 {
-    float z = EncodeLogarithmicDepth(w, _ZBinBufferEncodingParams);
+    float z = EncodeLogarithmicDepth(linearDepth, _ZBinBufferEncodingParams);
     z = saturate(z); // Clamp to the region between the near and the far planes
 
     return min((uint)(z * Z_BIN_COUNT), Z_BIN_COUNT - 1);
@@ -120,35 +122,37 @@ uint ComputeZBinFromLinearDepth(float w)
 
 #if defined(COARSE_BINNING)
     #define XY_TILE_SIZE           COARSE_XY_TILE_SIZE
-    #define XY_TILE_BUFFER_DIMS    uint2(_CoarseXyTileBufferDimensions.xy)
     #define XY_TILE_ENTRY_LIMIT    COARSE_XY_TILE_ENTRY_LIMIT
+    #define XY_TILE_BUFFER         _CoarseXyTileBuffer
+    #define XY_TILE_BUFFER_DIMS    uint2(_CoarseXyTileBufferDimensions.xy)
 #elif defined(FINE_BINNING)
     #define XY_TILE_SIZE           FINE_XY_TILE_SIZE
-    #define XY_TILE_BUFFER_DIMS    uint2(_FineXyTileBufferDimensions.xy)
     #define XY_TILE_ENTRY_LIMIT    FINE_XY_TILE_ENTRY_LIMIT
+    #define XY_TILE_BUFFER         _FineXyTileBuffer
+    #define XY_TILE_BUFFER_DIMS    uint2(_FineXyTileBufferDimensions.xy)
 #else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
-    #define XY_TILE_SIZE           0
-    #define XY_TILE_BUFFER_DIMS    0
+    // These must be defined so the compiler does not complain.
+    #define XY_TILE_SIZE           1
     #define XY_TILE_ENTRY_LIMIT    0
+    #define XY_TILE_BUFFER_DIMS    uint2(0, 0)
 #endif
 
 // Cannot be used to index directly into the buffer.
-// Use ComputXyTileBufferIndex for that purpose.
-uint ComputeXyTileIndex(uint2 pixelCoord)
+// Use ComputeXyTileBufferIndex for that purpose.
+uint ComputeXyTileIndex(uint2 tileCoord)
 {
-    uint2 tileCoord = pixelCoord / XY_TILE_SIZE;
-
     return IndexFromCoordinate(uint4(tileCoord, 0, 0),
-                               uint3(XY_TILE_BUFFER_DIMS.x, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT));
+                               uint3(XY_TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
-// 'tileIndex' may be computed by invoking ComputeXyTileIndex.
-uint ComputeXyTileBufferIndex(uint tileIndex, uint category, uint eye)
+// xyTile: output of ComputeXyTileIndex.
+uint ComputeXyTileBufferIndex(uint xyTile, uint category, uint eye)
 {
-    const uint stride = XY_TILE_ENTRY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+    uint stride = XY_TILE_ENTRY_LIMIT / 2; // We use 'uint' buffer rather than a 'uint16_t[n]'
+    uint offset = IndexFromCoordinate(uint4(0, 0, category, eye),
+                                      uint3(XY_TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
 
-    return stride * (tileIndex + IndexFromCoordinate(uint4(0, 0, category, eye),
-                                                     uint3(XY_TILE_BUFFER_DIMS.x, Z_BIN_COUNT, BOUNDEDENTITYCATEGORY_COUNT)));
+    return stride * (offset + xyTile);
 }
 
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL

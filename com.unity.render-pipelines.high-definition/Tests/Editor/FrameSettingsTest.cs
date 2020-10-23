@@ -445,7 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual(legacyFrameSettingsData.runContactShadowsAsync, frameSettingsData.IsEnabled(FrameSettingsField.ContactShadowsAsync));
                 Assert.AreEqual(legacyFrameSettingsData.runVolumeVoxelizationAsync, frameSettingsData.IsEnabled(FrameSettingsField.VolumeVoxelizationsAsync));
 
-                Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableBigTilePrepass, frameSettingsData.IsEnabled(FrameSettingsField.BigTilePrepass));
+                Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableBigTilePrepass, frameSettingsData.IsEnabled(FrameSettingsField.BinnedLighting));
                 Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableComputeLightEvaluation, frameSettingsData.IsEnabled(FrameSettingsField.ComputeLightEvaluation));
                 Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableComputeLightVariants, frameSettingsData.IsEnabled(FrameSettingsField.ComputeLightVariants));
                 Assert.AreEqual(legacyFrameSettingsData.lightLoopSettings.enableComputeMaterialVariants, frameSettingsData.IsEnabled(FrameSettingsField.ComputeMaterialVariants));
@@ -484,7 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.ContactShadowsAsync) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ContactShadowsAsync]);
                 Assert.AreEqual((legacyFrameSettingsData.overrides & LegacyFrameSettingsOverrides.VolumeVoxelizationsAsync) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.VolumeVoxelizationsAsync]);
 
-                Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.BigTilePrepass) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.BigTilePrepass]);
+                Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.BigTilePrepass) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.BinnedLighting]);
                 Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.ComputeLightEvaluation) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ComputeLightEvaluation]);
                 Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.ComputeLightVariants) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ComputeLightVariants]);
                 Assert.AreEqual((legacyFrameSettingsData.lightLoopSettings.overrides & LegacyLightLoopSettingsOverrides.ComputeMaterialVariants) > 0, frameSettingsMask.mask[(uint)FrameSettingsField.ComputeMaterialVariants]);

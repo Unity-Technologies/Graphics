@@ -399,7 +399,7 @@ Shader "Hidden/HDRP/DeferredTile"
 
                 // input.positionCS is SV_Position
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 

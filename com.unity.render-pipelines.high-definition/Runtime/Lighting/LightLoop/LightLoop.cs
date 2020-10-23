@@ -696,8 +696,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer convexBoundsBuffer { get; /*private*/ set; }
             public ComputeBuffer xyBoundsBuffer { get; private set; }
             public ComputeBuffer wBoundsBuffer { get; private set; }
-            public ComputeBuffer zBinBuffer { get; private set; }
             public ComputeBuffer globalLightListAtomic { get; private set; }
+
+            // Binned lighting
+            public ComputeBuffer coarseXyTileBuffer { get; private set; }
+            public ComputeBuffer zBinBuffer         { get; private set; }
 
             // Tile Output
             public ComputeBuffer tileFeatureFlags { get; private set; } // Deferred
@@ -712,8 +715,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer bigTileLightList { get; private set; } // Volumetric
             public ComputeBuffer perVoxelLightLists { get; private set; } // Cluster
 
-            // Binned lighting
-            public ComputeBuffer coarseXyTileBuffer { get; private set; }
 
             public bool listsAreClear = false;
 
@@ -765,28 +766,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
                 {
-                    var nrBigTilesX = (width + 63) / 64;
-                    var nrBigTilesY = (height + 63) / 64;
-                    var nrBigTiles = nrBigTilesX * nrBigTilesY * viewCount;
-                    // TODO: (Nick) In the case of Probe Volumes, this buffer could be trimmed down / tuned more specifically to probe volumes if we added a s_MaxNrBigTileProbeVolumesPlusOne value.
-                    bigTileLightList = new ComputeBuffer(TiledLightingConstants.s_MaxNrBigTileLightsPlusOne * nrBigTiles, sizeof(uint));
+                    /* These are not resolution-dependent at all, but the old code allocated them here... */
+                    xyBoundsBuffer = new ComputeBuffer(maxBoundedEntityCount * viewCount, 4 * sizeof(float)); // {x_min, x_max, y_min, y_max}
+                    wBoundsBuffer  = new ComputeBuffer(maxBoundedEntityCount * viewCount, 2 * sizeof(float)); // {w_min, w_max}
+                    zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {last << 16 | first}
+
+                    /* Actually resolution-dependent buffers below. */
+                    Vector2Int coarseXyTileBufferDimensions = GetCoarseXyTileBufferDimensions(hdCamera);
+
+                    int coarseXyTileBufferElementCount = coarseXyTileBufferDimensions.x * coarseXyTileBufferDimensions.y *
+                                                         (int)BoundedEntityCategory.Count * viewCount *
+                                                         (TiledLightingConstants.s_CoarseXyTileEntryLimit / 2);
+
+                    coarseXyTileBuffer = new ComputeBuffer(coarseXyTileBufferElementCount, sizeof(uint)); // List of 16-bit indices
                 }
-
-                // These are not resolution-dependent at all, but the old code allocated them here...
-                xyBoundsBuffer = new ComputeBuffer(maxBoundedEntityCount * viewCount, 4 * sizeof(float)); // {x_min, x_max, y_min, y_max}
-                wBoundsBuffer  = new ComputeBuffer(maxBoundedEntityCount * viewCount, 2 * sizeof(float)); // {w_min, w_max}
-                zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {start << 16 | end}
-
-                Vector2Int coarseXyTileBufferDimensions = GetCoarseXyTileBufferDimensions(hdCamera);
-
-                int coarseXyTileBufferElementCount = coarseXyTileBufferDimensions.x * coarseXyTileBufferDimensions.y *
-                                                     (int)BoundedEntityCategory.Count * viewCount *
-                                                     (TiledLightingConstants.s_CoarseXyTileEntryLimit / 2);
-
-                // Actually resolution-dependent buffers below.
-                coarseXyTileBuffer = new ComputeBuffer(coarseXyTileBufferElementCount, sizeof(uint)); // List of 16-bit indices
 
                 // Make sure to invalidate the content of the buffers
                 listsAreClear = false;
@@ -3463,6 +3458,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int clearLightListKernel;
 
             // Binned lighting
+            public bool          binEntities;
             public ComputeShader screenSpaceAABBShader;
             public ComputeShader zBinShader;
             public ComputeShader xyTileShader;
@@ -3471,7 +3467,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Big Tile
             public ComputeShader bigTilePrepassShader;
             public int bigTilePrepassKernel;
-            public bool runBigTilePrepass;
             public int numBigTilesX, numBigTilesY;
 
             // FPTL
@@ -3979,13 +3974,13 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.clearLightListKernel = parameters.clearLightListCS.FindKernel("ClearList");
 
             // Binned lighting
+            parameters.binEntities                  = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting);
             parameters.screenSpaceAABBShader        = buildScreenAABBShader;
             parameters.zBinShader                   = zBinShader;
             parameters.xyTileShader                 = xyTileShader;
             parameters.coarseXyTileBufferDimensions = GetCoarseXyTileBufferDimensions(hdCamera);
 
             // Big tile prepass
-            parameters.runBigTilePrepass = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
             parameters.bigTilePrepassShader = buildPerBigTileLightListShader;
             parameters.bigTilePrepassKernel = s_GenListPerBigTileKernel;
             parameters.numBigTilesX = (w + 63) / 64;
@@ -3995,7 +3990,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.runFPTL = hdCamera.frameSettings.fptl && tileAndClusterData.hasTileBuffers;
             parameters.buildPerTileLightListShader = buildPerTileLightListShader;
             parameters.buildPerTileLightListShader.shaderKeywords = null;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
             {
                 parameters.buildPerTileLightListShader.EnableKeyword("USE_TWO_PASS_TILED_LIGHTING");
             }
@@ -4015,7 +4010,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Cluster
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            var clustPrepassSourceIdx = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
+            var clustPrepassSourceIdx = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting) ? ClusterPrepassSource.BigTile : ClusterPrepassSource.None;
             var clustDepthSourceIdx = ClusterDepthSource.NoDepth;
             if (tileAndClusterData.clusterNeedsDepth)
                 clustDepthSourceIdx = msaa ? ClusterDepthSource.MSAA_Depth : ClusterDepthSource.Depth;
@@ -4060,7 +4055,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Camera camera = param.hdCamera.camera;
 
-                if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
 
                 // int useDepthBuffer = 0;
@@ -4283,8 +4278,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushGlobalParameters)))
             {
-                if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
+                if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
+                {
+                    cmd.SetGlobalBuffer(HDShaderIDs._CoarseXyTileBuffer, param.tileAndClusterData.coarseXyTileBuffer);
+                    //cmd.SetGlobalBuffer(HDShaderIDs._FineXyTileBuffer,   param.tileAndClusterData.fine);
+                    cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,         param.tileAndClusterData.zBinBuffer);
+                }
 
                 // Cluster
                 {
@@ -4636,6 +4635,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // 4x 8x8 groups per a 16x16 tile.
                         cmd.DispatchCompute(parameters.deferredComputeShader, kernel, parameters.numTilesX * 2, parameters.numTilesY * 2, parameters.viewCount);
+                        break; // There's only one variant. Don't render the same thing 30 times!
                     }
                 }
             }

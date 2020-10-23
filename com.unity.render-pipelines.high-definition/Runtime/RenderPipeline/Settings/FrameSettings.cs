@@ -329,9 +329,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP uses FPTL for forward opaque.</summary>
         [FrameSettingsField(3, autoName: FPTLForForwardOpaque)]
         FPTLForForwardOpaque = 120,
-        /// <summary>When enabled, HDRP uses a big tile prepass for light visibility.</summary>
-        [FrameSettingsField(3, autoName: BigTilePrepass)]
-        BigTilePrepass = 121,
+        /// <summary>When enabled, HDRP performs binning to determine the set of visible lights.</summary>
+        [FrameSettingsField(3, autoName: BinnedLighting)]
+        BinnedLighting = 121,
         /// <summary>When enabled, HDRP uses tiles to compute deferred lighting.</summary>
         [FrameSettingsField(3, autoName: DeferredTile)]
         DeferredTile = 122,
@@ -428,7 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
-                (uint)FrameSettingsField.BigTilePrepass,
+                (uint)FrameSettingsField.BinnedLighting,
                 (uint)FrameSettingsField.TransparentsWriteMotionVector,
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.PlanarProbe,
@@ -487,7 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
-                (uint)FrameSettingsField.BigTilePrepass,
+                (uint)FrameSettingsField.BinnedLighting,
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
                 // (uint)FrameSettingsField.EnableSkyReflection,
@@ -541,7 +541,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ComputeLightVariants,
                 (uint)FrameSettingsField.ComputeMaterialVariants,
                 (uint)FrameSettingsField.FPTLForForwardOpaque,
-                (uint)FrameSettingsField.BigTilePrepass,
+                (uint)FrameSettingsField.BinnedLighting,
                 (uint)FrameSettingsField.ReplaceDiffuseForIndirect,
                 // (uint)FrameSettingsField.EnableSkyReflection,
                 // (uint)FrameSettingsField.DirectSpecularLighting,

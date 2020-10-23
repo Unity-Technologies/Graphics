@@ -740,7 +740,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var currParams = hdCamera.vBufferParams[currIdx];
 
             parameters.viewCount = hdCamera.viewCount;
-            parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass) && m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume) > 0;
+            parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting) && m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume) > 0;
 
             bool optimal = currParams.voxelSize == 8;
 
@@ -863,7 +863,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var fog = hdCamera.volumeStack.GetComponent<Fog>();
 
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
-            parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
+            parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting);
             parameters.enableReprojection = hdCamera.IsVolumetricReprojectionEnabled();
             bool enableAnisotropy = fog.anisotropy.value != 0;
             bool optimal = currParams.voxelSize == 8;

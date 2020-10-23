@@ -1,12 +1,12 @@
 #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-// Generates large screen tiles in a fast, conservative manner
-#pragma kernel FillCoarseXyTile  COARSE_BINNING PASS = FILL_COARSE_XY_TILE
-// Removes certain entities from the coarse buffer at a large cost
-#pragma kernel PruneCoarseXyTile COARSE_BINNING PASS = PRUNE_COARSE_XY_TILE
-// Generates small screen tiles in an accurate manner
-#pragma kernel BuildFineXyTile   FINE_BINNING   PASS = BUILD_FINE_XY_TILE
+// Generates large screen tiles in a fast, conservative manner.
+#pragma kernel FillCoarseXyTile     PASS = FILL_COARSE_XY_TILE      COARSE_BINNING
+// Removes certain entities from the coarse buffer at a large cost.
+#pragma kernel PruneCoarseXyTile    PASS = PRUNE_COARSE_XY_TILE     COARSE_BINNING
+// Generates small screen tiles in an accurate manner.
+#pragma kernel BuildFineXyTile      PASS = BUILD_FINE_XY_TILE       FINE_BINNING
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -43,8 +43,8 @@
 /* ------------------------------ Utilities --------------------------------- */
 
 // Repackage to work around ridiculous constant buffer limitations of HLSL.
-static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
+static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
 
 /* ------------------------------ Implementation ---------------------------- */
 
@@ -58,8 +58,8 @@ static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uin
 void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
     // We could tile the threads in 8x8 blocks. The problem is,
-    // the size of the buffer is already quite small. The extra padding
-    // (helper threads) required outweights the benefits (reduced divergence).
+    // the dimensions of the buffer are already quite small. The extra padding
+    // (helper threads) required outweighs the benefits (reduced divergence).
     const uint t   = threadID;
     const uint g   = groupID.x;
     const uint cat = groupID.y;
@@ -83,7 +83,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     {
         // Compute 2-D the AABB of the tile.
         const uint2  tileAaBbMinPtSS  = clampedTileCoord * XY_TILE_SIZE;
-        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + XY_TILE_SIZE;         // (clampedTileCoord + 1) * COARSE_XY_TILE_SIZE
+        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + XY_TILE_SIZE;                // (clampedTileCoord + 1) * XY_TILE_SIZE
         const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;      // Divide
         const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw);     // Divide and clamp to the edge
         const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x); // TODO: add epsilon for numerical robustness?
@@ -127,8 +127,9 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
         if (j < XY_TILE_ENTRY_LIMIT)
         {
-            // Add a terminator.
-            indexPair |= UINT16_MAX << (16 * (j & 1)); // Order: first Lo, then Hi bits
+            i = UINT16_MAX; // Add a terminator
+
+            indexPair |= i << (16 * (j & 1)); // Order: first Lo, then Hi bits
 
             _CoarseXyTileBuffer[outputStart + (j / 2)] = indexPair;
         }
@@ -137,8 +138,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     {
         const uint outputStart = ComputeXyTileBufferIndex(clampedTileIndex, cat, eye);
 
-        // We do not clear the buffer, so we must add a terminator.
-        _CoarseXyTileBuffer[outputStart] = UINT16_MAX;
+        _CoarseXyTileBuffer[outputStart] = UINT16_MAX; // Add a terminator
     }
 }
 

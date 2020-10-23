@@ -1,3 +1,5 @@
+#pragma enable_d3d11_debug_symbols
+
 #pragma kernel Deferred_Direct_Fptl                                SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl
 #pragma kernel Deferred_Direct_Fptl_DebugDisplay                   SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl_DebugDisplay             DEBUG_DISPLAY
 
@@ -45,7 +47,7 @@
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
 
-// #pragma enable_d3d11_debug_symbols
+#define COARSE_BINNING // Comment out the line to loop over all lights (for debugging purposes)
 
 //-------------------------------------------------------------------------------------
 // Include
@@ -78,7 +80,6 @@ CBUFFER_END
 
 #define HAS_LIGHTLOOP
 
-
 // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
 // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
 // the deferred shader will require to use multicompile.
@@ -97,12 +98,12 @@ TEXTURE2D_X_UINT2(_StencilTexture);
 RW_TEXTURE2D_X(float3, diffuseLightingUAV);
 RW_TEXTURE2D_X(float4, specularLightingUAV);
 
-#define GROUP_SIZE (TILE_SIZE_FPTL / 2) // 4x 8x8 groups per a 16x16 tile
+#define GROUP_SIZE (8)
 
 #ifdef USE_INDIRECT
 
 StructuredBuffer<uint> g_TileList;
-// Indirect
+
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
 {
@@ -118,6 +119,8 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
     uint numTilesX    = (screenWidth + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
     uint tileVariantIndex = tileCoord.x + tileCoord.y * numTilesX;
 
+    uint xyTile = 0;
+
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
     uint screenHeight = (uint)_ScreenSize.y;
     uint numTilesY = (screenHeight + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
@@ -125,15 +128,16 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
 #endif
 
     uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileVariantIndex);
-#else
 
-// Direct
+#else // !USE_INDIRECT
+
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint2 tileCoord    = (GROUP_SIZE * groupId) / GetTileSize();
+    uint2 tileCoord    = (GROUP_SIZE * groupId) / XY_TILE_SIZE;
+    uint  xyTile       = ComputeXyTileIndex(tileCoord);
     uint2 pixelCoord   = dispatchThreadId.xy;
     uint  featureFlags = UINT_MAX;
 
@@ -142,7 +146,9 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     // This need to stay in sync with deferred.shader
 
     float depth = LoadCameraDepth(pixelCoord.xy);
-    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    posInput.xyTile = xyTile;
+    posInput.zBin   = ComputeZBinIndex(posInput.linearDepth);
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader
@@ -150,7 +156,7 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     {
         return;
     }
-    
+
     // This is required for camera stacking and other cases where we might have a valid depth value in the depth buffer, but the pixel was not covered by this camera
     uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, pixelCoord.xy));
     if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) == 0)

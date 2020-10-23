@@ -509,7 +509,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!data.needProbeVolumeLightLists)
                 return;
 
-            if (frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+            if (frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
                 ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, data.probeVolumeBigTile);
             ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLayeredOffsetsBuffer, data.probeVolumePerVoxelOffset);
             ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vProbeVolumesLightListGlobal, data.probeVolumePerVoxelLightList);
@@ -541,7 +541,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.needProbeVolumeLightLists = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass;
                 if (passData.needProbeVolumeLightLists)
                 {
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
                         passData.probeVolumeBigTile = builder.ReadComputeBuffer(probeVolumeLightList.bigTileLightList);
                     passData.probeVolumePerVoxelLightList = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelLightLists);
                     passData.probeVolumePerVoxelOffset = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelOffset);

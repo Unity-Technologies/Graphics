@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.ComputeLightVariants, oldFrameSettingsFormat.lightLoopSettings.enableComputeLightVariants);
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.ComputeMaterialVariants, oldFrameSettingsFormat.lightLoopSettings.enableComputeMaterialVariants);
                 newFrameSettingsFormat.SetEnabled(FrameSettingsField.FPTLForForwardOpaque, oldFrameSettingsFormat.lightLoopSettings.enableFptlForForwardOpaque);
-                newFrameSettingsFormat.SetEnabled(FrameSettingsField.BigTilePrepass, oldFrameSettingsFormat.lightLoopSettings.enableBigTilePrepass);
+                newFrameSettingsFormat.SetEnabled(FrameSettingsField.BinnedLighting, oldFrameSettingsFormat.lightLoopSettings.enableBigTilePrepass);
             }
 
             // OverrideMask
@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.DeferredTile] = true;
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.BigTilePrepass:
-                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.BigTilePrepass] = true;
+                                newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.BinnedLighting] = true;
                                 break;
                             case ObsoleteLightLoopSettingsOverrides.ComputeLightEvaluation:
                                 newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ComputeLightEvaluation] = true;
