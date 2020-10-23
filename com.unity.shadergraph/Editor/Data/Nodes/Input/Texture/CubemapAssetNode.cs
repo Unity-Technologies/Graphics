@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Cubemap Asset")]
+    [HasDependencies(typeof(MinimalCubemapAssetNode))]
     class CubemapAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
@@ -71,5 +72,20 @@ namespace UnityEditor.ShaderGraph
         }
 
         public int outputSlotId { get { return OutputSlotId; } }
+    }
+
+    class MinimalCubemapAssetNode : IHasDependencies
+    {
+        [SerializeField]
+        private SerializableCubemap m_Cubemap;
+
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            var guidString = m_Cubemap.guid;
+            if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out var guid))
+            {
+                assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+            }
+        }
     }
 }

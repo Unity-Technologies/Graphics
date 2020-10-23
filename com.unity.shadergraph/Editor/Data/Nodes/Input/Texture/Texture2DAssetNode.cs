@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Texture 2D Asset")]
-    [HasDependencies(typeof(MinimalTexture2DAssetNode))]
+    [HasDependencies(typeof(Minimal2d3dTextureAssetNode))]
     class Texture2DAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
@@ -75,7 +75,8 @@ namespace UnityEditor.ShaderGraph
         public int outputSlotId { get { return OutputSlotId; } }
     }
 
-    class MinimalTexture2DAssetNode : IHasDependencies
+    // this is used for Texture2D AND Texture3D
+    class Minimal2d3dTextureAssetNode : IHasDependencies
     {
         [SerializeField]
         private SerializableTexture m_Texture;
@@ -89,5 +90,4 @@ namespace UnityEditor.ShaderGraph
             }
         }
     }
-
 }
