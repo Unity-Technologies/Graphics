@@ -51,16 +51,21 @@ To create a new Layered Lit Material, navigate to your Project's Asset window, r
 | **Height Transition**                        | Use the slider to set the transition blend size between the Materials in each layer. |
 | **Lock Layers 123 Tiling With Object Scale** | Enable the checkbox to multiply the Material's tiling rate by the scale of the GameObject. This keeps the appearance of the heightmap consistent when you scale the GameObject. |
 
-### Material To Copy
+### Layer List
 
 This section contains a list of the Materials that this Layered Material uses as layers. To assign a Material to a layer, either drag and drop a Material into the property field for that layer, or:
 
 1. Click the radio button on the right of the layer to open the **Select Material** window.
 2. Find the Material you want from the list of Materials in the window and double-click it.
 
-To synchronize the properties between a referenced Material and the Layered Material, press the **Synchronize** button. This copies all of the properties from the referenced Material into the relevant Layered Material layer.
+If you modify the referenced Material in any way, you can synchronize the properties by pressing the **Reset button**. This copies all of the properties from the referenced Material into the relevant Layered Material layer.
 
 ![](Images/LayeredLit1.png)
+
+If you assign a Material made from a Shader Graph as a **Layer Material**, make sure the Reference of the properties matches the name of the corresponding properties in the LayeredLit Material.
+For an example of what this means, see **_BaseColorMap** in the screenshot below:
+
+![](Images/LayeredLit2.png)
 
 ### Layers
 

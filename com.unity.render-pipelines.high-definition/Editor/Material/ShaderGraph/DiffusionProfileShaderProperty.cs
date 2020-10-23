@@ -21,10 +21,8 @@ namespace UnityEditor.Rendering.HighDefinition
             displayName = "Diffusion Profile";
         }
 
-        internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
 
         public override PropertyType propertyType => PropertyType.Float;
 
@@ -51,7 +49,16 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
 
         public override string GetDefaultReferenceName() => $"DiffusionProfile_{objectId}";
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";") => $@"float {referenceName}{delimiter}";
+        internal override string GetPropertyAsArgumentString()
+        {
+            return $"float {referenceName}";
+        }
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            action(new HLSLProperty(HLSLType._float, referenceName, decl));
+        }
 
         internal override AbstractMaterialNode ToConcreteNode()
         {
@@ -77,7 +84,8 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
                 hidden = hidden,
                 value = value,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                overrideHLSLDeclaration = overrideHLSLDeclaration,
+                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 
@@ -94,6 +102,16 @@ $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUt
                 value.asset,
                 "Diffusion Profile",
                 out var _));
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 }

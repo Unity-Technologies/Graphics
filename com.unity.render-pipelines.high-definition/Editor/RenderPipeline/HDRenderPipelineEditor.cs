@@ -34,13 +34,4 @@ namespace UnityEditor.Rendering.HighDefinition
             serialized.Apply();
         }
     }
-
-    // Moving lookdev menu to package implementing them.
-    // It must be done in editor scripts.
-    // Remaining of LookDev integration is done in HDRenderPipeline.LookDev
-    static class LookDevMenu
-    {
-        [MenuItem("Window/Render Pipeline/Look Dev", false, 10200)]
-        static void OpenLookDev() => LookDev.LookDev.Open();
-    }
 }
