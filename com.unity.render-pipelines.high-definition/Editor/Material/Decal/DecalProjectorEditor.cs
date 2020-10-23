@@ -319,7 +319,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         Vector2 size = new Vector2(
                             (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * decalProjector.size.x,
-                            (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
+                            (decalProjector.uvScale.y > 100000 || decalProjector.uvScale.y < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
                             );
                         Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.uvBias.x * size.x, decalProjector.uvBias.y * size.y);
                         Handles.DrawDottedLines(
