@@ -48,6 +48,7 @@ The version number for this package has increased due to a version update of a r
 - Claryfied doc for the LayeredLit material.
 - Various improvements for the Volumetric Fog.
 - Now the DXR wizard displays the name of the target asset that needs to be changed.
+- Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
 
 ## [10.1.0] - 2020-10-12
 
