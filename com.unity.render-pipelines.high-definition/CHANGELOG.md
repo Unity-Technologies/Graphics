@@ -22,6 +22,7 @@ The version number for this package has increased due to a version update of a r
 - Added a rough distortion frame setting and and info box on distortion materials.
 - Adding support of 4 channel tex coords for ray tracing (case 1265309).
 - Added a help button on the volume component toolbar for documentation.
+- Added the status check of default camera frame settings in the DXR wizard.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
@@ -40,6 +41,7 @@ The version number for this package has increased due to a version update of a r
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 - Claryfied doc for the LayeredLit material.
 - Various improvements for the Volumetric Fog.
+- Now the DXR wizard displays the name of the target asset that needs to be changed.
 
 ## [10.1.0] - 2020-10-12
 
