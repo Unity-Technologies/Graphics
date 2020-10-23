@@ -24,6 +24,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
 - Claryfied doc for the LayeredLit material.
+- Fixed nan when a decal affects normals.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
