@@ -466,4 +466,13 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk: None
     StereoModes: 0
-    Reason: 'Android does not render 145 test (fogbugz: 1287093)'
+    Reason: 'Android does not render 145 test ( fogbugz: 1287093)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android seems to crash on this scene (Added this to existing bug 1280307)
