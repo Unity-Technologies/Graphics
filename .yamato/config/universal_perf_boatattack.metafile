@@ -42,9 +42,9 @@ platforms:
     apis: 
       - Vulkan
       - OpenGLES3
-#  - name: iPhone
-#    apis: 
-#      - Metal
+  - name: iPhone
+    apis: 
+      - Metal
 build_configs:
 #- name: il2cpp_apiNet2
 #  scripting_backend: IL2CPP
