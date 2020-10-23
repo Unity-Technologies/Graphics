@@ -81,12 +81,12 @@ namespace UnityEditor.Rendering.HighDefinition
         public void DenoiserGUI()
         {
             PropertyField(m_Denoise);
+
+            using (new HDEditorUtils.IndentScope())
             {
-                EditorGUI.indentLevel++;
                 PropertyField(m_HalfResolutionDenoiser);
                 PropertyField(m_DenoiserRadius);
                 PropertyField(m_SecondDenoiserPass);
-                EditorGUI.indentLevel--;
             }
         }
 
@@ -112,91 +112,96 @@ namespace UnityEditor.Rendering.HighDefinition
             // Flag to track if the ray tracing parameters were displayed
             bool rayTracingSettingsDisplayed = false;
 
-            EditorGUI.indentLevel++;
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            using (new HDEditorUtils.IndentScope())
             {
-                if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+                if (HDRenderPipeline.pipelineSupportsRayTracing)
                 {
-                    rayTracingSettingsDisplayed = true;
-                    PropertyField(m_LayerMask);
-                    if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
+                    if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                     {
-                        PropertyField(m_Mode);
-                        EditorGUI.indentLevel++;
-                        switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                        rayTracingSettingsDisplayed = true;
+                        PropertyField(m_LayerMask);
+                        if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                            RenderPipelineSettings.SupportedRayTracingMode.Both)
                         {
-                            case RayTracingMode.Performance:
-                            {
-                                base.OnInspectorGUI(); // Quality Setting
-                                EditorGUI.indentLevel++;
-                                using (new QualityScope(this))
-                                {
-                                    PropertyField(m_RayLength, k_RayLengthText);
-                                    PropertyField(m_RayLength);
-                                    PropertyField(m_ClampValue);
-                                    PropertyField(m_FullResolution);
-                                    PropertyField(m_UpscaleRadius);
-                                    DenoiserGUI();
-                                }
-                                EditorGUI.indentLevel--;
+                            PropertyField(m_Mode);
 
-                            }
-                            break;
-                            case RayTracingMode.Quality:
+                            using (new HDEditorUtils.IndentScope())
                             {
-                                PropertyField(m_RayLength, k_RayLengthText);
-                                PropertyField(m_ClampValue);
-                                PropertyField(m_SampleCount);
-                                PropertyField(m_BounceCount);
-                                DenoiserGUI();
+                                switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                                {
+                                    case RayTracingMode.Performance:
+                                    {
+                                        base.OnInspectorGUI(); // Quality Setting
+
+                                        using (new HDEditorUtils.IndentScope())
+                                        using (new QualityScope(this))
+                                        {
+                                            PropertyField(m_RayLength, k_RayLengthText);
+                                            PropertyField(m_RayLength);
+                                            PropertyField(m_ClampValue);
+                                            PropertyField(m_FullResolution);
+                                            PropertyField(m_UpscaleRadius);
+                                            DenoiserGUI();
+                                        }
+                                    }
+                                        break;
+                                    case RayTracingMode.Quality:
+                                    {
+                                        PropertyField(m_RayLength, k_RayLengthText);
+                                        PropertyField(m_ClampValue);
+                                        PropertyField(m_SampleCount);
+                                        PropertyField(m_BounceCount);
+                                        DenoiserGUI();
+                                    }
+                                        break;
+                                }
                             }
-                            break;
                         }
-                        EditorGUI.indentLevel--;
-                    }
-                    else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
-                    {
-                        PropertyField(m_RayLength, k_RayLengthText);
-                        PropertyField(m_ClampValue);
-                        PropertyField(m_SampleCount);
-                        PropertyField(m_BounceCount);
-                        DenoiserGUI();
-                    }
-                    else
-                    {
-                        base.OnInspectorGUI(); // Quality Setting
-                        EditorGUI.indentLevel++;
-                        using (new QualityScope(this))
+                        else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                                 RenderPipelineSettings.SupportedRayTracingMode.Quality)
                         {
                             PropertyField(m_RayLength, k_RayLengthText);
-                            PropertyField(m_RayLength);
                             PropertyField(m_ClampValue);
-                            PropertyField(m_FullResolution);
-                            PropertyField(m_UpscaleRadius);
+                            PropertyField(m_SampleCount);
+                            PropertyField(m_BounceCount);
                             DenoiserGUI();
                         }
-                        EditorGUI.indentLevel--;
+                        else
+                        {
+                            base.OnInspectorGUI(); // Quality Setting
+                            EditorGUI.indentLevel++;
+                            using (new QualityScope(this))
+                            {
+                                PropertyField(m_RayLength, k_RayLengthText);
+                                PropertyField(m_RayLength);
+                                PropertyField(m_ClampValue);
+                                PropertyField(m_FullResolution);
+                                PropertyField(m_UpscaleRadius);
+                                DenoiserGUI();
+                            }
+
+                            EditorGUI.indentLevel--;
+                        }
+
+                    }
+                }
+
+                // If we dit not display the ray tracing parameter, we display the ssgi ones
+                if (!rayTracingSettingsDisplayed)
+                {
+                    base.OnInspectorGUI(); // Quality Setting
+
+                    using (new HDEditorUtils.IndentScope())
+                    using (new QualityScope(this))
+                    {
+                        PropertyField(m_FullResolutionSS,EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                        PropertyField(m_RaySteps);
+                        PropertyField(m_FilterRadius);
                     }
 
+                    PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
                 }
             }
-
-            // If we dit not display the ray tracing parameter, we display the ssgi ones
-            if (!rayTracingSettingsDisplayed)
-            {
-                base.OnInspectorGUI(); // Quality Setting
-                EditorGUI.indentLevel++;
-                using (new QualityScope(this))
-                {
-                    PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
-                    PropertyField(m_RaySteps);
-                    PropertyField(m_FilterRadius);
-                }
-                EditorGUI.indentLevel--;
-                PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
-            }
-
-            EditorGUI.indentLevel--;
         }
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {

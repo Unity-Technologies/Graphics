@@ -100,10 +100,9 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_SampleCount, k_SampleCountText);
             PropertyField(m_BounceCount, k_BounceCountText);
             PropertyField(m_Denoise, k_DenoiseText);
+            using (new HDEditorUtils.IndentScope())
             {
-                EditorGUI.indentLevel++;
                 PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
-                EditorGUI.indentLevel--;
             }
         }
 
@@ -112,9 +111,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnInspectorGUI();
 
+            using (new HDEditorUtils.IndentScope())
             using (new QualityScope(this))
             {
-                EditorGUI.indentLevel++;
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
                 m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
@@ -123,12 +122,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_UpscaleRadius, k_UpscaleRadiusText);
                 PropertyField(m_FullResolution, k_FullResolutionText);
                 PropertyField(m_Denoise, k_DenoiseText);
+                using (new HDEditorUtils.IndentScope())
                 {
-                    EditorGUI.indentLevel++;
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
-                    EditorGUI.indentLevel--;
                 }
-                EditorGUI.indentLevel--;
             }
         }
 
@@ -141,21 +138,23 @@ namespace UnityEditor.Rendering.HighDefinition
             if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
             {
                 PropertyField(m_Mode, k_ModeText);
-                EditorGUI.indentLevel++;
-                switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+
+                using (new HDEditorUtils.IndentScope())
                 {
-                    case RayTracingMode.Performance:
+                    switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                     {
-                        RayTracingPerformanceModeGUI();
+                        case RayTracingMode.Performance:
+                        {
+                            RayTracingPerformanceModeGUI();
+                        }
+                            break;
+                        case RayTracingMode.Quality:
+                        {
+                            RayTracingQualityModeGUI();
+                        }
+                            break;
                     }
-                    break;
-                    case RayTracingMode.Quality:
-                    {
-                        RayTracingQualityModeGUI();
-                    }
-                    break;
                 }
-                EditorGUI.indentLevel--;
             }
             else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
             {
@@ -204,12 +203,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 base.OnInspectorGUI();
 
+                using (new HDEditorUtils.IndentScope())
                 using (new QualityScope(this))
                 {
-                    EditorGUI.indentLevel++;
                     PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
                     m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
-                    EditorGUI.indentLevel--;
                 }
             }
         }

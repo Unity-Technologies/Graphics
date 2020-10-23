@@ -86,21 +86,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 base.OnInspectorGUI(); // Quality Setting
                 using (new QualityScope(this))
                 {
-                    EditorGUI.indentLevel++;
-                    PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of ambient occlusion rays. The higher this value is, the more expensive ray traced ambient occlusion is."));
-                    PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
-                    PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));
+                    using (new HDEditorUtils.IndentScope())
                     {
-                        EditorGUI.indentLevel++;
-                        PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Radius parameter for the denoising."));
-                        EditorGUI.indentLevel--;
+                        PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of ambient occlusion rays. The higher this value is, the more expensive ray traced ambient occlusion is."));
+                        PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
+                        PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));
+                        {
+                            using (new HDEditorUtils.IndentScope())
+                                PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Radius parameter for the denoising."));
+                        }
                     }
-                    EditorGUI.indentLevel--;
                 }
             }
             else
             {
-
                 PropertyField(m_Radius, EditorGUIUtility.TrTextContent("Radius", "Sampling radius. Bigger the radius, wider AO will be achieved, risking to lose fine details and increasing cost of the effect due to increasing cache misses."));
 
                 base.OnInspectorGUI(); // Quality Setting
@@ -112,27 +111,29 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_StepCount, EditorGUIUtility.TrTextContent("Step Count", "Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction)."));
 
                     PropertyField(m_TemporalAccumulation, EditorGUIUtility.TrTextContent("Temporal Accumulation", "Whether the results are accumulated over time or not. This can get better results cheaper, but it can lead to temporal artifacts. Requires Motion Vectors to be enabled."));
-                    EditorGUI.indentLevel++;
-                    if(!m_TemporalAccumulation.value.boolValue)
-                    {
-                        PropertyField(m_DirectionCount, EditorGUIUtility.TrTextContent("Direction Count", "Number of directions searched for occlusion at each each pixel."));
 
-                        if (m_DirectionCount.value.intValue > 3)
-                        {
-                            EditorGUILayout.HelpBox("Performance will be seriously impacted by high direction count.", MessageType.Warning, wide: true);
-                        }
-                        PropertyField(m_BlurSharpness, EditorGUIUtility.TrTextContent("Blur sharpness", "Modify the non-temporal blur to change how sharp features are preserved. Lower values blurrier/softer, higher values sharper but with risk of noise."));
-                    }
-                    else
+                    using (new HDEditorUtils.IndentScope())
                     {
-                        PropertyField(m_SpatialBilateralAggressiveness, EditorGUIUtility.TrTextContent("Bilateral Aggressiveness", "Higher this value, the less lenient with depth differences the spatial filter is. Increase if for example noticing white halos where AO should be."));
-                        PropertyField(m_GhostingAdjustement, EditorGUIUtility.TrTextContent("Ghosting reduction", "Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise."));
-                        if (isInAdvancedMode && !m_FullResolution.value.boolValue)
+                        if(!m_TemporalAccumulation.value.boolValue)
                         {
-                            PropertyField(m_BilateralUpsample, EditorGUIUtility.TrTextContent("Bilateral Upsample", "This upsample method preserves sharp edges better, however can result in visible aliasing and it is slightly more expensive."));
+                            PropertyField(m_DirectionCount, EditorGUIUtility.TrTextContent("Direction Count", "Number of directions searched for occlusion at each each pixel."));
+
+                            if (m_DirectionCount.value.intValue > 3)
+                            {
+                                EditorGUILayout.HelpBox("Performance will be seriously impacted by high direction count.", MessageType.Warning, wide: true);
+                            }
+                            PropertyField(m_BlurSharpness, EditorGUIUtility.TrTextContent("Blur sharpness", "Modify the non-temporal blur to change how sharp features are preserved. Lower values blurrier/softer, higher values sharper but with risk of noise."));
+                        }
+                        else
+                        {
+                            PropertyField(m_SpatialBilateralAggressiveness, EditorGUIUtility.TrTextContent("Bilateral Aggressiveness", "Higher this value, the less lenient with depth differences the spatial filter is. Increase if for example noticing white halos where AO should be."));
+                            PropertyField(m_GhostingAdjustement, EditorGUIUtility.TrTextContent("Ghosting reduction", "Moving this factor closer to 0 will increase the amount of accepted samples during temporal accumulation, increasing the ghosting, but reducing the temporal noise."));
+                            if (isInAdvancedMode && !m_FullResolution.value.boolValue)
+                            {
+                                PropertyField(m_BilateralUpsample, EditorGUIUtility.TrTextContent("Bilateral Upsample", "This upsample method preserves sharp edges better, however can result in visible aliasing and it is slightly more expensive."));
+                            }
                         }
                     }
-                    EditorGUI.indentLevel--;
                 }
             }
         }
