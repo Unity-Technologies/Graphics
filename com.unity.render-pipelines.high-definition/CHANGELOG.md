@@ -41,6 +41,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed NullRef Exception when decals are in the scene, no asset is set and HDRP wizard is run.
 - Fixed nan when a decal affects normals.
 - Fixed issue with TAA causing bleeding of a view into another when multiple views are visible.
+- Fix an issue that caused issues of usability of editor if a very high resolution is set by mistake and then reverted back to a smaller resolution.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
