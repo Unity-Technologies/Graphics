@@ -26,7 +26,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed precision issue with the atmospheric fog.
 - Fixed issue with TAA and no motion vectors.
 - Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
-- Claryfied doc for the LayeredLit material.
 - Fix an issue that caused issues of usability of editor if a very high resolution is set by mistake and then reverted back to a smaller resolution.
 
 ### Changed
