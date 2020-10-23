@@ -616,12 +616,21 @@ namespace UnityEngine.Rendering.HighDefinition
                                                                          data.nextHistory,
                                                                          data.prevMVLen,
                                                                          data.nextMVLen);
+
+                        // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                        m_IsDoFHisotoryValid = true;
                     });
 
                     source = passData.destination;
                 }
 
                 postDoFTAAEnabled = true;
+                
+            }
+            else
+            {
+                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                m_IsDoFHisotoryValid = false;
             }
 
             if (!postDoFTAAEnabled)
