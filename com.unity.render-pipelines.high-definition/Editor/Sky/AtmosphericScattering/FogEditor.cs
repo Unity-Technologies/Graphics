@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(Fog))]
-    class FogEditor : VolumeComponentEditor
+    class FogEditor : VolumeComponentWithQualityEditor
     {
         protected SerializedDataParameter m_Enabled;
         protected SerializedDataParameter m_MaxFogDistance;
@@ -48,6 +48,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<Fog>(serializedObject);
 
             m_Enabled = Unpack(o.Find(x => x.enabled));
@@ -130,22 +132,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (isInAdvancedMode)
                 {
                     PropertyField(m_SliceDistributionUniformity);
-                    PropertyField(m_FogControlMode);
+                    base.OnInspectorGUI(); // Quality Setting
+                    EditorGUI.indentLevel++;
+                    using (new EditorGUI.DisabledScope(!useCustomValue))
                     {
-                        EditorGUI.indentLevel++;
-                        if ((FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
+                        PropertyField(m_FogControlMode);
                         {
-                            PropertyField(m_VolumetricFogBudget);
-                            PropertyField(m_ResolutionDepthRatio);
-                        }   
-                        else
-                        {
-                            PropertyField(m_ScreenResolutionPercentage);
-                            PropertyField(m_VolumeSliceCount);
+                            EditorGUI.indentLevel++;
+                            if ((FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
+                            {
+                                PropertyField(m_VolumetricFogBudget);
+                                PropertyField(m_ResolutionDepthRatio);
+                            }   
+                            else
+                            {
+                                PropertyField(m_ScreenResolutionPercentage);
+                                PropertyField(m_VolumeSliceCount);
+                            }
+                            EditorGUI.indentLevel--;
                         }
-                        EditorGUI.indentLevel--;
                     }
-
+                    EditorGUI.indentLevel--;
                     PropertyField(m_DirectionalLightsOnly);
                     PropertyField(m_Anisotropy, s_AnisotropyLabel);
                     if (m_Anisotropy.value.floatValue != 0.0f)
