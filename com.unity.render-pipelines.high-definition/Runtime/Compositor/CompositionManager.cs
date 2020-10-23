@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         static Color s_TransparentBlack = new Color(0, 0, 0, 0); 
 
         #region Validation
-        public void ValidateLayerListOrder(int oldIndex, int newIndex)
+        public bool ValidateLayerListOrder(int oldIndex, int newIndex)
         {
             if (m_InputLayers.Count > 1)
             {
@@ -147,8 +147,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     var tmp = m_InputLayers[newIndex];
                     m_InputLayers.RemoveAt(newIndex);
                     m_InputLayers.Insert(oldIndex, tmp);
+                    return false;
                 }
             }
+            return true;
         }
 
         public bool RuntimeCheck()
@@ -351,7 +353,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void DeleteLayerRTs()
         {
-            // delete the layer from last to first, in order to release first the camera and then the associated RT
+            // Delete all layer cameras first, and then the Render Targets (to avoid deleting RT that are still in use)
+            for (int i = m_InputLayers.Count - 1; i >= 0; --i)
+            {
+                m_InputLayers[i].DestroyCameras();
+            }
+            
             for (int i = m_InputLayers.Count - 1; i >= 0; --i)
             {
                 m_InputLayers[i].DestroyRT();

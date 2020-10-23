@@ -155,6 +155,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: Distortion, tooltip: "When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings (Depends on \"Distortion\" in current HDRP Asset).")]
         Distortion = 14,
+        /// <summary>When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings.</summary>
+        [FrameSettingsField(0, autoName: RoughDistortion, customOrderInGroup: 16, positiveDependencies: new[] { Distortion }, tooltip: "When enabled, HDRP processes a distortion render pass for Cameras using these Frame Settings (Depends on \"Distortion\" in current HDRP Asset).")]
+        RoughDistortion = 67,
         /// <summary>When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, displayedName: "Post-process", customOrderInGroup: 17, tooltip: "When enabled, HDRP processes a post-processing render pass for Cameras using these Frame Settings.")]
         Postprocess = 15,
@@ -400,6 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.DecalLayers,
                 (uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
                 (uint)FrameSettingsField.Distortion,
+                (uint)FrameSettingsField.RoughDistortion,
                 (uint)FrameSettingsField.Postprocess,
                 (uint)FrameSettingsField.CustomPostProcess,
                 (uint)FrameSettingsField.StopNaN,
@@ -475,6 +479,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.DecalLayers,
                 //(uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable refraction ?
                 //(uint)FrameSettingsField.Distortion,
+                //(uint)FrameSettingsField.RoughDistortion,
                 //(uint)FrameSettingsField.Postprocess,
                 //(uint)FrameSettingsField.CustomPostProcess,
                 //(uint)FrameSettingsField.AfterPostprocess,
@@ -531,6 +536,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.DecalLayers,
                 (uint)FrameSettingsField.Refraction, // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
                 (uint)FrameSettingsField.Distortion,
+                (uint)FrameSettingsField.RoughDistortion,
                 //(uint)FrameSettingsField.Postprocess,
                 //(uint)FrameSettingsField.CustomPostProcess,
                 //(uint)FrameSettingsField.AfterPostprocess,
@@ -784,7 +790,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.DecalLayers] &= renderPipelineSettings.supportDecalLayers && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
+            bool distortion = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RoughDistortion] &= distortion && !msaa && !preview;
 
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
