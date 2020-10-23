@@ -34,10 +34,10 @@ platforms:
     apis:
       - DX11
 #      - Vulkan
-#  - name: OSX
-#    apis:
-#      - Metal
-#      - OpenGLCore
+  - name: OSX
+    apis:
+      - Metal
+      - OpenGLCore
   - name: Android
     apis: 
       - Vulkan
