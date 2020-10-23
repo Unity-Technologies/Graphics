@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.surfaceType = (SurfaceType)fabricMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)fabricMasterNode.m_AlphaMode);
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = fabricMasterNode.m_AlphaTest;
             systemData.sortPriority = fabricMasterNode.m_SortPriority;
             systemData.doubleSidedMode = fabricMasterNode.m_DoubleSidedMode;

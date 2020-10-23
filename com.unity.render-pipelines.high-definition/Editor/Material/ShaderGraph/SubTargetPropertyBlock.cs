@@ -113,6 +113,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.Add(foldout);
         }
 
+        protected void AddHelpBox(string message, MessageType type)
+        {
+            // We don't use UIElement HelpBox because it's width is not dynamic.
+            int indentLevel = context.globalIndentLevel;
+            var imgui = new IMGUIContainer(() => 
+            {
+                float indentPadding = indentLevel * 15;
+                var rect = EditorGUILayout.GetControlRect(false, 42);
+                rect.x += indentPadding;
+                rect.width -= indentPadding;
+                EditorGUI.HelpBox(rect, message, type);
+            });
+
+            context.Add(imgui);
+        }
+
         public void CreatePropertyGUIWithHeader()
         {
             if (!String.IsNullOrEmpty(title))

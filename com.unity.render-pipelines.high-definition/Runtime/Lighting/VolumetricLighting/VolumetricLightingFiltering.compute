@@ -5,8 +5,9 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel FilterVolumetricLightingX FilterVolumetricLighting=FilterVolumetricLightingX LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ
-#pragma kernel FilterVolumetricLightingY FilterVolumetricLighting=FilterVolumetricLightingY LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ VERTICAL_PASS
+#pragma kernel FilterVolumetricLightingX FilterVolumetricLighting=FilterVolumetricLightingX
+#pragma kernel FilterVolumetricLightingY FilterVolumetricLighting=FilterVolumetricLightingY VERTICAL_PASS
+
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -15,17 +16,18 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricLighting.cs.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-RW_TEXTURE3D(float4, _VBufferFilteringInput);
+TEXTURE3D(_VBufferFilteringInput);
 RW_TEXTURE3D(float4, _VBufferFilteringOutput);
 
 
-#define SIGMA_FILTER 2.0
-#define GROUP_SIZE_1D                      8
+#define GAUSSIAN_SIGMA 1.0
+#define GROUP_SIZE_1D 8
 
 float Gaussian(float radius, float sigma)
 {
@@ -52,26 +54,29 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
         // Compute the output voxel coordinate
         uint3 voxelCoord = uint3(currentCoord, currentSlice + _VBufferSliceCount * unity_StereoEyeIndex);
 
+        // The interation direction is different depending on which pass
+        #ifdef VERTICAL_PASS
+        const int3 vec = int3(0, 1, 0);
+        #else
+        const int3 vec = int3(1, 0, 0);
+        #endif
+
         // Values used for accumulation
         float sumW = 0.0;
         float4 value = float4(0.0, 0.0, 0.0, 0.0);
-        #ifdef VERTICAL_PASS
-        int3 vec = int3(0, 1, 0);
-        #else
-        int3 vec = int3(1, 0, 0);
-        #endif
 
-        // Compute the radius for this slice
-        int radius =  currentSlice > halfSliceCount ? 2 : 1;
-        // Loop through the values required for our kernel
+        const int radius = 1;
+
         for (int idx = -radius; idx <= radius; ++idx)
         {
             // Compute the next tapping coordinate
-            int3 tapCoord = int3(voxelCoord.x, voxelCoord.y, voxelCoord.z) + vec * idx;
+            const int3 tapCoord = int3(voxelCoord.x, voxelCoord.y, voxelCoord.z) + vec * idx;
+            
             // Tap the value we should be tapping from
             float4 currentValue = _VBufferFilteringInput[tapCoord];
+
             // Compute the weight for this tap
-            float weight = Gaussian(abs(idx), SIGMA_FILTER);
+            float weight = Gaussian(abs(idx), GAUSSIAN_SIGMA);
 
             // If this is outside of the image, force the weight to 0
             #ifdef VERTICAL_PASS
@@ -89,6 +94,7 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
             value += currentValue * weight;
             sumW += weight;
         }
+
         // Normalize and output
         _VBufferFilteringOutput[voxelCoord] = value / sumW;
     }
