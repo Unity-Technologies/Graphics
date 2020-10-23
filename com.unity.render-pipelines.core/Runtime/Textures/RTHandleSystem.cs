@@ -177,11 +177,11 @@ namespace UnityEngine.Rendering
             height = Mathf.Max(height, 1);
 
 #if UNITY_EDITOR
-            // If the reference size is significantly higher than the current actualWidth/Height and it is larger than 1080p dimensions, we reset the reference size every several frames
+            // If the reference size is significantly higher than the current actualWidth/Height and it is larger than 1440p dimensions, we reset the reference size every several frames
             // in editor to avoid issues if a large resolution was temporarily set.
             const int resetInterval = 100;
-            if (((m_MaxWidths / (float)width) > 2.0f && m_MaxWidths > 1920) ||
-                ((m_MaxHeights / (float)height) > 2.0f && m_MaxHeights > 1080))
+            if (((m_MaxWidths / (float)width) > 2.0f && m_MaxWidths > 2560) ||
+                ((m_MaxHeights / (float)height) > 2.0f && m_MaxHeights > 1440))
             {
                 if (m_FramesSinceLastReset > resetInterval)
                 {
