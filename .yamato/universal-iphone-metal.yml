@@ -14,7 +14,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_apiNet4_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
+      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -56,7 +56,7 @@ Universal_iPhone_Metal_Standalone_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -99,7 +99,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
+      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -148,7 +148,7 @@ Universal_iPhone_Metal_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:

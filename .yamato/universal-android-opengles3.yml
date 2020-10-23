@@ -19,7 +19,7 @@ Universal_Android_OpenGLES3_Standalone_il2cpp_apiNet4_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --architecture=ARM64 --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -73,7 +73,7 @@ Universal_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --architecture=ARM64 --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -128,7 +128,7 @@ Universal_Android_OpenGLES3_Standalone_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --architecture=ARM64 --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -189,7 +189,7 @@ Universal_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --architecture=ARM64 --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-connection-ip=auto --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
