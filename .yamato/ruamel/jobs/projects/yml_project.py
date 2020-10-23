@@ -25,9 +25,9 @@ def create_project_ymls(metafile):
             
             yml = {}
             for editor in metafile['editors']:
-                for test_platform in metafile['test_platforms']:
-                    for build_config in platform['build_configs']:
-                        for color_space in platform['color_spaces']:
+                for build_config in platform['build_configs']:
+                    for color_space in platform['color_spaces']:
+                        for test_platform in metafile['test_platforms']:
                             
                             exclude_tp = [tp["name"] for tp in api.get('exclude_test_platforms', [])]
                             if test_platform['name'].lower() not in map(str.lower, exclude_tp):
