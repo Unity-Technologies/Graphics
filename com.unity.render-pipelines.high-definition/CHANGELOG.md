@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
 - Fixed issue with TAA and no motion vectors.
-
+- Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.

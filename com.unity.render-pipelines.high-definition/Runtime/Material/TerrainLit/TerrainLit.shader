@@ -80,7 +80,7 @@ Shader "HDRP/TerrainLit"
     #pragma multi_compile_instancing
     #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
-	#pragma multi_compile_local _ _ALPHATEST_ON
+	#pragma multi_compile _ _ALPHATEST_ON
 
     // All our shaders use same name for entry point
     #pragma vertex Vert
