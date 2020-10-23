@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Claryfied doc for the LayeredLit material.
 - Various improvements for the Volumetric Fog.
 - Use draggable fields for float scalable settings
+- Migrated the fabric & hair shadergraph samples directly into the renderpipeline resources.
 
 ## [10.1.0] - 2020-10-12
 
