@@ -736,7 +736,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
                     buildTarget == UnityEditor.BuildTarget.iOS ||
-                    buildTarget == UnityEditor.BuildTarget.Switch);
+                    buildTarget == UnityEditor.BuildTarget.Switch ||
+                    buildTarget == UnityEditor.BuildTarget.CloudRendering);
         }
 
         internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
