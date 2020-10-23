@@ -128,26 +128,10 @@ float GetNumSamples(float radius, float maxRadius)
     return 1.0 + seriesSum * RING_DENSITY;
 }
 
-float GetRingWeight(int index, float dR)
+float GetRingWeight(int index)
 {
-    if (index == 0)
-    {
-        return 1.0f;
-    }
-    else
-    {
-        float ringRadius = index * dR;
-        float ringArea = PI * ringRadius * ringRadius;
-
-        float prevRingRadius = (index - 1) * dR;
-        float prevRingArea = PI * prevRingRadius * prevRingRadius;
-
-        ringArea = ringArea - prevRingArea;
-
-        float ringSamples = RING_DENSITY * index;
-        ringSamples = (index == 1) ? ringSamples + 1.0f : ringSamples;
-        return ringArea * rcp(ringSamples);
-    }
+    // TODO: need to investigate better sampling weights
+    return 1.0;
 }
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]
@@ -209,7 +193,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float ringOffset = noise * dAng;
 #endif
 
-        float ringWeight = GetRingWeight(max(0, ring), dR);
+        float ringWeight = GetRingWeight(ring);
 
 #ifdef OCTAWEB_SORTING
         float4 ringColor[NUM_BUCKETS];
@@ -237,7 +221,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
             // Note: We have generated only 4 additional mip levels, so don't go any deeper than that
-            float lod = min(4, log2(2 * PI * radius / numSamples));
+            float lod = min(4, log2(2 * PI * radius * rcp(numSamples)));
             CTYPE sampleColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, sampleTC * _ScreenSize.zw, lod).CTYPE_SWIZZLE;
             float sampleCoC = GetCoCRadius(sampleTC);
 
