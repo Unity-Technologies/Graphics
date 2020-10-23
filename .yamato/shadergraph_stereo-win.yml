@@ -11,18 +11,19 @@ ShaderGraph_Stereo_Win_Standalone_2020.1:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_2020.1
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_2020.1
+         rerun: on-new-revision
     skip_checkout: true
 Build_ShaderGraph_Stereo_Win_Player_2020.1:
     name: Build ShaderGraph_Stereo on Win__Player on version 2020.1
@@ -32,21 +33,22 @@ Build_ShaderGraph_Stereo_Win_Player_2020.1:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+         rerun: on-new-revision
 ShaderGraph_Stereo_Win_editmode_2020.1:
     name: ShaderGraph_Stereo on Win__editmode on version 2020.1
     agent:
@@ -55,18 +57,19 @@ ShaderGraph_Stereo_Win_editmode_2020.1:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:2020.1:windows
+         rerun: on-new-revision
 ShaderGraph_Stereo_Win_Standalone_fast-2020.1:
     name: ShaderGraph_Stereo on Win__Standalone on version fast-2020.1
     agent:
@@ -75,18 +78,19 @@ ShaderGraph_Stereo_Win_Standalone_fast-2020.1:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_fast-2020.1
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+         rerun: on-new-revision
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_fast-2020.1
+         rerun: on-new-revision
     skip_checkout: true
 Build_ShaderGraph_Stereo_Win_Player_fast-2020.1:
     name: Build ShaderGraph_Stereo on Win__Player on version fast-2020.1
@@ -96,21 +100,22 @@ Build_ShaderGraph_Stereo_Win_Player_fast-2020.1:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+         rerun: on-new-revision
 ShaderGraph_Stereo_Win_editmode_fast-2020.1:
     name: ShaderGraph_Stereo on Win__editmode on version fast-2020.1
     agent:
@@ -119,18 +124,19 @@ ShaderGraph_Stereo_Win_editmode_fast-2020.1:
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:fast-2020.1:windows
+         rerun: on-new-revision
 ShaderGraph_Stereo_Win_Standalone_CUSTOM-REVISION:
     name: ShaderGraph_Stereo on Win__Standalone on version CUSTOM-REVISION
     agent:
@@ -140,18 +146,19 @@ ShaderGraph_Stereo_Win_Standalone_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_CUSTOM-REVISION
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_CUSTOM-REVISION
+         rerun: always
     skip_checkout: true
 Build_ShaderGraph_Stereo_Win_Player_CUSTOM-REVISION:
     name: Build ShaderGraph_Stereo on Win__Player on version CUSTOM-REVISION
@@ -162,21 +169,22 @@ Build_ShaderGraph_Stereo_Win_Player_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsLinear"
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
         players:
             paths:
               -  "players/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
 ShaderGraph_Stereo_Win_editmode_CUSTOM-REVISION:
     name: ShaderGraph_Stereo on Win__editmode on version CUSTOM-REVISION
     agent:
@@ -186,15 +194,16 @@ ShaderGraph_Stereo_Win_editmode_CUSTOM-REVISION:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+      -  cd TestProjects/ShaderGraphUniversalStereo && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
+              -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always

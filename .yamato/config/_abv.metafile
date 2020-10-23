@@ -1,16 +1,28 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
-  trigger_editors:
-    - fast-2020.1
   projects:
     - name: Universal
     - name: ShaderGraph
     - name: HDRP
     - name: VFX_HDRP
     - name: VFX_URP
-nightly:
-  allowed_editors: # specify the editor versions for which to create nightly jobs
-    - 2020.1
-  extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
+  build_configs:
+    - name: mono_apiNet2
+      scripting_backend: Mono2x
+      api_level: NET_2_0
+    - name: il2cpp_apiNet4
+      scripting_backend: IL2CPP
+      api_level: NET_4_6
+  color_spaces:
+    - Linear
+weekly:
+  extra_dependencies: # additional project jobs to run weekly
+    - project: Smoke_Test
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+        - Standalone
     - project: Universal
       platform: Android
       api: OpenGLES3
@@ -21,16 +33,8 @@ nightly:
       api: Vulkan
       test_platforms:
         - Standalone
-    - project: Universal_Split
-      all: true
-smoke_test: # specifications for smoke tests
-  folder: SRP_SmokeTest
-  agent: sdet_win_large # used for editmode
-  agent_gpu: sdet_win_large_gpu  # used for non-editmode
-  test_platforms:
-    - Standalone
-    - playmode
-    - editmode
+nightly:
+  extra_dependencies: [] # additional project jobs to run nightly (in addition to ABV)
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
