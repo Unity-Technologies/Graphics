@@ -826,7 +826,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return count > 1;
         }
 
-        static public Camera GetSceceCamera()
+        static public Camera GetSceneCamera()
         {
             if (Camera.main != null)
             {
@@ -834,7 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
             foreach (var camera in Camera.allCameras)
             {
-                if (camera.name != "MainCompositorCamera")
+                if (camera != CompositionManager.GetInstance().outputCamera)
                 {
                     return camera;
                 }

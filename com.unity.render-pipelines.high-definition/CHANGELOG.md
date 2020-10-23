@@ -194,6 +194,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Baked reflection probes now correctly use static sky for ambient lighting.
 - Use draggable fields for float scalable settings
+- Fixed undo after enabling compositor.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
