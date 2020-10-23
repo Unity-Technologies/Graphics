@@ -86,24 +86,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockMap.Add(BlockFields.VertexDescription.Normal, StackLitMasterNode1.VertexNormalSlotId);
             blockMap.Add(BlockFields.VertexDescription.Tangent, StackLitMasterNode1.VertexTangentSlotId);
 
-            // Handle mapping of Normal block specifically
+            // Handle mapping of Normal and Tangent block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
                     break;
                 case NormalDropOffSpace.World:
                     normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
                     break;
                 default:
                     normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
                     break;
             }
             blockMap.Add(normalBlock, StackLitMasterNode1.NormalSlotId);
 
             blockMap.Add(HDBlockFields.SurfaceDescription.BentNormal, StackLitMasterNode1.BentNormalSlotId);
-            blockMap.Add(HDBlockFields.SurfaceDescription.Tangent, StackLitMasterNode1.TangentSlotId);
+            blockMap.Add(tangentBlock, StackLitMasterNode1.TangentSlotId);
             blockMap.Add(BlockFields.SurfaceDescription.BaseColor, StackLitMasterNode1.BaseColorSlotId);
 
             if (stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic)

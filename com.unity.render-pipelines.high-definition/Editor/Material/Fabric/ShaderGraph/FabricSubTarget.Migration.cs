@@ -56,6 +56,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             fabricData.materialType = (FabricData.MaterialType)fabricMasterNode.m_MaterialType;
             target.customEditorGUI = fabricMasterNode.m_OverrideEnabled ? fabricMasterNode.m_ShaderGUIOverride : "";
 
+
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
+            {
+                case NormalDropOffSpace.Object:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
+                    break;
+                case NormalDropOffSpace.World:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
+                    break;
+                default:
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
+                    break;
+            }
+
+
             // Convert SlotMask to BlockMap entries
             var blockMapLookup = new Dictionary<FabricMasterNode1.SlotMask, BlockFieldDescriptor>()
             {
@@ -72,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { FabricMasterNode1.SlotMask.DiffusionProfile, HDBlockFields.SurfaceDescription.DiffusionProfileHash },
                 { FabricMasterNode1.SlotMask.SubsurfaceMask, HDBlockFields.SurfaceDescription.SubsurfaceMask },
                 { FabricMasterNode1.SlotMask.Thickness, HDBlockFields.SurfaceDescription.Thickness },
-                { FabricMasterNode1.SlotMask.Tangent, HDBlockFields.SurfaceDescription.Tangent },
+                { FabricMasterNode1.SlotMask.Tangent, tangentBlock },
                 { FabricMasterNode1.SlotMask.Anisotropy, HDBlockFields.SurfaceDescription.Anisotropy },
                 { FabricMasterNode1.SlotMask.Emission, BlockFields.SurfaceDescription.Emission },
                 { FabricMasterNode1.SlotMask.Alpha, BlockFields.SurfaceDescription.Alpha },
