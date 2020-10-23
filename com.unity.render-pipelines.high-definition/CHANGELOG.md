@@ -13,6 +13,9 @@ The version number for this package has increased due to a version update of a r
 - Fixed a null reference exception when creating a diffusion profile asset.
 - Fixed the diffusion profile not being registered as a dependency of the ShaderGraph.
 
+### Changed
+- Improved the punctual light shadow rescale algorithm.
+
 ## [10.2.0] - 2020-10-19
 
 ### Added
@@ -28,6 +31,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
 - Claryfied doc for the LayeredLit material.
+- Fixing exceptions in the console when putting the SSGI in low quality mode (render graph).
+- Fixed NullRef Exception when decals are in the scene, no asset is set and HDRP wizard is run.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -68,6 +73,7 @@ The version number for this package has increased due to a version update of a r
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
 - Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
+- Added frame setting for Virtual Texturing. 
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -196,6 +202,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Baked reflection probes now correctly use static sky for ambient lighting.
 - Use draggable fields for float scalable settings
+- Fixed undo after enabling compositor.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
