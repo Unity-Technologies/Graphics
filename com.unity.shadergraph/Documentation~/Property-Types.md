@@ -8,13 +8,15 @@ Each property has an associated **Data Type**. See [Data Types](Data-Types.md) f
 
 ## Common Parameters
 
-In addition to values specific to their [Data Types](Data-Types.md), all properties have the following parameters.
+In addition to values specific to their [Data Types](Data-Types.md), most properties have the following common parameters.
 
 | Name        | Type  | Description |
 |:------------ |:---|:---|
 | Display Name | String | The display name of the property |
 | Exposed | Boolean | If true this property will be exposed on the material inspector |
 | Reference Name | String | The internal name used for the property inside the shader |
+| Override Property Declaration | Boolean | An advanced option to enable explicit control of the shader declaration for this property |
+| Shader Declaration | Enumeration | Controls the shader declaration of this property |
 
 NOTE: If you overwrite the **Reference Name** parameter be aware of the following conditions:
 - If your **Reference Name** does not begin with an underscore, one will be automatically appended.

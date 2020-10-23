@@ -1121,10 +1121,17 @@ namespace UnityEditor.ShaderGraph
             return edges;
         }
 
+        public void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            foreach (var prop in properties)
+                prop.ForeachHLSLProperty(action);
+        }
+
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             foreach (var prop in properties)
             {
+                // ugh, this needs to be moved to the gradient property implementation
                 if(prop is GradientShaderProperty gradientProp && generationMode == GenerationMode.Preview)
                 {
                     GradientUtil.GetGradientPropertiesForPreview(collector, gradientProp.referenceName, gradientProp.value);
