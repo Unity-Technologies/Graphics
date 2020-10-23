@@ -6,23 +6,16 @@
 All_ShaderGraph_Stereo_trunk:
     name: All ShaderGraph_Stereo CI - trunk
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_trunk
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_trunk
-         rerun: on-new-revision
-All_ShaderGraph_Stereo_fast-trunk:
-    name: All ShaderGraph_Stereo CI - fast-trunk
-    dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_fast-trunk
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
 All_ShaderGraph_Stereo_CUSTOM-REVISION:
     name: All ShaderGraph_Stereo CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_stereo-win.yml#ShaderGraph_Stereo_Win_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

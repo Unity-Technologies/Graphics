@@ -14,9 +14,7 @@ class Project_PublishAllJob():
         # construct job
         job = YMLJob()
         job.set_name(f'Publish all packages [project context][recurrent]')
-        #job.set_agent(agent)
         job.add_dependencies([f'{projectcontext_filepath()}#{projectcontext_job_id_publish(package["id"])}' for package in packages])
-        job.add_trigger_recurrent(target_branch, 'daily')
         return job
 
 
