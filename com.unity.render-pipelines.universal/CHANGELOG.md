@@ -28,6 +28,7 @@ The version number for this package has increased due to a version update of a r
 - Added Smooth shadow fading.
 - The pipeline now outputs a warning in the console when trying to access camera color or depth texture when those are not valid. Those textures are only available in the context of `ScriptableRenderPass`.
 - Added a property to access the renderer from the `CameraData`.
+- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
 
 ### Changed
 - Shader functions SampleSH9, SampleSHPixel, SampleSHVertex are now gamma corrected in gamma space. As result LightProbes are gamma corrected too.
