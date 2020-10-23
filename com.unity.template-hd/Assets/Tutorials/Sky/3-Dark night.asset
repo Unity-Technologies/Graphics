@@ -1,0 +1,128 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
+  m_Name: 3-Dark night
+  m_EditorClassIdentifier: 
+  m_Paragraphs:
+    m_Items:
+    - m_Type: 6
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+      m_Tutorial: {fileID: 0}
+      m_Icons:
+        m_Items: []
+      m_Image: {fileID: 2800000, guid: fcb560764e0e5284da01772af140a77a, type: 3}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+    - m_Type: 0
+      m_Summary: Pure black sky
+      m_Description: 'In this step we will put the theory into practice and switch
+        the sky to pure black. While in reality such lighting conditions do not exist,
+        this should serve as a good exercise to see how things work.
+
+
+        1)
+        Right click in <i>Hierarchy</i> window <b>Volume->Global Volume</b>
+
+        2)
+        Set priority to 11, so that settings from other volumes would not interfere
+
+        2)
+        In the <i>Inspector</i> window, click <b>New</b>
+
+        3) Click <b>Add
+        Override</b> and choose <b>Visual Environment</b>
+
+        4) Choose Type:
+        <b>Gradient Sky</b>
+
+        5) Add another override for the volume, search
+        for <b>Gradient sky</b>
+
+        6) Choose black color for <b>Top, Middle
+        and Bottom</b>
+
+        7) In <i>Hierarchy</i> window, disable the sun <b>Lighting->Sun</b>.
+        The result now should match the image above.
+
+        8) Look around in the
+        scene, notice even if there is no sky or sun, the 2nd room is still well
+        lit. This is because baked Lighting still exists.
+
+
+        In the next step
+        we could go to Lighting tab, choose the Profile that we just created set
+        the Static Lighting Sky to Gradient Sky and rebake. But instead lets quickly
+        see how to disable lighting data temporarily.
+
+
+        9) In your volume,
+        Add Override called Indirect Lighting Controller
+
+        10) Set each multiplier
+        to 0. This will disable baked data.
+
+        11) Look around, only the parths
+        of the level that are directly lit are visible. It is expected that the result
+        does not look realistic due to missing light bounces.
+
+        12) To revert
+        the scene back to normal, enable the Sun and delete the newly created Global
+        Volume'
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+      m_Tutorial: {fileID: 0}
+      m_Icons:
+        m_Items: []
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+  m_CameraSettings:
+    m_CameraMode: 1
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 10
+    m_Pivot: {x: 4.083189, y: 10.247171, z: 2.982399}
+    m_Rotation: {x: -0.057451215, y: 0.48244384, z: 0.031752937, w: 0.8734699}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 1
+  m_NextButton: Next
+  m_DoneButton: Done
+  m_CompletedSound: {fileID: 0}
+  m_autoAdvance: 0
+  m_OnBeforePageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []

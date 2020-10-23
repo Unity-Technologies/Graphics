@@ -23,7 +23,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: 879e5357ea2bfdd4e87821ed063eaab3, type: 3}
+      m_Image: {fileID: 2800000, guid: bc130a39c76dc3b428720e235088e037, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -32,12 +32,24 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: What are decals?
-      m_Description: "Decals are game objects that allow you to project a Decal Material
-        onto other surfaces. It\u2019s mostly used to add additional details without
-        the use of additional meshes and to reduce repetition of tiling textures.
-        \r\n\n\nRead all about <i>Decals</i> in <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Decal-Projector.html\">HDRP
-        documentation.</a>"
+      m_Summary: Minimal set up
+      m_Description: 'Setting up a Sky in HDRP is composed of 3 steps:
+
+
+        1
+        - Choose the type of Sky using Visual Environment override
+
+        2 - Configure
+        the selected Sky using specific overrides, such as HDRI Sky
+
+        3 -
+        Enable the Ambient lighting in the Lighting tab. The chosen sky will also
+        be used for baking lightmaps
+
+
+        Currently there are 3 types of sky
+        to choose from: HDRI Sky, Physically Based Sky and Gradient Sky. We will
+        take a look at how the Sky is set up for this scene in the next step.'
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -57,8 +69,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 10
-    m_Pivot: {x: 0.4612462, y: 9.553349, z: 0.6690837}
-    m_Rotation: {x: -0.115983136, y: 0.54341054, z: 0.07614338, w: 0.82794935}
+    m_Pivot: {x: 0.4612465, y: 9.553326, z: 0.66909266}
+    m_Rotation: {x: -0.11598007, y: 0.5433982, z: 0.07614133, w: 0.8279308}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
