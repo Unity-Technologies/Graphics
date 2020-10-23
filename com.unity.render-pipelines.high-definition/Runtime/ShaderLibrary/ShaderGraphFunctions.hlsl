@@ -27,4 +27,23 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
     return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
 }
 
+
+// If we already defined the Macro, now we need to redefine them given that HDRP functions are now defined.
+#ifdef SHADERGRAPH_SAMPLE_SCENE_DEPTH
+#undef SHADERGRAPH_SAMPLE_SCENE_DEPTH
+#endif
+#define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_HDSampleSceneDepth(uv)
+
+
+#ifdef SHADERGRAPH_SAMPLE_SCENE_COLOR
+#undef SHADERGRAPH_SAMPLE_SCENE_COLOR
+#endif
+#define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_HDSampleSceneColor(uv)
+
+#ifdef SHADERGRAPH_BAKED_GI
+#undef SHADERGRAPH_BAKED_GI
+#endif
+#define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
+
+
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED
