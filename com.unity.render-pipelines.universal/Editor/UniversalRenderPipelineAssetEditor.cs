@@ -388,19 +388,6 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
-                EditorGUI.BeginChangeCheck();
-                var postProcessIncluded = EditorGUILayout.Toggle(Styles.postProcessIncluded, m_PostProcessData.objectReferenceValue != null);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
-                }
-                if (postProcessIncluded)
-                {
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessLabel);
-                    EditorGUI.indentLevel--;
-                }
-
                 bool renderersUsePostProcessData = false;
                 for (int i = 0; i < m_RendererDataProp.arraySize; i++)
                 {
@@ -420,13 +407,28 @@ namespace UnityEditor.Rendering.Universal
                         break;
                     }
                 }
-                if (!postProcessIncluded && renderersUsePostProcessData)
+
+                GUI.enabled = !renderersUsePostProcessData;
+                EditorGUI.BeginChangeCheck();
+                var postProcessIncluded = EditorGUILayout.Toggle(Styles.postProcessIncluded, m_PostProcessData.objectReferenceValue != null);
+                if (EditorGUI.EndChangeCheck())
                 {
-                    EditorGUILayout.HelpBox("There are renderers that use custom Post Process Data for this reason post processing will not be disabled.", MessageType.Warning);
+                    m_PostProcessData.objectReferenceValue = postProcessIncluded ? PostProcessData.GetDefaultPostProcessData() : null;
+                }
+                if (postProcessIncluded)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessLabel);
+                    EditorGUI.indentLevel--;
+                }
+                GUI.enabled = true;
+
+                if (renderersUsePostProcessData)
+                {
+                    EditorGUILayout.HelpBox("There are renderers that use custom Post Process Data for this reason post processing can not be disabled.", MessageType.Warning);
                 }
 
-                GUI.enabled = postProcessIncluded;
-
+                GUI.enabled = postProcessIncluded || renderersUsePostProcessData;
                 EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
                 if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
                     EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
@@ -437,7 +439,6 @@ namespace UnityEditor.Rendering.Universal
                 m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
                 if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
-
                 GUI.enabled = true;
 
                 EditorGUI.indentLevel--;

@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Use Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
-            public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post-processing Data", "Resources (textures, shaders, etc.) required by post-processing effects.");
+            public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post-processing Data (Deprecated)", "Resources (textures, shaders, etc.) required by post-processing effects.");
         }
 
         struct LightBlendStyleProps
