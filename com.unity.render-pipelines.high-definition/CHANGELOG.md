@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2020-10-21
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.2.0] - 2020-10-19
 
 ### Added
@@ -17,6 +22,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed upside down XR occlusion mesh.
+- Fixed precision issue with the atmospheric fog.
+- Claryfied doc for the LayeredLit material.
+- Fixing exceptions in the console when putting the SSGI in low quality mode (render graph).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -57,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
 - Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
+- Added frame setting for Virtual Texturing. 
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -184,6 +193,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Baked reflection probes now correctly use static sky for ambient lighting.
+- Use draggable fields for float scalable settings
 - Fixed undo after enabling compositor.
 
 ### Changed
