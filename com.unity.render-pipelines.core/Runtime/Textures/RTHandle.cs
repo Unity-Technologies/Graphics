@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Name of the RTHandle
         /// </summary>
-        public string name { get { return m_ExternalTexture != null ? m_ExternalTexture.name : m_Name; } }
+        public string name { get { return m_Name; } }
 
         /// <summary>
         /// Returns true is MSAA is enabled, false otherwise.
