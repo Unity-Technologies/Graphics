@@ -431,18 +431,18 @@ namespace UnityEngine.Rendering.HighDefinition
             // map rather than having to deal with all the implications of doing it before TAA
             if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
             {
+                // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
+                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                {
+                    hdCamera.resetPostProcessingHistory = true;
+                }
+
                 var dofParameters = PrepareDoFParameters(hdCamera);
 
                 bool useHistoryMips = m_DepthOfField.physicallyBased;
                 GrabCoCHistory(hdCamera, out var prevCoC, out var nextCoC, useMips: useHistoryMips);
                 var prevCoCHandle = renderGraph.ImportTexture(prevCoC);
                 var nextCoCHandle = renderGraph.ImportTexture(nextCoC);
-
-                // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
-                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
-                {
-                    hdCamera.resetPostProcessingHistory = true;
-                }
 
                 using (var builder = renderGraph.AddRenderPass<DepthofFieldData>("Depth of Field", out var passData, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                 {
