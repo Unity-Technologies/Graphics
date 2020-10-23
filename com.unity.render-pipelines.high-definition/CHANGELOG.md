@@ -18,6 +18,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Improved the punctual light shadow rescale algorithm.
+- Updated the documentation about shadow matte and SSShadow and RTShadows.
 
 ## [10.2.0] - 2020-10-19
 
