@@ -9,12 +9,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Added 
+- Exposed the API to access HDRP shader pass names.
+
+### Fixed
+- Fixed a null reference exception when creating a diffusion profile asset.
+- Fixed the diffusion profile not being registered as a dependency of the ShaderGraph.
+
+### Changed
+- Improved the punctual light shadow rescale algorithm.
+
 ## [10.2.0] - 2020-10-19
 
 ### Added
 - Added a rough distortion frame setting and and info box on distortion materials.
 - Adding support of 4 channel tex coords for ray tracing (case 1265309).
 - Added a help button on the volume component toolbar for documentation.
+- Added the status check of default camera frame settings in the DXR wizard.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
@@ -26,12 +37,17 @@ The version number for this package has increased due to a version update of a r
 - Fixed precision issue with the atmospheric fog.
 - Fixed issue with TAA and no motion vectors.
 - Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
+- Fixing exceptions in the console when putting the SSGI in low quality mode (render graph).
+- Fixed NullRef Exception when decals are in the scene, no asset is set and HDRP wizard is run.
+- Fixed nan when a decal affects normals.
+- Fixed issue with TAA causing bleeding of a view into another when multiple views are visible.
 - Fix an issue that caused issues of usability of editor if a very high resolution is set by mistake and then reverted back to a smaller resolution.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 - Claryfied doc for the LayeredLit material.
 - Various improvements for the Volumetric Fog.
+- Now the DXR wizard displays the name of the target asset that needs to be changed.
 
 ## [10.1.0] - 2020-10-12
 
@@ -69,6 +85,7 @@ The version number for this package has increased due to a version update of a r
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
 - Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
+- Added frame setting for Virtual Texturing. 
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -197,6 +214,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Baked reflection probes now correctly use static sky for ambient lighting.
 - Use draggable fields for float scalable settings
+- Fixed undo after enabling compositor.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
