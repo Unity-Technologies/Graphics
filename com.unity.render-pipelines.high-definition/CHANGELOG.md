@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix an issue that caused issues of usability of editor if a very high resolution is set by mistake and then reverted back to a smaller resolution.
 - Fixed issue where Default Volume Profile Asset change in project settings was not added to the undo stack (case 1285268).
 - Fixed undo after enabling compositor.
+- Fixed the ray tracing shadow UI being displayed while it shouldn't (case 1286391).
 
 ### Changed
 - Improved the punctual light shadow rescale algorithm.
