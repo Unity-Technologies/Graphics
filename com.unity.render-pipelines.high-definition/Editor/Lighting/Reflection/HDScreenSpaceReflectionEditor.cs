@@ -203,7 +203,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
                 PropertyField(m_ReflectSky, k_ReflectSkyText);
                 m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
-                PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
+
+                if (m_UsedAlgorithm.value.intValue != (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                    PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
                 PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
 
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);

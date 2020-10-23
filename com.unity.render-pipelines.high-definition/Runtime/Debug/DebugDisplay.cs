@@ -59,10 +59,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ScreenSpaceAmbientOcclusion,
         /// <summary>Display Screen Space Reflections buffer used for lighting.</summary>
         ScreenSpaceReflections,
-        /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
-        ScreenSpaceReflectionsPrev,
-        /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
-        ScreenSpaceReflectionsAccum,
         /// <summary>Display the Transparent Screen Space Reflections buffer.</summary>
         TransparentScreenSpaceReflections,
         /// <summary>Display Contact Shadows buffer.</summary>
@@ -120,7 +116,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display specular Color validation mode.</summary>
         ValidateSpecularColor,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
-        MaxMaterialFullScreenDebug
+        MaxMaterialFullScreenDebug,
+        // TODO: Move before count for 11.0
+        /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
+        ScreenSpaceReflectionsPrev,
+        /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
+        ScreenSpaceReflectionsAccum
     }
 
     /// <summary>

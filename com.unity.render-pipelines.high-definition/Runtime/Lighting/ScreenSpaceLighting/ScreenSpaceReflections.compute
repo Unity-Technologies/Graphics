@@ -668,7 +668,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = float4(color, 1.0f) * opacity;
 #else
     float3 color = 0.0f;
-    float opacity = 0.0f;
 
     float4 accum = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)];
 
@@ -698,13 +697,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
                 float2 prevFrameUV = hitData * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
-                float tmpCoef = PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
-                opacity = EdgeOfScreenFade(prevFrameUV / _ColorPyramidUvScaleAndLimitPrevFrame.xy, _SsrEdgeFadeRcpLength) *tmpCoef;
-
-                color   = isPosFin ? color   : 0;
-                opacity = isPosFin ? opacity : 0;
-
-                weight *= opacity;
+                color   = isPosFin ? color : 0;
 
                 outputs += weight * float4(color, 1.0f);
                 wAll += weight;
