@@ -405,11 +405,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // Binned lighting
         // For performance reasons, keep all sizes in powers of 2.
         // The first 2 entries are reserved for the metadata.
-        public static int s_CoarseXyTileEntryLimit = 64 - 2; // Per category; before pruning, so the number is lower in practice
-        public static int s_FineXyTileEntryLimit   = 16 - 2; // Per category; after pruning, so the number is exact
-        public static int s_CoarseXyTileSize       = 64;
-        public static int s_FineXyTileSize         = 8;
-        public static int s_zBinCount              = 8192;
+        public static int s_CoarseTileEntryLimit = 64 - 2; // Per category; before pruning, so the number is lower in practice
+        public static int s_FineTileEntryLimit   = 16 - 2; // Per category; after pruning, so the number is exact
+        public static int s_CoarseTileSize       = 64;
+        public static int s_FineTileSize         = 8;
+        public static int s_zBinCount            = 8192;
     }
 
     [GenerateHLSL]
@@ -701,8 +701,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer globalLightListAtomic { get; private set; }
 
             // Binned lighting
-            public ComputeBuffer coarseXyTileBuffer { get; private set; }
-            public ComputeBuffer zBinBuffer         { get; private set; }
+            public ComputeBuffer coarseTileBuffer { get; private set; }
+            public ComputeBuffer zBinBuffer       { get; private set; }
 
             // Tile Output
             public ComputeBuffer tileFeatureFlags { get; private set; } // Deferred
@@ -776,13 +776,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     zBinBuffer     = new ComputeBuffer(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)); // {last << 16 | first}
 
                     /* Actually resolution-dependent buffers below. */
-                    Vector2Int coarseXyTileBufferDimensions = GetCoarseXyTileBufferDimensions(hdCamera);
+                    Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
-                    int coarseXyTileBufferElementCount = coarseXyTileBufferDimensions.x * coarseXyTileBufferDimensions.y *
-                                                         (int)BoundedEntityCategory.Count * viewCount *
-                                                         (TiledLightingConstants.s_CoarseXyTileEntryLimit / 2);
+                    int coarseTileBufferElementCount = coarseTileBufferDimensions.x * coarseTileBufferDimensions.y *
+                                                       (int)BoundedEntityCategory.Count * viewCount *
+                                                       (TiledLightingConstants.s_CoarseTileEntryLimit / 2);
 
-                    coarseXyTileBuffer = new ComputeBuffer(coarseXyTileBufferElementCount, sizeof(uint)); // List of 16-bit indices
+                    coarseTileBuffer = new ComputeBuffer(coarseTileBufferElementCount, sizeof(uint)); // List of 16-bit indices
                 }
 
                 // Make sure to invalidate the content of the buffers
@@ -830,8 +830,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 wBoundsBuffer = null;
                 CoreUtils.SafeRelease(zBinBuffer);
                 zBinBuffer = null;
-                CoreUtils.SafeRelease(coarseXyTileBuffer);
-                coarseXyTileBuffer = null;
+                CoreUtils.SafeRelease(coarseTileBuffer);
+                coarseTileBuffer = null;
                 CoreUtils.SafeRelease(dispatchIndirectBuffer);
                 dispatchIndirectBuffer = null;
             }
@@ -904,7 +904,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
         ComputeShader zBinShader { get { return defaultResources.shaders.zBinCS; } }
-        ComputeShader xyTileShader { get { return defaultResources.shaders.xyTileCS; } }
+        ComputeShader tileShader { get { return defaultResources.shaders.tileCS; } }
         ComputeShader buildPerTileLightListShader { get { return defaultResources.shaders.buildPerTileLightListCS; } }
         ComputeShader buildPerBigTileLightListShader { get { return defaultResources.shaders.buildPerBigTileLightListCS; } }
         ComputeShader buildPerVoxelLightListShader { get { return defaultResources.shaders.buildPerVoxelLightListCS; } }
@@ -1053,18 +1053,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return new Vector4(x, y, z, w);
         }
 
-        static Vector2Int GetCoarseXyTileBufferDimensions(HDCamera hdCamera)
+        static Vector2Int GetCoarseTileBufferDimensions(HDCamera hdCamera)
         {
-            int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_CoarseXyTileSize);
-            int h = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_CoarseXyTileSize);
+            int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_CoarseTileSize);
+            int h = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_CoarseTileSize);
 
             return new Vector2Int(w, h);
         }
 
-        static Vector2Int GetFineXyTileBufferDimensions(HDCamera hdCamera)
+        static Vector2Int GetFineTileBufferDimensions(HDCamera hdCamera)
         {
-            int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_FineXyTileSize);
-            int h = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_FineXyTileSize);
+            int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_FineTileSize);
+            int h = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_FineTileSize);
 
             return new Vector2Int(w, h);
         }
@@ -3463,8 +3463,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool          binEntities;
             public ComputeShader screenSpaceAABBShader;
             public ComputeShader zBinShader;
-            public ComputeShader xyTileShader;
-            public Vector2Int    coarseXyTileBufferDimensions;
+            public ComputeShader tileShader;
+            public Vector2Int    coarseTileBufferDimensions;
 
             // Big Tile
             public ComputeShader bigTilePrepassShader;
@@ -3508,7 +3508,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer xyBoundsBuffer;
             public ComputeBuffer wBoundsBuffer;
             public ComputeBuffer zBinBuffer;
-            public ComputeBuffer coarseXyTileBuffer;
+            public ComputeBuffer coarseTileBuffer;
             public ComputeBuffer globalLightListAtomic;
 
             // Output
@@ -3538,7 +3538,7 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.xyBoundsBuffer = tileAndClusterData.xyBoundsBuffer;
             resources.wBoundsBuffer = tileAndClusterData.wBoundsBuffer;
             resources.zBinBuffer = tileAndClusterData.zBinBuffer;
-            resources.coarseXyTileBuffer = tileAndClusterData.coarseXyTileBuffer;
+            resources.coarseTileBuffer = tileAndClusterData.coarseTileBuffer;
             //resources.lightVolumeDataBuffer = tileAndClusterData.lightVolumeDataBuffer;
             resources.tileFeatureFlags = tileAndClusterData.tileFeatureFlags;
             resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
@@ -3631,28 +3631,28 @@ namespace UnityEngine.Rendering.HighDefinition
             // If (boundedEntityCount == 0), we still perform a dispatch that will initialize bins as empty.
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PerformXYBinning)))
             {
-                var shader = parameters.xyTileShader;
+                var shader = parameters.tileShader;
                 int kernel;
 
-                kernel = 0; // FillCoarseXyTile
+                kernel = 0; // FillCoarseTile
 
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._xyBoundsBuffer,     resources.xyBoundsBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseXyTileBuffer, resources.coarseXyTileBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._xyBoundsBuffer,   resources.xyBoundsBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer, resources.coarseTileBuffer);
 
                 ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
 
                 const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP  (64)
 
-                int bufferSize = parameters.coarseXyTileBufferDimensions.x * parameters.coarseXyTileBufferDimensions.y;
+                int bufferSize = parameters.coarseTileBufferDimensions.x * parameters.coarseTileBufferDimensions.y;
                 int groupCount = HDUtils.DivRoundUp(bufferSize, threadsPerGroup);
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
-                kernel = 1; // PruneCoarseXyTile
+                kernel = 1; // PruneCoarseTile
 
                 // ...
 
-                kernel = 2; // BuildFineXyTile
+                kernel = 2; // BuildFineTile
 
                 // ...
             }
@@ -3912,7 +3912,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var decalDatasCount    = Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen);
             int boundedEntityCount = m_BoundedEntityCollection.GetTotalEntityCount();
 
-            Vector2Int coarseTileBufferDimensions = GetCoarseXyTileBufferDimensions(hdCamera);
+            Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
             cb._BoundedEntityCount = (uint)boundedEntityCount;
             cb.g_screenSize = hdCamera.screenSize; // TODO remove and use global one.
@@ -3976,11 +3976,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.clearLightListKernel = parameters.clearLightListCS.FindKernel("ClearList");
 
             // Binned lighting
-            parameters.binEntities                  = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting);
-            parameters.screenSpaceAABBShader        = buildScreenAABBShader;
-            parameters.zBinShader                   = zBinShader;
-            parameters.xyTileShader                 = xyTileShader;
-            parameters.coarseXyTileBufferDimensions = GetCoarseXyTileBufferDimensions(hdCamera);
+            parameters.binEntities                = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting);
+            parameters.screenSpaceAABBShader      = buildScreenAABBShader;
+            parameters.zBinShader                 = zBinShader;
+            parameters.tileShader                 = tileShader;
+            parameters.coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
             // Big tile prepass
             parameters.bigTilePrepassShader = buildPerBigTileLightListShader;
@@ -4217,9 +4217,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Binned lighting
-            cb._ZBinBufferEncodingParams     = GetZBinBufferEncodingParams(hdCamera);
-            cb._CoarseXyTileBufferDimensions = GetCoarseXyTileBufferDimensions(hdCamera);
-            cb._FineXyTileBufferDimensions   = GetFineXyTileBufferDimensions(hdCamera);
+            cb._ZBinBufferEncodingParams   = GetZBinBufferEncodingParams(hdCamera);
+            cb._CoarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
+            cb._FineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
 
             // Old stuff below...
             cb._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
@@ -4282,9 +4282,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
                 {
-                    cmd.SetGlobalBuffer(HDShaderIDs._CoarseXyTileBuffer, param.tileAndClusterData.coarseXyTileBuffer);
-                    //cmd.SetGlobalBuffer(HDShaderIDs._FineXyTileBuffer,   param.tileAndClusterData.fine);
-                    cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,         param.tileAndClusterData.zBinBuffer);
+                    cmd.SetGlobalBuffer(HDShaderIDs._CoarseTileBuffer, param.tileAndClusterData.coarseTileBuffer);
+                    //cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, param.tileAndClusterData.fine);
+                    cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,       param.tileAndClusterData.zBinBuffer);
                 }
 
                 // Cluster

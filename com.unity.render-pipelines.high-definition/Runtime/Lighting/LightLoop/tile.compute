@@ -2,11 +2,11 @@
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 // Generates large screen tiles in a fast, conservative manner.
-#pragma kernel FillCoarseXyTile     PASS = FILL_COARSE_XY_TILE      COARSE_BINNING
+#pragma kernel FillCoarseTile     PASS = FILL_COARSE_TILE      COARSE_BINNING
 // Removes certain entities from the coarse buffer at a large cost.
-#pragma kernel PruneCoarseXyTile    PASS = PRUNE_COARSE_XY_TILE     COARSE_BINNING
+#pragma kernel PruneCoarseTile    PASS = PRUNE_COARSE_TILE     COARSE_BINNING
 // Generates small screen tiles in an accurate manner.
-#pragma kernel BuildFineXyTile      PASS = BUILD_FINE_XY_TILE       FINE_BINNING
+#pragma kernel BuildFineTile      PASS = BUILD_FINE_TILE       FINE_BINNING
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -16,27 +16,27 @@
 
 /* ------------------------------ Inputs ------------------------------------ */
 
-#if (PASS == FILL_COARSE_XY_TILE)
+#if (PASS == FILL_COARSE_TILE)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<float4> _xyBoundsBuffer : register(t0); // {x_min, x_max, y_min, y_max}
 #endif
 
 /* ------------------------------ Outputs ----------------------------------- */
 
-#if (PASS == FILL_COARSE_XY_TILE)
+#if (PASS == FILL_COARSE_TILE)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     // The size of the buffer can be computed as follows:
-    // DIV_ROUND_UP(RES_X, COARSE_XY_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_XY_TILE_SIZE) *
-    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * ((COARSE_XY_TILE_ENTRY_LIMIT + 2) * 2 bytes per entry).
+    // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) *
+    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * ((COARSE_TILE_ENTRY_LIMIT + 2) * 2 bytes per entry).
     // For example (1080p): 30 * 17 * 5 * 1 * (64 * 2) = 318.75 KiB.
-    RWStructuredBuffer<uint> _CoarseXyTileBuffer : register(u0); // List of 16-bit indices
+    RWStructuredBuffer<uint> _CoarseTileBuffer : register(u0); // List of 16-bit indices
 #endif
 
-#if (PASS == BUILD_FINE_XY_TILE)
+#if (PASS == BUILD_FINE_TILE)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     // The size of the buffer can be computed as follows:
-    // DIV_ROUND_UP(RES_X, FINE_XY_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_XY_TILE_SIZE) *
-    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * ((FINE_XY_TILE_ENTRY_LIMIT + 2) * 2 bytes per entry).
+    // DIV_ROUND_UP(RES_X, FINE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_TILE_SIZE) *
+    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * ((FINE_TILE_ENTRY_LIMIT + 2) * 2 bytes per entry).
     // For example (1080p): 240 * 165 * 5 * 1 * (16 * 2) = 6.04 MiB.
 #endif
 
@@ -48,14 +48,14 @@ static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uin
 
 /* ------------------------------ Implementation ---------------------------- */
 
-#if (REMAINDER(XY_TILE_ENTRY_LIMIT + 2, 2) != 0)
-    #error "(XY_TILE_ENTRY_LIMIT + 2) must be an integer multiple of 2."
+#if (REMAINDER(TILE_ENTRY_LIMIT + 2, 2) != 0)
+    #error "(TILE_ENTRY_LIMIT + 2) must be an integer multiple of 2."
 #endif
 
 #define THREADS_PER_GROUP (64)
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
-void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+void FillCoarseTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
     // We could tile the threads in 8x8 blocks. The problem is,
     // the dimensions of the buffer are already quite small. The extra padding
@@ -66,8 +66,8 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint eye = groupID.z;
 
     const uint  tileIndex        = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
-    const uint  clampedTileIndex = min(tileIndex, XY_TILE_BUFFER_DIMS.x * XY_TILE_BUFFER_DIMS.y - 1);
-    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, XY_TILE_BUFFER_DIMS.x);
+    const uint  clampedTileIndex = min(tileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
+    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x);
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.
@@ -80,15 +80,15 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint entityCount = s_BoundedEntityCountPerCategory[cat];
 
     const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, eye);
-    const uint outputStart = ComputeXyTileBufferIndex(clampedTileIndex, cat, eye);
+    const uint outputStart = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
 
     uint first = UINT16_MAX, last = 0;
 
     if (entityCount > 0) // Avoid wasted work
     {
         // Compute 2-D the AABB of the tile.
-        const uint2  tileAaBbMinPtSS  = clampedTileCoord * XY_TILE_SIZE;
-        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + XY_TILE_SIZE;                // (clampedTileCoord + 1) * XY_TILE_SIZE
+        const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
+        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                // (clampedTileCoord + 1) * TILE_SIZE
         const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;      // Divide
         const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw);     // Divide and clamp to the edge
         const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x); // TODO: add epsilon for numerical robustness?
@@ -102,7 +102,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         // Therefore, it will be slow if 'n' is large.
         // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
         // TODO: unroll.
-        while ((i < entityCount) && (j < XY_TILE_ENTRY_LIMIT))
+        while ((i < entityCount) && (j < TILE_ENTRY_LIMIT))
         {
             float2 entityBoundsX = _xyBoundsBuffer[inputStart + i].xy;
             float2 entityBoundsY = _xyBoundsBuffer[inputStart + i].zw;
@@ -120,7 +120,7 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
                 if ((j & 1) != 0) // Is the pair complete & ready to be stored?
                 {
                      // +1 because the first uint is reserved for the metadata.
-                    _CoarseXyTileBuffer[(outputStart + 1) + (j / 2)] = indexPair;
+                    _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = indexPair;
 
                     indexPair = 0; // In order to use bitwise OR above
                 }
@@ -131,21 +131,21 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             i++;
         }
 
-        if (j < XY_TILE_ENTRY_LIMIT)
+        if (j < TILE_ENTRY_LIMIT)
         {
             i = UINT16_MAX; // Add a terminator
 
             indexPair |= i << (16 * (j & 1)); // Order: first Lo, then Hi bits
 
-            _CoarseXyTileBuffer[(outputStart + 1) + (j / 2)] = indexPair;
+            _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = indexPair;
 
             j++;
         }
 
         // You can clear the buffer for debugging purposes.
-        // while (j < XY_TILE_ENTRY_LIMIT)
+        // while (j < TILE_ENTRY_LIMIT)
         // {
-        //     _CoarseXyTileBuffer[(outputStart + 1) + (j / 2)] = 0;
+        //     _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = 0;
         //     j += 2;
         // }
     }
@@ -153,17 +153,17 @@ void FillCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     uint outputRange = (last << 16) | first;
 
     // Store the metadata.
-    _CoarseXyTileBuffer[outputStart] = outputRange;
+    _CoarseTileBuffer[outputStart] = outputRange;
 }
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
-void PruneCoarseXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+void PruneCoarseTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
 
 }
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
-void BuildFineXyTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+void BuildFineTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
 
 }

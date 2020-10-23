@@ -236,7 +236,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         i = 0;
 
-        while (TryLoadPunctualLightData(i, posInput.xyTile, posInput.zBin, lightData))
+        while (TryLoadPunctualLightData(i, posInput.tile, posInput.zBin, lightData))
         {
             if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {

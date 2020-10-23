@@ -119,7 +119,7 @@ void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : S
     uint numTilesX    = (screenWidth + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
     uint tileVariantIndex = tileCoord.x + tileCoord.y * numTilesX;
 
-    uint xyTile = 0;
+    uint tile = 0;
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
     uint screenHeight = (uint)_ScreenSize.y;
@@ -136,8 +136,8 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
-    uint2 tileCoord    = (GROUP_SIZE * groupId) / XY_TILE_SIZE;
-    uint  xyTile       = ComputeXyTileIndex(tileCoord);
+    uint2 tileCoord    = (GROUP_SIZE * groupId) / TILE_SIZE;
+    uint  tile         = ComputeTileIndex(tileCoord);
     uint2 pixelCoord   = dispatchThreadId.xy;
     uint  featureFlags = UINT_MAX;
 
@@ -147,8 +147,9 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     float depth = LoadCameraDepth(pixelCoord.xy);
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    posInput.xyTile = xyTile;
-    posInput.zBin   = ComputeZBinIndex(posInput.linearDepth);
+
+    posInput.tile = tile;
+    posInput.zBin = ComputeZBinIndex(posInput.linearDepth);
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader

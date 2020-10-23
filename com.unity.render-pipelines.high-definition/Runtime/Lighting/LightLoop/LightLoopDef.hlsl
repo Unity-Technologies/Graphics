@@ -148,32 +148,32 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 
 #if (defined(COARSE_BINNING) || defined(FINE_BINNING))
 
-bool TryLoadPunctualLightData(inout uint i, uint xyTile, uint zBin, out LightData data)
+bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData data)
 {
     bool b = false;
-    uint n = XY_TILE_ENTRY_LIMIT;
+    uint n = TILE_ENTRY_LIMIT;
 
     // This part (1) is loop-invariant. These values do not depend on the value of 'i'.
     // They will only be computed once per category, not once per function call.
-    const uint xyTileBufferIndex = ComputeXyTileBufferIndex(xyTile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
-    const uint xyTilePackedRange = XY_TILE_BUFFER[xyTileBufferIndex]; // {last << 16 | first}
-    const bool isTileEmpty       = xyTilePackedRange == UINT16_MAX;
+    const uint tileBufferIndex = ComputeTileBufferIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
+    const uint tilePackedRange = TILE_BUFFER[tileBufferIndex]; // {last << 16 | first}
+    const bool isTileEmpty     = tilePackedRange == UINT16_MAX;
 
     if (!isTileEmpty)
     {
         const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
         const uint zBinPackedRange = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
 
-        const uint2 xyTileRange = uint2(xyTilePackedRange & UINT16_MAX, xyTilePackedRange >> 16);
-        const uint2   zBinRange = uint2(  zBinPackedRange & UINT16_MAX,   zBinPackedRange >> 16);
+        const uint2 tileRange = uint2(tilePackedRange & UINT16_MAX, tilePackedRange >> 16);
+        const uint2 zBinRange = uint2(zBinPackedRange & UINT16_MAX, zBinPackedRange >> 16);
 
-        if (IntervalsOverlap(xyTileRange, zBinRange))
+        if (IntervalsOverlap(tileRange, zBinRange))
         {
             // The part (2) below will be actually executed during every function call.
             while (i < n)
             {
                 // This is a valid buffer index. +1 because the first uint is reserved for the metadata.
-                uint entityIndexPair = XY_TILE_BUFFER[(xyTileBufferIndex + 1) + (i / 2)];  // 16-bit indices
+                uint entityIndexPair = TILE_BUFFER[(tileBufferIndex + 1) + (i / 2)];  // 16-bit indices
                 uint entityIndex     = BitFieldExtract(entityIndexPair, 16 * (i & 1), 16); // Order: first Lo, then Hi bits
 
                 // Entity indices are stored in the ascending order.
@@ -202,7 +202,7 @@ bool TryLoadPunctualLightData(inout uint i, uint xyTile, uint zBin, out LightDat
 
 #else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
-bool TryLoadPunctualLightData(uint i, uint xyTile, uint zBin, out LightData data)
+bool TryLoadPunctualLightData(uint i, uint tile, uint zBin, out LightData data)
 {
     bool b = false;
     uint n = _PunctualLightCount;
@@ -216,7 +216,7 @@ bool TryLoadPunctualLightData(uint i, uint xyTile, uint zBin, out LightData data
     return b;
 }
 
-bool TryLoadAreaLightData(uint i, uint xyTile, uint zBin, out LightData data)
+bool TryLoadAreaLightData(uint i, uint tile, uint zBin, out LightData data)
 {
     bool b = false;
     uint n = _AreaLightCount;
@@ -230,7 +230,7 @@ bool TryLoadAreaLightData(uint i, uint xyTile, uint zBin, out LightData data)
     return b;
 }
 
-bool TryLoadReflectionProbeData(uint i, uint xyTile, uint zBin, out EnvLightData data)
+bool TryLoadReflectionProbeData(uint i, uint tile, uint zBin, out EnvLightData data)
 {
     bool b = false;
     uint n = _ReflectionProbeCount;
@@ -244,7 +244,7 @@ bool TryLoadReflectionProbeData(uint i, uint xyTile, uint zBin, out EnvLightData
     return b;
 }
 
-bool TryLoadDecalData(uint i, uint xyTile, uint zBin, out DecalData data)
+bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
 {
     bool b = false;
     uint n = _DecalCount;
@@ -258,7 +258,7 @@ bool TryLoadDecalData(uint i, uint xyTile, uint zBin, out DecalData data)
     return b;
 }
 
-// bool TryLoadDensityVolumeDataDataAndBounds(uint i, uint xyTile, uint zBin,
+// bool TryLoadDensityVolumeDataDataAndBounds(uint i, uint tile, uint zBin,
 //                                            out DensityVolumeEngineData data, out OrientedBBox bounds)
 // {
 //     bool b = false;

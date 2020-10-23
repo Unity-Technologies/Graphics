@@ -206,8 +206,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _ZBinBufferEncodingParams;
 
-        public Vector2Int _CoarseXyTileBufferDimensions;
-        public Vector2Int _FineXyTileBufferDimensions;
+        public Vector2Int _CoarseTileBufferDimensions;
+        public Vector2Int _FineTileBufferDimensions;
 
         public uint     _NumTileFtplX;
         public uint     _NumTileFtplY;

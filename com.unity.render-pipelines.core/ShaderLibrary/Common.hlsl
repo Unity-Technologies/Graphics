@@ -1039,7 +1039,7 @@ struct PositionInputs
     float  deviceDepth; // Depth from the depth buffer                          : [0, 1] (typically reversed)
     float  linearDepth; // View space Z coordinate                              : [Near, Far]
 
-    uint   xyTile;      // Screen tile index
+    uint   tile;        // Screen tile index
     uint   zBin;        // Depth bin index
 };
 
@@ -1062,7 +1062,7 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 
     // These two are only used by certain (binned lighting) passes,
     // so they must be initialized explicitly (only when necessary).
-    posInput.xyTile = posInput.zBin = 0;
+    posInput.tile = posInput.zBin = 0;
 
     return posInput;
 }

@@ -61,8 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildScreenAABBCS;
             [Reload("Runtime/Lighting/LightLoop/zBin.compute")]
             public ComputeShader zBinCS;
-            [Reload("Runtime/Lighting/LightLoop/xyTile.compute")]
-            public ComputeShader xyTileCS;
+            [Reload("Runtime/Lighting/LightLoop/tile.compute")]
+            public ComputeShader tileCS;
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild.compute")]
             public ComputeShader buildPerTileLightListCS;               // FPTL
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild-bigtile.compute")]

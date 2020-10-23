@@ -3,8 +3,8 @@
 
 #if (defined(COARSE_BINNING) || defined(FINE_BINNING))
 	// TODO: we don't need both at the same time, so perhaps just declare one?
-	StructuredBuffer<uint> _CoarseXyTileBuffer;
-	StructuredBuffer<uint> _FineXyTileBuffer;
+	StructuredBuffer<uint> _CoarseTileBuffer;
+	StructuredBuffer<uint> _FineTileBuffer;
 	StructuredBuffer<uint> _zBinBuffer;
 #endif
 
