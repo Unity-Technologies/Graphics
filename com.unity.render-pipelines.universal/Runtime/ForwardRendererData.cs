@@ -81,7 +81,10 @@ namespace UnityEngine.Rendering.Universal
 
         protected override ScriptableRenderer Create()
         {
-            ReloadAllNullProperties();
+            if (!Application.isPlaying)
+            {
+                ReloadAllNullProperties();
+            }
             return new ForwardRenderer(this);
         }
 
