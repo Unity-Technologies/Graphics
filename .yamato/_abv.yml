@@ -87,27 +87,6 @@ all_project_ci_2020.1:
          rerun: on-new-revision
       -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_2020.1
          rerun: on-new-revision
-all_project_ci_nightly_2020.1:
-    name: _Nightly ABV against 2020.1
-    dependencies:
-      -  path: .yamato/_abv.yml#all_project_ci_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_Standalone_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_playmode_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_editmode_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_2020.1
-         rerun: on-new-revision
-    triggers:
-        recurring:
-          -  branch: 9.x.x/release
-             frequency: 0 * * ?
 trunk_verification_2020.1:
     name: Trunk verification - 2020.1
     dependencies:

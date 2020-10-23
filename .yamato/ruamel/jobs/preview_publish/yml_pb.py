@@ -10,7 +10,7 @@ from .pb_promote_all_preview_project import PreviewPublish_ProjectContext_Promot
 from .pb_promote_project_dry import PreviewPublish_ProjectContext_PromoteJob_DryRun
 
 def create_preview_publish_ymls(metafile):
-    
+
     yml_files = {}
     yml = {}
 
@@ -23,8 +23,8 @@ def create_preview_publish_ymls(metafile):
     job = PreviewPublish_ProjectContext_PromoteAllPreviewJob(metafile["packages"], metafile["target_branch"], metafile["publishing"]["auto_publish"])
     yml[job.job_id] = job.yml
 
-    job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  metafile["platforms"], metafile["target_editor"])
-    yml[job.job_id] = job.yml
+    # job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  metafile["platforms"], metafile["target_editor"])
+    # yml[job.job_id] = job.yml
 
     for package in metafile["packages"]:
 

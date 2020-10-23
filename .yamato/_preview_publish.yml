@@ -57,31 +57,6 @@ promote_all_preview_project:
       -  .yamato/_preview_publish.yml#promote_vfx_project
       -  .yamato/_preview_publish.yml#promote_config_project
       -  .yamato/_preview_publish.yml#promote_lwrp_project
-wait_for_nightly:
-    name: Wait for nightly
-    dependencies:
-      -  .yamato/_abv.yml#all_project_ci_nightly_2020.1
-      -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_windows_2020.1
-      -  .yamato/_packages.yml#test_core_macos_2020.1
-      -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_windows_2020.1
-      -  .yamato/_packages.yml#test_universal_macos_2020.1
-      -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_windows_2020.1
-      -  .yamato/_packages.yml#test_hdrp_macos_2020.1
-      -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_windows_2020.1
-      -  .yamato/_packages.yml#test_shadergraph_macos_2020.1
-      -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_windows_2020.1
-      -  .yamato/_packages.yml#test_vfx_macos_2020.1
-      -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_windows_2020.1
-      -  .yamato/_packages.yml#test_config_macos_2020.1
-      -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_windows_2020.1
-      -  .yamato/_packages.yml#test_lwrp_macos_2020.1
 promote_core:
     name: '[core] Preview - Production Promote'
     agent:

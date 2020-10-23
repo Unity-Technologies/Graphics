@@ -9,23 +9,25 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_URP
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
-    - 2020.1
+    []
+    # - 2020.1
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
-    - project: Universal
-      platform: Android
-      api: OpenGLES3
-      test_platforms:
-        - Standalone
-    - project: Universal
-      platform: Android
-      api: Vulkan
-      test_platforms:
-        - Standalone
-    - project: Universal
-      platform: iPhone
-      api: Metal
-      test_platforms:
-        - Standalone
+    []
+    # - project: Universal
+    #   platform: Android
+    #   api: OpenGLES3
+    #   test_platforms:
+    #     - Standalone
+    # - project: Universal
+    #   platform: Android
+    #   api: Vulkan
+    #   test_platforms:
+    #     - Standalone
+    # - project: Universal
+    #   platform: iPhone
+    #   api: Metal
+    #   test_platforms:
+    #     - Standalone
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: sdet_win_large # used for editmode
