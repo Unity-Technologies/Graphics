@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with TAA and no motion vectors.
 - Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
 - Fixed bounding box generation that resulted in incorrect light culling (case 3875925).
+- Fixed issue where pivot of DecalProjector was not aligned anymore on Transform position when manipulating the size of the projector from the Inspector.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Various improvements for the Volumetric Fog.
 - Use draggable fields for float scalable settings
 - Migrated the fabric & hair shadergraph samples directly into the renderpipeline resources.
+- Removed green coloration of the UV on the DecalProjector gizmo.
 
 ## [10.1.0] - 2020-10-12
 
