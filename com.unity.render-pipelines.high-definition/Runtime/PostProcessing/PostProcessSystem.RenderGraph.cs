@@ -432,6 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
+                // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
                 if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
                 {
                     hdCamera.resetPostProcessingHistory = true;

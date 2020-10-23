@@ -2612,7 +2612,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cs = dofParameters.dofCoCPyramidCS;
                 kernel = dofParameters.dofCoCPyramidKernel;
 
-                float numMips = Mathf.Floor(Mathf.Log(Mathf.Max((dofParameters.camera.actualWidth + 31), (dofParameters.camera.actualHeight + 31)), 2));
+                float numMips = Mathf.Floor(Mathf.Log(Mathf.Max(dofParameters.camera.actualWidth, dofParameters.camera.actualHeight), 2));
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, fullresCoC, 1);
