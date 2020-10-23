@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Fog Volume Component.
     /// </summary>
     [Serializable, VolumeComponentMenu("Fog")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Fog" + Documentation.endURL)]
     public class Fog : VolumeComponent
     {
         /// <summary>Enable fog.</summary>
@@ -95,6 +96,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Indicates whether Unity includes or excludes non-directional light types when it evaluates the volumetric fog. Including non-directional lights increases the resource intensity of the effect.</summary>
         [Tooltip("Indicates whether Unity includes or excludes non-directional light types when it evaluates the volumetric fog. Including non-directional lights increases the resource intensity of the effect.")]
         public BoolParameter directionalLightsOnly = new BoolParameter(false);
+
+        /// <summary>Deprecated don't used</summary>
+        [Tooltip("Deprecated don't used")]
+        public BoolParameter filter = new BoolParameter(false); // DO not used, removed in 11.x
 
         internal static bool IsFogEnabled(HDCamera hdCamera)
         {
