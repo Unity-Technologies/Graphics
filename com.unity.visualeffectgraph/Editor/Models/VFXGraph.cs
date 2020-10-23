@@ -470,11 +470,14 @@ namespace UnityEditor.VFX
                 UpdateSubAssets();
                 if (model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);
+
+                m_DependentDirty = true;
             }
 
             if (cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
             {
                 VFXSubgraphContext.CallOnGraphChanged(this);
+                m_DependentDirty = true;
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
@@ -803,15 +806,12 @@ namespace UnityEditor.VFX
             }
             if (!preventDependencyRecompilation && m_DependentDirty)
             {
-                if (m_DependentDirty)
+                var obj = GetResource().visualEffectObject;
+                foreach (var graph in GetAllGraphs<VisualEffectAsset>())
                 {
-                    var obj = GetResource().visualEffectObject;
-                    foreach (var graph in GetAllGraphs<VisualEffectAsset>())
-                    {
-                        graph.SubgraphDirty(obj);
-                    }
-                    m_DependentDirty = false;
+                    graph.SubgraphDirty(obj);
                 }
+                m_DependentDirty = false;
             }
         }
 

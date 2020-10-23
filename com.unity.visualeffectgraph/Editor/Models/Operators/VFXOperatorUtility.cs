@@ -664,6 +664,19 @@ namespace UnityEditor.VFX
             var z = new VFXExpressionExtractComponent(vector3, 2);
             return Max3(x, y, z);
         }
+
+        static public VFXExpression Min3(VFXExpression x, VFXExpression y, VFXExpression z)
+        {
+            return new VFXExpressionMin(new VFXExpressionMin(x, y), z);
+        }
+
+        static public VFXExpression Min3(VFXExpression vector3)
+        {
+            var x = new VFXExpressionExtractComponent(vector3, 0);
+            var y = new VFXExpressionExtractComponent(vector3, 1);
+            var z = new VFXExpressionExtractComponent(vector3, 2);
+            return Min3(x, y, z);
+        }
     }
 
 
