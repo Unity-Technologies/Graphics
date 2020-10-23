@@ -165,6 +165,7 @@ namespace UnityEditor.VFX
             if (!EditorGUIUtility.wideMode && GenerateMultipleField(ref parameter, valueProperty))
             {
                 height *= 2.0f;
+                height += 1;
             }
 
             var rect = EditorGUILayout.GetControlRect(false, height);
