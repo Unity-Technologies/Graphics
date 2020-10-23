@@ -25,6 +25,7 @@ test_platforms:
 #      - [all]: --report-performance-data
 #      - [all]: --performance-project-id=BoatAttack
 #      - [all]: --testfilter=Build
+#      - [iPhone_Metal]: --platform=iOS
 platforms:
   - name: Win
     apis:
