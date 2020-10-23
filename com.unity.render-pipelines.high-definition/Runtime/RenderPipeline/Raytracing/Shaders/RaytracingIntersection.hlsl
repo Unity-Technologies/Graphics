@@ -53,10 +53,10 @@ struct IntersectionVertex
 	// Object space tangent of the vertex
 	float4 tangentOS;
 	// UV coordinates
-	float2 texCoord0;
-	float2 texCoord1;
-	float2 texCoord2;
-	float2 texCoord3;
+	float4 texCoord0;
+	float4 texCoord1;
+	float4 texCoord2;
+	float4 texCoord3;
 	float4 color;
 
 #ifdef USE_RAY_CONE_LOD
@@ -81,25 +81,25 @@ void FetchIntersectionVertex(uint vertexIndex, out IntersectionVertex outVertex)
     #endif
 
 	#ifdef ATTRIBUTES_NEED_TEXCOORD0
-    outVertex.texCoord0  = UnityRayTracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord0);
+    outVertex.texCoord0  = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeTexCoord0);
     #else
     outVertex.texCoord0  = 0.0;
 	#endif
 
 	#ifdef ATTRIBUTES_NEED_TEXCOORD1
-    outVertex.texCoord1  = UnityRayTracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord1);
+    outVertex.texCoord1  = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeTexCoord1);
     #else
     outVertex.texCoord1  = 0.0;
 	#endif
 
 	#ifdef ATTRIBUTES_NEED_TEXCOORD2
-    outVertex.texCoord2  = UnityRayTracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord2);
+    outVertex.texCoord2  = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeTexCoord2);
 	#else
 	outVertex.texCoord2  = 0.0;
 	#endif
 
 	#ifdef ATTRIBUTES_NEED_TEXCOORD3
-    outVertex.texCoord3  = UnityRayTracingFetchVertexAttribute2(vertexIndex, kVertexAttributeTexCoord3);
+    outVertex.texCoord3  = UnityRayTracingFetchVertexAttribute4(vertexIndex, kVertexAttributeTexCoord3);
 	#else
 	outVertex.texCoord3  = 0.0;
 	#endif

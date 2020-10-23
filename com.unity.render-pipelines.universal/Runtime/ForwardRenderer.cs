@@ -148,7 +148,11 @@ namespace UnityEngine.Rendering.Universal
                 // - Legacy materials have unamed pass, which is implicitely renamed as SRPDefaultUnlit. In that case, they are considered forward-only too.
                 // TO declare a material with unnamed pass and UniversalForward/UniversalForwardOnly pass is an ERROR, as the material will be rendered twice.
                 StencilState forwardOnlyStencilState = DeferredLights.OverwriteStencil(m_DefaultStencilState, (int)StencilUsage.MaterialMask);
-                ShaderTagId[] forwardOnlyShaderTagIds = new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForwardOnly") };
+                ShaderTagId[] forwardOnlyShaderTagIds = new ShaderTagId[] {
+                    new ShaderTagId("UniversalForwardOnly"),
+                    new ShaderTagId("SRPDefaultUnlit"), // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
+                    new ShaderTagId("LightweightForward") // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
+                };
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
                 m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
                 m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 2, m_CopyDepthMaterial);
@@ -163,7 +167,7 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingSkybox, m_CopyDepthMaterial);
             m_DrawSkyboxPass = new DrawSkyboxPass(RenderPassEvent.BeforeRenderingSkybox);
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_BlitMaterial);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (!UniversalRenderPipeline.asset.useAdaptivePerformance || AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects == false)
 #endif
             {
@@ -209,6 +213,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
+                // Deferred rendering does not support MSAA.
+                this.supportedRenderingFeatures.msaa = false;
+
+                // Avoid legacy platforms: use vulkan instead.
                 unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[] {
                     GraphicsDeviceType.OpenGLCore,
                     GraphicsDeviceType.OpenGLES2,
@@ -237,7 +245,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
 #endif
             Camera camera = renderingData.cameraData.camera;
@@ -254,7 +262,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // TODO: Do we need to inject transparents and skybox when rendering depth only camera? They don't write to depth.
                 EnqueuePass(m_DrawSkyboxPass);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
                 if (!needTransparencyPass)
                     return;
 #endif
@@ -426,7 +434,7 @@ namespace UnityEngine.Rendering.Universal
                 m_CopyColorPass.Setup(m_ActiveCameraColorAttachment.Identifier(), m_OpaqueColor, downsamplingMethod);
                 EnqueuePass(m_CopyColorPass);
             }
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
+#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             if (needTransparencyPass)
 #endif
             {
