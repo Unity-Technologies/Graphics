@@ -175,8 +175,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             
             EditorGUI.indentLevel--;
             EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
-            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-
+            if (m_PostProcessData.objectReferenceValue != null)
+            {
+                EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
+                EditorGUILayout.HelpBox("Post Process Data was moved to UniversalRenderPipelineAsset.", MessageType.Warning);
+            }
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
             if(m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
                 EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);

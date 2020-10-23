@@ -88,6 +88,8 @@ namespace UnityEngine.Rendering.Universal
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
+            UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
 #endif
@@ -130,7 +132,6 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
                 //m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
                 m_DeferredLights.TiledDeferredShading = false;
-                UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
 
                 m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
                 // Forward-only pass only runs if deferred renderer is enabled.
@@ -165,14 +166,17 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTransparentForwardPass = new DrawObjectsPass(URPProfileId.DrawTransparentObjects, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
-            if (data.postProcessIncluded)
+
+            PostProcessData postProcessData = data.postProcessData ? data.postProcessData : urpAsset.postProcessData;
+            if (postProcessData != null)
             {
-                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
-                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
+                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, postProcessData);
+                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, postProcessData, m_BlitMaterial);
+                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, postProcessData, m_BlitMaterial);
                 m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
                 m_ColorGradingLut.Init("_InternalGradingLut");
             }
+
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 

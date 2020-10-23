@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2DRemoveSelf.shader")]
         Shader m_RemoveSelfShadowShader = null;
 
-        [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
+        [SerializeField]
         PostProcessData m_PostProcessData = null;
 
         public float hdrEmulationScale => m_HDREmulationScale;
@@ -84,7 +84,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (!Application.isPlaying)
             {
                 ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(m_PostProcessData, UniversalRenderPipelineAsset.packagePath);
+
+                // As now post process data is stored in Universal Render Pipeline, we can dereference non custom data.
+                if (m_PostProcessData == PostProcessData.GetDefaultPostProcessData())
+                    m_PostProcessData = null;
             }
 #endif
             return new Renderer2D(this);

@@ -101,8 +101,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 5;
-        [SerializeField] int k_AssetPreviousVersion = 5;
+        [SerializeField] int k_AssetVersion = 7;
+        [SerializeField] int k_AssetPreviousVersion = 7;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseAdaptivePerformance = true;
 
         // Post-processing settings
+        [SerializeField] PostProcessData m_PostProcessData = null;
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
 
@@ -195,6 +196,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
+
+            // Set default post process data
+            instance.m_PostProcessData = PostProcessData.GetDefaultPostProcessData();
 
             return instance;
         }
@@ -669,6 +673,15 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseSRPBatcher = value; }
         }
 
+        /// <summary>
+        /// Contains resources used by post processing pass.
+        /// </summary>
+        public PostProcessData postProcessData
+        {
+            get { return m_PostProcessData; }
+            set { m_PostProcessData = value; }
+        }
+
         public ColorGradingMode colorGradingMode
         {
             get { return m_ColorGradingMode; }
@@ -855,6 +868,11 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618 // Obsolete warning
             }
 
+            if (k_AssetVersion < 7)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 7;
+            }
 
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
@@ -884,6 +902,15 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 asset.k_AssetPreviousVersion = 5;
+            }
+
+            if (asset.k_AssetPreviousVersion < 6)
+                asset.k_AssetPreviousVersion = 6;
+
+            if (asset.k_AssetPreviousVersion < 7)
+            {
+                asset.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                asset.k_AssetPreviousVersion = 7;
             }
         }
 #endif

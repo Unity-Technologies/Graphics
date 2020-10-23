@@ -35,11 +35,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
 
-            m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+
+            UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            PostProcessData postProcessData = data.postProcessData ? data.postProcessData : urpAsset.postProcessData;
+            if (postProcessData != null)
+            {
+                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
+                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+                k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
+                k_ColorGradingLutHandle.Init("_InternalGradingLut");
+            }
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -47,8 +55,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
             k_DepthTextureHandle.Init("_CameraDepthAttachment");
-            k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
-            k_ColorGradingLutHandle.Init("_InternalGradingLut");
 
             m_Renderer2DData = data;
 
@@ -64,9 +70,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             // always dispose unmanaged resources
-            m_PostProcessPass.Cleanup();
-            m_FinalPostProcessPass.Cleanup();
-            m_ColorGradingLutPass.Cleanup();
+            m_PostProcessPass?.Cleanup();
+            m_FinalPostProcessPass?.Cleanup();
+            m_ColorGradingLutPass?.Cleanup();
             
             CoreUtils.Destroy(m_BlitMaterial);
         }
@@ -178,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
-            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base)
+            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_ColorGradingLutPass != null)
             {
                 m_ColorGradingLutPass.Setup(k_ColorGradingLutHandle);
                 EnqueuePass(m_ColorGradingLutPass);
@@ -193,7 +199,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool requireFinalPostProcessPass =
                 lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
-            if (cameraData.postProcessEnabled)
+            if (stackHasPostProcess && m_PostProcessPass != null)
             {
                 RenderTargetHandle postProcessDestHandle =
                     lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : k_AfterPostProcessColorHandle;
@@ -211,7 +217,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (requireFinalPostProcessPass)
+            if (requireFinalPostProcessPass && m_FinalPostProcessPass != null)
             {
                 m_FinalPostProcessPass.SetupFinalPass(colorTargetHandle);
                 EnqueuePass(m_FinalPostProcessPass);

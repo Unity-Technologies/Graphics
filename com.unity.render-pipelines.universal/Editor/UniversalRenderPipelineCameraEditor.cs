@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
-            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Renderer asset.";
+            public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline asset.";
 
             public static GUIContent[] cameraBackgroundType =
             {
@@ -625,10 +625,13 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawPostProcessingOverlay(UniversalRenderPipelineAsset rpAsset)
         {
+            bool isPostProcessingEnabled = rpAsset.postProcessData == null && m_AdditionalCameraDataRenderPostProcessing.boolValue;
+            GUI.enabled = !isPostProcessingEnabled;
+
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
 
-            bool isPostProcessingEnabled = IsPostProcessingEnabled(rpAsset);
-            if (!isPostProcessingEnabled)
+            GUI.enabled = false;
+            if (isPostProcessingEnabled)
                 EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
         }
 
@@ -816,10 +819,10 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawPostProcessing(UniversalRenderPipelineAsset rpAsset)
         {
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+            bool isPostProcessingEnabled = rpAsset.postProcessData == null && m_AdditionalCameraDataRenderPostProcessing.boolValue;
+            GUI.enabled = !isPostProcessingEnabled;
 
-            bool isPostProcessingEnabled = IsPostProcessingEnabled(rpAsset);
-            GUI.enabled = isPostProcessingEnabled;
+            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
 
             // Draw Final Post-processing
             DrawIntPopup(m_AdditionalCameraDataAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);
@@ -843,22 +846,13 @@ namespace UnityEditor.Rendering.Universal
             }
 
             GUI.enabled = true;
-            if (!isPostProcessingEnabled)
+            if (isPostProcessingEnabled)
                 EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
         }
 
         bool IsPostProcessingEnabled(UniversalRenderPipelineAsset rpAsset)
         {
-            int rendererIndex = m_AdditionalCameraDataRendererProp.intValue != -1 ? m_AdditionalCameraDataRendererProp.intValue : rpAsset.m_DefaultRendererIndex;
-            var rendererData = rpAsset.m_RendererDataList[rendererIndex];
-
-            var forwardRendererData = rendererData as ForwardRendererData;
-            if (forwardRendererData != null && !forwardRendererData.postProcessIncluded && m_AdditionalCameraDataRenderPostProcessing.boolValue)
-            {
-                return false;
-            }
-
-            return true;
+            return rpAsset.postProcessData != null && m_AdditionalCameraDataRenderPostProcessing.boolValue;
         }
 
         bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)

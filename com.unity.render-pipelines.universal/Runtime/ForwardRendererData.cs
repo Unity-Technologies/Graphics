@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var instance = CreateInstance<ForwardRendererData>();
-                instance.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 AssetDatabase.CreateAsset(instance, pathName);
                 ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
                 Selection.activeObject = instance;
@@ -85,11 +84,6 @@ namespace UnityEngine.Rendering.Universal
             ReloadAllNullProperties();
             return new ForwardRenderer(this);
         }
-
-        /// <summary>
-        /// Returns if post processing is included in this renderer.
-        /// </summary>
-        internal bool postProcessIncluded { get => postProcessData != null; }
 
         /// <summary>
         /// Use this to configure how to filter opaque objects.
@@ -200,6 +194,10 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
+
+            // As now post process data is stored in Universal Render Pipeline, we can dereference non custom data.
+            if (postProcessData == PostProcessData.GetDefaultPostProcessData())
+                postProcessData = null;
 #endif
         }
     }

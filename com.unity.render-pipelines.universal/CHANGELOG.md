@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default value of the HDR property of a newly created Universal Render Pipeline Asset, is now set to true.
 
 ### Changed
-- Changed PostProssingData to optional in ForwardRenderer and DeferredRenderer. Builds will no longer include post processing shaders and textures when it will be disabled.
+- Moved PostProcessData into Universal Render Pipeline asset and made it optional. Builds will no longer include post processing shaders and textures when it will be disabled.
 
 ### Fixed
 - Fixed an issue were the filter window could not be defocused using the mouse. [case 1242032](https://issuetracker.unity3d.com/issues/urp-volume-override-window-doesnt-disappear-when-clicked-on-the-other-windows-in-the-editor)
