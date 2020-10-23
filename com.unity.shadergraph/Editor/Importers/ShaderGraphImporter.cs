@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(105, Extension, -902)]
+    [ScriptedImporter(107, Extension, -902)]
 #else
-    [ScriptedImporter(37, Extension, -902)]
+    [ScriptedImporter(39, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -506,7 +506,10 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
 
-                codeSnippets.Add($"// Property: {property.displayName}{nl}{property.GetPropertyDeclarationString()}{nl}{nl}");
+                ShaderStringBuilder builder = new ShaderStringBuilder();
+                property.ForeachHLSLProperty(h => h.AppendTo(builder));
+
+                codeSnippets.Add($"// Property: {property.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
             }
 
 
@@ -640,7 +643,7 @@ Shader ""Hidden/GraphErrorShader2""
             foreach (var property in graph.properties)
             {
                 if (!property.isExposable || !property.generatePropertyBlock)
-            {
+                {
                     continue;
                 }
 
@@ -659,7 +662,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 inputProperties.Add(property);
                 codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
-                }
+            }
 
             sharedCodeIndices.Add(codeSnippets.Count);
             codeSnippets.Add($"){nl}{{");
