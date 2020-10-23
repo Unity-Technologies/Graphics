@@ -15,7 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Input", "High Definition Render Pipeline", "Diffusion Profile")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DiffusionProfileNode")]
     [FormerName("UnityEditor.ShaderGraph.DiffusionProfileNode")]
-    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
+    [HasDependencies(typeof(DiffusionProfileNode))]
+    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode, IHasDependencies
     {
         public DiffusionProfileNode()
         {
@@ -121,5 +122,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public int outputSlotId => kOutputSlotId;
+
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            if ((diffusionProfile != null) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(diffusionProfile, out string guid, out long localId))
+            {
+                // diffusion profile is a ScriptableObject, so this is an artifact dependency
+                assetCollection.AddAssetDependency(new GUID(guid), AssetCollection.Flags.ArtifactDependency | AssetCollection.Flags.IncludeInExportPackage);
+            }
+        }
     }
 }
