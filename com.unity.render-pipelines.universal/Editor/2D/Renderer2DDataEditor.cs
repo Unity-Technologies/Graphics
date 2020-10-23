@@ -181,7 +181,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (m_PostProcessData.objectReferenceValue != null)
             {
                 EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-                EditorGUILayout.HelpBox("Post Process Data was moved to UniversalRenderPipelineAsset.", MessageType.Warning);
+                EditorGUILayout.HelpBox("Post Processing Data has been moved to the Render Pipeline Asset in use", MessageType.Warning);
             }
 
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);

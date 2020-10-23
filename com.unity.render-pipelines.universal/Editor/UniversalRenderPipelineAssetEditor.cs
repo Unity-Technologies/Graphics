@@ -425,7 +425,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (renderersUsePostProcessData)
                 {
-                    EditorGUILayout.HelpBox("There are renderers that use custom Post Process Data for this reason post processing can not be disabled.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("There are renderers that are using custom Post Processing data, for that reason post processing cannot be disabled.", MessageType.Warning);
                 }
 
                 GUI.enabled = postProcessIncluded || renderersUsePostProcessData;

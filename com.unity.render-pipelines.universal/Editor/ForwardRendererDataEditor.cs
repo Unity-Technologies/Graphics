@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
-                EditorGUILayout.HelpBox("Post Process Data was moved to UniversalRenderPipelineAsset.", MessageType.Warning);
+                EditorGUILayout.HelpBox("Post Processing Data has been moved to the Render Pipeline Asset in use", MessageType.Warning);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
