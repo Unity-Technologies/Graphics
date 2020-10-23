@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed the API to access HDRP shader pass names.
 - Added the status check of default camera frame settings in the DXR wizard.
 - Added frame setting for Virtual Texturing. 
+- Added a fade distance for light influencing volumetric lighting.
 
 ### Fixed
 - Fixed a null reference exception when creating a diffusion profile asset.
