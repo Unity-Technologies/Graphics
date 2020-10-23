@@ -322,7 +322,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if ((node is BlockNode) || (node is SubGraphOutputNode))
                     UpdateMasterPreview(ModificationScope.Topological);
                 else
+                {
                     m_NodesShaderChanged.Add(node);
+                    //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
+                    //Fix for https://fogbugz.unity3d.com/f/cases/1284033/
+                    m_NodesPropertyChanged.Add(node);
+                }
                 m_TopologyDirty = true;
             }
             foreach (var edge in m_Graph.addedEdges)

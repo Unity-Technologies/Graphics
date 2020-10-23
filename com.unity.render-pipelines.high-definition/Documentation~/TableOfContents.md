@@ -1,7 +1,7 @@
 * [High Definition Render Pipeline](index)
 * [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
-  * [10.0](whats-new-10-0.md)
+  * [10](whats-new-10.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)

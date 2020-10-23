@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
+        protected override string customInspector => "Rendering.HighDefinition.LitShaderGraphGUI";
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
@@ -83,10 +83,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static FieldDescriptor SpecularColor =           new FieldDescriptor(kMaterial, "SpecularColor", "_MATERIAL_FEATURE_TRANSMISSION 1");
 
         // Refraction
-        public static FieldDescriptor Refraction =              new FieldDescriptor(string.Empty, "Refraction", "_HAS_REFRACTION 1");
-        public static FieldDescriptor RefractionBox =           new FieldDescriptor(string.Empty, "RefractionBox", "_REFRACTION_PLANE 1");
-        public static FieldDescriptor RefractionSphere =        new FieldDescriptor(string.Empty, "RefractionSphere", "_REFRACTION_SPHERE 1");
-        public static FieldDescriptor RefractionThin =          new FieldDescriptor(string.Empty, "RefractionThin", "_REFRACTION_THIN 1");
+        public static FieldDescriptor Refraction =              new FieldDescriptor(string.Empty, "Refraction", "");
+        public static KeywordDescriptor RefractionKeyword = new KeywordDescriptor()
+        {
+            displayName = "Refraction Model",
+            referenceName = "_REFRACTION",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "Plane", referenceName = "PLANE" },
+                new KeywordEntry() { displayName = "Sphere", referenceName = "SPHERE" },
+                new KeywordEntry() { displayName = "Thin", referenceName = "THIN" },
+            }
+        };
 
         public override void GetFields(ref TargetFieldContext context)
         {
@@ -94,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddDistortionFields(ref context);
             var descs = context.blocks.Select(x => x.descriptor);
 
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
             // Lit specific properties
             context.AddField(DotsProperties,                       context.hasDotsProperties);
@@ -111,9 +123,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Refraction
             context.AddField(Refraction,                           hasRefraction);
-            context.AddField(RefractionBox,                        hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Box);
-            context.AddField(RefractionSphere,                     hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere);
-            context.AddField(RefractionThin,                       hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Thin);
 
             // Misc
             context.AddField(EnergyConservingSpecular,             litData.energyConservingSpecular);
@@ -129,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
             bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
 
             // Vertex
@@ -163,6 +172,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CollectShaderProperties(collector, generationMode);
 
             HDSubShaderUtilities.AddRayTracingProperty(collector, litData.rayTracing);
+
+            // Refraction model property allow the material inspector to check if refraction is enabled in the shader.
+            collector.AddShaderProperty(new Vector1ShaderProperty{
+                floatType = FloatType.Enum,
+                hidden = true,
+                value = (int)litData.refractionModel,
+                enumNames = Enum.GetNames(typeof(ScreenSpaceRefraction.RefractionModel)).ToList(),
+                overrideReferenceName = kRefractionModel,
+            });
+        }
+
+        protected override void CollectPassKeywords(ref PassDescriptor pass)
+        {
+            base.CollectPassKeywords(ref pass);
+            pass.keywords.Add(RefractionKeyword);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)

@@ -102,7 +102,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var propertySheet = new PropertySheet();
             shaderInput = actualObject as ShaderInput;
             BuildPropertyNameLabel(propertySheet);
-            BuildExposedField(propertySheet);
             BuildDisplayNameField(propertySheet);
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
@@ -133,7 +132,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     new ToggleData(shaderInput.generatePropertyBlock),
                     "Exposed",
                     out var propertyToggle));
-                propertyToggle.SetEnabled(shaderInput.isExposable);
+                propertyToggle.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
             }
         }
 
@@ -278,8 +277,90 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
 
             BuildPrecisionField(propertySheet, property);
-            if(property.isGpuInstanceable)
-                BuildGpuInstancingField(propertySheet, property);
+
+            BuildExposedField(propertySheet);
+
+            BuildHLSLDeclarationOverrideFields(propertySheet, property);
+        }
+
+        static string[] allHLSLDeclarationStrings = new string[]
+        {
+            "Do Not Declare",       // HLSLDeclaration.DoNotDeclare
+            "Global",               // HLSLDeclaration.Global
+            "Per Material",         // HLSLDeclaration.UnityPerMaterial
+            "Hybrid Per Instance",  // HLSLDeclaration.HybridPerInstance
+        };
+
+        void BuildHLSLDeclarationOverrideFields(PropertySheet propertySheet, AbstractShaderProperty property)
+        {
+            var hlslDecls = Enum.GetValues(typeof(HLSLDeclaration));
+            var allowedDecls = new List<HLSLDeclaration>();
+
+            bool anyAllowed = false;
+            for (int i = 0; i < hlslDecls.Length; i++)
+            {
+                HLSLDeclaration decl = (HLSLDeclaration) hlslDecls.GetValue(i);
+                var allowed = property.AllowHLSLDeclaration(decl);
+                anyAllowed = anyAllowed || allowed;
+                if (allowed)
+                    allowedDecls.Add(decl);
+            }
+
+            if (anyAllowed)
+            {
+                var propRow = new PropertyRow(PropertyDrawerUtils.CreateLabel("Shader Declaration", 1));
+                var popupField = new PopupField<HLSLDeclaration>(
+                    allowedDecls,
+                    property.GetDefaultHLSLDeclaration(),
+                    (h => allHLSLDeclarationStrings[(int) h]),
+                    (h => allHLSLDeclarationStrings[(int) h]));
+
+                popupField.RegisterValueChangedCallback(
+                    evt =>
+                    {
+                        this._preChangeValueCallback("Change Override");
+                        if (property.hlslDeclarationOverride == evt.newValue)
+                            return;
+                        property.hlslDeclarationOverride = evt.newValue;
+                        this._postChangeValueCallback();
+                    });
+
+                propRow.Add(popupField);
+
+                var toggleOverride = new ToggleDataPropertyDrawer();
+                propertySheet.Add(toggleOverride.CreateGUI(
+                    newValue =>
+                    {
+                        if (property.overrideHLSLDeclaration == newValue.isOn)
+                            return;
+
+                        this._preChangeValueCallback("Override Property Declaration");
+
+                        // add or remove the sub field based on what the toggle is
+                        if (newValue.isOn)
+                        {
+                            // setup initial state based on current state
+                            property.hlslDeclarationOverride = property.GetDefaultHLSLDeclaration();
+                            property.overrideHLSLDeclaration = newValue.isOn;
+                            popupField.value = property.hlslDeclarationOverride;
+                            propertySheet.Add(propRow);
+                        }
+                        else
+                        {
+                            property.overrideHLSLDeclaration = newValue.isOn;
+                            propRow.RemoveFromHierarchy();
+                        }
+
+                        this._postChangeValueCallback(false, ModificationScope.Graph);
+                    },
+                    new ToggleData(property.overrideHLSLDeclaration),
+                    "Override Property Declaration", out var overrideToggle));
+
+                // set up initial state
+                overrideToggle.SetEnabled(anyAllowed);
+                if (property.overrideHLSLDeclaration)
+                    propertySheet.Add(propRow);
+            }
         }
 
         void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)
@@ -294,19 +375,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     this._precisionChangedCallback();
                     this._postChangeValueCallback();
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
-        }
-
-        void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
-        {
-            var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
-            propertySheet.Add(toggleDataPropertyDrawer.CreateGUI( newValue =>
-            {
-                this._preChangeValueCallback("Change Hybrid Instanced Toggle");
-                property.gpuInstanced = newValue.isOn;
-                this._postChangeValueCallback(false, ModificationScope.Graph);
-            }, new ToggleData(property.gpuInstanced), "Hybrid Instanced (experimental)", out var gpuInstancedToggle));
-
-            gpuInstancedToggle.SetEnabled(property.isGpuInstanceable);
         }
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)

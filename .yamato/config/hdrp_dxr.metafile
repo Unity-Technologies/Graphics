@@ -49,5 +49,5 @@ all:
         - Standalone
         - playmode
         - playmode_XR
-        - playmode_NonRenderGraph
+        # - playmode_NonRenderGraph
 
