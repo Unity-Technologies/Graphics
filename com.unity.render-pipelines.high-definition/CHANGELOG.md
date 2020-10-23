@@ -39,6 +39,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
 - Fixing exceptions in the console when putting the SSGI in low quality mode (render graph).
 - Fixed NullRef Exception when decals are in the scene, no asset is set and HDRP wizard is run.
+- Fixed nan when a decal affects normals.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
