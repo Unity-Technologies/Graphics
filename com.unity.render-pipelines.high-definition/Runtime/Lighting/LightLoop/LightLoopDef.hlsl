@@ -157,40 +157,40 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
     // They will only be computed once per category, not once per function call.
     // TODO: we may want to store tile buffer ranges in a separate buffer for cache locality.
     const uint tileBufferIndex = ComputeTileBufferIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
-    const uint tilePackedRange = TILE_BUFFER[tileBufferIndex]; // {last << 16 | first}
-    const bool isTileEmpty     = tilePackedRange == UINT16_MAX;
+    const uint tileRangeData   = TILE_BUFFER[tileBufferIndex]; // {last << 16 | first}
+    const bool isTileEmpty     = tileRangeData == UINT16_MAX;
 
     if (!isTileEmpty)
     {
         const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
-        const uint zBinPackedRange = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
+        const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
 
-        const uint2 tileRange = uint2(tilePackedRange & UINT16_MAX, tilePackedRange >> 16);
-        const uint2 zBinRange = uint2(zBinPackedRange & UINT16_MAX, zBinPackedRange >> 16);
+        const uint2 tileEntityIndexRange = uint2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
+        const uint2 zBinEntityIndexRange = uint2(zBinRangeData & UINT16_MAX, zBinRangeData >> 16);
 
-        if (IntervalsOverlap(tileRange, zBinRange))
+        if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange))
         {
             // The part (2) below will be actually executed during every function call.
             while (i < n)
             {
                 // This is a valid buffer index. +1 because the first uint is reserved for the metadata.
-                uint entityIndexPair = TILE_BUFFER[(tileBufferIndex + 1) + (i / 2)];  // 16-bit indices
-                uint entityIndex     = BitFieldExtract(entityIndexPair, 16 * (i & 1), 16); // Order: first Lo, then Hi bits
+                uint tileEntityPair  = TILE_BUFFER[(tileBufferIndex + 1) + (i / 2)]; // 16-bit indices
+                uint tileEntityIndex = BitFieldExtract(tileEntityPair, 16 * (i & 1), 16);
 
                 // Entity indices are stored in the ascending order.
                 // We can distinguish 3 cases:
-                if (entityIndex < zBinRange.x)
+                if (tileEntityIndex < zBinEntityIndexRange.x)
                 {
                     i++; // Skip this entity; continue the (linear) search
                 }
-                else if (entityIndex <= zBinRange.y)
+                else if (tileEntityIndex <= zBinEntityIndexRange.y)
                 {
-                    data = _PunctualLightData[entityIndex];
+                    data = _PunctualLightData[tileEntityIndex];
 
                     b = true; // Found a valid index
                     break;    // Avoid incrementing 'i' further
                 }
-                else // if (zBinRange.y < entityIndex)
+                else // if (zBinEntityIndexRange.y < tileEntityIndex)
                 {
                     break;    // Avoid incrementing 'i' further
                 }
