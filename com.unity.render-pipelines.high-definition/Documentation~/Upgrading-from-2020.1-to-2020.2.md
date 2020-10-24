@@ -185,6 +185,10 @@ From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Plana
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
+From 10.x, HDRP uses range remapping for the metallic property when using a mask map.
+In the Lit, LitTessellation, LayeredLit and LayeredLitTesselation shaders, two new properties have been added: `_MetallicRemapMin` and `_MetallicRemapMax`.
+In the Decal shader, the property `_MetallicRemapMin` have been added, and `_MetallicScale` has been renamed as `_MetallicRemapMax`.
+
 From 10.x, a new pass ScenePickingPass have been added to all the shader and master node to allow the editor to correctly handle the picking with tesselated objects and backfaced objects.
 
 ## Raytracing
