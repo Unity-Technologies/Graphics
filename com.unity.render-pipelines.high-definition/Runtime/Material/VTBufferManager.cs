@@ -79,23 +79,29 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void BeginRender(HDCamera hdCamera)
         {
-            int width = hdCamera.actualWidth;
-            int height = hdCamera.actualHeight;
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            GetResolveDimensions(ref width, ref height);
-            if (msaa)
-                m_ResolverMsaa.UpdateSize(width, height);
-            else
-                m_Resolver.UpdateSize(width, height);
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
+            {
+                int width = hdCamera.actualWidth;
+                int height = hdCamera.actualHeight;
+                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                GetResolveDimensions(ref width, ref height);
+                if (msaa)
+                    m_ResolverMsaa.UpdateSize(width, height);
+                else
+                    m_Resolver.UpdateSize(width, height);
+            }
         }
 
         public void Resolve(CommandBuffer cmd, RTHandle rt, HDCamera hdCamera)
         {
-            var parameters = PrepareResolveVTParameters(hdCamera);
-            var msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            RTHandle input = msaaEnabled ? FeedbackBufferMsaa : (rt != null ? rt : FeedbackBuffer);
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
+            {
+                var parameters = PrepareResolveVTParameters(hdCamera);
+                var msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                RTHandle input = msaaEnabled ? FeedbackBufferMsaa : (rt != null ? rt : FeedbackBuffer);
 
-            ResolveVTDispatch(parameters, cmd, input, m_LowresResolver);
+                ResolveVTDispatch(parameters, cmd, input, m_LowresResolver);
+            }
         }
 
         class ResolveVTData
@@ -107,21 +113,24 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void Resolve(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
         {
-            using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {
-                // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
-                builder.AllowPassCulling(false);
-
-                passData.parameters = PrepareResolveVTParameters(hdCamera);
-                passData.input = builder.ReadTexture(input);
-                passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
-
-                builder.SetRenderFunc(
-                (ResolveVTData data, RenderGraphContext ctx) =>
+                using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData))
                 {
-                    ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
-                    VirtualTexturing.System.Update();
-                });
+                    // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
+                    builder.AllowPassCulling(false);
+
+                    passData.parameters = PrepareResolveVTParameters(hdCamera);
+                    passData.input = builder.ReadTexture(input);
+                    passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
+
+                    builder.SetRenderFunc(
+                    (ResolveVTData data, RenderGraphContext ctx) =>
+                    {
+                        ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
+                        VirtualTexturing.System.Update();
+                    });
+                }
             }
         }
 
