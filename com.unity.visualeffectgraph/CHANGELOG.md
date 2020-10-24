@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Property Binder : HierarchyRoot null reference exception while using Hierarchy to Attribute Map. [Case 1274788](https://issuetracker.unity3d.com/product/unity/issues/guid/1274788/)
 - Property Binder : Properties window isn't always up to date. [Case 1248711](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
 - Property Binder : Avoid Warning while building on Mobile "Presence of such handlers might impact performance on handheld devices." when building for Android" [Case 1279471](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
 
 ## [8.2.0] - 2020-07-08
 
