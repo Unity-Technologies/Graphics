@@ -531,6 +531,8 @@ float ComputeDistanceBaseRoughness(float distIntersectionToShadedPoint, float di
 }
 
 // return projectionDistance, can be used in ComputeDistanceBaseRoughness formula
+// return in R the unormalized corrected direction which is used to fetch cubemap but also its length represent the distance of the capture point to the intersection
+// Length R can be reuse as a parameter of ComputeDistanceBaseRoughness for distIntersectionToProbeCenter
 float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData light, int influenceShapeType, inout float3 R, inout float weight)
 {
     // Guideline for reflection volume: In HDRenderPipeline we separate the projection volume (the proxy of the scene) from the influence volume (what pixel on the screen is affected)
