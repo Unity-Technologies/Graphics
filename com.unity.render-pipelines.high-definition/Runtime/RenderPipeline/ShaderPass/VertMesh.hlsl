@@ -23,7 +23,7 @@ struct PackedVaryingsToPS
     UNITY_VERTEX_OUTPUT_STEREO
 
 #if defined(PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER) && SHADER_STAGE_FRAGMENT
-#if (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG))
+#if (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULL_SCREEN_DEBUG))
     uint primitiveID : SV_PrimitiveID;
 #endif
 #endif
@@ -50,7 +50,7 @@ FragInputs UnpackVaryingsToFragInputs(PackedVaryingsToPS packedInput)
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
 #if defined(PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER) && SHADER_STAGE_FRAGMENT
-#if (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG))
+#if (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULL_SCREEN_DEBUG))
     input.primitiveID = packedInput.primitiveID;
 #endif
 #endif
@@ -174,7 +174,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     output.normalWS = normalWS;
     output.tangentWS = tangentWS;
 #endif
-#if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG)
+#if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULL_SCREEN_DEBUG)
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
         IncrementVertexDensityCounter(output.positionCS);
 #endif
@@ -210,7 +210,7 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);
 
-#if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG)
+#if !defined(SHADER_API_METAL) && defined(SHADERPASS) && (SHADERPASS == SHADERPASS_FULL_SCREEN_DEBUG)
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
         IncrementVertexDensityCounter(output.positionCS);
 #endif
