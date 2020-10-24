@@ -118,7 +118,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Stages
             context.AddField(Fields.GraphVertex,                    descs.Contains(BlockFields.VertexDescription.Position) ||
                                                                     descs.Contains(BlockFields.VertexDescription.Normal) ||
-                                                                    descs.Contains(BlockFields.VertexDescription.Tangent));
+                                                                    descs.Contains(BlockFields.VertexDescription.Tangent) ||
+                                                                    descs.Contains(BlockFields.VertexDescription.UV0) ||
+                                                                    descs.Contains(BlockFields.VertexDescription.UV1) ||
+                                                                    descs.Contains(BlockFields.VertexDescription.UV2) ||
+                                                                    descs.Contains(BlockFields.VertexDescription.UV3) ||
+                                                                    descs.Contains(BlockFields.VertexDescription.Color));
             context.AddField(Fields.GraphPixel);
 
             // SubTarget
@@ -435,10 +440,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             new FieldDependency(StructFields.VertexDescriptionInputs.ScreenPosition,                 StructFields.VertexDescriptionInputs.WorldSpacePosition),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                            HDStructFields.AttributesMesh.uv0),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv0,                            StructFields.VertexDescriptionInputs.uv0),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                            HDStructFields.AttributesMesh.uv1),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv1,                            StructFields.VertexDescriptionInputs.uv1),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            HDStructFields.AttributesMesh.uv2),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            StructFields.VertexDescriptionInputs.uv2),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.AttributesMesh.uv3),
+            new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            StructFields.VertexDescriptionInputs.uv3),
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.AttributesMesh.color),
+            new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    StructFields.VertexDescriptionInputs.VertexColor),
 
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                    HDStructFields.AttributesMesh.weights),
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                    HDStructFields.AttributesMesh.indices),

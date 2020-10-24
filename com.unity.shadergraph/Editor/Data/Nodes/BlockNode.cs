@@ -100,6 +100,12 @@ namespace UnityEditor.ShaderGraph
                 case Vector3Control vector3Control:
                     AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
                     break;
+                case UVControl uvControl:
+                    AddSlot(new UV4MaterialSlot(0, descriptor.displayName, descriptor.name, uvControl.channel, stageCapability));
+                    break;
+                case VertexColorControl vertexColorControl:
+                    AddSlot(new VertexColorMaterialSlot(0, descriptor.displayName, descriptor.name, stageCapability));
+                    break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});
         }
@@ -180,7 +186,7 @@ namespace UnityEditor.ShaderGraph
                 return false;
             
             var requirements = m_Descriptor.control.GetRequirements();
-            return requirements.requiresMeshUVs.Contains(channel);
+            return requirements.requiresMeshUVs != null && requirements.requiresMeshUVs.Contains(channel);
         }
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
