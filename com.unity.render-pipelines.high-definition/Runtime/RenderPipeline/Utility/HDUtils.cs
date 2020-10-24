@@ -95,7 +95,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static MaterialPropertyBlock s_PropertyBlock = new MaterialPropertyBlock();
+        static MaterialPropertyBlock s_PropertyBlock
+        {
+            get
+            {
+                if (ss_PropertyBlock == null)
+                    ss_PropertyBlock = new MaterialPropertyBlock();
+                return ss_PropertyBlock;
+            }
+        }
+
+        static MaterialPropertyBlock ss_PropertyBlock;
 
         internal static List<RenderPipelineMaterial> GetRenderPipelineMaterialList()
         {
