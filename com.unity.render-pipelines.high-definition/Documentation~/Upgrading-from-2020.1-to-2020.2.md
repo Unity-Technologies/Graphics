@@ -188,6 +188,10 @@ In addition a new functionality for to fake distance based roughness have been a
 `float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness, intersectionDistance);`
 in the Lit shader. `intersectionDistance` is the return parameter of the EvaluateLight_EnvIntersection() function.
 
+From 10.x, HDRP uses range remapping for the metallic property when using a mask map.
+In the Lit, LitTessellation, LayeredLit and LayeredLitTesselation shaders, two new properties have been added: `_MetallicRemapMin` and `_MetallicRemapMax`.
+In the Decal shader, the property `_MetallicRemapMin` have been added, and `_MetallicScale` has been renamed as `_MetallicRemapMax`.
+
 ## Raytracing
 
 From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.
