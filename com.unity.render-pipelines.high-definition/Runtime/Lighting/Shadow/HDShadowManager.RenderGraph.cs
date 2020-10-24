@@ -36,7 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void RenderShadows(RenderGraph renderGraph, in ShaderVariablesGlobal globalCB, HDCamera hdCamera, CullingResults cullResults, ref ShadowResult result)
         {
             // Avoid to do any commands if there is no shadow to draw
-            if (m_ShadowRequestCount != 0)
+            if (m_ShadowRequestCount != 0 &&
+                (hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects) || hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects)))
             {
                 cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Cached Punctual Lights Shadows rendering", ref result.cachedPunctualShadowResult);
                 cachedShadowManager.punctualShadowAtlas.AddBlitRequestsForUpdatedShadows(m_Atlas);

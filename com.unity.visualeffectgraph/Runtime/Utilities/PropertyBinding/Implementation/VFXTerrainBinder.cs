@@ -10,7 +10,7 @@ namespace UnityEngine.VFX.Utility
         public string Property { get { return (string)m_Property; } set { m_Property = value; UpdateSubProperties(); } }
 
         [VFXPropertyBinding("UnityEditor.VFX.TerrainType"), UnityEngine.Serialization.FormerlySerializedAs("TerrainParameter")]
-        public ExposedProperty m_Property;
+        public ExposedProperty m_Property = "Terrain";
         public Terrain Terrain = null;
 
         private ExposedProperty Terrain_Bounds_center;
@@ -58,7 +58,7 @@ namespace UnityEngine.VFX.Utility
 
         public override string ToString()
         {
-            return string.Format("Sphere : '{0}' -> {1}", m_Property, Terrain == null ? "(null)" : Terrain.name);
+            return string.Format("Terrain : '{0}' -> {1}", m_Property, Terrain == null ? "(null)" : Terrain.name);
         }
     }
 }

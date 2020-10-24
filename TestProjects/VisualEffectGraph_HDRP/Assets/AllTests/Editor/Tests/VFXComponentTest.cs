@@ -203,6 +203,17 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Check_VFXRenderer_DefaultRenderingLayerNames()
+        {
+            //The content of default rendering layer names is retrieved by reflection.
+            var layerNames = VisualEffectEditor.RendererEditor.s_DefaultRenderingLayerNames;
+            Assert.IsNotNull(layerNames);
+            Assert.IsTrue(layerNames.Length != 0);
+            Assert.IsFalse(layerNames.Any(o => string.IsNullOrEmpty(o)));
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
         {
             var graph = CreateGraph_And_System();

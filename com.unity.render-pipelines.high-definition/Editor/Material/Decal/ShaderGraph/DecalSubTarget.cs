@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.VertexDescription.Normal);
             context.AddBlock(BlockFields.VertexDescription.Tangent);
-            
+
             // Decal
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
@@ -446,6 +446,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { CorePragmas.Basic },
                 { Pragma.MultiCompileInstancing },
+#if ENABLE_HYBRID_RENDERER_V2
+                { Pragma.DOTSInstancing },
+#endif
             };
         }
         #endregion
