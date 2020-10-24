@@ -1,4 +1,3 @@
-
 struct VaryingsToPS
 {
     VaryingsMeshToPS vmesh;
