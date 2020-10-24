@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+- Removed unnecessary HDRP constant declarations used by Material inspector from the UnityPerMaterial cbuffer [1285701]
+- Virtual Texture properties are now forced to be Exposed, as they do not work otherwise [1256374]
 - Renamed the existing Sample Cubemap Node to Sample Reflected Cubemap Node, and created a new Sample Cubemap Node that samples cubemaps with a direction.
 
 ### Fixed
@@ -17,10 +19,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
 - Fixed SampleTexture2DLOD node to return opaque black on unsupported platforms [1241602]
 - ShaderGraph now detects when a SubGraph is deleted while being used by a SubGraph node, and displays appropriate errors [1206438]
+- Fixed some issues with our Convert To Subgraph contextual menu to allow passthrough and fix inputs/outputs getting lost.
 - Fixed an issue where the Main Preview window rendered too large on small monitors during first open. [1254392]
 - Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
 - Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
+- Fixed a bug where non-word characters in an enum keyword reference name would break the graph. [1270168](https://issuetracker.unity3d.com/product/unity/issues/guid/1270168)
+- Fixed an issue where ShaderGraph could not read matrices from a Material or MaterialPropertyBlock while rendering with SRP batcher [1256374]
+- Fixed an issue where user setting a property to not Exposed, Hybrid-Instanced would result in a non-Hybrid Global property [1285700]
+- Fixed an upgrade issue where old ShaderGraph files with a weird/bugged state would break on update to master stack [1255011]
+- Fixed the subgraph slot sorting function [1286805]
+
 
 ## [10.1.0] - 2020-10-12
 

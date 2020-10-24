@@ -689,13 +689,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
 
             var copyPasteGraph = new CopyPasteGraph(graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
-                graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                nodes,
                 graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
                 graphInputs,
                 metaProperties,
                 metaKeywords,
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData),
-                true);
+                true,
+                false);
 
             // why do we serialize and deserialize only to make copies of everything in the steps below?
             // is this just to clear out all non-serialized data?
@@ -764,6 +765,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // figure out what needs remapping
             var externalOutputSlots = new List<Graphing.Edge>();
             var externalInputSlots = new List<Graphing.Edge>();
+            var passthroughSlots = new List<Graphing.Edge>();
             foreach (var edge in deserialized.edges)
             {
                 var outputSlot = edge.outputSlot;
@@ -786,6 +788,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     externalOutputSlots.Add(edge);
                 }
+                else
+                {
+                    externalInputSlots.Add(edge);
+                    externalOutputSlots.Add(edge);
+                    passthroughSlots.Add(edge);
+                }
             }
 
             // Find the unique edges coming INTO the graph
@@ -801,6 +809,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             const int subtractHeight = 20;
             var propPos = new Vector2(0, -((amountOfProps / 2) + height) - subtractHeight);
 
+            var passthroughSlotRefLookup = new Dictionary<SlotReference, SlotReference>();
+
+            var passedInProperties = new Dictionary<AbstractShaderProperty, AbstractShaderProperty>();
             foreach (var group in uniqueIncomingEdges)
             {
                 var sr = group.slotRef;
@@ -813,68 +824,78 @@ namespace UnityEditor.ShaderGraph.Drawing
                     : null;
 
                 AbstractShaderProperty prop;
-                switch (fromSlot.concreteValueType)
+                if (fromProperty != null && passedInProperties.TryGetValue(fromProperty, out prop))
                 {
-                    case ConcreteSlotValueType.Texture2D:
-                        prop = new Texture2DShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Texture2DArray:
-                        prop = new Texture2DArrayShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Texture3D:
-                        prop = new Texture3DShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Cubemap:
-                        prop = new CubemapShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Vector4:
-                        prop = new Vector4ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Vector3:
-                        prop = new Vector3ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Vector2:
-                        prop = new Vector2ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Vector1:
-                        prop = new Vector1ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Boolean:
-                        prop = new BooleanShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Matrix2:
-                        prop = new Matrix2ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Matrix3:
-                        prop = new Matrix3ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Matrix4:
-                        prop = new Matrix4ShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.SamplerState:
-                        prop = new SamplerStateShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.Gradient:
-                        prop = new GradientShaderProperty();
-                        break;
-                    case ConcreteSlotValueType.VirtualTexture:
-                        prop = new VirtualTextureShaderProperty()
-                        {
-                            // also copy the VT settings over from the original property (if there is one)
-                            value = (fromProperty as VirtualTextureShaderProperty)?.value ?? new SerializableVirtualTexture()
-                        };
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                }
+                else
+                {
+                    switch (fromSlot.concreteValueType)
+                    {
+                        case ConcreteSlotValueType.Texture2D:
+                            prop = new Texture2DShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Texture2DArray:
+                            prop = new Texture2DArrayShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Texture3D:
+                            prop = new Texture3DShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Cubemap:
+                            prop = new CubemapShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Vector4:
+                            prop = new Vector4ShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Vector3:
+                            prop = new Vector3ShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Vector2:
+                            prop = new Vector2ShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Vector1:
+                            prop = new Vector1ShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Boolean:
+                            prop = new BooleanShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Matrix2:
+                            prop = new Matrix2ShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Matrix3:
+                            prop = new Matrix3ShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Matrix4:
+                            prop = new Matrix4ShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.SamplerState:
+                            prop = new SamplerStateShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.Gradient:
+                            prop = new GradientShaderProperty();
+                            break;
+                        case ConcreteSlotValueType.VirtualTexture:
+                            prop = new VirtualTextureShaderProperty()
+                            {
+                                // also copy the VT settings over from the original property (if there is one)
+                                value = (fromProperty as VirtualTextureShaderProperty)?.value ?? new SerializableVirtualTexture()
+                            };
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+
+                    prop.displayName = fromProperty != null
+                        ? fromProperty.displayName
+                        : fromSlot.concreteValueType.ToString();
+                    prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})",
+                        prop.displayName);
+                    subGraph.AddGraphInput(prop);
+                    if (fromProperty != null)
+                    {
+                        passedInProperties.Add(fromProperty, prop);
+                    }
                 }
 
-                prop.displayName = fromProperty != null
-                    ? fromProperty.displayName
-                    : fromSlot.concreteValueType.ToString();
-                prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})",
-                    prop.displayName);
-
-                subGraph.AddGraphInput(prop);
                 var propNode = new PropertyNode();
                 {
                     var drawState = propNode.drawState;
@@ -886,13 +907,45 @@ namespace UnityEditor.ShaderGraph.Drawing
                 subGraph.AddNode(propNode);
                 propNode.property = prop;
 
+
+                Vector2 avg = Vector2.zero;
                 foreach (var edge in group.edges)
                 {
-                    subGraph.Connect(
-                        new SlotReference(propNode, PropertyNode.OutputSlotId),
-                        edge.inputSlot);
-                    externalInputNeedingConnection.Add(new KeyValuePair<IEdge, AbstractShaderProperty>(edge, prop));
+                    if (passthroughSlots.Contains(edge) && !passthroughSlotRefLookup.ContainsKey(sr))
+                    {
+                        passthroughSlotRefLookup.Add(sr, new SlotReference(propNode, PropertyNode.OutputSlotId));
+                    }
+                    else
+                    {
+                        subGraph.Connect(
+                            new SlotReference(propNode, PropertyNode.OutputSlotId),
+                            edge.inputSlot);
+
+                        int i;
+                        var inputs = edge.inputSlot.node.GetInputSlots<MaterialSlot>().ToList();
+
+                        for(i = 0; i < inputs.Count; ++i)
+                        {
+                            if(inputs[i].slotReference.slotId == edge.inputSlot.slotId)
+                            {
+                                break;
+                            }
+                        }
+                        avg += new Vector2(edge.inputSlot.node.drawState.position.xMin, edge.inputSlot.node.drawState.position.center.y + 30f * i);
+                    }
+                    //we collapse input properties so dont add edges that are already being added
+                    if (!externalInputNeedingConnection.Any(x => x.Key.outputSlot.slot == edge.outputSlot.slot && x.Value == prop))
+                    {
+                        externalInputNeedingConnection.Add(new KeyValuePair<IEdge, AbstractShaderProperty>(edge, prop));
+                    }
                 }
+                avg /= group.edges.Count;
+                var pos = avg - new Vector2(150f, 0f);
+                propNode.drawState = new DrawState()
+                {
+                    position = new Rect(pos, propNode.drawState.position.size),
+                    expanded = propNode.drawState.expanded
+                };
             }
 
             var uniqueOutgoingEdges = externalInputSlots.GroupBy(
@@ -913,7 +966,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (var edge in group.edges)
                 {
-                    var newEdge = subGraph.Connect(edge.outputSlot, inputSlotRef);
+                    var newEdge = subGraph.Connect(passthroughSlotRefLookup.TryGetValue(edge.outputSlot, out SlotReference remap) ? remap : edge.outputSlot, inputSlotRef);
                     externalOutputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
                 }
             }
@@ -962,10 +1015,46 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graphObject.graph.RemoveElements(
-                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                graphView.selection.OfType<IShaderNodeView>().Select(x => x.node).Where(x => !(x is PropertyNode || x is SubGraphOutputNode) && x.allowedInSubGraph).ToArray(),
                 new IEdge[] {},
                 new GroupData[] {},
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData).ToArray());
+
+            List<GraphElement> moved = new List<GraphElement>();
+            foreach(var nodeView in graphView.selection.OfType<IShaderNodeView>())
+            {
+                var node = nodeView.node;
+                if(graphView.graph.removedNodes.Contains(node) || node is SubGraphOutputNode)
+                {
+                    continue;
+                }
+
+                var edges = graphView.graph.GetEdges(node);
+                int numEdges = edges.Count();
+                if(numEdges == 0)
+                {
+                    graphView.graph.RemoveNode(node);
+                }
+                else if(numEdges == 1 && edges.First().inputSlot.node != node) //its an output edge
+                {
+                    var edge = edges.First();
+                    int i;
+                    var inputs = edge.inputSlot.node.GetInputSlots<MaterialSlot>().ToList();
+                    for(i = 0; i < inputs.Count; ++i)
+                    {
+                        if(inputs[i].slotReference.slotId == edge.inputSlot.slotId)
+                        {
+                            break;
+                        }
+                    }
+                    node.drawState = new DrawState()
+                    {
+                        position = new Rect(new Vector2(edge.inputSlot.node.drawState.position.xMin, edge.inputSlot.node.drawState.position.center.y) - new Vector2(150f, -30f * i), node.drawState.position.size),
+                        expanded = node.drawState.expanded
+                    };
+                    (nodeView as GraphElement).SetPosition(node.drawState.position);
+                }
+            }
             graphObject.graph.ValidateGraph();
         }
 

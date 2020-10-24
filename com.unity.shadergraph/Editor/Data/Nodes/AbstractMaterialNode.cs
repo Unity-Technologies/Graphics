@@ -836,12 +836,15 @@ namespace UnityEditor.ShaderGraph
                 {
                     // no matching slot with that id.. skip it
                 }
-                else if (writeIndex != orderIndex)
+                else
                 {
-                    // swap the matching slot into position
-                    var slot = m_Slots[matchIndex];
-                    m_Slots[matchIndex] = m_Slots[writeIndex];
-                    m_Slots[writeIndex] = slot;
+                    if (writeIndex != matchIndex)
+                    {
+                        // swap the matching slot into position
+                        var slot = m_Slots[matchIndex];
+                        m_Slots[matchIndex] = m_Slots[writeIndex];
+                        m_Slots[writeIndex] = slot;
+                    }
                     writeIndex++;
                 }
             }
