@@ -4,6 +4,10 @@
 
 Shader Graph has renamed the **Vector 1** property as **Float** in both the Vector 1 node and the exposed parameter list. The **Float** precision was also renamed as **Single**. Behavior is exactly the same, and only the names have changed.
 
+## Renamed Sample Cubemap Node
+
+Shader Graph has renamed the previous Sample Cubemap Node to [Sample Reflected Cubemap Node](Sample-Reflected-Cubemap-Node.md), and has added a new [Sample Cubemap Node](Sample-Cubemap-Node.md), which uses world space direction.
+
 ## Master Stack graph output
 
 Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack.md) solution for defining graph output in 10.0. You can still open all graphs created in previous versions, because Shader Graph automatically upgrades them. This page describes the expected behavior and explains when you might need to perform manual upgrade steps.

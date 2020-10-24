@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed unnecessary HDRP constant declarations used by Material inspector from the UnityPerMaterial cbuffer [1285701]
 - Virtual Texture properties are now forced to be Exposed, as they do not work otherwise [1256374]
+- Renamed the existing Sample Cubemap Node to Sample Reflected Cubemap Node, and created a new Sample Cubemap Node that samples cubemaps with a direction.
 
 ### Fixed
 - Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
