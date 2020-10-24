@@ -128,22 +128,28 @@ namespace UnityEditor
             return resources == null || resources.Length == 0;
         }
 
+
+        public static void CreateTemplateAsset(string pathName)
+        {
+
+            try
+            {
+                var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
+                System.IO.File.WriteAllText(pathName, templateString);
+            }
+            catch (FileNotFoundException)
+            {
+                CreateNewAsset(pathName);
+            }
+
+            AssetDatabase.ImportAsset(pathName);
+        }
+
         internal class DoCreateNewVFX : EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                try
-                {
-                    var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
-                    System.IO.File.WriteAllText(pathName, templateString);
-                }
-                catch (FileNotFoundException)
-                {
-                    CreateNewAsset(pathName);
-                }
-
-                AssetDatabase.ImportAsset(pathName);
-
+                CreateTemplateAsset(pathName);
                 var resource = VisualEffectResource.GetResourceAtPath(pathName);
                 ProjectWindowUtil.FrameObjectInProjectWindow(resource.asset.GetInstanceID());
             }
