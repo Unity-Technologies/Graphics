@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         BuildLightList,
         GenerateLightAABBs,
         PerformZBinning,
-        PerformXYBinning,
+        FillCoarseTiles,
         ContactShadows,
         BlitToFinalRTDevBuildOnly,
         Distortion,

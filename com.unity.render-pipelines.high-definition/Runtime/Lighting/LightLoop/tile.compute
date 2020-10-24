@@ -2,11 +2,11 @@
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 // Generates large screen tiles in a fast, conservative manner.
-#pragma kernel FillCoarseTile     PASS = FILL_COARSE_TILE      COARSE_BINNING
+#pragma kernel FillCoarseTiles     PASS = FILL_COARSE_TILES     COARSE_BINNING
 // Removes certain entities from the coarse buffer at a large cost.
-#pragma kernel PruneCoarseTile    PASS = PRUNE_COARSE_TILE     COARSE_BINNING
+#pragma kernel PruneCoarseTiles    PASS = PRUNE_COARSE_TILES    COARSE_BINNING
 // Generates small screen tiles in an accurate manner.
-#pragma kernel BuildFineTile      PASS = BUILD_FINE_TILE       FINE_BINNING
+#pragma kernel FillFineTiles       PASS = FILL_FINE_TILES       FINE_BINNING
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -16,14 +16,14 @@
 
 /* ------------------------------ Inputs ------------------------------------ */
 
-#if (PASS == FILL_COARSE_TILE)
+#if (PASS == FILL_COARSE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<float4> _xyBoundsBuffer : register(t0); // {x_min, x_max, y_min, y_max}
 #endif
 
 /* ------------------------------ Outputs ----------------------------------- */
 
-#if (PASS == FILL_COARSE_TILE)
+#if (PASS == FILL_COARSE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     // The size of the buffer can be computed as follows:
     // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) *
@@ -32,7 +32,7 @@
     RWStructuredBuffer<uint> _CoarseTileBuffer : register(u0); // List of 16-bit indices
 #endif
 
-#if (PASS == BUILD_FINE_TILE)
+#if (PASS == BUILD_FINE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     // The size of the buffer can be computed as follows:
     // DIV_ROUND_UP(RES_X, FINE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_TILE_SIZE) *
@@ -55,7 +55,7 @@ static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uin
 #define THREADS_PER_GROUP (64)
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
-void FillCoarseTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
     // We could tile the threads in 8x8 blocks. The problem is,
     // the dimensions of the buffer are already quite small. The extra padding
@@ -157,13 +157,13 @@ void FillCoarseTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 }
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
-void PruneCoarseTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+void PruneCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
 
 }
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]
-void BuildFineTile(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+void FillFineTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
 
 }

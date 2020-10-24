@@ -3626,15 +3626,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void PerformXYBinning(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
+        static void FillCoarseTiles(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
             // If (boundedEntityCount == 0), we still perform a dispatch that will initialize bins as empty.
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PerformXYBinning)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FillCoarseTiles)))
             {
                 var shader = parameters.tileShader;
                 int kernel;
 
-                kernel = 0; // FillCoarseTile
+                kernel = 0; // FillCoarseTiles
 
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._xyBoundsBuffer,   resources.xyBoundsBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer, resources.coarseTileBuffer);
@@ -3648,11 +3648,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
-                kernel = 1; // PruneCoarseTile
+                kernel = 1; // PruneCoarseTiles
 
                 // ...
 
-                kernel = 2; // BuildFineTile
+                kernel = 2; // FillFineTiles
 
                 // ...
             }
@@ -4111,10 +4111,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 // That is fairly efficient, and allows us to avoid weird special cases.
                 ClearLightLists(parameters, resources, cmd);
                 GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
-                // Both Z-binning and XY-binning can be executed concurrently.
+                // Both Z-binning and tile filling can be executed concurrently.
                 // This should improve GPU utilization.
                 PerformZBinning(parameters, resources, cmd);
-                PerformXYBinning(parameters, resources, cmd);
+                FillCoarseTiles(parameters, resources, cmd);
 
                 // BigTilePrepass(parameters, resources, cmd);
                 // BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
