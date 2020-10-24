@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -16,6 +16,10 @@ The version number for this package has increased due to a version update of a r
 - Adding support of 4 channel tex coords for ray tracing (case 1265309).
 - Added a help button on the volume component toolbar for documentation.
 - Added range remapping to metallic property for Lit and Decal shaders.
+- Exposed the API to access HDRP shader pass names.
+- Added the status check of default camera frame settings in the DXR wizard.
+- Added frame setting for Virtual Texturing. 
+- Added a fade distance for light influencing volumetric lighting.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
@@ -30,6 +34,15 @@ The version number for this package has increased due to a version update of a r
 - Fixed bounding box generation that resulted in incorrect light culling (case 3875925).
 - VFX : Fix Emissive writing in Opaque Lit Output with PSSL platforms (case 273378).
 - Fixed issue where pivot of DecalProjector was not aligned anymore on Transform position when manipulating the size of the projector from the Inspector.
+- Fixed a null reference exception when creating a diffusion profile asset.
+- Fixed the diffusion profile not being registered as a dependency of the ShaderGraph.
+- Fixing exceptions in the console when putting the SSGI in low quality mode (render graph).
+- Fixed NullRef Exception when decals are in the scene, no asset is set and HDRP wizard is run.
+- Fixed issue with TAA causing bleeding of a view into another when multiple views are visible.
+- Fix an issue that caused issues of usability of editor if a very high resolution is set by mistake and then reverted back to a smaller resolution.
+- Fixed issue where Default Volume Profile Asset change in project settings was not added to the undo stack (case 1285268).
+- Fixed undo after enabling compositor.
+- Fixed the ray tracing shadow UI being displayed while it shouldn't (case 1286391).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -38,6 +51,8 @@ The version number for this package has increased due to a version update of a r
 - Use draggable fields for float scalable settings
 - Migrated the fabric & hair shadergraph samples directly into the renderpipeline resources.
 - Removed green coloration of the UV on the DecalProjector gizmo.
+- Now the DXR wizard displays the name of the target asset that needs to be changed.
+- Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
 
 ## [10.1.0] - 2020-10-12
 

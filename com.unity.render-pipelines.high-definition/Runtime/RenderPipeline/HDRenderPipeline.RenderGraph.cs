@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (GetIndirectDiffuseMode(hdCamera))
                 {
                     case IndirectDiffuseMode.ScreenSpace:
-                        lightingBuffers.ssgiLightingBuffer = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_ShaderVariablesRayTracingCB);
+                        lightingBuffers.ssgiLightingBuffer = RenderSSGI(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_ShaderVariablesRayTracingCB, GetDepthBufferMipChainInfo());
                         break;
 
                     case IndirectDiffuseMode.Raytrace:
