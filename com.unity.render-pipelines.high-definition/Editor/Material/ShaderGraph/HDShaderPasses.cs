@@ -1203,7 +1203,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = "FullScreenDebug",
-                referenceName = "SHADERPASS_FULLSCREEN_DEBUG",
+                referenceName = "SHADERPASS_FULL_SCREEN_DEBUG",
                 lightMode = "FullScreenDebug",
                 useInPreview = false,
 

@@ -295,6 +295,10 @@ Ray tracing now supports VR. However, since ray tracing is resource intensive an
 
 HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
 
+### Metallic Remapping
+
+HDRP now uses range remapping for the metallic value when using a mask map on Lit Materials as well as Decals.
+
 ## Issues resolved
 
 For information on issues resolved in version 10 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/changelog/CHANGELOG.html).

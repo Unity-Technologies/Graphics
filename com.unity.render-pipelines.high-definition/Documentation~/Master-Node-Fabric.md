@@ -77,7 +77,7 @@ To view these properties, click the **Cog** in the top right of the Master Node.
 | **Subsurface Scattering**      | Indicates whether the Material supports subsurface scattering. To disable subsurface scattering in specific regions of the Material, use the **Subsurface Mask**. |
 | **Transmission**               | Indicates whether the Material supports transmission.        |
 | **Receive Decals**             | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
-| **Receive SSR**                | Indicates whether HDRP includes this Material when it processes the screen space reflection pass. |
+| **Receive SSR (Transparent)**  | Indicates whether HDRP includes this Material when it processes the screen space reflection pass. There is a separate option for transparent Surface Type.|
 | **Add Precomputed Velocity**   | Indicates whether this Material uses precomputed velocity information stored in an Alembic file. |
 | **Specular Occlusion Mode**    | Set the mode that HDRP uses to calculate specular occlusion.<br/>&#8226; **Off**: Disables specular occlusion.<br/>&#8226; **From AO**: Calculates specular occlusion from the ambient occlusion map and the Camera's view vector.<br/>&#8226; **From AO and Bent Normal**: Calculates specular occlusion from the ambient occlusion map, the bent normal map, and the Camera's view vector.<br/>&#8226; **Custom**: Allows you to specify your own specular occlusion values. |
 | **Override Baked GI**          | Enable this setting to expose two baked GI [input ports](#InputPorts). This makes this Materials ignore global illumination in your Scene and, instead, allows you to provide your own global illumination values and customize the way this Material looks. |
