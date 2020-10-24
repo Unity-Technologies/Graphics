@@ -8,7 +8,9 @@ uint GetTileSize()
 }
 
 // The HLSL preprocessor does not support the '%' operator.
-#define REMAINDER(a, n) ((a) - (n) * ((a) / (n)))
+#define REMAINDER(A, N)       ((A) - (N) * ((A) / (N)))
+#define CLEAR_SIGN_BIT(X)     (asint(X) & INT_MAX)
+#define DIV_ROUND_UP(N, D)    (((N) + (D) - 1) / (D)) // No division by 0 checks
 
 // Returns the location of the N-th set bit starting from the lowest order bit and working upward.
 // Slow implementation - do not use for large bit sets.

@@ -50,9 +50,6 @@ RWStructuredBuffer<float2>  _wBoundsBuffer : register(u1); // {w_min, w_max}
 #undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 #endif
 
-#define CLEAR_SIGN_BIT(X)  (asint(X) & INT_MAX)
-#define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks
-
 // Clipping a plane by a cube may produce a hexagon (6-gon).
 // Clipping a hexagon by 4 planes may produce a decagon (10-gon).
 #define MAX_CLIP_VERTS     (10)
@@ -64,7 +61,7 @@ RWStructuredBuffer<float2>  _wBoundsBuffer : register(u1); // {w_min, w_max}
 #define ENTITIES_PER_GROUP (THREADS_PER_GROUP / THREADS_PER_ENTITY)
 #define VERTS_PER_GROUP    (NUM_VERTS * ENTITIES_PER_GROUP)
 #define VERTS_PER_THREAD   (NUM_VERTS / THREADS_PER_ENTITY)
-#define FACES_PER_THREAD   DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY)
+#define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
 
 // All planes and faces are always in the standard order (see below).
 // Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
@@ -438,17 +435,17 @@ float2 ComputeBoundsOfProjectedSphere(float3 C, float r, float projScale, float 
 // rap - real (3D) coordinates after  perspective (after division by w)
 // *********************************************************************************************
 
-[numthreads(THREADS_PER_GROUP, 1, 1)]
-void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+[numthreads(THREADS_PER_ENTITY, ENTITIES_PER_GROUP, 1)]
+void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    const uint t   = threadID;
-    const uint g   = groupID.x;
-    const uint eye = groupID.z;
+    const uint t      = threadID.x;
+    const uint entity = threadID.y;
+    const uint g      = groupID.x;
+    const uint eye    = groupID.z;
 
-    const uint intraGroupEntityIndex = t / THREADS_PER_ENTITY;
-    const uint globalEntityIndex     = IndexFromCoordinate(uint2(intraGroupEntityIndex, g), ENTITIES_PER_GROUP);
-    const uint baseVertexOffset      = intraGroupEntityIndex * NUM_VERTS;
-    const uint clampedEntityIndex    = min(globalEntityIndex, _BoundedEntityCount - 1); // Stay within bounds
+    const uint baseVertexOffset   = entity * NUM_VERTS;
+    const uint globalEntityIndex  = IndexFromCoordinate(uint2(entity, g), ENTITIES_PER_GROUP);
+    const uint clampedEntityIndex = min(globalEntityIndex, _BoundedEntityCount - 1);
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.
@@ -471,16 +468,16 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // (0) Initialize the TGSM.
-    if (t % THREADS_PER_ENTITY == 0) // Avoid bank conflicts
+    if (t == 0) // Avoid bank conflicts
     {
-        gs_CullClipFaceMasks[intraGroupEntityIndex] = 0; // Initially inside
-        gs_NdcAaBbMinPtX[intraGroupEntityIndex]     = asuint(1.0f);
-        gs_NdcAaBbMaxPtX[intraGroupEntityIndex]     = asuint(0.0f);
-        gs_NdcAaBbMinPtY[intraGroupEntityIndex]     = asuint(1.0f);
-        gs_NdcAaBbMaxPtY[intraGroupEntityIndex]     = asuint(0.0f);
+        gs_CullClipFaceMasks[entity] = 0; // Initially inside
+        gs_NdcAaBbMinPtX[entity]     = asuint(1.0f);
+        gs_NdcAaBbMaxPtX[entity]     = asuint(0.0f);
+        gs_NdcAaBbMinPtY[entity]     = asuint(1.0f);
+        gs_NdcAaBbMaxPtY[entity]     = asuint(0.0f);
         // Skip Z, we do not need it.
-        gs_NdcAaBbMinPtW[intraGroupEntityIndex]     = asuint(FLT_INF);
-        gs_NdcAaBbMaxPtW[intraGroupEntityIndex]     = asuint(0.0f);
+        gs_NdcAaBbMinPtW[entity]     = asuint(FLT_INF);
+        gs_NdcAaBbMaxPtW[entity]     = asuint(0.0f);
     }
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
@@ -498,7 +495,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     // (1) Compute the vertices of the bounding frustum.
     for (i = 0; i < VERTS_PER_THREAD; i++)
     {
-        uint v = i * THREADS_PER_ENTITY + t % THREADS_PER_ENTITY;
+        uint v = t + i * THREADS_PER_ENTITY;
 
         // rbpVerts[0] = rbpC - rbpX * scale - rbpY * scale - rbpZ; (-s, -s, -1)
         // rbpVerts[1] = rbpC + rbpX * scale - rbpY * scale - rbpZ; (+s, -s, -1)
@@ -577,11 +574,11 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         cullClipFaceMask |= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
 #else
-    InterlockedOr(gs_CullClipFaceMasks[intraGroupEntityIndex], cullClipFaceMask);
+    InterlockedOr(gs_CullClipFaceMasks[entity], cullClipFaceMask);
 
     GroupMemoryBarrierWithGroupSync();
 
-    cullClipFaceMask = gs_CullClipFaceMasks[intraGroupEntityIndex];
+    cullClipFaceMask = gs_CullClipFaceMasks[entity];
 #endif
 
     // (2) Test the corners of the view volume.
@@ -617,7 +614,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
         for (i = 0; i < VERTS_PER_THREAD; i++)
         {
-            uint v = i * THREADS_PER_ENTITY + t % THREADS_PER_ENTITY;
+            uint v = t + i * THREADS_PER_ENTITY;
 
             float3 rapVertCS = GenerateVertexOfStandardCube(v);
             rapVertCS.z = rapVertCS.z * 0.5 + 0.5; // View's projection matrix MUST map Z to [0, 1]
@@ -663,7 +660,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
         for (i = 0; i < FACES_PER_THREAD; i++)
         {
-            uint n = i * THREADS_PER_ENTITY + t % THREADS_PER_ENTITY;
+            uint n = t + i * THREADS_PER_ENTITY;
 
             if (n < numFacesToCull)
             {
@@ -687,11 +684,11 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         cullClipFaceMask &= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
 #else
-    InterlockedAnd(gs_CullClipFaceMasks[intraGroupEntityIndex], cullClipFaceMask);
+    InterlockedAnd(gs_CullClipFaceMasks[entity], cullClipFaceMask);
 
     GroupMemoryBarrierWithGroupSync();
 
-    cullClipFaceMask = gs_CullClipFaceMasks[intraGroupEntityIndex];
+    cullClipFaceMask = gs_CullClipFaceMasks[entity];
 #endif
 
     // (4) Clip the faces.
@@ -701,7 +698,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
         for (i = 0; i < FACES_PER_THREAD; i++)
         {
-            uint n = i * THREADS_PER_ENTITY + t % THREADS_PER_ENTITY;
+            uint n = t + i * THREADS_PER_ENTITY;
 
             if (n < numFacesToClip)
             {
@@ -735,23 +732,23 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 #else
     // Integer comparison works for floating-point numbers as long as the sign bit is 0.
     // We must take care of -0 ourselves. saturate() does not help.
-    InterlockedMin(gs_NdcAaBbMinPtX[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.x)));
-    InterlockedMax(gs_NdcAaBbMaxPtX[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.x)));
-    InterlockedMin(gs_NdcAaBbMinPtY[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.y)));
-    InterlockedMax(gs_NdcAaBbMaxPtY[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.y)));
+    InterlockedMin(gs_NdcAaBbMinPtX[entity], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.x)));
+    InterlockedMax(gs_NdcAaBbMaxPtX[entity], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.x)));
+    InterlockedMin(gs_NdcAaBbMinPtY[entity], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.y)));
+    InterlockedMax(gs_NdcAaBbMaxPtY[entity], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.y)));
     // Skip Z, we do not need it.
-    InterlockedMin(gs_NdcAaBbMinPtW[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.w)));
-    InterlockedMax(gs_NdcAaBbMaxPtW[intraGroupEntityIndex], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.w)));
+    InterlockedMin(gs_NdcAaBbMinPtW[entity], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.w)));
+    InterlockedMax(gs_NdcAaBbMaxPtW[entity], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.w)));
 
     GroupMemoryBarrierWithGroupSync();
 
-    ndcAaBbMinPt.x = asfloat(gs_NdcAaBbMinPtX[intraGroupEntityIndex]);
-    ndcAaBbMaxPt.x = asfloat(gs_NdcAaBbMaxPtX[intraGroupEntityIndex]);
-    ndcAaBbMinPt.y = asfloat(gs_NdcAaBbMinPtY[intraGroupEntityIndex]);
-    ndcAaBbMaxPt.y = asfloat(gs_NdcAaBbMaxPtY[intraGroupEntityIndex]);
+    ndcAaBbMinPt.x = asfloat(gs_NdcAaBbMinPtX[entity]);
+    ndcAaBbMaxPt.x = asfloat(gs_NdcAaBbMaxPtX[entity]);
+    ndcAaBbMinPt.y = asfloat(gs_NdcAaBbMinPtY[entity]);
+    ndcAaBbMaxPt.y = asfloat(gs_NdcAaBbMaxPtY[entity]);
     // Skip Z, we do not need it.
-    ndcAaBbMinPt.w = asfloat(gs_NdcAaBbMinPtW[intraGroupEntityIndex]);
-    ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[intraGroupEntityIndex]);
+    ndcAaBbMinPt.w = asfloat(gs_NdcAaBbMinPtW[entity]);
+    ndcAaBbMaxPt.w = asfloat(gs_NdcAaBbMaxPtW[entity]);
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
     // (5) Compute the AABB of the bounding sphere.
@@ -800,7 +797,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         }
     }
 
-    if (!isHelperThread && (t % THREADS_PER_ENTITY == 0)) // Avoid bank conflicts
+    if (!isHelperThread && (t == 0)) // Avoid bank conflicts
     {
         _xyBoundsBuffer[bufferIndex] = float4(ndcAaBbMinPt.x, ndcAaBbMaxPt.x, ndcAaBbMinPt.y, ndcAaBbMaxPt.y);
         _wBoundsBuffer[bufferIndex]  = float2(ndcAaBbMinPt.w, ndcAaBbMaxPt.w);

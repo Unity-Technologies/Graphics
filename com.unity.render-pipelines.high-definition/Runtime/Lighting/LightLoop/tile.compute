@@ -59,19 +59,19 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
     // We could tile the threads in 8x8 blocks. The problem is,
     // the dimensions of the buffer are already quite small. The extra padding
-    // (helper threads) required outweighs the benefits (reduced divergence).
+    // (helper threads) required outweighs the benefits (improved locality, reduced divergence).
     const uint t   = threadID;
     const uint g   = groupID.x;
     const uint cat = groupID.y;
     const uint eye = groupID.z;
 
-    const uint  tileIndex        = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
-    const uint  clampedTileIndex = min(tileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
+    const uint  globalTileIndex  = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
+    const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
     const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x);
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.
-    const bool isHelperThread = tileIndex != clampedTileIndex;
+    const bool isHelperThread = globalTileIndex != clampedTileIndex;
 
     if (isHelperThread) return; // Avoid adding too many checks or branches below
 
@@ -119,8 +119,7 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
                 if ((j & 1) != 0) // Is the pair complete & ready to be stored?
                 {
-                     // +1 because the first uint is reserved for the metadata.
-                    _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = indexPair;
+                    _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = indexPair; // +1 for the metadata
 
                     indexPair = 0; // In order to use bitwise OR above
                 }
@@ -137,17 +136,8 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
             indexPair |= i << (16 * (j & 1)); // Order: first Lo, then Hi bits
 
-            _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = indexPair;
-
-            j++;
+            _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = indexPair; // +1 for the metadata
         }
-
-        // You can clear the buffer for debugging purposes.
-        // while (j < TILE_ENTRY_LIMIT)
-        // {
-        //     _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = 0;
-        //     j += 2;
-        // }
     }
 
     uint outputRange = (last << 16) | first;

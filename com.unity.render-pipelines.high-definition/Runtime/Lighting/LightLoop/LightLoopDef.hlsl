@@ -155,6 +155,7 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
 
     // This part (1) is loop-invariant. These values do not depend on the value of 'i'.
     // They will only be computed once per category, not once per function call.
+    // TODO: we may want to store tile buffer ranges in a separate buffer for cache locality.
     const uint tileBufferIndex = ComputeTileBufferIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
     const uint tilePackedRange = TILE_BUFFER[tileBufferIndex]; // {last << 16 | first}
     const bool isTileEmpty     = tilePackedRange == UINT16_MAX;
