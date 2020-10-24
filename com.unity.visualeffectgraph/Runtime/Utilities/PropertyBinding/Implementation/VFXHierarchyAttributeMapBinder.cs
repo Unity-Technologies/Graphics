@@ -25,7 +25,7 @@ namespace UnityEngine.VFX.Utility
             Interpolate
         }
 
-        public Transform HierarchyRoot = null;
+        public Transform HierarchyRoot;
         public float DefaultRadius = 0.1f;
         public uint MaximumDepth = 3;
         public RadiusMode Radius = RadiusMode.Fixed;
@@ -69,6 +69,9 @@ namespace UnityEngine.VFX.Utility
         List<Bone> ChildrenOf(Transform source, uint depth)
         {
             List<Bone> output = new List<Bone>();
+            if (source == null)
+                return output;
+
             foreach (Transform child in source)
             {
                 output.Add(new Bone()

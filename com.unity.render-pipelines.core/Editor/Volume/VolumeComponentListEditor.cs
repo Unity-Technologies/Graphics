@@ -58,7 +58,14 @@ namespace UnityEditor.Rendering
         Dictionary<Type, Type> m_EditorTypes; // Component type => Editor type
         List<VolumeComponentEditor> m_Editors;
 
+        static Dictionary<Type, string> m_EditorDocumentationURLs;
+
         int m_CurrentHashCode;
+
+        static VolumeComponentListEditor()
+        {
+            ReloadDocumentation();
+        }
 
         /// <summary>
         /// Creates a new instance of <see cref="VolumeComponentListEditor"/> to use in an
@@ -224,6 +231,8 @@ namespace UnityEditor.Rendering
                     string title = editor.GetDisplayTitle();
                     int id = i; // Needed for closure capture below
 
+                    m_EditorDocumentationURLs.TryGetValue(editor.target.GetType(), out var documentationURL);
+
                     CoreEditorUtils.DrawSplitter();
                     bool displayContent = CoreEditorUtils.DrawHeaderToggle(
                             title,
@@ -231,7 +240,8 @@ namespace UnityEditor.Rendering
                             editor.activeProperty,
                             pos => OnContextClick(pos, editor.target, id),
                             editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
-                            () => editor.isInAdvancedMode ^= true
+                            () => editor.isInAdvancedMode ^= true,
+                            documentationURL
                             );
 
                     if (displayContent)
@@ -471,7 +481,7 @@ namespace UnityEditor.Rendering
             }
             m_SerializedObject.ApplyModifiedProperties();
         }
-        
+
 
         static bool CanPaste(VolumeComponent targetComponent)
         {
@@ -500,6 +510,33 @@ namespace UnityEditor.Rendering
             string typeData = clipboard.Substring(clipboard.IndexOf('|') + 1);
             Undo.RecordObject(targetComponent, "Paste Settings");
             JsonUtility.FromJsonOverwrite(typeData, targetComponent);
+        }
+
+        static void ReloadDocumentation()
+        {
+            if (m_EditorDocumentationURLs == null)
+                m_EditorDocumentationURLs = new Dictionary<Type, string>();
+            m_EditorDocumentationURLs.Clear();
+
+            string GetVolumeComponentDocumentation(Type component)
+            {
+                var attrs = component.GetCustomAttributes(false);
+                foreach (var attr in attrs)
+                {
+                    if (attr is HelpURLAttribute attrDocumentation)
+                        return attrDocumentation.URL;
+                }
+
+                // There is no documentation for this volume component.
+                return null;
+            }
+
+            var componentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>();
+            foreach (var componentType in componentTypes)
+            {
+                if (!m_EditorDocumentationURLs.ContainsKey(componentType))
+                    m_EditorDocumentationURLs.Add(componentType, GetVolumeComponentDocumentation(componentType));
+            }
         }
     }
 }

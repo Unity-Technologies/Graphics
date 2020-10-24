@@ -155,6 +155,7 @@
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
   * Shader Graph Keywords
     * [Raytracing Quality](SGNode-Raytracing-Quality)
+  * [Ray Tracing and Animations](Ray-Tracing-Animations.md)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components
