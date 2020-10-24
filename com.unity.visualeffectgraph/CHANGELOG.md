@@ -41,6 +41,7 @@ The version number for this package has increased due to a version update of a r
 - Property Binder : HierarchyRoot null reference exception while using Hierarchy to Attribute Map. [Case 1274788](https://issuetracker.unity3d.com/product/unity/issues/guid/1274788/)
 - Property Binder : Properties window isn't always up to date. [Case 1248711](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
 - Property Binder : Avoid Warning while building on Mobile "Presence of such handlers might impact performance on handheld devices." when building for Android" [Case 1279471](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Fixed [case 1283315](https://issuetracker.unity3d.com/product/unity/issues/guid/1283315/)
 
 ## [10.1.0] - 2020-10-12
 ### Added
