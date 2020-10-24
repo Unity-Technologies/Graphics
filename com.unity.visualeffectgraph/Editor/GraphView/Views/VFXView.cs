@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
     /// Unexpected public API VFXViewModicationProcessor : Use a custom UnityEditor.AssetModificationProcessor.
     /// </summary>
     [Obsolete("Unexpected public API VFXViewModicationProcessor : Use a custom UnityEditor.AssetModificationProcessor")]
-    public class VFXViewModicationProcessor
+    public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         /// <summary>
         /// Initialized to false by default.
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
         public static bool assetMoved = false;
     }
 
-    class VFXViewModicationProcessorInternal : UnityEditor.AssetModificationProcessor
+    class VFXViewModificationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool assetMoved = false;
 
