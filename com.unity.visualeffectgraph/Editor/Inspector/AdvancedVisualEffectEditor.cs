@@ -165,14 +165,15 @@ namespace UnityEditor.VFX
             {
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
-                GUI.enabled = !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                bool saveEnabled = GUI.enabled;
+                GUI.enabled = saveEnabled && !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
                 if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
                 {
                     VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
                     var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
                     window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
                 }
-                GUI.enabled = true;
+                GUI.enabled = saveEnabled;
             }
         }
 
@@ -693,7 +694,8 @@ namespace UnityEditor.VFX
                     Repaint();
                 }
 
-                GUI.enabled = m_GizmoedParameter != null;
+                bool saveEnabled = GUI.enabled;
+                GUI.enabled = saveEnabled && m_GizmoedParameter != null;
                 if (GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
                 {
                     if (m_GizmoDisplayed && m_GizmoedParameter != null)
@@ -707,7 +709,7 @@ namespace UnityEditor.VFX
                         sceneView.Frame(bounds, false);
                     }
                 }
-                GUI.enabled = true;
+                GUI.enabled = saveEnabled;
                 GUILayout.EndHorizontal();
             }
         }

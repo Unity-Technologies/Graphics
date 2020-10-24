@@ -24,8 +24,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<Bloom>(serializedObject);
 
             m_Threshold = Unpack(o.Find(x => x.threshold));
@@ -39,6 +37,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
             m_Anamorphic = Unpack(o.Find(x => x.anamorphic));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()
@@ -58,14 +58,41 @@ namespace UnityEditor.Rendering.HighDefinition
             if (isInAdvancedMode)
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-                using (new EditorGUI.DisabledScope(!useCustomValue))
+
+                using (new QualityScope(this))
                 {
                     PropertyField(m_Resolution);
                     PropertyField(m_HighQualityPrefiltering);
                     PropertyField(m_HighQualityFiltering);
                 }
+
                 PropertyField(m_Anamorphic);
             }
+        }
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
+        {
+            if (settings == null)
+                settings = new QualitySettingsBlob();
+
+            settings.Save<int>(m_Resolution);
+            settings.Save<bool>(m_HighQualityPrefiltering);
+            settings.Save<bool>(m_HighQualityFiltering);
+
+            return settings;
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            settings.TryLoad<int>(ref m_Resolution);
+            settings.TryLoad<bool>(ref m_HighQualityPrefiltering);
+            settings.TryLoad<bool>(ref m_HighQualityFiltering);
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.BloomRes[level]);
+            CopySetting(ref m_HighQualityPrefiltering, settings.postProcessQualitySettings.BloomHighQualityPrefiltering[level]);
+            CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.BloomHighQualityFiltering[level]);
         }
     }
 }
