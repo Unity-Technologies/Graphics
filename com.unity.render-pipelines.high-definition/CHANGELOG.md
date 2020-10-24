@@ -25,7 +25,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the ray tracing shadow UI being displayed while it shouldn't (case 1286391).
 
 ### Changed
-- Improved the punctual light shadow rescale algorithm.
 - Now the DXR wizard displays the name of the target asset that needs to be changed.
 - Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
 
