@@ -1,10 +1,8 @@
 #ifndef UNITY_GRAPHFUNCTIONS_HD_INCLUDED
 #define UNITY_GRAPHFUNCTIONS_HD_INCLUDED
 
-#define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_HDSampleSceneDepth(uv)
-#define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_HDSampleSceneColor(uv)
-#define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
-#define SHADERGRAPH_OBJECT_POSITION GetAbsolutePositionWS(UNITY_MATRIX_M._m03_m13_m23)
+// Due to order of includes (Gradient struct need to be define before the declaration of $splice(GraphProperties))
+// And HDRP require that Material.hlsl and BuiltInGI are after it, we have two files to defines shader graph functions, one header and one where we setup HDRP functions
 
 float shadergraph_HDSampleSceneDepth(float2 uv)
 {
@@ -29,8 +27,23 @@ float3 shadergraph_HDBakedGI(float3 positionWS, float3 normalWS, float2 uvStatic
     return SampleBakedGI(positionRWS, normalWS, uvStaticLightmap, uvDynamicLightmap);
 }
 
-// Always include Shader Graph version
-// Always include last to avoid double macros
-#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl" 
+
+// If we already defined the Macro, now we need to redefine them given that HDRP functions are now defined.
+#ifdef SHADERGRAPH_SAMPLE_SCENE_DEPTH
+#undef SHADERGRAPH_SAMPLE_SCENE_DEPTH
+#endif
+#define SHADERGRAPH_SAMPLE_SCENE_DEPTH(uv) shadergraph_HDSampleSceneDepth(uv)
+
+
+#ifdef SHADERGRAPH_SAMPLE_SCENE_COLOR
+#undef SHADERGRAPH_SAMPLE_SCENE_COLOR
+#endif
+#define SHADERGRAPH_SAMPLE_SCENE_COLOR(uv) shadergraph_HDSampleSceneColor(uv)
+
+#ifdef SHADERGRAPH_BAKED_GI
+#undef SHADERGRAPH_BAKED_GI
+#endif
+#define SHADERGRAPH_BAKED_GI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling) shadergraph_HDBakedGI(positionWS, normalWS, uvStaticLightmap, uvDynamicLightmap, applyScaling)
+
 
 #endif // UNITY_GRAPHFUNCTIONS_HD_INCLUDED
