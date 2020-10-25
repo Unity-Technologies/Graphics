@@ -164,7 +164,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float maxRadius = GetCoCMaxRadius(posInputs.positionSS);
 
     float dR = maxRadius * rcp(NumRings);
-    float stratum = fmod(posInputs.positionSS.x + posInputs.positionSS.y, 2.0f);
 
     int sampleOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
     // Note: adjusting pseudo-randomly the sampleOffset for each pixel seems to considerably improve the sampling
