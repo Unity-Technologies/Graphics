@@ -57,6 +57,7 @@ The version number for this package has increased due to a version update of a r
 - Removed green coloration of the UV on the DecalProjector gizmo.
 - Now the DXR wizard displays the name of the target asset that needs to be changed.
 - Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
+- Making the reflection and refractions of cubemaps distance based.
 
 ## [10.1.0] - 2020-10-12
 
