@@ -115,7 +115,8 @@
             * [Screen](Screen-Node)
         * Texture  
             * [Cubemap Asset](Cubemap-Asset-Node) 
-            * [Sample Cubemap](Sample-Cubemap-Node)  
+            * [Sample Cubemap](Sample-Cubemap-Node)
+            * [Sample Reflected Cubemap](Sample-Reflected-Cubemap-Node)
             * [Sample Texture 2D](Sample-Texture-2D-Node)  
             * [Sample Texture 2D Array](Sample-Texture-2D-Array-Node)  
             * [Sample Texture 2D LOD](Sample-Texture-2D-LOD-Node)  

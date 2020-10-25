@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Volumetric Additional light data
             public readonly GUIContent volumetricEnable = new GUIContent("Enable", "When enabled, this Light uses Volumetrics.");
             public readonly GUIContent volumetricDimmer = new GUIContent("Multiplier", "Controls the intensity of the scattered Volumetric lighting.");
+            public readonly GUIContent volumetricFadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out from contributing to volumetric lighting.");
             // Volumetric Additional shadow data
             public readonly GUIContent volumetricShadowDimmer = new GUIContent("Shadow Dimmer", "Dims the volumetric shadows this Light casts.");
 

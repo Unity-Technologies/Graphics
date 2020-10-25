@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_UVBiasProperty;
         SerializedProperty m_AffectsTransparencyProperty;
         SerializedProperty m_Size;
+        SerializedProperty[] m_SizeValues;
+        SerializedProperty m_OffsetZ;
         SerializedProperty m_FadeFactor;
         SerializedProperty m_DecalLayerMask;
 
@@ -125,6 +127,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_Size = serializedObject.FindProperty("m_Size");
+            m_SizeValues = new[]
+            {
+                m_Size.FindPropertyRelative("x"),
+                m_Size.FindPropertyRelative("y"),
+                m_Size.FindPropertyRelative("z"),
+            };
+            m_OffsetZ = serializedObject.FindProperty("m_Offset").FindPropertyRelative("z");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
         }
@@ -284,7 +293,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 handle.center = decalProjector.offset;
                 handle.size = decalProjector.size;
-                handle.DrawHull(editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV);
+                bool inEditMode = editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV;
+                handle.DrawHull(inEditMode);
 
                 Quaternion arrowRotation = Quaternion.LookRotation(Vector3.down, Vector3.right);
                 float arrowSize = decalProjector.size.z * 0.25f;
@@ -302,17 +312,34 @@ namespace UnityEditor.Rendering.HighDefinition
                 //Handles.DrawLine(projectedPivot, projectedPivot + decalProjector.m_Size.y * 0.5f * Vector3.up);
                 //Handles.DrawLine(projectedPivot, projectedPivot + decalProjector.m_Size.z * 0.5f * Vector3.forward);
 
-                //draw UV
-                Color face = Color.green;
-                face.a = 0.1f;
-                Vector2 size = new Vector2(
-                    (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * decalProjector.size.x,
-                    (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
-                    );
-                Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.uvBias.x * size.x, decalProjector.uvBias.y * size.y);
-                using (new Handles.DrawingScope(face, Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (decalProjector.size * 0.5f + decalProjector.offset.z * Vector3.back), decalProjector.transform.rotation, Vector3.one)))
+                //draw UV and bolder edges
+                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (decalProjector.size * 0.5f + decalProjector.offset.z * Vector3.back), decalProjector.transform.rotation, Vector3.one)))
                 {
-                    Handles.DrawSolidRectangleWithOutline(new Rect(start, size), face, Color.white);
+                    if (inEditMode)
+                    {
+                        Vector2 size = new Vector2(
+                            (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * decalProjector.size.x,
+                            (decalProjector.uvScale.y > 100000 || decalProjector.uvScale.y < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
+                            );
+                        Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.uvBias.x * size.x, decalProjector.uvBias.y * size.y);
+                        Handles.DrawDottedLines(
+                            new Vector3[]
+                            {
+                                start,                              start + new Vector2(size.x, 0),
+                                start + new Vector2(size.x, 0),     start + size,
+                                start + size,                       start + new Vector2(0, size.y),
+                                start + new Vector2(0, size.y),     start
+                            },
+                            5f);
+                    }
+
+                    Vector2 halfSize = decalProjector.size * .5f;
+                    Vector2 halfSize2 = new Vector2(halfSize.x, -halfSize.y);
+                    Vector2 center = (Vector2)projectedPivot + halfSize;
+                    Handles.DrawLine(center - halfSize,  center - halfSize2, 3f);
+                    Handles.DrawLine(center - halfSize2, center + halfSize, 3f);
+                    Handles.DrawLine(center + halfSize,  center + halfSize2, 3f);
+                    Handles.DrawLine(center + halfSize2, center - halfSize, 3f);
                 }
             }
         }
@@ -347,8 +374,29 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.EndHorizontal();
 
                 EditorGUILayout.Space();
+                
+                Rect rect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
+                EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
+                float[] size = new float[2] { m_SizeValues[0].floatValue, m_SizeValues[1].floatValue };
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.MultiFloatField(rect, k_SizeContent, k_SizeSubContent, size);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_SizeValues[0].floatValue = Mathf.Max(0, size[0]);
+                    m_SizeValues[1].floatValue = Mathf.Max(0, size[1]);
+                }
+                EditorGUI.EndProperty();
+                EditorGUI.EndProperty();
 
-                EditorGUILayout.PropertyField(m_Size, k_SizeContent);
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_SizeValues[2], k_ProjectionDepthContent);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_SizeValues[2].floatValue = Mathf.Max(0, size[2]);
+                    m_OffsetZ.floatValue = m_SizeValues[2].floatValue * 0.5f;
+                }
+
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
                 bool decalLayerEnabled = false;
@@ -448,12 +496,24 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
-        static void EnterEditModeWithoutPreservingUV(ShortcutArguments args) =>
+        static void EnterEditModeWithoutPreservingUV(ShortcutArguments args)
+        {
+            //If editor is not there, then the selected GameObject does not contains a DecalProjector
+            if (s_Owner == null || s_Owner.Equals(null))
+                return;
+
             ChangeEditMode(k_EditShapeWithoutPreservingUV, (s_Owner as DecalProjectorEditor).GetBoundsGetter(), s_Owner);
+        }
 
         [Shortcut("HDRP/Decal: Handle changing size cropping UV", typeof(SceneView), KeyCode.Keypad2, ShortcutModifiers.Action)]
-        static void EnterEditModePreservingUV(ShortcutArguments args) =>
+        static void EnterEditModePreservingUV(ShortcutArguments args)
+        {
+            //If editor is not there, then the selected GameObject does not contains a DecalProjector
+            if (s_Owner == null || s_Owner.Equals(null))
+                return;
+
             ChangeEditMode(k_EditShapePreservingUV, (s_Owner as DecalProjectorEditor).GetBoundsGetter(), s_Owner);
+        }
 
         //[TODO: add editable pivot. Uncomment this when ready]
         //[Shortcut("HDRP/Decal: Handle changing pivot position while preserving UV position", typeof(SceneView), KeyCode.Keypad3, ShortcutModifiers.Action)]

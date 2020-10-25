@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             var newLayer = new CompositorLayer();
             newLayer.m_LayerName = layerName;
             newLayer.m_Type = type;
-            newLayer.m_Camera = CompositionManager.GetSceceCamera();
+            newLayer.m_Camera = CompositionManager.GetSceneCamera();
             newLayer.m_CullingMask = newLayer.m_Camera? newLayer.m_Camera.cullingMask : 0; //LayerMask.GetMask("None");
             newLayer.m_OutputTarget = CompositorLayer.OutputTarget.CameraStack;
             newLayer.m_ClearDepth = true;
@@ -185,6 +185,15 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         static float EnumToScale(ResolutionScale scale)
         {
             return 1.0f / (int)scale;
+        }
+
+        static T AddComponent<T>(GameObject go) where T : Component
+        {
+            #if UNITY_EDITOR
+                return UnityEditor.Undo.AddComponent<T>(go);
+            #else
+                return go.AddComponent<T>();
+            #endif
         }
 
         public int pixelWidth
@@ -222,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Note: Movie & image layers are rendered at the output resolution (and not the movie/image resolution). This is required to have post-processing effects like film grain at full res.
             if (m_Camera == null)
             {
-                m_Camera = CompositionManager.GetSceceCamera();
+                m_Camera = CompositionManager.GetSceneCamera();
             }
 
             var compositor = CompositionManager.GetInstance();
@@ -340,13 +349,15 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (m_LayerCamera)
             {
                 m_LayerCamera.enabled = m_Show;
-                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>()
+                    ?? AddComponent<HDAdditionalCameraData>(m_LayerCamera.gameObject);
+
                 var layerData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                 {
                     // create the component if it is required and does not exist
                     if (layerData == null)
                     {
-                        layerData = m_LayerCamera.gameObject.AddComponent<AdditionalCompositorData>();
+                        layerData = AddComponent<AdditionalCompositorData>(m_LayerCamera.gameObject);
                         layerData.hideFlags = HideFlags.HideAndDontSave | HideFlags.HideInInspector;
                     }
                     // Reset the layer params (in case we cloned a camera which already had AdditionalCompositorData)
