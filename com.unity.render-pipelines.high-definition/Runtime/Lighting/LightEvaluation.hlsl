@@ -1,3 +1,6 @@
+#ifndef UNITY_LIGHT_EVALUATION_INCLUDED
+#define UNITY_LIGHT_EVALUATION_INCLUDED
+
 // This files include various function uses to evaluate lights
 // use #define LIGHT_EVALUATION_NO_HEIGHT_FOG to disable Height fog attenuation evaluation
 // use #define LIGHT_EVALUATION_NO_COOKIE to disable cookie evaluation
@@ -582,3 +585,5 @@ void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
     ssrLighting.rgb *= ssrLighting.a;
 }
 #endif
+
+#endif // UNITY_LIGHT_EVALUATION_INCLUDED

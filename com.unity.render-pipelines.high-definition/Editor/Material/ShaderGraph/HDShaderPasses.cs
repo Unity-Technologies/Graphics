@@ -1115,8 +1115,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
-                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include path tracing support for the material
+                includes.Add(CoreIncludes.kPathtracingPlaceholder, IncludeLocation.Pregraph);
 
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
