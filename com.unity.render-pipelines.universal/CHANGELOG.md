@@ -13,6 +13,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Changed RenderObjectsFeature UI to only expose valid events. Previously, when selecting events before BeforeRenderingPrepasses objects would not be drawn correctly as stereo and camera setup only happens before rendering opaques objects.
+- Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 
 ### Fixed
 - Fixed the Unlit shader not being SRP Batcher compatible on OpenGLES/OpenGLCore. [case 1263720](https://issuetracker.unity3d.com/issues/urp-mobile-srp-batcher-is-not-visible-on-mobile-devices-in-frame-debugger)
