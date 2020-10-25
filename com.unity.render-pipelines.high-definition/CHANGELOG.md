@@ -21,6 +21,7 @@ The version number for this package has increased due to a version update of a r
 - Added frame setting for Virtual Texturing. 
 - Added a fade distance for light influencing volumetric lighting.
 - Adding an "Include For Ray Tracing" toggle on lights to allow the user to exclude them when ray tracing is enabled in the frame settings of a camera.
+- Added fog volumetric scattering support for path tracing.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
