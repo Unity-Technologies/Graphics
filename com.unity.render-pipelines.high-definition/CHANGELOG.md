@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed undo after enabling compositor.
 - Fixed the ray tracing shadow UI being displayed while it shouldn't (case 1286391).
 - Fixed issues with physically-based DoF, improved speed and robustness 
+- Fixed a warning happening when putting the range of lights to 0.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
