@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxSmoothness;
         public SerializedProperty applyRangeAttenuation;
         public SerializedProperty volumetricDimmer;
+        public SerializedProperty volumetricFadeDistance;
         public SerializedProperty lightUnit;
         public SerializedProperty displayAreaLightEmissiveMesh;
         public SerializedProperty areaLightEmissiveMeshCastShadow;
@@ -337,6 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 spotIESCutoffPercent = o.Find("m_SpotIESCutoffPercent");
                 lightDimmer = o.Find("m_LightDimmer");
                 volumetricDimmer = o.Find("m_VolumetricDimmer");
+                volumetricFadeDistance = o.Find("m_VolumetricFadeDistance");
                 lightUnit = o.Find("m_LightUnit");
                 displayAreaLightEmissiveMesh = o.Find("m_DisplayAreaLightEmissiveMesh");
                 fadeDistance = o.Find("m_FadeDistance");
