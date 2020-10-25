@@ -2530,7 +2530,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     envSamplingDirForBottomLayer = GetModifiedEnvSamplingDir(lightData, bsdfData.clearcoatNormalWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, preLightData.iblPerceptualRoughness, NdotV);
 
     // Note: using _influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)    
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
+    float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
     // ...here the normal is only used for normal fading mode of the influence volume.
 
     // Another problem with having even two fetch directions is the reflection hierarchy that only supports one weight.
@@ -2543,7 +2543,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // changes the direction vs the coat.)
 
     // Sample the pre-integrated environment lighting
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+    float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, envSamplingDirForBottomLayer, preLightData.iblPerceptualRoughness, intersectionDistance);
     weight *= preLD.w; // Used by planar reflection to discard pixel
 
     envLighting = GetSpecularIndirectDimmer() * preLightData.specularFGD * preLD.xyz;
@@ -2559,7 +2559,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // for BRDFColor and flakes, see GetPreLightData.
 
     // Note: we don't use GetModifiedEnvSamplingDir() per lobe here, and see comment above about reflection hierarchy.
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
+    float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
 
     #if USE_COOK_TORRANCE_MULTI_LOBES
 
@@ -2568,10 +2568,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float probeSkipFactor = 1;
     for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
     {
-        float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
+        float coeff = _CarPaint2_CTCoeffs[lobeIndex];
 
-        float   lobeMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[lobeIndex]) * lightData.roughReflections;
-        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, lobeMipLevel, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+        float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, envSamplingDirForBottomLayer, preLightData.iblPerceptualRoughness[lobeIndex], intersectionDistance);
 
         //todotodo: try removing coeff
         envLighting += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * preLD.xyz;
@@ -2597,7 +2596,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Single lobe approach
     // We computed an average mip level stored in preLightData.iblPerceptualRoughness that we use for all CT lobes
     // Sample the actual environment lighting
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+    float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, envSamplingDirForBottomLayer, preLightData.iblPerceptualRoughness, intersectionDistance);
     float3  envLighting;
 
     envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();

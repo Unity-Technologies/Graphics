@@ -171,7 +171,7 @@ HDRP supports the Illuminating Engineering Society's (IES) file format for descr
 
 ![](Images/HDRPFeatures-ReflectionProbes.png)
 
-HDRP supports cubemap reflections that take surface smoothness into account. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
+HDRP supports cubemap reflections that take surface smoothness into account. HDRP cubemap reflection support a fake distance based roughness. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
 
 ### Planar reflection probe
 
