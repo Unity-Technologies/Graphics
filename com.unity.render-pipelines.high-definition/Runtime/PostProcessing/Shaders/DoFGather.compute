@@ -29,7 +29,6 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 // A set of Defines to fine-tune the algorithm
 #define NUM_BUCKETS 3
-#define GRADIENT_NOISE
 #define RING_DENSITY 8.0
 #define ADAPTIVE_RADIUS
 //#define OCTAWEB_SORTING
@@ -185,13 +184,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float numSamples = max(ring * RING_DENSITY, 1);
         float dAng = 2.0f * PI / numSamples;
 
-#ifndef GRADIENT_NOISE
-        float radius = max((ring - 1) * dR + stratum * dR, 0);
-        float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
-#else
         float radius = max((ring - 1) * dR + noise2 * dR, 0);
         float ringOffset = noise * dAng;
-#endif
 
         float ringWeight = GetRingWeight(ring);
 
