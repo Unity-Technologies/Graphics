@@ -96,6 +96,7 @@ The version number for this package has increased due to a version update of a r
 - Added the support of eye shader for ray tracing.
 - Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
 - Added bounding sphere support to screen-space axis-aligned bounding box generation pass.
+- Added new algorithm for SSR with temporal accumulation
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
