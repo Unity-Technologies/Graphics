@@ -127,12 +127,6 @@ float GetNumSamples(float radius, float maxRadius)
     return 1.0 + seriesSum * RING_DENSITY;
 }
 
-float GetRingWeight(int index)
-{
-    // TODO: need to investigate better sampling weights
-    return 1.0;
-}
-
 [numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -163,11 +157,11 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float maxRadius = GetCoCMaxRadius(posInputs.positionSS);
 
-    float dR = maxRadius * rcp(NumRings);
+    float dR = rcp(NumRings);
 
     int sampleOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
     // Note: adjusting pseudo-randomly the sampleOffset for each pixel seems to considerably improve the sampling
-    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, posInputs.positionSS.x + 3 * posInputs.positionSS.y + sampleOffset);
+    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, sampleOffset);
     float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 3 * posInputs.positionSS.x + posInputs.positionSS.y + sampleOffset);
 
     // Note: For zero radius we still go through the loop (for one iteration). We can avoid the cost of computing weigths if we early exit (at the cost of extra code complexity).
@@ -180,13 +174,13 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Iterate over the octaweb pattern and gather the DoF samples
     for (float ring = totalRings; ring >= 0; ring -= 1.0)
     {
-        float numSamples = max(ring * RING_DENSITY, 1);
+        float numSamples = (ring > 0) ? RING_DENSITY : 1;
         float dAng = 2.0f * PI / numSamples;
 
-        float radius = max((ring - 1) * dR + noise2 * dR, 0);
-        float ringOffset = noise * dAng;
+        float stratum = max((ring - 1) * dR, 0);
+        float normalizedRadius = (ring > 0) ? stratum + noise2 * dR : 0;
 
-        float ringWeight = GetRingWeight(ring);
+        float ringOffset = noise * dAng;
 
 #ifdef OCTAWEB_SORTING
         float4 ringColor[NUM_BUCKETS];
@@ -209,21 +203,22 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         for (float ang = ringOffset; ang < 2 * PI; ang += dAng)
         {
-            float2 sampleTC = posInputs.positionSS + radius * PointInCircle(ang);
+            float sampleRadius = sqrt(normalizedRadius) * maxRadius;
+            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(ang);
             sampleTC = clamp(sampleTC, float2(0, 0), _ScreenSize.xy - float2(1, 1));
 
             // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
             // Note: We have generated only 4 additional mip levels, so don't go any deeper than that
-            float lod = min(4, log2(2 * PI * radius * rcp(numSamples)));
+            float lod = min(4, log2(2 * PI * sampleRadius * rcp(numSamples)));
             CTYPE sampleColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinear(sampleTC * _ScreenSize.zw), lod).CTYPE_SWIZZLE;
             float sampleCoC = GetCoCRadius(sampleTC);
 
-            if (abs(sampleCoC) >= radius)
+            if (abs(sampleCoC) >= sampleRadius)
             {
                 for (int j = 0; j < NUM_BUCKETS; ++j)
                 {
-                    float weight = ringWeight * GetSampleWeight(abs(sampleCoC));
-                    float bucketWeight = GetBucketWeight(sampleCoC, noise, j);
+                    float weight = GetSampleWeight(abs(sampleCoC));
+                    float bucketWeight = GetBucketWeight(sampleCoC, noise2, j);
                     weight *= bucketWeight;
                     RING_COLOR[j] += float4(sampleColor.xyz * weight, weight);
                     RING_MAXCOC[j] = max(RING_MAXCOC[j] * bucketWeight, abs(sampleCoC));
