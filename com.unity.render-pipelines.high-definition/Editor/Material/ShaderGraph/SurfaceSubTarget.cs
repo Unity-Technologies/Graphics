@@ -238,11 +238,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.VertexDescription.Normal);
             context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.VertexDescription.UV0);
-            context.AddBlock(BlockFields.VertexDescription.UV1);
-            context.AddBlock(BlockFields.VertexDescription.UV2);
-            context.AddBlock(BlockFields.VertexDescription.UV3);
-            context.AddBlock(BlockFields.VertexDescription.Color);
 
             // Surface
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
