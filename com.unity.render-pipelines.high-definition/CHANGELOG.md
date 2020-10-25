@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a fade distance for light influencing volumetric lighting.
 - Adding an "Include For Ray Tracing" toggle on lights to allow the user to exclude them when ray tracing is enabled in the frame settings of a camera.
 - Added fog volumetric scattering support for path tracing.
+- Added new algorithm for SSR with temporal accumulation
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with TAA and no motion vectors.
 - Fixed the stripping not working the terrain alphatest feature required for terrain holes (case 1205902).
 - Fixed bounding box generation that resulted in incorrect light culling (case 3875925).
+- VFX : Fix Emissive writing in Opaque Lit Output with PSSL platforms (case 273378).
 - Fixed issue where pivot of DecalProjector was not aligned anymore on Transform position when manipulating the size of the projector from the Inspector.
 - Fixed a null reference exception when creating a diffusion profile asset.
 - Fixed the diffusion profile not being registered as a dependency of the ShaderGraph.
@@ -41,7 +43,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the ray tracing shadow UI being displayed while it shouldn't (case 1286391).
 - Fixed issues with physically-based DoF, improved speed and robustness 
 - Fixed a warning happening when putting the range of lights to 0.
-- VFX : Fix Emissive writing in Opaque Lit Output with PSSL platforms (case 273378).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -91,7 +92,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the support of eye shader for ray tracing.
 - Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
 - Added bounding sphere support to screen-space axis-aligned bounding box generation pass.
-- Added new algorithm for SSR with temporal accumulation
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
