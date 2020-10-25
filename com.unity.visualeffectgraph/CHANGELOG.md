@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added command to delete unuser parameters.
 - Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
 
-## Fixed
+### Fixed
 - "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
 - Fix [Case 1268977](https://issuetracker.unity3d.com/product/unity/issues/guid/1268977/)
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
