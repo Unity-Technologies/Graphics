@@ -380,8 +380,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Material == null)
                     return;
 
-                bool perChannelMask = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
-
                 // TODO: this test is ambiguous, it should say, I am decal or not.
                 // We should have 2 function: I am decal or not and I am a SG or not...
                 m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material);
@@ -695,7 +693,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 var camera = instance.CurrentCamera;
                 Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(camera);
-                bool perChannelMask = instance.perChannelMask;
                 int cullingMask = camera.cullingMask;
                 ulong sceneCullingMask = HDUtils.GetSceneCullingMaskFromCamera(camera);
 
