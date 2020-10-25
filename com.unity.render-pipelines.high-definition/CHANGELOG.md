@@ -21,6 +21,7 @@ The version number for this package has increased due to a version update of a r
 - Added frame setting for Virtual Texturing. 
 - Added a fade distance for light influencing volumetric lighting.
 - Adding an "Include For Ray Tracing" toggle on lights to allow the user to exclude them when ray tracing is enabled in the frame settings of a camera.
+- Added fog volumetric scattering support for path tracing.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
@@ -45,6 +46,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed undo after enabling compositor.
 - Fixed the ray tracing shadow UI being displayed while it shouldn't (case 1286391).
 - Fixed issues with physically-based DoF, improved speed and robustness 
+- Fixed a warning happening when putting the range of lights to 0.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -55,6 +57,7 @@ The version number for this package has increased due to a version update of a r
 - Removed green coloration of the UV on the DecalProjector gizmo.
 - Now the DXR wizard displays the name of the target asset that needs to be changed.
 - Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
+- Making the reflection and refractions of cubemaps distance based.
 
 ## [10.1.0] - 2020-10-12
 
