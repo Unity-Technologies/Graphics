@@ -39,8 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
             m_Enable                        = Unpack(o.Find(x => x.enabled));
             m_RayTracing                    = Unpack(o.Find(x => x.rayTracing));
@@ -70,6 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Quality
             m_SampleCount                   = Unpack(o.Find(x => x.sampleCount));
             m_BounceCount                   = Unpack(o.Find(x => x.bounceCount));
+
+            base.OnEnable();
         }
 
         static public readonly GUIContent k_RayTracingText = EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections.");
@@ -100,10 +100,9 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_SampleCount, k_SampleCountText);
             PropertyField(m_BounceCount, k_BounceCountText);
             PropertyField(m_Denoise, k_DenoiseText);
+            using (new HDEditorUtils.IndentScope())
             {
-                EditorGUI.indentLevel++;
                 PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
-                EditorGUI.indentLevel--;
             }
         }
 
@@ -111,9 +110,10 @@ namespace UnityEditor.Rendering.HighDefinition
         void RayTracingPerformanceModeGUI()
         {
             base.OnInspectorGUI();
-            using (new EditorGUI.DisabledScope(!useCustomValue))
+
+            using (new HDEditorUtils.IndentScope())
+            using (new QualityScope(this))
             {
-                EditorGUI.indentLevel++;
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
                 m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
@@ -122,12 +122,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_UpscaleRadius, k_UpscaleRadiusText);
                 PropertyField(m_FullResolution, k_FullResolutionText);
                 PropertyField(m_Denoise, k_DenoiseText);
+                using (new HDEditorUtils.IndentScope())
                 {
-                    EditorGUI.indentLevel++;
                     PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
-                    EditorGUI.indentLevel--;
                 }
-                EditorGUI.indentLevel--;
             }
         }
 
@@ -140,21 +138,23 @@ namespace UnityEditor.Rendering.HighDefinition
             if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
             {
                 PropertyField(m_Mode, k_ModeText);
-                EditorGUI.indentLevel++;
-                switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+
+                using (new HDEditorUtils.IndentScope())
                 {
-                    case RayTracingMode.Performance:
+                    switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                     {
-                        RayTracingPerformanceModeGUI();
+                        case RayTracingMode.Performance:
+                        {
+                            RayTracingPerformanceModeGUI();
+                        }
+                            break;
+                        case RayTracingMode.Quality:
+                        {
+                            RayTracingQualityModeGUI();
+                        }
+                            break;
                     }
-                    break;
-                    case RayTracingMode.Quality:
-                    {
-                        RayTracingQualityModeGUI();
-                    }
-                    break;
                 }
-                EditorGUI.indentLevel--;
             }
             else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
             {
@@ -202,14 +202,78 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
 
                 base.OnInspectorGUI();
-                using (new EditorGUI.DisabledScope(!useCustomValue))
+
+                using (new HDEditorUtils.IndentScope())
+                using (new QualityScope(this))
                 {
-                    EditorGUI.indentLevel++;
                     PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
                     m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
-                    EditorGUI.indentLevel--;
                 }
             }
+        }
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
+        {
+            if (settings == null)
+                settings = new QualitySettingsBlob();
+
+            // RTR
+            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
+                m_RayTracing.value.boolValue)
+            {
+                settings.Save<float>(m_MinSmoothness);
+                settings.Save<float>(m_SmoothnessFadeStart);
+                settings.Save<float>(m_RayLength);
+                settings.Save<float>(m_ClampValue);
+                settings.Save<int>(m_UpscaleRadius);
+                settings.Save<bool>(m_FullResolution);
+                settings.Save<bool>(m_Denoise);
+                settings.Save<int>(m_DenoiserRadius);
+            }
+            // SSR
+            else
+                settings.Save<int>(m_RayMaxIterations);
+
+            return settings;
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            // RTR
+            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
+                m_RayTracing.value.boolValue)
+            {
+                settings.TryLoad<float>(ref m_MinSmoothness);
+                settings.TryLoad<float>(ref m_SmoothnessFadeStart);
+                settings.TryLoad<float>(ref m_RayLength);
+                settings.TryLoad<float>(ref m_ClampValue);
+                settings.TryLoad<int>(ref m_UpscaleRadius);
+                settings.TryLoad<bool>(ref m_FullResolution);
+                settings.TryLoad<bool>(ref m_Denoise);
+                settings.TryLoad<int>(ref m_DenoiserRadius);
+            }
+            // SSR
+            else
+                settings.TryLoad<int>(ref m_RayMaxIterations);
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            // RTR
+            if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue &&
+                m_RayTracing.value.boolValue)
+            {
+                CopySetting(ref m_MinSmoothness, settings.lightingQualitySettings.RTRMinSmoothness[level]);
+                CopySetting(ref m_SmoothnessFadeStart, settings.lightingQualitySettings.RTRSmoothnessFadeStart[level]);
+                CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTRRayLength[level]);
+                CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTRClampValue[level]);
+                CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTRUpScaleRadius[level]);
+                CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTRFullResolution[level]);
+                CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTRDenoise[level]);
+                CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTRDenoiserRadius[level]);
+            }
+            // SSR
+            else
+                CopySetting(ref m_RayMaxIterations, settings.lightingQualitySettings.SSRMaxRaySteps[level]);
         }
     }
 }

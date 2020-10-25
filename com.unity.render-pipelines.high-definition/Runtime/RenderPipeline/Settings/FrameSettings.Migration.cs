@@ -426,5 +426,15 @@ namespace UnityEngine.Rendering.HighDefinition
             fs.sssQualityLevel       = 0;
             fs.sssCustomSampleBudget = previouslyHighQuality ? 55 : (int)DefaultSssSampleBudgetForQualityLevel.Low;
         }
+
+        internal static void MigrateRoughDistortion(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.RoughDistortion, true);
+        }
+
+        internal static void MigrateVirtualTexturing(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.VirtualTexturing, true);
+        }        
     }
 }

@@ -25,7 +25,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Quality**                   | Control the overall quality of the effect. Higher quality mean higher GPU cost.|
+| **Quality**                   | Specifies the overall quality of the effect. The higher the quality, the more resource-intensive the effect is to process.|
 | **Full Resolution**           | Toggles whether HDRP calculates SSGI at full resolution. |
 | **Ray Steps**                 | The number of ray steps to use to calculate SSGI. If you set this to a higher value, the quality of the effect improves, however it is more resource intensive to process.  |
 | **Filter Radius**             | The size of the filter use to smooth the effect after raymarching. Higher value mean blurrier result and is more resource intensive. |

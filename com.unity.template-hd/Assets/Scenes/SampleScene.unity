@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.9102, g: 1835.9688, b: 2430.3418, a: 1}
+  m_IndirectSpecularColor: {r: 1481.7754, g: 1835.8867, b: 2430.4492, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -508,7 +508,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -782,7 +782,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -980,6 +980,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -1091,6 +1095,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -1418,7 +1423,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -1488,7 +1493,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -1619,7 +1624,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -1767,7 +1772,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -1823,7 +1828,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -1879,7 +1884,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -1989,7 +1994,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -2249,7 +2254,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -2342,7 +2347,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -2496,7 +2501,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -2796,6 +2801,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -2907,6 +2916,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -3271,6 +3281,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -3382,6 +3396,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -3763,6 +3778,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -3874,6 +3893,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -4051,7 +4071,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -4107,7 +4127,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -4164,7 +4184,8 @@ VFXRenderer:
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
-  m_Materials: []
+  m_Materials:
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4220,7 +4241,7 @@ VisualEffect:
       - m_Value: 6
         m_Name: Max Dist Size
         m_Overridden: 1
-      - m_Value: 400
+      - m_Value: 1000
         m_Name: Spawn Rate
         m_Overridden: 1
       - m_Value: 0.5
@@ -4676,7 +4697,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -5194,7 +5215,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -5324,7 +5345,7 @@ MonoBehaviour:
   m_FadeScale: 0.5
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -5472,7 +5493,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -5528,7 +5549,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -5774,7 +5795,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -5830,7 +5851,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -6014,7 +6035,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -6070,7 +6091,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -6604,7 +6625,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -6660,7 +6681,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -6716,7 +6737,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -6772,7 +6793,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -8269,7 +8290,8 @@ VFXRenderer:
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
-  m_Materials: []
+  m_Materials:
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8385,6 +8407,18 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 279271506}
     m_Modifications:
+    - target: {fileID: 4504977523418272109, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4504977523418272109, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4504977523418272109, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4865063454252499328, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
       propertyPath: m_LocalPosition.x
       value: 43
@@ -8427,6 +8461,26 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4865063454252499328, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4865063454252499328, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4865063454252499328, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4865063454252499328, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6644396898759338875, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6644396898759338875, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
+      propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8493635754120082323, guid: c176f53f0f3a90a448b849e5d0e0af46, type: 3}
@@ -8519,7 +8573,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &815519080
 Transform:
   m_ObjectHideFlags: 0
@@ -8558,9 +8612,7 @@ PlayableDirector:
   m_WrapMode: 2
   m_DirectorUpdateMode: 1
   m_InitialTime: 0
-  m_SceneBindings:
-  - key: {fileID: 7206989897909045908, guid: a68e4ad89ad65c04981239cc0044a707, type: 2}
-    value: {fileID: 0}
+  m_SceneBindings: []
   m_ExposedReferences:
     m_References:
     - 13ae5fdcf3d2cea47a95f124ba7b0ceb: {fileID: 1914615555}
@@ -8793,7 +8845,8 @@ VFXRenderer:
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
-  m_Materials: []
+  m_Materials:
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9098,7 +9151,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -9290,7 +9343,8 @@ VFXRenderer:
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
-  m_Materials: []
+  m_Materials:
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9598,7 +9652,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9087182980478874692, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.25047728
+      value: 0.21952587
       objectReference: {fileID: 0}
     - target: {fileID: 9087182980478874692, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.y
@@ -9610,11 +9664,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9087182980478874692, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9681225
+      value: 0.9756067
       objectReference: {fileID: 0}
     - target: {fileID: 9087182980478874692, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 29.012
+      value: 25.362
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
@@ -9672,7 +9726,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -9762,7 +9816,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -9818,7 +9872,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -10116,7 +10170,9 @@ VFXRenderer:
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
-  m_Materials: []
+  m_Materials:
+  - {fileID: 0}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10506,6 +10562,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -10617,6 +10677,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -11121,6 +11182,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -11232,6 +11297,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -11541,7 +11607,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1086288951
 Transform:
   m_ObjectHideFlags: 0
@@ -12333,7 +12399,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -12432,7 +12498,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -12774,7 +12840,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -12874,7 +12940,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -12930,7 +12996,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -13276,7 +13342,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -13620,7 +13686,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -13653,7 +13719,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1273660990}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 29.05, y: 4.1950793, z: -3.52}
+  m_LocalPosition: {x: 29.05, y: 4.1950793, z: -4.441762}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -13795,7 +13861,7 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 15, y: 8.439425, z: 4.6608725}
+      m_BoxSize: {x: 15, y: 8.439425, z: 2.817348}
       m_BoxBlendDistancePositive: {x: 0.5, y: 0.28012943, z: 1.0059605}
       m_BoxBlendDistanceNegative: {x: 0.5, y: 0, z: 0}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
@@ -13818,6 +13884,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -13929,6 +13999,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -14039,7 +14110,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 15, y: 8.439425, z: 4.6608725}
+  m_BoxSize: {x: 15, y: 8.439425, z: 2.817348}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -14198,7 +14269,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -14254,7 +14325,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -14408,7 +14479,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -14464,7 +14535,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -14520,7 +14591,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -14841,7 +14912,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -14897,7 +14968,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -15508,7 +15579,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -15815,7 +15886,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -15871,7 +15942,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -16216,7 +16287,7 @@ MonoBehaviour:
     albedo: {r: 0.9686873, g: 1, b: 0.83647794, a: 1}
     meanFreePath: 150
     anisotropy: 0
-    volumeMask: {fileID: 11700000, guid: 6039ee80a9a8a0f41b4297ca0dd5a90c, type: 2}
+    volumeMask: {fileID: 11700000, guid: 836429d92e1b49443b7743362fdeb1fe, type: 3}
     textureScrollingSpeed: {x: 0, y: 0.2, z: 0}
     textureTiling: {x: 1, y: 1, z: 1}
     positiveFade: {x: 0.25, y: 0.25, z: 0.25}
@@ -16230,7 +16301,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -105.23195, z: 0}
+    textureOffset: {x: -0, y: -0, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16864,7 +16935,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -17006,7 +17077,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -17204,6 +17275,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -17315,6 +17390,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -17472,7 +17548,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1594496557}
-  m_LocalRotation: {x: 0.7006488, y: -0.044002455, z: 0.041966952, w: 0.7109106}
+  m_LocalRotation: {x: 0.5067765, y: -0.031826805, z: 0.030354531, w: -0.8609548}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -17624,7 +17700,7 @@ MonoBehaviour:
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
-    m_Aperture: 1
+    m_Aperture: 2
     m_BladeCount: 9
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -17683,7 +17759,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 40.400005
+  m_FocalLength: 20
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -17692,7 +17768,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 33.085964
+  field of view: 61.927517
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -17852,7 +17928,8 @@ VFXRenderer:
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
-  m_Materials: []
+  m_Materials:
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -18306,6 +18383,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -18417,6 +18498,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -18736,6 +18818,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -18847,6 +18933,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -19122,7 +19209,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -19178,7 +19265,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -19234,7 +19321,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -19290,7 +19377,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -19523,6 +19610,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -19634,6 +19725,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -19909,7 +20001,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -20107,6 +20199,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -20218,6 +20314,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -20487,7 +20584,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -20543,7 +20640,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -20841,7 +20938,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -20934,7 +21031,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -21440,7 +21537,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -21646,7 +21743,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -21702,7 +21799,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0.5, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -21789,7 +21886,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -21973,6 +22070,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -22084,6 +22185,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -22851,7 +22953,8 @@ VFXRenderer:
   m_RayTraceProcedural: 0
   m_RenderingLayerMask: 257
   m_RendererPriority: 0
-  m_Materials: []
+  m_Materials:
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -22961,7 +23064,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -23177,7 +23280,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -23375,6 +23478,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -23486,6 +23593,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -24236,7 +24344,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 18
+  m_FocalLength: 25
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -24245,7 +24353,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 67.380135
+  field of view: 51.28201
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -24270,7 +24378,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922889286}
-  m_LocalRotation: {x: 0.48167983, y: -0.030250646, z: 0.028851308, w: 0.8753497}
+  m_LocalRotation: {x: 0.9510131, y: -0.0597259, z: 0.05696309, w: -0.2979296}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -24631,7 +24739,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -25399,6 +25507,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -25510,6 +25622,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -25818,7 +25931,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -25874,7 +25987,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -26056,7 +26169,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0.5163254, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -26112,7 +26225,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -26262,9 +26375,9 @@ MonoBehaviour:
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
   m_AngularDiameter: 0.53
-  m_FlareSize: 48
-  m_FlareTint: {r: 0.078431375, g: 0.078431375, b: 0.078431375, a: 1}
-  m_FlareFalloff: 8
+  m_FlareSize: 0
+  m_FlareTint: {r: 0, g: 0, b: 0, a: 1}
+  m_FlareFalloff: 0
   m_SurfaceTexture: {fileID: 0}
   m_SurfaceTint: {r: 1, g: 1, b: 1, a: 1}
   m_Distance: 150000000
@@ -26307,6 +26420,10 @@ MonoBehaviour:
   m_NormalBias: 0.75
   m_SlopeBias: 0.5
   m_ShadowUpdateMode: 0
+  m_AlwaysDrawDynamicShadows: 0
+  m_UpdateShadowOnLightMovement: 0
+  m_CachedShadowTranslationThreshold: 0.01
+  m_CachedShadowAngularThreshold: 0.5
   m_BarnDoorAngle: 90
   m_BarnDoorLength: 0.05
   m_preserveCachedShadow: 0
@@ -26447,7 +26564,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -27076,7 +27193,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -27132,7 +27249,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.4724715}
   m_UVBias: {x: 0, y: 0.5275285}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -27188,7 +27305,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -27244,7 +27361,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -27300,7 +27417,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.4824584, y: 0.4724715}
+  m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -27434,7 +27551,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_StartAngleFade: 180
   m_EndAngleFade: 180
-  m_UVScale: {x: 0.48367468, y: 0.53376114}
+  m_UVScale: {x: 0.5, y: 0.53376114}
   m_UVBias: {x: 0, y: 0.5}
   m_AffectsTransparency: 0
   m_DecalLayerMask: 1
@@ -27677,7 +27794,7 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 14.88467, y: 9.689503, z: 12.905022}
+      m_BoxSize: {x: 14.88467, y: 9.689503, z: 14.792728}
       m_BoxBlendDistancePositive: {x: 2.3849678, y: 0, z: 0}
       m_BoxBlendDistanceNegative: {x: 2.0979242, y: 0, z: 1.9805937}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
@@ -27696,10 +27813,14 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: -4.388941, y: -3.39326, z: -0.101777315}
+      capturePositionProxySpace: {x: -3.0841599, y: -3.39326, z: -1.2733347}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -27811,6 +27932,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -28052,7 +28174,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 284117423428631096}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 28.941973, y: 4.7752485, z: 3.3337336}
+  m_LocalPosition: {x: 28.941973, y: 4.7752485, z: 2.3898804}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -28090,7 +28212,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 14.88467, y: 9.689503, z: 12.905022}
+  m_BoxSize: {x: 14.88467, y: 9.689503, z: 14.792728}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -28374,6 +28496,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -28485,6 +28611,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
@@ -28739,6 +28866,10 @@ MonoBehaviour:
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
+    resolutionScalable:
+      m_Override: 512
+      m_UseOverride: 0
+      m_Level: 0
     resolution: 512
     cameraSettings:
       customRenderingSettings: 0
@@ -28850,6 +28981,7 @@ MonoBehaviour:
           enableFptlForForwardOpaque: 0
           enableBigTilePrepass: 0
           isFptlEnabled: 0
+    roughReflections: 1
   m_ProbeSettingsOverride:
     probe: 0
     camera:
