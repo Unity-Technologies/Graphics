@@ -1,7 +1,7 @@
 * [High Definition Render Pipeline](index)
 * [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
-  * [10.0](whats-new-10-0.md)
+  * [10](whats-new-10.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
@@ -155,6 +155,7 @@
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
   * Shader Graph Keywords
     * [Raytracing Quality](SGNode-Raytracing-Quality)
+  * [Ray Tracing and Animations](Ray-Tracing-Animations.md)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components

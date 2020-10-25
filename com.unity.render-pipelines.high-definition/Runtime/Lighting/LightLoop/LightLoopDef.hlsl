@@ -1,3 +1,6 @@
+#ifndef UNITY_LIGHT_LOOP_DEF_INCLUDED
+#define UNITY_LIGHT_LOOP_DEF_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
@@ -375,3 +378,5 @@ float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)
     float4 res = LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK));
     return (SCREEN_SPACE_COLOR_SHADOW_FLAG & shadowIndex) ? res.xyz : res.xxx;
 }
+
+#endif // UNITY_LIGHT_LOOP_DEF_INCLUDED

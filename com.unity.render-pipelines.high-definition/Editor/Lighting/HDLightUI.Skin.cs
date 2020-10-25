@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly string cookieNonPOT = "HDRP does not support non power of two cookie textures.";
             public readonly string cookieTooSmall = "Min texture size for cookies is 2x2 pixels.";
             public readonly string cookieBaking = "Light Baking for cookies disabled on the Project Settings.";
+            public readonly GUIContent includeLightForRayTracing = new GUIContent("Include For RayTracing", "When enabled, the light affects the scene for cameras with the Ray-Tracing frame setting enabled.");
 
             // Additional light data
             public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the Directional Light, at ground level, in lux.");
@@ -103,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Volumetric Additional light data
             public readonly GUIContent volumetricEnable = new GUIContent("Enable", "When enabled, this Light uses Volumetrics.");
             public readonly GUIContent volumetricDimmer = new GUIContent("Multiplier", "Controls the intensity of the scattered Volumetric lighting.");
+            public readonly GUIContent volumetricFadeDistance = new GUIContent("Fade Distance", "The distance at which light smoothly fades out from contributing to volumetric lighting.");
             // Volumetric Additional shadow data
             public readonly GUIContent volumetricShadowDimmer = new GUIContent("Shadow Dimmer", "Dims the volumetric shadows this Light casts.");
 
