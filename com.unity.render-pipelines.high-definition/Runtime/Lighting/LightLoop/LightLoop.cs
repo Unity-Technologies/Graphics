@@ -2321,8 +2321,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Then we can reject lights based on processed data.
                 var additionalData = processedData.additionalLightData;
-                var lightType = processedData.lightType;
 
+                // If the camera is in ray tracing mode and the light is disabled in ray tracing mode, we skip this light.
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !additionalData.includeForRayTracing)
+                    continue;
+
+                var lightType = processedData.lightType;
                 if (ShaderConfig.s_AreaLights == 0 && (lightType == HDLightType.Area && (additionalData.areaLightShape == AreaLightShape.Rectangle || additionalData.areaLightShape == AreaLightShape.Tube)))
                     continue;
 
