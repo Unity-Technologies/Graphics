@@ -640,6 +640,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_IncludeForRayTracing = true;
+        /// <summary>
+        /// Controls if the light is enabled when the camera has the RayTracing frame setting enabled.
+        /// </summary>
+        public bool includeForRayTracing
+        {
+            get => m_IncludeForRayTracing;
+            set
+            {
+                if (m_IncludeForRayTracing == value)
+                    return;
+
+                UpdateAllLightValues();
+            }
+        }
+
         [Range(k_MinAreaLightShadowCone, k_MaxAreaLightShadowCone)]
         [SerializeField, FormerlySerializedAs("areaLightShadowCone")]
         float m_AreaLightShadowCone = 120.0f;

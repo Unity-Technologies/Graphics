@@ -20,6 +20,7 @@ The version number for this package has increased due to a version update of a r
 - Added the status check of default camera frame settings in the DXR wizard.
 - Added frame setting for Virtual Texturing. 
 - Added a fade distance for light influencing volumetric lighting.
+- Adding an "Include For Ray Tracing" toggle on lights to allow the user to exclude them when ray tracing is enabled in the frame settings of a camera.
 - Added fog volumetric scattering support for path tracing.
 
 ### Fixed
@@ -44,6 +45,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue where Default Volume Profile Asset change in project settings was not added to the undo stack (case 1285268).
 - Fixed undo after enabling compositor.
 - Fixed the ray tracing shadow UI being displayed while it shouldn't (case 1286391).
+- Fixed issues with physically-based DoF, improved speed and robustness 
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.

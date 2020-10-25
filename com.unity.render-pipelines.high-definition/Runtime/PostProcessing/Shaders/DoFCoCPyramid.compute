@@ -5,6 +5,12 @@
 
 #pragma kernel KMainCoCPyramid
 
+CBUFFER_START(cb0)
+float4 _Params;
+CBUFFER_END
+
+#define NumMips            _Params.x
+
 RW_TEXTURE2D_X(float, _InputTexture);
 
 RW_TEXTURE2D_X(float, _OutputMip1);
@@ -52,6 +58,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
 
     _OutputMip1[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = color;
 
+    if (NumMips <= 1.0)
+        return;
+
     GroupMemoryBarrierWithGroupSync();
 
     // Second mip - checks that X and Y are even
@@ -66,6 +75,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
         _OutputMip2[COORD_TEXTURE2D_X(dispatchThreadId.xy / 2u)] = color;
     }
 
+    if (NumMips <= 2.0)
+        return;
+
     GroupMemoryBarrierWithGroupSync();
 
     // Third mip - checks that X and Y are multiples of four
@@ -78,6 +90,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
 
         _OutputMip3[COORD_TEXTURE2D_X(dispatchThreadId.xy / 4u)] = color;
     }
+
+    if (NumMips <= 3.0)
+        return;
 
     GroupMemoryBarrierWithGroupSync();
     
@@ -92,6 +107,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
         _OutputMip4[COORD_TEXTURE2D_X(dispatchThreadId.xy / 8u)] = color;
     }
 
+    if (NumMips <= 4.0)
+        return;
+
     GroupMemoryBarrierWithGroupSync();
 
     // Fifth mip - checks that X and Y are multiples of 16
@@ -103,6 +121,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
 
         _OutputMip5[COORD_TEXTURE2D_X(dispatchThreadId.xy / 16u)] = color;
     }
+
+    if (NumMips <= 5.0)
+        return;
 
     // Last mip - only one thread
     if (groupIndex == 0)
