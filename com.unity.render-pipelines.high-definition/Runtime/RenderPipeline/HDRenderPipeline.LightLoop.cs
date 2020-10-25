@@ -491,27 +491,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (RenderSSRPassData data, RenderGraphContext context) =>
                     {
-                        ScreenSpaceReflection ssrSettings = data.hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-
-                        if (!data.parameters.transparentSSR)
-                        {
-                            bool ssrNeedReset = false;
-                            if (ssrSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation &&
-                                data.hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation)
-                                ssrNeedReset = true;
-
-                            data.hdCamera.currentSSRAlgorithm = ssrSettings.usedAlgorithm.value;
-
-                            if (ssrSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
-                            {
-                                CoreUtils.SetRenderTarget(context.cmd, data.ssrAccum, ClearFlag.Color, Color.clear);
-                                if (ssrNeedReset || data.hdCamera.isFirstFrame)
-                                {
-                                    CoreUtils.SetRenderTarget(context.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
-                                }
-                            }
-                        }
-
                         RenderSSR(data.parameters,
                                     data.hdCamera,
                                     data.blueNoise,
