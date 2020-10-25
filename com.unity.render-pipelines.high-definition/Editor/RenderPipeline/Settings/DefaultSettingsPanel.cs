@@ -245,6 +245,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else if (newAsset != asset)
                 {
+                    Undo.RegisterCompleteObjectUndo(hdrpAsset, "Default Volume Profile Asset Change.");
                     asset = newAsset;
                     hdrpAsset.defaultVolumeProfile = asset;
                     EditorUtility.SetDirty(hdrpAsset);

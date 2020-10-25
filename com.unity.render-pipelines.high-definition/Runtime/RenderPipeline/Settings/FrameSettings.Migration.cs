@@ -431,5 +431,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.RoughDistortion, true);
         }
+
+        internal static void MigrateVirtualTexturing(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.VirtualTexturing, true);
+        }        
     }
 }
