@@ -205,6 +205,12 @@ HDRP, being a high-end modern renderer, contains a lot of compute shader passes.
 
 Planar reflection probe filtering is a process that combines the result of planar reflection and surfaces smoothness. Up until this version, the implementation for planar reflection probe filtering did not always produce results of fantastic quality. This version of HDRP includes a new implementation that is closer to being physically-based and improves on the image quality significantly.
 
+### Fake distance based roughness for reflection probe
+
+![](Images/DistanceBaseRoughness-Feature.png)
+
+Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object.
+
 ### Screen space reflection
 
 [Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always use the color pyramid generate after the Before Refraction transparent pass. Thus the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md).
@@ -294,6 +300,10 @@ Ray tracing now supports VR. However, since ray tracing is resource intensive an
 ### Render Graph
 
 HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
+
+### Metallic Remapping
+
+HDRP now uses range remapping for the metallic value when using a mask map on Lit Materials as well as Decals.
 
 ## Issues resolved
 
