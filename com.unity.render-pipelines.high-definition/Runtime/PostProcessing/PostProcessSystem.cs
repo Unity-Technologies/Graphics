@@ -2625,7 +2625,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 31) / 32, (dofParameters.camera.actualHeight + 31) / 32, dofParameters.camera.viewCount);
 
                 // do we need a second pass for the rest?
-                if (numMips > 6.0f && cocLimit > 64)
+                if (numMips > 6.0f && cocLimit > 32)
                 {
                     GetMipMapDimensions(fullresCoC, 6, out var mipMapWidth, out var mipMapHeight);
                     cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC, 6);
