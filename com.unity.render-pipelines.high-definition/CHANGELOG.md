@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -48,6 +48,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed the ray tracing shadow UI being displayed while it shouldn't (case 1286391).
 - Fixed issues with physically-based DoF, improved speed and robustness 
 - Fixed a warning happening when putting the range of lights to 0.
+- Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
