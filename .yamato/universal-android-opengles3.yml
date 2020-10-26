@@ -48,7 +48,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_apiNet4_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="OpenGLES3" --extra-editor-arg="Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -102,7 +102,7 @@ Build_Universal_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="OpenGLES3" --extra-editor-arg="Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -160,7 +160,7 @@ Build_Universal_Android_OpenGLES3_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="OpenGLES3" --extra-editor-arg="Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
@@ -221,7 +221,7 @@ Build_Universal_Android_OpenGLES3_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --extra-editor-arg="-playergraphicsapi=OpenGLES3" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --timeout=2700
+                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalGraphicsTest --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="OpenGLES3" --extra-editor-arg="Linear" --architecture=ARM64 --timeout=2700
     artifacts:
         logs:
             paths:
