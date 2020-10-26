@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.9102, g: 1835.9688, b: 2430.3418, a: 1}
+  m_IndirectSpecularColor: {r: 1481.7754, g: 1835.8867, b: 2430.4492, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -19449,7 +19449,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1669868154}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 57.265705, y: 2.4917622, z: 2.215231}
+  m_LocalPosition: {x: 57.32509, y: 2.4917622, z: 2.215231}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
@@ -19578,7 +19578,7 @@ MonoBehaviour:
       fadeDistance: 20
       rangeCompressionFactor: 1
     influence:
-      m_EditorAdvancedModeBlendDistancePositive: {x: 0.06054306, y: 0.025563002, z: 0}
+      m_EditorAdvancedModeBlendDistancePositive: {x: 0.1705265, y: 0.025563002, z: 0}
       m_EditorAdvancedModeBlendDistanceNegative: {x: 0.028141022, y: 0, z: 0.6529348}
       m_EditorSimplifiedModeBlendDistance: 0
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
@@ -19591,8 +19591,8 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 6.6075974, y: 1.0821943, z: 1.7120799}
-      m_BoxBlendDistancePositive: {x: 0.06054306, y: 0.025563002, z: 0}
+      m_BoxSize: {x: 6.726368, y: 1.0821943, z: 1.71208}
+      m_BoxBlendDistancePositive: {x: 0.1705265, y: 0.025563002, z: 0}
       m_BoxBlendDistanceNegative: {x: 0.028141022, y: 0, z: 0.6529348}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -19610,7 +19610,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 0, y: 0, z: 0.4899156}
+      capturePositionProxySpace: {x: 0.58073044, y: 0, z: 0.4899156}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
@@ -19840,7 +19840,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 6.6075974, y: 1.0821943, z: 1.7120799}
+  m_BoxSize: {x: 6.726368, y: 1.0821943, z: 1.71208}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
