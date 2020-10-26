@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture)
         {
-            RayTracingShader pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
+            RayTracingShader pathTracingShader = hdCamera.pathTracingShaderOverride == null ? m_Asset.renderPipelineRayTracingResources.pathTracing : hdCamera.pathTracingShaderOverride;
             m_PathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
 
             // Check the validity of the state before moving on with the computation
@@ -278,6 +278,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, hdCamera.mainViewConstants.pixelCoordToViewDirWS);
                 cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._PathTracedDoFConstants, ComputeDoFConstants(hdCamera, m_PathTracingSettings));
                 cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._InvViewportScaleBias, HDUtils.ComputeInverseViewportScaleBias(hdCamera));
+
+                hdCamera.PrepareDispatchRays?.Invoke(cmd);
 
                 // Run the computation
                 cmd.DispatchRays(pathTracingShader, "RayGen", (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);
