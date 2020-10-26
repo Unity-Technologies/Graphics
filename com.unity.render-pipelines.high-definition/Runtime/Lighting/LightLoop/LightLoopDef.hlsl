@@ -155,10 +155,9 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
 
     // This part (1) is loop-invariant. These values do not depend on the value of 'i'.
     // They will only be computed once per category, not once per function call.
-    // TODO: we may want to store tile buffer ranges in a separate buffer for cache locality.
-    const uint tileBufferIndex = ComputeTileBufferIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
-    const uint tileRangeData   = TILE_BUFFER[tileBufferIndex]; // {last << 16 | first}
-    const bool isTileEmpty     = tileRangeData == UINT16_MAX;
+    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
+    const uint tileRangeData         = TILE_BUFFER[tileBufferHeaderIndex]; // {last << 16 | first}
+    const bool isTileEmpty           = tileRangeData == UINT16_MAX;
 
     if (!isTileEmpty)
     {
@@ -170,11 +169,13 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
 
         if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange))
         {
+            const uint tileBufferBodyIndex = ComputeTileBufferBodyIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
+
             // The part (2) below will be actually executed during every function call.
             while (i < n)
             {
-                // This is a valid buffer index. +1 because the first uint is reserved for the metadata.
-                uint tileEntityPair  = TILE_BUFFER[(tileBufferIndex + 1) + (i / 2)]; // 16-bit indices
+                // This is a valid buffer index.
+                uint tileEntityPair  = TILE_BUFFER[tileBufferBodyIndex + (i / 2)]; // 16-bit indices
                 uint tileEntityIndex = BitFieldExtract(tileEntityPair, 16 * (i & 1), 16);
 
                 // Entity indices are stored in the ascending order.

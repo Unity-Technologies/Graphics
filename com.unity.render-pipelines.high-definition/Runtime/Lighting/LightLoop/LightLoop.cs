@@ -404,9 +404,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Binned lighting
         // For performance reasons, keep all sizes in powers of 2.
-        // The first 2 entries are reserved for the metadata.
-        public static int s_CoarseTileEntryLimit = 64 - 2; // Per category; before pruning, so the number is lower in practice
-        public static int s_FineTileEntryLimit   = 16 - 2; // Per category; after pruning, so the number is exact
+        public static int s_CoarseTileEntryLimit = 64; // Per category; before pruning, so the number is lower in practice
+        public static int s_FineTileEntryLimit   = 16; // Per category; after pruning, so the number is exact
         public static int s_CoarseTileSize       = 64;
         public static int s_FineTileSize         = 8;
         public static int s_zBinCount            = 8192;
@@ -778,11 +777,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     /* Actually resolution-dependent buffers below. */
                     Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
 
-                    int coarseTileBufferElementCount = coarseTileBufferDimensions.x * coarseTileBufferDimensions.y *
-                                                       (int)BoundedEntityCategory.Count * viewCount *
-                                                       (TiledLightingConstants.s_CoarseTileEntryLimit / 2);
+                    // The tile buffer is composed of two parts:
+                    // the header (containing index ranges, 2 * sizeof(uint16)) and
+                    // the body (containing index lists, TiledLightingConstants.s_CoarseTileEntryLimit * sizeof(uint16)).
+                    int coarseTileBufferElementCount = coarseTileBufferDimensions.x * coarseTileBufferDimensions.y
+                                                     * (int)BoundedEntityCategory.Count * viewCount
+                                                     * (2 + TiledLightingConstants.s_CoarseTileEntryLimit) / 2;
 
-                    coarseTileBuffer = new ComputeBuffer(coarseTileBufferElementCount, sizeof(uint)); // List of 16-bit indices
+                    coarseTileBuffer = new ComputeBuffer(coarseTileBufferElementCount, sizeof(uint)); // Index range + index list
                 }
 
                 // Make sure to invalidate the content of the buffers

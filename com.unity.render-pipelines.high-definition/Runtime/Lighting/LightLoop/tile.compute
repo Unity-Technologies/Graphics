@@ -24,20 +24,31 @@
 /* ------------------------------ Outputs ----------------------------------- */
 
 #if (PASS == FILL_COARSE_TILES)
+    // The tile buffer is composed of two parts:
+    // the header (containing index ranges, 2 * sizeof(uint16)) and
+    // the body (containing index lists, TiledLightingConstants.s_CoarseTileEntryLimit * sizeof(uint16)).
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     // The size of the buffer can be computed as follows:
     // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) *
-    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * ((COARSE_TILE_ENTRY_LIMIT + 2) * 2 bytes per entry).
-    // For example (1080p): 30 * 17 * 5 * 1 * (64 * 2) = 318.75 KiB.
-    RWStructuredBuffer<uint> _CoarseTileBuffer : register(u0); // List of 16-bit indices
+    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (2 + COARSE_TILE_ENTRY_LIMIT) * 2 bytes per entry.
+    // For example (1080p): 30 * 17 * 5 * 1 * (2 + 64) * 2 = 328.7 KiB.
+    RWStructuredBuffer<uint> _CoarseTileBuffer : register(u0); // Index range + index list
+#endif
+
+#if (PASS == PRUNE_COARSE_TILES)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    RWStructuredBuffer<uint> _DstCoarseTileBuffer : register(u0); // Index range + index list
 #endif
 
 #if (PASS == BUILD_FINE_TILES)
+    // The tile buffer is composed of two parts:
+    // the header (containing index ranges, 2 * sizeof(uint16)) and
+    // the body (containing index lists, TiledLightingConstants.s_CoarseTileEntryLimit * sizeof(uint16)).
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     // The size of the buffer can be computed as follows:
     // DIV_ROUND_UP(RES_X, FINE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_TILE_SIZE) *
-    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * ((FINE_TILE_ENTRY_LIMIT + 2) * 2 bytes per entry).
-    // For example (1080p): 240 * 165 * 5 * 1 * (16 * 2) = 6.04 MiB.
+    // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (2 + FINE_TILE_ENTRY_LIMIT) * 2 bytes per entry.
+    // For example (1080p): 240 * 165 * 5 * 1 * (2 + 16) * 2 = 6.8 MiB.
 #endif
 
 /* ------------------------------ Utilities --------------------------------- */
@@ -80,7 +91,7 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     const uint entityCount = s_BoundedEntityCountPerCategory[cat];
 
     const uint inputStart  = ComputeEntityBoundsBufferIndex(entityIndex, eye);
-    const uint outputStart = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
+    const uint outputStart = ComputeTileBufferBodyIndex(clampedTileIndex, cat, eye);
 
     uint first = UINT16_MAX, last = 0;
 
@@ -119,7 +130,7 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
                 if ((j & 1) != 0) // Is the pair complete & ready to be stored?
                 {
-                    _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = indexPair; // +1 for the metadata
+                    _CoarseTileBuffer[outputStart + (j / 2)] = indexPair;
 
                     indexPair = 0; // In order to use bitwise OR above
                 }
@@ -136,14 +147,15 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
             indexPair |= i << (16 * (j & 1)); // Order: first Lo, then Hi bits
 
-            _CoarseTileBuffer[(outputStart + 1) + (j / 2)] = indexPair; // +1 for the metadata
+            _CoarseTileBuffer[outputStart + (j / 2)] = indexPair;
         }
     }
 
     uint outputRange = (last << 16) | first;
 
     // Store the metadata.
-    _CoarseTileBuffer[outputStart] = outputRange;
+    uint headerIndex = ComputeTileBufferHeaderIndex(clampedTileIndex, cat, eye);
+    _CoarseTileBuffer[headerIndex] = outputRange;
 }
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]

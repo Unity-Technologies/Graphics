@@ -158,15 +158,26 @@ uint ComputeTileIndex(uint2 tileCoord)
                                uint3(TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
+// Contains index ranges.
 // tile: output of ComputeTileIndex.
-uint ComputeTileBufferIndex(uint tile, uint category, uint eye)
+uint ComputeTileBufferHeaderIndex(uint tile, uint category, uint eye)
 {
-     // We use 'uint' buffer rather than a 'uint16_t[n]'.
-    uint stride = (TILE_ENTRY_LIMIT + 2) / 2; // The first 2 entries are reserved for the metadata
-    uint offset = IndexFromCoordinate(uint4(0, 0, category, eye),
-                                      uint3(TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
+    uint eyeCatOffset = IndexFromCoordinate(uint4(0, 0, category, eye),
+                                            uint3(TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
 
-    return stride * (offset + tile);
+    return eyeCatOffset + tile;
+}
+
+// Contains index lists.
+uint ComputeTileBufferBodyIndex(uint tile, uint category, uint eye)
+{
+    // TODO: may want to precompute this.
+    uint headerOffset = TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y * BOUNDEDENTITYCATEGORY_COUNT * _XRViewCount;
+    uint eyeCatOffset = IndexFromCoordinate(uint4(0, 0, category, eye),
+                                            uint3(TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
+    uint stride = TILE_ENTRY_LIMIT / 2; // 16-bit index list
+
+    return headerOffset + stride * (eyeCatOffset + tile);
 }
 
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL
