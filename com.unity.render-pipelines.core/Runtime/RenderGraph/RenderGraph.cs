@@ -233,7 +233,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             get
             {
-                m_DefaultResources.InitializeForRendering(this);
                 return m_DefaultResources;
             }
         }
@@ -271,7 +270,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void EndFrame()
         {
-            m_Resources.PurgeUnusedResources();
+            //m_Resources.PurgeUnusedResources();
             m_DebugParameters.logFrameInformation = false;
             m_DebugParameters.logResources = false;
         }
@@ -435,6 +434,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Logger.Initialize();
 
             m_Resources.BeginRender(parameters.currentFrameIndex, m_ExecutionCount);
+            m_DefaultResources.InitializeForRendering(this);
 
             m_RenderGraphContext.cmd = parameters.commandBuffer;
             m_RenderGraphContext.renderContext = parameters.scriptableRenderContext;
@@ -555,7 +555,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             ClearRenderPasses();
             m_Resources.Clear(m_ExecutionExceptionWasRaised);
-            m_DefaultResources.Clear();
             m_RendererLists.Clear();
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_CompiledResourcesInfos[i].Clear();
