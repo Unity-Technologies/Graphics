@@ -51,7 +51,7 @@ The **Render Graph** panel has tools that you can use to debug the [Render Graph
 | ----------------- | ------------------------------------------------------------ |
 | **Clear Render Targets at creation**  | Enable the checkbox to clear render targets the first time they are used. |
 | **Disable Pass Culling**              | Enable the checkbox to render passes which have no impact on the final render. |
-| **Immediate Mode**                    | Enable the checkbox to have rendergrap evaluate passes at immediately after they are created. |
+| **Immediate Mode**                    | Enable the checkbox to have Render Graph evaluate passes immediately after they are created. |
 | **Log Frame Information**             | Press the button to log in the console informations about the passes rendered during a frame. |
 | **Log Resources**                     | Press the button to log in the console the list of resources used when rendering a frame. |
 
