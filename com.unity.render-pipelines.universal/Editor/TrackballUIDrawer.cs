@@ -17,18 +17,19 @@ namespace UnityEditor.Rendering.Universal
 
         static TrackballUIDrawer()
         {
-            if (s_Material == null)
-                s_Material = new Material(Shader.Find("Hidden/Universal Render Pipeline/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
         }
 
         public void OnGUI(SerializedProperty property, SerializedProperty overrideState, GUIContent title, Func<Vector4, Vector3> computeFunc)
         {
+            if (s_Material == null)
+                s_Material = new Material(Shader.Find("Hidden/Universal Render Pipeline/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
+
             if (property.propertyType != SerializedPropertyType.Vector4)
             {
                 Debug.LogWarning("TrackballUIDrawer requires a Vector4 property");
                 return;
             }
-            
+
             m_ComputeFunc = computeFunc;
             var value = property.vector4Value;
 
