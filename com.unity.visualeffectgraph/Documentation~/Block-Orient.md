@@ -32,7 +32,9 @@ Particles orient to face towards a specified position.
 
 **Look At Line**
 
-Particles orient to face towards the nearest point along the direction of a line.![](Images/Block-OrientLookAtLine.gif)
+Particles orient to face towards the nearest point along the direction of an infinite line.
+
+![](Images/Block-OrientLookAtLine.gif)
 
 <a name="advanced"></a>
 
