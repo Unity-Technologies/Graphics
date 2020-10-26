@@ -45,7 +45,7 @@ To display the current active item independently of the debug window:
 
 ## Render Graph panel
 
-The **Render Graph** panel has tools that you can use to debug the [Render Graph](Render-Graph.md) used by HDRP.
+The **Render Graph** panel has tools that you can use to debug the [Render Graph](https://docs.unity3d.com/2020.2/Documentation/Manual/render-graph.html) used by HDRP.
 
 | **Debug Option**  | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
