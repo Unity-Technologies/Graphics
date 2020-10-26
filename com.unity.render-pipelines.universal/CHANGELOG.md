@@ -22,6 +22,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed the Unlit shader not being SRP Batcher compatible on OpenGLES/OpenGLCore. [case 1263720](https://issuetracker.unity3d.com/issues/urp-mobile-srp-batcher-is-not-visible-on-mobile-devices-in-frame-debugger)
 - Fixed an issue with soft particles not rendering correctly for overlay cameras with post processing. [case 1241626](https://issuetracker.unity3d.com/issues/soft-particles-does-not-fade-out-near-the-opaque-surfaces-when-post-processing-is-enabled-on-a-stacked-camera)
+- Fixed latest mockHMD renderviewport scale doesn't fill whole view after scaling. [case 1286161] (https://issuetracker.unity3d.com/issues/xr-urp-renderviewportscale-doesnt-fill-whole-view-after-scaling)
 
 ## [10.1.0] - 2020-10-12
 ### Added
