@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Removed the warning about mis-matched vertex streams when creating a default Particle System. [case 1285272](https://issuetracker.unity3d.com/issues/particles-urp-default-material-shows-warning-in-inspector)
 
 ## [10.2.0] - 2020-10-19
 
