@@ -63,6 +63,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue wehre XR mirror view selector stuck. 
 - Fixed LightProbes to have gamma correct when using gamma color space. [case 1268911](https://issuetracker.unity3d.com/issues/urp-has-no-gamma-correction-for-lightprobes)
 - Fixed GLES2 shader compilation.
+- Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
 - Fixed issue with lens distortion breaking rendering when enabled and its intensity is 0.
 - Fixed mixed lighting subtractive and shadowmask modes for deferred renderer.
 - Fixed issue that caused motion blur to not work in XR.
@@ -70,6 +71,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed Missing camera cannot be removed after scene is saved by removing the Missing camera label. [case 1252255](https://issuetracker.unity3d.com/issues/universal-rp-missing-camera-cannot-be-removed-from-camera-stack-after-scene-is-saved)
 - Fixed MissingReferenceException when removing Missing camera from camera stack by removing Missing camera label. [case 1252263](https://issuetracker.unity3d.com/issues/universal-rp-missingreferenceexception-errors-when-removing-missing-camera-from-stack)
 - Fixed slow down in the editor when editing properties in the UI for renderer features. [case 1279804](https://issuetracker.unity3d.com/issues/a-short-freeze-occurs-in-the-editor-when-expanding-or-collapsing-with-the-arrow-the-renderer-feature-in-the-forward-renderer)
+- Fixed test 130_UnityMatrixIVP on OpenGL ES 3
 
 ## [10.0.0] - 2020-06-10
 ### Added

@@ -23,13 +23,14 @@ Shader "HDRP/Decal"
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
         // Remapping
+        [HideInInspector] _MetallicRemapMin("_MetallicRemapMin", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _MetallicRemapMax("_MetallicRemapMax", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         [HideInInspector] _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
         [HideInInspector] _AORemapMin("AORemapMin", Float) = 0.0
         [HideInInspector] _AORemapMax("AORemapMax", Float) = 1.0
 
         // scaling
-        [HideInInspector] _MetallicScale("_MetallicScale", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _DecalMaskMapBlueScale("_DecalMaskMapBlueScale", Range(0.0, 1.0)) = 1.0
 
         // Alternative when no mask map is provided

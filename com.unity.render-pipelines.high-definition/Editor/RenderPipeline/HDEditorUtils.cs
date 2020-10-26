@@ -242,7 +242,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.EndProperty();
         }
-        
+
 
         /// <summary>
         /// Should be placed between BeginProperty / EndProperty
@@ -292,6 +292,29 @@ namespace UnityEditor.Rendering.HighDefinition
             //
             labelPosition.x += EditorGUI.indentLevel * 15;
             EditorGUI.HandlePrefixLabel(totalPosition, labelPosition, label);
+        }
+
+        /// <summary>
+        /// Like EditorGUI.IndentLevelScope but this one will also indent the override checkboxes.
+        /// </summary>
+        internal class IndentScope : GUI.Scope
+        {
+            public IndentScope(int offset = 16)
+            {
+                // When using EditorGUI.indentLevel++, the clicking on the checkboxes does not work properly due to some issues on the C++ side.
+                // This scope is a work-around for this issue.
+                GUILayout.BeginHorizontal();
+                EditorGUILayout.Space(offset, false);
+                GUILayout.BeginVertical();
+                EditorGUIUtility.labelWidth -= offset;
+            }
+
+            protected override void CloseScope()
+            {
+                EditorGUIUtility.labelWidth = 0f;
+                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
+            }
         }
     }
 
