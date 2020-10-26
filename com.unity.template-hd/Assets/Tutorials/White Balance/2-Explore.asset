@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 1-What
+  m_Name: 2-Explore
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -23,7 +23,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: 879e5357ea2bfdd4e87821ed063eaab3, type: 3}
+      m_Image: {fileID: 2800000, guid: 92d3148533b717f46b146738f7d714ed, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -32,12 +32,17 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: What are decals?
-      m_Description: "Decals are game objects that allow you to project a Decal Material
-        onto other surfaces. It\u2019s mostly used to add additional details without
-        the use of additional meshes and to reduce repetition of tiling textures.
-        \r\n\n\nRead all about <i>Decals</i> in <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Decal-Projector.html\">HDRP
-        documentation.</a>"
+      m_Summary: Explore the scene
+      m_Description: "Lets explore how the feature was utilized in our template\n\n1)
+        In the <i>Hierarchy</i> tab, select <b>Lighting->Volumes->Volume Room 3 Sitting</b>\n2)
+        Disable the White balance volume override and notice how the color of the
+        white light on the right curved wall and the white floor tiles are affected\n3)
+        Undo your change\n\nThe white balance here applies a cool color filter to
+        the image, to counterbalance the strong orange color cast from the lamps
+        above the chairs.\r Often, artificial lighting falls on the warm side of
+        the color temperature range, and white balance is a way to adjust the perception
+        of white color in a scene. \n\nThe opposite effect can be applied to an outdoor
+        scene with a blue sky, which tends to have a slight blue color cast.\r\n"
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -56,9 +61,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 10
-    m_Pivot: {x: 0.4612462, y: 9.553349, z: 0.6690837}
-    m_Rotation: {x: -0.115983136, y: 0.54341054, z: 0.07614338, w: 0.82794935}
+    m_Size: 25.69533
+    m_Pivot: {x: 47.96254, y: 6.042383, z: -48.742954}
+    m_Rotation: {x: -0.005041083, y: -0.9876071, z: -0.0322924, w: 0.15355155}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
