@@ -31,18 +31,34 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 [!include[](snippets/shader-properties/surface-options/depth-write.md)]
 [!include[](snippets/shader-properties/surface-options/depth-test.md)]
 [!include[](snippets/shader-properties/surface-options/cull-mode.md)]
-Surface Type
-Rendering Pass
-Sorting Priority
-Receive Fog
-Back Then Front Rendering
-Transparent Depth Prepass
-Transparent Depth Postpass
-Transparents Write Motion Vectors
-Depth Write
-Depth Test
-Cull Mode
+[!include[](snippets/shader-properties/surface-options/alpha-clipping.md)]
+[!include[](snippets/shader-properties/surface-options/alpha-clipping-threshold.md)]
+[!include[](snippets/shader-properties/surface-options/use-shadow-threshold.md)]
+[!include[](snippets/shader-properties/surface-options/shadow-threshold.md)]
+[!include[](snippets/shader-properties/surface-options/alpha-to-mask.md)]
+[!include[](snippets/shader-properties/surface-options/double-sided.md)]
+[!include[](snippets/shader-properties/surface-options/normal-mode.md)]
+[!include[](snippets/shader-properties/surface-options/material-type.md)]
+[!include[](snippets/shader-properties/surface-options/trasmission.md)]
+[!include[](snippets/shader-properties/surface-options/receive-decals.md)]
+[!include[](snippets/shader-properties/surface-options/receive-ssr.md)]
+[!include[](snippets/shader-properties/surface-options/receive-ssr-transparent.md)]
+[!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
+[!include[](snippets/shader-properties/surface-options/screen-space-variance.md)]
+[!include[](snippets/shader-properties/surface-options/gsaa-threshold.md)]
+[!include[](snippets/shader-properties/surface-options/displacement-mode.md)]
+[!include[](snippets/shader-properties/surface-options/lock-with-object-scale.md)]
+[!include[](snippets/shader-properties/surface-options/lock-with-height-map-tiling-rate.md)]
+[!include[](snippets/shader-properties/surface-options/displacement-minimum-steps.md)]
+[!include[](snippets/shader-properties/surface-options/displacement-maximum-steps.md)]
+[!include[](snippets/shader-properties/surface-options/displacement-fading-mip-start.md)]
+[!include[](snippets/shader-properties/surface-options/displacement-primitive-length.md)]
+[!include[](snippets/shader-properties/surface-options/displacement-primitive-width.md)]
+[!include[](snippets/shader-properties/surface-options/displacement-depth-offset.md)]
+
+
 </table>
+
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
