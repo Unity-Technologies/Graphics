@@ -22,7 +22,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
+#endif
 
 //-----------------------------------------------------------------------------
 // Texture Mapping
@@ -41,12 +43,31 @@
 // Note: the scaling _Material_SO.xy should already be in ddx and ddy:
 #define AXF_SCALE_DDXDDY_BYNAME(vddx, name) ((vddx) * (name##_SO.xy))
 
+#if !defined(SHADER_STAGE_RAY_TRACING)
+
 #if 0
-#define DDX(param) ddx_fine(param)
-#define DDY(param) ddy_fine(param)
+#define AXF_DDX(param) ddx_fine(param)
+#define AXF_DDY(param) ddy_fine(param)
 #else
-#define DDX(param) ddx(param)
-#define DDY(param) ddy(param)
+#define AXF_DDX(param) ddx(param)
+#define AXF_DDY(param) ddy(param)
+#endif
+
+#else
+
+#undef CALCULATE_TEXTURE2D_LOD
+#define CALCULATE_TEXTURE2D_LOD(a,b,c) (0)
+
+#define AXF_RAYTRACING_DEFAULT_GRAD 0.001
+
+real AxFFakeDDX(real x) { return (real)AXF_RAYTRACING_DEFAULT_GRAD; }
+real2 AxFFakeDDX(real2 x) { return (real2)AXF_RAYTRACING_DEFAULT_GRAD; }
+real3 AxFFakeDDX(real3 x) { return (real3)AXF_RAYTRACING_DEFAULT_GRAD; }
+real4 AxFFakeDDX(real4 x) { return (real4)AXF_RAYTRACING_DEFAULT_GRAD; }
+
+#define AXF_DDX(param) AxFFakeDDX(param)
+#define AXF_DDY(param) AxFFakeDDX(param)
+
 #endif
 
 struct TextureUVMapping
@@ -102,12 +123,12 @@ void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
     uvMapping.uvXZ = uvXZ * _Material_SO.xy;
     uvMapping.uvXY = uvXY * _Material_SO.xy;
 
-    uvMapping.ddxZY = DDX(uvMapping.uvZY);
-    uvMapping.ddyZY = DDY(uvMapping.uvZY);
-    uvMapping.ddxXZ = DDX(uvMapping.uvXZ);
-    uvMapping.ddyXZ = DDY(uvMapping.uvXZ);
-    uvMapping.ddxXY = DDX(uvMapping.uvXY);
-    uvMapping.ddyXY = DDY(uvMapping.uvXY);
+    uvMapping.ddxZY = AXF_DDX(uvMapping.uvZY);
+    uvMapping.ddyZY = AXF_DDY(uvMapping.uvZY);
+    uvMapping.ddxXZ = AXF_DDX(uvMapping.uvXZ);
+    uvMapping.ddyXZ = AXF_DDY(uvMapping.uvXZ);
+    uvMapping.ddxXY = AXF_DDX(uvMapping.uvXY);
+    uvMapping.ddyXY = AXF_DDY(uvMapping.uvXY);
 
 #endif
 
@@ -131,8 +152,8 @@ void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
     // Apply AxF's main material tiling scale:
     uvMapping.uvBase *= _Material_SO.xy;
 
-    uvMapping.ddxBase = DDX(uvMapping.uvBase);
-    uvMapping.ddyBase = DDY(uvMapping.uvBase);
+    uvMapping.ddxBase = AXF_DDX(uvMapping.uvBase);
+    uvMapping.ddyBase = AXF_DDY(uvMapping.uvBase);
 
 #endif
 
@@ -189,7 +210,7 @@ float4 AxfSampleTexture2D(TEXTURE2D_PARAM(textureName, samplerName), float4 scal
     bool useGrad = lodBiasOrGrad == 3;
     bool useCachedDdxDdy = false;    
 #ifdef AXF_REUSE_SCREEN_DDXDDY
-    useCachedDdxDdy = false;
+    useCachedDdxDdy = true;
 #endif
 
 #ifdef _MAPPING_TRIPLANAR
@@ -424,6 +445,8 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 #endif
 }
 
+#ifndef SHADER_STAGE_RAY_TRACING
+
 void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)
 {
 #if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
@@ -466,31 +489,18 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
 #endif
 }
 
-bool HasPhongTypeBRDF()
+#endif //...#ifndef SHADER_STAGE_RAY_TRACING
+
+
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
 {
-    uint type = ((_SVBRDF_BRDFType >> 1) & 7);
-    return type == 1 || type == 4;
-}
 
-float2 AxFGetRoughnessFromSpecularLobeTexture(float2 specularLobe)
-{
-    // For Blinn-Phong, AxF encodes specularLobe.xy as log2(shiniExp_xy) so
-    //     shiniExp = exp2(abs(specularLobe.xy))
-    // A good fit for a corresponding Beckmann roughness is
-    //     roughnessBeckmann^2 = 2 /(shiniExp + 2)
-    // See eg
-    // http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
-    // http://simonstechblog.blogspot.com/2011/12/microfacet-brdf.html
+#if !defined(SHADER_STAGE_RAY_TRACING)
+#ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+    LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+#endif
+#endif
 
-    // We thus have 
-    //     roughnessBeckmann = sqrt(2) * rsqrt(exp2(abs(specularLobe.xy)) + 2);
-    //     shiniExp = 2 * rcp(max(0.0001,(roughnessBeckmann*roughnessBeckmann))) - 2;
-
-    return (HasPhongTypeBRDF() ? (sqrt(2) * rsqrt(exp2(abs(specularLobe)) + 2)) : specularLobe);
-}
-
-void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
-{
 #ifdef _DOUBLESIDED_ON
     float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
 #else
@@ -504,10 +514,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     InitTextureUVMapping(input, uvMapping);
     ZERO_INITIALIZE(SurfaceData, surfaceData);
 
+    // Needed for raytracing.
+    // TODO: should just modify FitToStandardLit in ShaderPassRaytracingGBuffer.hlsl and callee 
+    // to have "V" (from -incidentDir)
+    surfaceData.viewWS = V;
+
     float alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
 
 #ifdef _ALPHATEST_ON
-    // TODOTODO: Move alpha test earlier and test.
     float alphaCutoff = _AlphaCutoff;
 
     #if (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
@@ -576,12 +590,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     SetFlakesSurfaceData(uvMapping, surfaceData);
 
+    surfaceData.clearcoatColor = 1;
+
     // Useless for car paint BSDF
     surfaceData.specularColor = 0;
     surfaceData.fresnelF0 = 0;
     surfaceData.height_mm = 0;
     surfaceData.anisotropyAngle = 0;
-    surfaceData.clearcoatColor = 0;
 #endif
 
     // TODO
@@ -590,6 +605,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     //GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_BentNormalMap, sampler_BentNormalMap, UV0).xyz - 1.0, bentNormalWS, doubleSidedConstants);
 
     float perceptualRoughness = RoughnessToPerceptualRoughness(GetScalarRoughness(surfaceData.specularLobe));
+    surfaceData.perceptualSmoothness = PerceptualRoughnessToPerceptualSmoothness(perceptualRoughness);
 
     //TODO 
 //#if defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
@@ -638,7 +654,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // the handedness of the world space (tangentToWorld can be passed right handed while
     // Unity's WS is left handed, so this makes a difference here).
 
-#if defined(_ENABLE_GEOMETRIC_SPECULAR_AA)
+#if defined(_ENABLE_GEOMETRIC_SPECULAR_AA) && !defined(SHADER_STAGE_RAY_TRACING)
     // Specular AA for geometric curvature
 
     surfaceData.specularLobe.x = PerceptualSmoothnessToRoughness(GeometricNormalFiltering(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.x), input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold));
@@ -648,7 +664,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 #endif
 
-#if defined(DEBUG_DISPLAY)
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         // Not debug streaming information with AxF (this should never be stream)
@@ -673,4 +689,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+    RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }
