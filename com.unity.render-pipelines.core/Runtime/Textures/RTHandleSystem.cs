@@ -822,7 +822,7 @@ namespace UnityEngine.Rendering
             rth.m_EnableRandomWrite = false;
             rth.useScaling = false;
             rth.m_EnableHWDynamicScale = false;
-            rth.m_Name = "";
+            rth.m_Name = texture.name;
             return rth;
         }
 
@@ -839,7 +839,7 @@ namespace UnityEngine.Rendering
             rth.m_EnableRandomWrite = false;
             rth.useScaling = false;
             rth.m_EnableHWDynamicScale = false;
-            rth.m_Name = "";
+            rth.m_Name = texture.name;
             return rth;
         }
 
