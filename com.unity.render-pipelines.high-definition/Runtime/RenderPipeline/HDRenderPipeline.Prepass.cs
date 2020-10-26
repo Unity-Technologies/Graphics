@@ -718,6 +718,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
                 if (passData.parameters.resolveIsNecessary)
                     passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
+                else
+                    passData.resolvedStencil = output.stencilBuffer;
                 builder.SetRenderFunc(
                 (ResolveStencilPassData data, RenderGraphContext context) =>
                 {
@@ -748,7 +750,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public TextureHandle[]      mrt;
             public int                  dBufferCount;
-            public ComputeBufferHandle  decalPropertyMaskBuffer;
         }
 
         class DBufferNormalPatchData
@@ -791,7 +792,6 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
                 dBufferOutput.mrt[i] = builder.ReadTexture(dBufferOutput.mrt[i]);
 
-            dBufferOutput.decalPropertyMaskBuffer = builder.ReadComputeBuffer(dBufferOutput.decalPropertyMaskBuffer);
             return dBufferOutput;
         }
 
