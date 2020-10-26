@@ -113,6 +113,18 @@ CBUFFER_START(UnityPerMaterial)
     uint    _CarPaint2_FlakeNumThetaF;            // Amount of thetaF entries (in litterature, that's called thetaH, the angle between the normal and the half vector)
     uint    _CarPaint2_FlakeNumThetaI;            // Amount of thetaI entries (in litterature, that's called thetaD, the angle between the light/view and the half vector)
 
+    float   _CarPaint2_FixedColorThetaHForIndirectLight;   // to select a hue column in the BRDF color table ie half angle, otherwise the are fixed at 0 like IBL eval in split sum and raytracing indirect light
+    float   _CarPaint2_FixedFlakesThetaHForIndirectLight;  // to control a bit the angular visibility of flakes (otherwise first angle fixed at 0) when lit by indirect split sum lights like IBL eval and raytracing indirect light
+
+    uint    _FlagsB;
+    float   _SVBRDF_BRDFType_DiffuseType;
+    float   _SVBRDF_BRDFType_SpecularType;
+    float   _SVBRDF_BRDFVariants_FresnelType;
+    float   _SVBRDF_BRDFVariants_WardType;
+    float   _SVBRDF_BRDFVariants_BlinnType;
+    float   _CarPaint2_FlakeMaxThetaIF;
+    float   _CarPaint2_FlakeNumThetaFF;
+    float   _CarPaint2_FlakeNumThetaIF;
 
     //////////////////////////////////////////////////////////////////////////////
 
@@ -127,6 +139,9 @@ float _EnableBlendModePreserveSpecularLighting;
 float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
+
+// Raytracing (recursive mode)
+float _RayTracing;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.
