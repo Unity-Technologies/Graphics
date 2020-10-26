@@ -14,6 +14,36 @@ To create a new Lit Material, navigate to your Project's Asset window, right-cli
 
 **Surface Options** control the overall look of your Material's surface and how Unity renders the Material on screen.
 
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/surface-options/surface-type.md)]
+[!include[](snippets/shader-properties/surface-options/rendering-pass.md)]
+[!include[](snippets/shader-properties/surface-options/sorting-priority.md)]
+[!include[](snippets/shader-properties/surface-options/receive-fog.md)]
+[!include[](snippets/shader-properties/surface-options/back-then-front-rendering.md)]
+[!include[](snippets/shader-properties/surface-options/transparent-depth-prepass.md)]
+[!include[](snippets/shader-properties/surface-options/transparent-depth-postpass.md)]
+[!include[](snippets/shader-properties/surface-options/transparent-depth-postpass.md)]
+[!include[](snippets/shader-properties/surface-options/transparent-writes-motion-vectors.md)]
+[!include[](snippets/shader-properties/surface-options/depth-write.md)]
+[!include[](snippets/shader-properties/surface-options/depth-test.md)]
+[!include[](snippets/shader-properties/surface-options/cull-mode.md)]
+Surface Type
+Rendering Pass
+Sorting Priority
+Receive Fog
+Back Then Front Rendering
+Transparent Depth Prepass
+Transparent Depth Postpass
+Transparents Write Motion Vectors
+Depth Write
+Depth Test
+Cull Mode
+</table>
+
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
 | **Surface Type**          | Use the drop-down to define whether your Material supports transparency or not. Materials with a **Transparent Surface Type** are more resource intensive to render than Materials with an **Opaque** **Surface Type**. HDRP exposes more properties, depending on the **Surface Type** you select. For more information about the feature and for the list of properties each **Surface Type** exposes, see the [Surface Type documentation](Surface-Type.md). |
