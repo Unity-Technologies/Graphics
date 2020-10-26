@@ -397,6 +397,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2Int minDepthMipOffset;
 
             public float dilationWidth;
+            public int viewCount;
         }
 
 
@@ -424,6 +425,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dilationWidth = ratio < 0.1f ? 2 :
                                        ratio < 0.5f ? 1 : 0;
 
+            parameters.viewCount = hdCamera.viewCount;
+
             return parameters;
         }
 
@@ -443,7 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, maxZ8x);
 
-            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
 
             // --------------------------------------------------------------
             // Downsample to 16x16 and compute gradient if required
@@ -468,7 +471,7 @@ namespace UnityEngine.Rendering.HighDefinition
             dispatchX = HDUtils.DivRoundUp(finalMaskW, 8);
             dispatchY = HDUtils.DivRoundUp(finalMaskH, 8);
 
-            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
 
             // --------------------------------------------------------------
             // Dilate max Z and gradient.
@@ -481,7 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
             srcLimitAndDepthOffset.y = finalMaskH;
             cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
 
-            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
 
         }
 

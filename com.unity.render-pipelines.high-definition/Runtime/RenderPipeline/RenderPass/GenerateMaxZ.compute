@@ -132,6 +132,8 @@ float GetDepthGradient(float minDepth, float maxDepth)
 [numthreads(8, 8, 1)]
 void ComputeFinalMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     // Upper-left pixel coordinate of quad that this thread will read
     uint2 srcPixelUL = (dispatchThreadId.xy << 1);
 
@@ -171,6 +173,8 @@ OUT_MASK_FORMAT DilateValue(OUT_MASK_FORMAT currMax, OUT_MASK_FORMAT currSample)
 [numthreads(8, 8, 1)]
 void DilateMask(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_GroupIndex, uint2 groupThreadId : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     int dilationWidth = _DilationWidth;
 
     OUT_MASK_FORMAT dilatedMaxVals = -1;

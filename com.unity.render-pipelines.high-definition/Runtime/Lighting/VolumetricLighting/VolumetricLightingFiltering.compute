@@ -89,7 +89,7 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint currentSlice = dispatchThreadId.z;
 
     // Compute the output voxel coordinate
-    uint3 voxelCoord = uint3(currentCoord, currentSlice + _VBufferSliceCount * unity_StereoEyeIndex);
+    uint3 voxelCoord = uint3(currentCoord, currentSlice);
 
     if (groupIndex < 50)
     {
