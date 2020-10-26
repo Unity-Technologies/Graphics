@@ -13,8 +13,8 @@ public class RenderGraphViewer : EditorWindow
         public static readonly GUIContent title = EditorGUIUtility.TrTextContent("Render Graph Viewer");
     }
 
-    public const float kRenderPassWidth = 20.0f;
-    public const float kResourceHeight = 15.0f;
+    const float kRenderPassWidth = 20.0f;
+    const float kResourceHeight = 15.0f;
 
     class CellElement : VisualElement
     {

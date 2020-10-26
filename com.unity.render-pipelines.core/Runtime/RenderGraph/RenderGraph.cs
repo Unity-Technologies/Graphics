@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <param name="renderGraphContext">Global Render Graph context.</param>
     public delegate void RenderFunc<PassData>(PassData data, RenderGraphContext renderGraphContext) where PassData : class, new();
 
-    public class RenderGraphDebugData
+    internal class RenderGraphDebugData
     {
         [DebuggerDisplay("PassDebug: {name}")]
         public struct PassDebugData
@@ -325,7 +325,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Returns the last rendered frame debug data. Can be null if requireDebugData is set to false.
         /// </summary>
         /// <returns>The last rendered frame debug data</returns>
-        public RenderGraphDebugData GetDebugData()
+        internal RenderGraphDebugData GetDebugData()
         {
             return m_RenderGraphDebugData;
         }
