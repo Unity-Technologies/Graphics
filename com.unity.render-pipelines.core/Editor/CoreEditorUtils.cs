@@ -458,7 +458,6 @@ namespace UnityEditor.Rendering
         /// <param name="contextAction">The context action</param>
         /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
-        /// <param name="documentationURL">Documentation URL</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
          => DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
