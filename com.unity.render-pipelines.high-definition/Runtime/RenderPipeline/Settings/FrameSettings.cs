@@ -779,7 +779,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Planar and real time cubemap doesn't need post process and render in FP16
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Postprocess] &= !reflection && !preview;
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPrepass] &= renderPipelineSettings.supportTransparentDepthPrepass && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPrepass] &= renderPipelineSettings.supportTransparentDepthPrepass && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
 
             bool motionVector = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MotionVectors] &= renderPipelineSettings.supportMotionVectors && !preview;
 
@@ -789,12 +789,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.DecalLayers] &= renderPipelineSettings.supportDecalLayers && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals];
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
             bool distortion = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RoughDistortion] &= distortion && !msaa && !preview;
 
 
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentObjects];
 
             bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
@@ -821,6 +821,9 @@ namespace UnityEngine.Rendering.HighDefinition
             //   but with the preview lights which are different from the ones in the scene and will change the result inducing flickering.
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReflectionProbe] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.PlanarProbe] &= !preview;
+
+
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects];
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>

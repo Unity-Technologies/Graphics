@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty areaLightCookie; // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
         public SerializedProperty iesPoint;
         public SerializedProperty iesSpot;
+        public SerializedProperty includeForRayTracing;
         public SerializedProperty areaLightShadowCone;
         public SerializedProperty useCustomSpotLightShadowCone;
         public SerializedProperty customSpotLightShadowCone;
@@ -361,6 +362,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 areaLightCookie = o.Find("m_AreaLightCookie");
                 iesPoint = o.Find("m_IESPoint");
                 iesSpot = o.Find("m_IESSpot");
+                includeForRayTracing = o.Find("m_IncludeForRayTracing");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
                 customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");

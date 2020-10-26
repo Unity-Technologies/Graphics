@@ -732,6 +732,9 @@ namespace UnityEditor.Rendering.HighDefinition
 #else
                 serialized.settings.DrawRange(false);
 #endif
+                // Make sure the range is not 0.0
+                serialized.settings.range.floatValue = Mathf.Max(0.001f, serialized.settings.range.floatValue);
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
@@ -975,6 +978,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 --EditorGUI.indentLevel;
             }
+
+            EditorGUILayout.PropertyField(serialized.includeForRayTracing, s_Styles.includeLightForRayTracing);
 
             if (EditorGUI.EndChangeCheck())
             {
