@@ -41,7 +41,6 @@ MonoBehaviour:
   m_Pages:
     m_Items:
     - {fileID: 11400000, guid: 50e85545d70d56d4a81caddff7e04615, type: 2}
-    - {fileID: 11400000, guid: 6ee6a1560a36e4d43b294f038b6fa980, type: 2}
     - {fileID: 11400000, guid: 6815104a5b608ec47aa80ef53886ac7f, type: 2}
     - {fileID: 11400000, guid: 918c7dbe45c9e2f4da315948153cd94f, type: 2}
     - {fileID: 11400000, guid: e35d6ccdaaa34d943a7b884c77ea30c1, type: 2}

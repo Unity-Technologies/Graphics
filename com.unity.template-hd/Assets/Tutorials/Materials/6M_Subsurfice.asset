@@ -33,24 +33,14 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       m_Summary: Subsurface Scattering
-      m_Description: '1) In the <i>Hierarchy</i> window expand <b>Props->Room2->Bamboo_A_Snaps004</b>
-        gameobject
-
-        2) Select <b>Geometry_Bamboo_A_LOD0</b> gameobject
-
-        3)
-        Go to <i>Inspector</i> window -> expand the <i>Bamboo_Leaf_A Material</i>
-
-
-        Check
-        Material Type, notice it uses Subsurface Scattering. Change it to a different
-        material type and back to see the visual difference. The effect is more visible
-        when the object is backlit.
-
-        To simulate translucency we need to
-        enable Transmission in the material.
-
-'
+      m_Description: "Subsurface Scattering allows sun to penetrate through bamboo
+        leaves. \n\n1) In the <i>Hierarchy</i> window expand <b>Props->Room2->Bamboo_A_Snaps004</b>
+        \n2) Select <b>Geometry_Bamboo_A_LOD0</b> gameobject\n3) Go to <i>Inspector</i>
+        window -> expand the <i>Bamboo_Leaf_A Material</i>\n\nCheck Material Type,
+        notice it uses Subsurface Scattering. Change it to a Standard material type
+        and back to see the visual difference. The effect is more visible when the
+        object is backlit.\nTo simulate translucency we need to enable Transmission
+        in the material.\n"
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 

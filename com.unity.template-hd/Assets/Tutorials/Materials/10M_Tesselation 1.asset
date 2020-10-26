@@ -32,28 +32,21 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Tesselation
-      m_Description: 'Dar neparuosta, cia bat kokie steps
-
-
-        1) In the <i>Hierarchy</i>
-        window expand <b>Props->Room2->Bamboo_A_Snaps004</b> gameobject
-
-        2)
-        Select <b>Geometry_Bamboo_A_LOD0</b> gameobject
-
-        3) Go to <i>Inspector</i>
-        window -> expand the <i>Bamboo_Leaf_A Material</i>
-
-        4) Delete the 
-        <b>Thickness Map</b> or set it to None
-
-
-        All the leaves look the
-        same and we can''t see the sun shining within and throug the leaves . Now
-        bring back the Texture using (Ctrl+z / Cmd+z).
-
-'
+      m_Summary: Tessellation displacement
+      m_Description: "Notice that it uses HDRP/LitTesselation. It allowed to render
+        more detailed geometry without the need to create a model that contains a
+        lot of vertices.\n\nSelect the Bamboo by doing this: \n1) In the <i>Hierarchy</i>
+        window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>\n2)
+        Select <b>Geometry_Bamboo_A_LOD0</b> gameobject\n3) Go to <i>Inspector</i>
+        window -> expand the <i>Bamboo_A Material</i>\n4) Select <b>Displacement
+        Mode</b> - Alternate between <b>None</b> and <b>Tessellation displacement</b> 
+        \n5) Notice the silhouette difference between them.\n6) Activate <b>\u201CShaded
+        wireframe\u201D</b> mode in the <i>scene</i> view toolbar\n7) Play around
+        with <b>Tessellation factor</b> and see the change in triangle density\r\n\nTessellation
+        Displacement will displace the mesh\u2019s surface according to the Height
+        Map.\r\nTune the \u201CFade start\u201D and \u201CFade end\u201D distances
+        to optimize the effect and prevent the rendering of triangles too far from
+        the object, as it becomes unnoticeable and wasteful in terms of performance.\r\n\n\n"
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -72,9 +65,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 1.1064379
-    m_Pivot: {x: 31.441372, y: 4.114635, z: -0.6418419}
-    m_Rotation: {x: -0.22269012, y: 0.47965643, z: 0.12729824, w: 0.839144}
+    m_Size: 0.5064379
+    m_Pivot: {x: 31.65003, y: 3.351025, z: -0.6422454}
+    m_Rotation: {x: -0.022421824, y: 0.55223936, z: 0.014860967, w: 0.83326817}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

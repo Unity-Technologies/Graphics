@@ -33,23 +33,11 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       m_Summary: Thickness map
-      m_Description: '1) In the <i>Hierarchy</i> window expand <b>Props->Room2->Bamboo_A_Snaps004</b>
-        gameobject
-
-        2) Select <b>Geometry_Bamboo_A_LOD0</b> gameobject
-
-        3)
-        Go to <i>Inspector</i> window -> expand the <i>Bamboo_Leaf_A Material</i>
-
-        4)
-        Delete the  <b>Thickness Map</b> or set it to None
-
-
-        All the leaves
-        look the same and we can''t see the sun shining within and throug the leaves
-        . Now bring back the Texture using (Ctrl+z / Cmd+z).
-
-'
+      m_Description: "1) In the <i>Hierarchy</i> window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>
+        \n2) Select <b>Geometry_Bamboo_A_LOD0</b> gameobject\n3) Go to <i>Inspector</i>
+        window -> expand the <i>Bamboo_Leaf_A Material</i>\n4) Remove the  <b>Thickness
+        Map</b> or set it to None\n\nYou can see that leaves are the same thickness
+        everythere. \nNow bring back the Texture using (Ctrl+z / Cmd+z).\n"
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 

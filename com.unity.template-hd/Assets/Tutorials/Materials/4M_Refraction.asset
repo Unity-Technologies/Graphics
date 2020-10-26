@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 2M_Base_map
+  m_Name: 4M_Refraction
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -32,29 +32,17 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Base Map
-      m_Description: 'Base Map is there you assign a Texture that controls both the
-        color and opacity of your Material.
-
-
-        1) In the <i>Hierarchy</i>
-        window expand <b>Structure->Room3->TR_Counter_01</b> gameobject
-
-        2)
-        Select <b>TR_Counter_01_LOD0</b> gameobject
-
-        3) Go to <i>Inspector</i>
-        window -> expand the <i>Material</i>
-
-        4) Delete the  <b>Base Map</b>
-        or set it to None
-
-
-        You can see that the table looses it''s wooden
-        looks and it is plain white.  Now bring back the Base Map Texture using (Ctrl+z
-        / Cmd+z).
-
-'
+      m_Summary: Refraction model
+      m_Description: "The High Definition Render Pipeline (HDRP) uses a refraction
+        algorithm to simulate light deviation and absorption within Materials.\n\nSelect
+        the glass by following the steps: \n1) In the <i>Hierarchy</i> window expand
+        <b>Props->Room 3->RoundTable_01->RoundTable_01_LOD0</b> \n2) Select <b>RoundTable_GLass_01_LOD0</b>
+        gameobject\n3) Go to <i>Inspector</i> window -> expand the <i>Glass Dark_Mat 
+        Material</i>\n4) The <b>Surface Type</b> must be set to <b>Transparent</b>.
+        This exposes the <b>Transparency Inputs</b> section in the <i>Inspector</i>.\n5)
+        Click the <b>Refraction Model</b> drop-down to select the <b>Refraction Model</b>
+        for the <i>Material</i>\n\nNow you can see that the table has a frosted glass
+        which you can adjust using smoothnes slider. "
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -73,9 +61,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 1.1399014
-    m_Pivot: {x: 59.05098, y: 3.202604, z: 2.8878717}
-    m_Rotation: {x: 0.1308873, y: 0.2733956, z: -0.03757653, w: 0.95222074}
+    m_Size: 2.2357948
+    m_Pivot: {x: 63.02813, y: 0.7790892, z: -1.905962}
+    m_Rotation: {x: 0.0017000146, y: -0.9493588, z: 0.31418353, w: 0.0051144967}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
