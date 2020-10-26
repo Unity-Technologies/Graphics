@@ -420,10 +420,20 @@ namespace UnityEngine.Rendering.Universal
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
             // If deferred rendering path was selected, it has already made a copy.
-            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.actualRenderingMode != RenderingMode.Deferred)
+            bool requiresDepthCopyPass = !requiresDepthPrepass
+                                         && renderingData.cameraData.requiresDepthTexture
+                                         && createDepthTexture
+                                         && this.actualRenderingMode != RenderingMode.Deferred;
+            if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
+            }
+
+            // Set the depth texture to the far Z if we do not do a depth prepass or copy detph
+            if (!requiresDepthPrepass && !requiresDepthCopyPass)
+            {
+                Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
 
             if (renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture)
@@ -671,7 +681,6 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
             {
-                int msaaSamples = descriptor.msaaSamples;
                 if (createColor)
                 {
                     bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
