@@ -8568,7 +8568,7 @@ GameObject:
   - component: {fileID: 815519081}
   - component: {fileID: 815519082}
   m_Layer: 0
-  m_Name: ScreenshotsTimeline
+  m_Name: Screenshots Timeline
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11607,7 +11607,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1086288951
 Transform:
   m_ObjectHideFlags: 0
@@ -16305,7 +16305,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -0.1181918, z: 0}
+    textureOffset: {x: -0, y: -216.6645, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24308,7 +24308,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 25
+  m_FocalLength: 18
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -24317,7 +24317,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 51.28201
+  field of view: 67.380135
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -24342,7 +24342,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922889286}
-  m_LocalRotation: {x: 0.9510131, y: -0.0597259, z: 0.05696309, w: -0.2979296}
+  m_LocalRotation: {x: 0.7016372, y: -0.044064496, z: 0.042026155, w: 0.70992774}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -25467,7 +25467,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 2.4133873, y: -3.3809984, z: -1.67378}
+      capturePositionProxySpace: {x: 3.061531, y: -3.4905887, z: -1.67378}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
