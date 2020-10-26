@@ -144,7 +144,6 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #if UNITY_COLORSPACE_GAMMA
             {
                 color = GetSRGBToLinear(color);
-                #endif
             }
             #endif
 
@@ -208,7 +207,6 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #if UNITY_COLORSPACE_GAMMA || _LINEAR_TO_SRGB_CONVERSION
             {
                 color = GetLinearToSRGB(color);
-                #endif
             }
             #endif
 
