@@ -63,6 +63,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue wehre XR mirror view selector stuck. 
 - Fixed LightProbes to have gamma correct when using gamma color space. [case 1268911](https://issuetracker.unity3d.com/issues/urp-has-no-gamma-correction-for-lightprobes)
 - Fixed GLES2 shader compilation.
+- Fixed useless mip maps on temporary RTs/PostProcessing inherited from Main RT descriptor.
 - Fixed issue with lens distortion breaking rendering when enabled and its intensity is 0.
 - Fixed mixed lighting subtractive and shadowmask modes for deferred renderer.
 - Fixed issue that caused motion blur to not work in XR.
