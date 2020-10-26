@@ -14,7 +14,7 @@ Universal_Win_DX12_Standalone_il2cpp_apiNet4_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -41,7 +41,7 @@ Build_Universal_Win_DX12_Player_il2cpp_apiNet4_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12" --extra-editor-arg="Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12" --extra-editor-arg="Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12"
     artifacts:
         logs:
             paths:
@@ -68,7 +68,7 @@ Universal_Win_DX12_playmode_il2cpp_apiNet4_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -92,7 +92,7 @@ Universal_Win_DX12_editmode_il2cpp_apiNet4_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -116,7 +116,7 @@ Universal_Win_DX12_playmode_XR_il2cpp_apiNet4_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -133,7 +133,7 @@ Universal_Win_DX12_Standalone_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -160,7 +160,7 @@ Build_Universal_Win_DX12_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12" --extra-editor-arg="Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12" --extra-editor-arg="Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12"
     artifacts:
         logs:
             paths:
@@ -187,7 +187,7 @@ Universal_Win_DX12_playmode_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -211,7 +211,7 @@ Universal_Win_DX12_editmode_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -235,7 +235,7 @@ Universal_Win_DX12_playmode_XR_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -253,7 +253,7 @@ Universal_Win_DX12_Standalone_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -283,7 +283,7 @@ Build_Universal_Win_DX12_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12" --extra-editor-arg="Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12" --extra-editor-arg="Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12"
     artifacts:
         logs:
             paths:
@@ -314,7 +314,7 @@ Universal_Win_DX12_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -342,7 +342,7 @@ Universal_Win_DX12_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -370,7 +370,7 @@ Universal_Win_DX12_playmode_XR_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -391,7 +391,7 @@ Universal_Win_DX12_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -421,7 +421,7 @@ Build_Universal_Win_DX12_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12" --extra-editor-arg="Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12" --extra-editor-arg="Linear" --timeout=2000 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12"
     artifacts:
         logs:
             paths:
@@ -452,7 +452,7 @@ Universal_Win_DX12_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -480,7 +480,7 @@ Universal_Win_DX12_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -508,7 +508,7 @@ Universal_Win_DX12_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
+                  cd TestProjects/UniversalGraphicsTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:

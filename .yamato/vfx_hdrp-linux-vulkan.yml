@@ -14,7 +14,7 @@ VFX_HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
-      -  cd TestProjects/VisualEffectGraph_HDRP && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_HDRP && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -37,7 +37,7 @@ Build_VFX_HDRP_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
       -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkan"
     artifacts:
         logs:
             paths:
@@ -60,7 +60,7 @@ VFX_HDRP_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
       -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -80,7 +80,7 @@ VFX_HDRP_Linux_Vulkan_editmode_mono_apiNet2_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
       -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -98,7 +98,7 @@ VFX_HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
-      -  cd TestProjects/VisualEffectGraph_HDRP && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_HDRP && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --timeout=1200
     artifacts:
         logs:
             paths:
@@ -124,7 +124,7 @@ Build_VFX_HDRP_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
       -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkan"
     artifacts:
         logs:
             paths:
@@ -151,7 +151,7 @@ VFX_HDRP_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
       -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:
@@ -175,7 +175,7 @@ VFX_HDRP_Linux_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
       -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
       -  cd TestProjects/VisualEffectGraph_HDRP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/VisualEffectGraph_HDRP && DISPLAY=:0.0 ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
             paths:

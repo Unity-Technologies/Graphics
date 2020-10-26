@@ -16,7 +16,7 @@ Universal_OSX_OpenGLCore_playmode_il2cpp_apiNet4_Linear_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -35,7 +35,7 @@ Universal_OSX_OpenGLCore_editmode_il2cpp_apiNet4_Linear_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -54,7 +54,7 @@ Universal_OSX_OpenGLCore_playmode_mono_apiNet2_Linear_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -73,7 +73,7 @@ Universal_OSX_OpenGLCore_editmode_mono_apiNet2_Linear_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -93,7 +93,7 @@ Universal_OSX_OpenGLCore_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -116,7 +116,7 @@ Universal_OSX_OpenGLCore_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -139,7 +139,7 @@ Universal_OSX_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2
     artifacts:
         logs:
             paths:
@@ -162,7 +162,7 @@ Universal_OSX_OpenGLCore_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2
     artifacts:
         logs:
             paths:

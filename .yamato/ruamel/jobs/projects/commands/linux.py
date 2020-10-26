@@ -65,7 +65,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     utr_args.append(f'--timeout={get_timeout(test_platform, "Linux", build=True)}')
 
     if not test_platform['is_performance']:
-        utr_args.extend([f'--extra-editor-arg="CustomBuild.BuildLinux{api["name"]}Linear"'])
+        utr_args.extend([f'--extra-editor-arg="CustomBuild.BuildLinux{api["name"]}"'])
 
     
     return _cmd_base(project_folder, platform, utr_args, editor)

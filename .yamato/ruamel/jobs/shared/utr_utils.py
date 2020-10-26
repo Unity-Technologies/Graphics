@@ -10,7 +10,7 @@ def utr_playmode_flags(suite='playmode', testproject='.', editor_location='.Edit
         f'--artifacts_path={artifacts_path}',
         f'--scripting-backend={scripting_backend}',
         #f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
-        f'--extra-editor-arg="-colorspace={color_space}"',
+        f'--extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpace{color_space}"',
         f'--reruncount=2'
         ]
     return [f for f in flags if f]
@@ -27,7 +27,7 @@ def utr_editmode_flags(suite='editor', platform='editmode', testproject='.', edi
         f'--artifacts_path={artifacts_path}',
         f'--scripting-backend={scripting_backend}',
         #f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
-        f'--extra-editor-arg="-colorspace={color_space}"',
+        f'--extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpace{color_space}"',
         f'--reruncount=2'
         ]
     return [f for f in flags if f]
@@ -44,7 +44,7 @@ def utr_standalone_not_split_flags(platform_spec, suite='playmode', platform='St
         f'--editor-location={editor_location}',
         f'--scripting-backend={scripting_backend}',
         #f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
-        f'--extra-editor-arg="-colorspace={color_space}"',
+        f'--extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpace{color_space}"',
         f'--reruncount=2'
         ]
     return [f for f in flags if f]
@@ -61,7 +61,7 @@ def utr_standalone_split_flags(platform_spec, suite='playmode', platform='Standa
         f'--player-connection-ip={player_conn_ip}' if player_conn_ip!=None else '',
         f'--scripting-backend={scripting_backend}',
         #f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
-        f'--extra-editor-arg="-colorspace={color_space}"',
+        f'--extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpace{color_space}"',
         f'--reruncount=2'
         ]
     return [f for f in flags if f]

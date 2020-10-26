@@ -27,7 +27,10 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = utr_playmode_flags()
+    scripting_backend = build_config["scripting_backend"]
+    api_level = build_config["api_level"]
+
+    utr_args = utr_playmode_flags(scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
     if api["name"] != "":
@@ -36,7 +39,10 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     return  _cmd_base(project_folder, platform, utr_args, editor)
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = utr_standalone_split_flags("Windows64")
+    scripting_backend = build_config["scripting_backend"]
+    api_level = build_config["api_level"]
+
+    utr_args = utr_standalone_split_flags("Windows64", scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win")}')
@@ -49,10 +55,13 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = utr_standalone_build_flags("Windows64", graphics_api=api["name"])
+    scripting_backend = build_config["scripting_backend"]
+    api_level = build_config["api_level"]
+
+    utr_args = utr_standalone_build_flags("Windows64", graphics_api=api["name"], scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
     utr_args.extend(test_platform["extra_utr_flags_build"])
     utr_args.extend(platform["extra_utr_flags_build"])
-    utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear"'])
+    utr_args.extend(['--extra-editor-arg="-executemethod"', f'--extra-editor-arg="CustomBuild.BuildWindows{api["name"]}"'])
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win", build=True)}')
 
     
