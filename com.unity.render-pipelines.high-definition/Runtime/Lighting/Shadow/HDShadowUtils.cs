@@ -51,7 +51,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 aspectRatio = 1.0f;
 
             float guardAngle = CalcGuardAnglePerspective(spotAngle, viewportSize.x, GetPunctualFilterWidthInTexels(filteringQuality), normalBiasMax, 180.0f - spotAngle);
-            ExtractSpotLightMatrix(visibleLight, spotAngle, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
+            splitData.cullingMatrix = ExtractSpotLightMatrix(visibleLight, spotAngle, nearPlane, guardAngle, aspectRatio, out view, out projection, out deviceProjection, out invViewProjection, out lightDir, out splitData);
+            splitData.isOrthographicCulling = false;
 
             if (shape == SpotLightShape.Box)
             {
