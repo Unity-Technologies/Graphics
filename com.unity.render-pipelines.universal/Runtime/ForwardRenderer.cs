@@ -148,7 +148,11 @@ namespace UnityEngine.Rendering.Universal
                 // - Legacy materials have unamed pass, which is implicitely renamed as SRPDefaultUnlit. In that case, they are considered forward-only too.
                 // TO declare a material with unnamed pass and UniversalForward/UniversalForwardOnly pass is an ERROR, as the material will be rendered twice.
                 StencilState forwardOnlyStencilState = DeferredLights.OverwriteStencil(m_DefaultStencilState, (int)StencilUsage.MaterialMask);
-                ShaderTagId[] forwardOnlyShaderTagIds = new ShaderTagId[] { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForwardOnly") };
+                ShaderTagId[] forwardOnlyShaderTagIds = new ShaderTagId[] {
+                    new ShaderTagId("UniversalForwardOnly"),
+                    new ShaderTagId("SRPDefaultUnlit"), // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
+                    new ShaderTagId("LightweightForward") // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
+                };
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
                 m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
                 m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 2, m_CopyDepthMaterial);
@@ -209,6 +213,10 @@ namespace UnityEngine.Rendering.Universal
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
+                // Deferred rendering does not support MSAA.
+                this.supportedRenderingFeatures.msaa = false;
+
+                // Avoid legacy platforms: use vulkan instead.
                 unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[] {
                     GraphicsDeviceType.OpenGLCore,
                     GraphicsDeviceType.OpenGLES2,

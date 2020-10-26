@@ -20,11 +20,9 @@ namespace UnityEditor.ShaderGraph.Internal
         
         public override PropertyType propertyType => PropertyType.Float;
         
-        internal override bool isBatchable => true;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
-        
+
         string enumTagString
         {
             get
@@ -62,6 +60,17 @@ namespace UnityEditor.ShaderGraph.Internal
                 default:
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
             }
+        }
+
+        internal override string GetPropertyAsArgumentString()
+        {
+            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+        }
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            action(new HLSLProperty(HLSLType._float, referenceName, decl, concretePrecision));
         }
 
         [SerializeField]
@@ -151,8 +160,19 @@ namespace UnityEditor.ShaderGraph.Internal
                 enumNames = enumNames,
                 enumValues = enumValues,
                 precision = precision,
-                gpuInstanced = gpuInstanced,
+                overrideHLSLDeclaration = overrideHLSLDeclaration,
+                hlslDeclarationOverride = hlslDeclarationOverride
             };
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 

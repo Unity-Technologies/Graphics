@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
     /// <example>
     /// <code>
     /// using UnityEngine.Rendering;
-    /// 
+    ///
     /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
     /// public class ExampleComponent : VolumeComponent
     /// {
@@ -130,15 +130,15 @@ namespace UnityEngine.Rendering
         /// public virtual void Override(VolumeComponent state, float interpFactor)
         /// {
         ///     int count = parameters.Count;
-        /// 
+        ///
         ///     for (int i = 0; i &lt; count; i++)
         ///     {
         ///         var stateParam = state.parameters[i];
         ///         var toParam = parameters[i];
-        /// 
+        ///
         ///         // Keep track of the override state for debugging purpose
         ///         stateParam.overrideState = toParam.overrideState;
-        /// 
+        ///
         ///         if (toParam.overrideState)
         ///             stateParam.Interp(stateParam, toParam, interpFactor);
         ///     }
@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Unity calls this method before the object is destroyed. 
+        /// Unity calls this method before the object is destroyed.
         /// </summary>
         protected virtual void OnDestroy() => Release();
 

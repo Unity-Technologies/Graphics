@@ -282,6 +282,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 overrideReferenceName = "_EmissionColor",
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
             // ShaderGraph only property used to send the RenderQueueType to the material
@@ -289,6 +291,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 overrideReferenceName = "_RenderQueueType",
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (int)systemData.renderQueueType,
             });
 
@@ -297,6 +301,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 value = builtinData.addPrecomputedVelocity,
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = kAddPrecomputedVelocity,
             });
 
@@ -304,6 +310,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 value = builtinData.depthOffset,
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = kDepthOffsetEnable
             });
 
@@ -311,6 +319,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 value = builtinData.transparentWritesMotionVec,
                 hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 overrideReferenceName = kTransparentWritingMotionVec
             });
 
