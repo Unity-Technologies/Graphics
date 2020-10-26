@@ -71,7 +71,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 }
             }
-                
         }
 
         void OnGUI()
@@ -108,10 +107,14 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 compositor.SetupCompositionMaterial();
                 CompositionUtils.SetDefaultCamera(compositor);
                 CompositionUtils.SetDefaultLayers(compositor);
-            }
 
-            if (compositor)
+                Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
+                Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
+            }
+            else if (compositor)
             {
+                string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
+                Undo.RecordObject(compositor, message);
                 compositor.enabled = enableCompositor;
             }
             else

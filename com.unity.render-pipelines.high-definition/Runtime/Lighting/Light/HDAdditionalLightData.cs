@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The default intensity value for directional lights in Lux
         /// </summary>
-        public const float k_DefaultDirectionalLightIntensity = 100000; // In lux
+        public const float k_DefaultDirectionalLightIntensity = Mathf.PI; // In lux
         /// <summary>
         /// The default intensity value for punctual lights in Lumen
         /// </summary>
@@ -301,6 +301,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_FadeDistance = Mathf.Clamp(value, 0, float.MaxValue);
+            }
+        }
+
+        // Not used for directional lights.
+        [SerializeField]
+        float m_VolumetricFadeDistance = 10000.0f;
+        /// <summary>
+        /// Get/Set the light fade distance for volumetrics.
+        /// </summary>
+        public float volumetricFadeDistance
+        {
+            get => m_VolumetricFadeDistance;
+            set
+            {
+                if (m_VolumetricFadeDistance == value)
+                    return;
+
+                m_VolumetricFadeDistance = Mathf.Clamp(value, 0, float.MaxValue);
             }
         }
 
@@ -619,6 +637,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights or rectangular light (only square images).");
                     m_IESSpot = null;
                 }
+            }
+        }
+
+        [SerializeField]
+        bool m_IncludeForRayTracing = true;
+        /// <summary>
+        /// Controls if the light is enabled when the camera has the RayTracing frame setting enabled.
+        /// </summary>
+        public bool includeForRayTracing
+        {
+            get => m_IncludeForRayTracing;
+            set
+            {
+                if (m_IncludeForRayTracing == value)
+                    return;
+
+                UpdateAllLightValues();
             }
         }
 
@@ -2599,7 +2634,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case HDLightType.Directional:
                     lightData.lightUnit = LightUnit.Lux;
-                    lightData.intensity = k_DefaultDirectionalLightIntensity;
+                    lightData.intensity = k_DefaultDirectionalLightIntensity / Mathf.PI * 100000.0f; // Change back to just k_DefaultDirectionalLightIntensity on 11.0.0 (can't change constant as it's a breaking change)
                     break;
                 case HDLightType.Area: // Rectangle by default when light is created
                     switch (lightData.areaLightShape)

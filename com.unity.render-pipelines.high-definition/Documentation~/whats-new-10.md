@@ -199,11 +199,23 @@ This version of HDRP introduces a new injection point for custom post-processing
 
 HDRP, being a high-end modern renderer, contains a lot of compute shader passes. Up until now, to define variations of some compute shaders, HDRP had to manually declare new kernels for each variation. From this version, every compute shader in HDRP uses Unity's multi-compile API which makes maintenance easier, but more importantly allows HDRP to strip shaders that you do not need to improve compilation times.
 
+### Screen Space Reflection
+
+![](Images/HDRP-SSRImprovement.png)
+
+HDRP improves the Screen Space Reflection by providing a new implementation 'PBR Accumulation'
+
 ### Planar reflection probe filtering
 
 ![](Images/PlanarReflectionFiltering-Feature.png)
 
 Planar reflection probe filtering is a process that combines the result of planar reflection and surfaces smoothness. Up until this version, the implementation for planar reflection probe filtering did not always produce results of fantastic quality. This version of HDRP includes a new implementation that is closer to being physically-based and improves on the image quality significantly.
+
+### Fake distance based roughness for reflection probe
+
+![](Images/DistanceBaseRoughness-Feature.png)
+
+Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object.
 
 ### Screen space reflection
 
@@ -294,6 +306,10 @@ Ray tracing now supports VR. However, since ray tracing is resource intensive an
 ### Render Graph
 
 HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
+
+### Metallic Remapping
+
+HDRP now uses range remapping for the metallic value when using a mask map on Lit Materials as well as Decals.
 
 ## Issues resolved
 
