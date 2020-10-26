@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed serialization issue with matcap scale intensity.
 - Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
 - Fixed XR shadows culling
+- Fix volument component creation via script.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
