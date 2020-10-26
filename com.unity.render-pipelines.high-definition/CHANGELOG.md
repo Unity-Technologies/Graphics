@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-### Fixed
-- Fixed GC allocs in render graph.
-
 ## [10.2.0] - 2020-10-19
 
 ### Added
@@ -52,6 +49,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issues with physically-based DoF, improved speed and robustness 
 - Fixed a warning happening when putting the range of lights to 0.
 - Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
+- Fixed GC allocs in render graph.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
