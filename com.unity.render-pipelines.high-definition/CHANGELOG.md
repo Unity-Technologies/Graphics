@@ -49,6 +49,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issues with physically-based DoF, improved speed and robustness 
 - Fixed a warning happening when putting the range of lights to 0.
 - Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
+- Fix volument component creation via script.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
