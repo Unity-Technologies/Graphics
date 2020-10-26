@@ -203,11 +203,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 generatesPreview = true,
                 passes = new PassCollection
                 {
-                    { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DBufferProjector, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DecalProjectorForwardEmissive, new FieldCondition(AffectsEmission, true) },
                     { DecalPasses.DBufferMesh, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DecalMeshForwardEmissive, new FieldCondition(AffectsEmission, true) },
+                    { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.Preview, new FieldCondition(Fields.IsPreview, true) },
                 },
             };

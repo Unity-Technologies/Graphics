@@ -37,11 +37,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Caution: Enum num must match pass name for s_MaterialDecalPassNames array
         public enum MaterialDecalPass
         {
-            ScenePickingPass = 0,
-            DBufferProjector = 1,
-            DecalProjectorForwardEmissive = 2,
-            DBufferMesh = 3,
-            DecalMeshForwardEmissive = 4,
+            DBufferProjector = 0,
+            DecalProjectorForwardEmissive = 1,
+            DBufferMesh = 2,
+            DecalMeshForwardEmissive = 3,
         };
 
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));

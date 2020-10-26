@@ -101,43 +101,9 @@ Shader "HDRP/Decal"
         // c# code relies on the order in which the passes are declared, any change will need to be reflected in
         // DecalSystem.cs - enum MaterialDecalPass
         // DecalSubTarget.cs  - class SubShaders
+        // Caution: passes stripped in builds (like the scene picking pass) need to be put last to have consistent indices
 
-        // The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declared.
-        Pass // 0
-        {
-            Name "ScenePickingPass"
-            Tags { "LightMode" = "Picking" }
-
-            Cull Back
-
-            HLSLPROGRAM
-
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
-
-            //enable GPU instancing support
-            #pragma instancing_options renderinglayer
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-            // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
-
-            // Note: Require _SelectionID variable
-
-            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
-            #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #define SCENEPICKINGPASS
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-            
-            #pragma editor_sync_compilation
-
-            ENDHLSL
-        }
-
-		Pass // 1
+		Pass // 0
 		{
 			Name "DBufferProjector"
 			Tags{"LightMode" = "DBufferProjector"} // Metalness
@@ -180,7 +146,7 @@ Shader "HDRP/Decal"
 			ENDHLSL
 		}
 
-        Pass // 2
+        Pass // 1
         {
             Name "DecalProjectorForwardEmissive"
             Tags{ "LightMode" = "DecalProjectorForwardEmissive" }
@@ -214,7 +180,7 @@ Shader "HDRP/Decal"
             ENDHLSL
         }
 
-		Pass // 3
+		Pass // 2
 		{
 			Name "DBufferMesh"
 			Tags{"LightMode" = "DBufferMesh"}
@@ -258,7 +224,7 @@ Shader "HDRP/Decal"
 			ENDHLSL
 		}
 
-        Pass // 4
+        Pass // 3
         {
             Name "DecalMeshForwardEmissive"
             Tags{ "LightMode" = "DecalMeshForwardEmissive" }
@@ -289,6 +255,40 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass // 4
+        {
+            Name "ScenePickingPass"
+            Tags { "LightMode" = "Picking" }
+
+            Cull Back
+
+            HLSLPROGRAM
+
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+            //enable GPU instancing support
+            #pragma instancing_options renderinglayer
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+            // enable dithering LOD crossfade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+            // Note: Require _SelectionID variable
+
+            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+            
+            #pragma editor_sync_compilation
 
             ENDHLSL
         }
