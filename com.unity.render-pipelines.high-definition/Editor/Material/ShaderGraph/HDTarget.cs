@@ -807,7 +807,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public static DefineCollection ScenePicking = new DefineCollection
         {
-            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
             { CoreKeywordDescriptors.ScenePickingPass, 1 },
         };
 

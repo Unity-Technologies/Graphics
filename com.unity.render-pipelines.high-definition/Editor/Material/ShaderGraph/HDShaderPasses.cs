@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Scene Picking Pass
 
-        public static PassDescriptor GenerateScenePicking(bool supportLighting)
+        public static PassDescriptor GenerateScenePicking()
         {
             return new PassDescriptor
             {
@@ -98,15 +98,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var includes = new IncludeCollection();
 
                 includes.Add(CoreIncludes.CorePregraph);
-                if (supportLighting)
-                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
-                if (supportLighting)
-                {
-                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
-                }
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
