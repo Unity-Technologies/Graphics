@@ -5,6 +5,7 @@ using System.Text;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
@@ -84,11 +85,19 @@ namespace UnityEditor.ShaderGraph.Serialization
                 }
                 else if(t == typeof(SubTarget) || t.IsSubclassOf(typeof(SubTarget)))
                 {
-                    UnknownSubTargetType ustt = new UnknownSubTargetType(typeInfo,jsonData);
+                    UnknownSubTargetType ustt = new UnknownSubTargetType(typeInfo, jsonData);
                     valueMap[objectId] = ustt;
                     s_ObjectIdField.SetValue(ustt, objectId);
                     castedObject = ustt;
                     return ustt.CastTo<T>();
+                }
+                else if (t.IsSubclassOf(typeof(ShaderInput)))
+                {
+                    UnknownShaderPropertyType usp = new UnknownShaderPropertyType(typeInfo, jsonData);
+                    valueMap[objectId] = usp;
+                    s_ObjectIdField.SetValue(usp, objectId);
+                    castedObject = usp;
+                    return usp.CastTo<T>();
                 }
                 else
                 {
@@ -210,6 +219,63 @@ namespace UnityEditor.ShaderGraph.Serialization
             public override void Setup(ref TargetSetupContext context)
             {
             }
+        }
+
+        internal class UnknownShaderPropertyType : AbstractShaderProperty
+        {
+            public string jsonData;
+
+            public UnknownShaderPropertyType(string displayName, string jsonData) : base()
+            {
+                this.displayName = displayName;
+                this.jsonData = jsonData;
+            }
+
+            public override void Deserailize(string typeInfo, string jsonData)
+            {
+                this.jsonData = jsonData;
+                base.Deserailize(typeInfo, jsonData);
+            }
+
+            public override string Serialize()
+            {
+                return jsonData.Trim();
+            }
+
+            internal override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector1;
+            internal override bool isExposable => false;
+            internal override bool isRenamable => false;
+            internal override ShaderInput Copy()
+            {
+                return this; // TODO make copy
+            }
+
+            public override PropertyType propertyType => PropertyType.Float;
+            internal override void GetPropertyReferenceNames(List<string> result) { }
+            internal override void GetPropertyDisplayNames(List<string> result) { }
+            internal override string GetPropertyBlockString() { return ""; }
+            internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
+            {
+                builder.AppendLine("/* UNKNOWN PROPERTY: " + referenceName + " */");
+            }
+            internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false;
+            internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+            {
+                action(new HLSLProperty(HLSLType._float, referenceName, HLSLDeclaration.Global, concretePrecision));
+            }
+            internal override string GetPropertyAsArgumentString() { return ""; }
+            internal override AbstractMaterialNode ToConcreteNode() { return null; }
+
+            internal override PreviewProperty GetPreviewMaterialProperty()
+            {
+                return new PreviewProperty(propertyType)
+                {
+                    name = referenceName,
+                    floatValue = 0.0f
+                };
+            }
+
+            public override string GetPropertyTypeString() { return ""; }
         }
 
         [NeverAllowedByTarget]
