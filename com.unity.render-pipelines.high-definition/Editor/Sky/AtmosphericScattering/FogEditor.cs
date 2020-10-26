@@ -96,23 +96,26 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_ColorMode);
-            EditorGUI.indentLevel++;
-            if (!m_ColorMode.value.hasMultipleDifferentValues && (FogColorMode)m_ColorMode.value.intValue == FogColorMode.ConstantColor)
-            {
-                PropertyField(m_Color);
-            }
-            else
-            {
-                PropertyField(m_Tint);
 
-                if (isInAdvancedMode)
+            using (new HDEditorUtils.IndentScope())
+            {
+                if (!m_ColorMode.value.hasMultipleDifferentValues &&
+                    (FogColorMode) m_ColorMode.value.intValue == FogColorMode.ConstantColor)
                 {
-                    PropertyField(m_MipFogNear);
-                    PropertyField(m_MipFogFar);
-                    PropertyField(m_MipFogMaxMip);
+                    PropertyField(m_Color);
+                }
+                else
+                {
+                    PropertyField(m_Tint);
+
+                    if (isInAdvancedMode)
+                    {
+                        PropertyField(m_MipFogNear);
+                        PropertyField(m_MipFogFar);
+                        PropertyField(m_MipFogMaxMip);
+                    }
                 }
             }
-            EditorGUI.indentLevel--;
 
             bool volumetricLightingAvailable = false;
             var hdpipe = HDRenderPipeline.currentAsset;
@@ -123,49 +126,50 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_EnableVolumetricFog, s_EnableVolumetricFog);
 
-                EditorGUI.indentLevel++;
-                PropertyField(m_Albedo, s_AlbedoLabel);
-                PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
-                PropertyField(m_DepthExtent, s_DepthExtentLabel);
-                PropertyField(m_DenoisingMode);
-
-                if (isInAdvancedMode)
+                using (new HDEditorUtils.IndentScope())
                 {
-                    PropertyField(m_SliceDistributionUniformity);
+                    PropertyField(m_Albedo, s_AlbedoLabel);
+                    PropertyField(m_GlobalLightProbeDimmer, s_GlobalLightProbeDimmerLabel);
+                    PropertyField(m_DepthExtent, s_DepthExtentLabel);
+                    PropertyField(m_DenoisingMode);
 
-                    base.OnInspectorGUI(); // Quality Setting
-
-                    EditorGUI.indentLevel++;
-                    using (new QualityScope(this))
+                    if (isInAdvancedMode)
                     {
-                        PropertyField(m_FogControlMode);
+                        PropertyField(m_SliceDistributionUniformity);
+
+                        base.OnInspectorGUI(); // Quality Setting
+
+                        using (new HDEditorUtils.IndentScope())
+                        using (new QualityScope(this))
                         {
-                            EditorGUI.indentLevel++;
-                            if ((FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
+                            PropertyField(m_FogControlMode);
+
+                            using (new HDEditorUtils.IndentScope())
                             {
-                                PropertyField(m_VolumetricFogBudget);
-                                PropertyField(m_ResolutionDepthRatio);
+                                if ((FogControl) m_FogControlMode.value.intValue == FogControl.Balance)
+                                {
+                                    PropertyField(m_VolumetricFogBudget);
+                                    PropertyField(m_ResolutionDepthRatio);
+                                }
+                                else
+                                {
+                                    PropertyField(m_ScreenResolutionPercentage);
+                                    PropertyField(m_VolumeSliceCount);
+                                }
                             }
-                            else
-                            {
-                                PropertyField(m_ScreenResolutionPercentage);
-                                PropertyField(m_VolumeSliceCount);
-                            }
-                            EditorGUI.indentLevel--;
+                        }
+
+                        PropertyField(m_DirectionalLightsOnly);
+                        PropertyField(m_Anisotropy, s_AnisotropyLabel);
+                        if (m_Anisotropy.value.floatValue != 0.0f)
+                        {
+                            EditorGUILayout.Space();
+                            EditorGUILayout.HelpBox(
+                                "When the value is not 0, the anisotropy effect significantly increases the performance impact of volumetric fog.",
+                                MessageType.Info, wide: true);
                         }
                     }
-                    EditorGUI.indentLevel--;
-
-                    PropertyField(m_DirectionalLightsOnly);
-                    PropertyField(m_Anisotropy, s_AnisotropyLabel);
-                    if (m_Anisotropy.value.floatValue != 0.0f)
-                    {
-                        EditorGUILayout.Space();
-                        EditorGUILayout.HelpBox("When the value is not 0, the anisotropy effect significantly increases the performance impact of volumetric fog.", MessageType.Info, wide: true);
-                    }
                 }
-
-                EditorGUI.indentLevel--;
             }
         }
 
