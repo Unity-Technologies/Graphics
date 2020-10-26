@@ -51,6 +51,42 @@ half GetLuminance(half3 colorLinear)
 #endif
 }
 
+real3 GetSRGBToLinear(real3 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastSRGBToLinear(c);
+#else
+    return SRGBToLinear(c);
+#endif
+}
+
+real4 GetSRGBToLinear(real4 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastSRGBToLinear(c);
+#else
+    return SRGBToLinear(c);
+#endif
+}
+
+real3 GetLinearToSRGB(real3 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastLinearToSRGB(c);
+#else
+    return LinearToSRGB(c);
+#endif
+}
+
+real4 GetLinearToSRGB(real4 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastLinearToSRGB(c);
+#else
+    return LinearToSRGB(c);
+#endif
+}
+
 // ----------------------------------------------------------------------------------
 // Shared functions for uber & fast path (on-tile)
 // These should only process an input color, don't sample in neighbor pixels!
@@ -157,42 +193,6 @@ half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, B
 #endif
 
     return input;
-}
-
-real3 GetSRGBToLinear(real3 c)
-{
-#if _USE_FAST_SRGB_LINEAR_CONVERSION
-    return FastSRGBToLinear(c);
-#else
-    return SRGBToLinear(c);
-#endif
-}
-
-real4 GetSRGBToLinear(real4 c)
-{
-#if _USE_FAST_SRGB_LINEAR_CONVERSION
-    return FastSRGBToLinear(c);
-#else
-    return SRGBToLinear(c);
-#endif
-}
-
-real3 GetLinearToSRGB(real3 c)
-{
-#if _USE_FAST_SRGB_LINEAR_CONVERSION
-    return FastLinearToSRGB(c);
-#else
-    return LinearToSRGB(c);
-#endif
-}
-
-real4 GetLinearToSRGB(real4 c)
-{
-#if _USE_FAST_SRGB_LINEAR_CONVERSION
-    return FastLinearToSRGB(c);
-#else
-    return LinearToSRGB(c);
-#endif
 }
 
 #endif // UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED
