@@ -472,7 +472,7 @@ namespace UnityEditor.Rendering
         /// <param name="documentationURL">Documentation URL</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
-            => DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL);
+            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL);
 
         /// <summary>Draw a header toggle like in Volumes</summary>
         /// <param name="title"> The title of the header </param>
