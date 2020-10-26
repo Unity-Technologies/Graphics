@@ -96,7 +96,12 @@ namespace UnityEngine.Rendering
                 .AsReadOnly();
 
             foreach (var parameter in parameters)
-                parameter.OnEnable();
+            {
+                if(parameter != null)
+                    parameter.OnEnable();
+                else
+                    Debug.LogWarning("Volume Component " + GetType().Name + " contains a null parameter; please make sure all parameters are initialized to a default value. Until this is fixed the null parameters will not be considered by the system.");
+            }
         }
 
         /// <summary>
@@ -108,7 +113,10 @@ namespace UnityEngine.Rendering
                 return;
 
             foreach (var parameter in parameters)
-                parameter.OnDisable();
+            {
+                if (parameter != null)
+                    parameter.OnDisable();
+            }
         }
         /// <summary>
         /// Interpolates a <see cref="VolumeComponent"/> with this component by an interpolation
@@ -222,7 +230,10 @@ namespace UnityEngine.Rendering
         public void Release()
         {
             for (int i = 0; i < parameters.Count; i++)
-                parameters[i].Release();
+            {
+                if(parameters[i] != null)
+                    parameters[i].Release();
+            }
         }
     }
 }
