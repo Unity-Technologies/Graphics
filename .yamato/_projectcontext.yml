@@ -445,20 +445,6 @@ all_package_ci_project_CUSTOM-REVISION:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
-publish_all_project:
-    name: Publish all packages [project context][recurrent]
-    dependencies:
-      -  .yamato/_projectcontext.yml#publish_core_project
-      -  .yamato/_projectcontext.yml#publish_lwrp_project
-      -  .yamato/_projectcontext.yml#publish_shadergraph_project
-      -  .yamato/_projectcontext.yml#publish_hdrp_project
-      -  .yamato/_projectcontext.yml#publish_universal_project
-      -  .yamato/_projectcontext.yml#publish_vfx_project
-      -  .yamato/_projectcontext.yml#publish_config_project
-    triggers:
-        recurring:
-          -  branch: 9.x.x/release
-             frequency: daily
 publish_all_project_tag:
     name: Publish all packages [project context][manual][tag]
     agent:

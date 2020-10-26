@@ -30,13 +30,13 @@ def create_projectcontext_ymls(metafile):
     for platform in metafile["platforms"]:
         job = Project_TestMinEditorJob(platform)
         yml[job.job_id] = job.yml
-    
+
     for editor in metafile['editors']:
         job = Project_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], metafile["target_editor"], metafile["target_branch"], editor)
         yml[job.job_id] = job.yml
 
-    job = Project_PublishAllJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
-    yml[job.job_id] = job.yml
+    # job = Project_PublishAllJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
+    # yml[job.job_id] = job.yml
 
     job = Project_PublishAllTagJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
     yml[job.job_id] = job.yml
