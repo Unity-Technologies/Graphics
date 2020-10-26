@@ -180,21 +180,25 @@ float4 ComputeScreenPos(float4 positionCS)
     return o;
 }
 
+real ComputeFogFactorZ0ToFar(float z)
+{
+    #if defined(FOG_LINEAR)
+    // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
+    float fogFactor = saturate(z * unity_FogParams.z + unity_FogParams.w);
+    return real(fogFactor);
+    #elif defined(FOG_EXP) || defined(FOG_EXP2)
+    // factor = exp(-(density*z)^2)
+    // -density * z computed at vertex
+    return real(unity_FogParams.x * z);
+    #else
+    return 0.0h;
+    #endif
+}
+
 real ComputeFogFactor(float z)
 {
-    float clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(z);
-
-    #if defined(FOG_LINEAR)
-        // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
-        float fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);
-        return real(fogFactor);
-    #elif defined(FOG_EXP) || defined(FOG_EXP2)
-        // factor = exp(-(density*z)^2)
-        // -density * z computed at vertex
-        return real(unity_FogParams.x * clipZ_01);
-    #else
-        return 0.0h;
-    #endif
+    float clipZ_0Far = UNITY_Z_0_FAR_FROM_CLIPSPACE(z);
+    return ComputeFogFactorZ0ToFar(clipZ_0Far);
 }
 
 real ComputeFogIntensity(real fogFactor)

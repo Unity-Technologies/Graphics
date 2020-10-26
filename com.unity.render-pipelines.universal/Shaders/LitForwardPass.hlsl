@@ -12,6 +12,9 @@
 #define REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR
 #endif
 
+// Force enable fog fragment shader evaluation
+#define _FOG_FRAGMENT 1
+
 // keep this file in sync with LitGBufferPass.hlsl
 
 struct Attributes
@@ -111,7 +114,12 @@ Varyings LitPassVertex(Attributes input)
 
     half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+
+    #if defined(_FOG_FRAGMENT)
+        half fogFactor = 0;
+    #else
+        half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    #endif
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
@@ -172,7 +180,14 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+#if defined(_FOG_FRAGMENT) && (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+    float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.positionWS, 1.0)).z);
+    half fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+#else
+    half fogFactor = inputData.fogCoord;
+#endif
+
+    color.rgb = MixFog(color.rgb, fogFactor);
     color.a = OutputAlpha(color.a, _Surface);
 
     return color;
