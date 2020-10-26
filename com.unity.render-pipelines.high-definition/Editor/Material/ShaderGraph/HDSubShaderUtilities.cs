@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 // We still need to define it on unlit as it is needed to compile when Material.hlsl is used
-                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, false);
+                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, false, HLSLDeclaration.UnityPerMaterial);
             }
 
             // Configure render state

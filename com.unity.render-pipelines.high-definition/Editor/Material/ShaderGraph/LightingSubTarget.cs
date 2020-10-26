@@ -104,6 +104,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
             // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
 
+            pass.keywords.Add(CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting);
+
             if (pass.IsDepthOrMV())
             {
                 pass.keywords.Add(CoreKeywordDescriptors.WriteDecalBuffer);
