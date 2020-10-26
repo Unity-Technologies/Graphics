@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.7754, g: 1835.8867, b: 2430.4492, a: 1}
+  m_IndirectSpecularColor: {r: 1481.7451, g: 1835.5391, b: 2429.8105, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -3613,7 +3613,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 361274623}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 31.970001, y: 2.6247444, z: -2.0417016}
+  m_LocalPosition: {x: 31.970001, y: 2.6247444, z: -2.08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
@@ -3737,7 +3737,7 @@ MonoBehaviour:
     realtimeMode: 1
     lighting:
       multiplier: 1
-      weight: 0.6
+      weight: 1
       lightLayer: 255
       fadeDistance: 20
       rangeCompressionFactor: 1
@@ -3755,7 +3755,7 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 4.25, y: 5.290511, z: 4.213403}
+      m_BoxSize: {x: 4.25, y: 5.290511, z: 4.25}
       m_BoxBlendDistancePositive: {x: 0.1, y: 0.1, z: 0.1}
       m_BoxBlendDistanceNegative: {x: 0.1, y: 0, z: 0.1}
       m_BoxBlendNormalDistancePositive: {x: 0.1, y: 0.1, z: 0.1}
@@ -4004,7 +4004,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 4.25, y: 5.290511, z: 4.213403}
+  m_BoxSize: {x: 4.25, y: 5.290511, z: 4.25}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -13880,7 +13880,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 2.632885, y: -1.6875837, z: -1.4199681}
+      capturePositionProxySpace: {x: 2.632885, y: -2.7641678, z: -0.52803993}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
@@ -14406,6 +14406,10 @@ PrefabInstance:
     - target: {fileID: 6877696616810895657, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 6877696616810895657, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7099204274326008835, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -16293,7 +16297,7 @@ MonoBehaviour:
     positiveFade: {x: 0.25, y: 0.25, z: 0.25}
     negativeFade: {x: 0.25, y: 0.25, z: 0.25}
     m_EditorUniformFade: 2
-    m_EditorPositiveFade: {x: 0.125, y: 0.05709362, z: 0.0625}
+    m_EditorPositiveFade: {x: 0.125, y: 0.625, z: 0.0625}
     m_EditorNegativeFade: {x: 0, y: 0, z: 0.0625}
     m_EditorAdvancedFade: 0
     size: {x: 8, y: 8, z: 8}
@@ -16301,7 +16305,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -0, z: 0}
+    textureOffset: {x: -0, y: -0.1181918, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20654,18 +20658,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 248024621}
     m_Modifications:
-    - target: {fileID: 1298209891566877541, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 2306501060386645870, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 3178823191204061509, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
     - target: {fileID: 4996499045066214462, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 40.304
@@ -20710,37 +20702,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5456817207224010077, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 6240207625549863283, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_Shadows.m_Type
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 6877696616810895657, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
       propertyPath: m_Name
       value: Spotlight_01b_large (14)
-      objectReference: {fileID: 0}
-    - target: {fileID: 6877696616810895657, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 7099204274326008835, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 7702007648688124688, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 8182838665509254437, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 9042303808785970178, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 64
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7acad438f204fae4899e35da52c815c5, type: 3}
@@ -26355,6 +26319,7 @@ MonoBehaviour:
   m_VolumetricDimmer: 1
   m_LightUnit: 2
   m_FadeDistance: 10000
+  m_VolumetricFadeDistance: 10000
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
@@ -26371,6 +26336,7 @@ MonoBehaviour:
   m_AreaLightCookie: {fileID: 0}
   m_IESPoint: {fileID: 0}
   m_IESSpot: {fileID: 0}
+  m_IncludeForRayTracing: 1
   m_AreaLightShadowCone: 120
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1
