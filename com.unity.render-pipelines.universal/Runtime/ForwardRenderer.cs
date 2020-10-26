@@ -273,6 +273,25 @@ namespace UnityEngine.Rendering.Universal
             if (m_DeferredLights != null)
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
 
+            // Assign the camera color target early in case it is needed during AddRenderPasses.
+            if (rendererFeatures.Count != 0)
+            {
+                m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+
+                {
+                    var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    if (cameraData.xr.enabled)
+                    {
+                        activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
+                    }
+#endif
+
+                    ConfigureCameraTarget(activeColorRenderTargetId, cameraDepthTarget);
+                }
+            }
+
             // Add render passes and gather the input requirements
             AddRenderPasses(ref renderingData);
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
@@ -307,6 +326,7 @@ namespace UnityEngine.Rendering.Universal
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
             m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
+            // If this is removed, make sure to also remove the early color target assignment before the call to AddRenderPasses.
             createColorTexture |= (rendererFeatures.Count != 0);
             createColorTexture |= renderPassInputs.requiresColorTexture;
             createColorTexture &= !isPreviewCamera;
