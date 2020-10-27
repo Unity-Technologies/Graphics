@@ -1029,7 +1029,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
             parameters.viewCount = hdCamera.viewCount;
             parameters.filterVolume = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0;
-            parameters.sliceCount = (int)(cvp.z / hdCamera.viewCount);
+            parameters.sliceCount = (int)(cvp.z);
 
             UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
