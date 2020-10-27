@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_HighlightsStart;
         SerializedDataParameter m_HighlightsEnd;
 
+        const string k_ShaderName = "Hidden/Universal Render Pipeline/Editor/Shadows Midtones Highlights Curve";
         static Material s_Material;
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
 
@@ -38,14 +39,9 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            if (s_Material == null)
+            if (!CheckMaterialAndShader())
             {
-                Shader shader = Shader.Find("Hidden/Universal Render Pipeline/Editor/Shadows Midtones Highlights Curve");
-                if (shader == null)
-                {
-                    return;
-                }
-                s_Material = new Material(shader);
+                return;
             }
 
             using (new EditorGUILayout.HorizontalScope())
@@ -119,6 +115,24 @@ namespace UnityEditor.Rendering.Universal
                 Mathf.Max(v.y + w, 0f),
                 Mathf.Max(v.z + w, 0f)
             );
+        }
+
+        bool CheckMaterialAndShader()
+        {
+            if (s_Material != null)
+            {
+                return true;
+            }
+
+            Shader shader = Shader.Find(k_ShaderName);
+            if (shader == null)
+            {
+                Debug.LogError("ShadowsMidtonesHighlightsEditor: Unable to find shader \"" + k_ShaderName + "\"");
+                return false;
+            }
+            s_Material = new Material(shader);
+
+            return true;
         }
     }
 }
