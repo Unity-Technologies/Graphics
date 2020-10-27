@@ -62,6 +62,7 @@ RWStructuredBuffer<float2>  _wBoundsBuffer : register(u1); // {w_min, w_max}
 #define VERTS_PER_GROUP    (NUM_VERTS * ENTITIES_PER_GROUP)
 #define VERTS_PER_THREAD   (NUM_VERTS / THREADS_PER_ENTITY)
 #define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
+#define VERTS_PER_FACE     (4)
 
 // All planes and faces are always in the standard order (see below).
 // Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
@@ -150,7 +151,7 @@ bool TryCullFace(uint f, uint behindMasksOfVerts[NUM_VERTS])
     uint cullMaskOfFace = FACE_MASK; // Initially behind
     uint vertListOfFace = GetVertexListOfFace(f);
 
-    for (uint j = 0; j < 4; j++)
+    for (uint j = 0; j < VERTS_PER_FACE; j++)
     {
         uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ALL the vertices are behind any of the planes.
@@ -258,12 +259,12 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
                                out float4 vertRingBuffer[MAX_CLIP_VERTS])
 {
     srcBegin = 0;
-    srcSize  = 4;
+    srcSize  = VERTS_PER_FACE;
 
     uint clipMaskOfFace = 0; // Initially in front
     uint vertListOfFace = GetVertexListOfFace(f);
 
-    for (uint j = 0; j < 4; j++)
+    for (uint j = 0; j < VERTS_PER_FACE; j++)
     {
         uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ANY of the vertices are behind any of the planes.
