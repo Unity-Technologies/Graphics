@@ -202,18 +202,25 @@ namespace UnityEditor.Rendering.HighDefinition
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
         }
 
-        [MenuItem("Assets/Create/Rendering/C# Post Process Volume", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Rendering/C# Post Process Volume", priority = CoreUtils.assetCreateMenuPriority4)]
         static void MenuCreateCSharpPostProcessVolume()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Shader/HDRP/Post Process", priority = CoreUtils.assetCreateMenuPriority4)]
         static void MenuCreatePostProcessShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Shader.shader");
+        }
+
+        [MenuItem("Assets/Create/Shader/HDRP/Unlit Shader", priority = CoreUtils.assetCreateMenuPriority3)]
+        static void MenuCreateUnlitShader()
+        {
+            string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/Templates/UnlitShader.template";
+            ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Unlit Shader.shader");
         }
 
         //[MenuItem("Internal/HDRP/Add \"Additional Light-shadow Data\" (if not present)")]

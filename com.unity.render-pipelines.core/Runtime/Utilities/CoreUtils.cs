@@ -54,6 +54,8 @@ namespace UnityEngine.Rendering
         public const int assetCreateMenuPriority2 = 241;
         /// <summary>Asset Create Menu priority 3</summary>
         public const int assetCreateMenuPriority3 = 300;
+        /// <summary>Asset Create Menu priority 3</summary>
+        public const int assetCreateMenuPriority4 = 400;
         /// <summary>Game Object Menu priority</summary>
         public const int gameObjectMenuPriority = 10;
 
