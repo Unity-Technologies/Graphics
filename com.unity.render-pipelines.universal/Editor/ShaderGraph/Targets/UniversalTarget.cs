@@ -156,6 +156,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
             return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
         }
+
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target
@@ -171,6 +172,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 context.SetDefaultShaderGUI(m_CustomEditorGUI);
             }
+        }
+
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            m_ActiveSubTarget.value.target = this;
         }
 
         public override void GetFields(ref TargetFieldContext context)
