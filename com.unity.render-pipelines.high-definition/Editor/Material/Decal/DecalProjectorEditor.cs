@@ -375,7 +375,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.Space();
                 
-                Rect rect = EditorGUILayout.GetControlRect();
+                Rect rect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector2, k_SizeContent));
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
                 float[] size = new float[2] { m_SizeValues[0].floatValue, m_SizeValues[1].floatValue };
