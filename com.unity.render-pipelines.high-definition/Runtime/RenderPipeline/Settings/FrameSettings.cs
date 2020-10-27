@@ -323,8 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP calculates screen space ambient occlusion asynchronously.</summary>
         [FrameSettingsField(2, displayedName: "SS Ambient Occlusion", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates screen space ambient occlusion asynchronously.")]
         SSAOAsync = 43,
-        // TODO: Enable thing when the render graph will be the default renderer.
-        //[FrameSettingsField(2, displayedName: "Contact Shadows", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates Contact Shadows asynchronously.")]
+        [FrameSettingsField(2, displayedName: "Contact Shadows", positiveDependencies: new[] { AsyncCompute }, tooltip: "When enabled, HDRP calculates Contact Shadows asynchronously.")]
         /// <summary>When enabled, HDRP calculates Contact Shadows asynchronously.</summary>
         ContactShadowsAsync = 44,
         /// <summary>When enabled, HDRP calculates volumetric voxelization asynchronously.</summary>
