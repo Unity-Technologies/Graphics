@@ -72,8 +72,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where MSAA did not work in Editor Game View on Windows with Vulkan.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
 
-### Changed
-- Changed TerrainLit blending to disable density blend when more than four Terrain Layers are in use.
+### Fixed
+- Fixed TerrainLit blending to disable density blend when more than four Terrain Layers are in use. [case 1283124](https://issuetracker.unity3d.com/issues/terrain-lit-opacity-as-density-option-causes-alphad-areas-on-the-5th-layer-or-greater-to-appear-with-artifacts)
 
 ## [10.2.0] - 2020-10-19
 
