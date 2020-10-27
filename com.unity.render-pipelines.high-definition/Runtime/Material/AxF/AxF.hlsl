@@ -971,7 +971,7 @@ void GetBaseSurfaceColorAndF0(SurfaceData surfaceData, out float3 diffuseColor, 
 
     specularColor = surfaceData.specularColor;
     fresnel0 = surfaceData.fresnelF0; // See AxfData.hlsl: the actual sampled texture is always 1 channel, if we ever find otherwise, we will use the others.
-    fresnel0 = fresnel0.r * specularColor;
+    fresnel0 = HasFresnelTerm() ? fresnel0.r * specularColor : specularColor;
 
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
 
