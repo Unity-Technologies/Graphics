@@ -3,6 +3,7 @@ using UnityEditorInternal;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
@@ -178,6 +179,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                     if (enabled >= 0.5f)
                     {
+                        UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
+                        if (urpAsset != null && !urpAsset.supportsCameraDepthTexture)
+                        {
+                            GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
+                            warnStyle.fontStyle = FontStyle.BoldAndItalic;
+                            warnStyle.wordWrap = true;
+                            EditorGUILayout.HelpBox("Soft Particles require depth texture. Please enable \"Depth Texture\" in the Universal Render Pipeline settings.", MessageType.Warning);
+                        }
+
                         EditorGUI.indentLevel++;
                         BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Surface Fade"),
                             properties.softParticlesNearFadeDistance,
