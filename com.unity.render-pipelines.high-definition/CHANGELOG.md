@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix volument component creation via script.
 - Fixed GC allocs in render graph.
 - Fixed scene picking passes.
+- Fixed broken ray tracing light cluster full screen debug.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
