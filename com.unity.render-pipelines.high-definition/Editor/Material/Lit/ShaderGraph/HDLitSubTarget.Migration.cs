@@ -57,20 +57,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
-            BlockFieldDescriptor tangentBlock;
             switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
-                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
                     break;
                 case NormalDropOffSpace.World:
                     normalBlock = BlockFields.SurfaceDescription.NormalWS;
-                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
                     break;
                 default:
                     normalBlock = BlockFields.SurfaceDescription.NormalTS;
-                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
                     break;
             }
 
@@ -93,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { BlockFields.VertexDescription.Position, 9 },
                 { BlockFields.VertexDescription.Normal, 10 },
-                { tangentBlock, 11 },
+                { BlockFields.VertexDescription.Tangent, 11 },
                 { BlockFields.SurfaceDescription.BaseColor, 0 },
                 { normalBlock, 1 },
                 { specularMetallicBlock, specularMetallicId },
