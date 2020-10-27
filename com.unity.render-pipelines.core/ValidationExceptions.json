@@ -1,0 +1,10 @@
+{
+    "ErrorExceptions":
+    [
+        {
+             "ValidationTest": "API Validation",
+			 "ExceptionMessage": "ConstantValueChanged (System.String UnityEngine.Rendering.DocumentationInfo::version -> System.String UnityEngine.Rendering.DocumentationInfo::version)",
+             "PackageVersion": "10.2.0"
+        }
+    ]
+}
