@@ -344,6 +344,11 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
 #endif
     DBuffer0.xyz = float3(0.0, 0.0, 0.0);
 
+    #if !defined(TILE_SIZE_CLUSTERED)
+    #define TILE_SIZE_CLUSTERED (32)
+    #endif
+    posInput.tileCoord = uint2(posInput.positionSS.xy) / TILE_SIZE_CLUSTERED;
+
     #define LIGHTCATEGORY_DECAL (4)
     uint decalCount, decalStart;
     /* TODO: Get clustering working. It doesn't work right now. Nothing happens unless we're inside a decal's volume, in which
