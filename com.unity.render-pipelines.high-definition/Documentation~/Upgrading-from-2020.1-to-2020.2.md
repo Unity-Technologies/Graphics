@@ -180,9 +180,16 @@ For example in Material.hlsl, the following lines:
 are replaced by 
 ```
     if (_BlendMode == BLENDMODE_ALPHA || _BlendMode == BLENDMODE_ADDITIVE)
-        return float4(diffuseLighting * opacity + specularLighting * (_EnableBlendModePreserveSpecularLighting ? 1.0f : opacity), opacity);
+        return float4(diffuseLighting * opacity + specularLighting * (
+#ifdef SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+        _EnableBlendModePreserveSpecularLighting ? 1.0f :
+#endif
+            opacity), opacity);
+
 ```
-This reduced the number of shader variant. In case of custom shader it can be required to move the include of Material.hlsl after the declaration of the property _Blendmode. 
+This reduced the number of shader variant. In case of custom shader it can be required to move the include of Material.hlsl after the declaration of the property _Blendmode.  Also, if the custom shader wants to support the blend mode preserve specular option, it needs to make sure _EnableBlendModePreserveSpecularLighting property is defined and that the compile time constant SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING is defined too. 
+
+
 From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Planar-Reflection-Probe.md). Now, when a shader samples a probe's environment map, it samples from mip level 0 if the LightData.roughReflections parameter is enabled (has a value of 1.0). You must update your custom shaders to take this behavior into account.
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
