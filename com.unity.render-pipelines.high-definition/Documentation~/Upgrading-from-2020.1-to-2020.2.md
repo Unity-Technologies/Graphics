@@ -49,6 +49,8 @@ For project migrating from old 9.x.x-preview package. There is a change in the o
 
 From 10.x, the debug lens attenuation has been removed, however the lens attenuation can now be set in the HDRP Default setting Panel as either modelling a perfect lens or an imperfect one. 
 
+From 10.x, the [Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always uses the color pyramid HDRP generates after the Before Refraction transparent pass. This means the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). Previously the content depended on whether the Distortion effect was active.
+
 ## Shadows
 
 From 10.x, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#FilteringQualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#FilteringQualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
@@ -182,6 +184,13 @@ This reduced the number of shader variant. In case of custom shader it can be re
 From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Planar-Reflection-Probe.md). Now, when a shader samples a probe's environment map, it samples from mip level 0 if the LightData.roughReflections parameter is enabled (has a value of 1.0). You must update your custom shaders to take this behavior into account.
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
+In addition a new functionality for to fake distance based roughness have been added on Reflection Probe and a new helper function have been introduce. The precedent code is finnaly rewrite as
+`float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness, intersectionDistance);`
+in the Lit shader. `intersectionDistance` is the return parameter of the EvaluateLight_EnvIntersection() function.
+
+From 10.x, HDRP uses range remapping for the metallic property when using a mask map.
+In the Lit, LitTessellation, LayeredLit and LayeredLitTesselation shaders, two new properties have been added: `_MetallicRemapMin` and `_MetallicRemapMax`.
+In the Decal shader, the property `_MetallicRemapMin` have been added, and `_MetallicScale` has been renamed as `_MetallicRemapMax`.
 
 ## Raytracing
 

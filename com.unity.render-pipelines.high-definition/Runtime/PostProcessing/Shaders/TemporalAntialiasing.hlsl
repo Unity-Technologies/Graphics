@@ -18,22 +18,30 @@
     #define COMPARE_DEPTH(a, b) step(a, b)
 #endif
 
+float2 ClampAndScaleForBilinearWithCustomScale(float2 uv, float2 scale)
+{
+    float2 maxCoord = 1.0f - _ScreenSize.zw;
+    return min(uv, maxCoord) * scale;
+}
 
 float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0).xyz;
 }
 
 float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0);
 }
 
 float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0);
 }
 

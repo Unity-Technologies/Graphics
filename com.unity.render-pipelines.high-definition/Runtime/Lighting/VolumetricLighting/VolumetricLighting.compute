@@ -11,6 +11,7 @@
 #pragma multi_compile _ ENABLE_REPROJECTION
 #pragma multi_compile _ ENABLE_ANISOTROPY
 #pragma multi_compile _ VL_PRESET_OPTIMAL
+#pragma multi_compile _ SUPPORT_LOCAL_LIGHTS
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     #define USE_BIG_TILE_LIGHTLIST
@@ -18,6 +19,7 @@
 
 // Don't want contact shadows
 #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS // To define before LightEvaluation.hlsl
+// #define LIGHT_EVALUATION_NO_HEIGHT_FOG
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     #define USE_BIG_TILE_LIGHTLIST
@@ -30,7 +32,6 @@
 
 #define PREFER_HALF             0
 #define GROUP_SIZE_1D           8
-#define SUPPORT_LOCAL_LIGHTS    1 // Local lights contribute to fog lighting
 #define SHADOW_USE_DEPTH_BIAS   0 // Too expensive, not particularly effective
 #define SHADOW_LOW                // Too expensive
 #define SHADOW_AUTO_FLIP_NORMAL 0 // No normal information, so no need to flip
@@ -558,7 +559,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
             aggregateLighting.radianceComplete += lighting.radianceComplete;
         }
 
-        #if (SUPPORT_LOCAL_LIGHTS != 0)
+        #ifdef SUPPORT_LOCAL_LIGHTS
         {
             VoxelLighting lighting = EvaluateVoxelLightingLocal(context, featureFlags, posInput,
                                                                 lightCount, lightStart,

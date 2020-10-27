@@ -24,6 +24,16 @@ Shader "HDRP/LayeredLitTessellation"
         _Metallic2("Metallic2", Range(0.0, 1.0)) = 0
         _Metallic3("Metallic3", Range(0.0, 1.0)) = 0
 
+        _MetallicRemapMin0("MetallicRemapMin0", Range(0.0, 1.0)) = 0.0
+        _MetallicRemapMin1("MetallicRemapMin1", Range(0.0, 1.0)) = 0.0
+        _MetallicRemapMin2("MetallicRemapMin2", Range(0.0, 1.0)) = 0.0
+        _MetallicRemapMin3("MetallicRemapMin3", Range(0.0, 1.0)) = 0.0
+
+        _MetallicRemapMax0("MetallicRemapMax0", Range(0.0, 1.0)) = 1.0
+        _MetallicRemapMax1("MetallicRemapMax1", Range(0.0, 1.0)) = 1.0
+        _MetallicRemapMax2("MetallicRemapMax2", Range(0.0, 1.0)) = 1.0
+        _MetallicRemapMax3("MetallicRemapMax3", Range(0.0, 1.0)) = 1.0
+
         _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 0.5
         _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 0.5
         _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 0.5
@@ -546,7 +556,7 @@ Shader "HDRP/LayeredLitTessellation"
             Name "SceneSelectionPass"
             Tags{ "LightMode" = "SceneSelectionPass" }
 
-            Cull[_CullMode]
+            Cull Off
 
             ZWrite On
 
@@ -865,7 +875,7 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #define SHADERPASS SHADERPASS_FULLSCREEN_DEBUG
+            #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"

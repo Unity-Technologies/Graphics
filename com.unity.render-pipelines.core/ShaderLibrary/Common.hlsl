@@ -184,6 +184,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
+#ifdef SHADER_API_XBOXONE // TODO: to move in .nda package in 21.1
+#define PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER
+#endif
+
 // ----------------------------------------------------------------------------
 // Common intrinsic (general implementation of intrinsic available on some platform)
 // ----------------------------------------------------------------------------

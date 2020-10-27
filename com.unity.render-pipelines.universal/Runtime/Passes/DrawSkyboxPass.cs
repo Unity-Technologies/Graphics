@@ -9,6 +9,8 @@ namespace UnityEngine.Rendering.Universal
     {
         public DrawSkyboxPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(DrawSkyboxPass));
+
             renderPassEvent = evt;
         }
 

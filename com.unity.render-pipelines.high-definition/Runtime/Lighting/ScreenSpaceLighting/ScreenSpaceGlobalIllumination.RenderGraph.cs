@@ -75,13 +75,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle UpscaleSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, TextureHandle depthPyramid, TextureHandle inputBuffer)
+        TextureHandle UpscaleSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, HDUtils.PackedMipChainInfo info, TextureHandle depthPyramid, TextureHandle inputBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<UpscaleSSGIPassData>("Upscale SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIUpscale)))
             {
                 builder.EnableAsyncCompute(false);
 
-                passData.parameters = PrepareSSGIUpscaleParameters(hdCamera, giSettings); ;
+                passData.parameters = PrepareSSGIUpscaleParameters(hdCamera, giSettings, info);
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.inputBuffer = builder.ReadTexture(inputBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -137,7 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, ShaderVariablesRaytracing shaderVariablesRayTracingCB)
+        TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, ShaderVariablesRaytracing shaderVariablesRayTracingCB, HDUtils.PackedMipChainInfo info)
         {
             // Grab the global illumination volume component
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Evaluate the history validity
                 float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
                 SSGIDenoiser ssgiDenoiser = GetSSGIDenoiser();
-                SSGIDenoiser.SSGIDenoiserOutput denoiserOutput = ssgiDenoiser.Denoise(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectorsBuffer, traceOutput.outputBuffer0, traceOutput.outputBuffer1, !giSettings.fullResolutionSS, historyValidity: historyValidity);
+                SSGIDenoiser.SSGIDenoiserOutput denoiserOutput = ssgiDenoiser.Denoise(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectorsBuffer, traceOutput.outputBuffer0, traceOutput.outputBuffer1, m_DepthBufferMipChainInfo, !giSettings.fullResolutionSS, historyValidity: historyValidity);
                 // Propagate the history
                 PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
 
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Upscale it if required
                 // If this was a half resolution effect, we still have to upscale it
                 if (!giSettings.fullResolutionSS)
-                    colorBuffer = UpscaleSSGI(renderGraph, hdCamera, giSettings, depthPyramid, colorBuffer);
+                    colorBuffer = UpscaleSSGI(renderGraph, hdCamera, giSettings, info, depthPyramid, colorBuffer);
                 return colorBuffer;
             }
         }

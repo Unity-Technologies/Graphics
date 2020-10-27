@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         static Color s_TransparentBlack = new Color(0, 0, 0, 0); 
 
         #region Validation
-        public void ValidateLayerListOrder(int oldIndex, int newIndex)
+        public bool ValidateLayerListOrder(int oldIndex, int newIndex)
         {
             if (m_InputLayers.Count > 1)
             {
@@ -147,8 +147,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     var tmp = m_InputLayers[newIndex];
                     m_InputLayers.RemoveAt(newIndex);
                     m_InputLayers.Insert(oldIndex, tmp);
+                    return false;
                 }
             }
+            return true;
         }
 
         public bool RuntimeCheck()
@@ -351,25 +353,15 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void DeleteLayerRTs()
         {
-            int numRTReferences = 0;
-
-            // delete the layer from last to first, in order to release first the camera and then the associated RT
+            // Delete all layer cameras first, and then the Render Targets (to avoid deleting RT that are still in use)
             for (int i = m_InputLayers.Count - 1; i >= 0; --i)
             {
-                // Since some layers are not useing cloned cameras, we have to count the number of references in a RT and only delete if it is zero   
-                if (numRTReferences == 0)
-                {
-                    m_InputLayers[i].DestroyRT();
-                }
-
-                if (m_InputLayers[i].outputTarget == CompositorLayer.OutputTarget.CompositorLayer)
-                {
-                    numRTReferences = 0;
-                }
-                else
-                {
-                    numRTReferences += (m_InputLayers[i].camera != null) ? 1 : 0;
-                }
+                m_InputLayers[i].DestroyCameras();
+            }
+            
+            for (int i = m_InputLayers.Count - 1; i >= 0; --i)
+            {
+                m_InputLayers[i].DestroyRT();
             }
         }
 
@@ -834,7 +826,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return count > 1;
         }
 
-        static public Camera GetSceceCamera()
+        static public Camera GetSceneCamera()
         {
             if (Camera.main != null)
             {
@@ -842,7 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
             foreach (var camera in Camera.allCameras)
             {
-                if (camera.name != "MainCompositorCamera")
+                if (camera != CompositionManager.GetInstance().outputCamera)
                 {
                     return camera;
                 }
