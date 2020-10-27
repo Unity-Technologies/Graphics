@@ -13,6 +13,8 @@ Shader "HDRP/LitTessellation"
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _MaskMap("MaskMap", 2D) = "white" {}
+        _MetallicRemapMin("MetallicRemapMin", Float) = 0.0
+        _MetallicRemapMax("MetallicRemapMax", Float) = 1.0
         _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
         _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
         _AORemapMin("AORemapMin", Float) = 0.0
@@ -832,7 +834,7 @@ Shader "HDRP/LitTessellation"
 
             HLSLPROGRAM
 
-            #define SHADERPASS SHADERPASS_FULLSCREEN_DEBUG
+            #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"

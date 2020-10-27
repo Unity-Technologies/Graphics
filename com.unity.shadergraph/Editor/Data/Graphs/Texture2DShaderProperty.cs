@@ -20,14 +20,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture2D;
 
-        internal override bool isBatchable
-        {
-            // isBatchable should never be called, because we override hasBatchable / hasNonBatchableProperties
-            get { throw new NotSupportedException(); }
-        }
-        internal override bool hasBatchableProperties => true;
-        internal override bool hasNonBatchableProperties => true;
-
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -38,21 +30,16 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
-        internal override void AppendBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
-        {
-            builder.AppendLine($"{concretePrecision.ToShaderString()}4 {referenceName}_TexelSize{delimiter}");
-        }
+        // Texture2D properties cannot be set via Hybrid path at the moment; disallow that choice
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => (decl != HLSLDeclaration.HybridPerInstance) && (decl != HLSLDeclaration.DoNotDeclare);
 
-        internal override void AppendNonBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            builder.AppendLine($"TEXTURE2D({referenceName}){delimiter}");
-            builder.AppendLine($"SAMPLER(sampler{referenceName}){delimiter}");
-        }
+            HLSLDeclaration decl = (generatePropertyBlock ? HLSLDeclaration.UnityPerMaterial : HLSLDeclaration.Global);
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
-        {
-            // this should not be called, as it is replaced by the Append*PropertyDeclarations functions above
-            throw new NotSupportedException();
+            action(new HLSLProperty(HLSLType._Texture2D, referenceName, HLSLDeclaration.Global));
+            action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
+            action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
         }
 
         internal override string GetPropertyAsArgumentString()
