@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering
                 moreOptionsStyle.active.background = normalColor;
                 moreOptionsStyle.focused.background = normalColor;
                 moreOptionsStyle.hover.background = normalColor;
-                
+
                 moreOptionsLabelStyle = new GUIStyle(GUI.skin.label);
                 moreOptionsLabelStyle.padding = new RectOffset(0, 0, 0, -1);
             }
@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering
                             evt.Use();
                         break;
                 }
-                
+
                 return active;
             }
 
@@ -227,14 +227,15 @@ namespace UnityEditor.Rendering
         public static void DrawSplitter(bool isBoxed = false)
         {
             var rect = GUILayoutUtility.GetRect(1f, 1f);
+            float xMin = rect.xMin;
 
             // Splitter rect should be full-width
             rect.xMin = 0f;
             rect.width += 4f;
-            
+
             if (isBoxed)
             {
-                rect.xMin = EditorGUIUtility.singleLineHeight;
+                rect.xMin = xMin == 7.0 ? 4.0f : EditorGUIUtility.singleLineHeight;
                 rect.width -= 1;
             }
 
@@ -299,6 +300,7 @@ namespace UnityEditor.Rendering
         {
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
+            float xMin = backgroundRect.xMin;
 
             var labelRect = backgroundRect;
             labelRect.xMin += 16f;
@@ -309,7 +311,7 @@ namespace UnityEditor.Rendering
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
             foldoutRect.x = labelRect.xMin + 15 * (EditorGUI.indentLevel - 1); //fix for presset
-            
+
             // More options 1/2
             var moreOptionsRect = new Rect();
             if (hasMoreOptions != null)
@@ -328,7 +330,7 @@ namespace UnityEditor.Rendering
             {
                 labelRect.xMin += 5;
                 foldoutRect.xMin += 5;
-                backgroundRect.xMin = EditorGUIUtility.singleLineHeight;
+                backgroundRect.xMin = xMin == 7.0 ? 4.0f : EditorGUIUtility.singleLineHeight;
                 backgroundRect.width -= 1;
             }
 
@@ -359,7 +361,7 @@ namespace UnityEditor.Rendering
                 state = !state;
                 e.Use();
             }
-            
+
             return state;
         }
 
@@ -437,7 +439,7 @@ namespace UnityEditor.Rendering
 
             return state;
         }
-        
+
         /// <summary>Draw a header toggle like in Volumes</summary>
         /// <param name="title"> The title of the header </param>
         /// <param name="group"> The group of the header </param>
@@ -447,7 +449,7 @@ namespace UnityEditor.Rendering
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
-            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions);
+            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
 
         /// <summary>Draw a header toggle like in Volumes</summary>
         /// <param name="title"> The title of the header </param>
@@ -458,6 +460,30 @@ namespace UnityEditor.Rendering
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
+         => DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
+
+        /// <summary>Draw a header toggle like in Volumes</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="group"> The group of the header </param>
+        /// <param name="activeField">The active field</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
+            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL);
+
+        /// <summary>Draw a header toggle like in Volumes</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="group"> The group of the header </param>
+        /// <param name="activeField">The active field</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
         {
             var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
 
@@ -481,7 +507,12 @@ namespace UnityEditor.Rendering
             if (hasMoreOptions != null)
             {
                 moreOptionsRect = backgroundRect;
+
                 moreOptionsRect.x += moreOptionsRect.width - 16 - 1 - 16 - 5;
+
+                if (!string.IsNullOrEmpty(documentationURL))
+                    moreOptionsRect.x -= 16 + 7;
+
                 moreOptionsRect.height = 15;
                 moreOptionsRect.width = 16;
             }
@@ -523,6 +554,21 @@ namespace UnityEditor.Rendering
 
             if (contextAction != null)
                 GUI.DrawTexture(menuRect, menuIcon);
+
+            // Documentation button
+            if (!String.IsNullOrEmpty(documentationURL))
+            {
+                var documentationRect = menuRect;
+                documentationRect.x -= 16 + 5;
+                documentationRect.y -= 1;
+
+                var documentationTooltip = $"Open Reference for {title.text}.";
+                var documentationIcon = new GUIContent(EditorGUIUtility.TrIconContent("_Help").image, documentationTooltip);
+                var documentationStyle = new GUIStyle("IconButton");
+
+                if (GUI.Button(documentationRect, documentationIcon, documentationStyle))
+                    System.Diagnostics.Process.Start(documentationURL);
+            }
 
             // Handle events
             var e = Event.current;
@@ -611,7 +657,7 @@ namespace UnityEditor.Rendering
             }
 
             DrawVector3(firstVectorValueRect, k_DrawVector6_Label[0], positive, min, max, false, colors == null ? null : new Color[] { colors[0], colors[1], colors[2] }, multiplicator);
-            
+
             Rect secondVectorValueRect = secondLineRect;
             secondVectorValueRect.xMin = firstVectorValueRect.xMin;
             secondVectorValueRect.xMax = firstVectorValueRect.xMax;
@@ -652,7 +698,7 @@ namespace UnityEditor.Rendering
             EditorGUI.indentLevel = 0;
             float oldLabelWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = subLabelWidth;
-            
+
             for (int i = 0; i < 3; ++i)
             {
                 Rect localRect = rect;
@@ -843,7 +889,7 @@ namespace UnityEditor.Rendering
         /// <returns>The created object</returns>
         static public GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
             => ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
-        
+
         /// <summary>
         /// Creates a new GameObject and set it's position to the current view
         /// </summary>
@@ -896,7 +942,7 @@ namespace UnityEditor.Rendering
             Personnal,
             Professional,
         }
-        
+
         static Func<int> GetInternalSkinIndex;
         static Func<float> GetGUIStatePixelsPerPoint;
         static Func<Texture2D, float> GetTexturePixelPerPoint;
@@ -952,7 +998,7 @@ namespace UnityEditor.Rendering
             var skin = currentSkin;
             if (skin == Skin.Professional)
                 prefix = "d_";
-            
+
             Texture2D icon = null;
             float pixelsPerPoint = GetGUIStatePixelsPerPoint();
             if (pixelsPerPoint > 1.0f && !forceLowRes)

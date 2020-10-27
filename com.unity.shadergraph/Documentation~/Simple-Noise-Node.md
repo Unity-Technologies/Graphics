@@ -9,8 +9,8 @@ Generates a simple, or [Value](https://en.wikipedia.org/wiki/Value_noise), noise
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
-| Scale      | Input | Vector 1 | None | Noise scale |
-| Out | Output      |    Vector 1 | None | Output value |
+| Scale      | Input | Float    | None | Noise scale |
+| Out | Output      |    Float    | None | Output value |
 
 ## Generated Code Example
 

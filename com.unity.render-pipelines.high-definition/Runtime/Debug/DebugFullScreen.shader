@@ -24,12 +24,15 @@ Shader "Hidden/HDRP/DebugFullScreen"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #define DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/FullScreenDebug.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
             float4 _FullScreenDebugDepthRemap;
             float _TransparencyOverdrawMaxPixelCost;
+            float _QuadOverdrawMaxQuadCost;
+            float _VertexDensityMaxPixelCost;
             uint _DebugContactShadowLightIndex;
             int _DebugDepthPyramidMip;
             CBUFFER_END
@@ -303,7 +306,10 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     return float4(fade.xxx, 0.0);
                 }
-                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS || _FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENT_SCREEN_SPACE_REFLECTIONS)
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_PREV ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_ACCUM ||
+                    _FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENT_SCREEN_SPACE_REFLECTIONS)
                 {
                     float4 color = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord) * GetCurrentExposureMultiplier();
                     return float4(color.rgb, 1.0f);
@@ -333,6 +339,37 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
                     if ((pixelCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));//
+                    return color;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
+                {
+                    uint2 quad = (uint2)input.positionCS.xy & ~1;
+                    uint quad0_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
+                    uint quad1_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x + 1;
+                    float4 color = (float4)0;
+
+                    float quadCost = (float)_FullScreenDebugBuffer[quad0_idx];
+                    if (all(((uint2)input.positionCS.xy & 1) == 0)) // Write only once per quad
+                    {
+                        _FullScreenDebugBuffer[quad0_idx] = 0; // Overdraw
+                        _FullScreenDebugBuffer[quad1_idx] = 0; // Lock
+                    }
+                    if ((quadCost > 0.001))
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));
+
+                    return color;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
+                {
+                    uint2 quad = (uint2)input.positionCS;
+                    uint quad_idx = _ScreenSize.x * (_ScreenSize.y * SLICE_ARRAY_INDEX + quad.y) + quad.x;
+                    float4 color = (float4)0;
+
+                    float density = (float)_FullScreenDebugBuffer[quad_idx];
+                    _FullScreenDebugBuffer[quad_idx] = 0;
+                    if ((density > 0.001))
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _VertexDensityMaxPixelCost) * density), 1.0, 1.0));
+
                     return color;
                 }
 

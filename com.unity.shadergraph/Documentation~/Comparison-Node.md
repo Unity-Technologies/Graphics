@@ -8,8 +8,8 @@ Compares the two input values **A** and **B** based on the condition selected on
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| A      | Input | Vector 1 | None | First input value |
-| B      | Input | Vector 1 | None | Second input value |
+| A      | Input | Float    | None | First input value |
+| B      | Input | Float    | None | Second input value |
 | Out  | Output  | Boolean  | None | Output value |
 
 ## Controls

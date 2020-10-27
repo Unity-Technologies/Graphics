@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (giSettings.denoise)
             {
                 // Evaluate the history's validity
-                float historyValidity = EvaluateHistoryValidity(hdCamera);
+                float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolution, true);
 
                 HDTemporalFilter temporalFilter = GetTemporalFilter();
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
@@ -214,6 +214,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.denoiserRadius * 0.5f, giSettings.halfResolutionDenoiser, false);
                     rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
                 }
+
+                // Propagate the history
+                PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolution, true);
 
                 return rtGIBuffer;
             }

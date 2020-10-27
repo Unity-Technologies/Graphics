@@ -1,5 +1,13 @@
 # Upgrade to version 10.0.x of Shader Graph
 
+## Renamed Vector 1 property and Float precision
+
+Shader Graph has renamed the **Vector 1** property as **Float** in both the Vector 1 node and the exposed parameter list. The **Float** precision was also renamed as **Single**. Behavior is exactly the same, and only the names have changed.
+
+## Renamed Sample Cubemap
+
+Shader Graph has renamed the previous Sample Cubemap Node **to** Sample Reflected Cubemap**,** and **has** added a new Sample Cubemap**,** which **uses** world space direction.
+
 ## Master Stack graph output
 
 Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack.md) solution for defining graph output in 10.0. You can still open all graphs created in previous versions, because Shader Graph automatically upgrades them. This page describes the expected behavior and explains when you might need to perform manual upgrade steps.
@@ -27,7 +35,7 @@ After the upgrade, you can add any required Block nodes that went missing, and r
 
 ### Upgrade cross-pipeline Master Nodes to the Master Stack
 
-If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project.
+If your graph contains PBR or Unlit Master Nodes that are compatible with both the [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest) (URP) and the [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest) (HDRP), Shader Graph automatically upgrades them to the Master Stack based on the render pipeline currently available in your project. With Master Stacks, when you switch from one render pipeline to another, you must reimport your Shader Graph assets to update the Material Inspector for any Materials in your project. 
 
 In URP, you can now find all PBR Master Node settings in the URP Lit Target. The Unlit Master Node settings are in the URP Unlit Target. These settings are the same, and the final shader should appear the same as before the upgrade. 
 
@@ -72,3 +80,21 @@ If you have any Custom Function Nodes with custom Shader Graph Preview code that
 	Out = MainLight;
 #endif
 ```
+
+## Deprecated node and property behaviors
+
+Previously, some nodes and properties such as the [Color Node](Color-Node.md) didn't behave as intended, but they now work correctly in Shader Graph version 10.0. Older graphs that rely on the incorrect behavior still function the same as before, and you can choose to individually upgrade any deprecated nodes and properties. If you don't enable **Allow Deprecated Behaviors** in [Shader Graph Preferences](Shader-Graph-Preferences.md), newly-created nodes and properties use the latest version node and property behaviors.
+
+For deprecated nodes, **(Deprecated)** appears after the node title in the main graph view.
+
+![image](images/DeprecatedColorNode.png)
+
+For deprecated properties, **(Deprecated)** appears after the property name in the [Blackboard](Blackboard.md).
+
+![image](images/DeprecatedColorProperty.png)
+
+When you select a deprecated node or property, a warning appears in the [Internal Inspector](Internal-Inspector.md) along with an **Update** button that allows you to upgrade the selection. You can use undo/redo to reverse this upgrade process.
+
+![image](images/DeprecatedWarning.png)
+
+If you enable **Allow Deprecated Behaviors** in [Shader Graph Preferences](Shader-Graph-Preferences.md), Shader Graph displays the version of the deprecated node or property, and doesn't display any warnings even though the **Update** button appears. You can also use the Blackboard or Searcher to create deprecated nodes and properties.

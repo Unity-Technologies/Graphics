@@ -65,8 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int                      frameIndex;
         /// <summary>Current sky settings.</summary>
         public SkySettings              skySettings;
-        /// <summary>Current cloud layer.</summary>
-        public CloudLayer               cloudLayer;
         /// <summary>Current debug dsplay settings.</summary>
         public DebugDisplaySettings     debugSettings;
         /// <summary>Null color buffer render target identifier.</summary>
@@ -407,7 +405,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_BlackAmbientProbe;
             }
 
-            if (hdCamera.skyAmbientMode == SkyAmbientMode.Static)
+            if (hdCamera.skyAmbientMode == SkyAmbientMode.Static
+                || (hdCamera.camera.cameraType == CameraType.Reflection && HDRenderPipeline.currentPipeline.reflectionProbeBaking))
             {
                 return GetAmbientProbe(m_StaticLightingSky);
             }
@@ -669,10 +668,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (sunLight != null && skyContext.skyRenderer.SupportDynamicSunLight)
                 sunHash = GetSunLightHashCode(sunLight);
 
-            int cloudHash = 0;
-            if (skyContext.cloudLayer != null && skyContext.skyRenderer.SupportDynamicCloudLayer)
-                cloudHash = skyContext.cloudLayer.GetHashCode();
-
             // For planar reflections we want to use the parent position for hash.
             Camera cameraForHash = camera.camera;
             if (camera.camera.cameraType == CameraType.Reflection && camera.parentCamera != null)
@@ -681,7 +676,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode(cameraForHash);
-            skyHash = skyHash * 23 + cloudHash;
             skyHash = skyHash * 23 + (staticSky ? 1 : 0);
             skyHash = skyHash * 23 + (ambientMode == SkyAmbientMode.Static ? 1 : 0);
             return skyHash;
@@ -733,7 +727,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
-                m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
 
                 // When update is not requested and the context is already valid (ie: already computed at least once),
                 // we need to early out in two cases:
@@ -844,7 +837,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
-                m_StaticLightingSky.cloudLayer = staticLightingSky != null ? staticLightingSky.cloudLayer : null;
                 UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
                 m_StaticSkyUpdateRequired = false;
             }
@@ -871,7 +863,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.debugSettings = debugSettings;
             m_BuiltinParameters.frameIndex = frameIndex;
             m_BuiltinParameters.skySettings = skyContext.skySettings;
-            m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
+        }
+
+        public bool RequiresPreRenderSky(HDCamera hdCamera)
+        {
+            var skyContext = hdCamera.visualSky;
+            return skyContext.IsValid() && skyContext.skyRenderer.RequiresPreRenderSky(m_BuiltinParameters);
         }
 
         public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)

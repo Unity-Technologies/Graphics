@@ -1,7 +1,7 @@
 * [High Definition Render Pipeline](index)
 * [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
-  * [10.0](whats-new-10-0.md)
+  * [10](whats-new-10.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
@@ -85,21 +85,16 @@
     * [Hair](Master-Node-Hair)
     * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
-  * Shader Graph Nodes
-    * [Emission](SGNode-Emission)
-    * [Baked GI](SGNode-Baked-GI)
-    * [Diffusion Profile](SGNode-Diffusion-Profile)
-    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
-    * [Exposure](SGNode-Exposure)
-    * [HD Scene Color](SGNode-HD-Scene-Color)
+  * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
-  * Reflection Probes
-    * [Reflection Probes Introduction](Reflection-Probes-Intro)
-    * [Reflection Probe](Reflection-Probe)
-    * [Planar Reflection Probe](Planar-Reflection-Probe)
-    * [Reflection Proxy Volume](Reflection-Proxy-Volume)
+  * [Reflection Probes](Reflection-Probes-Intro)
+    * [Using Reflection Probes](Reflection-Probe-Usage)
+    * Components
+      * [Reflection Probe](Reflection-Probe)
+      * [Planar Reflection Probe](Planar-Reflection-Probe)
+      * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
   * [Atmospheric Scattering](Atmospheric-Scattering)
@@ -154,9 +149,13 @@
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)
     * [Ray-Traced Reflections](Ray-Traced-Reflections)
     * [Ray-Traced Shadows](Ray-Traced-Shadows)
+    * [Ray-Traced-Subsurface-Scattering](Ray-Traced-Subsurface-Scattering)
     * [Light Cluster](Ray-Tracing-Light-Cluster)
     * [Path Tracing](Ray-Tracing-Path-Tracing)
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
+  * Shader Graph Keywords
+    * [Raytracing Quality](SGNode-Raytracing-Quality)
+  * [Ray Tracing and Animations](Ray-Tracing-Animations.md)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components
@@ -178,6 +177,6 @@
   * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
-  * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
+  * [Editing Frame Settings at Runtime](Frame-Settings-API)
 * [HDRP Glossary](Glossary)
 * [Known Issues and How To Fix Them](Known-Issues)

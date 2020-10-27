@@ -18,6 +18,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
         internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
+        /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
+        public static PerObjectData GetBakedLightingRenderConfig() => k_RendererConfigurationBakedLighting;
+        /// <summary>Returns the render configuration for baked static lighting with shadow masks, this value can be used in a RendererListDesc call to render Lit objects when shadow masks are enabled.</summary>
+        public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => k_RendererConfigurationBakedLightingWithShadowMask;
+
         /// <summary>Default HDAdditionalReflectionData</summary>
         static internal HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
         /// <summary>Default HDAdditionalLightData</summary>
@@ -122,31 +127,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return types;
         }
 
-        // Helper to help to display debug info on screen
-        static float s_OverlayLineHeight = -1.0f;
-        internal static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
-
-        internal static float GetRuntimeDebugPanelWidth(HDCamera hdCamera)
+        internal static int GetRuntimeDebugPanelWidth(HDCamera hdCamera)
         {
             // 600 is the panel size from 'DebugUI Panel' prefab + 10 pixels of padding
-            float width = DebugManager.instance.displayRuntimeUI ? 610.0f : 0.0f;
-            return Mathf.Min(hdCamera.actualWidth, width);
-        }
-
-        internal static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
-        {
-            x += overlayWidth;
-            s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
-            // Go to next line if it goes outside the screen.
-            if ( (x + overlayWidth) > hdCamera.actualWidth)
-            {
-                x = 0.0f;
-                y -= s_OverlayLineHeight;
-                s_OverlayLineHeight = -1.0f;
-            }
-
-            if (x == 0)
-                x += GetRuntimeDebugPanelWidth(hdCamera);
+            int width = DebugManager.instance.displayRuntimeUI ? 610 : 0;
+            return Math.Min(hdCamera.actualWidth, width);
         }
 
         /// <summary>Get the aspect ratio of a projection matrix.</summary>
@@ -327,6 +312,32 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
             BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0);
         }
+
+        /// <summary>
+        /// Blit a 2D texture and depth buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="sourceColor">Source Texture for color.</param>
+        /// <param name="sourceDepth">Source RenderTexture for depth.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        internal static void BlitColorAndDepth(CommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                Material mat = hdPipeline.GetBlitColorAndDepthMaterial();
+
+                s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
+                s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+                s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, sourceColor);
+                if (blitDepth)
+                    s_PropertyBlock.SetTexture(HDShaderIDs._InputDepth, sourceDepth, RenderTextureSubElement.Depth);
+                cmd.DrawProcedural(Matrix4x4.identity, mat, blitDepth ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            }
+        }
+
         /// <summary>
         /// Blit a RTHandle texture
         /// </summary>

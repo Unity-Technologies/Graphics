@@ -10,6 +10,7 @@ TEXTURE2D(_SourceTex);
 SamplerState sampler_LinearClamp;
 uniform uint _SourceTexArraySlice;
 uniform uint _SRGBRead;
+uniform uint _SRGBWrite;
 
 struct Attributes
 {
@@ -41,8 +42,14 @@ float4 FragBilinear(Varyings input) : SV_Target
     outColor = SAMPLE_TEXTURE2D(_SourceTex, sampler_LinearClamp, input.texcoord.xy);
 #endif
 
+    if (_SRGBRead && _SRGBWrite)
+        return outColor;
+
     if (_SRGBRead)
         outColor = SRGBToLinear(outColor);
+
+    if (_SRGBWrite)
+        outColor = LinearToSRGB(outColor);
 
     return outColor;
 }

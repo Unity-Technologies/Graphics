@@ -1,15 +1,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
-#ifndef SCALARIZE_LIGHT_LOOP
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
-#endif
-
 DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
 
 // In order that the lod for with transpartent decal better match the lod for opaque decal
 // We use ComputeTextureLOD with bias == 0.5
-void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
+void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
                     inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout float alpha)
 {
     // Get the relative world camera to decal matrix
@@ -33,6 +29,19 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
         // Following code match the code in DecalData.hlsl used for DBuffer. It have the same kind of condition and similar code structure
         uint affectFlags = (int)(decalData.blendParams.z + 0.5f); // 1 albedo, 2 normal, 4 metal, 8 AO, 16 smoothness
         float fadeFactor = decalData.normalToWorld[0][3];
+        // Check if this decal projector require angle fading
+        float2 angleFade = float2(decalData.normalToWorld[1][3], decalData.normalToWorld[2][3]);
+
+        // Angle fade is disabled if decal layers isn't enabled for consistency with DBuffer Decal
+        // The test against _EnableDecalLayers is done here to refresh realtime as AngleFade is cached data and need a decal refresh to be updated.
+        if (angleFade.x > 0.0f && _EnableDecalLayers) // if angle fade is enabled
+        {
+            float dotAngle = 1.0 - dot(vtxNormal, decalData.normalToWorld[2].xyz);
+            // See equation in DecalSystem.cs - simplified to a madd here
+            float angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+            fadeFactor *= angleFadeFactor;
+        }
+
         float albedoMapBlend = fadeFactor;
         float maskMapBlend = fadeFactor;
 
@@ -92,20 +101,20 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
                 float  lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5);
 
                 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
-                src.z *= decalData.scalingMAB.z; // Blue channel (opacity)
+                src.z *= decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
-                src.x *= decalData.scalingMAB.x; // Metal
+                src.x = lerp(decalData.scalingBAndRemappingM.z, decalData.scalingBAndRemappingM.w, src.x); // Remap Metal
                 src.y = lerp(decalData.remappingAOS.x, decalData.remappingAOS.y, src.y); // Remap AO
                 #endif
                 src.z = lerp(decalData.remappingAOS.z, decalData.remappingAOS.w, src.w); // Remap Smoothness
             }
             else
             {
-                src.z = decalData.scalingMAB.z; // Blue channel (opacity)
+                src.z = decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
-                src.x = decalData.scalingMAB.x; // Metal
+                src.x = decalData.scalingBAndRemappingM.z; // Metal
                 src.y = decalData.remappingAOS.x; // AO
                 #endif
                 src.z = decalData.remappingAOS.z; // Smoothness
@@ -176,7 +185,7 @@ DecalData FetchDecal(uint index)
 }
 #endif
 
-DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)
 {
 #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)  // forward transparent using clustered decals
     uint decalCount, decalStart;
@@ -192,11 +201,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
 
-    #if SCALARIZE_LIGHT_LOOP
     // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-    uint decalStartLane0 = WaveReadLaneFirst(decalStart);
-    bool fastPath = WaveActiveAllTrue(decalStart == decalStartLane0);
-    #endif
+    uint decalStartLane0;
+    bool fastPath = IsFastPath(decalStart, decalStartLane0);
 
 #else // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     decalCount = _DecalCount;
@@ -226,26 +233,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         v_decalIdx = decalStart + v_decalListOffset;
 #endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-        uint s_decalIdx = v_decalIdx;
-
-#if SCALARIZE_LIGHT_LOOP
-
-        if (!fastPath)
-        {
-            // If we are not in fast path, v_lightIdx is not scalar, so we need to query the Min value across the wave.
-            s_decalIdx = WaveActiveMin(v_decalIdx);
-            // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-            // This could happen as an helper lane could reach this point, hence having a valid v_lightIdx, but their values will be ignored by the WaveActiveMin
-            if (s_decalIdx == -1)
-            {
-                break;
-            }
-        }
-        // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-        // However, we are certain at this point that the index is scalar.
-        s_decalIdx = WaveReadLaneFirst(s_decalIdx);
-
-#endif // SCALARIZE_LIGHT_LOOP
+        uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
+        if (s_decalIdx == -1)
+            break;
 
         DecalData s_decalData = FetchDecal(s_decalIdx);
         bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
@@ -257,7 +247,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
         {
             v_decalListOffset++;
             if (!isRejected)
-                EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
+                EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
         }
 
     }

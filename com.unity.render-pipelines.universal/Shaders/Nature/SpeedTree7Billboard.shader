@@ -58,6 +58,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
+            ColorMask 0
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7VertDepth
@@ -82,7 +84,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 

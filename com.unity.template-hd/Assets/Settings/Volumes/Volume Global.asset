@@ -98,6 +98,9 @@ MonoBehaviour:
   m_Resolution:
     m_OverrideState: 0
     m_Value: 2
+  m_HighQualityPrefiltering:
+    m_OverrideState: 0
+    m_Value: 0
   m_HighQualityFiltering:
     m_OverrideState: 0
     m_Value: 1
@@ -236,17 +239,18 @@ MonoBehaviour:
   m_Name: Volume Global
   m_EditorClassIdentifier: 
   components:
-  - {fileID: 6640133647794636954}
-  - {fileID: 5002876554434076654}
-  - {fileID: 8300247594604814326}
-  - {fileID: 2759069934644561995}
-  - {fileID: 2112682869544596416}
-  - {fileID: 8049981929359091865}
-  - {fileID: -3969488579639410846}
-  - {fileID: -2223948172287066284}
   - {fileID: 1359070828411649799}
   - {fileID: -1167143466653396744}
+  - {fileID: 8049981929359091865}
+  - {fileID: 6640133647794636954}
+  - {fileID: 2759069934644561995}
+  - {fileID: 8300247594604814326}
+  - {fileID: 2112682869544596416}
+  - {fileID: 5002876554434076654}
+  - {fileID: -2223948172287066284}
+  - {fileID: -3969488579639410846}
   - {fileID: 747098994415714109}
+  - {fileID: 4566301752631259820}
 --- !u!114 &747098994415714109
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -399,7 +403,7 @@ MonoBehaviour:
     showAlpha: 0
     showEyeDropper: 1
   maxFogDistance:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 5000
     min: 0
   mipFogMaxMip:
@@ -416,13 +420,13 @@ MonoBehaviour:
     m_Value: 1000
     min: 0
   baseHeight:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   maximumHeight:
     m_OverrideState: 1
-    m_Value: 200
+    m_Value: 500
   albedo:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
     hdr: 0
     showAlpha: 1
@@ -454,18 +458,37 @@ MonoBehaviour:
     min: 0
     max: 1
   screenResolutionPercentage:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 12.5
     min: 6.25
     max: 100
   volumeSliceCount:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 64
     min: 1
     max: 1024
   filter:
     m_OverrideState: 1
     m_Value: 1
+--- !u!114 &4566301752631259820
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e17fad69ea181b4483974138b566975, type: 3}
+  m_Name: ScreenSpaceRefraction
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  screenFadeDistance:
+    m_OverrideState: 1
+    m_Value: 0.001
+    min: 0.001
+    max: 1
 --- !u!114 &5002876554434076654
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -501,6 +524,11 @@ MonoBehaviour:
     m_Value: 0.5
     min: 0.25
     max: 5
+  spatialBilateralAggressiveness:
+    m_OverrideState: 0
+    m_Value: 0.15
+    min: 0
+    max: 1
   temporalAccumulation:
     m_OverrideState: 0
     m_Value: 1
@@ -544,7 +572,6 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.5
     min: 0
-    max: 50
   m_SampleCount:
     m_OverrideState: 0
     m_Value: 4
@@ -784,7 +811,7 @@ MonoBehaviour:
   m_AdvancedMode: 0
   maxShadowDistance:
     m_OverrideState: 1
-    m_Value: 64
+    m_Value: 70
     min: 0
   directionalTransmissionMultiplier:
     m_OverrideState: 0

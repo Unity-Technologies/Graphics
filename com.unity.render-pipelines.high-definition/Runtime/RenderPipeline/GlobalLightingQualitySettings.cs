@@ -48,17 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 32;
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Low] = 1.5f;
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5.0f;
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.High] = 20.0f;
-
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
-
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 0.8f;
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
 
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 2;
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5;
@@ -171,20 +163,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public int[] SSRMaxRaySteps = new int[s_QualitySettingCount];
 
         // Screen Space Global Illumination
-        [System.NonSerialized]
         /// <summary>Screen space global illumination step count for the ray marching.</summary>
+        [NonSerialized]
         public int[] SSGIRaySteps = new int[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination's world space maximal radius.</summary>
+        [NonSerialized]
         public float[] SSGIRadius = new float[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination flag to define if the effect is computed at full resolution.</summary>
+        [NonSerialized]
         public bool[] SSGIFullResolution = new bool[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination signal clamping value.</summary>
+        [NonSerialized]
         public float[] SSGIClampValue = new float[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination's filter size.</summary>
+        [NonSerialized]
         public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
 
         // Ray Traced Ambient Occlusion

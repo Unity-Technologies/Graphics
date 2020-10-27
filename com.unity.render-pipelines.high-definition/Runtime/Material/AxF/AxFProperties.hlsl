@@ -120,6 +120,7 @@ float _AlphaCutoff;
 float _UseShadowThreshold;
 float _AlphaCutoffShadow;
 float4 _DoubleSidedConstants;
+float _BlendMode;
 
 // Specular AA
 float _EnableGeometricSpecularAA;
