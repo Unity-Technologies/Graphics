@@ -84,8 +84,20 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var buildLightListResources = new BuildGPULightListResources();
 
-            buildLightListResources.depthBuffer = data.depthBuffer;
-            buildLightListResources.stencilTexture = data.stencilTexture;
+            // Depending on frame setting configurations we might not have written to a depth buffer yet.
+            RTHandle depthBuffer = data.depthBuffer;
+
+            if (depthBuffer == null)
+            {
+                buildLightListResources.depthBuffer = context.defaultResources.blackTextureXR;
+                buildLightListResources.stencilTexture = context.defaultResources.blackTextureXR;
+            }
+            else
+            {
+                buildLightListResources.depthBuffer = data.depthBuffer;
+                buildLightListResources.stencilTexture = data.stencilTexture;
+            }
+
             if (data.buildGPULightListParameters.computeMaterialVariants && data.buildGPULightListParameters.enableFeatureVariants)
             {
                 buildLightListResources.gBuffer = context.renderGraphPool.GetTempArray<RTHandle>(data.gBufferCount);
