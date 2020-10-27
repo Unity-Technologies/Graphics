@@ -336,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void EndFrame()
         {
-            //m_Resources.PurgeUnusedResources();
+            m_Resources.PurgeUnusedResources();
             m_DebugParameters.logFrameInformation = false;
             m_DebugParameters.logResources = false;
         }

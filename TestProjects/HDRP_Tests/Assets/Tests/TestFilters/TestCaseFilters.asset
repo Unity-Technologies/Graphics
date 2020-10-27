@@ -257,3 +257,12 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: mising object on Yamato (but not locally)
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Failure on Vulkan only.
