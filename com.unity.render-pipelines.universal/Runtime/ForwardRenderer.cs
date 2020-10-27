@@ -275,11 +275,13 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled) activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
 #endif
-                ConfigureCameraTarget(activeColorRenderTargetId, cameraDepthTarget);
+                ConfigureCameraColorTarget(activeColorRenderTargetId);
             }
 
             // Add render passes and gather the input requirements
+            isCameraColorTargetValid = true;
             AddRenderPasses(ref renderingData);
+            isCameraColorTargetValid = false;
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             // Should apply post-processing after rendering this camera?
