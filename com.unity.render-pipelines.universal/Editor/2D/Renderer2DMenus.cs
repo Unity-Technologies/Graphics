@@ -157,15 +157,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
             CreateLight(menuCommand, Light2D.LightType.Global);
         }
 
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Isometric Diamond", true, k_MenuPriority)]
         [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Square", true, k_MenuPriority)]
         [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Circle", true, k_MenuPriority)]
         [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Flat Top", true, k_MenuPriority)]
         [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Pointed Top", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/2D/Freeform Light 2D (Experimental)", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/2D/Sprite Light 2D (Experimental)", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/2D/Point Light 2D (Experimental)", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/2D/Global Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Sprite Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Point Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Global Light 2D (Experimental)", true, k_MenuPriority)]
         static bool CreateLight2DValidation()
         {
             return CreateLightValidation();
