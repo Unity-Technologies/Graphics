@@ -160,6 +160,8 @@ Shader "HDRP/AxF"
 
         // Ray Tracing (recursive; activates raytracing prepass)
         [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
+        // Note: this is not only for recursive mode:
+        _RayTracingTexFilteringScale("_RayTracingTexFilteringScale", Range(0.0, 1.0)) = 0.07
 
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
