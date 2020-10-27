@@ -422,8 +422,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_CopyDepthPass);
             }
 
-            // Set the depth texture to the far Z if we do not do a depth prepass or copy detph
-            if (!requiresDepthPrepass && !requiresDepthCopyPass)
+            // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
+            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
             {
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
