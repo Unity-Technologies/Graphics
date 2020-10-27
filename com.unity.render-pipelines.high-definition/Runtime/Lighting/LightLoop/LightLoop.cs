@@ -404,7 +404,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Binned lighting
         // For performance reasons, keep all sizes in powers of 2.
-        public static int s_CoarseTileEntryLimit = 64; // Per category; before pruning, so the number is lower in practice
+        public static int s_CoarseTileEntryLimit = 64; // Per category; before pruning, so the number is lower in practice; the number could be made (almost always) exact at the cost of making the 'FillCoarseTiles' pass more complicated
         public static int s_FineTileEntryLimit   = 16; // Per category; after pruning, so the number is exact
         public static int s_CoarseTileSize       = 64;
         public static int s_FineTileSize         = 8;

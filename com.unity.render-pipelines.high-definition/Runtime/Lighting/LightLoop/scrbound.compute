@@ -312,7 +312,7 @@ float2 ComputeBoundsOfProjectedSphere(float3 C, float r, float projScale, float 
     return float2(xMin, xMax);
 }
 
-//**********************************************************************************************
+// *************************************************************************************************
 // The goal of this program is to compute the AABB of a bounded entity in the NDC space ([0, 1] range).
 // The entity is represented by a bounding sphere and a right bounding frustum with 6 faces and 8 vertices.
 // The resulting bounding volume is defined by the the intersection of the sphere and the frustum.
@@ -338,7 +338,7 @@ float2 ComputeBoundsOfProjectedSphere(float3 C, float r, float projScale, float 
 // hbp - hom. (4D) coordinates before perspective
 // hap - hom. (4D) coordinates after  perspective
 // rap - real (3D) coordinates after  perspective (after division by w)
-// *********************************************************************************************
+// *************************************************************************************************
 
 [numthreads(THREADS_PER_ENTITY, ENTITIES_PER_GROUP, 1)]
 void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
