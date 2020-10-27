@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RENDER GRAPH
         internal static bool enableNonRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-non-rendergraph-tests"); }
-        RenderGraph m_RenderGraph = new RenderGraph();
+        RenderGraph m_RenderGraph = new RenderGraph("HDRPGraph");
         bool        m_EnableRenderGraph = true;
 
         // MSAA resolve materials
@@ -1021,7 +1021,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeRenderGraph()
         {
-            m_RenderGraph = new RenderGraph();
+            m_RenderGraph = new RenderGraph("HDRPGraph");
         }
 
         void CleanupRenderGraph()

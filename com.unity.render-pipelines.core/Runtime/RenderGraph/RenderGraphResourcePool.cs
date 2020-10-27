@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Release the GPU resource itself
         abstract protected void ReleaseInternalResource(Type res);
         abstract protected string GetResourceName(Type res);
+        abstract protected long GetResourceSize(Type res);
         abstract protected string GetResourceTypeName();
 
         public void ReleaseResource(int hash, Type resource, int currentFrameIndex)
@@ -97,22 +98,29 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
 
+        struct ResourceLogInfo
+        {
+            public string name;
+            public long size;
+        }
+
         public void LogResources(RenderGraphLogger logger)
         {
-            List<string> allocationList = new List<string>();
+            List<ResourceLogInfo> allocationList = new List<ResourceLogInfo>();
             foreach (var kvp in m_ResourcePool)
             {
                 foreach (var res in kvp.Value)
                 {
-                    allocationList.Add(GetResourceName(res.resource));
+                    allocationList.Add(new ResourceLogInfo { name = GetResourceName(res.resource), size = GetResourceSize(res.resource) } );
                 }
             }
 
             logger.LogLine($"== {GetResourceTypeName()} Resources ==");
-            allocationList.Sort();
+
+            allocationList.Sort((a, b) => a.size < b.size ? 1 : -1);
             int index = 0;
             foreach (var element in allocationList)
-                logger.LogLine("[{0}] {1}", index++, element);
+                logger.LogLine("[{0}]\t[{1:#.##} MB]\t{2}", index++, element.size / 1024.0f, element.name);
         }
     }
 
@@ -126,6 +134,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         protected override string GetResourceName(RTHandle res)
         {
             return res.rt.name;
+        }
+
+        protected override long GetResourceSize(RTHandle res)
+        {
+            return Profiling.Profiler.GetRuntimeMemorySizeLong(res.rt);
         }
 
         override protected string GetResourceTypeName()
@@ -168,6 +181,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         protected override string GetResourceName(ComputeBuffer res)
         {
             return "ComputeBufferNameNotAvailable"; // res.name is a setter only :(
+        }
+
+        protected override long GetResourceSize(ComputeBuffer res)
+        {
+            return res.count * res.stride;
         }
 
         override protected string GetResourceTypeName()
