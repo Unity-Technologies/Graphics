@@ -55,6 +55,7 @@ The version number for this package has increased due to a version update of a r
 - Fix volument component creation via script.
 - Fixed GC allocs in render graph.
 - Fixed scene picking passes.
+- Fixed broken ray tracing light cluster full screen debug.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
