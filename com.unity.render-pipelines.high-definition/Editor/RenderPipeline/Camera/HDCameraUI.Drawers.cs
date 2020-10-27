@@ -273,12 +273,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.BeginChangeCheck();
                 isPhysicalCamera = EditorGUILayout.Toggle(content, isPhysicalCamera);
                 if (EditorGUI.EndChangeCheck())
-                {
                     p.projectionMatrixMode.intValue = isPhysicalCamera ? (int)ProjectionMatrixMode.PhysicalPropertiesBased : (int)ProjectionMatrixMode.Implicit;
-                    // The next line ensures that we will not get any "popping" in the FoV slider when toggling the physical camera with vertical FoV.
-                    // Horizontal FoV will still pop, because the aspect ration computation is different between physical and non-physical cameras
-                    s_FovChanged = true;    
-                }
                 EditorGUILayout.EndHorizontal();
                 EditorGUI.EndProperty();
 
