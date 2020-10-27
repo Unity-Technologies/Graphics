@@ -133,11 +133,14 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
     defaultSmoothness *= half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
 
 #ifndef _TERRAIN_BLEND_HEIGHT
-    // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-    half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
-    opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
-    half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
-    splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
+    if(_NumLayersCount <= 4) // disable if > 4 layers due to normalization breaking with multi-pass
+    {
+        // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+        half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
+        opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
+        half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
+        splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
+    }
 #endif
 
     // Now that splatControl has changed, we can compute the final weight and normalize
