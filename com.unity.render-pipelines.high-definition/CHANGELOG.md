@@ -10,7 +10,7 @@ Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
 ### Fixed
-- Fix linking of the field of view with the focal length in physical camera
+- Fixed issue when linking the field of view with the focal length in physical camera
 
 ## [10.2.0] - 2020-10-19
 
