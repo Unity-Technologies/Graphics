@@ -151,7 +151,10 @@ bool SampleGGX_VNDF(float roughness_,
     outgoingDir = mul(localL, localToWorld);
 
     if (localL.z < 0.001)
+    {
+        weight = 0.0f;
         return false;
+    }
 
     float pdfNoGV = D_GGX(localH.z, roughness);
     float lambdaVPlusOne = Lambda_GGX(roughness, localV) + 1.0;
