@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_ShapeLightTexture1ID = Shader.PropertyToID("_ShapeLightTexture1");
         private static readonly int k_ShapeLightTexture2ID = Shader.PropertyToID("_ShapeLightTexture2");
         private static readonly int k_ShapeLightTexture3ID = Shader.PropertyToID("_ShapeLightTexture3");
+        private static readonly int k_CameraSortingLayerTextureID = Shader.PropertyToID("_CameraSortingLayerTexture");
 
         private static readonly ShaderTagId k_CombinedRenderingPassNameOld = new ShaderTagId("Lightweight2D");
         private static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
@@ -90,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_Renderer2DData.samplingMaterial : m_Renderer2DData.blitMaterial;
             RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetRenderTarget(colorAttachment);
-            cmd.SetGlobalTexture("_CameraSortingLayerTexture", m_Renderer2DData.cameraSortingLayerRenderTarget.id);
+            cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
             context.ExecuteCommandBuffer(cmd);
         }
 
@@ -270,8 +271,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 
-                Profiler.BeginSample("Render Sprites Unlit");
+                if (m_Renderer2DData.useCameraSortingLayerTexture)
+                {
+                    Profiler.BeginSample("Render Sprites Unlit");
+                    filterSettings.sortingLayerRange = new SortingLayerRange(short.MinValue, cameraSortingLayerBoundsIndex);
                     context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
+                    Profiler.EndSample();
+
+                    CopyCameraSortingLayerRenderTexture(context, renderingData);
+
+                    filterSettings.sortingLayerRange = new SortingLayerRange(cameraSortingLayerBoundsIndex, short.MaxValue);
+                }
+
+                Profiler.BeginSample("Render Sprites Unlit");
+                context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
                 Profiler.EndSample();
 
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
