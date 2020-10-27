@@ -418,9 +418,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
                 using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                 {
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_StartAngleFadeProperty, k_StartAngleFadeContent);
                     if (EditorGUI.EndChangeCheck() && m_StartAngleFadeProperty.floatValue > m_EndAngleFadeProperty.floatValue)
                         m_EndAngleFadeProperty.floatValue = m_StartAngleFadeProperty.floatValue;
+
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_EndAngleFadeProperty, k_EndAngleFadeContent);
                     if (EditorGUI.EndChangeCheck() && m_EndAngleFadeProperty.floatValue < m_StartAngleFadeProperty.floatValue)
