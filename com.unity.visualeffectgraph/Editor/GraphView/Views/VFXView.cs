@@ -19,8 +19,20 @@ using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-
+    /// <summary>
+    /// Unexpected public API VFXViewModicationProcessor : Use a custom UnityEditor.AssetModificationProcessor.
+    /// </summary>
+    [Obsolete("Unexpected public API VFXViewModicationProcessor : Use a custom UnityEditor.AssetModificationProcessor")]
     public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+    {
+        /// <summary>
+        /// Initialized to false by default.
+        /// Obsolete API : Use a custom UnityEditor.AssetModificationProcessor and implement OnWillMoveAsset if you relied on this behavior.
+        /// </summary>
+        public static bool assetMoved = false;
+    }
+
+    class VFXViewModificationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool assetMoved = false;
 
@@ -376,7 +388,7 @@ namespace UnityEditor.VFX.UI
             string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
             if (!string.IsNullOrEmpty(filePath))
             {
-                VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
+                VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
 
                 VFXViewWindow.currentWindow.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
             }
@@ -600,6 +612,8 @@ namespace UnityEditor.VFX.UI
                 if (nodeController == null)
                     return;
                 target = GetNodeByController(nodeController);
+                if (target == null)
+                    return;
                 targetParent = target.parent;
                 target = (target as VFXNodeUI).titleContainer;
                 alignement = SpriteAlignment.LeftCenter;
@@ -1079,6 +1093,7 @@ namespace UnityEditor.VFX.UI
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
+                    newElement.controller.model.RefreshErrors(controller.graph);
                 }
                 Profiler.EndSample();
 
@@ -1402,13 +1417,19 @@ namespace UnityEditor.VFX.UI
             {
                 if (child is VFXSubgraphOperator ope)
                 {
-                    var graph = ope.subgraph.GetResource().GetOrCreateGraph();
-                    GetGraphsRecursively(graph, graphs);
+                    if (ope.subgraph != null)
+                    {
+                        var graph = ope.subgraph.GetResource().GetOrCreateGraph();
+                        GetGraphsRecursively(graph, graphs);
+                    }
                 }
                 else if (child is VFXSubgraphContext subCtx)
                 {
-                    var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
-                    GetGraphsRecursively(graph, graphs);
+                    if (subCtx.subgraph != null)
+                    {
+                        var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
+                        GetGraphsRecursively(graph, graphs);
+                    }
                 }
                 else if( child is VFXContext ctx)
                 {
@@ -1416,8 +1437,11 @@ namespace UnityEditor.VFX.UI
                     {
                         if( block is VFXSubgraphBlock subBlock)
                         {
-                            var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
-                            GetGraphsRecursively(graph, graphs);
+                            if( subBlock.subgraph!= null)
+                            {
+                                var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
+                                GetGraphsRecursively(graph, graphs);
+                            }
                         }
                     }
                 }

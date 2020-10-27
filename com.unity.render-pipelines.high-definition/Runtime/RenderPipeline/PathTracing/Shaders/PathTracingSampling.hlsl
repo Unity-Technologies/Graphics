@@ -11,6 +11,20 @@ float GetSample(uint2 coord, uint index, uint dim)
     return GetBNDSequenceSample(coord, index, dim);
 }
 
+float4 GetSample4D(uint2 coord, uint index, uint dim)
+{
+    // If we go past the number of stored samples per dim, just shift all to the next pair of dimensions
+    dim += (index / 256) * 2;
+
+    float4 sample;
+    sample.x = GetBNDSequenceSample(coord, index, dim);
+    sample.y = GetBNDSequenceSample(coord, index, dim + 1);
+    sample.z = GetBNDSequenceSample(coord, index, dim + 2);
+    sample.w = GetBNDSequenceSample(coord, index, dim + 3);
+
+    return sample;
+}
+
 bool RussianRouletteTest(float threshold, float value, float rand, out float factor, bool skip = false)
 {
     if (skip || value >= threshold)

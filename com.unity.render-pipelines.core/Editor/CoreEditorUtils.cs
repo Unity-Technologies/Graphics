@@ -448,8 +448,8 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = null)
-            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL);
+        public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
+            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
 
         /// <summary>Draw a header toggle like in Volumes</summary>
         /// <param name="title"> The title of the header </param>
@@ -459,7 +459,31 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
         /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
         /// <returns>return the state of the foldout header</returns>
-        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null, string documentationURL = null)
+        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction = null, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
+         => DrawHeaderToggle(title, group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, null);
+
+        /// <summary>Draw a header toggle like in Volumes</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="group"> The group of the header </param>
+        /// <param name="activeField">The active field</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static bool DrawHeaderToggle(string title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
+            => DrawHeaderToggle(EditorGUIUtility.TrTextContent(title), group, activeField, contextAction, hasMoreOptions, toggleMoreOptions, documentationURL);
+
+        /// <summary>Draw a header toggle like in Volumes</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="group"> The group of the header </param>
+        /// <param name="activeField">The active field</param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
         {
             var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
 
