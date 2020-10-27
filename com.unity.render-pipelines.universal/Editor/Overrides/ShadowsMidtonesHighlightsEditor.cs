@@ -16,17 +16,17 @@ namespace UnityEditor.Rendering.Universal
         SerializedDataParameter m_HighlightsStart;
         SerializedDataParameter m_HighlightsEnd;
 
+        static Material s_Material;
         readonly TrackballUIDrawer m_TrackballUIDrawer = new TrackballUIDrawer();
-        
+
         // Curve drawing utilities
         Rect m_CurveRect;
-        Material m_Material;
         RenderTexture m_CurveTex;
 
         public override void OnEnable()
         {
             var o = new PropertyFetcher<ShadowsMidtonesHighlights>(serializedObject);
-            
+
             m_Shadows         = Unpack(o.Find(x => x.shadows));
             m_Midtones        = Unpack(o.Find(x => x.midtones));
             m_Highlights      = Unpack(o.Find(x => x.highlights));
@@ -34,12 +34,13 @@ namespace UnityEditor.Rendering.Universal
             m_ShadowsEnd      = Unpack(o.Find(x => x.shadowsEnd));
             m_HighlightsStart = Unpack(o.Find(x => x.highlightsStart));
             m_HighlightsEnd   = Unpack(o.Find(x => x.highlightsEnd));
-
-            m_Material = new Material(Shader.Find("Hidden/Universal Render Pipeline/Editor/Shadows Midtones Highlights Curve"));
         }
 
         public override void OnInspectorGUI()
         {
+            if (s_Material == null)
+                s_Material = new Material(Shader.Find("Hidden/Universal Render Pipeline/Editor/Shadows Midtones Highlights Curve"));
+
             using (new EditorGUILayout.HorizontalScope())
             {
                 m_TrackballUIDrawer.OnGUI(m_Shadows.value, m_Shadows.overrideState, EditorGUIUtility.TrTextContent("Shadows"), GetWheelValue);
@@ -62,13 +63,13 @@ namespace UnityEditor.Rendering.Universal
                 float alpha = GUI.enabled ? 1f : 0.4f;
                 var limits = new Vector4(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue, m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);
 
-                m_Material.SetVector("_ShaHiLimits", limits);
-                m_Material.SetVector("_Variants", new Vector4(alpha, Mathf.Max(m_HighlightsEnd.value.floatValue, 1f), 0f, 0f));
+                s_Material.SetVector("_ShaHiLimits", limits);
+                s_Material.SetVector("_Variants", new Vector4(alpha, Mathf.Max(m_HighlightsEnd.value.floatValue, 1f), 0f, 0f));
 
                 CheckCurveRT((int)m_CurveRect.width, (int)m_CurveRect.height);
 
                 var oldRt = RenderTexture.active;
-                Graphics.Blit(null, m_CurveTex, m_Material, EditorGUIUtility.isProSkin ? 0 : 1);
+                Graphics.Blit(null, m_CurveTex, s_Material, EditorGUIUtility.isProSkin ? 0 : 1);
                 RenderTexture.active = oldRt;
 
                 GUI.DrawTexture(m_CurveRect, m_CurveTex);
@@ -85,7 +86,7 @@ namespace UnityEditor.Rendering.Universal
             m_ShadowsEnd.value.floatValue = Mathf.Max(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
 
             EditorGUILayout.Space();
-            
+
             EditorGUILayout.LabelField("Highlight Limits", EditorStyles.miniLabel);
             PropertyField(m_HighlightsStart, EditorGUIUtility.TrTextContent("Start"));
             m_HighlightsStart.value.floatValue = Mathf.Min(m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);
