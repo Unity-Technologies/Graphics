@@ -265,8 +265,23 @@ namespace UnityEngine.Rendering.Universal
             if (m_DeferredLights != null)
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
 
+            // Assign the camera color target early in case it is needed during AddRenderPasses.
+            bool isPreviewCamera = cameraData.isPreviewCamera;
+            var createColorTexture = rendererFeatures.Count != 0 && !isPreviewCamera;
+            if (createColorTexture)
+            {
+                m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+                var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled) activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
+#endif
+                ConfigureCameraColorTarget(activeColorRenderTargetId);
+            }
+
             // Add render passes and gather the input requirements
+            isCameraColorTargetValid = true;
             AddRenderPasses(ref renderingData);
+            isCameraColorTargetValid = false;
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             // Should apply post-processing after rendering this camera?
@@ -278,7 +293,6 @@ namespace UnityEngine.Rendering.Universal
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            bool isPreviewCamera = cameraData.isPreviewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
@@ -298,8 +312,7 @@ namespace UnityEngine.Rendering.Universal
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
             m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
-            bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
-            createColorTexture |= (rendererFeatures.Count != 0);
+            createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
             createColorTexture &= !isPreviewCamera;
 
