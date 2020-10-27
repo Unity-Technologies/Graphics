@@ -51,6 +51,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
 - Fix volument component creation via script.
 - Fixed GC allocs in render graph.
+- Fixed broken ray tracing light cluster full screen debug.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
