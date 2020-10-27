@@ -134,10 +134,11 @@ float2 AxFFakeDDX(real2 x) { return (float2)AXF_RAYTRACING_DEFAULT_GRAD; }
 
 float2 AxFDDXFromCone(float2 scales, RayCone rayCone, float3 geomNormalWS, float3 V)
 {
-    // Simple test for now, no use of normal vs view dir either
-    return scales * rayCone.width * AXF_RAYTRACING_CONE_TO_GRAD_SCALE * rcp( max(dot(geomNormalWS, V), 0.2) );
+    // Very simple for now, try to use normal vs view dir also
+    return scales * rayCone.width * AXF_RAYTRACING_CONE_TO_GRAD_SCALE * rcp( max(abs(dot(geomNormalWS, V)), 0.7) );
     // rayCone is in worldspace unit: this is because the spread slope of a pixel is built from the FOV divided by camera resolution,
-    // and the slope scales the WS distance of the ray to get the cone (pixel footprint approximative) width 
+    // and the slope scales the WS distance of the ray to get the cone (pixel footprint approximative) width.
+    // (actually the angle is used directly but tan(small angle) ~= small angle)
 }
 
 float AxFCalculateLODFromCone(float2 dUVdx, float2 dUVdy,float2 scales /* texture property specific compounded with main scales */, float2 texelSize, RayCone rayCone)
