@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with reordering and hiding graphics compositor layers (cases 1283903, 1285282, 1283886).
 - Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed the object space matrices in shader graph for ray tracing.
+- Changed the cornea refraction function to take a view dir in object space.
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
 - Fixed issue with TAA and no motion vectors.
