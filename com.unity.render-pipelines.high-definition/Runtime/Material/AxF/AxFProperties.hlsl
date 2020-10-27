@@ -53,6 +53,22 @@ CBUFFER_START(UnityPerMaterial)
 
     float4  _MappingMask;
 
+    // Texel sizes to help custom LOD calculations:
+    float4  _SVBRDF_DiffuseColorMap_TexelSize;
+    float4  _SVBRDF_SpecularColorMap_TexelSize;
+    float4  _SVBRDF_NormalMap_TexelSize;
+    float4  _SVBRDF_SpecularLobeMap_TexelSize;
+    float4  _SVBRDF_AlphaMap_TexelSize;   // unused
+    float4  _SVBRDF_FresnelMap_TexelSize;
+    float4  _SVBRDF_AnisoRotationMap_TexelSize;
+    float4  _SVBRDF_HeightMap_TexelSize;
+    float4  _SVBRDF_ClearcoatColorMap_TexelSize;
+    float4  _ClearcoatNormalMap_TexelSize;
+    float4  _SVBRDF_ClearcoatIORMap_TexelSize;
+    float4  _CarPaint2_BTFFlakeMap_TexelSize;
+
+    float   _RayTracingTexFilteringScale;
+
     // Scale/Offsets:
     float4  _Material_SO; // Main scale, TODO: scale - but not offset - could be moved to vertex shader and applied to uv0
 
