@@ -39,7 +39,14 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
             if (s_Material == null)
-                s_Material = new Material(Shader.Find("Hidden/Universal Render Pipeline/Editor/Shadows Midtones Highlights Curve"));
+            {
+                Shader shader = Shader.Find("Hidden/Universal Render Pipeline/Editor/Shadows Midtones Highlights Curve");
+                if (shader == null)
+                {
+                    return;
+                }
+                s_Material = new Material(shader);
+            }
 
             using (new EditorGUILayout.HorizontalScope())
             {

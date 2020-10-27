@@ -15,14 +15,21 @@ namespace UnityEditor.Rendering.Universal
         bool m_ResetState;
         Vector2 m_CursorPos;
 
-        static TrackballUIDrawer()
-        {
-        }
-
         public void OnGUI(SerializedProperty property, SerializedProperty overrideState, GUIContent title, Func<Vector4, Vector3> computeFunc)
         {
             if (s_Material == null)
-                s_Material = new Material(Shader.Find("Hidden/Universal Render Pipeline/Editor/Trackball")) { hideFlags = HideFlags.HideAndDontSave };
+            {
+                Shader shader = Shader.Find("Hidden/Universal Render Pipeline/Editor/Trackball");
+                if (shader == null)
+                {
+                    return;
+                }
+                
+                s_Material = new Material(shader)
+                {
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
 
             if (property.propertyType != SerializedPropertyType.Vector4)
             {
