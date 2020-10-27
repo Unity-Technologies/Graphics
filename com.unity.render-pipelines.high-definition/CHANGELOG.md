@@ -23,6 +23,8 @@ The version number for this package has increased due to a version update of a r
 - Adding an "Include For Ray Tracing" toggle on lights to allow the user to exclude them when ray tracing is enabled in the frame settings of a camera.
 - Added fog volumetric scattering support for path tracing.
 - Added new algorithm for SSR with temporal accumulation
+- Added support for raytracing for AxF material
+- Added area light moment shadows for AxF material
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)

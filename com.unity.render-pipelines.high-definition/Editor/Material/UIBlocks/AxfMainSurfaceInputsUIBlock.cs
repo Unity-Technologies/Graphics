@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 using System.Linq;
 
 // Include material common properties names
@@ -90,7 +91,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             materialEditor.ShaderProperty(m_MaterialTilingOffset, Styles.materialTilingOffsetText);
-            materialEditor.ShaderProperty(m_RayTracingTexFilteringScale, Styles.rayTracingTexFilteringScaleText);
+
+            // We only display the ray tracing option if the asset supports it
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
+            {
+                materialEditor.ShaderProperty(m_RayTracingTexFilteringScale, Styles.rayTracingTexFilteringScaleText);
+            }
         }
     }
 }
