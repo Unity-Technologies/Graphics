@@ -743,10 +743,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.Switch*/ ); // Switch isn't supported
         }
 
-        internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
+        internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)
         {
-            unsupportedGraphicDevice = GraphicsDeviceType.Null;
-
             foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
             {
                 if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
@@ -785,7 +783,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // if the build target does not match the editor OS, then we have to check using the graphic api list
             bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget) && (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget));
 
-            if (autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, out unsupportedGraphicDevice)
+            if (autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
                 && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
                 && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
                 return true;
@@ -1108,7 +1106,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return size;
         }
 
-        internal static void DisplayUnsupportedMessage(string msg)
+        internal static void DisplayMessageNotification(string msg)
         {
             Debug.LogError(msg);
 
@@ -1118,7 +1116,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        internal static void DisplayUnsupportedAPIMessage(string graphicAPI)
+        internal static string GetUnsupportedAPIMessage(string graphicAPI)
         {
             // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
 #if UNITY_EDITOR
@@ -1128,18 +1126,20 @@ namespace UnityEngine.Rendering.HighDefinition
             string currentPlatform = SystemInfo.operatingSystem;
 #endif
 
-            string msg = "Platform " + currentPlatform + " with graphic API " + graphicAPI + " is not supported with High Definition Render Pipeline, please change the platform/device to a compatible one\n or remove incompatible graphics APIs from the graphics API list in Project Settings -> Player, no rendering will occur.";
+            string msg = "Platform " + currentPlatform + " with graphic API " + graphicAPI + " is not supported with HDRP";
 
             // Display more information to the users when it should have use Metal instead of OpenGL
             if (graphicAPI.StartsWith("OpenGL"))
             {
                 if (SystemInfo.operatingSystem.StartsWith("Mac"))
-                    msg += " Use Metal graphic API instead.";
+                    msg += ", use the Metal graphic API instead";
                 else if (SystemInfo.operatingSystem.StartsWith("Windows"))
-                    msg += " Use Vulkan graphic API instead.";
+                    msg += ", use the Vulkan graphic API instead";
             }
 
-            DisplayUnsupportedMessage(msg);
+            msg += ".\nPlease change the platform/device to a compatible one or remove incompatible graphics APIs in Project Settings > Player > Other Settings.";
+
+            return msg;
         }
 
         internal static void ReleaseComponentSingletons()

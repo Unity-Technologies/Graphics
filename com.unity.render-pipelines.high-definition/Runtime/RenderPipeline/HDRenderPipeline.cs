@@ -929,10 +929,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool CheckAPIValidity()
         {
-            GraphicsDeviceType unsupportedDeviceType;
-            if (!IsSupportedPlatformAndDevice(out unsupportedDeviceType))
+            if (!IsSupportedPlatformAndDevice(out GraphicsDeviceType deviceType))
             {
-                HDUtils.DisplayUnsupportedAPIMessage(unsupportedDeviceType.ToString());
+                string msg = HDUtils.GetUnsupportedAPIMessage(deviceType.ToString());
+                HDUtils.DisplayMessageNotification(msg);
 
                 return false;
             }

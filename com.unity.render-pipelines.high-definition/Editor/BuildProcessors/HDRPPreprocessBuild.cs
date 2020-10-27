@@ -53,13 +53,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdPipelineAsset == null)
                 return;
 
-            // If platform is supported all good
-            GraphicsDeviceType  unsupportedGraphicDevice;
-            if (!HDUtils.IsSupportedBuildTargetAndDevice(report.summary.platform, out unsupportedGraphicDevice))
-                return ;
-
-            unsupportedGraphicDevice = (unsupportedGraphicDevice == GraphicsDeviceType.Null) ? SystemInfo.graphicsDeviceType : unsupportedGraphicDevice;
-            string msg = "The platform " + report.summary.platform.ToString() + " with the graphic API " +  unsupportedGraphicDevice + " is not supported with High Definition Render Pipeline";
+            // If platform is not supported, throw an exception to stop the build
+            if (!HDUtils.IsSupportedBuildTargetAndDevice(report.summary.platform, out GraphicsDeviceType deviceType))
+                throw new BuildFailedException(HDUtils.GetUnsupportedAPIMessage(deviceType.ToString()));
 
             // Update all quality levels with the right max lod so that meshes can be stripped.
             // We don't take lod bias into account because it can be overridden per camera.
