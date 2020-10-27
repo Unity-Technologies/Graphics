@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
 - Fix volument component creation via script.
 - Fixed GC allocs in render graph.
+- Fixed scene picking passes.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
