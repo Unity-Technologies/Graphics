@@ -293,7 +293,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 in ShadowResult             shadowResult,
                                                 in BuildGPULightListOutput  lightLists)
         {
-            if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
+            if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred ||
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return new LightingOutput();
 
             using (var builder = renderGraph.AddRenderPass<DeferredLightingPassData>("Deferred Lighting", out var passData))
