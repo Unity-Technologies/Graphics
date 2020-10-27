@@ -1017,14 +1017,18 @@ namespace UnityEngine.Rendering.Universal
                 if (currLight == null)
                     break;
 
-                if (currLight == sunLight)
-                    return i;
-
-                // In case no shadow light is present we will return the brightest directional light
-                if (currVisibleLight.lightType == LightType.Directional && currLight.intensity > brightestLightIntensity)
+                if (currVisibleLight.lightType == LightType.Directional)
                 {
-                    brightestLightIntensity = currLight.intensity;
-                    brightestDirectionalLightIndex = i;
+                    // Sun source needs be a directional light
+                    if (currLight == sunLight)
+                        return i;
+
+                    // In case no sun light is present we will return the brightest directional light
+                    if (currLight.intensity > brightestLightIntensity)
+                    {
+                        brightestLightIntensity = currLight.intensity;
+                        brightestDirectionalLightIndex = i;
+                    }
                 }
             }
 
