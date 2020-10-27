@@ -267,6 +267,7 @@ namespace UnityEngine.Rendering.Universal
         /// to a render texture in non OpenGL platforms. If you are doing a custom Blit pass to copy camera textures
         /// (_CameraColorTexture, _CameraDepthAttachment) you need to check this flag to know if you should flip the
         /// matrix when rendering with for cmd.Draw* and reading from camera textures.
+        /// <returns> True if the camera device projection matrix is flipped. </returns>
         /// </summary>
         public bool IsCameraProjectionMatrixFlipped()
         {
@@ -310,6 +311,9 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool postProcessEnabled;
 
+        /// <summary>
+        /// Provides set actions to the renderer to be triggered at the end of the render loop for camera capture.
+        /// </summary>
         public IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> captureActions;
 
         /// <summary>
