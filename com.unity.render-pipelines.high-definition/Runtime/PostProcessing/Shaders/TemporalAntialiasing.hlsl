@@ -702,12 +702,14 @@ CTYPE GetClippedHistory(CTYPE filteredColor, CTYPE history, CTYPE minimum, CTYPE
 CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStrength)
 {
     CTYPE linearC = color * PerceptualInvWeight(color);
-    CTYPE linearAvg = samples.avgNeighbour * PerceptualInvWeight(samples.avgNeighbour);
-    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
 
 #if YCOCG
+    float linearAvgLuma = samples.avgNeighbour.x * PerceptualInvWeight(samples.avgNeighbour);
+    linearC.x = linearC.x + (linearC.x - linearAvgLuma) * sharpenStrength * 3;
     linearC.x = clamp(linearC.x, 0, CLAMP_MAX);
 #else
+    CTYPE linearAvg = samples.avgNeighbour * PerceptualInvWeight(samples.avgNeighbour);
+    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
     linearC = clamp(linearC, 0, CLAMP_MAX);
 #endif
     return linearC * PerceptualWeight(linearC);
