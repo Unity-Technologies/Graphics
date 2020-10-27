@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SubsurfaceScattering,
         SsrTracing,
         SsrReprojection,
+        SsrAccumulate,
         PrepareForTransparentSsr,
 
         // SSGI

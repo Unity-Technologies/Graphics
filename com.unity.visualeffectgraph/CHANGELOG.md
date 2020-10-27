@@ -16,6 +16,7 @@ The version number for this package has increased due to a version update of a r
 - New operator : Sample Signed distance field
 - New Position on Signed Distance Field block
 - Added command to delete unuser parameters.
+- Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
 
 ## Fixed
 - "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
@@ -41,6 +42,10 @@ The version number for this package has increased due to a version update of a r
 - Property Binder : HierarchyRoot null reference exception while using Hierarchy to Attribute Map. [Case 1274788](https://issuetracker.unity3d.com/product/unity/issues/guid/1274788/)
 - Property Binder : Properties window isn't always up to date. [Case 1248711](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
 - Property Binder : Avoid Warning while building on Mobile "Presence of such handlers might impact performance on handheld devices." when building for Android" [Case 1279471](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Fixed [case 1283315](https://issuetracker.unity3d.com/product/unity/issues/guid/1283315/)
+- Addressing for mirror and clamp modes in sequential operators and blocks
+- Incorrect volume spawning for Sphere & Circle with thickness absolute
+- Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
 
 ## [10.1.0] - 2020-10-12
 ### Added

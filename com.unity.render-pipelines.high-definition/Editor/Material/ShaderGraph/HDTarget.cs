@@ -884,6 +884,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kRaytracingIntersectionGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl";
         public const string kRaytracingIntersectionSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingIntersectionSubSurface.hlsl";
         public const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
+        public const string kLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitPathTracing.hlsl";
         public const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         public const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
         public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
@@ -924,6 +925,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassPlaceholder = "Pass Include Placeholder, replace me !";
         public const string kPostDecalsPlaceholder = "After Decal Include Placeholder, replace me !";
         public const string kRaytracingPlaceholder = "Raytracing Include Placeholder, replace me !";
+        public const string kPathtracingPlaceholder = "Pathtracing Include Placeholder, replace me !";
 
         // Public Postgraph Pass
         public const string kPassLightTransport = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl";

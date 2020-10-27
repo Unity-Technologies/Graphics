@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class HDScreenSpaceReflectionEditor : VolumeComponentWithQualityEditor
     {
         SerializedDataParameter m_Enable;
+        SerializedDataParameter m_UsedAlgorithm;
         SerializedDataParameter m_RayTracing;
 
         // Shared data
@@ -20,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_ScreenFadeDistance;
         SerializedDataParameter m_RayMaxIterations;
         SerializedDataParameter m_DepthBufferThickness;
+        SerializedDataParameter m_AccumulationFactor;
 
         // Ray Tracing
         SerializedDataParameter m_LayerMask;
@@ -41,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var o = new PropertyFetcher<ScreenSpaceReflection>(serializedObject);
             m_Enable                        = Unpack(o.Find(x => x.enabled));
+            m_UsedAlgorithm                 = Unpack(o.Find(x => x.usedAlgorithm));
             m_RayTracing                    = Unpack(o.Find(x => x.rayTracing));
 
             // Shared data
@@ -52,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DepthBufferThickness          = Unpack(o.Find(x => x.depthBufferThickness));
             m_RayMaxIterations              = Unpack(o.Find(x => x.rayMaxIterations));
             m_ScreenFadeDistance            = Unpack(o.Find(x => x.screenFadeDistance));
+            m_AccumulationFactor            = Unpack(o.Find(x => x.accumulationFactor));
 
             // Generic ray tracing
             m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
@@ -72,12 +76,14 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
         }
 
+        static public readonly GUIContent k_Algo = EditorGUIUtility.TrTextContent("Algorithm", "The screen space reflection algorithm used.");
         static public readonly GUIContent k_RayTracingText = EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections.");
         static public readonly GUIContent k_ReflectSkyText = EditorGUIUtility.TrTextContent("Reflect Sky", "When enabled, SSR handles sky reflection.");
         static public readonly GUIContent k_LayerMaskText = EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for screen space reflection.");
         static public readonly GUIContent k_MinimumSmoothnessText = EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.");
         static public readonly GUIContent k_SmoothnessFadeStartText = EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start].");
         static public readonly GUIContent k_ScreenFaceDistanceText = EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen.");
+        static public readonly GUIContent k_AccumulationFactorText = EditorGUIUtility.TrTextContent("Accumulation Factor", "Controls Controls the amount of accumulation (0 no accumulation, 1 just accumulate).");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind.");
         static public readonly GUIContent k_RayMaxIterationsText = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.");
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of reflection rays. The higher this value is, the more expensive ray traced reflections are.");
@@ -105,7 +111,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
             }
         }
-
 
         void RayTracingPerformanceModeGUI()
         {
@@ -191,12 +196,16 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
+                PropertyField(m_UsedAlgorithm, k_Algo);
+
                 // Shared Data
                 PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
                 PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
                 PropertyField(m_ReflectSky, k_ReflectSkyText);
                 m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
-                PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
+
+                if (m_UsedAlgorithm.value.intValue != (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                    PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
                 PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
 
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
@@ -209,6 +218,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_RayMaxIterations, k_RayMaxIterationsText);
                     m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
                 }
+                if (m_UsedAlgorithm.value.intValue == (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                    PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
             }
         }
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
