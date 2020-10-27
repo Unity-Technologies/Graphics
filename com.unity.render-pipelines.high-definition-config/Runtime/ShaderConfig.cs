@@ -56,6 +56,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumesBilateralFilteringMode = ProbeVolumesBilateralFilteringModes.Validity,
         ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL2,
 
+        PrepasslessDecals = 1,
+
         AreaLights = 1,
 
         BarnDoor = 0
@@ -76,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;
         public static ProbeVolumesBilateralFilteringModes s_ProbeVolumesBilateralFilteringMode = (ProbeVolumesBilateralFilteringModes)ShaderOptions.ProbeVolumesBilateralFilteringMode;
         public static ProbeVolumesEncodingModes s_ProbeVolumesEncodingMode = (ProbeVolumesEncodingModes)ShaderOptions.ProbeVolumesEncodingMode;
+        public static int s_PrepasslessDecals = (int)ShaderOptions.PrepasslessDecals;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
     }

@@ -168,6 +168,92 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
     }
 }
 
+#if !defined(_SURFACE_TYPE_TRANSPARENT) || !defined(HAS_LIGHTLOOP)
+
+    void Foo( PositionInputs posInput, float3 vtxNormal, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
+                        inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout float alpha)
+    {
+        float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
+        float3 positionDS = mul(worldToDecal, float4(posInput.positionWS, 1.0)).xyz;
+        positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5, 0.5);  // decal clip space
+        if ((all(positionDS.xyz > 0.0) && all(1.0 - positionDS.xyz > 0.0)))
+        {
+            DBuffer0.xyzw += float4(1.0, 0.0, 0.0, 1.0);
+        }
+    }
+
+    uint xGenerateLogBaseBufferIndex(uint2 tileIndex, uint numTilesX, uint numTilesY, uint eyeIndex)
+    {
+        uint eyeOffset = eyeIndex * numTilesX * numTilesY;
+        return (eyeOffset + (tileIndex.y * numTilesX) + tileIndex.x);
+    }
+
+    float xLogBase(float x, float b)
+    {
+        return log2(x) / log2(b);
+    }
+
+    int xSnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
+    {
+    #if USE_LEFT_HAND_CAMERA_SPACE
+        float z = z_in;
+    #else
+        float z = -z_in;
+    #endif
+
+        const int C = 1 << g_iLog2NumClusters;
+        const float rangeFittedDistance = max(0, z - g_fNearPlane) / (g_fFarPlane - g_fNearPlane);
+        return (int)clamp( xLogBase( lerp(1.0, PositivePow(suggestedBase, (float) C), rangeFittedDistance), suggestedBase), 0.0, (float)(C - 1));
+    }
+
+    uint xGetLightClusterIndex(uint2 tileIndex, float linearDepth)
+    {
+        float logBase = g_fClustBase;
+        if (g_isLogBaseBufferEnabled)
+        {
+            const uint logBaseIndex = xGenerateLogBaseBufferIndex(tileIndex, _NumTileClusteredX, _NumTileClusteredY, unity_StereoEyeIndex);
+            logBase = g_logBaseBuffer[logBaseIndex];
+        }
+
+        return xSnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
+    }
+
+    uint xGenerateLayeredOffsetBufferIndex(uint lightCategory, uint2 tileIndex, uint clusterIndex, uint numTilesX, uint numTilesY, int numClusters, uint eyeIndex)
+    {
+        #define LIGHTCATEGORY_COUNT (6)
+        // Each eye is split into category, cluster, x, y
+
+        uint eyeOffset = eyeIndex * LIGHTCATEGORY_COUNT * numClusters * numTilesX * numTilesY;
+        int lightOffset = ((lightCategory * numClusters + clusterIndex) * numTilesY + tileIndex.y) * numTilesX + tileIndex.x;
+
+        return (eyeOffset + lightOffset);
+    }
+
+    void xGetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+    {
+        uint2 tileIndex    = posInput.tileCoord;
+        uint  clusterIndex = xGetLightClusterIndex(tileIndex, posInput.linearDepth);
+
+        int nrClusters = (1 << g_iLog2NumClusters);
+
+        const int idx = xGenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
+
+        uint dataPair = g_vLayeredOffsetsBuffer[idx];
+        start = dataPair & 0x7ffffff;
+        lightCount = (dataPair >> 27) & 31;
+    }
+
+    uint xFetchIndex(uint lightStart, uint lightOffset)
+    {
+        return g_vLightListGlobal[lightStart + lightOffset];
+    }
+
+    DecalData xFetchDecal(uint index)
+    {
+        return _DecalDatas[index];
+    }
+#endif
+
 #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP) // forward transparent using clustered decals
 DecalData FetchDecal(uint start, uint i)
 {
@@ -253,6 +339,50 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     }
 #else // Opaque - used DBuffer
     FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
+#ifndef DECALS_4RT
+    float2 DBuffer3 = float2(1.0, 1.0);
+#endif
+    DBuffer0.xyz = float3(0.0, 0.0, 0.0);
+
+    #define LIGHTCATEGORY_DECAL (4)
+    uint decalCount, decalStart;
+    /* TODO: Get clustering working. It doesn't work right now. Nothing happens unless we're inside a decal's volume, in which
+       case we will see that decal's influence with some flickering. */
+// if Clustering
+    // xGetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
+    // uint decalStartLane0;
+    // bool fastPath = IsFastPath(decalStart, decalStartLane0);
+// else
+    decalCount = _DecalCount;
+    decalStart = 0;
+    bool fastPath = false;
+// endif
+    float3 positionRWS = posInput.positionWS;
+    // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
+    float3 positionRWSDdx = ddx(positionRWS);
+    float3 positionRWSDdy = ddy(positionRWS);
+    uint decalLayerMask = GetMeshRenderingDecalLayer();
+    uint v_decalListOffset = 0;
+    uint v_decalIdx = decalStart;
+    while (v_decalListOffset < decalCount)
+    {
+// if Clustering
+        // v_decalIdx = xFetchIndex(decalStart, v_decalListOffset);
+// else
+        v_decalIdx = decalStart + v_decalListOffset;
+// endif
+        uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
+        if (s_decalIdx == -1)
+            break;
+        DecalData s_decalData = xFetchDecal(s_decalIdx);
+        bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
+        if (s_decalIdx >= v_decalIdx)
+        {
+            v_decalListOffset++;
+            if (!isRejected)
+                Foo(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
+        }
+    }
 #endif
 
     DecalSurfaceData decalSurfaceData;
