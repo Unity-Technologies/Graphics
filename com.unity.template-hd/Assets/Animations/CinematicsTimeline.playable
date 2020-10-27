@@ -289,6 +289,7 @@ MonoBehaviour:
       m_Root: 5
       m_Leaf: C:/Users/pydon/Desktop/Image Sequence
       m_ForceAssetFolder: 0
+      m_AbsolutePath: 
     m_FileName: image_<Frame>
   outputFormat: 1
   captureAlpha: 0
@@ -782,6 +783,7 @@ MonoBehaviour:
       m_Root: 0
       m_Leaf: Recordings
       m_ForceAssetFolder: 0
+      m_AbsolutePath: 
     m_FileName: movie
   outputFormat: 0
   videoBitRateMode: 2
@@ -894,6 +896,7 @@ MonoBehaviour:
       m_Root: 5
       m_Leaf: C:/Users/pydon/Desktop/Image Sequence
       m_ForceAssetFolder: 0
+      m_AbsolutePath: 
     m_FileName: image_<Frame>
   outputFormat: 1
   captureAlpha: 0
@@ -3281,6 +3284,7 @@ MonoBehaviour:
       m_Root: 5
       m_Leaf: C:/Users/pydon/Videos/HDRP Template
       m_ForceAssetFolder: 0
+      m_AbsolutePath: 
     m_FileName: movie
   outputFormat: 0
   videoBitRateMode: 2
