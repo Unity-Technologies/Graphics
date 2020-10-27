@@ -393,7 +393,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_SizeValues[2], k_ProjectionDepthContent);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    m_SizeValues[2].floatValue = Mathf.Max(0, size[2]);
+                    m_SizeValues[2].floatValue = Mathf.Max(0, m_SizeValues[2].floatValue);
                     m_OffsetZ.floatValue = m_SizeValues[2].floatValue * 0.5f;
                 }
 
