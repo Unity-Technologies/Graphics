@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-### Changed
-- Changed TerrainLit blending to disable density blend when more than four Terrain Layers are in use.
+### Fixed
+- Fixed TerrainLit blending to disable density blend when more than four Terrain Layers are in use. [case 1283124](https://issuetracker.unity3d.com/issues/terrain-lit-opacity-as-density-option-causes-alphad-areas-on-the-5th-layer-or-greater-to-appear-with-artifacts)
 
 ## [10.2.0] - 2020-10-19
 
