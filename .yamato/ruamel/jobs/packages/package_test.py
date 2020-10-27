@@ -36,7 +36,7 @@ class Package_TestJob():
         
         if package.get('hascodependencies', None) is not None:
             commands.append(platform["copycmd"])
-        commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]}')
+        commands.append(f'upm-ci package test -u {platform["editorpath"]} --package-path {package["packagename"]} --type vetting-tests')
 
 
         # construct job
