@@ -176,6 +176,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void OnAfterMultiDeserialize(string json)
         {
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
         }
 

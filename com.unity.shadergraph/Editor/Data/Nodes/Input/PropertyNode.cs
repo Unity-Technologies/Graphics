@@ -66,10 +66,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (property is MultiJsonInternal.UnknownShaderPropertyType uspt)
             {
-                var slot = new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0);
-                slot.hidden = true;
-                AddSlot(slot);
-                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                // keep existing slots, don't modify them
                 return;
             }
             switch(property.concreteShaderValueType)

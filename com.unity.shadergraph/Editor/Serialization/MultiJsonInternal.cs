@@ -6,6 +6,7 @@ using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
@@ -91,13 +92,21 @@ namespace UnityEditor.ShaderGraph.Serialization
                     castedObject = ustt;
                     return ustt.CastTo<T>();
                 }
-                else if (t.IsSubclassOf(typeof(ShaderInput)))
+                else if (t == typeof(ShaderInput) || t.IsSubclassOf(typeof(ShaderInput)))
                 {
                     UnknownShaderPropertyType usp = new UnknownShaderPropertyType(typeInfo, jsonData);
                     valueMap[objectId] = usp;
                     s_ObjectIdField.SetValue(usp, objectId);
                     castedObject = usp;
                     return usp.CastTo<T>();
+                }
+                else if (t == typeof(MaterialSlot) || t.IsSubclassOf(typeof(MaterialSlot)))
+                {
+                    UnknownMaterialSlotType umst = new UnknownMaterialSlotType(typeInfo, jsonData);
+                    valueMap[objectId] = umst;
+                    s_ObjectIdField.SetValue(umst, objectId);
+                    castedObject = umst;
+                    return umst.CastTo<T>();
                 }
                 else
                 {
@@ -276,6 +285,68 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
 
             public override string GetPropertyTypeString() { return ""; }
+        }
+
+        internal class UnknownMaterialSlotType : MaterialSlot
+        {
+            // used to deserialize some data out of an unknown MaterialSlot
+            class SerializerHelper
+            {
+                [SerializeField]
+                public string m_DisplayName;
+
+                [SerializeField]
+                public SlotType m_SlotType = SlotType.Input;
+
+                [SerializeField]
+                public bool m_Hidden;
+
+                [SerializeField]
+                public string m_ShaderOutputName;
+
+                [SerializeField]
+                public ShaderStageCapability m_StageCapability;
+            }
+
+            public string jsonData;
+
+            public UnknownMaterialSlotType(string displayName, string jsonData) : base()
+            {
+                // copy some minimal information to try to keep the UI as similar as possible
+                var helper = new SerializerHelper();
+                JsonUtility.FromJsonOverwrite(jsonData, helper);
+                this.displayName = helper.m_DisplayName;
+                this.hidden = helper.m_Hidden;
+                this.stageCapability = helper.m_StageCapability;
+                this.SetInternalData(helper.m_SlotType, helper.m_ShaderOutputName);
+
+                // save the original json for saving
+                this.jsonData = jsonData;
+            }
+
+            public override void Deserailize(string typeInfo, string jsonData)
+            {
+                this.jsonData = jsonData;
+                base.Deserailize(typeInfo, jsonData);
+            }
+
+            public override string Serialize()
+            {
+                return jsonData.Trim();
+            }
+
+            public override bool isDefaultValue => true;
+
+            public override SlotValueType valueType => SlotValueType.Vector1;
+
+            public override ConcreteSlotValueType concreteValueType => ConcreteSlotValueType.Vector1;
+
+            public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode) {}
+
+            public override void CopyValuesFrom(MaterialSlot foundSlot)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [NeverAllowedByTarget]
