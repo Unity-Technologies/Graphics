@@ -422,6 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle result;
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+
             bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
             if (usesRaytracedReflections)
             {
@@ -445,10 +446,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     hdCamera.AllocateScreenSpaceAccumulationHistoryBuffer(1.0f);
 
+                    bool usePBRAlgo = !transparent && settings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
-
-                    var ssrAccum = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation));
-                    var ssrAccumPrev = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation));
 
                     passData.parameters = PrepareSSRParameters(hdCamera, m_DepthBufferMipChainInfo, transparent);
                     passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
@@ -475,12 +474,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16_UNorm, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = transparent ? "SSR_Hit_Point_Texture_Trans" : "SSR_Hit_Point_Texture" });
 
-                    if (ssrVolumeSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
+                    if (usePBRAlgo)
                     {
+                        TextureHandle ssrAccum = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation));
+                        TextureHandle ssrAccumPrev = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ScreenSpaceReflectionAccumulation)); ;
                         passData.ssrAccum = builder.WriteTexture(ssrAccum);
                         passData.ssrAccumPrev = builder.WriteTexture(ssrAccumPrev);
                         passData.lightingTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" });
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.clear, enableRandomWrite = true, name = "SSR_Lighting_Texture" });
                     }
                     else
                     {
@@ -491,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (RenderSSRPassData data, RenderGraphContext context) =>
                     {
-                        RenderSSR(data.parameters,
+                        RenderSSR(  data.parameters,
                                     data.hdCamera,
                                     data.blueNoise,
                                     data.depthBuffer,
@@ -509,15 +510,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                     context.cmd, context.renderContext);
                     });
 
-                    if (ssrVolumeSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
-                        result = passData.ssrAccum;
-                    else
-                        result = passData.lightingTexture;
-
-                    if (!transparent)
+                    if (usePBRAlgo)
                     {
-                        PushFullScreenDebugTexture(renderGraph, ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionsAccum);
-                        PushFullScreenDebugTexture(renderGraph, ssrAccumPrev, FullScreenDebugMode.ScreenSpaceReflectionsPrev);
+                        result = passData.ssrAccum;
+
+                        PushFullScreenDebugTexture(renderGraph, passData.ssrAccum, FullScreenDebugMode.ScreenSpaceReflectionsAccum);
+                        PushFullScreenDebugTexture(renderGraph, passData.ssrAccumPrev, FullScreenDebugMode.ScreenSpaceReflectionsPrev);
+                    }
+                    else
+                    {
+                        result = passData.lightingTexture;
                     }
                 }
 
@@ -529,6 +531,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             PushFullScreenDebugTexture(renderGraph, result, transparent ? FullScreenDebugMode.TransparentScreenSpaceReflections : FullScreenDebugMode.ScreenSpaceReflections);
+
             return result;
         }
 

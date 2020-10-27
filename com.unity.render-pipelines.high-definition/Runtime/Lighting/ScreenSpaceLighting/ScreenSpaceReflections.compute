@@ -651,6 +651,8 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         // Off-Screen.
         return;
     }
+    float  opacity  = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
+                    * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
 #ifdef SSR_APPROX
     // TODO: filtering is quite awful. Needs to be non-Gaussian, bilateral and anisotropic.
@@ -658,8 +660,6 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
 
     // Note that the color pyramid uses it's own viewport scale, since it lives on the camera.
     float3 color    = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, prevFrameUV, mipLevel).rgb;
-    float  opacity  = EdgeOfScreenFade(prevFrameNDC, _SsrEdgeFadeRcpLength)
-                    * PerceptualRoughnessFade(perceptualRoughness, _SsrRoughnessFadeRcpLength, _SsrRoughnessFadeEndTimesRcpLength);
 
     // Disable SSR for negative, infinite and NaN history values.
     uint3 intCol   = asuint(color);
@@ -715,9 +715,10 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
         bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
 
         outputs.rgb = isPosFin ? outputs.rgb : 0;
+        opacity     = isPosFin ? opacity : 0;
         wAll = isPosFin ? wAll : 0;
 
-        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = outputs / wAll;
+        _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS0)] = opacity * outputs / wAll;
     }
 #endif
 }
