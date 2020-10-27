@@ -3,7 +3,7 @@
     [
         {
              "ValidationTest": "API Validation",
-			 "ExceptionMessage": "ConstantValueChanged (System.String UnityEngine.Rendering.DocumentationInfo::version -> System.String UnityEngine.Rendering.DocumentationInfo::version)",
+			 "ExceptionMessage": "Breaking changes require a new major version.",
              "PackageVersion": "10.2.0"
         }
     ]
