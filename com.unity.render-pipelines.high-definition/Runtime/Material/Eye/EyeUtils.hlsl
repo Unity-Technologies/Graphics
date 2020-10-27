@@ -47,13 +47,12 @@ void CirclePupilAnimation(float2 irusUV, float pupilRadius, float pupilAperture,
     animatedIrisUV = (animatedIrisUV * 0.5 + float2(0.5, 0.5));
 }
 
-void CorneaRefraction(float3 positionOS, float3 corneaNormalOS, float corneaIOR, float irisPlaneOffset, out float3 refractedPositionOS)
+void CorneaRefraction(float3 positionOS, float3 viewDirectionOS, float3 corneaNormalOS, float corneaIOR, float irisPlaneOffset, out float3 refractedPositionOS)
 {
     // Compute the refracted 
-    float3 viewPositionOS = TransformWorldToObject(float3(0.0, 0.0, 0.0));
-    float3 viewDirectionOS = normalize(positionOS - viewPositionOS);
     float eta = 1.0 / (corneaIOR);
     corneaNormalOS = normalize(corneaNormalOS);
+    viewDirectionOS = -normalize(viewDirectionOS);
     float3 refractedViewDirectionOS = refract(viewDirectionOS, corneaNormalOS, eta);
 
     // Find the distance to intersection point

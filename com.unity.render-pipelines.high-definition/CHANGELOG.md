@@ -31,6 +31,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed issues with reordering and hiding graphics compositor layers (cases 1283903, 1285282, 1283886).
 - Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed the object space matrices in shader graph for ray tracing.
+- Changed the cornea refraction function to take a view dir in object space.
 - Fixed upside down XR occlusion mesh.
 - Fixed precision issue with the atmospheric fog.
 - Fixed issue with TAA and no motion vectors.
