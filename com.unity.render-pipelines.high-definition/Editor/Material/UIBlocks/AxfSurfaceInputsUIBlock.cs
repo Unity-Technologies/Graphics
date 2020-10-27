@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    thetaFI_sliceLUTMapText = new GUIContent("ThetaFI Slice LUT", "First angular dimension indirection for flake slice number");
 
             public static GUIContent    CarPaintFixedColorThetaHForIndirectLightText = new GUIContent("BRDFColor ThetaH For Indirect Light", "Select a fixed angle between normal and half-vector for indirect lighting, when this angle is unknown, to be used for the BRDF color table: "
-                                                                                                                                   + "A value between 0 and 1 selects an angle from 0 to PI/2. "
+                                                                                                                                   + "The value is an angle from 0 to PI/2."
                                                                                                                                    + "eg this will select a hue column in the BRDF color table for indirect reflection probes and raytraced indirect light");
 
             public static GUIContent    CarPaintFixedFlakesThetaHForIndirectLightText = new GUIContent("Flakes ThetaH For Indirect Light", "Select a fixed angle between normal and half-vector for indirect lighting, when this angle is unknown, to be used for the flakes: "
