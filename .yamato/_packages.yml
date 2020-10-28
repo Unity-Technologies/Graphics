@@ -383,7 +383,7 @@ test_core_windows_2020.1:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core
     artifacts:
         logs:
             paths:
@@ -448,7 +448,7 @@ test_lwrp_windows_2020.1:
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
             paths:
@@ -522,7 +522,7 @@ test_shadergraph_windows_2020.1:
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
             paths:
@@ -595,7 +595,7 @@ test_hdrp_windows_2020.1:
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
             paths:
@@ -672,7 +672,7 @@ test_universal_windows_2020.1:
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
             paths:
@@ -745,7 +745,7 @@ test_vfx_windows_2020.1:
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
             paths:
@@ -817,7 +817,7 @@ test_config_windows_2020.1:
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
             paths:
@@ -885,7 +885,7 @@ test_core_macos_2020.1:
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/core/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core
     artifacts:
         logs:
             paths:
@@ -950,7 +950,7 @@ test_lwrp_macos_2020.1:
       -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
             paths:
@@ -1024,7 +1024,7 @@ test_shadergraph_macos_2020.1:
       -  cp packages_temp/shadergraph/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph
     artifacts:
         logs:
             paths:
@@ -1097,7 +1097,7 @@ test_hdrp_macos_2020.1:
       -  cp packages_temp/hdrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
             paths:
@@ -1174,7 +1174,7 @@ test_universal_macos_2020.1:
       -  cp packages_temp/universal/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
             paths:
@@ -1247,7 +1247,7 @@ test_vfx_macos_2020.1:
       -  cp packages_temp/vfx/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
             paths:
@@ -1319,7 +1319,7 @@ test_config_macos_2020.1:
       -  cp packages_temp/config/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
             paths:
@@ -1387,7 +1387,7 @@ test_core_windows_fast-2020.1:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core
     artifacts:
         logs:
             paths:
@@ -1452,7 +1452,7 @@ test_lwrp_windows_fast-2020.1:
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
             paths:
@@ -1526,7 +1526,7 @@ test_shadergraph_windows_fast-2020.1:
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
             paths:
@@ -1599,7 +1599,7 @@ test_hdrp_windows_fast-2020.1:
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
             paths:
@@ -1676,7 +1676,7 @@ test_universal_windows_fast-2020.1:
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
             paths:
@@ -1749,7 +1749,7 @@ test_vfx_windows_fast-2020.1:
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
             paths:
@@ -1821,7 +1821,7 @@ test_config_windows_fast-2020.1:
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
             paths:
@@ -1889,7 +1889,7 @@ test_core_macos_fast-2020.1:
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/core/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core
     artifacts:
         logs:
             paths:
@@ -1954,7 +1954,7 @@ test_lwrp_macos_fast-2020.1:
       -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
             paths:
@@ -2028,7 +2028,7 @@ test_shadergraph_macos_fast-2020.1:
       -  cp packages_temp/shadergraph/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph
     artifacts:
         logs:
             paths:
@@ -2101,7 +2101,7 @@ test_hdrp_macos_fast-2020.1:
       -  cp packages_temp/hdrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
             paths:
@@ -2178,7 +2178,7 @@ test_universal_macos_fast-2020.1:
       -  cp packages_temp/universal/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
             paths:
@@ -2251,7 +2251,7 @@ test_vfx_macos_fast-2020.1:
       -  cp packages_temp/vfx/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
             paths:
@@ -2323,7 +2323,7 @@ test_config_macos_fast-2020.1:
       -  cp packages_temp/config/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
             paths:
@@ -2391,7 +2391,7 @@ test_core_windows_CUSTOM-REVISION:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.core
     artifacts:
         logs:
             paths:
@@ -2456,7 +2456,7 @@ test_lwrp_windows_CUSTOM-REVISION:
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
             paths:
@@ -2530,7 +2530,7 @@ test_shadergraph_windows_CUSTOM-REVISION:
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.shadergraph
     artifacts:
         logs:
             paths:
@@ -2603,7 +2603,7 @@ test_hdrp_windows_CUSTOM-REVISION:
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
             paths:
@@ -2680,7 +2680,7 @@ test_universal_windows_CUSTOM-REVISION:
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
             paths:
@@ -2753,7 +2753,7 @@ test_vfx_windows_CUSTOM-REVISION:
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
             paths:
@@ -2825,7 +2825,7 @@ test_config_windows_CUSTOM-REVISION:
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
       -  copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config --type vetting-tests
+      -  upm-ci package test -u .\.Editor --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
             paths:
@@ -2893,7 +2893,7 @@ test_core_macos_CUSTOM-REVISION:
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/core/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.core
     artifacts:
         logs:
             paths:
@@ -2958,7 +2958,7 @@ test_lwrp_macos_CUSTOM-REVISION:
       -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.lightweight
     artifacts:
         logs:
             paths:
@@ -3032,7 +3032,7 @@ test_shadergraph_macos_CUSTOM-REVISION:
       -  cp packages_temp/shadergraph/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.shadergraph
     artifacts:
         logs:
             paths:
@@ -3105,7 +3105,7 @@ test_hdrp_macos_CUSTOM-REVISION:
       -  cp packages_temp/hdrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition
     artifacts:
         logs:
             paths:
@@ -3182,7 +3182,7 @@ test_universal_macos_CUSTOM-REVISION:
       -  cp packages_temp/universal/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.universal
     artifacts:
         logs:
             paths:
@@ -3255,7 +3255,7 @@ test_vfx_macos_CUSTOM-REVISION:
       -  cp packages_temp/vfx/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.visualeffectgraph
     artifacts:
         logs:
             paths:
@@ -3327,7 +3327,7 @@ test_config_macos_CUSTOM-REVISION:
       -  cp packages_temp/config/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
       -  cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config --type vetting-tests
+      -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         logs:
             paths:
