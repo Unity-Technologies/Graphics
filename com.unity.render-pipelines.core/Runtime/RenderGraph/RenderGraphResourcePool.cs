@@ -9,11 +9,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
        protected  Dictionary<int, List<(Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, List<(Type resource, int frameIndex)>>();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-        // Diagnostic only
         // This list allows us to determine if all resources were correctly released in the frame.
+        // This is useful to warn in case of user error or avoid leaks when a render graph execution errors occurs for example.
         List<(int, Type)> m_FrameAllocatedResources = new List<(int, Type)>();
-#endif
 
         protected static int s_CurrentFrameIndex;
 
@@ -62,30 +60,30 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public void RegisterFrameAllocation(int hash, Type value)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (hash != -1)
                 m_FrameAllocatedResources.Add((hash, value));
-#endif
         }
 
         public void UnregisterFrameAllocation(int hash, Type value)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (hash != -1)
                 m_FrameAllocatedResources.Remove((hash, value));
-#endif
         }
 
         public void CheckFrameAllocation(bool onException, int frameIndex)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (m_FrameAllocatedResources.Count != 0 && !onException)
+            // In case of exception we need to release all resources to the pool to avoid leaking.
+            // If it's not an exception then it's a user error so we need to log the problem.
+            if (m_FrameAllocatedResources.Count != 0)
             {
-                string logMessage = $"RenderGraph: Not all resources of type {GetResourceTypeName()} were released. This can be caused by a resources being allocated but never read by any pass.";
+                string logMessage = "";
+                if (!onException)
+                    logMessage = $"RenderGraph: Not all resources of type {GetResourceTypeName()} were released. This can be caused by a resources being allocated but never read by any pass.";
 
                 foreach (var value in m_FrameAllocatedResources)
                 {
-                    logMessage = $"{logMessage}\n\t{GetResourceName(value.Item2)}";
+                    if (!onException)
+                        logMessage = $"{logMessage}\n\t{GetResourceName(value.Item2)}";
                     ReleaseResource(value.Item1, value.Item2, frameIndex);
                 }
 
@@ -94,7 +92,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             // If an error occurred during execution, it's expected that textures are not all released so we clear the tracking list.
             m_FrameAllocatedResources.Clear();
-#endif
         }
 
 
