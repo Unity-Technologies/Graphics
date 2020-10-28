@@ -31,10 +31,8 @@ Shader "Hidden/Light2D-Shape"
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
-
-#ifdef SPRITE_LIGHT
+                // Used as data for Shape Lights : x FallOffIntensity
                 float2 uv           : TEXCOORD0;
-#endif
             };
 
             struct Varyings
@@ -48,13 +46,11 @@ Shader "Hidden/Light2D-Shape"
             };
 
             half    _InverseHDREmulationScale;
-            half4   _LightColor;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
 #else
-            half    _FalloffIntensity;
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
@@ -67,13 +63,13 @@ Shader "Hidden/Light2D-Shape"
 
                 float3 positionOS = attributes.positionOS;
                 o.positionCS = TransformObjectToHClip(positionOS);
-                o.color = _LightColor * _InverseHDREmulationScale;
+                o.color = attributes.color * _InverseHDREmulationScale;
                 o.color.a = attributes.color.a;
 
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;
 #else
-                o.uv = float2(o.color.a, _FalloffIntensity);
+                o.uv = float2(o.color.a, attributes.uv.x);
 #endif
 
                 float4 worldSpacePos;

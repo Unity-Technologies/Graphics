@@ -24,9 +24,8 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
-#ifdef SPRITE_LIGHT
+                // Used as data for Shape Lights : x FallOffIntensity, y : _VolumeOpacity
                 half2  uv           : TEXCOORD0;
-#endif
             };
 
             struct Varyings
@@ -38,15 +37,12 @@ Shader "Hidden/Light2D-Shape-Volumetric"
                 SHADOW_COORDS(TEXCOORD1)
             };
 
-            half4 _LightColor;
-            half  _VolumeOpacity;
             half  _InverseHDREmulationScale;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
 #else
-            uniform half  _FalloffIntensity;
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif
@@ -59,13 +55,13 @@ Shader "Hidden/Light2D-Shape-Volumetric"
 
                 float3 positionOS = attributes.positionOS;
                 o.positionCS = TransformObjectToHClip(positionOS);
-                o.color = _LightColor * _InverseHDREmulationScale;
-                o.color.a = _VolumeOpacity;
+                o.color = attributes.color * _InverseHDREmulationScale;
+                o.color.a = attributes.uv.y;
 
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;
 #else
-                o.uv = float2(attributes.color.a, _FalloffIntensity);
+                o.uv = float2(attributes.color.a, attributes.uv.x);
 #endif
                 TRANSFER_SHADOWS(o)
 

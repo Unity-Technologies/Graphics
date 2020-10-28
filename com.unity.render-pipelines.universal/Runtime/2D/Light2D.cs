@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
-		
+
         private Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
@@ -149,16 +149,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             switch (m_LightType)
             {
                 case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
+                    m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, color, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeOpacity);
                     break;
                 case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, color, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeOpacity);
                     break;
                 case LightType.Sprite:
                     m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, m_LightCookieSprite);
                     break;
                 case LightType.Point:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
+                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, color,1.412135f, 0, 0, 4, falloffIntensity, volumeOpacity);
                     break;
             }
         }
@@ -211,6 +211,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius) ||
                 LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides) ||
                 LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset) ||
+                LightUtility.CheckForChange(m_FalloffIntensity, ref m_PreviousFallOffIntensity) ||
+                LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousVolumeOpacity) ||
+                LightUtility.CheckForChange(m_Color, ref m_PreviousColor) ||
                 LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite))
             {
                 UpdateMesh();
