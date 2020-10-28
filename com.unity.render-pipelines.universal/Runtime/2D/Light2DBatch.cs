@@ -10,7 +10,7 @@ using UnityEngine.U2D;
 namespace UnityEngine.Experimental.Rendering.Universal
 {
 
-    internal struct BatchMesh
+    internal struct ShapeMeshBatch
     {
         internal int hashCode;
         internal int meshCount;
@@ -20,15 +20,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
     internal static class Light2DBatch
     {
-        static Dictionary<BatchMesh, Mesh> s_BatchMeshes = new Dictionary<BatchMesh,Mesh>();
 
-        static List<CombineInstance> s_ActiveBatch = new List<CombineInstance>();
+        static Dictionary<ShapeMeshBatch, Mesh> s_BatchMeshes = new Dictionary<ShapeMeshBatch,Mesh>();
 
-        static BatchMesh s_ActiveBatchHash = new BatchMesh();
+        static List<CombineInstance> s_ActiveBatchMeshInstances = new List<CombineInstance>();
 
-        static List<Mesh> s_FreeMeshes = new List<Mesh>();
+        static HashSet<ShapeMeshBatch> s_ActiveBatchHashes = new HashSet<ShapeMeshBatch>();
 
-        static HashSet<BatchMesh> s_ActiveBatchHashes = new HashSet<BatchMesh>();
+        static List<Mesh> s_MeshPool = new List<Mesh>();
+
+        static ShapeMeshBatch s_ActiveShapeMeshBatch = new ShapeMeshBatch();
 
         static Material s_ActiveMaterial = null;
 
@@ -41,12 +42,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal static void StartBatch(Material mat)
         {
-            s_ActiveBatchHash.hashCode = 0;
-            s_ActiveBatchHash.meshCount = 0;
-            s_ActiveBatchHash.startHash = 0;
-            s_ActiveBatchHash.endHash = 0;
+            s_ActiveShapeMeshBatch.hashCode = 16777619;
+            s_ActiveShapeMeshBatch.meshCount = 0;
+            s_ActiveShapeMeshBatch.startHash = 0;
+            s_ActiveShapeMeshBatch.endHash = 0;
             s_ActiveMaterial = mat;
-            s_ActiveBatch.Clear();
+            s_ActiveBatchMeshInstances.Clear();
         }
 
         internal static void AddMesh(Mesh mesh, Transform transform, int hashCode)
@@ -54,56 +55,61 @@ namespace UnityEngine.Experimental.Rendering.Universal
             CombineInstance ci = new CombineInstance();
             ci.mesh = mesh;
             ci.transform = transform.localToWorldMatrix;
-            s_ActiveBatch.Add(ci);
+            s_ActiveBatchMeshInstances.Add(ci);
 
-            if (s_ActiveBatchHash.startHash == 0)
-                s_ActiveBatchHash.startHash = hashCode;
-            s_ActiveBatchHash.endHash = hashCode;
-            s_ActiveBatchHash.meshCount = s_ActiveBatchHash.meshCount + 1;
-            s_ActiveBatchHash.hashCode = s_ActiveBatchHash.hashCode * 16777619 ^ hashCode;
+            if (s_ActiveShapeMeshBatch.startHash == 0)
+                s_ActiveShapeMeshBatch.startHash = hashCode;
+            s_ActiveShapeMeshBatch.endHash = hashCode;
+            s_ActiveShapeMeshBatch.meshCount = s_ActiveShapeMeshBatch.meshCount + 1;
+            s_ActiveShapeMeshBatch.hashCode = s_ActiveShapeMeshBatch.hashCode * 16777619 ^ hashCode;
         }
 
         internal static Mesh EndBatch(ref bool isBatched, ref Matrix4x4 matrix,  ref Material material)
         {
             material = s_ActiveMaterial;
             s_ActiveMaterial = null;
-            if (s_ActiveBatch.Count == 1)
+            if (s_ActiveBatchMeshInstances.Count == 1)
             {
                 isBatched = false;
-                matrix = s_ActiveBatch[0].transform;
-                return s_ActiveBatch[0].mesh;
+                matrix = s_ActiveBatchMeshInstances[0].transform;
+                return s_ActiveBatchMeshInstances[0].mesh;
             }
 
             isBatched = true;
             Mesh mesh = null;
-            if (!s_BatchMeshes.TryGetValue(s_ActiveBatchHash, out mesh))
+            if (!s_BatchMeshes.TryGetValue(s_ActiveShapeMeshBatch, out mesh))
             {
-                if (s_FreeMeshes.Count > 0)
+                if (s_MeshPool.Count > 0)
                 {
-                    mesh = s_FreeMeshes[s_FreeMeshes.Count - 1];
-                    s_FreeMeshes.RemoveAt(s_FreeMeshes.Count - 1);
+                    mesh = s_MeshPool[s_MeshPool.Count - 1];
+                    s_MeshPool.RemoveAt(s_MeshPool.Count - 1);
                 }
-
                 if (mesh == null)
                 {
                     mesh = new Mesh();
-                    mesh.CombineMeshes(s_ActiveBatch.ToArray());
-                    s_BatchMeshes.Add(s_ActiveBatchHash, mesh);
                 }
+                mesh.CombineMeshes(s_ActiveBatchMeshInstances.ToArray());
+                s_BatchMeshes.Add(s_ActiveShapeMeshBatch, mesh);
             }
             matrix = Matrix4x4.identity;
-            s_ActiveBatchHashes.Add(s_ActiveBatchHash);
+            s_ActiveBatchHashes.Add(s_ActiveShapeMeshBatch);
             return mesh;
         }
 
         internal static void EndScope()
         {
+            List<ShapeMeshBatch> unusedMeshes = new List<ShapeMeshBatch>();
             foreach (var batchMesh in s_BatchMeshes)
             {
                 if (!s_ActiveBatchHashes.Contains(batchMesh.Key))
                 {
-                    s_FreeMeshes.Add(batchMesh.Value);
+                    s_MeshPool.Add(batchMesh.Value);
+                    unusedMeshes.Add(batchMesh.Key);
                 }
+            }
+            foreach (var unusedMesh in unusedMeshes)
+            {
+                s_BatchMeshes.Remove(unusedMesh);
             }
         }
     }
