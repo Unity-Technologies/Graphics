@@ -86,11 +86,11 @@ void IrisLimbalRing(float2 irisUV, float3 viewOS, float limbalRingSize, float li
     limbalRingFactor = lerp(limbalRingFactor, PositivePow(limbalRingFactor, limbalRingFade), 1.0 - NdotV);
 }
 
-void ScleraLimbalRing(float2 scleraUV, float3 viewOS, float irisRadius, float limbalRingSize, float limbalRingFade, float limbalRingItensity, out float limbalRingFactor)
+void ScleraLimbalRing(float3 positionOS, float3 viewOS, float irisRadius, float limbalRingSize, float limbalRingFade, float limbalRingItensity, out float limbalRingFactor)
 {
     float NdotV = dot(float3(0.0, 0.0, 1.0), viewOS);
     // Compute the radius of the point inside the eye
-    float scleraRadius = length(scleraUV);
+    float scleraRadius = length(positionOS.xy);
     limbalRingFactor = scleraRadius > irisRadius ? (scleraRadius > (limbalRingSize + irisRadius) ? 1.0 : lerp(0.5, 1.0, (scleraRadius - irisRadius) / (limbalRingSize))) : 1.0;
     limbalRingFactor = PositivePow(limbalRingFactor, limbalRingItensity);
     limbalRingFactor = lerp(limbalRingFactor, PositivePow(limbalRingFactor, limbalRingFade), 1.0 - NdotV);
