@@ -102,7 +102,12 @@ void ComputeMaxZ(uint3 dispatchThreadId : SV_DispatchThreadID, uint gid : SV_Gro
         currDepth = GetDepthToDownsample(dispatchThreadId.xy);
 
     float maxDepth = ParallelReduction(gid, threadIdx, currDepth);
-    _OutputTexture[COORD_TEXTURE2D_X(groupID.xy)] = maxDepth;
+
+    // Race condition which is fine, but errors on some platforms.
+    if (threadIdx == 0)
+    {
+        _OutputTexture[COORD_TEXTURE2D_X(groupID.xy)] = maxDepth;
+    }
 }
 
 #elif FINAL_MASK
