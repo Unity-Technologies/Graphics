@@ -35,8 +35,8 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| **Size**                | The 3D size of the projector influence box, and thus the decal along the projected plane. The projector scales the decal to match the **Width** (along local X-axis) and **Height** (along local Y-axis) components of the **Size**. |
-| **Projection Depth**    | The depth of the projector influence box. The projector scales the decal to match **Projection Depth**. The Decal Projector component projects decals along the local Z-axis. |
+| **Size**                | The size of the projector influence box, and thus the decal along the projected plane. The projector scales the decal to match the **Width** (along the local x-axis) and **Height** (along the local y-axis) components of the **Size**. |
+| **Projection Depth**    | The depth of the projector influence box. The projector scales the decal to match **Projection Depth**. The Decal Projector component projects decals along the local z-axis. |
 | **Material**            | The decal Material to project. The decal Material must use a HDRP/Decal Shader. |
 | **Decal Layer**         | The layer that specifies the Materials to project the decal onto. Any Mesh Renderers or Terrain that uses a matching Decal Layer receives the decal. |
 | **Draw Distance**       | The distance from the Camera to the Decal at which this projector stops projecting the decal and HDRP no longer renders the decal. |
