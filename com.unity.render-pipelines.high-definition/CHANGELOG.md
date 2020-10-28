@@ -271,6 +271,8 @@ The version number for this package has increased due to a version update of a r
 - Other forms of FSAA are silently deactivated, when path tracing is on.
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
 - SSR now uses the pre-refraction color pyramid.
+- Various improvements for the Volumetric Fog.
+- Optimizations for volumetric fog.
 
 ## [10.0.0] - 2019-06-10
 

@@ -2849,6 +2849,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount);
                 }
 
+                GenerateMaxZ(cmd, hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), m_FrameCount);
+
                 // Render the volumetric lighting.
                 // The pass requires the volume properties, the light list and the shadows, and can run async.
                 VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
