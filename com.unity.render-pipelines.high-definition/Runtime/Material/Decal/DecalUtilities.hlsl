@@ -34,11 +34,11 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
 
         // Angle fade is disabled if decal layers isn't enabled for consistency with DBuffer Decal
         // The test against _EnableDecalLayers is done here to refresh realtime as AngleFade is cached data and need a decal refresh to be updated.
-        if (angleFade.x > 0.0f && _EnableDecalLayers) // if angle fade is enabled
+        if (angleFade.y > 0.0f && _EnableDecalLayers) // if angle fade is enabled
         {
-            float dotAngle = 1.0 - dot(vtxNormal, decalData.normalToWorld[2].xyz);
+            float dotAngle = dot(vtxNormal, decalData.normalToWorld[2].xyz);
             // See equation in DecalSystem.cs - simplified to a madd here
-            float angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+            angleFadeFactor = saturate(angleFade.x - angleFade.y * dotAngle * (dotAngle - 2.0));
             fadeFactor *= angleFadeFactor;
         }
 
