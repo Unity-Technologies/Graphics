@@ -610,14 +610,20 @@ namespace UnityEditor.VFX.UI
             }
             else if (model is IVFXSlotContainer)
             {
-                var context = model;
-                var nodeController = controller.GetNodeController(context, 0);
+                var node = model;
+                var nodeController = controller.GetNodeController(node, 0);
                 if (nodeController == null)
                     return;
                 target = GetNodeByController(nodeController);
                 if (target == null)
                     return;
-                targetParent = target.parent;
+                if (nodeController is VFXBlockController blkController)
+                {
+                    VFXNodeUI targetContext = GetNodeByController(blkController.contextController);
+                    if (targetContext == null)
+                        return;
+                    targetParent = targetContext.parent;
+                }
                 target = (target as VFXNodeUI).titleContainer;
                 alignement = SpriteAlignment.LeftCenter;
             }
@@ -685,7 +691,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if (model != null)
+                if (!object.ReferenceEquals(model,null))
                 {
                     List<IconBadge> badges;
                     if (m_InvalidateBadges.TryGetValue(model, out badges))
@@ -699,17 +705,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
                 else
-                {
-                    foreach( var badges in m_InvalidateBadges.Values)
-                    {
-                        foreach (var badge in badges)
-                        {
-                            badge.Detach();
-                            badge.RemoveFromHierarchy();
-                        }
-                    }
-                    m_InvalidateBadges.Clear();
-                }
+                    throw new InvalidOperationException("Can't clear in Invalidate mode without a model");
 
             }
         }

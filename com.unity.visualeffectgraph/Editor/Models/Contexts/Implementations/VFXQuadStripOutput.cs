@@ -14,7 +14,8 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField, Tooltip("When enabled, uvs for the strips are swapped.")]
         protected bool swapUV = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
+        // Deprecated
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
         private bool UseCustomZAxis = false;
 
         protected VFXQuadStripOutput() : base(true) {}
@@ -67,9 +68,9 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Write);
-                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Write);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisY, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.AxisZ, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleX, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
@@ -99,11 +100,42 @@ namespace UnityEditor.VFX
                 if (swapUV)
                     yield return "VFX_STRIPS_SWAP_UV";
 
-                if (UseCustomZAxis)
-                    yield return "VFX_STRIPS_ORIENT_CUSTOM";
-
                 yield return VFXPlanarPrimitiveHelper.GetShaderDefine(VFXPrimitiveType.Quad);
             }
+        }
+
+        public static void SanitizeOrient(VFXContext model, int version, bool useCustomZAxis)
+        {
+            if (version < 6)
+            {
+                if (model.children.FirstOrDefault(b => b is Block.Orient) == null) // If no orient block, add one
+                {
+                    Debug.Log("Sanitize Graph: Add Orient block to quad strip output");
+
+                    Block.Orient orientBlock = CreateInstance<Block.Orient>();
+                    if (useCustomZAxis)
+                    {
+                        orientBlock.SetSettingValue("mode", Block.Orient.Mode.CustomZ);
+
+                        var axisZNode = CreateInstance<VFXAttributeParameter>();
+                        axisZNode.SetSettingValue("attribute", "axisZ");
+                        axisZNode.position = model.position + new Vector2(-225,150); 
+                        model.GetGraph().AddChild(axisZNode);
+
+                        axisZNode.GetOutputSlot(0).Link(orientBlock.GetInputSlot(0));
+                    }
+                    else
+                        orientBlock.SetSettingValue("mode", Block.Orient.Mode.FaceCameraPosition);
+
+                    model.AddChild(orientBlock, 0);
+                }
+            }
+        }
+
+        public override void Sanitize(int version)
+        {
+            SanitizeOrient(this, version, UseCustomZAxis);
+            base.Sanitize(version);
         }
     }
 }
