@@ -256,7 +256,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             internal override bool isRenamable => false;
             internal override ShaderInput Copy()
             {
-                return this; // TODO make copy
+                return new UnknownShaderPropertyType(this.displayName, this.jsonData);
             }
 
             public override PropertyType propertyType => PropertyType.Float;
@@ -345,12 +345,14 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override void CopyValuesFrom(MaterialSlot foundSlot)
             {
-                throw new NotImplementedException();
+                var slot = foundSlot as UnknownMaterialSlotType;
+                if (slot != null)
+                    jsonData = slot.jsonData;
             }
         }
 
         [NeverAllowedByTarget]
-        class UnknownNodeType : AbstractMaterialNode
+        internal class UnknownNodeType : AbstractMaterialNode
         {
             public string jsonData;
 

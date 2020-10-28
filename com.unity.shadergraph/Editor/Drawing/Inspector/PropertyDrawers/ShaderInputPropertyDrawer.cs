@@ -380,6 +380,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     this._precisionChangedCallback();
                     this._postChangeValueCallback();
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
+            if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
+                precisionField.SetEnabled(false);
         }
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
