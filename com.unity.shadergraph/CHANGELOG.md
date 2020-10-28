@@ -15,6 +15,8 @@ The version number for this package has increased due to a version update of a r
 
 ### Changed
 - Renamed the existing Sample Cubemap Node to Sample Reflected Cubemap Node, and created a new Sample Cubemap Node that samples cubemaps with a direction.
+- Removed unnecessary HDRP constant declarations used by Material inspector from the UnityPerMaterial cbuffer [1285701]
+- Virtual Texture properties are now forced to be Exposed, as they do not work otherwise [1256374]
 
 ### Fixed
 - Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
@@ -26,6 +28,10 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
 - Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
+- Fixed an issue where ShaderGraph could not read matrices from a Material or MaterialPropertyBlock while rendering with SRP batcher [1256374]
+- Fixed an issue where user setting a property to not Exposed, Hybrid-Instanced would result in a non-Hybrid Global property [1285700]
+- Fixed an issue with Gradient when it is used as expose parameters. Generated code was failing [1285640 ]
+- Fixed the subgraph slot sorting function [1286805]
 
 ## [10.1.0] - 2020-10-12
 

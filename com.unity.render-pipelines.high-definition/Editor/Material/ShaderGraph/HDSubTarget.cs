@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected virtual string postDecalsInclude => null;
         protected virtual string raytracingInclude => null;
+        protected virtual string pathtracingInclude => null;
         protected virtual bool supportPathtracing => false;
         protected virtual bool supportRaytracing => false;
 
@@ -148,6 +149,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         include.descriptor.value = postDecalsInclude;
                     if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
                         include.descriptor.value = raytracingInclude;
+                    if (include.descriptor.value == CoreIncludes.kPathtracingPlaceholder)
+                        include.descriptor.value = pathtracingInclude;
 
                     if (!String.IsNullOrEmpty(include.descriptor.value))
                         finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);

@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             LightingQuality = 1 << 25,
             SSRQuality = 1 << 26,
             VirtualTexturing = 1 << 27,
+            FogQuality = 1 << 28
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -88,7 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(Styles.lightingQualitySettings, Expandable.LightingQuality, k_ExpandedState,
                     CED.FoldoutGroup(Styles.SSAOQualitySettingSubTitle, Expandable.SSAOQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSAOQualitySettings),
                     CED.FoldoutGroup(Styles.contactShadowsSettingsSubTitle, Expandable.ContactShadowQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionContactShadowQualitySettings),
-                    CED.FoldoutGroup(Styles.SSRSettingsSubTitle, Expandable.SSRQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSRQualitySettings)
+                    CED.FoldoutGroup(Styles.SSRSettingsSubTitle, Expandable.SSRQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSRQualitySettings),
+                    CED.FoldoutGroup(Styles.FogSettingsSubTitle, Expandable.FogQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionFogQualitySettings)
                     ),
                 CED.FoldoutGroup(Styles.materialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
                 CED.FoldoutGroup(Styles.postProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings),
@@ -255,7 +257,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportSSR.boolValue))
             {
+                ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSRTransparent, Styles.supportSSRTransparentContent);
+                --EditorGUI.indentLevel;
             }
 
             EditorGUILayout.Space();
@@ -857,6 +861,53 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSRMaxRaySteps.GetArrayElementAtIndex(quality), Styles.contactShadowsSampleCount);
             }
         }
+
+        static private bool m_ShowFogLowQualitySection = false;
+        static private bool m_ShowFogMediumQualitySection = false;
+        static private bool m_ShowFogHighQualitySection = false;
+
+        static void Drawer_SectionFogQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowFogLowQualitySection = EditorGUILayout.Foldout(m_ShowFogLowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowFogLowQualitySection);
+            if (m_ShowFogLowQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Low;
+                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
+                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
+                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
+                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+            }
+
+            m_ShowFogMediumQualitySection = EditorGUILayout.Foldout(m_ShowFogMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowFogMediumQualitySection);
+            if (m_ShowFogMediumQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Medium;
+                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
+                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
+                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
+                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+            }
+
+            m_ShowFogHighQualitySection = EditorGUILayout.Foldout(m_ShowFogHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowFogHighQualitySection);
+            if (m_ShowFogHighQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.High;
+                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
+                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
+                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
+                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+            }
+        }
+
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {

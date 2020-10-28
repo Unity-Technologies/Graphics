@@ -170,6 +170,10 @@ PrefabInstance:
       propertyPath: m_Shadows.m_Type
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9203907179793585638, guid: 8caca8a5b8fc29241857185d3e2fbaa6, type: 3}
+      propertyPath: m_ColorTemperature
+      value: 3999.9998
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8caca8a5b8fc29241857185d3e2fbaa6, type: 3}
 --- !u!4 &2184713414013805759 stripped
