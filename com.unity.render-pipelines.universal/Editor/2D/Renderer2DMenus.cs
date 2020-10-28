@@ -7,6 +7,19 @@ using UnityEditor.SceneManagement;
 using UnityEditor.ProjectWindowCallback;
 using UnityEngine.Rendering;
 
+using System;
+using UnityEngine.Scripting.APIUpdating;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.ProjectWindowCallback;
+using System.IO;
+using UnityEditorInternal;
+#endif
+using System.ComponentModel;
+using System.Linq;
+
+
+
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     static class Renderer2DMenus
@@ -109,68 +122,88 @@ namespace UnityEditor.Experimental.Rendering.Universal
             CreateLight(menuCommand, (Light2D.LightType)0, FreeformPathPresets.CreateSquare());
         }
 
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Square", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Square", false, k_MenuPriority)]
         static void CreateSquareFreeformLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateSquare());
         }
 
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Circle", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Circle", false, k_MenuPriority)]
         static void CreateCircleFreeformLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateCircle());
         }
 
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Isometric Diamond", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Isometric Diamond", false, k_MenuPriority)]
         static void CreateIsometricDiamondFreeformLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateIsometricDiamond());
         }
 
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Flat Top", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Flat Top", false, k_MenuPriority)]
         static void CreateHexagonFlatTopFreeformLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateHexagonFlatTop());
         }
 
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Pointed Top", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Pointed Top", false, k_MenuPriority)]
         static void CreateHexagonPointedTopFreeformLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Freeform, FreeformPathPresets.CreateHexagonPointedTop());
         }
 
-        [MenuItem("GameObject/Light/Sprite Light 2D (Experimental)", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Sprite Light 2D", false, k_MenuPriority)]
         static void CreateSpriteLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Sprite);
         }
 
-        [MenuItem("GameObject/Light/Point Light 2D (Experimental)", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Point Light 2D", false, k_MenuPriority)]
         static void CreatePointLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Point);
         }
 
-        [MenuItem("GameObject/Light/Global Light 2D (Experimental)", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Global Light 2D", false, k_MenuPriority)]
         static void CreateGlobalLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Global);
         }
 
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Isometric Diamond", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Square", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Circle", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Flat Top", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/Freeform Light 2D (Experimental)/Hexagon Pointed Top", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/Sprite Light 2D (Experimental)", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/Point Light 2D (Experimental)", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/Global Light 2D (Experimental)", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Isometric Diamond", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Square", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Circle", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Flat Top", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Pointed Top", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Sprite Light 2D", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Point Light 2D", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Global Light 2D", true, k_MenuPriority)]
         static bool CreateLight2DValidation()
         {
             return CreateLightValidation();
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer (Experimental)", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
+        internal class CreateUniversalPipelineAsset : EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                //Create asset
+                AssetDatabase.CreateAsset(UniversalRenderPipelineAsset.Create(UniversalRenderPipelineAsset.CreateRendererAsset(pathName, RendererType._2DRenderer)), pathName);
+            }
+        }
+
+
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (2D Renderer)", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
+        static void CreateUniversalPipeline()
+        {
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, UniversalRenderPipelineAsset.CreateInstance<CreateUniversalPipelineAsset>(),
+                "UniversalRenderPipelineAsset.asset", null, null);
+        }
+
+
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
         static void Create2DRendererData()
         {
             Renderer2DMenus.Create2DRendererData((instance) =>
