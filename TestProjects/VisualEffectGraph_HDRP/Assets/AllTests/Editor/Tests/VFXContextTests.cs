@@ -206,7 +206,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Link_Fail_From_Event_To_Initialize()
         {
-            //For now, we can't use direct link to event.
+            //For now, we can't use direct link from event to initialize context.
             var from = ScriptableObject.CreateInstance<VFXBasicEvent>();
             var to = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             Assert.IsFalse(VFXContext.CanLink(from, to));
