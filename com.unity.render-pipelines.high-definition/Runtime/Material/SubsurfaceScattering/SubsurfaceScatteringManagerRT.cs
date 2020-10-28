@@ -294,6 +294,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void RenderSubsurfaceScatteringRT(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
             RTHandle diffuseBufferRT, RTHandle depthStencilBufferRT, RTHandle normalBuffer)
         {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
+            {
+                return;
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
                 // Grab the SSS params
