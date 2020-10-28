@@ -33,7 +33,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareSSGITraceParameters(hdCamera, giSettings);
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors))
+                {
+                    passData.motionVectorsBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+                }
+                else
+                {
+                    passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
+                }
+
                 var colorPyramid = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
                 passData.colorPyramid = colorPyramid != null ? builder.ReadTexture(renderGraph.ImportTexture(colorPyramid)) : renderGraph.defaultResources.blackTextureXR;
                 var historyDepth = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
