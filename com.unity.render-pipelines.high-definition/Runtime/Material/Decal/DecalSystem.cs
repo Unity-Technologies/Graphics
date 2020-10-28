@@ -484,8 +484,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // we do 1.0 - (dot() * 0.5 + 0.5) => 0.5 * (1 - dot())
                 // we actually square that to get smoother result => x = (0.5 - 0.5 * dot())^2
                 // Do a remap in the shader. 1.0 - saturate((x - start) / (end - start))
-                // After simplification => saturate(a - b * dot() * (dot() - 2.0))
-                // a = 1.0 - (0.25 - start) / (end - start), y = 0.25 / (end - start)
+                // After simplification => saturate(a + b * dot() * (dot() - 2.0))
+                // a = 1.0 - (0.25 - start) / (end - start), y = - 0.25 / (end - start)
                 if (data.startAngleFade == 180.0f) // angle fade is disabled
                 {
                     m_CachedAngleFade[index].x = 0.0f;
@@ -497,7 +497,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float angleEnd = data.endAngleFade / 180.0f;
                     var range = Mathf.Max(0.0001f, angleEnd - angleStart);
                     m_CachedAngleFade[index].x = 1.0f - (0.25f - angleStart) / range;
-                    m_CachedAngleFade[index].y = 0.25f / range;
+                    m_CachedAngleFade[index].y = - 0.25f / range;
                 }
                 m_CachedUVScaleBias[index] = data.uvScaleBias;
                 m_CachedAffectsTransparency[index] = data.affectsTransparency;
