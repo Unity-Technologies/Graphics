@@ -25,6 +25,7 @@ class PreviewPublish_PromoteJob():
             
         for platform in platforms:
             dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["name"],  platform["os"], target_editor)}')
+            dependencies.append(f'{packages_filepath()}#{package_job_id_validate(package["name"],  platform["os"], target_editor)}')
         
         # construct job
         job = YMLJob()

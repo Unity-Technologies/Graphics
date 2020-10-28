@@ -69,7 +69,9 @@ promote_core:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#publish_core
       -  .yamato/_packages.yml#test_core_windows_2020.1
+      -  .yamato/_packages.yml#validate_core_windows_2020.1
       -  .yamato/_packages.yml#test_core_macos_2020.1
+      -  .yamato/_packages.yml#validate_core_macos_2020.1
     commands:
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -130,7 +132,9 @@ promote_core_dry:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#publish_core_dry
       -  .yamato/_packages.yml#test_core_windows_2020.1
+      -  .yamato/_packages.yml#validate_core_windows_2020.1
       -  .yamato/_packages.yml#test_core_macos_2020.1
+      -  .yamato/_packages.yml#validate_core_macos_2020.1
     commands:
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -151,7 +155,9 @@ promote_universal:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#publish_universal
       -  .yamato/_packages.yml#test_universal_windows_2020.1
+      -  .yamato/_packages.yml#validate_universal_windows_2020.1
       -  .yamato/_packages.yml#test_universal_macos_2020.1
+      -  .yamato/_packages.yml#validate_universal_macos_2020.1
     commands:
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -212,7 +218,9 @@ promote_universal_dry:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#publish_universal_dry
       -  .yamato/_packages.yml#test_universal_windows_2020.1
+      -  .yamato/_packages.yml#validate_universal_windows_2020.1
       -  .yamato/_packages.yml#test_universal_macos_2020.1
+      -  .yamato/_packages.yml#validate_universal_macos_2020.1
     commands:
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -233,7 +241,9 @@ promote_hdrp:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_packages.yml#publish_hdrp
       -  .yamato/_packages.yml#test_hdrp_windows_2020.1
+      -  .yamato/_packages.yml#validate_hdrp_windows_2020.1
       -  .yamato/_packages.yml#test_hdrp_macos_2020.1
+      -  .yamato/_packages.yml#validate_hdrp_macos_2020.1
     commands:
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -294,7 +304,9 @@ promote_hdrp_dry:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_packages.yml#publish_hdrp_dry
       -  .yamato/_packages.yml#test_hdrp_windows_2020.1
+      -  .yamato/_packages.yml#validate_hdrp_windows_2020.1
       -  .yamato/_packages.yml#test_hdrp_macos_2020.1
+      -  .yamato/_packages.yml#validate_hdrp_macos_2020.1
     commands:
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -315,7 +327,9 @@ promote_shadergraph:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#publish_shadergraph
       -  .yamato/_packages.yml#test_shadergraph_windows_2020.1
+      -  .yamato/_packages.yml#validate_shadergraph_windows_2020.1
       -  .yamato/_packages.yml#test_shadergraph_macos_2020.1
+      -  .yamato/_packages.yml#validate_shadergraph_macos_2020.1
     commands:
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -376,7 +390,9 @@ promote_shadergraph_dry:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#publish_shadergraph_dry
       -  .yamato/_packages.yml#test_shadergraph_windows_2020.1
+      -  .yamato/_packages.yml#validate_shadergraph_windows_2020.1
       -  .yamato/_packages.yml#test_shadergraph_macos_2020.1
+      -  .yamato/_packages.yml#validate_shadergraph_macos_2020.1
     commands:
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -397,7 +413,9 @@ promote_vfx:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#publish_vfx
       -  .yamato/_packages.yml#test_vfx_windows_2020.1
+      -  .yamato/_packages.yml#validate_vfx_windows_2020.1
       -  .yamato/_packages.yml#test_vfx_macos_2020.1
+      -  .yamato/_packages.yml#validate_vfx_macos_2020.1
     commands:
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -458,7 +476,9 @@ promote_vfx_dry:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#publish_vfx_dry
       -  .yamato/_packages.yml#test_vfx_windows_2020.1
+      -  .yamato/_packages.yml#validate_vfx_windows_2020.1
       -  .yamato/_packages.yml#test_vfx_macos_2020.1
+      -  .yamato/_packages.yml#validate_vfx_macos_2020.1
     commands:
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -479,7 +499,9 @@ promote_config:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#publish_config
       -  .yamato/_packages.yml#test_config_windows_2020.1
+      -  .yamato/_packages.yml#validate_config_windows_2020.1
       -  .yamato/_packages.yml#test_config_macos_2020.1
+      -  .yamato/_packages.yml#validate_config_macos_2020.1
     commands:
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -540,7 +562,9 @@ promote_config_dry:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#publish_config_dry
       -  .yamato/_packages.yml#test_config_windows_2020.1
+      -  .yamato/_packages.yml#validate_config_windows_2020.1
       -  .yamato/_packages.yml#test_config_macos_2020.1
+      -  .yamato/_packages.yml#validate_config_macos_2020.1
     commands:
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -561,7 +585,9 @@ promote_lwrp:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_packages.yml#publish_lwrp
       -  .yamato/_packages.yml#test_lwrp_windows_2020.1
+      -  .yamato/_packages.yml#validate_lwrp_windows_2020.1
       -  .yamato/_packages.yml#test_lwrp_macos_2020.1
+      -  .yamato/_packages.yml#validate_lwrp_macos_2020.1
     commands:
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -622,7 +648,9 @@ promote_lwrp_dry:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_packages.yml#publish_lwrp_dry
       -  .yamato/_packages.yml#test_lwrp_windows_2020.1
+      -  .yamato/_packages.yml#validate_lwrp_windows_2020.1
       -  .yamato/_packages.yml#test_lwrp_macos_2020.1
+      -  .yamato/_packages.yml#validate_lwrp_macos_2020.1
     commands:
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm

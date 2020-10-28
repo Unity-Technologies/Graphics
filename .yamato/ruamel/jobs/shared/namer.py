@@ -18,6 +18,9 @@ def packages_filepath():
 def package_job_id_test(package_id, platform_os, editor_version):
     return f'test_{ package_id }_{ platform_os }_{editor_version}'
 
+def package_job_id_validate(package_id, platform_os, editor_version):
+    return f'validate_{ package_id }_{ platform_os }_{editor_version}'
+
 def package_job_id_test_dependencies(package_id, platform_os, editor_version):
     return f'test_{ package_id }_{ platform_os }_{editor_version}_dependencies'
 
