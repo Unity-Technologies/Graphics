@@ -51,6 +51,10 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
 - Fix volument component creation via script.
 - Fixed GC allocs in render graph.
+- Fixed issue when dragging slider in inspector for ProjectionDepth.
+- Fixed issue when resizing Inspector window that make the DecalProjector editor flickers.
+- Fixed issue in DecalProjector editor when the Inspector window have a too small width: the size appears on 2 lines but the editor not let place for the second one.
+- Fixed issue (null reference in console) when selecting a DensityVolume with rectangle selection.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
