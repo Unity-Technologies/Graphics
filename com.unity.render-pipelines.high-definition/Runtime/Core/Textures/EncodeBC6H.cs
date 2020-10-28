@@ -36,9 +36,6 @@ namespace UnityEngine.Rendering
 
             m_Shader = shader;
             m_KEncodeFastCubemapMip = m_Shader.FindKernel("KEncodeFastCubemapMip");
-
-            uint x, y, z;
-            m_Shader.GetKernelThreadGroupSizes(m_KEncodeFastCubemapMip, out x, out y, out z);
         }
 
         // Only use mode11 of BC6H encoding
