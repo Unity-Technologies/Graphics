@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle noisyToOutputSignal;
         }
 
-        public TextureHandle DenoiseRTR(RenderGraph renderGraph, in ReflectionDenoiserParameters parameters,
+        public TextureHandle DenoiseRTR(RenderGraph renderGraph, in ReflectionDenoiserParameters parameters, HDCamera hdCamera,
                                 TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, RTHandle historyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection)))
@@ -181,7 +181,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = parameters;
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors))
+                {
+                    passData.motionVectorBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+                }
+                else
+                {
+                    passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+                }
                 passData.intermediateBuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture0" });
                 passData.intermediateBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
