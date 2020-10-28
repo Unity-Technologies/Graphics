@@ -256,7 +256,8 @@ namespace UnityEditor.ShaderGraph.Serialization
             internal override bool isRenamable => false;
             internal override ShaderInput Copy()
             {
-                return new UnknownShaderPropertyType(this.displayName, this.jsonData);
+                // we CANNOT copy ourselves, as the serialized GUID in the jsonData would not match the json GUID
+                return null;
             }
 
             public override PropertyType propertyType => PropertyType.Float;
@@ -345,9 +346,8 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override void CopyValuesFrom(MaterialSlot foundSlot)
             {
-                var slot = foundSlot as UnknownMaterialSlotType;
-                if (slot != null)
-                    jsonData = slot.jsonData;
+                // we CANNOT copy data from another slot, as the GUID in the serialized jsonData would not match our real GUID
+                throw new NotSupportedException();
             }
         }
 
@@ -388,6 +388,10 @@ namespace UnityEditor.ShaderGraph.Serialization
                 base.ValidateNode();
                 owner.AddValidationError(objectId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
             }
+
+            // unknown node types cannot be copied, or else their GUID would not match the GUID in the serialized jsonDAta
+            public override bool canCutNode => false;
+            public override bool canCopyNode => false;
         }
         #endregion //Unknown Data Handling
 
