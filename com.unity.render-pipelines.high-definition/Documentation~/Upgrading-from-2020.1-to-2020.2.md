@@ -192,6 +192,8 @@ From 10.x, HDRP uses range remapping for the metallic property when using a mask
 In the Lit, LitTessellation, LayeredLit and LayeredLitTesselation shaders, two new properties have been added: `_MetallicRemapMin` and `_MetallicRemapMax`.
 In the Decal shader, the property `_MetallicRemapMin` have been added, and `_MetallicScale` has been renamed as `_MetallicRemapMax`.
 
+From 10.x, a new pass ScenePickingPass have been added to all the shader and master node to allow the editor to correctly handle the picking with tesselated objects and backfaced objects.
+
 ## Raytracing
 
 From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.
