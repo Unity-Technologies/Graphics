@@ -149,11 +149,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public RenderingMode renderingMode
         {
-            get => m_RenderingMode;
+            get => RenderingMode.Forward;
             set
             {
                 SetDirty();
-                m_RenderingMode = value;
+                m_RenderingMode = RenderingMode.Forward;
             }
         }
 
