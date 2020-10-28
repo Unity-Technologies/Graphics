@@ -13,8 +13,7 @@ The High Definition Render Pipeline (HDRP) also comes with Silk Material samples
 1. Go to **Windows > Package Manager**, and select **High Definition RP** from the package list.
 2. In the main window that shows the package's details, find the **Samples** section.
 3. To import a Sample into your Project, click the **Import into Project** button. This creates a **Samples** folder in your Project and imports the Sample you selected into it. This is also where Unity imports any future Samples into.
-
-In the Asset window, go to **Samples > High Definition RP > 11.0** and open the **Fabric** scene. Here you can see the silk sample material set up in-context in the scene, and available for you to use.
+4. In the Asset window, go to **Samples > High Definition RP > 11.0** and open the **Fabric** scene. Here you can see the silk sample material set up in-context in the scene, and available for you to use.
 
 
 
