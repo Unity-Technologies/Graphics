@@ -46,6 +46,7 @@ The version number for this package has increased due to a version update of a r
 - Addressing for mirror and clamp modes in sequential operators and blocks
 - Incorrect volume spawning for Sphere & Circle with thickness absolute
 - Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
+- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
 
 ## [10.1.0] - 2020-10-12
 ### Added
