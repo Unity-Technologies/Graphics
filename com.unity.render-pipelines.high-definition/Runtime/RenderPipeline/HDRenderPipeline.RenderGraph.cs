@@ -1013,8 +1013,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.AllowPassCulling(false);
 
                 passData.parameters = parameters;
-                passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.depthBuffer = builder.ReadTexture(depthBuffer);
+
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                {
+                    passData.normalBuffer = renderGraph.defaultResources.blackTextureXR;
+                    passData.depthBuffer = renderGraph.defaultResources.blackTextureXR;
+                }
+                else
+                {
+                    passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                }
 
                 builder.SetRenderFunc(
                 (SendGeometryBuffersPassData data, RenderGraphContext ctx) =>
