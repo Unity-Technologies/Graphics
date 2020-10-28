@@ -137,6 +137,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Indicates whether Unity includes or excludes non-directional light types when it evaluates the volumetric fog. Including non-directional lights increases the resource intensity of the effect.")]
         public BoolParameter directionalLightsOnly = new BoolParameter(false);
 
+        /// <summary>Deprecated don't used</summary>
+        [Tooltip("Deprecated don't used")]
+        public BoolParameter filter = new BoolParameter(false); // DO not used, removed in 11.x
+
         internal static bool IsFogEnabled(HDCamera hdCamera)
         {
             return hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) && hdCamera.volumeStack.GetComponent<Fog>().enabled.value;
