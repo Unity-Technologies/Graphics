@@ -1,5 +1,7 @@
 # Eye Shader
-The Eye Shader is your starting point for rendering eyes in the High Definition Render Pipeline (HDRP). Use it to exhibit important phenomena like cornea refraction, caustics, pupil dilation, limbal darkening, and subsurface scattering to bring your characters to life.  
+The Eye Shader is your starting point for rendering eyes in the High Definition Render Pipeline (HDRP). Use it to exhibit important phenomena like cornea refraction, caustics, pupil dilation, limbal darkening, and subsurface scattering to bring your characters to life.
+
+![](Images/HDRPFeatures-EyeShader.png)
 
 Under the hood, the Eye shader is a pre-configured Shader Graph. To learn more about the Eye shader implementation, or to create your own Eye shader variant, see the Shader Graph documentation about the [Eye Master Node](Master-Node-Eye.md).
 
