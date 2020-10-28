@@ -6,11 +6,11 @@ Many compositing operations require an alpha channel. To properly use all featur
 - Set the color buffer format for Rendering to 16-bit half float (R16G16B16A16)
 - Set the buffer format for post-processing to 16-bit half float (R16G16B16A16)
 
-Both options can be changed in the [HDRP Asset](HDRP-Asset). If the compositor detects a buffer format without an alpha channel it will display a warning. See also the documentation on [Alpha Output](Alpha-Output) for more details.
+Both buffer format options are in the [HDRP Asset](HDRP-Asset). If the compositor detects a buffer format without an alpha channel, it displays a warning. For more information, seen [Alpha Output](Alpha-Output).
 
 ## Layer Types
 The Graphics Compositor tool typically handles two types of layers: 
-- **Composition Layers**: The composition layers are the render targets (images) that are blended together to produce the final image. You can define them in the [Composition Graph](#composition-graph). The Composition Graph defines the number of layers and how to combine them but does not define each layer's content.
+- **Composition Layers**: The composition layers are the render targets (images) the compositor blends together to produce the final image. You can define them in the [Composition Graph](#composition-graph). The Composition Graph defines the number of layers and how to combine them but does not define each layer's content.
 - **Sub-layers**: The sub-layers are responsible for generating the content of the composition layers. You can define them in the Graphics Compositor window, in the [Render Schedule](#render-schedule) section. You can stack multiple Sub-layers to define the content of a Composition Layer. In this case all Sub-layers share the same render target.
 
 
@@ -51,30 +51,30 @@ Each one of the Sub-layers in a Composition Layer can have a unique set of post-
 - For each one of the Volumes, create and set a unique layer mask in the Unity Editor.
 - In the properties of each Sub-Layer, override and set the appropriate volume mask. 
 
-When post-processing is executed for a Sub-layer, only pixels with an alpha value that is greater than zero will be processed and will be affected by the post-processing operations. By selecting the "Clear Alpha" option in the Sub-layer Properties, you can ensure that post-processing will affect only the pixels that were drawn from this Sub-layer. Alternatively, if the "Clear Alpha" option is not selected, then the post-processing will also affect the Sub-layers that were previously drawn.
+When the compositor executes post-processing for a Sub-layer, the post-processing operations only affect pixels with an alpha value that is greater than zero. To ensure that post-processing only affects the pixels this Sub-layer drew, select the **Clear Alpha** option in the Sub-layer Properties.  If you do not select the **Clear Alpha** option, then the post-processing also affects the Sub-layers that were drawn previously to the current one.
 
-Note that enabling expensive post-processing effects (such as Depth of Field and Bloom) in multiple Sub-layes will negatively impact the run-time performance. Therefore it is always more preferable to run the post-processing in groups of layers when possible, by smartly utilizing the "Clear Alpha" option in the Sub-layer Properties.
+Note that enabling resource-intensive post-processing effects (such as Depth of Field and Bloom) in multiple Sub-layers negatively impacts run-time performance. Therefore it is best practice to run post-processing for groups of layers when possible. To do this, use the **Clear Alpha** option in the Sub-layer Properties.
 
 ### Alpha-based composition and Bloom 
-The general rule is that post-processing will affect only pixels that have an alpha value that is greater than zero. An exception to this rule is the Bloom effect, where the glow that is generated will also spread on pixels with zero alpha. However, only source pixels with an alpha that is greater than zero will contribute to the bloom effect (with a contribution propertional to the alpha value).
+The general rule for post-processing is that it only affects pixels with an alpha value greater than zero. An exception to this rule is the Bloom effect, where the glow that generates also spreads to pixels with zero alpha. However, only source pixels with an alpha that is greater than zero contribute to the bloom effect (with a contribution proportional to the alpha value).
 
 ## Camera Stacking
 When you use more than one Sub-layer to specify the content of a Composition Layer, this "stacks" the Sub-layers on top of the same render target. To specify the size and format of the render target, you use the properties of the parent Composition Layer. The Sub-layers inherit the size and format from their parent Composition Layer and you cannot change these properties independently for a particular Sub-layer. This means every stacked Camera/Sub-layer has the same size and format. 
 
-To change the stacking order, re-arrange the Sub-layers in the [Render Schedule](#render-schedule) section of the Graphics Compositor window. The composition is depth-aware, which means that for layers with opaque surfaces, reordering the Sub-layers will not make any difference in the resulting image, as long as the "Clear Depth" option in the Sub-layer is not selected (therefore depth is preserved between Sub-layers).
+To change the stacking order, re-arrange the Sub-layers in the  [Render Schedule](#render-schedule) section of the Graphics Compositor window. The composition is depth-aware, which means that for layers with opaque surfaces, reordering the Sub-layers does not make any difference to the resulting image. This is as long as you do not select the Clear Depth option in the Sub-layer (which preserves depth between Sub-layers).
 
-Chosing the right order for a Sub-layer is important for elements that don't draw any depth (sunch as UI elements) and generally for getting proper screen space reflections and transparency between layers. As an example, a layer with semi-transparent UI elements that should be rendered on top of the 3D world should appear last in the stacked sub-layers of a Composition Layer.
+Choosing the correct order for a Sub-layer is important for elements that don't draw any depth (such as UI elements) and generally for getting proper screen-space reflections and transparency between layers. For example, a layer with semi-transparent UI elements that should render on top of the 3D world should appear last in the stacked sub-layers of a Composition Layer.
 
 The [Sub-layer Properties](Compositor-User-Options.md#Sub-layer-properties) section controls the type of stacking operation.
 
 ## Render Schedule
-The Render Schedule is a re-orderable list of Composition Layers and Sub-layers. Sub-layers appear indented below their corresponding parent Composition Layer, which makes it easier to see the hierarchical relationship. When multiple Sub-layers appear below a parent layer, they form a [camera stack](camera-stacking). Unity renders layers at the top first. To re-order the list, you can click and move both Composition Layers and Sub-layers. You can use this to change the rendering order in a camera stack or move a Sub-layer from one parent Composition Layer to another.
+The Render Schedule is a re-orderable list of Composition Layers and Sub-layers. Sub-layers appear indented below their corresponding parent Composition Layer, which makes it easier to see the hierarchical relationship. When multiple Sub-layers appear below a parent layer, they form a [camera stack](#camera-stacking). Unity renders layers at the top first. To re-order the list, you can click and move both Composition Layers and Sub-layers. You can use this to change the rendering order in a camera stack or move a Sub-layer from one parent Composition Layer to another.
 
 ## Composition Parameters
 This section shows every exposed property that is not an input Composition Layer (for example, a Float to control the brightness of the final composition or a Color to tint a Texture2D). In this section, the window allows you to edit each property value outside of the Composition Graph. It is good practice to expose properties from the graph to the Graphics Compositor window, instead of hard-coding their values inside the Composition Graph. This helps you to share composition profiles between Projects because those you do not need to open the Composition Graph to edit any values.
 
 ## Composition of Screen Space UI
-You can use the Graphics Compositor to compose screen space Canvas (UI) elements. When the "Screen Space - Camera" render mode is used for the Canvas element, you have to set the "Render Camera" (in the Canvas Inspector) to the sub-layer camera that will draw the UI. However, in this case, the camera sub-layer that draws the UI:
+You can use the Graphics Compositor to compose screen space Canvas (UI) elements. When the Canvas uses the **Screen Space - Camera** render mode, you have to set the **Render Camera** (in the Canvas Inspector) to the Sub-layer camera that draws the UI. However, in this case, the camera Sub-layer that draws the UI:
 - Should have a unique camera assigned to it. You should not use this camera in any other sub-layer.
 - Should not override any camera state (antialiasing, culling mask, volume mask, etc). You can change these properties in the source camera that the sub-layer uses.
 
