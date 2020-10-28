@@ -46,6 +46,9 @@ The version number for this package has increased due to a version update of a r
 - Addressing for mirror and clamp modes in sequential operators and blocks
 - Incorrect volume spawning for Sphere & Circle with thickness absolute
 - Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fixed rare bug causing the vfx compilation to do nothing silently.
+- Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph  
 
 ## [10.1.0] - 2020-10-12
 ### Added

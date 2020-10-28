@@ -731,7 +731,7 @@ namespace UnityEditor.VFX
 
                 foreach (var instanceID in dependentAsset)
                 {
-                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
                     {
                         return;
                     }
@@ -756,7 +756,7 @@ namespace UnityEditor.VFX
 
                     foreach (var instanceID in dependentAsset)
                     {
-                        if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                        if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
                         {
                             return;
                         }
@@ -879,7 +879,10 @@ namespace UnityEditor.VFX
             GetImportDependentAssets(dependentAsset);
 
             foreach (var dep in dependentAsset)
-                visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+            {
+                if (dep != 0)
+                    visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+            }
 
             return dependentAsset.Select(t => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(t))).Distinct().ToArray();
         }
