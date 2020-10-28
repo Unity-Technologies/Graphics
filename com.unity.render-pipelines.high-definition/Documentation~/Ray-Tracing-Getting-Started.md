@@ -205,9 +205,9 @@ You can find a small ray tracing project that contains all the effects mention a
 https://github.com/Unity-Technologies/SmallOfficeRayTracing
 This Project is already set up with ray tracing support.
 
-## Advice and supported feature of preview ray tracing
+## Unsupported features of ray tracing
 
-There is no support for ray tracing on other platform than DX12 for now.
+There is no support for ray tracing on platforms other than DX12 for now.
 
 HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support vertex animation.
@@ -216,3 +216,18 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support VFX and Terrain.
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
+
+## Unsupported features of path tracing
+
+There is no support for path tracing on platforms other than DX12 for now.
+
+HDRP path tracing in Unity 2020.2 has the following limitations:
+
+- Does not support 3D Text and TextMeshPro.
+- Does not support Shader Graph nodes that use derivatives (ex : normal from textures).
+- Does not support decals.
+- Does not support tessellation.
+- Does not support Tube and Disc shaped Area Light.
+- Does not support Translucent Opaque Materials.
+- Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
+- Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).

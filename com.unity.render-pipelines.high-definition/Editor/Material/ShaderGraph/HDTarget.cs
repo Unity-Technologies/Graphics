@@ -594,6 +594,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ColorMask("ColorMask 0") },
         };
 
+        public static RenderStateCollection ScenePicking = new RenderStateCollection
+        {
+            { RenderState.Cull(Uniforms.cullMode) },
+        };
+
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
@@ -800,6 +805,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Defines
     static class CoreDefines
     {
+        public static DefineCollection ScenePicking = new DefineCollection
+        {
+            { CoreKeywordDescriptors.ScenePickingPass, 1 },
+        };
+
         public static DefineCollection SceneSelection = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -860,6 +870,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
         public const string kMaterial = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl";
         public const string kDebugDisplay = "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl";
+        public const string kPickingSpaceTransforms = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl";
 
         // CoreUtility
         public const string kBuiltInUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl";
@@ -873,6 +884,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kRaytracingIntersectionGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl";
         public const string kRaytracingIntersectionSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingIntersectionSubSurface.hlsl";
         public const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
+        public const string kLitPathtracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitPathTracing.hlsl";
         public const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
         public const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
         public const string kEyeRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/EyeRaytracing.hlsl";
@@ -913,6 +925,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kPassPlaceholder = "Pass Include Placeholder, replace me !";
         public const string kPostDecalsPlaceholder = "After Decal Include Placeholder, replace me !";
         public const string kRaytracingPlaceholder = "Raytracing Include Placeholder, replace me !";
+        public const string kPathtracingPlaceholder = "Pathtracing Include Placeholder, replace me !";
 
         // Public Postgraph Pass
         public const string kPassLightTransport = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl";
@@ -1153,6 +1166,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Enable Fog On Transparent",
             referenceName = "_ENABLE_FOG_ON_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor ScenePickingPass = new KeywordDescriptor()
+        {
+            displayName = "Scene Picking Pass",
+            referenceName = "SCENEPICKINGPASS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,

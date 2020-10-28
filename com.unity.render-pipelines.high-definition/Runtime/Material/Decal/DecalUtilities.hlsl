@@ -101,20 +101,20 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float  lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5);
 
                 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
-                src.z *= decalData.scalingMBAndAngle.y; // Blue channel (opacity)
+                src.z *= decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
-                src.x *= decalData.scalingMBAndAngle.x; // Metal
+                src.x = lerp(decalData.scalingBAndRemappingM.z, decalData.scalingBAndRemappingM.w, src.x); // Remap Metal
                 src.y = lerp(decalData.remappingAOS.x, decalData.remappingAOS.y, src.y); // Remap AO
                 #endif
                 src.z = lerp(decalData.remappingAOS.z, decalData.remappingAOS.w, src.w); // Remap Smoothness
             }
             else
             {
-                src.z = decalData.scalingMBAndAngle.y; // Blue channel (opacity)
+                src.z = decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
-                src.x = decalData.scalingMBAndAngle.x; // Metal
+                src.x = decalData.scalingBAndRemappingM.z; // Metal
                 src.y = decalData.remappingAOS.x; // AO
                 #endif
                 src.z = decalData.remappingAOS.z; // Smoothness

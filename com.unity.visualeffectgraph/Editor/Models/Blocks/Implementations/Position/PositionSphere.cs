@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionSphere : PositionBase
     {
-        public override string name { get { return "Position (Sphere)"; } }
+        public override string name { get { return string.Format(base.name, "Sphere"); } }
 
         public class InputProperties
         {
@@ -21,13 +21,7 @@ namespace UnityEditor.VFX.Block
             public float ArcSequencer = 0.0f;
         }
 
-        protected override bool needDirectionWrite
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool needDirectionWrite => true;
 
         public override string source
         {
@@ -45,10 +39,11 @@ float rNorm = pow(volumeFactor + (1 - volumeFactor) * RAND, 1.0f / 3.0f);
 float2 sincosTheta;
 sincos(theta, sincosTheta.x, sincosTheta.y);
 sincosTheta *= sqrt(1.0f - cosPhi * cosPhi);
-
-direction = float3(sincosTheta, cosPhi);
-position += direction * (rNorm * ArcSphere_sphere_radius) + ArcSphere_sphere_center;
+float3 sphereNormal = float3(sincosTheta, cosPhi);
 ";
+
+                outSource += string.Format(composeDirectionFormatString, "sphereNormal");
+                outSource += string.Format(composePositionFormatString, "sphereNormal * (rNorm * ArcSphere_sphere_radius) + ArcSphere_sphere_center");
 
                 return outSource;
             }
