@@ -783,7 +783,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool use4RTs = m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) ||
+                hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals))
             {
                 // Return all black textures for default values.
                 var blackTexture = renderGraph.defaultResources.blackTextureXR;

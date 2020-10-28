@@ -338,8 +338,12 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
 
     }
 #else // Opaque - used DBuffer
-    FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
-#ifndef DECALS_4RT
+    DBufferType0 DBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
+    DBufferType1 DBuffer1 = float4(0.5, 0.5, 0.5, 1.0);
+    DBufferType2 DBuffer2 = float4(0.0, 0.0, 0.0, 1.0);
+#ifdef DECALS_4RT
+    DBufferType3 DBuffer3 = float2(1.0, 1.0);
+#else
     float2 DBuffer3 = float2(1.0, 1.0);
 #endif
     DBuffer0.xyz = float3(0.0, 0.0, 0.0);
@@ -386,6 +390,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
             v_decalListOffset++;
             if (!isRejected)
                 Foo(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
+                // EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
         }
     }
 #endif

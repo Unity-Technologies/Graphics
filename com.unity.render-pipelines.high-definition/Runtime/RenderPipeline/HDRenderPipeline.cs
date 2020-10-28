@@ -3855,7 +3855,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cullingResults)
         {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) ||
+                hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals))
             {
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 m_DbufferManager.BindBlackTextures(cmd);
