@@ -104,6 +104,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
             {
+                Light2DBatch.StartScope();
+
                 var cmd = CommandBufferPool.Get();
                 cmd.Clear();
 
@@ -205,6 +207,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 filterSettings.sortingLayerRange = SortingLayerRange.all;
                 RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+
+                Light2DBatch.EndScope();
             }
             else
             {

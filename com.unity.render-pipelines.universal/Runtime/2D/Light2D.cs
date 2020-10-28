@@ -58,7 +58,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         // Transients
         int m_PreviousLightCookieSprite;
+        int m_LightMeshHash = 0;
         Mesh m_Mesh;
+
+        internal int lightMeshHash => m_LightMeshHash;
 
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
@@ -146,6 +149,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void UpdateMesh()
         {
+            UpdateHash();
+
             switch (m_LightType)
             {
                 case LightType.Freeform:
@@ -199,6 +204,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void OnDisable()
         {
             Light2DManager.DeregisterLight(this);
+        }
+
+        internal void UpdateHash()
+        {
+            unchecked
+            {
+                // Spline.
+                m_LightMeshHash = (int) 2166136261 ^ LightUtility.GetShapePathHash(shapePath);
+
+                // Local Stuff.
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_FalloffIntensity.GetHashCode();
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_LightVolumeOpacity.GetHashCode();
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightFalloffSize.GetHashCode();
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightParametricRadius.GetHashCode();
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightParametricSides.GetHashCode();
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightParametricAngleOffset.GetHashCode();
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_Color.GetHashCode();
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ lightCookieSpriteInstanceID.GetHashCode();
+            }
         }
 
         private void LateUpdate()

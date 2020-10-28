@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
-        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights)
+        private static bool RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, bool rtNeedsClear, Color clearColor, List<Light2D> lights, bool batchable)
         {
             var renderedAnyLight = false;
 
@@ -168,28 +168,74 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     renderedAnyLight = true;
 
-                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                        cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
-
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
                     cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
+                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                        cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
+
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(cmd, light);
 
-                    // Light code could be combined...
-                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    // Batch if possible.
+                    bool skipDraw = false;
+                    if (batchable)
                     {
-                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                        if (light.lightType == Light2D.LightType.Parametric ||
+                            light.lightType == Light2D.LightType.Freeform)
+                        {
+                            if (light.shadowIntensity == 0)
+                            {
+                                if (Light2DBatch.sActiveMaterial == null)
+                                {
+                                    Light2DBatch.StartBatch(lightMaterial);
+                                }
+
+                                Light2DBatch.AddMesh(lightMesh, light.transform, light.lightMeshHash);
+                                skipDraw = true;
+                            }
+                        }
                     }
-                    else if (light.lightType == Light2D.LightType.Point)
+
+                    if (skipDraw)
+                        continue;
+                    else
+                    {
+                        if (Light2DBatch.sActiveMaterial != null)
+                        {
+                            bool isBatched = false;
+                            Material batchedMaterial = null;
+                            Matrix4x4 batchedMatrix = Matrix4x4.identity;
+
+                            Mesh mesh = Light2DBatch.EndBatch(ref isBatched, ref batchedMatrix, ref batchedMaterial);
+                            cmd.DrawMesh(mesh, batchedMatrix, batchedMaterial);
+                        }
+                    }
+
+                    // Non Batched.
+                    if (light.lightType == Light2D.LightType.Point)
                     {
                         var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                         var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
                         cmd.DrawMesh(lightMesh, matrix, lightMaterial);
                     }
+                    else
+                    {
+                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                    }
                 }
+            }
+
+            // Left over Batching
+            if (Light2DBatch.sActiveMaterial != null)
+            {
+                bool isBatched = false;
+                Material batchedMaterial = null;
+                Matrix4x4 batchedMatrix = Matrix4x4.identity;
+
+                Mesh mesh = Light2DBatch.EndBatch(ref isBatched, ref batchedMatrix, ref batchedMaterial);
+                cmd.DrawMesh(mesh, batchedMatrix, batchedMaterial);
             }
 
             // If no lights were rendered, just clear the RenderTarget if needed
@@ -201,7 +247,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return renderedAnyLight;
         }
 
-        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        private static void RenderLightVolumeSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights, bool batchable)
         {
             if (lights.Count > 0)
             {
@@ -233,21 +279,67 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                                         SetPointLightShaderGlobals(cmd, light);
 
-                                    // Could be combined...
-                                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                                    // Batch if possible.
+                                    bool skipDraw = false;
+                                    if (batchable)
                                     {
-                                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                                        if (light.lightType == Light2D.LightType.Parametric ||
+                                            light.lightType == Light2D.LightType.Freeform)
+                                        {
+                                            if (light.shadowIntensity == 0)
+                                            {
+                                                if (Light2DBatch.sActiveMaterial == null)
+                                                {
+                                                    Light2DBatch.StartBatch(lightVolumeMaterial);
+                                                }
+
+                                                Light2DBatch.AddMesh(lightMesh, light.transform, light.lightMeshHash);
+                                                skipDraw = true;
+                                            }
+                                        }
                                     }
-                                    else if (light.lightType == Light2D.LightType.Point)
+
+                                    if (skipDraw)
+                                        continue;
+                                    else
+                                    {
+                                        if (Light2DBatch.sActiveMaterial != null)
+                                        {
+                                            bool isBatched = false;
+                                            Material batchedMaterial = null;
+                                            Matrix4x4 batchedMatrix = Matrix4x4.identity;
+
+                                            Mesh mesh = Light2DBatch.EndBatch(ref isBatched, ref batchedMatrix, ref batchedMaterial);
+                                            cmd.DrawMesh(mesh, batchedMatrix, batchedMaterial);
+                                        }
+                                    }
+
+                                    // Non-Batched.
+                                    if (light.lightType == Light2D.LightType.Point)
                                     {
                                         var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
                                         var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
                                         cmd.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
                                     }
+                                    else
+                                    {
+                                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                                    }
                                 }
                             }
                         }
                     }
+                }
+
+                // Left over Batching
+                if (Light2DBatch.sActiveMaterial != null)
+                {
+                    bool isBatched = false;
+                    Material batchedMaterial = null;
+                    Matrix4x4 batchedMatrix = Matrix4x4.identity;
+
+                    Mesh mesh = Light2DBatch.EndBatch(ref isBatched, ref batchedMatrix, ref batchedMaterial);
+                    cmd.DrawMesh(mesh, batchedMatrix, batchedMaterial);
                 }
             }
         }
@@ -371,6 +463,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 else
                     rtDirty = true;
 
+                var enableBatching = pass.rendererData.lightBlendStyles[i].blendMode == Light2DBlendStyle.BlendMode.Additive;
+
                 rtDirty |= RenderLightSet(
                     pass, renderingData,
                     i,
@@ -379,7 +473,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     rtID,
                     (pass.rendererData.lightBlendStyles[i].isDirty || rtDirty),
                     clearColor,
-                    pass.rendererData.lightCullResult.visibleLights
+                    pass.rendererData.lightCullResult.visibleLights,
+                    enableBatching
                 );
 
                 pass.rendererData.lightBlendStyles[i].isDirty = rtDirty;
@@ -400,6 +495,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 string sampleName = blendStyles[i].name;
                 cmd.BeginSample(sampleName);
 
+                var enableBatching = pass.rendererData.lightBlendStyles[i].blendMode == Light2DBlendStyle.BlendMode.Additive;
+
                 RenderLightVolumeSet(
                     pass, renderingData,
                     i,
@@ -407,7 +504,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     layerToRender,
                     renderTarget,
                     depthTarget,
-                    pass.rendererData.lightCullResult.visibleLights
+                    pass.rendererData.lightCullResult.visibleLights,
+                    enableBatching
                 );
 
                 cmd.EndSample(sampleName);
