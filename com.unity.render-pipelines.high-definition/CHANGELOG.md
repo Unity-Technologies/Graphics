@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added fog volumetric scattering support for path tracing.
 - Added new algorithm for SSR with temporal accumulation
 - Added quality preset of the new volumetric fog parameters.
+- Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
