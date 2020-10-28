@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GC allocs in render graph.
 - Fixed scene picking passes.
 - Fixed broken ray tracing light cluster full screen debug.
+- Fixed dead code causing error.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
