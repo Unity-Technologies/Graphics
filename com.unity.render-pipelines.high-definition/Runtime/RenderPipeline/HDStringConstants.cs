@@ -97,12 +97,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int g_vLightList = Shader.PropertyToID("g_vLightList");
         public static readonly int _LightVolumeData = Shader.PropertyToID("_LightVolumeData");
 
-        public static readonly int _EntityBoundsBuffer = Shader.PropertyToID(nameof(_EntityBoundsBuffer));
-        public static readonly int _xyBoundsBuffer     = Shader.PropertyToID(nameof(_xyBoundsBuffer));
-        public static readonly int _wBoundsBuffer      = Shader.PropertyToID(nameof(_wBoundsBuffer));
-        public static readonly int _zBinBuffer         = Shader.PropertyToID(nameof(_zBinBuffer));
-        public static readonly int _CoarseTileBuffer   = Shader.PropertyToID(nameof(_CoarseTileBuffer));
-        public static readonly int _FineTileBuffer     = Shader.PropertyToID(nameof(_FineTileBuffer));
+        public static readonly int _EntityBoundsBuffer  = Shader.PropertyToID(nameof(_EntityBoundsBuffer));
+        public static readonly int _xyBoundsBuffer      = Shader.PropertyToID(nameof(_xyBoundsBuffer));
+        public static readonly int _wBoundsBuffer       = Shader.PropertyToID(nameof(_wBoundsBuffer));
+        public static readonly int _CoarseTileBuffer    = Shader.PropertyToID(nameof(_CoarseTileBuffer));
+        public static readonly int _SrcCoarseTileBuffer = Shader.PropertyToID(nameof(_SrcCoarseTileBuffer));
+        public static readonly int _DstCoarseTileBuffer = Shader.PropertyToID(nameof(_DstCoarseTileBuffer));
+        public static readonly int _FineTileBuffer      = Shader.PropertyToID(nameof(_FineTileBuffer));
+        public static readonly int _zBinBuffer          = Shader.PropertyToID(nameof(_zBinBuffer));
 
         public static readonly int g_TileFeatureFlags = Shader.PropertyToID("g_TileFeatureFlags");
 

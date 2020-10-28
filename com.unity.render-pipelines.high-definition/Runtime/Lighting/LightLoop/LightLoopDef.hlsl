@@ -174,9 +174,8 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
             // The part (2) below will be actually executed during every function call.
             while (i < n)
             {
-                // This is a valid buffer index.
-                uint tileEntityPair  = TILE_BUFFER[tileBufferBodyIndex + (i / 2)]; // 16-bit indices
-                uint tileEntityIndex = BitFieldExtract(tileEntityPair, 16 * (i & 1), 16);
+                uint tileEntityPair  = TILE_BUFFER[tileBufferBodyIndex + (i / 2)];        // 16-bit indices
+                uint tileEntityIndex = BitFieldExtract(tileEntityPair, 16 * (i & 1), 16); // First Lo, then Hi bits
 
                 // Entity indices are stored in the ascending order.
                 // We can distinguish 3 cases:

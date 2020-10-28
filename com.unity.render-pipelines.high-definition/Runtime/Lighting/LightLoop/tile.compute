@@ -21,6 +21,13 @@
     StructuredBuffer<float4> _xyBoundsBuffer : register(t0); // {x_min, x_max, y_min, y_max}
 #endif
 
+#if (PASS == PRUNE_COARSE_TILES)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer  : register(t0);
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    StructuredBuffer<uint>             _SrcCoarseTileBuffer : register(t1); // Index range + index list
+#endif
+
 /* ------------------------------ Outputs ----------------------------------- */
 
 #if (PASS == FILL_COARSE_TILES)
@@ -59,12 +66,24 @@ static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uin
 
 /* ------------------------------ Implementation ---------------------------- */
 
-#if (REMAINDER(TILE_ENTRY_LIMIT + 2, 2) != 0)
-    #error "(TILE_ENTRY_LIMIT + 2) must be an integer multiple of 2."
+// !!! IMPORTANT !!!
+// The legacy code from Morten provides us special projection matrices (and their inverses).
+// These matrices are different from the matrices the HDRP uses.
+// There is no reversed-Z buffering (effectively, forced UNITY_REVERSED_Z = 0).
+// Additionally, there is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
+// Therefore, all coordinate systems are left-handed, Y-up, without W-flip.
+// Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
+// y  z
+// | /
+// 0 -- x
+
+#if (REMAINDER(TILE_ENTRY_LIMIT, 2) != 0)
+    #error "TILE_ENTRY_LIMIT must be an integer multiple of 2."
 #endif
 
 #define THREADS_PER_GROUP (64)
 
+// 1x thread per tile.
 [numthreads(THREADS_PER_GROUP, 1, 1)]
 void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 {
@@ -99,13 +118,13 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     {
         // Compute 2-D the AABB of the tile.
         const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
-        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                // (clampedTileCoord + 1) * TILE_SIZE
+        const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                   // (clampedTileCoord + 1) * TILE_SIZE
         const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;      // Divide
         const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw);     // Divide and clamp to the edge
         const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x); // TODO: add epsilon for numerical robustness?
         const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y); // TODO: add epsilon for numerical robustness?
 
-        // Define inputs and outputs.
+        // Define inputs (i) and outputs (j).
         uint i = 0, j = 0;
         uint indexPair = 0;
 
@@ -126,7 +145,7 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
                 last  = max(i, last);
 
                 // 2x 16-bit indices per uint.
-                indexPair |= i << (16 * (j & 1)); // Order: first Lo, then Hi bits
+                indexPair |= i << (16 * (j & 1)); // First Lo, then Hi bits
 
                 if ((j & 1) != 0) // Is the pair complete & ready to be stored?
                 {
@@ -145,7 +164,7 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
         {
             i = UINT16_MAX; // Add a terminator
 
-            indexPair |= i << (16 * (j & 1)); // Order: first Lo, then Hi bits
+            indexPair |= i << (16 * (j & 1)); // First Lo, then Hi bits
 
             _CoarseTileBuffer[outputStart + (j / 2)] = indexPair;
         }
@@ -158,10 +177,122 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     _CoarseTileBuffer[headerIndex] = outputRange;
 }
 
-[numthreads(THREADS_PER_GROUP, 1, 1)]
-void PruneCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
-{
+// Below is copy-pasted from 'scrbound.compute'.
+// Clipping a plane by a cube may produce a hexagon (6-gon).
+// Clipping a hexagon by 4 planes (substitute a quad for the plane) may produce a decagon (10-gon).
+#define MAX_CLIP_VERTS     (10)
+#define NUM_VERTS          (8)
+#define NUM_FACES          (6)
+#define NUM_PLANES         (6)
+#define THREADS_PER_GROUP  (64)
+#define THREADS_PER_ENTITY (4) // Set to 1 for debugging
+#define ENTITIES_PER_GROUP (THREADS_PER_GROUP / THREADS_PER_ENTITY)
+#define VERTS_PER_GROUP    (NUM_VERTS * ENTITIES_PER_GROUP)
+#define VERTS_PER_THREAD   (NUM_VERTS / THREADS_PER_ENTITY)
+#define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
+#define VERTS_PER_FACE     (4)
 
+// Needs the defines above.
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
+
+// 5 arrays * 128 elements * 4 bytes each = 2560 bytes.
+groupshared float gs_HapVertsX[VERTS_PER_GROUP];
+groupshared float gs_HapVertsY[VERTS_PER_GROUP];
+groupshared float gs_HapVertsZ[VERTS_PER_GROUP];
+groupshared float gs_HapVertsW[VERTS_PER_GROUP];
+groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL does not support small data types)
+
+#define THREADS_PER_TILE (THREADS_PER_ENTITY) // Helps with naming
+#define TILES_PER_GROUP  (THREADS_PER_GROUP / THREADS_PER_TILE)
+
+// *************************************************************************************************
+// At this point, each tile has a list of conservatively selected entities.
+// The idea it to spend a few more clock cycles to remove entities that do not belong to the tile.
+// We use roughly the same idea as in 'scrbound.compute':
+// we test the bounding volume of the entity against the mini-frustum of the tile.
+// The difference is that we do not need to compute the AABB.
+// Thus, there is a "slow" path and a "fast" path. The latter includes "trivial" accept or reject.
+// "trivial" accept or reject ..........
+// *************************************************************************************************
+
+bool TryCullEntity(uint a, uint2 b)
+{
+    return false;
+}
+
+[numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
+void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    // TODO: swizzle blocks of tiles to improve locality & reduce divergence at the cost of padding?
+    const uint t    = threadID.x;
+    const uint tile = threadID.y;
+    const uint g    = groupID.x;
+    const uint cat  = groupID.y;
+    const uint eye  = groupID.z;
+
+    const uint  globalTileIndex  = IndexFromCoordinate(uint2(tile, g), TILES_PER_GROUP);
+    const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
+    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x);
+
+    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(clampedTileIndex, cat, eye);
+          uint tileRangeData         = _SrcCoarseTileBuffer[tileBufferHeaderIndex]; // {last << 16 | first}
+    const bool isTileEmpty           = tileRangeData == UINT16_MAX;
+
+    if (!isTileEmpty)
+    {
+        const uint tileBufferBodyIndex = ComputeTileBufferBodyIndex(clampedTileIndex, cat, eye);
+
+        // Define inputs (i) and outputs (j).
+        uint i = 0, j = 0;
+        uint indexPair = 0;
+
+        uint first = UINT16_MAX, last = 0;
+
+        while (i < TILE_ENTRY_LIMIT)
+        {
+            uint entityPair  = _SrcCoarseTileBuffer[tileBufferBodyIndex + (i / 2)]; // 16-bit indices
+            uint entityIndex = BitFieldExtract(entityPair, 16 * (i & 1), 16);       // First Lo, then Hi bits
+
+            if (entityIndex == UINT16_MAX)
+            {
+                break; // Reached the terminator
+            }
+
+            if (!TryCullEntity(entityIndex, clampedTileCoord))
+            {
+                // The entity was not culled, so transfer it over.
+                first = min(entityIndex, first);
+                last  = max(entityIndex, last);
+
+                // 2x 16-bit indices per uint.
+                indexPair |= entityIndex << (16 * (j & 1)); // First Lo, then Hi bits
+
+                if ((j & 1) != 0) // Is the pair complete & ready to be stored?
+                {
+                    _DstCoarseTileBuffer[tileBufferBodyIndex + (j / 2)] = indexPair;
+
+                    indexPair = 0; // In order to use bitwise OR above
+                }
+
+                j++;
+            }
+
+            i++;
+        }
+
+        if (j < TILE_ENTRY_LIMIT)
+        {
+            uint entityIndex = UINT16_MAX; // Add a terminator
+
+            indexPair |= entityIndex << (16 * (j & 1)); // First Lo, then Hi bits
+
+            _DstCoarseTileBuffer[tileBufferBodyIndex + (j / 2)] = indexPair;
+        }
+
+        tileRangeData = (last << 16) | first;
+    }
+
+    _DstCoarseTileBuffer[tileBufferHeaderIndex] = tileRangeData;
 }
 
 [numthreads(THREADS_PER_GROUP, 1, 1)]

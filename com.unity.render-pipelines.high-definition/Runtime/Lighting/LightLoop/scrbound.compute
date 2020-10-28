@@ -9,7 +9,6 @@
 #define NO_SHADERVARIABLESGLOBAL_HLSL
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 #undef  NO_SHADERVARIABLESGLOBAL_HLSL
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
 
 /* ------------------------------ Inputs ------------------------------------ */
 
@@ -60,6 +59,9 @@ RWStructuredBuffer<float2>  _wBoundsBuffer : register(u1); // {w_min, w_max}
 #define VERTS_PER_THREAD   (NUM_VERTS / THREADS_PER_ENTITY)
 #define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
 #define VERTS_PER_FACE     (4)
+
+// Needs the defines above.
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
 
 // All planes and faces are always in the standard order (see below).
 // Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.

@@ -701,6 +701,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Binned lighting
             public ComputeBuffer coarseTileBuffer { get; private set; }
+            public ComputeBuffer fineTileBuffer   { get; private set; }
             public ComputeBuffer zBinBuffer       { get; private set; }
 
             // Tile Output
@@ -785,6 +786,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                                      * (2 + TiledLightingConstants.s_CoarseTileEntryLimit) / 2;
 
                     coarseTileBuffer = new ComputeBuffer(coarseTileBufferElementCount, sizeof(uint)); // Index range + index list
+
+                    Vector2Int fineTileBufferDimensions = GetFineTileBufferDimensions(hdCamera);
+
+                    // The tile buffer is composed of two parts:
+                    // the header (containing index ranges, 2 * sizeof(uint16)) and
+                    // the body (containing index lists, TiledLightingConstants.s_CoarseTileEntryLimit * sizeof(uint16)).
+                    int fineTileBufferElementCount = fineTileBufferDimensions.x * fineTileBufferDimensions.y
+                                                   * (int)BoundedEntityCategory.Count * viewCount
+                                                   * (2 + TiledLightingConstants.s_FineTileEntryLimit) / 2;
+
+                    fineTileBuffer = new ComputeBuffer(fineTileBufferElementCount, sizeof(uint)); // Index range + index list
                 }
 
                 // Make sure to invalidate the content of the buffers
@@ -830,10 +842,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 xyBoundsBuffer = null;
                 CoreUtils.SafeRelease(wBoundsBuffer);
                 wBoundsBuffer = null;
-                CoreUtils.SafeRelease(zBinBuffer);
-                zBinBuffer = null;
                 CoreUtils.SafeRelease(coarseTileBuffer);
                 coarseTileBuffer = null;
+                CoreUtils.SafeRelease(fineTileBuffer);
+                fineTileBuffer = null;
+                CoreUtils.SafeRelease(zBinBuffer);
+                zBinBuffer = null;
                 CoreUtils.SafeRelease(dispatchIndirectBuffer);
                 dispatchIndirectBuffer = null;
             }
@@ -3509,8 +3523,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer convexBoundsBuffer;
             public ComputeBuffer xyBoundsBuffer;
             public ComputeBuffer wBoundsBuffer;
-            public ComputeBuffer zBinBuffer;
             public ComputeBuffer coarseTileBuffer;
+            public ComputeBuffer fineTileBuffer;
+            public ComputeBuffer zBinBuffer;
             public ComputeBuffer globalLightListAtomic;
 
             // Output
@@ -3539,8 +3554,9 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.convexBoundsBuffer = tileAndClusterData.convexBoundsBuffer;
             resources.xyBoundsBuffer = tileAndClusterData.xyBoundsBuffer;
             resources.wBoundsBuffer = tileAndClusterData.wBoundsBuffer;
-            resources.zBinBuffer = tileAndClusterData.zBinBuffer;
             resources.coarseTileBuffer = tileAndClusterData.coarseTileBuffer;
+            resources.fineTileBuffer = tileAndClusterData.fineTileBuffer;
+            resources.zBinBuffer = tileAndClusterData.zBinBuffer;
             //resources.lightVolumeDataBuffer = tileAndClusterData.lightVolumeDataBuffer;
             resources.tileFeatureFlags = tileAndClusterData.tileFeatureFlags;
             resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
@@ -3597,10 +3613,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
 
-                    const int threadsPerGroup  = 64; // Shader: THREADS_PER_GROUP  (64)
-                    const int threadsPerEntity = 4;  // Shader: THREADS_PER_ENTITY (4)
+                    const int entitiesPerGroup = 16; // Shader: ENTITIES_PER_GROUP
 
-                    int groupCount = HDUtils.DivRoundUp(parameters.boundedEntityCount * threadsPerEntity, threadsPerGroup);
+                    int groupCount = HDUtils.DivRoundUp(parameters.boundedEntityCount, entitiesPerGroup);
 
                     cmd.DispatchCompute(shader, kernel, groupCount, 1, parameters.viewCount);
                 }
@@ -3620,7 +3635,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
 
-                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP  (64)
+                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP
 
                 int groupCount = HDUtils.DivRoundUp(TiledLightingConstants.s_zBinCount, threadsPerGroup);
 
@@ -3634,25 +3649,36 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FillCoarseTiles)))
             {
                 var shader = parameters.tileShader;
-                int kernel;
+
+                ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
+
+                int kernel, groupCount;
 
                 kernel = 0; // FillCoarseTiles
 
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._xyBoundsBuffer,   resources.xyBoundsBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer, resources.coarseTileBuffer);
+                // This is not an accident. We alias the fine tile buffer memory.
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer, resources.fineTileBuffer);
 
-                ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
+                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP
 
-                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP  (64)
-
-                int bufferSize = parameters.coarseTileBufferDimensions.x * parameters.coarseTileBufferDimensions.y;
-                int groupCount = HDUtils.DivRoundUp(bufferSize, threadsPerGroup);
+                int coarseBufferSize = parameters.coarseTileBufferDimensions.x * parameters.coarseTileBufferDimensions.y;
+                groupCount = HDUtils.DivRoundUp(coarseBufferSize, threadsPerGroup);
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
                 kernel = 1; // PruneCoarseTiles
 
-                // ...
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer,  resources.convexBoundsBuffer);
+                // This is not an accident. We alias the fine tile buffer memory.
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._SrcCoarseTileBuffer, resources.fineTileBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._DstCoarseTileBuffer, resources.coarseTileBuffer);
+
+                const int tilesPerGroup = 16; // Shader: TILES_PER_GROUP
+
+                groupCount = HDUtils.DivRoundUp(coarseBufferSize, tilesPerGroup);
+
+                cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
                 kernel = 2; // FillFineTiles
 
@@ -4285,7 +4311,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
                 {
                     cmd.SetGlobalBuffer(HDShaderIDs._CoarseTileBuffer, param.tileAndClusterData.coarseTileBuffer);
-                    //cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, param.tileAndClusterData.fine);
+                    cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer,   param.tileAndClusterData.fineTileBuffer);
                     cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,       param.tileAndClusterData.zBinBuffer);
                 }
 
