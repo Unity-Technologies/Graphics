@@ -732,6 +732,9 @@ namespace UnityEditor.Rendering.HighDefinition
 #else
                 serialized.settings.DrawRange(false);
 #endif
+                // Make sure the range is not 0.0
+                serialized.settings.range.floatValue = Mathf.Max(0.001f, serialized.settings.range.floatValue);
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
@@ -976,6 +979,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUILayout.PropertyField(serialized.includeForRayTracing, s_Styles.includeLightForRayTracing);
+
             if (EditorGUI.EndChangeCheck())
             {
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
@@ -991,6 +996,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.volumetricDimmer, s_Styles.volumetricDimmer);
                 EditorGUILayout.Slider(serialized.volumetricShadowDimmer, 0.0f, 1.0f, s_Styles.volumetricShadowDimmer);
+                HDLightType lightType = serialized.type;
+                if (lightType != HDLightType.Directional)
+                {
+                    EditorGUILayout.PropertyField(serialized.volumetricFadeDistance, s_Styles.volumetricFadeDistance);
+                }
             }
         }
 
@@ -1085,7 +1095,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Slider(serialized.areaLightShadowCone, HDAdditionalLightData.k_MinAreaLightShadowCone, HDAdditionalLightData.k_MaxAreaLightShadowCone, s_Styles.areaLightShadowCone);
                 }
 
-                if (HDRenderPipeline.pipelineSupportsRayTracing)
+                if (HDRenderPipeline.pipelineSupportsRayTracing && HDRenderPipeline.pipelineSupportsScreenSpaceShadows)
                 {
                     bool isPunctual = lightType == HDLightType.Point || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone);
                     if (isPunctual || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))

@@ -290,9 +290,10 @@ float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
 
-// Following two variables are feeded by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
+float4 _SelectionID;
 
 CBUFFER_END
 

@@ -553,6 +553,37 @@ Shader "HDRP/LayeredLitTessellation"
 
         Pass
         {
+            Name "ScenePickingPass"
+            Tags { "LightMode" = "Picking" }
+
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            // Note: Require _SelectionID variable
+
+            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDepthPass.hlsl"
+			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/LayeredLit/LayeredLitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
+
+            #pragma editor_sync_compilation
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "SceneSelectionPass"
             Tags{ "LightMode" = "SceneSelectionPass" }
 

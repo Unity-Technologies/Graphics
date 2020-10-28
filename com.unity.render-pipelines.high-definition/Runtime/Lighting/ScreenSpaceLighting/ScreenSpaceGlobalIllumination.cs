@@ -325,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int upscaleKernel;
         }
 
-        SSGIUpscaleParameters PrepareSSGIUpscaleParameters(HDCamera hdCamera, GlobalIllumination settings)
+        SSGIUpscaleParameters PrepareSSGIUpscaleParameters(HDCamera hdCamera, GlobalIllumination settings, HDUtils.PackedMipChainInfo info)
         {
             SSGIUpscaleParameters parameters = new SSGIUpscaleParameters();
 
@@ -336,7 +336,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.halfScreenSize.Set(parameters.texWidth / 2, parameters.texHeight / 2, 1.0f / (parameters.texWidth * 0.5f), 1.0f / (parameters.texHeight * 0.5f));
 
             // Set the generation parameters
-            var info = m_SharedRTManager.GetDepthBufferMipChainInfo();
             parameters.firstMipOffset.Set(HDShadowUtils.Asfloat((uint)info.mipLevelOffsets[1].x), HDShadowUtils.Asfloat((uint)info.mipLevelOffsets[1].y));
 
             // Grab the right kernel
@@ -467,7 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         ComputeShader bilateralUpsampleCS = m_Asset.renderPipelineResources.shaders.bilateralUpsampleCS;
 
-                        SSGIUpscaleParameters parameters = PrepareSSGIUpscaleParameters(hdCamera, giSettings);
+                        SSGIUpscaleParameters parameters = PrepareSSGIUpscaleParameters(hdCamera, giSettings, m_SharedRTManager.GetDepthBufferMipChainInfo());
                         SSGIUpscaleResources resources = PrepareSSGIUpscaleResources(hdCamera, buffer00, buffer10);
                         ExecuteSSGIUpscale(cmd, parameters, resources);
                     }

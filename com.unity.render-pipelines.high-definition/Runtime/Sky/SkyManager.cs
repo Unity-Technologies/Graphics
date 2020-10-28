@@ -865,6 +865,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.skySettings = skyContext.skySettings;
         }
 
+        public bool RequiresPreRenderSky(HDCamera hdCamera)
+        {
+            var skyContext = hdCamera.visualSky;
+            return skyContext.IsValid() && skyContext.skyRenderer.RequiresPreRenderSky(m_BuiltinParameters);
+        }
+
         public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
             var skyContext = hdCamera.visualSky;
