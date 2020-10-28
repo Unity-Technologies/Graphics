@@ -51,6 +51,9 @@ def projectcontext_job_id_pack():
 def projectcontext_job_id_test(platform_os, editor_version):
     return f'test_all_project_{ platform_os }_{editor_version}'
 
+def projectcontext_job_id_validate(platform_os, editor_version):
+    return f'validate_all_project_{ platform_os }_{editor_version}'
+
 def projectcontext_job_id_test_min_editor(platform_os):
     return f'test_all_project_{ platform_os }_min_editor'
 

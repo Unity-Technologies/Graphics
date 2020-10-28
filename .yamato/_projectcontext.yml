@@ -272,8 +272,48 @@ test_all_project_windows_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
+validate_all_project_windows_2020.1:
+    name: Validate all packages [project context] Win 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:2020.1:windows
+      -  .yamato/_projectcontext.yml#pack_all_project
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
 test_all_project_macos_2020.1:
     name: Test all packages [project context] OSX 2020.1
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:2020.1:macos
+      -  .yamato/_projectcontext.yml#pack_all_project
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+validate_all_project_macos_2020.1:
+    name: Validate all packages [project context] OSX 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -308,8 +348,48 @@ test_all_project_windows_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
+validate_all_project_windows_fast-2020.1:
+    name: Validate all packages [project context] Win fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:fast-2020.1:windows
+      -  .yamato/_projectcontext.yml#pack_all_project
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
 test_all_project_macos_fast-2020.1:
     name: Test all packages [project context] OSX fast-2020.1
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:fast-2020.1:macos
+      -  .yamato/_projectcontext.yml#pack_all_project
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+validate_all_project_macos_fast-2020.1:
+    name: Validate all packages [project context] OSX fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -344,8 +424,48 @@ test_all_project_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+validate_all_project_windows_CUSTOM-REVISION:
+    name: Validate all packages [project context] Win CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+      -  .yamato/_projectcontext.yml#pack_all_project
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
 test_all_project_macos_CUSTOM-REVISION:
     name: Test all packages [project context] OSX CUSTOM-REVISION
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
+    dependencies:
+      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+      -  .yamato/_projectcontext.yml#pack_all_project
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+validate_all_project_macos_CUSTOM-REVISION:
+    name: Validate all packages [project context] OSX CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable

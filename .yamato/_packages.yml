@@ -390,6 +390,8 @@ test_core_windows_2020.1:
               -  "**/test-results/**"
 validate_core_windows_2020.1:
     name: Validate Core Win 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -455,6 +457,8 @@ test_lwrp_windows_2020.1:
               -  "**/test-results/**"
 validate_lwrp_windows_2020.1:
     name: Validate Lightweight Win 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -529,6 +533,8 @@ test_shadergraph_windows_2020.1:
               -  "**/test-results/**"
 validate_shadergraph_windows_2020.1:
     name: Validate ShaderGraph Win 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -602,6 +608,8 @@ test_hdrp_windows_2020.1:
               -  "**/test-results/**"
 validate_hdrp_windows_2020.1:
     name: Validate HDRP Win 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -679,6 +687,8 @@ test_universal_windows_2020.1:
               -  "**/test-results/**"
 validate_universal_windows_2020.1:
     name: Validate Universal Win 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -752,6 +762,8 @@ test_vfx_windows_2020.1:
               -  "**/test-results/**"
 validate_vfx_windows_2020.1:
     name: Validate VFX Win 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -824,6 +836,8 @@ test_config_windows_2020.1:
               -  "**/test-results/**"
 validate_config_windows_2020.1:
     name: Validate Config Win 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -892,6 +906,8 @@ test_core_macos_2020.1:
               -  "**/test-results/**"
 validate_core_macos_2020.1:
     name: Validate Core OSX 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -957,6 +973,8 @@ test_lwrp_macos_2020.1:
               -  "**/test-results/**"
 validate_lwrp_macos_2020.1:
     name: Validate Lightweight OSX 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -1031,6 +1049,8 @@ test_shadergraph_macos_2020.1:
               -  "**/test-results/**"
 validate_shadergraph_macos_2020.1:
     name: Validate ShaderGraph OSX 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -1104,6 +1124,8 @@ test_hdrp_macos_2020.1:
               -  "**/test-results/**"
 validate_hdrp_macos_2020.1:
     name: Validate HDRP OSX 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -1181,6 +1203,8 @@ test_universal_macos_2020.1:
               -  "**/test-results/**"
 validate_universal_macos_2020.1:
     name: Validate Universal OSX 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -1254,6 +1278,8 @@ test_vfx_macos_2020.1:
               -  "**/test-results/**"
 validate_vfx_macos_2020.1:
     name: Validate VFX OSX 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -1326,6 +1352,8 @@ test_config_macos_2020.1:
               -  "**/test-results/**"
 validate_config_macos_2020.1:
     name: Validate Config OSX 2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -1394,6 +1422,8 @@ test_core_windows_fast-2020.1:
               -  "**/test-results/**"
 validate_core_windows_fast-2020.1:
     name: Validate Core Win fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1459,6 +1489,8 @@ test_lwrp_windows_fast-2020.1:
               -  "**/test-results/**"
 validate_lwrp_windows_fast-2020.1:
     name: Validate Lightweight Win fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1533,6 +1565,8 @@ test_shadergraph_windows_fast-2020.1:
               -  "**/test-results/**"
 validate_shadergraph_windows_fast-2020.1:
     name: Validate ShaderGraph Win fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1606,6 +1640,8 @@ test_hdrp_windows_fast-2020.1:
               -  "**/test-results/**"
 validate_hdrp_windows_fast-2020.1:
     name: Validate HDRP Win fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1683,6 +1719,8 @@ test_universal_windows_fast-2020.1:
               -  "**/test-results/**"
 validate_universal_windows_fast-2020.1:
     name: Validate Universal Win fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1756,6 +1794,8 @@ test_vfx_windows_fast-2020.1:
               -  "**/test-results/**"
 validate_vfx_windows_fast-2020.1:
     name: Validate VFX Win fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1828,6 +1868,8 @@ test_config_windows_fast-2020.1:
               -  "**/test-results/**"
 validate_config_windows_fast-2020.1:
     name: Validate Config Win fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1896,6 +1938,8 @@ test_core_macos_fast-2020.1:
               -  "**/test-results/**"
 validate_core_macos_fast-2020.1:
     name: Validate Core OSX fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -1961,6 +2005,8 @@ test_lwrp_macos_fast-2020.1:
               -  "**/test-results/**"
 validate_lwrp_macos_fast-2020.1:
     name: Validate Lightweight OSX fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -2035,6 +2081,8 @@ test_shadergraph_macos_fast-2020.1:
               -  "**/test-results/**"
 validate_shadergraph_macos_fast-2020.1:
     name: Validate ShaderGraph OSX fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -2108,6 +2156,8 @@ test_hdrp_macos_fast-2020.1:
               -  "**/test-results/**"
 validate_hdrp_macos_fast-2020.1:
     name: Validate HDRP OSX fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -2185,6 +2235,8 @@ test_universal_macos_fast-2020.1:
               -  "**/test-results/**"
 validate_universal_macos_fast-2020.1:
     name: Validate Universal OSX fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -2258,6 +2310,8 @@ test_vfx_macos_fast-2020.1:
               -  "**/test-results/**"
 validate_vfx_macos_fast-2020.1:
     name: Validate VFX OSX fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -2330,6 +2384,8 @@ test_config_macos_fast-2020.1:
               -  "**/test-results/**"
 validate_config_macos_fast-2020.1:
     name: Validate Config OSX fast-2020.1
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -2398,6 +2454,8 @@ test_core_windows_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_core_windows_CUSTOM-REVISION:
     name: Validate Core Win CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2463,6 +2521,8 @@ test_lwrp_windows_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_lwrp_windows_CUSTOM-REVISION:
     name: Validate Lightweight Win CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2537,6 +2597,8 @@ test_shadergraph_windows_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_shadergraph_windows_CUSTOM-REVISION:
     name: Validate ShaderGraph Win CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2610,6 +2672,8 @@ test_hdrp_windows_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_hdrp_windows_CUSTOM-REVISION:
     name: Validate HDRP Win CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2687,6 +2751,8 @@ test_universal_windows_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_universal_windows_CUSTOM-REVISION:
     name: Validate Universal Win CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2760,6 +2826,8 @@ test_vfx_windows_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_vfx_windows_CUSTOM-REVISION:
     name: Validate VFX Win CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2832,6 +2900,8 @@ test_config_windows_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_config_windows_CUSTOM-REVISION:
     name: Validate Config Win CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -2900,6 +2970,8 @@ test_core_macos_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_core_macos_CUSTOM-REVISION:
     name: Validate Core OSX CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -2965,6 +3037,8 @@ test_lwrp_macos_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_lwrp_macos_CUSTOM-REVISION:
     name: Validate Lightweight OSX CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -3039,6 +3113,8 @@ test_shadergraph_macos_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_shadergraph_macos_CUSTOM-REVISION:
     name: Validate ShaderGraph OSX CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -3112,6 +3188,8 @@ test_hdrp_macos_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_hdrp_macos_CUSTOM-REVISION:
     name: Validate HDRP OSX CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -3189,6 +3267,8 @@ test_universal_macos_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_universal_macos_CUSTOM-REVISION:
     name: Validate Universal OSX CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -3262,6 +3342,8 @@ test_vfx_macos_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_vfx_macos_CUSTOM-REVISION:
     name: Validate VFX OSX CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -3334,6 +3416,8 @@ test_config_macos_CUSTOM-REVISION:
               -  "**/test-results/**"
 validate_config_macos_CUSTOM-REVISION:
     name: Validate Config OSX CUSTOM-REVISION
+    variables:
+        UPMCI_PROMOTION: 1
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable

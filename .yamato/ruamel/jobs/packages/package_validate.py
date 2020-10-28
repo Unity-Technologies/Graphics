@@ -42,6 +42,7 @@ class Package_ValidateJob():
         # construct job
         job = YMLJob()
         job.set_name(f'Validate { package["name"] } {platform["name"]} {editor["version"]}')
+        job.add_var_custom('UPMCI_PROMOTION', 1)
         job.set_agent(platform['agent_package'])
         job.add_dependencies(dependencies)
         job.add_commands(commands)
