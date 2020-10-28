@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_DrawDistanceProperty;
         SerializedProperty m_FadeScaleProperty;
         SerializedProperty m_StartAngleFadeProperty;
-        SerializedProperty m_EndAngleFadeProperty;   
+        SerializedProperty m_EndAngleFadeProperty;
         SerializedProperty m_UVScaleProperty;
         SerializedProperty m_UVBiasProperty;
         SerializedProperty m_AffectsTransparencyProperty;
@@ -418,13 +418,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
                 using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                 {
-                    EditorGUILayout.PropertyField(m_StartAngleFadeProperty, k_StartAngleFadeContent);
-                    if (EditorGUI.EndChangeCheck() && m_StartAngleFadeProperty.floatValue > m_EndAngleFadeProperty.floatValue)
-                        m_EndAngleFadeProperty.floatValue = m_StartAngleFadeProperty.floatValue;
+                    float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
+                    float angleFadeMaxValue = m_EndAngleFadeProperty.floatValue;
                     EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.PropertyField(m_EndAngleFadeProperty, k_EndAngleFadeContent);
-                    if (EditorGUI.EndChangeCheck() && m_EndAngleFadeProperty.floatValue < m_StartAngleFadeProperty.floatValue)
-                        m_StartAngleFadeProperty.floatValue = m_EndAngleFadeProperty.floatValue;
+                    EditorGUILayout.MinMaxSlider(k_AngleFadeContent, ref angleFadeMinValue, ref angleFadeMaxValue, 0.0f, 180.0f);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_StartAngleFadeProperty.floatValue = angleFadeMinValue;
+                        m_EndAngleFadeProperty.floatValue = angleFadeMaxValue;
+                    }
                 }
 
                 if (!decalLayerEnabled)
