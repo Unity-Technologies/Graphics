@@ -4,9 +4,9 @@ Clamps the color of the Iris to a given color. This is useful in case the refrac
 
 ## Render pipeline compatibility
 
-| **Node**               | **Universal Render Pipeline (URP)** | **High Definition Render Pipeline (HDRP)** |
-| ---------------------- | ----------------------------------- | ------------------------------------------ |
-| Diffusion Profile Node | No                                  | Yes                                        |
+| **Node**                               | **Universal Render Pipeline (URP)** | **High Definition Render Pipeline (HDRP)** |
+| -------------------------------------- | ----------------------------------- | ------------------------------------------ |
+| **Iris Out of Bound Color Clamp Node** | No                                  | Yes                                        |
 
 ## Ports
 
