@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // If ray tracing is enabled for the camera, if the volume override is active and if the RAS is built, we want to do ray traced SSS
                 var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState())
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 {
                     colorBuffer = RenderSubsurfaceScatteringRT(m_RenderGraph, hdCamera,
                                     prepassOutput.depthBuffer, prepassOutput.normalBuffer, colorBuffer,
