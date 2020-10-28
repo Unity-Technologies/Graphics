@@ -133,7 +133,14 @@ namespace UnityEditor.VFX
                 graph.errorManager.ClearAllErrors(this, VFXErrorOrigin.Invalidate);
                 using (var reporter = new VFXInvalidateErrorReporter(graph.errorManager, this))
                 {
-                    GenerateErrors(reporter);
+                    try
+                    {
+                        GenerateErrors(reporter);
+                    }
+                    catch(Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
             }
         }
