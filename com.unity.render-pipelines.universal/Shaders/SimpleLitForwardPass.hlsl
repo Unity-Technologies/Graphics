@@ -3,6 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+// Force enable fog fragment shader evaluation
+#define _FOG_FRAGMENT 1
+
 struct Attributes
 {
     float4 positionOS    : POSITION;
@@ -90,7 +93,11 @@ Varyings LitPassVertexSimple(Attributes input)
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
     half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#if defined(_FOG_FRAGMENT)
+        half fogFactor = 0;
+#else
+        half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.posWS.xyz = vertexInput.positionWS;
@@ -143,7 +150,18 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     InitializeInputData(input, normalTS, inputData);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+    half fogFactor = 0.0;
+#if defined(_FOG_FRAGMENT)
+    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.posWS, 1.0)).z);
+        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+    #endif
+#else
+    fogFactor = inputData.fogCoord;
+#endif
+
+    color.rgb = MixFog(color.rgb, fogFactor);
     color.a = OutputAlpha(color.a, _Surface);
 
     return color;

@@ -180,11 +180,14 @@ half4 LitPassFragment(Varyings input) : SV_Target
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
-#if defined(_FOG_FRAGMENT) && (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-    float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.positionWS, 1.0)).z);
-    half fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+    half fogFactor = 0.0;
+#if defined(_FOG_FRAGMENT)
+    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.positionWS, 1.0)).z);
+        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+    #endif
 #else
-    half fogFactor = inputData.fogCoord;
+    fogFactor = inputData.fogCoord;
 #endif
 
     color.rgb = MixFog(color.rgb, fogFactor);
