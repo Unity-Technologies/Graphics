@@ -11,7 +11,7 @@ Both options can be changed in the [HDRP Asset](HDRP-Asset). If the compositor d
 ## Layer Types
 The Graphics Compositor tool typically handles two types of layers: 
 - **Composition Layers**: The composition layers are the render targets (images) that are blended together to produce the final image. You can define them in the [Composition Graph](#composition-graph). The Composition Graph defines the number of layers and how to combine them but does not define each layer's content.
-- **Sub-layers**: The sub-layers are responisble for generating teh content of the composition layers. You can define them in the Graphics Compositor window, in the [Render Schedule](#render-schedule) section. You can stack multiple Sub-layers to define the content of a Composition Layer. In this case all Sub-layers share the same render target.
+- **Sub-layers**: The sub-layers are responsible for generating the content of the composition layers. You can define them in the Graphics Compositor window, in the [Render Schedule](#render-schedule) section. You can stack multiple Sub-layers to define the content of a Composition Layer. In this case all Sub-layers share the same render target.
 
 
 ## Composition Graph
