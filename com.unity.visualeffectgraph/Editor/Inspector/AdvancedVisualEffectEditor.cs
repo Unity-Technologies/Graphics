@@ -673,9 +673,9 @@ namespace UnityEditor.VFX
             return base.GetWorldBoundsOfTarget(targetObject);
         }
 
-        protected override void SceneViewGUICallback(UnityObject tar, SceneView sceneView)
+        protected override void SceneViewGUICallback(SceneView sceneView)
         {
-            base.SceneViewGUICallback(tar, sceneView);
+            base.SceneViewGUICallback(sceneView);
             if (m_GizmoableParameters.Count > 0)
             {
                 int current = m_GizmoDisplayed ? m_GizmoableParameters.IndexOf(m_GizmoedParameter) : -1;

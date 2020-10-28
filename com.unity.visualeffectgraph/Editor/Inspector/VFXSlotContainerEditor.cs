@@ -13,6 +13,7 @@ using UnityEditor.VFX.UI;
 using UnityObject = UnityEngine.Object;
 using UnityEditorInternal;
 using System.Reflection;
+using UnityEditor.Overlays;
 
 [CustomEditor(typeof(VFXModel), true)]
 [CanEditMultipleObjects]
@@ -145,10 +146,7 @@ class VFXSlotContainerEditor : Editor
                     {
                         m_CurrentController.DrawGizmos(view.attachedComponent);
 
-                        if (m_CurrentController.gizmoables.Count > 0)
-                        {
-                            SceneViewOverlay.Window(new GUIContent("Choose Gizmo"), SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
-                        }
+                        VFXChooseGizmoOverlay.s_Editor = this;
                     }
                 }
                 else
@@ -166,33 +164,37 @@ class VFXSlotContainerEditor : Editor
         }
     }
 
-    protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+    [Overlay(typeof(SceneView),"Scene View/VFX/Choose Gizmo","unity-vfx-choose-gizmo","Choose Gizmo")]
+    class VFXChooseGizmoOverlay : SceneView.TransientSceneViewOverlay
     {
-        if (m_CurrentController == null)
-            return;
+        public static VFXSlotContainerEditor s_Editor;
 
-        var gizmoableAnchors = m_CurrentController.gizmoables;
-        if (gizmoableAnchors.Count > 0)
+        public override bool ShouldDisplay()
         {
-            int current = gizmoableAnchors.IndexOf(m_CurrentController.currentGizmoable);
+            return s_Editor != null && s_Editor.m_CurrentController != null && s_Editor.m_CurrentController.gizmoables.Count > 0;
+        }
+
+        public override void OnGUI()
+        {
+            int current = s_Editor.m_CurrentController.gizmoables.IndexOf(s_Editor.m_CurrentController.currentGizmoable);
             EditorGUI.BeginChangeCheck();
             GUILayout.BeginHorizontal();
-            GUI.enabled = gizmoableAnchors.Count > 1;
-            int result = EditorGUILayout.Popup(current, gizmoableAnchors.Select(t => t.name).ToArray());
+            GUI.enabled = s_Editor.m_CurrentController.gizmoables.Count > 1;
+            int result = EditorGUILayout.Popup(current, s_Editor.m_CurrentController.gizmoables.Select(t => t.name).ToArray());
             GUI.enabled = true;
             if (EditorGUI.EndChangeCheck() && result != current)
             {
-                m_CurrentController.currentGizmoable = gizmoableAnchors[result];
+                s_Editor.m_CurrentController.currentGizmoable = s_Editor.m_CurrentController.gizmoables[result];
             }
-            var slotContainer = targets[0] as VFXModel;
+            var slotContainer = s_Editor.targets[0] as VFXModel;
             bool hasvfxViewOpened = VFXViewWindow.currentWindow != null && VFXViewWindow.currentWindow.graphView.controller != null && VFXViewWindow.currentWindow.graphView.controller.graph == slotContainer.GetGraph();
 
 
-            if (m_CurrentController.gizmoIndeterminate)
+            if (s_Editor.m_CurrentController.gizmoIndeterminate)
             {
                 GUILayout.Label(Contents.gizmoIndeterminateWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
             }
-            else if (m_CurrentController.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null))
+            else if (s_Editor.m_CurrentController.gizmoNeedsComponent && (!hasvfxViewOpened || VFXViewWindow.currentWindow.graphView.attachedComponent == null))
             {
                 GUILayout.Label(Contents.gizmoLocalWarning, Styles.warningStyle, GUILayout.Width(19), GUILayout.Height(18));
             }
@@ -200,20 +202,20 @@ class VFXSlotContainerEditor : Editor
             {
                 if (GUILayout.Button(Contents.gizmoFrame, Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
                 {
-                    if (m_CurrentController != null && VFXViewWindow.currentWindow != null)
+                    if (s_Editor.m_CurrentController != null && VFXViewWindow.currentWindow != null)
                     {
                         VFXView view = VFXViewWindow.currentWindow.graphView;
                         if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                         {
-                            Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
-                            if (b.size.sqrMagnitude > Mathf.Epsilon)
-                                sceneView.Frame(b, false);
+                            Bounds b = s_Editor.m_CurrentController.GetGizmoBounds(view.attachedComponent);
+                            if( b.size.sqrMagnitude > Mathf.Epsilon)
+                                (containerWindow as SceneView).Frame(b, false);
                         }
                     }
                 }
             }
             GUILayout.EndHorizontal();
-        }
+       }
     }
 
     public override void OnInspectorGUI()

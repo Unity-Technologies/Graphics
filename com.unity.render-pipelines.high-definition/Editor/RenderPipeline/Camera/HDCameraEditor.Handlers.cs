@@ -1,9 +1,6 @@
-using System;
-using System.Reflection;
+using UnityEditor.Overlays;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,19 +8,20 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         void OnSceneGUI()
         {
+            s_Editor = null;
             var c = (Camera)target;
 
             if (!UnityEditor.Rendering.CameraEditorUtils.IsViewPortRectValidToRender(c.rect))
                 return;
 
-            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent("Camera Preview"), OnOverlayGUI, -100, target);
+            s_Editor = this;
 
             UnityEditor.CameraEditorUtils.HandleFrustum(c, c.GetInstanceID());
         }
 
-        void OnOverlayGUI(Object target, SceneView sceneView)
+        void OnOverlayGUI(SceneView sceneView)
         {
-            UnityEditor.Rendering.CameraEditorUtils.DrawCameraSceneViewOverlay(target, sceneView, InitializePreviewCamera);
+            UnityEditor.Rendering.CameraEditorUtils.DrawCameraSceneViewOverlay((Camera)target, sceneView, InitializePreviewCamera);
         }
 
         Camera InitializePreviewCamera(Camera c, Vector2 previewSize)
@@ -44,26 +42,19 @@ namespace UnityEditor.Rendering.HighDefinition
             return m_PreviewCamera;
         }
 
-        static Type k_SceneViewOverlay_WindowFunction = Type.GetType("UnityEditor.SceneViewOverlay+WindowFunction,UnityEditor");
-        static Type k_SceneViewOverlay_WindowDisplayOption = Type.GetType("UnityEditor.SceneViewOverlay+WindowDisplayOption,UnityEditor");
-        static MethodInfo k_SceneViewOverlay_Window = Type.GetType("UnityEditor.SceneViewOverlay,UnityEditor")
-            .GetMethod(
-                "Window",
-                BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                CallingConventions.Any,
-                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption, typeof(EditorWindow) },
-                null);
-        static void SceneViewOverlay_Window(GUIContent title, Action<Object, SceneView> sceneViewFunc, int order, Object target)
+        static HDCameraEditor s_Editor;
+
+        [Overlay(typeof(SceneView),"Scene View/HDCamera","unity-sceneview-hdcamera","HD Camera")]
+        class SceneViewCameraOverlay : SceneView.TransientSceneViewOverlay
         {
-            k_SceneViewOverlay_Window.Invoke(null, new[]
+            public override bool ShouldDisplay()
             {
-                title, DelegateUtility.Cast(sceneViewFunc, k_SceneViewOverlay_WindowFunction),
-                order,
-                target,
-                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1),
-                null
-            });
+                return s_Editor != null;
+            }
+            public override void OnGUI()
+            {
+                s_Editor.OnOverlayGUI(containerWindow as SceneView);
+            }
         }
     }
 }

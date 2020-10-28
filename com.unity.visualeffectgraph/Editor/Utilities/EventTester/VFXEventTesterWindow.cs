@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine.VFX;
 using UnityEditorInternal;
 using System.Collections.Generic;
+using UnityEditor.Overlays;
 
 namespace UnityEditor.VFX
 {
@@ -119,20 +120,24 @@ namespace UnityEditor.VFX
         {
             if (Selection.activeGameObject != null)
             {
-                if (Selection.activeGameObject.TryGetComponent<VisualEffect>(out m_Effect))
-                {
-                    SceneViewOverlay.Window(Contents.title, WindowFunction, 599, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
-                }
-                else
+                if (!Selection.activeGameObject.TryGetComponent<VisualEffect>(out m_Effect))
                 {
                     m_Effect = null;
                 }
             }
         }
 
-        static void WindowFunction(UnityEngine.Object target, SceneView sceneView)
+        [Overlay(typeof(SceneView),"Scene View/VFX/Event Tester","unity-vfx-event-tester","VFX Event Tester")]
+        class VFXEventTesterOverlay : SceneView.TransientSceneViewOverlay
         {
-            WindowGUI();
+            public override bool ShouldDisplay()
+            {
+                return m_Effect != null;
+            }
+            public override void OnGUI()
+            {
+                WindowGUI();
+            }
         }
 
         [System.Serializable]

@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected virtual void DrawHandles(TSerialized serialized, Editor owner) { }
         protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) { }
 
-        protected void OnSceneGUI()
+        protected virtual void OnSceneGUI()
         {
             EditorGUI.BeginChangeCheck();
             var soo = m_SerializedHDProbePerTarget[target];

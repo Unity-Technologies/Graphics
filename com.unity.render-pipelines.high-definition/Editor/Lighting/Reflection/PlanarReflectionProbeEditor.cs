@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -123,11 +125,30 @@ namespace UnityEditor.Rendering.HighDefinition
             --EditorGUI.indentLevel;
         }
 
+        static PlanarReflectionProbeEditor s_Editor;
+        protected override void OnSceneGUI()
+        {
+            s_Editor = null;
+            base.OnSceneGUI();
+        }
+
+        [Overlay(typeof(SceneView),"Scene View/Planar Reflection Probe Editor","unity-sceneview-planarreflectionprobeeditor","Planar Reflection Probe")]
+        class Overlay : SceneView.TransientSceneViewOverlay
+        {
+            public override bool ShouldDisplay()
+            {
+                return s_Editor != null;
+            }
+            public override void OnGUI()
+            {
+                s_Editor.OnOverlayGUI(s_Editor.target, containerWindow as SceneView);
+            }
+        }
         protected override void DrawHandles(SerializedPlanarReflectionProbe serialized, Editor owner)
         {
             base.DrawHandles(serialized, owner);
 
-            SceneViewOverlay_Window(EditorGUIUtility.TrTextContent(target.name), OnOverlayGUI, -100, target);
+            s_Editor = this;
 
             if (serialized.probeSettings.mode.intValue != (int)ProbeSettings.Mode.Realtime)
             {
@@ -208,28 +229,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 fovRect.width = width * 0.5f;
                 GUI.TextField(fovRect, $"A: {p.renderData.aspect:F2}");
             }
-        }
-
-        static Type k_SceneViewOverlay_WindowFunction = Type.GetType("UnityEditor.SceneViewOverlay+WindowFunction,UnityEditor");
-        static Type k_SceneViewOverlay_WindowDisplayOption = Type.GetType("UnityEditor.SceneViewOverlay+WindowDisplayOption,UnityEditor");
-        static MethodInfo k_SceneViewOverlay_Window = Type.GetType("UnityEditor.SceneViewOverlay,UnityEditor")
-            .GetMethod(
-                "Window",
-                BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-                null,
-                CallingConventions.Any,
-                new[] { typeof(GUIContent), k_SceneViewOverlay_WindowFunction, typeof(int), typeof(Object), k_SceneViewOverlay_WindowDisplayOption, typeof(EditorWindow) },
-                null);
-        static void SceneViewOverlay_Window(GUIContent title, Action<Object, SceneView> sceneViewFunc, int order, Object target)
-        {
-            k_SceneViewOverlay_Window.Invoke(null, new[]
-            {
-                title, DelegateUtility.Cast(sceneViewFunc, k_SceneViewOverlay_WindowFunction),
-                order,
-                target,
-                Enum.ToObject(k_SceneViewOverlay_WindowDisplayOption, 1),
-                null
-            });
         }
 
         [DrawGizmo(GizmoType.Selected)]

@@ -4,7 +4,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
-
+using UnityEditor.Overlays;
+using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.VFX;
@@ -463,7 +464,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected virtual void SceneViewGUICallback(UnityObject target, SceneView sceneView)
+        protected virtual void SceneViewGUICallback(SceneView sceneView)
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
             if (effect == null)
@@ -551,9 +552,22 @@ namespace UnityEditor.VFX
 
         protected virtual void OnSceneViewGUI(SceneView sv)
         {
-            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, target, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+            s_Editor = this;
         }
+        static VisualEffectEditor s_Editor;
 
+        [Overlay(typeof(SceneView),"Scene View/VFX/Editor","unity-vfx-editor","VFX Editor")]
+        class VFXEditorOverlay : SceneView.TransientSceneViewOverlay
+        {
+            public override bool ShouldDisplay()
+            {
+                return s_Editor != null;
+            }
+            public override void OnGUI()
+            {
+                s_Editor.SceneViewGUICallback(containerWindow as SceneView);
+            }
+        }
         private VFXGraph m_graph;
 
         protected struct NameNTooltip
