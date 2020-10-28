@@ -42,7 +42,6 @@ Shader "HDRP/Unlit"
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
         [HideInInspector] _BlendMode("__blendmode", Float) = 0.0
-        [HideInInspector] _EnableBlendModePreserveSpecularLighting("_EnableBlendModePreserveSpecularLighting", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _AlphaSrcBlend("__alphaSrc", Float) = 1.0
