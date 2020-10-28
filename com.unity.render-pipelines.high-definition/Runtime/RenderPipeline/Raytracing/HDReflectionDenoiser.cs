@@ -181,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = parameters;
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors))
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                 {
                     passData.motionVectorBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
                 }
