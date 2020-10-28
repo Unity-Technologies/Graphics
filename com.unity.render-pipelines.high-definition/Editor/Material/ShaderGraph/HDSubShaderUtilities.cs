@@ -93,6 +93,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular, HLSLDeclaration.UnityPerMaterial);
                 collector.AddToggleProperty(kSupportDecals, receiveDecals);
             }
+            else
+            {
+                // We still need to define it on unlit as it is needed to compile when Material.hlsl is used
+                collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, false, HLSLDeclaration.UnityPerMaterial);
+            }
 
             // Configure render state
             BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
