@@ -50,7 +50,6 @@ The version number for this package has increased due to a version update of a r
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
 - Fixed rare bug causing the vfx compilation to do nothing silently.
 - Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph  
-- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
 - SpawnOverDistance spawner block now behaves correctly
 - Quad strip outputs take into account orientation block
 
