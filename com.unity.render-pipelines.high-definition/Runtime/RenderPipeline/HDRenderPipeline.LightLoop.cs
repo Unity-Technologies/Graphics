@@ -623,18 +623,54 @@ namespace UnityEngine.Rendering.HighDefinition
             return TextureHandle.nullHandle;
         }
 
+        class GenerateMaxZMaskPassData
+        {
+            public GenerateMaxZParameters parameters;
+            public TextureHandle          maxZ8xBuffer;
+            public TextureHandle          maxZBuffer;
+            public TextureHandle          dilatedMaxZBuffer;
+        }
+
+        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
+        {
+            if (Fog.IsVolumetricFogEnabled(hdCamera))
+            {
+                using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
+                {
+                    passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo, frameIndex);
+                    passData.maxZ8xBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask8x));
+                    passData.maxZ8xBuffer = builder.WriteTexture(passData.maxZ8xBuffer);
+                    passData.maxZBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask));
+                    passData.maxZBuffer = builder.WriteTexture(passData.maxZBuffer);
+                    passData.dilatedMaxZBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_DilatedMaxZMask));
+                    passData.dilatedMaxZBuffer = builder.WriteTexture(passData.dilatedMaxZBuffer);
+
+                    builder.SetRenderFunc(
+                    (GenerateMaxZMaskPassData data, RenderGraphContext ctx) =>
+                    {
+                        GenerateMaxZ(data.parameters, data.maxZ8xBuffer, data.maxZBuffer, data.dilatedMaxZBuffer, ctx.cmd);
+                    });
+
+                    return passData.dilatedMaxZBuffer;
+                }
+            }
+
+            return TextureHandle.nullHandle;
+        }
+
         class VolumetricLightingPassData
         {
             public VolumetricLightingParameters parameters;
             public TextureHandle                densityBuffer;
             public TextureHandle                depthTexture;
             public TextureHandle                lightingBuffer;
+            public TextureHandle                maxZBuffer;
             public TextureHandle                historyBuffer;
             public TextureHandle                feedbackBuffer;
             public ComputeBufferHandle          bigTileLightListBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -649,6 +685,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
+                    passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
 
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
@@ -674,13 +711,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 data.depthTexture,
                                                 data.densityBuffer,
                                                 data.lightingBuffer,
+                                                data.maxZBuffer,
                                                 data.parameters.enableReprojection ? data.historyBuffer  : (RTHandle)null,
                                                 data.parameters.enableReprojection ? data.feedbackBuffer : (RTHandle)null,
                                                 data.bigTileLightListBuffer,
                                                 ctx.cmd);
 
                         if (data.parameters.filterVolume)
-                            FilterVolumetricLighting(data.parameters, data.densityBuffer, data.lightingBuffer, ctx.cmd);
+                            FilterVolumetricLighting(data.parameters, data.lightingBuffer, ctx.cmd);
                     });
 
                     if (parameters.enableReprojection)

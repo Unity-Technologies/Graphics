@@ -141,7 +141,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera, prepassOutput, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, rayCountTexture);
 
-                var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, gpuLightListOutput.bigTileLightList, shadowResult, m_FrameCount);
+                var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, m_DepthBufferMipChainInfo, m_FrameCount);
+
+                var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult, m_FrameCount);
 
                 var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
@@ -1259,7 +1261,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (RenderDistortionPassData data, RenderGraphContext context) =>
                 {
                     if (!data.roughDistortion)
-                        HDUtils.BlitCameraTexture(context.cmd, passData.colorBuffer, data.sourceColorBuffer);
+                        HDUtils.BlitCameraTexture(context.cmd, data.colorBuffer, data.sourceColorBuffer);
 
                     // TODO: Set stencil stuff via parameters rather than hard-coding it in shader.
                     data.applyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, data.distortionBuffer);
