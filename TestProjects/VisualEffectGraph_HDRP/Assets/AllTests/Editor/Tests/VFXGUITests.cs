@@ -345,7 +345,7 @@ namespace UnityEditor.VFX.Test
 
             yield return null;
 
-            builtIn.collapsed = true;
+            builtIn.collapsed = false;
 
             yield return null;
 
