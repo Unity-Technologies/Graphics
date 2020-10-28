@@ -106,7 +106,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
 
             public static GUIContent deprecatedParametricLightWarning = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade all of your Parametric Lights to Freeform Lights to enjoy similar light functionalities.", MessageType.Warning);
-            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade later from the menu. Edit > Render Pipeline > Universal Render Pipeline > Upgrade Scene to Parametric Lights");
+            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Edit > Render Pipeline > Universal Render Pipeline > Upgrade Scene to Parametric Lights");
+            public static GUIContent deprecatedParametricLightButtonSingle = EditorGUIUtility.TrTextContent("Upgrade Parametric Light");
+            public static GUIContent deprecatedParametricLightButtonMulti = EditorGUIUtility.TrTextContent("Upgrade Parametric Lights");
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
             public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning);
@@ -453,20 +455,19 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             EditorGUILayout.HelpBox(Styles.deprecatedParametricLightWarning);
             EditorGUILayout.Space();
-            if(GUILayout.Button(new GUIContent("Upgrade All Parametric Lights")))
-            {
-                Renderer2DUpgrader.UpgradeAllParametricLights();
 
-            }
-            EditorGUILayout.Space();
-            if(GUILayout.Button(new GUIContent("Upgrade Project Parametric Light")))
+            GUIContent buttonText = targets.Length > 1 ? Styles.deprecatedParametricLightButtonMulti : Styles.deprecatedParametricLightButtonSingle;
+
+            if (GUILayout.Button(buttonText))
             {
-                Renderer2DUpgrader.UpgradeParametricLightsInProject();
-            }
-            EditorGUILayout.Space();
-            if(GUILayout.Button(new GUIContent("Upgrade Scene Parametric Lights")))
-            {
-                Renderer2DUpgrader.UpgradeParametricLightsInScene();
+                for (int i = 0; i < targets.Length; i++)
+                {
+                    Light2D light = (Light2D)targets[i];
+
+                    if(light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric)
+                        Renderer2DUpgrader.UpgradeParametricLight(light);
+                }
+
             }
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox(Styles.deprecatedParametricLightInstructions);  
@@ -474,23 +475,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         bool DrawLightCommon()
         {
-            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
-
-            if (asset != null)
-            {
-                if (!Light2DEditorUtility.IsUsing2DRenderer())
-                {
-                    EditorGUILayout.HelpBox(Styles.asset2DUnassignedWarning);
-                    return false;
-                }
-            }
-            else
-            {
-                EditorGUILayout.HelpBox(Styles.renderPipelineUnassignedWarning);
-                return false;
-            }
-            EditorGUILayout.Space();
-
             var meshChanged = false;
             Rect lightTypeRect = EditorGUILayout.GetControlRect();
             EditorGUI.BeginProperty(lightTypeRect, GUIContent.none, m_LightType);
@@ -756,45 +740,60 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             serializedObject.Update();
 
-            if(m_LightType.intValue != (int)Light2D.DeprecatedLightType.Parametric)
-                meshChanged = DrawLightCommon();    
-
-            switch (m_LightType.intValue)
+            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
+            if (asset != null)
             {
-                case (int)Light2D.LightType.Point:
-                    {
+                if (!Light2DEditorUtility.IsUsing2DRenderer())
+                {
+                    EditorGUILayout.HelpBox(Styles.asset2DUnassignedWarning);
+                }
+                else
+                {
+                    if (m_LightType.intValue != (int)Light2D.DeprecatedLightType.Parametric)
+                        meshChanged = DrawLightCommon();
 
-                        DrawSpotLight(serializedObject);
-                    }
-                    break;
-                case (int)Light2D.LightType.Freeform:
+                    switch (m_LightType.intValue)
                     {
-                        DrawShapeLight(serializedObject);
-                    }
-                    break;
-                case (int)Light2D.LightType.Sprite:
-                    {
-                        DrawSpriteLight(serializedObject);
-                    }
-                    break;
-                case (int)Light2D.LightType.Global:
-                    {
+                        case (int)Light2D.LightType.Point:
+                            {
 
-                        DrawGlobalLight(serializedObject);
+                                DrawSpotLight(serializedObject);
+                            }
+                            break;
+                        case (int)Light2D.LightType.Freeform:
+                            {
+                                DrawShapeLight(serializedObject);
+                            }
+                            break;
+                        case (int)Light2D.LightType.Sprite:
+                            {
+                                DrawSpriteLight(serializedObject);
+                            }
+                            break;
+                        case (int)Light2D.LightType.Global:
+                            {
+
+                                DrawGlobalLight(serializedObject);
+                            }
+                            break;
+                        case (int)Light2D.DeprecatedLightType.Parametric:
+                            {
+                                DrawParametricDeprecated(serializedObject);
+                            }
+                            break;
                     }
-                    break;
-                case (int)Light2D.DeprecatedLightType.Parametric:
+
+                    AnalyticsTrackChanges(serializedObject);
+                    if (serializedObject.ApplyModifiedProperties())
                     {
-                        DrawParametricDeprecated(serializedObject);
+                        if (meshChanged)
+                            lightObject.UpdateMesh();
                     }
-                    break;
+                }
             }
-
-            AnalyticsTrackChanges(serializedObject);
-            if (serializedObject.ApplyModifiedProperties())
+            else
             {
-                if(meshChanged)
-                    lightObject.UpdateMesh();
+                EditorGUILayout.HelpBox(Styles.renderPipelineUnassignedWarning);
             }
         }
 
