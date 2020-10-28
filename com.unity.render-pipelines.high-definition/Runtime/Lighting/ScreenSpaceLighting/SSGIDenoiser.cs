@@ -311,14 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Input buffers
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                {
-                    passData.motionVectorsBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
-                }
-                else
-                {
-                    passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
-                }
+                passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
 
 
                 // History buffer

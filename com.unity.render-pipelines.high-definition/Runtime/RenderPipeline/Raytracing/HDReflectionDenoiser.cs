@@ -181,14 +181,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = parameters;
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                {
-                    passData.motionVectorBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
-                }
-                else
-                {
-                    passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
-                }
+                passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+
                 passData.intermediateBuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture0" });
                 passData.intermediateBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)

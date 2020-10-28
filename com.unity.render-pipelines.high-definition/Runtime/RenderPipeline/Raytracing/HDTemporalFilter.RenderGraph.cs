@@ -33,14 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Input Buffers
                 passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                {
-                    passData.motionVectorBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
-                }
-                else
-                {
-                    passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
-                }
+                passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
 
                 passData.velocityBuffer = renderGraph.defaultResources.blackTextureXR;
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
@@ -130,14 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Input buffers
                 passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                {
-                    passData.motionVectorBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
-                }
-                else
-                {
-                    passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
-                }
+                passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
 
                 passData.velocityBuffer = builder.ReadTexture(velocityBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
