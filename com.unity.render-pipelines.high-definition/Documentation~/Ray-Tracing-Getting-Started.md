@@ -233,3 +233,10 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 - Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
 - Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support MSAA.
+
+## Unsupported shader graph nodes for ray tracing
+
+When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the ray tracing shader node. Here is the list of the incompatible nodes:
+- DDX, DDY and DDXY nodes.
+- All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
+- Checkerboard node.
