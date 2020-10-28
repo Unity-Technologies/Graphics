@@ -1,7 +1,9 @@
-# Hair Shader 
-The Hair Shader is your starting point for rendering hair and fur in the High Definition Render Pipeline (HDRP). To create a realistic looking hair effect, it uses layers called hair cards. Each hair card represents a different section of hair. If you use semi-transparent hair cards, you must manually sort them so that they are in back-to-front order from every viewing direction.  Under the hood, the Hair Shader is a pre-configured Shader Graph. To learn more about the Hair Shader implementation, or to create your own Hair Shader variant, see the Shader Graph documentation about the [Hair Master Node](Master-Node-Hair.md).  
+# Hair shader 
+The Hair shader is your starting point for rendering hair and fur in the High Definition Render Pipeline (HDRP). To create a realistic looking hair effect, it uses layers called hair cards. Each hair card represents a different section of hair. If you use semi-transparent hair cards, you must manually sort them so that they are in back-to-front order from every viewing direction.
 
 ![](Images/HDRPFeatures-HairShader.png)
+
+Under the hood, the Hair shader is a pre-configured Shader Graph. To learn more about the Hair shader implementation, or to create your own Hair shader variant, see the Shader Graph documentation about the [Hair Master Node](Master-Node-Hair.md).
 
 ## Importing the Hair Sample
 
@@ -14,7 +16,7 @@ HDRP comes with a Hair Material sample to further help you get started. To find 
 
 ## Creating a Hair Material
 
-New Materials in HDRP use the [Lit Shader](Lit-Shader.md) by default. To create a Hair Material from scratch, create a Material and then make it use the Hair Shader. To do this:
+New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create a Hair Material from scratch, create a Material and then make it use the Hair shader. To do this:
 
 1. In the Unity Editor, navigate to your Project's Asset window.
 
@@ -34,7 +36,7 @@ New Materials in HDRP use the [Lit Shader](Lit-Shader.md) by default. To create 
 | --------------------------------- | ------------------------------------------------------------ |
 | **Base Color Map**                | Assign a Texture that controls both the color and opacity of your Material. |
 | **Base Color**                    | Set the color of the Material. If you do not assign a Texture, this is the absolute color of the Material. If you do assign a Texture, the final color of the Material is a combination of the Texture you assign and the color you select. The alpha value of the color controls the transparency level for the Material if you select **Transparent** from the **Surface Type** drop-down. |
-| **Alpha Cutoff**                  | Set the alpha value limit that HDRP uses to determine whether it should render each pixel. If the alpha value of the pixel is equal to or higher than the limit then HDRP renders the pixel. If the value is lower than the limit then HDRP does not render the pixel. This port only appears when you enable the **Alpha Clipping** setting. |
+| **Alpha Cutoff**                  | Set the alpha value limit that HDRP uses to determine whether it should render each pixel. If the alpha value of the pixel is equal to or higher than the limit then HDRP renders the pixel. If the value is lower than the limit then HDRP does not render the pixel. This property only appears when you enable the **Alpha Clipping** setting. |
 | **Alpha Cutoff Prepass**          | Set the alpha value limit that HDRP uses to determine whether it should discard the fragment from the depth prepass.<br/>This property only appears when you enable the **Alpha Clipping** and **Transparent Depth Postpass** settings. |
 | **Alpha Cutoff Postpass**         | Set the alpha value limit that HDRP uses to determine whether it should discard the fragment from the depth postpass.<br/>This property only appears when you enable the **Alpha Clipping** and **Transparent Depth Postpass** settings. |
 | **Alpha Cutoff Shadows**          | Set the alpha value limit that HDRP uses to determine whether it should render shadows for a fragment.<br/>This property only appears when you enable the **Use Shadow Threshold** settings. |

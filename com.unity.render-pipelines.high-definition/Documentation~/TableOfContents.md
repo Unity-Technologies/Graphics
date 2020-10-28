@@ -73,6 +73,7 @@
       * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
+    * [Cottom/Wool Shader](cotton-wool-shader.md)
     * [Hair Shader](hair-shader.md)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader)
