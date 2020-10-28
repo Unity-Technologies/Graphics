@@ -732,6 +732,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void Sanitize(ref FrameSettings sanitizedFrameSettings, Camera camera, RenderPipelineSettings renderPipelineSettings)
         {
             bool reflection = camera.cameraType == CameraType.Reflection;
+            // We have no clear flag to identify if a reflection is a planar reflection or a reflection probe. For now, the only way to do
+            // it is to check if the matrix is oblique.
+            bool reflectionPlanar = GeometryUtils.IsProjectionMatrixOblique(camera.projectionMatrix);
             bool preview = HDUtils.IsRegularPreviewCamera(camera);
             bool sceneViewFog = CoreUtils.IsSceneViewFogEnabled(camera);
 
@@ -776,7 +779,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ReprojectionForVolumetrics] &= !preview;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightLayers] &= renderPipelineSettings.supportLightLayers && !preview;
-            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= !reflection && !preview;
+            // We allow the user to enable exposure control on planar reflections, but not on reflection probes.
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ExposureControl] &= (!reflection || (reflectionPlanar && reflection)) && !preview;
 
             // Planar and real time cubemap doesn't need post process and render in FP16
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Postprocess] &= !reflection && !preview;
