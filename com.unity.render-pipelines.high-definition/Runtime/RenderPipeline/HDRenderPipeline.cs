@@ -4825,7 +4825,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                 // Bind the non mip chain if we are rendering the transaprent version
-                if (parameters.transparentSSR)
+                //if (parameters.transparentSSR)
                 {
                     cmd.SetComputeTextureParam(cs, parameters.tracingKernel, HDShaderIDs._DepthTexture, depthTexture);
                 }
@@ -4855,7 +4855,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SsrReprojection)))
             {
-                if (parameters.transparentSSR)
+                //if (parameters.transparentSSR)
                 {
                     cmd.SetComputeTextureParam(cs, parameters.reprojectionKernel, HDShaderIDs._DepthTexture, depthTexture);
                 }
@@ -4876,7 +4876,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SsrAccumulate)))
                 {
-                    if (parameters.transparentSSR)
+                    //if (parameters.transparentSSR)
                     {
                         cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._DepthTexture, depthTexture);
                     }
