@@ -349,7 +349,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             DrawNormalMapGroup();
         }
 
-        void DrawPropertiesHorizontal(GUIContent label, SerializedProperty property1, GUIContent content1, SerializedProperty property2, GUIContent content2)
+        void DrawRadiusProperties(GUIContent label, SerializedProperty innerRadius, GUIContent content1, SerializedProperty outerRadius, GUIContent content2)
         {
             GUIStyle style = GUI.skin.box;
 
@@ -360,9 +360,15 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.BeginHorizontal();
             EditorGUI.indentLevel = 0;
             EditorGUIUtility.labelWidth = style.CalcSize(content1).x;
-            EditorGUILayout.PropertyField(property1, content1);
+            EditorGUILayout.PropertyField(innerRadius, content1);
+            if (innerRadius.floatValue > outerRadius.floatValue)
+                innerRadius.floatValue = outerRadius.floatValue;
+
             EditorGUIUtility.labelWidth = style.CalcSize(content2).x;
-            EditorGUILayout.PropertyField(property2, content2);
+            EditorGUILayout.PropertyField(outerRadius, content2);
+            if (innerRadius.floatValue < outerRadius.floatValue)
+                outerRadius.floatValue = innerRadius.floatValue;
+
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndHorizontal();
             EditorGUIUtility.labelWidth = savedLabelWidth;
@@ -500,7 +506,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawSpotLight(SerializedObject serializedObject)
         {
-            DrawPropertiesHorizontal(Styles.pointLightRadius, m_PointInnerRadius, Styles.pointLightInner, m_PointOuterRadius, Styles.pointLightOuter);
+            DrawRadiusProperties(Styles.pointLightRadius, m_PointInnerRadius, Styles.pointLightInner, m_PointOuterRadius, Styles.pointLightOuter);
             DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
             EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
