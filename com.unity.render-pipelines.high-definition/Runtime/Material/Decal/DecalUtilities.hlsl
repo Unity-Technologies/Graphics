@@ -38,7 +38,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         {
             float dotAngle = dot(vtxNormal, decalData.normalToWorld[2].xyz);
             // See equation in DecalSystem.cs - simplified to a madd here
-            angleFadeFactor = saturate(angleFade.x - angleFade.y * dotAngle * (dotAngle - 2.0));
+            float angleFadeFactor = saturate(angleFade.x - angleFade.y * dotAngle * (dotAngle - 2.0));
             fadeFactor *= angleFadeFactor;
         }
 

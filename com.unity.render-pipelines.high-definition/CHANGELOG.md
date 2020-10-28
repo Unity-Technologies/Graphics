@@ -56,6 +56,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed GC allocs in render graph.
 - Fixed scene picking passes.
 - Fixed broken ray tracing light cluster full screen debug.
+- Fixed normal flip with double sided materials.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -67,6 +68,8 @@ The version number for this package has increased due to a version update of a r
 - Now the DXR wizard displays the name of the target asset that needs to be changed.
 - Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
 - Making the reflection and refractions of cubemaps distance based.
+- Range handles for decal projector angle fading.
+- Smoother angle fading for decal projector.
 
 ## [10.1.0] - 2020-10-12
 
