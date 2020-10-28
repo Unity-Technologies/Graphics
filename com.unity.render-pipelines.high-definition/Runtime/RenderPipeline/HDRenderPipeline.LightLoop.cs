@@ -458,11 +458,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
 
                     passData.normalBuffer = builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
-                    // TODO RENDERGRAPH: SSR does not work without movecs... should we disable the feature altogether when not available?
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                        passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
-                    else
-                        passData.motionVectorsBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+                    passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
 
                     passData.hdCamera = hdCamera;
                     passData.blueNoise = GetBlueNoiseManager();
