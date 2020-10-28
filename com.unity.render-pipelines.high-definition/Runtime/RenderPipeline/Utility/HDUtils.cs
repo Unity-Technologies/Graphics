@@ -1122,22 +1122,40 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
+            var osFamily = BuildTargetToOperatingSystemFamily(buildTarget);
 #else
             string currentPlatform = SystemInfo.operatingSystem;
+            var osFamily = SystemInfo.operatingSystemFamily;
 #endif
 
-            string msg = "Platform " + currentPlatform + " with graphic API " + graphicAPI + " is not supported with HDRP";
+            string os = null;
+            switch (osFamily)
+            {
+                case OperatingSystemFamily.MacOSX:
+                    os = "Mac";
+                    break;
+                case OperatingSystemFamily.Windows:
+                    os = "Windows";
+                    break;
+                case OperatingSystemFamily.Linux:
+                    os = "Linux";
+                    break;
+            }
+
+            string msg = "Platform " + currentPlatform + " with graphics API " + graphicAPI + " is not supported with HDRP";
 
             // Display more information to the users when it should have use Metal instead of OpenGL
             if (graphicAPI.StartsWith("OpenGL"))
             {
                 if (SystemInfo.operatingSystem.StartsWith("Mac"))
-                    msg += ", use the Metal graphic API instead";
+                    msg += ", use the Metal graphics API instead";
                 else if (SystemInfo.operatingSystem.StartsWith("Windows"))
-                    msg += ", use the Vulkan graphic API instead";
+                    msg += ", use the Vulkan graphics API instead";
             }
 
-            msg += ".\nPlease change the platform/device to a compatible one or remove incompatible graphics APIs in Project Settings > Player > Other Settings.";
+            msg += ".\nChange the platform/device to a compatible one or remove incompatible graphics APIs.\n";
+            if (os != null)
+                msg += "To do this, go to Project Settings > Player > Other Settings and modify the Graphics APIs for " + os + " list.";
 
             return msg;
         }
