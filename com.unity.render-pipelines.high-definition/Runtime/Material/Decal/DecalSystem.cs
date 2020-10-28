@@ -679,7 +679,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return ((m_Material != null) && (m_NumResults > 0));
             }
 
-            public void CreateDrawData()
+            public void CreateDrawData(bool prepasslessDecals)
             {
                 int instanceCount = 0;
                 int batchCount = 0;
@@ -727,7 +727,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             decalLayerMaskBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
 
                             // clustered forward data
-                            if (m_CachedAffectsTransparency[decalIndex])
+                            if (prepasslessDecals || m_CachedAffectsTransparency[decalIndex])
                             {
                                 m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                                 m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
@@ -1117,7 +1117,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        public void CreateDrawData()
+        public void CreateDrawData(bool prepasslessDecals)
         {
             m_DecalDatasCount = 0;
             // reallocate if needed
@@ -1149,7 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             foreach (var decalSet in m_DecalSetsRenderList)
-                decalSet.CreateDrawData();
+                decalSet.CreateDrawData(prepasslessDecals);
             }
 
         public void Cleanup()

@@ -2420,12 +2420,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DBufferPrepareDrawData)))
                 {
+                    bool prepasslessDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals);
                     // TODO: update singleton with DecalCullResults
                     DecalSystem.instance.CurrentCamera = hdCamera.camera; // Singletons are extremely dangerous...
                     DecalSystem.instance.LoadCullResults(decalCullingResults);
-                    DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
-                    DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
-                    DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
+                    DecalSystem.instance.UpdateCachedMaterialData();        // textures, alpha or fade distances could've changed
+                    DecalSystem.instance.CreateDrawData(prepasslessDecals); // prepare data is separate from draw
+                    DecalSystem.instance.UpdateTextureAtlas(cmd);           // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
                 }
             }
 
