@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-### Changed
-- Improved the punctual light shadow rescale algorithm.
-
 ## [10.2.0] - 2020-10-19
 
 ### Added
@@ -70,6 +67,7 @@ The version number for this package has increased due to a version update of a r
 - Now the DXR wizard displays the name of the target asset that needs to be changed.
 - Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
 - Making the reflection and refractions of cubemaps distance based.
+- Improved the punctual light shadow rescale algorithm.
 
 ## [10.1.0] - 2020-10-12
 
