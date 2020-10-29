@@ -83,7 +83,7 @@ all:
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-#        - performance_editmode_build
+        - performance_editmode_build
 #    - platform: OSX
 #      api: Metal
 #      build_config: il2cpp
@@ -97,14 +97,14 @@ all:
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-#        - performance_editmode_build
+        - performance_editmode_build
     - platform: Android
       api: Vulkan
       build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-#        - performance_editmode_build
+        - performance_editmode_build
 #    - platform: iPhone
 #      api: Metal
 #      build_config: il2cpp
