@@ -231,6 +231,17 @@
             * [Or](Or-Node)
         * High Definition Render Pipeline
             * [Emission](Emission-Node.md)
+            * Eye
+              * [CirclePupilAnimation](Circle-Pupil-Animation-Node.md)
+              * [CorneaRefraction](Cornea-Refraction-Node.md)
+              * [EyeSurfaceTypeDebug](Eye-Surface-Type-Debug-Node.md)
+              * [IrisLimbalRing](Iris-Limbal-Ring-Node.md)
+              * [IrisOffset](Iris-Offset-Node.md)
+              * [IrisOutOfBoundColorClamp](Iris-Out-Of-Bound-Color-Clamp-Node.md)
+              * [IrisUVLocation](Iris-UV-Location-Node.md)
+              * [ScleraIrisBlend](Sclera-Iris-Blend-Node.md)
+              * [ScleraLimbalRing](Sclera-Limbal-Ring-Node.md)
+              * [ScleraUVLocation](Sclera-UV-Location-Node.md)
         * [Custom Function](Custom-Function-Node)
         * [Keyword](Keyword-Node)
         * [Preview](Preview-Node)
