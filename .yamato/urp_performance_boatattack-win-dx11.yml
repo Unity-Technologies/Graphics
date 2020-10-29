@@ -38,10 +38,10 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -88,10 +88,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_il2cpp_apiNet4_L
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -135,10 +135,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_apiNet4_Li
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -201,10 +201,10 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -251,10 +251,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_apiNet2_Lin
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -298,10 +298,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_apiNet2_Line
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -368,10 +368,10 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_CUSTOM-RE
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -422,10 +422,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_il2cpp_apiNet4_L
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -473,10 +473,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_apiNet4_Li
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -546,10 +546,10 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVI
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -600,10 +600,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_apiNet2_Lin
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
@@ -651,10 +651,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_apiNet2_Line
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
