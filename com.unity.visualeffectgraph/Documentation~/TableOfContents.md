@@ -330,8 +330,6 @@
       * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
     * Utility
       * [Point Cache](Operator-PointCache.md)
-  * System
-  * Misc
 * Reference
   * [Standard Attributes](Reference-Attributes.md)
   * [Types](VisualEffectGraphTypeReference.md)
