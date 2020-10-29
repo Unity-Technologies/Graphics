@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed probe volumes debug views.
 
+### Added
+- Added support for raytracing for AxF material
+- Added area light moment shadows for AxF material
+- Added area light cookies for AxF material
+
+
 ## [10.2.0] - 2020-10-19
 
 ### Added
