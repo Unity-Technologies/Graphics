@@ -50,12 +50,12 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -100,12 +100,12 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_editor_il2cpp_
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -147,12 +147,12 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -220,12 +220,12 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -270,12 +270,12 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_editor_mono_Li
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -317,12 +317,12 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_Lin
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -394,12 +394,12 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-R
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -448,12 +448,12 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_editor_il2cpp_
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -499,12 +499,12 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -579,12 +579,12 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_mono_Linear_CUSTOM-REV
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -633,12 +633,12 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_editor_mono_Li
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
@@ -684,12 +684,12 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_Lin
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git" --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable test.metadata-manager  --project-path .
+      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
