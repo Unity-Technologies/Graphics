@@ -69,7 +69,17 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
+    half fogFactor = 0.0;
+#if defined(_FOG_FRAGMENT)
+    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.posWS, 1.0)).z);
+        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+    #endif
+#else
+    fogFactor = input.fogFactorAndVertexLight.x;
+#endif
+
+    inputData.fogCoord = fogFactor;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
@@ -150,18 +160,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     InitializeInputData(input, normalTS, inputData);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
-
-    half fogFactor = 0.0;
-#if defined(_FOG_FRAGMENT)
-    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.posWS, 1.0)).z);
-        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
-    #endif
-#else
-    fogFactor = inputData.fogCoord;
-#endif
-
-    color.rgb = MixFog(color.rgb, fogFactor);
+    color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 
     return color;
