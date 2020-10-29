@@ -69,6 +69,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
 
+            // Force enable fog fragment shader evaluation
+            #define _FOG_FRAGMENT 1
+
             struct Attributes
             {
                 float4 positionOS       : POSITION;
@@ -105,7 +108,12 @@ Shader "Universal Render Pipeline/Baked Lit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
+
+            #if defined(_FOG_FRAGMENT)
+                output.uv0AndFogCoord.z = vertexInput.positionVS.z;
+            #else
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
+            #endif
 
                 // normalWS and tangentWS already normalize.
                 // this is required to avoid skewing the direction during interpolation
@@ -151,7 +159,18 @@ Shader "Universal Render Pipeline/Baked Lit"
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
-                color = MixFog(color, input.uv0AndFogCoord.z);
+
+                half fogFactor = 0.0;
+            #if defined(_FOG_FRAGMENT)
+                #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+                    float viewZ = abs(input.uv0AndFogCoord.z);
+                    fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+                #endif
+            #else
+                fogFactor = input.uv0AndFogCoord.z;
+            #endif
+
+                color = MixFog(color, fogFactor);
                 alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
@@ -311,6 +330,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
 
+            // Force enable fog fragment shader evaluation
+            #define _FOG_FRAGMENT 1
+
             struct Attributes
             {
                 float4 positionOS       : POSITION;
@@ -347,7 +369,11 @@ Shader "Universal Render Pipeline/Baked Lit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
+            #if defined(_FOG_FRAGMENT)
+                output.uv0AndFogCoord.z = vertexInput.positionVS.z;
+            #else
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
+            #endif
 
                 // normalWS and tangentWS already normalize.
                 // this is required to avoid skewing the direction during interpolation
@@ -393,7 +419,18 @@ Shader "Universal Render Pipeline/Baked Lit"
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
-                color = MixFog(color, input.uv0AndFogCoord.z);
+
+                half fogFactor = 0.0;
+            #if defined(_FOG_FRAGMENT)
+                #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+                    float viewZ = abs(input.uv0AndFogCoord.z);
+                    fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+                #endif
+            #else
+                fogFactor = input.uv0AndFogCoord.z;
+            #endif
+
+                color = MixFog(color, fogFactor);
                 alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
