@@ -49,11 +49,11 @@ The **Render Graph** panel has tools that you can use to debug the [Render Graph
 
 | **Debug Option**  | **Description**                                              |
 | ----------------- | ------------------------------------------------------------ |
-| **Clear Render Targets at creation**  | Enable the checkbox to clear render targets the first time they are used. |
+| **Clear Render Targets at creation**  | Enable the checkbox to make the Render Graph system clear render targets the first time it uses them |
 | **Disable Pass Culling**              | Enable the checkbox to render passes which have no impact on the final render. |
-| **Immediate Mode**                    | Enable the checkbox to have Render Graph evaluate passes immediately after they are created. |
-| **Log Frame Information**             | Press the button to log in the console informations about the passes rendered during a frame. |
-| **Log Resources**                     | Press the button to log in the console the list of resources used when rendering a frame. |
+| **Immediate Mode**                    | Enable the checkbox to make the Render Graph system evaluate passes immediately after it creates them. |
+| **Log Frame Information**             | Press the button to log in the Console informations about the passes rendered during a frame. |
+| **Log Resources**                     | Press the button to log in the Console the list of resources used when rendering a frame. |
 
 <a name="DecalsPanel"></a>
 
@@ -127,7 +127,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **Clear Shadow Atlas**  | Enable the checkbox to clear the shadow atlas every frame.   |
 | **Range Minimum Value** | Set the minimum shadow value to display in the various shadow debug overlays. |
 | **Range Maximum Value** | Set the maximum shadow value to display in the various shadow debug overlays. |
-| **Log Cached Shadow Atlas Status** | Press the button to log in the console the list of lights placed in the the cached shadow atlas. |
+| **Log Cached Shadow Atlas Status** | Press the button to log in the Console the list of lights placed in the the cached shadow atlas. |
 
 | **Lighting Debug Option**             | **Description**                                              |
 | ------------------------------------- | ------------------------------------------------------------ |
@@ -139,9 +139,9 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **Exposure**                          | Allows you to select an [Exposure](Override-Exposure.md) debug mode to use. |
 | **- Debug Mode**                      | Use the drop-down to select a debug mode. See [Exposure](Override-Exposure.md#exposure-debug-modes) documentation for more information. |
 | - **Show Tonemap curve**              | Enable the checkbox to overlay the tonemap curve to the histogram debug view.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
-| **- Center Around Exposure**          | Enable the checkbox to overlay the center the histogram around the current exposure value.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
+| **- Center Around Exposure**          | Enable the checkbox to center the histogram around the current exposure value.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
 | **- Display RGB Histogram**           | Enable the checkbox to display the Final Image Histogram as an RGB histogram instead of just luminance.<br />This property only appears when you select **FinalImageHistogramView** from **Debug Mode**. |
-| **- Display Mask Only**               | Enable the checkbox to display only the metering mask in the picture-in-picture, if unchecked the mask will displayed after weighting the scene color instead. <br />This property only appears when you select **MeteringWeighted** from **Debug Mode**. |
+| **- Display Mask Only**               | Enable the checkbox to display only the metering mask in the picture-in-picture.When disabled, the mask displays after weighting the scene color instead. <br />This property only appears when you select **MeteringWeighted** from **Debug Mode**. |
 | **- Debug Exposure Compensation**     | Set an additional exposure compensation for debug purposes.  |
 | **Debug Mode**                        | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, direct diffuse lighting, direct specular lighting, indirect diffuse lighting, indirect specular lighting, emissive lighting and Directional Light shadow cascades. |
 | **Hierarchy Debug Mode**              | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
