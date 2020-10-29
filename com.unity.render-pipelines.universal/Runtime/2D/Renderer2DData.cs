@@ -33,11 +33,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         float m_HDREmulationScale = 1;
 
+        [SerializeField, Range(0.01f, 1.0f)]
+        float m_LightRenderTextureScale = 0.5f;
+
         [SerializeField, FormerlySerializedAs("m_LightOperations")]
         Light2DBlendStyle[] m_LightBlendStyles = null;
 
         [SerializeField]
         bool m_UseDepthStencilBuffer = true;
+
+        [SerializeField]
+        uint m_MaxLightRenderTextureCount = 16;
 
         [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
         Shader m_ShapeLightShader = null;
@@ -60,10 +66,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2DRemoveSelf.shader")]
         Shader m_RemoveSelfShadowShader = null;
 
+        [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
+        Shader m_FallbackErrorShader;
+
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
         public float hdrEmulationScale => m_HDREmulationScale;
+        internal float lightRenderTextureScale => m_LightRenderTextureScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
 
@@ -77,6 +87,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal PostProcessData postProcessData => m_PostProcessData;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
+        internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;
 
         protected override ScriptableRenderer Create()
         {
@@ -117,6 +128,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Material[] shadowMaterials { get; private set; }
         internal Material[] removeSelfShadowMaterials { get; private set; }
 
+        internal bool isNormalsRenderTargetValid { get; set; }
+        internal float normalsRenderTargetScale { get; set; }
         internal RenderTargetHandle normalsRenderTarget;
         internal RenderTargetHandle shadowsRenderTarget;
 
