@@ -80,6 +80,7 @@ The version number for this package has increased due to a version update of a r
 - Improved the punctual light shadow rescale algorithm.
 - Changed the names of some of the parameters for the Eye Utils SG Nodes.
 - Restored frame setting for async compute of contact shadows.
+- Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
 
 ## [10.1.0] - 2020-10-12
 
