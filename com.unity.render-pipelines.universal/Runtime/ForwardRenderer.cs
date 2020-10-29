@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DeferredLights.TiledDeferredShading = false;
                 UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
 
-                m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
+                m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingGbuffer, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
                 // Forward-only pass only runs if deferred renderer is enabled.
                 // It allows specific materials to be rendered in a forward-like pass.
                 // We render both gbuffer pass and forward-only pass before the deferred lighting pass so we can minimize copies of depth buffer and
@@ -156,11 +156,11 @@ namespace UnityEngine.Rendering.Universal
                     new ShaderTagId("LightweightForward") // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
                 };
                 int forwardOnlyStencilRef = stencilData.stencilReference | (int)StencilUsage.MaterialUnlit;
-                m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingOpaques + 1, m_CopyDepthMaterial);
-                m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
-                m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
-                m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, m_DeferredLights);
-                m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques + 5, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
+                m_GBufferCopyDepthPass = new CopyDepthPass(RenderPassEvent.BeforeRenderingGbuffer + 1, m_CopyDepthMaterial);
+                m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingGbuffer + 2, m_DeferredLights, 0);
+                m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingGbuffer + 3, m_DeferredLights, 1);
+                m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingDeferred, m_DeferredLights);
+                m_RenderOpaqueForwardOnlyPass = new DrawObjectsPass("Render Opaques Forward Only", forwardOnlyShaderTagIds, true, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, forwardOnlyStencilState, forwardOnlyStencilRef);
             }
 
             // Always create this pass even in deferred because we use it for wireframe rendering in the Editor or offscreen depth texture rendering.
@@ -718,10 +718,10 @@ namespace UnityEngine.Rendering.Universal
                 bool needsDepth   = (pass.input & ScriptableRenderPassInput.Depth) != ScriptableRenderPassInput.None;
                 bool needsNormals = (pass.input & ScriptableRenderPassInput.Normal) != ScriptableRenderPassInput.None;
                 bool needsColor   = (pass.input & ScriptableRenderPassInput.Color) != ScriptableRenderPassInput.None;
-                bool eventBeforeOpaque = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingOpaques;
+                bool eventBeforeGbuffer = pass.renderPassEvent <= RenderPassEvent.BeforeRenderingGbuffer;
 
                 inputSummary.requiresDepthTexture   |= needsDepth;
-                inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeOpaque;
+                inputSummary.requiresDepthPrepass   |= needsNormals || needsDepth && eventBeforeGbuffer;
                 inputSummary.requiresNormalsTexture |= needsNormals;
                 inputSummary.requiresColorTexture   |= needsColor;
             }

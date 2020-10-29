@@ -18,8 +18,7 @@ namespace UnityEngine.Rendering.Universal
         internal enum DepthSource
         {
             Depth = 0,
-            DepthNormals = 1,
-            GBuffer = 2
+            DepthNormals = 1
         }
 
         internal enum NormalQuality
@@ -61,7 +60,7 @@ namespace UnityEngine.Rendering.Universal
 
             GetMaterial();
             m_SSAOPass.profilerTag = name;
-            m_SSAOPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
+            m_SSAOPass.renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
         }
 
         /// <inheritdoc/>
@@ -77,11 +76,7 @@ namespace UnityEngine.Rendering.Universal
 
             bool shouldAdd = m_SSAOPass.Setup(m_Settings);
             if (shouldAdd)
-            {
-                if (m_Settings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.GBuffer)
-                    m_SSAOPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques + 2; // hard-coded magic value to insert after gbuffer-copy-depth pass but before lighting pass
                 renderer.EnqueuePass(m_SSAOPass);
-            }
         }
 
         /// <inheritdoc/>
@@ -161,7 +156,6 @@ namespace UnityEngine.Rendering.Universal
                         ConfigureInput(ScriptableRenderPassInput.Depth);
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
-                    case ScreenSpaceAmbientOcclusionSettings.DepthSource.GBuffer:
                         ConfigureInput(ScriptableRenderPassInput.Normal);// need depthNormal prepass for forward-only geometry
                         break;
                     default:
@@ -232,7 +226,6 @@ namespace UnityEngine.Rendering.Universal
                 switch (m_CurrentSettings.Source)
                 {
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
-                    case ScreenSpaceAmbientOcclusionSettings.DepthSource.GBuffer:
                         CoreUtils.SetKeyword(material, k_SourceDepthKeyword, false);
                         CoreUtils.SetKeyword(material, k_SourceDepthNormalsKeyword, true);
                         break;
