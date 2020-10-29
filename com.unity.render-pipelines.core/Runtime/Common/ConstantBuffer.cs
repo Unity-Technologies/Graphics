@@ -192,6 +192,9 @@ namespace UnityEngine.Rendering
 
             public override void Release()
             {
+                // Depending on the device, globally bound buffers can leave stale "valid" shader ids pointing to a destroyed buffer.
+                // In DX11 it does not cause issues but on Vulkan this will result in skipped drawcalls (even if the buffer is not actually accessed in the shader).
+                // To avoid this kind of issues, it's good practice to "unbind" all globally bound buffers upon destruction.
                 foreach (int shaderId in m_GlobalBindings)
                     Shader.SetGlobalConstantBuffer(shaderId, (ComputeBuffer)null, 0, 0);
                 m_GlobalBindings.Clear();
