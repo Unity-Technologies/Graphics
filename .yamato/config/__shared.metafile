@@ -29,10 +29,10 @@ build_configs:
     api_level: NET_4_6
   - name: il2cpp
     scripting_backend: IL2CPP
-    api_level: ''
+    api_level: '' # uses the project default
   - name: mono
     scripting_backend: Mono2x
-    api_level: ''
+    api_level: '' # uses the project default
 color_spaces:
   - Linear
   - gamma
