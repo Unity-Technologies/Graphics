@@ -267,6 +267,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + 1 : -1; } }
         internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0); } }
 
+        internal GraphicsFormat GBufferDefaultNormalsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render)
+                ? GraphicsFormat.R8G8B8A8_SNorm
+                : GraphicsFormat.R8G8B8A8_UNorm;
+
         internal GraphicsFormat GetGBufferFormat(int index)
         {
             if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
@@ -274,7 +278,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (index == GBufferSpecularMetallicIndex) // sRGB specular, [unused]
                 return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;    
             else if (index == GBufferNormalSmoothnessIndex)
-                return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
+                return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GBufferDefaultNormalsFormat; // normal normal normal packedSmoothness
             else if (index == GBufferLightingIndex) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
                 return GraphicsFormat.None;
             else if (index == GbufferDepthIndex) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
