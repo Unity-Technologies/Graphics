@@ -3,6 +3,9 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+// Force enable fog fragment shader evaluation
+#define _FOG_FRAGMENT 1
+
 struct AttributesParticle
 {
     float4 vertex : POSITION;
@@ -70,7 +73,17 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
     output.viewDirectionWS = viewDirWS;
 
-    output.fogCoord = (half)input.positionWS.w;
+    half fogFactor = 0.0;
+#if defined(_FOG_FRAGMENT)
+    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.positionWS.xyz, 1.0)).z);
+        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+    #endif
+#else
+    fogFactor = (half)input.positionWS.w;
+#endif
+
+    output.fogCoord = fogFactor;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
@@ -92,9 +105,14 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
 
+    half fogFactor = 0.0;
+#if !defined(_FOG_FRAGMENT)
+    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
+
     // position ws is used to compute eye depth in vertFading
     output.positionWS.xyz = vertexInput.positionWS;
-    output.positionWS.w = ComputeFogFactor(vertexInput.positionCS.z);
+    output.positionWS.w = fogFactor;
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
 
@@ -159,7 +177,17 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 #endif
 
     half3 result = albedo.rgb + emission;
-    half fogFactor = input.positionWS.w;
+
+    half fogFactor = 0.0;
+#if defined(_FOG_FRAGMENT)
+    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.positionWS.xyz, 1.0)).z);
+        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+    #endif
+#else
+    fogFactor = (half)input.positionWS.w;
+#endif
+
     result = MixFog(result, fogFactor);
     albedo.a = OutputAlpha(albedo.a, _Surface);
 

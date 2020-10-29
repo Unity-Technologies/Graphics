@@ -4,6 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
+// Force enable fog fragment shader evaluation
+#define _FOG_FRAGMENT 1
+
 struct AttributesParticle
 {
     float4 vertex : POSITION;
@@ -83,7 +86,17 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    output.fogCoord = (half)input.positionWS.w;
+    half fogFactor = 0.0;
+#if defined(_FOG_FRAGMENT)
+    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.positionWS.xyz, 1.0)).z);
+        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+    #endif
+#else
+    fogFactor = (half)input.positionWS.w;
+#endif
+
+    output.fogCoord = fogFactor;
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
@@ -121,8 +134,13 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
 
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
+    half fogFactor = 0.0;
+#if !defined(_FOG_FRAGMENT)
+    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
+
     output.positionWS.xyz = vertexInput.positionWS.xyz;
-    output.positionWS.w = ComputeFogFactor(vertexInput.positionCS.z);
+    output.positionWS.w = fogFactor;
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
 
