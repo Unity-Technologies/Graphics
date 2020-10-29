@@ -32,6 +32,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where user setting a property to not Exposed, Hybrid-Instanced would result in a non-Hybrid Global property [1285700]
 - Fixed an issue with Gradient when it is used as expose parameters. Generated code was failing [1285640 ]
 - Fixed the subgraph slot sorting function [1286805]
+- Fixed an issue where the presence of an HDRP DiffusionProfile property or node would cause the graph to fail to load when HDRP package was not present [1287904]
+- Fixed an issue where unknown type Nodes (i.e. HDRP-only nodes used without HDRP package) could be copied, resulting in an unloadable graph [1288475]
 
 ## [10.1.0] - 2020-10-12
 
