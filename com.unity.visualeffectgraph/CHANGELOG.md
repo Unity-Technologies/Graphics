@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
 - Fixed rare bug causing the vfx compilation to do nothing silently.
 - Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph  
+- Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
 
 ## [8.2.0] - 2020-07-08
 
