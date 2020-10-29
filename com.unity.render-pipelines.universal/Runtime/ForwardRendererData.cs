@@ -4,6 +4,7 @@ using UnityEditor.ProjectWindowCallback;
 #endif
 using System;
 using UnityEngine.Scripting.APIUpdating;
+using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -46,6 +47,14 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            //[Reload("Shaders/Utils/TileDepthInfo.shader")]
+            public Shader tileDepthInfoPS;
+
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            //[Reload("Shaders/Utils/TileDeferred.shader")]
+            public Shader tileDeferredPS;
+            
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
