@@ -80,7 +80,9 @@ namespace UnityEngine.Rendering.Universal
 
         ForwardLights m_ForwardLights;
         DeferredLights m_DeferredLights;
+#pragma warning disable 414
         RenderingMode m_RenderingMode;
+#pragma warning restore 414
         StencilState m_DefaultStencilState;
 
         Material m_BlitMaterial;

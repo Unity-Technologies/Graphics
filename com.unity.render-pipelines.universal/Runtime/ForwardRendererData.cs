@@ -145,15 +145,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Rendering mode.
+        /// Rendering mode. Only Forward rendering is supported in this version.
         /// </summary>
         public RenderingMode renderingMode
         {
-            get => RenderingMode.Forward;
+            get => m_RenderingMode;
             set
             {
                 SetDirty();
-                m_RenderingMode = RenderingMode.Forward;
+                m_RenderingMode = value;
             }
         }
 
