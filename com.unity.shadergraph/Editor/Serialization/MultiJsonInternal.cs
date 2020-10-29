@@ -294,19 +294,19 @@ namespace UnityEditor.ShaderGraph.Serialization
             class SerializerHelper
             {
                 [SerializeField]
-                public string m_DisplayName;
+                public string m_DisplayName = null;
 
                 [SerializeField]
                 public SlotType m_SlotType = SlotType.Input;
 
                 [SerializeField]
-                public bool m_Hidden;
+                public bool m_Hidden = false;
 
                 [SerializeField]
-                public string m_ShaderOutputName;
+                public string m_ShaderOutputName = null;
 
                 [SerializeField]
-                public ShaderStageCapability m_StageCapability;
+                public ShaderStageCapability m_StageCapability = ShaderStageCapability.All;
             }
 
             public string jsonData;
