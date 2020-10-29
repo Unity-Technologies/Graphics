@@ -375,7 +375,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.Space();
                 
-                Rect rect = EditorGUILayout.GetControlRect();
+                Rect rect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector2, k_SizeContent));
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
                 float[] size = new float[2] { m_SizeValues[0].floatValue, m_SizeValues[1].floatValue };
@@ -393,7 +393,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_SizeValues[2], k_ProjectionDepthContent);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    m_SizeValues[2].floatValue = Mathf.Max(0, size[2]);
+                    m_SizeValues[2].floatValue = Mathf.Max(0, m_SizeValues[2].floatValue);
                     m_OffsetZ.floatValue = m_SizeValues[2].floatValue * 0.5f;
                 }
 
@@ -418,9 +418,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
                 using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                 {
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_StartAngleFadeProperty, k_StartAngleFadeContent);
                     if (EditorGUI.EndChangeCheck() && m_StartAngleFadeProperty.floatValue > m_EndAngleFadeProperty.floatValue)
                         m_EndAngleFadeProperty.floatValue = m_StartAngleFadeProperty.floatValue;
+
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_EndAngleFadeProperty, k_EndAngleFadeContent);
                     if (EditorGUI.EndChangeCheck() && m_EndAngleFadeProperty.floatValue < m_StartAngleFadeProperty.floatValue)

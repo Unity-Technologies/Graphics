@@ -33,7 +33,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareSSGITraceParameters(hdCamera, giSettings);
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
-                passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ObjectMotionVectors))
+                {
+                    passData.motionVectorsBuffer = builder.ReadTexture(renderGraph.defaultResources.blackTextureXR);
+                }
+                else
+                {
+                    passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
+                }
+
                 var colorPyramid = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
                 passData.colorPyramid = colorPyramid != null ? builder.ReadTexture(renderGraph.ImportTexture(colorPyramid)) : renderGraph.defaultResources.blackTextureXR;
                 var historyDepth = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
@@ -75,13 +83,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle UpscaleSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, TextureHandle depthPyramid, TextureHandle inputBuffer)
+        TextureHandle UpscaleSSGI(RenderGraph renderGraph, HDCamera hdCamera, GlobalIllumination giSettings, HDUtils.PackedMipChainInfo info, TextureHandle depthPyramid, TextureHandle inputBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<UpscaleSSGIPassData>("Upscale SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIUpscale)))
             {
                 builder.EnableAsyncCompute(false);
 
-                passData.parameters = PrepareSSGIUpscaleParameters(hdCamera, giSettings); ;
+                passData.parameters = PrepareSSGIUpscaleParameters(hdCamera, giSettings, info);
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.inputBuffer = builder.ReadTexture(inputBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
@@ -105,12 +113,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public SSGIConvertParameters parameters;
             public TextureHandle depthTexture;
+            public TextureHandle stencilBuffer;
             public TextureHandle normalBuffer;
             public TextureHandle inoutputBuffer0;
             public TextureHandle inoutputBuffer1;
         }
 
-        TextureHandle ConvertSSGI(RenderGraph renderGraph, HDCamera hdCamera, bool halfResolution, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle inoutputBuffer0, TextureHandle inoutputBuffer1)
+        TextureHandle ConvertSSGI(RenderGraph renderGraph, HDCamera hdCamera, bool halfResolution, TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle inoutputBuffer0, TextureHandle inoutputBuffer1)
         {
             using (var builder = renderGraph.AddRenderPass<ConvertSSGIPassData>("Upscale SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIUpscale)))
             {
@@ -118,6 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 passData.parameters = PrepareSSGIConvertParameters(hdCamera, halfResolution);
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
+                passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.inoutputBuffer0 = builder.WriteTexture(builder.ReadTexture(inoutputBuffer0));
                 passData.inoutputBuffer1 = builder.WriteTexture(builder.ReadTexture(inoutputBuffer1));
@@ -128,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // We need to fill the structure that holds the various resources
                     SSGIConvertResources resources = new SSGIConvertResources();
                     resources.depthTexture = data.depthTexture;
+                    resources.stencilBuffer = data.stencilBuffer;
                     resources.normalBuffer = data.normalBuffer;
                     resources.inoutBuffer0 = data.inoutputBuffer0;
                     resources.inputBufer1 = data.inoutputBuffer1;
@@ -137,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, ShaderVariablesRaytracing shaderVariablesRayTracingCB)
+        TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, ShaderVariablesRaytracing shaderVariablesRayTracingCB, HDUtils.PackedMipChainInfo info)
         {
             // Grab the global illumination volume component
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -155,12 +166,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
 
                 // Convert back the result to RGB space
-                TextureHandle colorBuffer = ConvertSSGI(renderGraph, hdCamera, !giSettings.fullResolutionSS, depthPyramid, normalBuffer, denoiserOutput.outputBuffer0, denoiserOutput.outputBuffer1);
+                TextureHandle colorBuffer = ConvertSSGI(renderGraph, hdCamera, !giSettings.fullResolutionSS, depthPyramid, stencilBuffer, normalBuffer, denoiserOutput.outputBuffer0, denoiserOutput.outputBuffer1);
 
                 // Upscale it if required
                 // If this was a half resolution effect, we still have to upscale it
                 if (!giSettings.fullResolutionSS)
-                    colorBuffer = UpscaleSSGI(renderGraph, hdCamera, giSettings, depthPyramid, colorBuffer);
+                    colorBuffer = UpscaleSSGI(renderGraph, hdCamera, giSettings, info, depthPyramid, colorBuffer);
                 return colorBuffer;
             }
         }
