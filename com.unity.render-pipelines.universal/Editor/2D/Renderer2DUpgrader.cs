@@ -136,7 +136,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Scene to 2D Renderer (Experimental)", false)]
+
+
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to 2D Renderer Materials", false)]
+        static void UpgradeProjectTo2DRenderer()
+        {
+            if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will search for all prefabs in your project that use Sprite Renderers and change the material references of those Sprite Renderers to a lit material. You can't undo this operation. It's highly recommended to backup your project before proceeding.", "Proceed", "Cancel"))
+                return;
+
+            ProcessAssetDatabaseObjects<GameObject>("t: Prefab", UpgradeGameObject);
+            AssetDatabase.SaveAssets();
+            Resources.UnloadUnusedAssets();
+        }
+
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Materials to 2D Renderer Materials", false)]
         static void UpgradeSceneTo2DRenderer()
         {
             if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will change the material references of Sprite Renderers in currently open scene(s) to a lit material. You can't undo this operation. Make sure you save the scene(s) before proceeding.", "Proceed", "Cancel"))
@@ -151,25 +164,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
         }
-
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Project to 2D Renderer (Experimental)", false)]
-        static void UpgradeProjectTo2DRenderer()
-        {
-            if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will search for all prefabs in your project that use Sprite Renderers and change the material references of those Sprite Renderers to a lit material. You can't undo this operation. It's highly recommended to backup your project before proceeding.", "Proceed", "Cancel"))
-                return;
-
-            ProcessAssetDatabaseObjects<GameObject>("t: Prefab", UpgradeGameObject);
-            AssetDatabase.SaveAssets();
-            Resources.UnloadUnusedAssets();
-        }
-
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Scene to 2D Renderer (Experimental)", true)]
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Project to 2D Renderer (Experimental)", true)]
+        
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to 2D Renderer Materials", true)]
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Materials to 2D Renderer Materials", true)]
         static bool MenuValidation()
         {
             return Light2DEditorUtility.IsUsing2DRenderer();
         }
-
 
         public static void UpgradeParametricLightsInScene(bool prompt)
         {
@@ -202,26 +203,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Resources.UnloadUnusedAssets();
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade All Parametric Lights to Freeform (Experimental)", false)]
-        public static void UpgradeAllParametricLights()
-        {
-            if (!EditorUtility.DisplayDialog("Parametric Light Upgrader", "The upgrade will search for all prefabs and game objects in your project and open scene(s) that use Parametric Light2D and change them to Freeform Light2D. You can't undo this operation. It's highly recommended to backup your project and save the scene(s) before proceeding.", "Proceed", "Cancel"))
-                return;
+        // Set priority to get these to the bottom. Add test for pipeline enabled
 
-            UpgradeParametricLightsInProject(false);
-            UpgradeParametricLightsInScene(false);
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Parametric Lights to Freeform", false, priority = -10)]
+        public static void UpgradeParametricLightsInProject()
+        {
+            UpgradeParametricLightsInProject(true);
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Scene Parametric Lights to Freeform (Experimental)", false)]
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Parametric Lights to Freeform", false, priority = -10)]
         public static void UpgradeParametricLightsInScene()
         {
             UpgradeParametricLightsInScene(true);
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Project Parametric Lights to Freeform (Experimental)", false)]
-        public static void UpgradeParametricLightsInProject()
-        {
-            UpgradeParametricLightsInProject(true);
-        }
+        
     }
 }

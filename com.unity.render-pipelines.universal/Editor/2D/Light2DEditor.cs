@@ -105,8 +105,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
             public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
 
-            public static GUIContent deprecatedParametricLightWarning = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade all of your Parametric Lights to Freeform Lights to enjoy similar light functionalities.", MessageType.Warning);
-            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Edit > Render Pipeline > Universal Render Pipeline > Upgrade Scene to Parametric Lights");
+            public static GUIContent deprecatedParametricLightWarningSingle = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Light to a Freeform Light to enjoy similar light functionality.", MessageType.Warning);
+            public static GUIContent deprecatedParametricLightWarningMulti = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
+            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Edit > Render Pipeline > Universal Render Pipeline > Upgrade Project/Scene Parametric Lights to Freeform");
             public static GUIContent deprecatedParametricLightButtonSingle = EditorGUIUtility.TrTextContent("Upgrade Parametric Light");
             public static GUIContent deprecatedParametricLightButtonMulti = EditorGUIUtility.TrTextContent("Upgrade Parametric Lights");
 
@@ -459,10 +460,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawParametricDeprecated(SerializedObject serializedObject)
         {
-            EditorGUILayout.HelpBox(Styles.deprecatedParametricLightWarning);
-            EditorGUILayout.Space();
 
             GUIContent buttonText = targets.Length > 1 ? Styles.deprecatedParametricLightButtonMulti : Styles.deprecatedParametricLightButtonSingle;
+            GUIContent helpText = targets.Length > 1 ? Styles.deprecatedParametricLightWarningMulti : Styles.deprecatedParametricLightWarningSingle;
+
+            EditorGUILayout.HelpBox(helpText);
+            EditorGUILayout.Space();
+
 
             if (GUILayout.Button(buttonText))
             {
