@@ -22,9 +22,12 @@ The version number for this package has increased due to a version update of a r
 - Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
 - Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed upside down XR occlusion mesh.
+- Fixed precision issue with the atmospheric fog.
+- Fixed issue with TAA and no motion vectors.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
+- Claryfied doc for the LayeredLit material.
 
 ## [10.1.0] - 2020-10-12
 
@@ -189,6 +192,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
 - Baked reflection probes now correctly use static sky for ambient lighting.
+- Use draggable fields for float scalable settings
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.

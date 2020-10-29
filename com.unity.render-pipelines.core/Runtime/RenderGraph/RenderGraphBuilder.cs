@@ -227,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 if (transientIndex != -1 && transientIndex != m_RenderPass.index)
                 {
-                    throw new ArgumentException($"Trying to use a transient texture (pass index {transientIndex}) in a different pass (pass index {m_RenderPass.index}.");
+                    throw new ArgumentException($"Trying to use a transient texture (pass index {transientIndex}) in a different pass (pass index {m_RenderPass.index}).");
                 }
             }
 #endif

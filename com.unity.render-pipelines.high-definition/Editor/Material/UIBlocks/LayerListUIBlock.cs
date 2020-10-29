@@ -179,6 +179,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     resetRect.width = 50;
                     EditorGUI.LabelField(resetRect, Styles.resetButtonIcon);
                 }
+
+                if (m_MaterialLayers[layerIndex] != null && m_MaterialLayers[layerIndex].shader != null)
+                {
+                    var shaderName = m_MaterialLayers[layerIndex].shader.name;
+                    if (shaderName != "HDRP/Lit" && shaderName != "HDRP/LitTessellation")
+                        EditorGUILayout.HelpBox("Selected material is not an HDRP Lit Material. Some properties may not be correctly imported.", MessageType.Info);
+                }
             }
 
             EditorGUIUtility.labelWidth = oldLabelWidth;
