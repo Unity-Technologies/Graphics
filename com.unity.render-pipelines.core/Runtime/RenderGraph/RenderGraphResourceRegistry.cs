@@ -171,22 +171,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_Resources[i] = new DynamicArray<IRenderGraphResource>();
         }
 
-        ResType GetResource<DescType, ResType>(DynamicArray<IRenderGraphResource> resourceArray, int index)
-            where DescType : struct
-            where ResType : class
-        {
-            var res = resourceArray[index] as RenderGraphResource<DescType, ResType>;
-
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (res.resource == null && !res.wasReleased)
-                throw new InvalidOperationException(string.Format("Trying to access resource \"{0}\" that was never created. Check that it was written at least once before trying to get it.", res.GetName()));
-
-            if (res.resource == null && res.wasReleased)
-                throw new InvalidOperationException(string.Format("Trying to access resource \"{0}\" that was already released. Check that the last pass where it's read is after this one.", res.GetName()));
-#endif
-            return res.resource;
-        }
-
         internal void BeginRender(int currentFrameIndex, int executionCount)
         {
             m_CurrentFrameIndex = currentFrameIndex;

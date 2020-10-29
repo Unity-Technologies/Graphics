@@ -275,6 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct SSGIConvertResources
         {
             public RTHandle depthTexture;
+            public RTHandle stencilBuffer;
             public RTHandle normalBuffer;
             public RTHandle inoutBuffer0;
             public RTHandle inputBufer1;
@@ -287,6 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Input buffers
             resources.depthTexture = m_SharedRTManager.GetDepthTexture();
             resources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
+            resources.stencilBuffer = m_SharedRTManager.GetStencilBuffer();
             // Output buffers
             resources.inoutBuffer0 = inoutBuffer0;
             resources.inputBufer1 = outputBuffer1;
@@ -306,6 +308,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, parameters.offsetBuffer);
             cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._IndirectDiffuseTexture0RW, resources.inoutBuffer0);
             cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._IndirectDiffuseTexture1, resources.inputBufer1);
+            cmd.SetComputeTextureParam(parameters.ssGICS, parameters.convertKernel, HDShaderIDs._StencilTexture, resources.stencilBuffer, 0, RenderTextureSubElement.Stencil);
+            cmd.SetComputeIntParams(parameters.ssGICS, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
             cmd.DispatchCompute(parameters.ssGICS, parameters.convertKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
 
