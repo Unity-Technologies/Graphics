@@ -196,8 +196,8 @@ namespace UnityEditor.Rendering.HighDefinition
 		{
 			foreach (var prop in m_CustomPassUserProperties)
 			{
-				EditorGUI.PropertyField(rect, prop);
-				rect.y += Styles.defaultLineSpace;
+				EditorGUI.PropertyField(rect, prop, true);
+				rect.y += EditorGUI.GetPropertyHeight(prop);
 			}
 		}
 

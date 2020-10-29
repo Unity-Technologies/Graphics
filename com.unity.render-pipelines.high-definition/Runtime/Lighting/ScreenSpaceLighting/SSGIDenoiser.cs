@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int copyHistory;
         }
 
-        SSGIDenoiserParameters PrepareSSGIDenoiserParameters(HDCamera hdCamera, bool halfResolution, float historyValidity, bool historyNeedsClear)
+        SSGIDenoiserParameters PrepareSSGIDenoiserParameters(HDCamera hdCamera, bool halfResolution, float historyValidity, bool historyNeedsClear, HDUtils.PackedMipChainInfo depthMipInfo)
         {
             var giSettings = hdCamera.volumeStack.GetComponent<UnityEngine.Rendering.HighDefinition.GlobalIllumination>();
 
@@ -111,8 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute the dispatch parameters based on if we are half res or not
             int tileSize = 8;
             EvaluateDispatchParameters(hdCamera, halfResolution, tileSize, out parameters.numTilesX, out parameters.numTilesY, out parameters.halfScreenSize);
-            var info = m_SharedRTManager.GetDepthBufferMipChainInfo();
-            parameters.firstMipOffset.Set(HDShadowUtils.Asfloat((uint)info.mipLevelOffsets[1].x), HDShadowUtils.Asfloat((uint)info.mipLevelOffsets[1].y));
+            parameters.firstMipOffset.Set(HDShadowUtils.Asfloat((uint)depthMipInfo.mipLevelOffsets[1].x), HDShadowUtils.Asfloat((uint)depthMipInfo.mipLevelOffsets[1].y));
             parameters.historyValidity = historyValidity;
             parameters.viewCount = hdCamera.viewCount;
 
@@ -276,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle indirectDiffuseHistory0 = RequestIndirectDiffuseHistory0(hdCamera, out historyRequireClear);
             RTHandle indirectDiffuseHistory1 = RequestIndirectDiffuseHistory1(hdCamera, out historyRequireClear);
 
-            SSGIDenoiserParameters parameters = PrepareSSGIDenoiserParameters(hdCamera, halfResolution, historyValidity, historyRequireClear);
+            SSGIDenoiserParameters parameters = PrepareSSGIDenoiserParameters(hdCamera, halfResolution, historyValidity, historyRequireClear, m_SharedRTManager.GetDepthBufferMipChainInfo());
             SSGIDenoiserResources resources = PrepareSSGIDenoiserResources(historyDepthBuffer, indirectDiffuseHistory0, indirectDiffuseHistory1, inputOutputBuffer0, inputOutputBuffer1, intermediateBuffer0, intermediateBuffer1);
             Denoise(cmd, parameters, resources);
         }
@@ -303,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         public SSGIDenoiserOutput Denoise(RenderGraph renderGraph, HDCamera hdCamera,
             TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle inputOutputBuffer0, TextureHandle inputOutputBuffer1,
-            bool halfResolution = false, float historyValidity = 1.0f)
+            HDUtils.PackedMipChainInfo depthMipInfo, bool halfResolution = false, float historyValidity = 1.0f)
         {
             using (var builder = renderGraph.AddRenderPass<DenoiseSSGIPassData>("Denoise SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIDenoise)))
             {
@@ -313,6 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
+
 
                 // History buffer
                 bool historyRequireClear = false;
@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.inputOutputBuffer0 = builder.WriteTexture(builder.ReadTexture(inputOutputBuffer0));
                 passData.inputOutputBuffer1 = builder.WriteTexture(builder.ReadTexture(inputOutputBuffer1));
 
-                passData.parameters = PrepareSSGIDenoiserParameters(hdCamera, halfResolution, historyValidity, historyRequireClear);
+                passData.parameters = PrepareSSGIDenoiserParameters(hdCamera, halfResolution, historyValidity, historyRequireClear, depthMipInfo);
 
                 builder.SetRenderFunc(
                 (DenoiseSSGIPassData data, RenderGraphContext ctx) =>

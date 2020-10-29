@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -44,6 +45,29 @@ namespace UnityEditor.ShaderGraph.Drawing
             container.Add(m_ContentContainer);
 
             hierarchy.Add(container);
+        }
+
+        public static VisualElement TryGetDeprecatedHelpBoxRow(string deprecatedTypeName, Action upgradeAction)
+        {
+            string depString = $"The {deprecatedTypeName} has new updates. This version maintains the old behavior. " +
+                               $"If you update a {deprecatedTypeName}, you can use Undo to change it back. See the {deprecatedTypeName} " +
+                               $"documentation for more information.";
+            Button upgradeButton = new Button(upgradeAction) { text = "Update" , tooltip = depString};
+            if (!ShaderGraphPreferences.allowDeprecatedBehaviors)
+            {
+                HelpBoxRow help = new HelpBoxRow(MessageType.Warning);
+                var label = new Label("DEPRECATED: Hover for info")
+                {
+                    tooltip = depString
+                };
+                help.Add(label);
+                help.contentContainer.Add(upgradeButton);
+                return help;
+            }
+            else
+            {
+                return upgradeButton;
+            }
         }
     }
 }

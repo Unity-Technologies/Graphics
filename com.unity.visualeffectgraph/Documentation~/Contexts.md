@@ -37,6 +37,7 @@ For a breakdown of context compatibility, see the table below.
 | **Event**              | **None**                                      | **SpawnEvent** (1+) | **None**                                                     |
 | **Spawn**              | **SpawnEvent** (1+)                           | **SpawnEvent** (1+) | Has two input flow slots which start and stop the **Spawn** context respectively. |
 | **GPU Event**          | **None**                                      | **SpawnEvent**      | Outputs to **Initialize** Context                            |
+| **Output Event** | **SpawnEvent (1+)** |  | Outputs a CPU SpawnEvent back to the Visual Effect component. |
 | **Initialize**         | **SpawnEvent** (1+) or **GPUSpawnEvent** (1+) | **Particle** (1)    | Input types are either **SpawnEvent** or **GPUSpawnEvent**. These input types are mutually exclusive.<br/>Can output to **Particle Update** or **Particle Output**. |
 | **Update**             | **Particle** (1)                              | **Particle** (1+)   | Can output to a **Particle Update** or **Particle Output**.  |
 | **Particle Output**    | **Particle** (1)                              | **None**            | Can either have input from an **Initialize** or **Update** Context.<br/>No output. |

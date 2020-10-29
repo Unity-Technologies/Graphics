@@ -60,7 +60,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _HeightFogBaseExtinction;
     float _HeightFogBaseHeight;
     float _GlobalFogAnisotropy;
-    float _Pad3;
+    int _VolumetricFilteringEnabled;
     float2 _HeightFogExponents;
     float _Pad4;
     float _Pad5;

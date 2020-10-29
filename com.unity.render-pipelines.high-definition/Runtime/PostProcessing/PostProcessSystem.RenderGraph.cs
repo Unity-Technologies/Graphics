@@ -30,12 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputAlpha;
         }
 
-        class GuardBandPassData
-        {
-            public ClearWithGuardBandsParameters parameters;
-            public TextureHandle source;
-        }
-
         class StopNaNPassData
         {
             public StopNaNParameters parameters;
@@ -233,23 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return renderGraph.defaultResources.whiteTextureXR;
-        }
-
-        TextureHandle ClearWithGuardBands(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
-        {
-            using (var builder = renderGraph.AddRenderPass<GuardBandPassData>("Guard Band Clear", out var passData, ProfilingSampler.Get(HDProfileId.GuardBandClear)))
-            {
-                passData.source = builder.WriteTexture(source);
-                passData.parameters = PrepareClearWithGuardBandsParameters(hdCamera);
-
-                builder.SetRenderFunc(
-                (GuardBandPassData data, RenderGraphContext ctx) =>
-                {
-                    ClearWithGuardBands(data.parameters, ctx.cmd, data.source);
-                });
-
-                return passData.source;
-            }
         }
 
         TextureHandle StopNaNsPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -454,18 +431,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // map rather than having to deal with all the implications of doing it before TAA
             if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
             {
+                // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
+                // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
+                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                {
+                    hdCamera.resetPostProcessingHistory = true;
+                }
+
                 var dofParameters = PrepareDoFParameters(hdCamera);
 
                 bool useHistoryMips = m_DepthOfField.physicallyBased;
                 GrabCoCHistory(hdCamera, out var prevCoC, out var nextCoC, useMips: useHistoryMips);
                 var prevCoCHandle = renderGraph.ImportTexture(prevCoC);
                 var nextCoCHandle = renderGraph.ImportTexture(nextCoC);
-
-                // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
-                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
-                {
-                    hdCamera.resetPostProcessingHistory = true;
-                }
 
                 using (var builder = renderGraph.AddRenderPass<DepthofFieldData>("Depth of Field", out var passData, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                 {
@@ -481,6 +459,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "DoF Destination");
                     passData.destination = builder.WriteTexture(dest);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
+                    passData.taaEnabled = taaEnabled;
 
                     if (!m_DepthOfField.physicallyBased)
                     {
@@ -554,8 +533,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             });
                         }
 
-                        passData.taaEnabled = taaEnabled;
-
                         passData.bokehNearKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.nearSampleCount * dofParameters.nearSampleCount, sizeof(uint)) { name = "Bokeh Near Kernel" });
                         passData.bokehFarKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.farSampleCount * dofParameters.farSampleCount, sizeof(uint)) { name = "Bokeh Far Kernel" });
                         passData.bokehIndirectCmd = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "Bokeh Indirect Cmd" });
@@ -588,10 +565,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
 
+                        passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                        { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
+
                         builder.SetRenderFunc(
                         (DepthofFieldData data, RenderGraphContext ctx) =>
                         {
-                            DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.taaEnabled);
+                            DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.taaEnabled);
                         });
 
                         source = passData.destination;
@@ -603,15 +583,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (taaEnabled && m_DepthOfField.physicallyBased)
             {
                 bool postDof = true;
-                var taaParams = PrepareTAAParameters(hdCamera, postDof);
-
 
                 using (var builder = renderGraph.AddRenderPass<TemporalAntiAliasingData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
                 {
                     GrabTemporalAntialiasingHistoryTextures(hdCamera, out var prevHistory, out var nextHistory, postDof);
 
                     passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareTAAParameters(hdCamera);
+                    passData.parameters = PrepareTAAParameters(hdCamera, postDof);
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
                     passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
@@ -639,12 +617,21 @@ namespace UnityEngine.Rendering.HighDefinition
                                                                          data.nextHistory,
                                                                          data.prevMVLen,
                                                                          data.nextMVLen);
+
+                        // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                        m_IsDoFHisotoryValid = true;
                     });
 
                     source = passData.destination;
                 }
 
                 postDoFTAAEnabled = true;
+                
+            }
+            else
+            {
+                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                m_IsDoFHisotoryValid = false;
             }
 
             if (!postDoFTAAEnabled)
@@ -878,7 +865,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.destination = builder.WriteTexture(dest); ;
 
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
-                    passData.casParametersBuffer = builder.ReadComputeBuffer(builder.WriteComputeBuffer(passData.casParametersBuffer));
 
                     builder.SetRenderFunc(
                     (CASData data, RenderGraphContext ctx) =>
@@ -1016,9 +1002,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_PostProcessEnabled)
             {
-
-                source = ClearWithGuardBands(renderGraph, hdCamera, source);
-
                 source = StopNaNsPass(renderGraph, hdCamera, source);
 
                 source = DynamicExposurePass(renderGraph, hdCamera, source);

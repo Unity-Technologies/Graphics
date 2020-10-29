@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the ambient occlusion.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Ambient Occlusion")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Ambient-Occlusion" + Documentation.endURL)]
     public sealed class AmbientOcclusion : VolumeComponentWithQuality
     {
         /// <summary>
@@ -211,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RTAO
         [SerializeField, FormerlySerializedAs("rayLength")]
-        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
         [SerializeField, FormerlySerializedAs("sampleCount")]
         private ClampedIntParameter m_SampleCount = new ClampedIntParameter(1, 1, 64);
         [SerializeField, FormerlySerializedAs("denoise")]
@@ -274,29 +275,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (!hdAsset.currentPlatformRenderPipelineSettings.supportSSAO)
                 return;
-
-            AllocRT(0.5f);
-        }
-
-        internal void Cleanup()
-        {
-            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
-            {
-                m_RaytracingAmbientOcclusion.Release();
-            }
-
-            ReleaseRT();
         }
 
         internal void InitializeNonRenderGraphResources()
         {
             float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
             AllocRT(scaleFactor);
+
+            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
+            {
+                m_RaytracingAmbientOcclusion.InitializeNonRenderGraphResources();
+            }
         }
 
         internal void CleanupNonRenderGraphResources()
         {
             ReleaseRT();
+
+            if (HDRenderPipeline.GatherRayTracingSupport(m_Settings))
+            {
+                m_RaytracingAmbientOcclusion.CleanupNonRenderGraphResources();
+            }
         }
 
         internal void InitRaytracing(HDRenderPipeline renderPipeline)

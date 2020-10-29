@@ -21,10 +21,11 @@ namespace UnityEditor.ShaderGraph
     {
         public NodeEntry NodeGUID;
 
-        public SearchNodeItem(string name, NodeEntry nodeGUID, string help = " ", List<SearchNodeItem> children = null) : base(name)
+        public SearchNodeItem(string name, NodeEntry nodeGUID, string[] synonyms,
+            string help = " ", List<SearchNodeItem> children = null) : base(name)
         {
             NodeGUID = nodeGUID;
-            
+            Synonyms = synonyms;
         }        
     }    
 }

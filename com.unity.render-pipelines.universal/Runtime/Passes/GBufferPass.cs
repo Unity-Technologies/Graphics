@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public GBufferPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, StencilState stencilState, int stencilReference, DeferredLights deferredLights)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(GBufferPass));
             base.renderPassEvent = evt;
 
             m_DeferredLights = deferredLights;

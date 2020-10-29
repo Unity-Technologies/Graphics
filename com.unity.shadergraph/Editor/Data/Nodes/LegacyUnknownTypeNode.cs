@@ -13,6 +13,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [NeverAllowedByTarget]
     class LegacyUnknownTypeNode : AbstractMaterialNode
     {
         public string serializedType;
@@ -42,7 +43,6 @@ namespace UnityEditor.ShaderGraph
         public override void ValidateNode()
         {
             base.ValidateNode();
-
             owner.AddValidationError(objectId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
         }
     }

@@ -80,7 +80,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayBinSizeResult = new ComputeBuffer(1, sizeof(uint));
 
             m_RaytracingGBufferManager = new GBufferManager(asset, m_DeferredMaterial);
-            m_RaytracingGBufferManager.CreateBuffers();
         }
 
         void ReleaseRayTracingDeferred()
