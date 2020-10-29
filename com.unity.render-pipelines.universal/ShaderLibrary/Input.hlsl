@@ -43,7 +43,7 @@ half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
 
 // xyz are currently unused
-// w directLightStrength
+// w: directLightStrength
 half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
