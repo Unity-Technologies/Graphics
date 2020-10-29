@@ -687,7 +687,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering;
+                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && m_XRSystem.RefreshXrSdk();
 #endif
             }
             else
@@ -699,7 +699,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = true;
+                cameraData.xrRendering = m_XRSystem.RefreshXrSdk();
 #endif
             }
 
