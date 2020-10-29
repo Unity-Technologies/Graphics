@@ -76,6 +76,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent SSRSettingsSubTitle = EditorGUIUtility.TrTextContent("Screen Space Reflection");
             public static readonly GUIContent SSRMaxRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps");
 
+            public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
+            public static readonly GUIContent FogSettingsBudget = EditorGUIUtility.TrTextContent("Volumetric Fog Budget");
+            public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Volumetric Fog Ratio");
+
             public static readonly GUIContent defaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
 
             public static readonly GUIContent materialQualityLevelContent = EditorGUIUtility.TrTextContent("Default Material Quality Level", "");
