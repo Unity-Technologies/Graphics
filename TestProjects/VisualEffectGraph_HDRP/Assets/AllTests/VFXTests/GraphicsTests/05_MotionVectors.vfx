@@ -1801,6 +1801,8 @@ MonoBehaviour:
   - {fileID: 114182147676166476}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
   positionMode: 3
   spawnMode: 0
 --- !u!114 &114556453381267000
@@ -2280,7 +2282,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 4
+  m_GraphVersion: 6
   m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []

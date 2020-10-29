@@ -182,5 +182,6 @@
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
   * [Editing Frame Settings at Runtime](Frame-Settings-API)
+  * [Render Graph](render-graph.md)
 * [HDRP Glossary](Glossary)
 * [Known Issues and How To Fix Them](Known-Issues)
