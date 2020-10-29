@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
-    name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_apiNet2_Linear on version trunk
+URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk:
+    name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -25,8 +25,8 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack-19-4/Logs/*.log"
-URPUpdate_BoatAttack_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
-    name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_apiNet2_Linear on version trunk
+URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk:
+    name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -47,8 +47,8 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack-19-4/Logs/*.log"
-URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -73,8 +73,8 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URPUpdate_BoatAttack_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

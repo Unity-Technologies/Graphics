@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_apiNet4_Linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_apiNet4_Linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -27,10 +27,10 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_ap
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_apiNet4_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_apiNet4_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_apiNet4_Linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -79,8 +79,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_apiNet4_Linear_tru
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_il2cpp_apiNet4_Linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_editor_il2cpp_apiNet4_Linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_editor_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -126,8 +126,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_il2cpp_api
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -173,8 +173,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_apiN
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_apiNet2_Linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_mono_apiNet2_Linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -197,10 +197,10 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_apiN
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_apiNet2_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_mono_apiNet2_Linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -249,8 +249,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_apiNet2_Linear_trunk
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_mono_apiNet2_Linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_editor_mono_apiNet2_Linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_editor_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -296,8 +296,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_mono_apiNe
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_apiNet2_Linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_mono_apiNet2_Linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -343,8 +343,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_apiNet
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -370,10 +370,10 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_ap
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_apiNet4_Linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -426,8 +426,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_apiNet4_Linear_CUS
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_editor_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_editor_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -477,8 +477,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_il2cpp_api
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -528,8 +528,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_apiN
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_mono_apiNet2_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -555,10 +555,10 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_mono_apiN
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -611,8 +611,8 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_apiNet2_Linear_CUSTO
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_editor_mono_apiNet2_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -662,8 +662,8 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_editor_mono_apiNe
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_mono_apiNet2_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable

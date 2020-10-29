@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Linux_OpenGLCore_playmode_il2cpp_apiNet4_Linear_trunk:
-    name: Universal on Linux_OpenGLCore_playmode_il2cpp_apiNet4_Linear on version trunk
+Universal_Linux_OpenGLCore_playmode_il2cpp_Linear_trunk:
+    name: Universal on Linux_OpenGLCore_playmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -23,8 +23,8 @@ Universal_Linux_OpenGLCore_playmode_il2cpp_apiNet4_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Linux_OpenGLCore_editmode_il2cpp_apiNet4_Linear_trunk:
-    name: Universal on Linux_OpenGLCore_editmode_il2cpp_apiNet4_Linear on version trunk
+Universal_Linux_OpenGLCore_editmode_il2cpp_Linear_trunk:
+    name: Universal on Linux_OpenGLCore_editmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -43,8 +43,8 @@ Universal_Linux_OpenGLCore_editmode_il2cpp_apiNet4_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_trunk:
-    name: Universal on Linux_OpenGLCore_playmode_mono_apiNet2_Linear on version trunk
+Universal_Linux_OpenGLCore_playmode_mono_Linear_trunk:
+    name: Universal on Linux_OpenGLCore_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -63,8 +63,8 @@ Universal_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Linux_OpenGLCore_editmode_mono_apiNet2_Linear_trunk:
-    name: Universal on Linux_OpenGLCore_editmode_mono_apiNet2_Linear on version trunk
+Universal_Linux_OpenGLCore_editmode_mono_Linear_trunk:
+    name: Universal on Linux_OpenGLCore_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -83,8 +83,8 @@ Universal_Linux_OpenGLCore_editmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Linux_OpenGLCore_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Universal on Linux_OpenGLCore_playmode_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+Universal_Linux_OpenGLCore_playmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal on Linux_OpenGLCore_playmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -107,8 +107,8 @@ Universal_Linux_OpenGLCore_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Linux_OpenGLCore_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Universal on Linux_OpenGLCore_editmode_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+Universal_Linux_OpenGLCore_editmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal on Linux_OpenGLCore_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -131,8 +131,8 @@ Universal_Linux_OpenGLCore_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal on Linux_OpenGLCore_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
+    name: Universal on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -155,8 +155,8 @@ Universal_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Linux_OpenGLCore_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal on Linux_OpenGLCore_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
+    name: Universal on Linux_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable

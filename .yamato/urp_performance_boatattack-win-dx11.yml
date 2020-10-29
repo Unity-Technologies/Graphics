@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_Linear_trunk:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_Linear on version trunk
+URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -20,10 +20,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_apiNet4_Linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -72,8 +72,8 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_il2cpp_apiNet4_Linear_trunk:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_il2cpp_apiNet4_Linear on version trunk
+URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -119,8 +119,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_il2cpp_apiNet4_L
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_apiNet4_Linear_trunk:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_editmode_build_il2cpp_apiNet4_Linear on version trunk
+URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_editmode_build_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -166,8 +166,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_apiNet4_Li
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_apiNet2_Linear_trunk:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_mono_apiNet2_Linear on version trunk
+URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -183,10 +183,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_apiNet2_Li
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on Win_DX11_mono_apiNet2_Linear_Player on version trunk
+Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on Win_DX11_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -235,8 +235,8 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_apiNet2_Linear_trunk:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_mono_apiNet2_Linear on version trunk
+URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -282,8 +282,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_apiNet2_Lin
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_apiNet2_Linear_trunk:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_editmode_build_mono_apiNet2_Linear on version trunk
+URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_editmode_build_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -329,8 +329,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_apiNet2_Line
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -349,10 +349,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_il2cpp_apiNet4_
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_apiNet4_Linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Win_DX11_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -405,8 +405,8 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_CUSTOM-RE
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -456,8 +456,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_il2cpp_apiNet4_L
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_editmode_build_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_editmode_build_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -507,8 +507,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_apiNet4_Li
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_mono_apiNet2_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_runtime_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -527,10 +527,10 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_apiNet2_Li
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Win_DX11_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -583,8 +583,8 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVI
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_mono_apiNet2_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -634,8 +634,8 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_apiNet2_Lin
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Win_DX11_performance_editmode_build_mono_apiNet2_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Win_DX11_performance_editmode_build_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable

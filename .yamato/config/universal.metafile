@@ -37,18 +37,12 @@ platforms:
     apis:
       - Metal
 build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-- name: il2cpp_apiNet4
-  scripting_backend: IL2CPP
-  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
+  - name: il2cpp
+    scripting_backend: IL2CPP
+    api_level: ''
+  - name: mono
+    scripting_backend: Mono2x
+    api_level: ''
 color_spaces:
   - Linear
 #  - gamma
@@ -56,7 +50,7 @@ all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - Standalone
@@ -65,14 +59,14 @@ all:
         - playmode_XR
     - platform: OSX
       api: Metal
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         # - Standalone
         - playmode
     - platform: OSX
       api: OpenGLCore
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - editmode

@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Win_Vulkan_Standalone_il2cpp_apiNet4_Linear_trunk:
-    name: Universal on Win_Vulkan_Standalone_il2cpp_apiNet4_Linear on version trunk
+Universal_Win_Vulkan_Standalone_il2cpp_Linear_trunk:
+    name: Universal on Win_Vulkan_Standalone_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -21,10 +21,10 @@ Universal_Win_Vulkan_Standalone_il2cpp_apiNet4_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_il2cpp_apiNet4_Linear_trunk
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Win_Vulkan_Player_il2cpp_apiNet4_Linear_trunk:
-    name: Build Universal on Win_Vulkan_il2cpp_apiNet4_Linear_Player on version trunk
+Build_Universal_Win_Vulkan_Player_il2cpp_Linear_trunk:
+    name: Build Universal on Win_Vulkan_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -50,8 +50,8 @@ Build_Universal_Win_Vulkan_Player_il2cpp_apiNet4_Linear_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Win_Vulkan_playmode_il2cpp_apiNet4_Linear_trunk:
-    name: Universal on Win_Vulkan_playmode_il2cpp_apiNet4_Linear on version trunk
+Universal_Win_Vulkan_playmode_il2cpp_Linear_trunk:
+    name: Universal on Win_Vulkan_playmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -74,8 +74,8 @@ Universal_Win_Vulkan_playmode_il2cpp_apiNet4_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Win_Vulkan_editmode_il2cpp_apiNet4_Linear_trunk:
-    name: Universal on Win_Vulkan_editmode_il2cpp_apiNet4_Linear on version trunk
+Universal_Win_Vulkan_editmode_il2cpp_Linear_trunk:
+    name: Universal on Win_Vulkan_editmode_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -98,8 +98,8 @@ Universal_Win_Vulkan_editmode_il2cpp_apiNet4_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Win_Vulkan_playmode_XR_il2cpp_apiNet4_Linear_trunk:
-    name: Universal on Win_Vulkan_playmode_XR_il2cpp_apiNet4_Linear on version trunk
+Universal_Win_Vulkan_playmode_XR_il2cpp_Linear_trunk:
+    name: Universal on Win_Vulkan_playmode_XR_il2cpp_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -122,8 +122,8 @@ Universal_Win_Vulkan_playmode_XR_il2cpp_apiNet4_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Win_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
-    name: Universal on Win_Vulkan_Standalone_mono_apiNet2_Linear on version trunk
+Universal_Win_Vulkan_Standalone_mono_Linear_trunk:
+    name: Universal on Win_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -140,10 +140,10 @@ Universal_Win_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_trunk:
-    name: Build Universal on Win_Vulkan_mono_apiNet2_Linear_Player on version trunk
+Build_Universal_Win_Vulkan_Player_mono_Linear_trunk:
+    name: Build Universal on Win_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -169,8 +169,8 @@ Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk:
-    name: Universal on Win_Vulkan_playmode_mono_apiNet2_Linear on version trunk
+Universal_Win_Vulkan_playmode_mono_Linear_trunk:
+    name: Universal on Win_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -193,8 +193,8 @@ Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Win_Vulkan_editmode_mono_apiNet2_Linear_trunk:
-    name: Universal on Win_Vulkan_editmode_mono_apiNet2_Linear on version trunk
+Universal_Win_Vulkan_editmode_mono_Linear_trunk:
+    name: Universal on Win_Vulkan_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -217,8 +217,8 @@ Universal_Win_Vulkan_editmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_trunk:
-    name: Universal on Win_Vulkan_playmode_XR_mono_apiNet2_Linear on version trunk
+Universal_Win_Vulkan_playmode_XR_mono_Linear_trunk:
+    name: Universal on Win_Vulkan_playmode_XR_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -241,8 +241,8 @@ Universal_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
-Universal_Win_Vulkan_Standalone_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Universal on Win_Vulkan_Standalone_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+Universal_Win_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -262,10 +262,10 @@ Universal_Win_Vulkan_Standalone_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Win_Vulkan_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Build Universal on Win_Vulkan_il2cpp_apiNet4_Linear_Player on version CUSTOM-REVISION
+Build_Universal_Win_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build Universal on Win_Vulkan_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -295,8 +295,8 @@ Build_Universal_Win_Vulkan_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Universal_Win_Vulkan_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Universal on Win_Vulkan_playmode_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+Universal_Win_Vulkan_playmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_playmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -323,8 +323,8 @@ Universal_Win_Vulkan_playmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Universal_Win_Vulkan_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Universal on Win_Vulkan_editmode_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+Universal_Win_Vulkan_editmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -351,8 +351,8 @@ Universal_Win_Vulkan_editmode_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Universal_Win_Vulkan_playmode_XR_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
-    name: Universal on Win_Vulkan_playmode_XR_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+Universal_Win_Vulkan_playmode_XR_il2cpp_Linear_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_playmode_XR_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -379,8 +379,8 @@ Universal_Win_Vulkan_playmode_XR_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Universal_Win_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal on Win_Vulkan_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -400,10 +400,10 @@ Universal_Win_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build Universal on Win_Vulkan_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_Universal_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal on Win_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -433,8 +433,8 @@ Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal on Win_Vulkan_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -461,8 +461,8 @@ Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Universal_Win_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal on Win_Vulkan_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -489,8 +489,8 @@ Universal_Win_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Universal_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal on Win_Vulkan_playmode_XR_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable

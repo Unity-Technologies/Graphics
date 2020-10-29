@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-HDRP_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk:
-    name: HDRP_Hybrid on Linux_Vulkan_playmode_mono_apiNet2_Linear on version trunk
+HDRP_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
+    name: HDRP_Hybrid on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -23,8 +23,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
-HDRP_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
-    name: HDRP_Hybrid on Linux_Vulkan_Standalone_mono_apiNet2_Linear on version trunk
+HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
+    name: HDRP_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -41,10 +41,10 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
-Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
-    name: Build HDRP_Hybrid on Linux_Vulkan_mono_apiNet2_Linear_Player on version trunk
+Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_Linear_trunk:
+    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -66,8 +66,8 @@ Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-HDRP_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: HDRP_Hybrid on Linux_Vulkan_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+HDRP_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: HDRP_Hybrid on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -90,8 +90,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-HDRP_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: HDRP_Hybrid on Linux_Vulkan_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
+HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: HDRP_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -111,10 +111,10 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build HDRP_Hybrid on Linux_Vulkan_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable

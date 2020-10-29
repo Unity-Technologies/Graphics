@@ -66,18 +66,12 @@ platforms:
     apis: 
       - Metal
 build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-- name: il2cpp_apiNet4
-  scripting_backend: IL2CPP
-  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
+  - name: il2cpp
+    scripting_backend: IL2CPP
+    api_level: ''
+  - name: mono
+    scripting_backend: Mono2x
+    api_level: ''
 color_spaces:
   - Linear
 #  - gamma
@@ -85,35 +79,35 @@ all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
 #    - platform: OSX
 #      api: Metal
-#      build_config: il2cpp_apiNet4
+#      build_config: il2cpp
 #      color_space: Linear
 #      test_platforms:
 #        #- performance_playmode_runtime
 #        - performance_editmode_build
     - platform: Android
       api: OpenGLES3
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
     - platform: Android
       api: Vulkan
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
 #        - performance_editmode_build
 #    - platform: iPhone
 #      api: Metal
-#      build_config: il2cpp_apiNet4
+#      build_config: il2cpp
 #      color_space: Linear
 #      test_platforms:
 #        - performance_playmode_runtime
