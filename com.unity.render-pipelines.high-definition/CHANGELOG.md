@@ -63,6 +63,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue in DecalProjector editor when the Inspector window have a too small width: the size appears on 2 lines but the editor not let place for the second one.
 - Fixed issue (null reference in console) when selecting a DensityVolume with rectangle selection.
 - Fixed issue when linking the field of view with the focal length in physical camera
+- Fixed supported platform build and error message.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
