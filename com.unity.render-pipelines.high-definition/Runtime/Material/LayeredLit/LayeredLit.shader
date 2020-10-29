@@ -468,7 +468,6 @@ Shader "HDRP/LayeredLit"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
@@ -484,6 +483,8 @@ Shader "HDRP/LayeredLit"
 
     // This shader support vertex modification
     #define HAVE_VERTEX_MODIFICATION
+
+    #define SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING
 
     // If we use subsurface scattering, enable output split lighting (for forward pass)
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
