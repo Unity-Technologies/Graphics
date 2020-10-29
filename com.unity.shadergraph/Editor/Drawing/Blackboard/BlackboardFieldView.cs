@@ -108,6 +108,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Input = input;
             this.BlackBoardUpdateTrigger = updateBlackboardView;
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
+
+            UpdateReferenceNameResetMenu();
         }
 
         ~BlackboardFieldView()
@@ -120,6 +122,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return shaderInput;
         }
 
+        // Checks if the reference name has been overriden and appends menu action to reset it, if so
         void UpdateReferenceNameResetMenu()
         {
             if (string.IsNullOrEmpty(m_Input.overrideReferenceName))
