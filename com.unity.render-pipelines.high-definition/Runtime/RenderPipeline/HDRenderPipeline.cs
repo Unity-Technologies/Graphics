@@ -2849,6 +2849,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount);
                 }
 
+                GenerateMaxZ(cmd, hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), m_FrameCount);
+
                 // Render the volumetric lighting.
                 // The pass requires the volume properties, the light list and the shadows, and can run async.
                 VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
@@ -5899,7 +5901,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Here if needed for this particular camera, we allocate history buffers.
             // Only one is needed here because the main buffer used for rendering is separate.
             // Ideally, we should double buffer the main rendering buffer but since we don't know in advance if history is going to be needed, it would be a big waste of memory.
-            if (parameters.needNormalBuffer)
+            if (parameters.needNormalBuffer && mainNormalBuffer.rt != null)
             {
                 // local variable to avoid gcalloc caused by capture.
                 var localNormalBuffer = mainNormalBuffer;
@@ -5915,7 +5917,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.CopyTexture(localNormalBuffer, i, 0, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight, normalBuffer, i, 0, 0, 0);
             }
 
-            if (parameters.needDepthBuffer)
+            if (parameters.needDepthBuffer && mainDepthBuffer.rt != null)
             {
                 // local variable to avoid gcalloc caused by capture.
                 var localDepthBuffer = mainDepthBuffer;

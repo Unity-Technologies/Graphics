@@ -27,7 +27,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
 | **Enable**                    | Indicates whether HDRP processes SSR for Cameras in the influence of this effect's Volume . |
-| **Algorithm**                 | Unity provide two algorithm 'Approximation' and 'PBR Accumulation'. 'Approximation' is the regular one which try to have fast and less precise, 'PBR Accumulation' provide a more precise SSR by accumulating through multiple frames (controlable with 'Accumulation Factor'). |
+| **Algorithm**                 | Unity provide two algorithm 'Approximation' and 'PBR Accumulation'. 'Approximation' provide faster and less precise result in particular for rough surfaces, 'PBR Accumulation' provide a more accurate result by accumulating through multiple frames (controlable with 'Accumulation Factor') but produce more ghosting and is a bit more resources intensive. 'PBR Accumulation' don't apply to transparent Material which will always used 'Approximation'mode. |
 | **Minimum Smoothness**        | Use the slider to set the minimum amount of surface smoothness at which HDRP performs SSR tracing. Lower values result in HDRP performing SSR tracing for less smooth GameObjects. |
 | **Smoothness Fade Start**     | Use the slider to set the smoothness value at which SSR reflections begin to fade out. Lower values result in HDRP fading out SSR reflections for less smooth GameObjects |
 | **Reflect Sky**               | Indicates whether HDRP should use SSR to handle sky reflection. If you disable this property, pixels that reflect the sky use the next level of the [reflection hierarchy](Reflection-in-HDRP.md#ReflectionHierarchy).<br />**Note**: SSR uses the depth buffer to calculate reflection and HDRP does not add transparent GameObjects to the depth buffer. If you enable this property, transparent GameObject that appear over the sky in the color buffer can cause visual artifacts and incorrect looking reflection. This is a common limitation for SSR techniques. |
@@ -41,4 +41,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 
 To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated during the previous frame. The color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). 
 
-When the 'Transparent SSR' is enabled with 'PBR Accumulation', HDRP uses the 'Approximation' for the transparent.
+When the 'Receive SSR transparent' surface option on Material is enabled, the transparent SSR will always used the 'Approximation' mode even if 'PBR Accumulation' is selected.
+
+'PBR Accumulation' isn't compatible with dynamic resolution, it produce incorrect result.
+
