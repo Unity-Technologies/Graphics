@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Making the reflection and refractions of cubemaps distance based.
 - Changed Receive SSR to also controls Receive SSGI on opaque objects.
 - Improved the punctual light shadow rescale algorithm.
+- Changed the names of some of the parameters for the Eye Utils SG Nodes.
 
 ## [10.1.0] - 2020-10-12
 
