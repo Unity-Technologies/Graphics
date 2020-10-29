@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_RaytracingIndirectDiffuseHalfResKernel;
         int m_IndirectDiffuseUpscaleFullResKernel;
         int m_IndirectDiffuseUpscaleHalfResKernel;
+        int m_AdjustIndirectDiffuseWeightKernel;
 
         void InitRayTracedIndirectDiffuse()
         {
@@ -22,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingIndirectDiffuseHalfResKernel = indirectDiffuseShaderCS.FindKernel("RaytracingIndirectDiffuseHalfRes");
             m_IndirectDiffuseUpscaleFullResKernel = indirectDiffuseShaderCS.FindKernel("IndirectDiffuseIntegrationUpscaleFullRes");
             m_IndirectDiffuseUpscaleHalfResKernel = indirectDiffuseShaderCS.FindKernel("IndirectDiffuseIntegrationUpscaleHalfRes");
+            m_AdjustIndirectDiffuseWeightKernel = indirectDiffuseShaderCS.FindKernel("AdjustIndirectDiffuseWeight");
         }
 
         void ReleaseRayTracedIndirectDiffuse()
@@ -315,6 +317,57 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Compute the texture
             cmd.DispatchCompute(rtidUpscaleParams.upscaleCS, rtidUpscaleParams.upscaleKernel, numTilesXHR, numTilesYHR, rtidUpscaleParams.viewCount);
+        }
+
+        struct AdjustRTIDWeightParameters
+        {
+            // Camera parameters
+            public int texWidth;
+            public int texHeight;
+            public int viewCount;
+
+            // Additional resources
+            public int adjustWeightKernel;
+            public ComputeShader adjustWeightCS;
+        }
+
+        AdjustRTIDWeightParameters PrepareAdjustRTIDWeightParametersParameters(HDCamera hdCamera)
+        {
+            AdjustRTIDWeightParameters parameters = new AdjustRTIDWeightParameters();
+
+            // Set the camera parameters
+            parameters.texWidth = hdCamera.actualWidth;
+            parameters.texHeight = hdCamera.actualHeight;
+            parameters.viewCount = hdCamera.viewCount;
+
+            // Grab the right kernel
+            parameters.adjustWeightCS = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingCS;
+            parameters.adjustWeightKernel = m_AdjustIndirectDiffuseWeightKernel;
+
+            return parameters;
+        }
+    
+        static void AdjustRTIDWeight(CommandBuffer cmd, AdjustRTIDWeightParameters parameters, RTHandle indirectDiffuseTexture, RTHandle depthPyramid, RTHandle stencilBuffer)
+        {
+            // Input data
+            cmd.SetComputeTextureParam(parameters.adjustWeightCS, parameters.adjustWeightKernel, HDShaderIDs._DepthTexture, depthPyramid);
+            cmd.SetComputeTextureParam(parameters.adjustWeightCS, parameters.adjustWeightKernel, HDShaderIDs._StencilTexture, stencilBuffer, 0, RenderTextureSubElement.Stencil);
+            cmd.SetComputeIntParams(parameters.adjustWeightCS, HDShaderIDs._SsrStencilBit, (int)StencilUsage.TraceReflectionRay);
+
+            // In/Output buffer
+            cmd.SetComputeTextureParam(parameters.adjustWeightCS, parameters.adjustWeightKernel, HDShaderIDs._IndirectDiffuseTextureRW, indirectDiffuseTexture);
+
+            // Texture dimensions
+            int texWidth = parameters.texWidth;
+            int texHeight = parameters.texHeight;
+
+            // Evaluate the dispatch parameters
+            int areaTileSize = 8;
+            int numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
+            int numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
+
+            // Compute the texture
+            cmd.DispatchCompute(parameters.adjustWeightCS, parameters.adjustWeightKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
 
         void RenderIndirectDiffusePerformance(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
