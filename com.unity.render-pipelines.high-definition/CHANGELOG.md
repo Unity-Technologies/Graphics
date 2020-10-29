@@ -72,6 +72,7 @@ The version number for this package has increased due to a version update of a r
 - Making the reflection and refractions of cubemaps distance based.
 - Changed Receive SSR to also controls Receive SSGI on opaque objects.
 - Improved the punctual light shadow rescale algorithm.
+- Changed the names of some of the parameters for the Eye Utils SG Nodes.
 
 ## [10.1.0] - 2020-10-12
 
