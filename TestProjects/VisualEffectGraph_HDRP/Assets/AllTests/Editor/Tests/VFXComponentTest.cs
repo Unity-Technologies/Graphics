@@ -165,9 +165,50 @@ namespace UnityEditor.VFX.Test
             var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             spawner.LinkTo(contextInitialize);
             graph.AddChild(spawner);
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));;
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
             return graph;
+        }
+
+        [UnityTest]
+        //See case 1284358
+        public IEnumerator Create_SampleGradient_Only_Sampled_On_GPU()
+        {
+            var graph = CreateGraph_And_System();
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfxComponent = m_mainObject.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+
+            var random = ScriptableObject.CreateInstance<VFX.Operator.Random>();
+            random.SetSettingValue("seed", VFXSeedMode.PerParticle);
+            var minMax = random.inputSlots.Where(o => o.valueType == VFXValueType.Float);
+            Assert.AreEqual(2, minMax.Count());
+            foreach (var slot in minMax)
+                slot.value = 0.326f; //Having the same value in minMax will lead to a reduction.
+
+            graph.AddChild(random);
+
+            var sampleGradient = ScriptableObject.CreateInstance<VFX.Operator.SampleGradient>();
+            graph.AddChild(sampleGradient);
+
+            var pointOutput = graph.children.OfType<VFXPointOutput>().FirstOrDefault();
+            var setColor = ScriptableObject.CreateInstance<VFX.Block.SetAttribute>();
+            setColor.SetSettingValue("attribute", "color");
+            pointOutput.AddChild(setColor);
+
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            Assert.IsTrue(pointOutput.inputSlots[0].Link(sampleGradient.outputSlots[0]));
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            Assert.IsTrue(sampleGradient.inputSlots.First(o => o.valueType == VFXValueType.Float).Link(random.outputSlots[0]));
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
         }
 
         [UnityTest]
