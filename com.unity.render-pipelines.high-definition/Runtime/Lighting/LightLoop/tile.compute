@@ -60,10 +60,6 @@
 
 /* ------------------------------ Utilities --------------------------------- */
 
-// Repackage to work around ridiculous constant buffer limitations of HLSL.
-static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
-static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
-
 /* ------------------------------ Implementation ---------------------------- */
 
 // !!! IMPORTANT !!!
@@ -205,6 +201,73 @@ groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL
 #define THREADS_PER_TILE (THREADS_PER_ENTITY) // Helps with naming
 #define TILES_PER_GROUP  (THREADS_PER_GROUP / THREADS_PER_TILE)
 
+bool TryCullSphere(float3 center, float radius, float2 aaBbMinPtNDC, float2 aaBbMaxPtNDC, float4x4 projMat, float4x4 invProjMat)
+{
+    bool isCulled;
+
+    // We do not consider the near and the far plane (as as in 'scrbound.compute').
+    if (g_isOrthographic)
+    {
+        // Compute the center and the extents (half-diagonal) of the bounding box.
+        float2 sphereCenterCS  = mul(projMat, float4(center,       1)).xy;
+        float2 sphereExtentsCS = mul(projMat, float4(radius.xx, 0, 0)).xy; // Axis-aligned ellipse
+
+        // Convert to clip-space coordinates.
+        float2 aaBbMinPtCS = aaBbMinPtNDC * 2 - 1;
+        float2 aaBbMaxPtCS = aaBbMaxPtNDC * 2 - 1;
+
+        // Make them relative to the ellipse.
+        aaBbMinPtCS -= sphereCenterCS;
+        aaBbMaxPtCS -= sphereCenterCS;
+
+        // Transform the ellipse into a unit circle.
+        aaBbMinPtCS *= rcp(sphereExtentsCS);
+        aaBbMaxPtCS *= rcp(sphereExtentsCS);
+
+        // Compute the distance from the center of the sphere (at the origin) to the AABB.
+        float sqDist = SqDistPointAaBb(0, aaBbMinPtCS, aaBbMaxPtCS);
+
+        isCulled = sqDist > 1;
+    }
+    else // Perspective
+    {
+        // Extract the frustum planes? IDK...
+        isCulled = false;
+    }
+
+    return isCulled;
+}
+
+bool TryCullEntity(uint entityIndex, uint category, uint eye, uint2 tileCoord, uint t /* thread */)
+{
+    const uint2  tileAaBbMinPtSS  = tileCoord       * TILE_SIZE;
+    const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS + TILE_SIZE;                // (tileCoord + 1) * TILE_SIZE
+    const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
+    const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
+
+    const uint             bufferIndex = ComputeEntityBoundsBufferIndex(entityIndex, category, eye);
+    const FiniteLightBound cullData    = _EntityBoundsBuffer[bufferIndex];
+
+    const float4x4 projMat    = g_mProjectionArr[eye];    // For the entire view frustum
+    const float4x4 invProjMat = g_mInvProjectionArr[eye]; // For the entire view frustum
+
+    // Bounding frustum.
+    const float3 rbpC  = cullData.center.xyz;   // View-space
+    const float3 rbpX  = cullData.boxAxisX.xyz; // Pre-scaled
+    const float3 rbpY  = cullData.boxAxisY.xyz; // Pre-scaled
+    const float3 rbpZ  = cullData.boxAxisZ.xyz; // Pre-scaled
+    const float scale  = cullData.scaleXY;      // scale.x = scale.y
+    // Bounding sphere.
+    const float radius = cullData.radius;
+
+    bool trivialReject = false, trivialAccept = false;
+
+    // 1. Attempt to trivially reject the entity by considering its bounding sphere.
+    trivialReject = TryCullSphere(rbpC, radius, tileAaBbMinPtNDC, tileAaBbMaxPtNDC, projMat, invProjMat);
+
+    return trivialReject;
+}
+
 // *************************************************************************************************
 // At this point, each tile has a list of conservatively selected entities.
 // The idea it to spend a few more clock cycles to remove entities that do not belong to the tile.
@@ -214,11 +277,6 @@ groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL
 // Thus, there is a "slow" path and a "fast" path. The latter includes "trivial" accept or reject.
 // "trivial" accept or reject ..........
 // *************************************************************************************************
-
-bool TryCullEntity(uint a, uint2 b)
-{
-    return false;
-}
 
 [numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
 void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
@@ -258,7 +316,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
                 break; // Reached the terminator
             }
 
-            if (!TryCullEntity(entityIndex, clampedTileCoord))
+            if (!TryCullEntity(entityIndex, cat, eye, clampedTileCoord, t))
             {
                 // The entity was not culled, so transfer it over.
                 first = min(entityIndex, first);

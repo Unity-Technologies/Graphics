@@ -73,6 +73,16 @@ float4x4 Homogenize3x3(float3x3 R)
     return M;
 }
 
+float SqDistPointAaBb(float2 pt, float2 aaBbMinPt, float2 aaBbMaxPt)
+{
+    float sqDist = 0;
+
+    sqDist += Sq(Max3(pt.x - aaBbMaxPt.x, aaBbMinPt.x - pt.x, 0.0f));
+    sqDist += Sq(Max3(pt.y - aaBbMaxPt.y, aaBbMinPt.y - pt.y, 0.0f));
+
+    return sqDist;
+}
+
 // a: aspect ratio.
 // p: distance to the projection plane.
 // n: distance to the near plane.
@@ -110,9 +120,9 @@ bool IntervalsOverlap(uint2 i1, uint2 i2)
     return l <= u;            // Is the intersection non-empty?
 }
 
-uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint eye)
+uint ComputeEntityBoundsBufferIndex(uint globalEntityIndex, uint eye)
 {
-    return IndexFromCoordinate(uint2(entityIndex, eye), _BoundedEntityCount);
+    return IndexFromCoordinate(uint2(globalEntityIndex, eye), _BoundedEntityCount);
 }
 
 uint ComputeZBinBufferIndex(uint zBin, uint category, uint eye)
@@ -122,6 +132,16 @@ uint ComputeZBinBufferIndex(uint zBin, uint category, uint eye)
 }
 
 #ifndef NO_SHADERVARIABLESGLOBAL_HLSL
+
+// Repackage to work around ridiculous constant buffer limitations of HLSL.
+static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
+static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
+
+uint ComputeEntityBoundsBufferIndex(uint entityIndex, uint category, uint eye)
+{
+    uint offset = s_BoundedEntityOffsetPerCategory[category];
+    return IndexFromCoordinate(uint2(offset + entityIndex, eye), _BoundedEntityCount);
+}
 
 // Cannot be used to index directly into the buffer.
 // Use ComputeZBinBufferIndex for that purpose.

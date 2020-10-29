@@ -677,7 +677,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
             {
                 // Compute the center and the extents (half-diagonal) of the bounding box.
                 float2 center  = mul(projMat, float4(rbpC.xyz,     1)).xy;
-                float2 extents = mul(projMat, float4(radius.xx, 0, 0)).xy;
+                float2 extents = mul(projMat, float4(radius.xx, 0, 0)).xy; // Axis-aligned ellipse
 
                 rectMin = center - extents;
                 rectMax = center + extents;

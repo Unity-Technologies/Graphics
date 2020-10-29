@@ -24,10 +24,6 @@ RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {last << 16 | first}
 
 /* ------------------------------ Utilities --------------------------------- */
 
-// Repackage to work around ridiculous constant buffer limitations of HLSL.
-static uint s_BoundedEntityOffsetPerCategory[BOUNDEDENTITYCATEGORY_COUNT] = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityOffsetPerCategory;
-static uint s_BoundedEntityCountPerCategory[BOUNDEDENTITYCATEGORY_COUNT]  = (uint[BOUNDEDENTITYCATEGORY_COUNT])_BoundedEntityCountPerCategory;
-
 /* ------------------------------ Implementation ---------------------------- */
 
 float2 ComputeZBinLinearDepthBounds(uint bin, float4 encodingParams)
