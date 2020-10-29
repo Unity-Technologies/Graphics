@@ -204,8 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_ReflectSky, k_ReflectSkyText);
                 m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
 
-                if (m_UsedAlgorithm.value.intValue != (int)ScreenSpaceReflectionAlgorithm.PBRAccumulation)
-                    PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
+                PropertyField(m_ScreenFadeDistance, k_ScreenFaceDistanceText);
                 PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
 
                 m_DepthBufferThickness.value.floatValue = Mathf.Clamp(m_DepthBufferThickness.value.floatValue, 0.001f, 1.0f);
@@ -222,6 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
             }
         }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
