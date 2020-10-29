@@ -30,11 +30,6 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-Varyings Vert(Attributes input)
-{
-    return FullscreenVert(input);
-}
-
 Varyings FullscreenVert(Attributes input)
 {
     Varyings output;
@@ -51,6 +46,11 @@ Varyings FullscreenVert(Attributes input)
 #endif
 
     return output;
+}
+
+Varyings Vert(Attributes input)
+{
+    return FullscreenVert(input);
 }
 
 #endif
