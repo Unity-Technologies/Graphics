@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
@@ -156,16 +156,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
                     break;
                 case NormalDropOffSpace.World:
                     normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
                     break;
                 default:
                     normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
                     break;
             }
 
@@ -175,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDLitMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
                 { HDLitMasterNode1.SlotMask.Normal, normalBlock },
                 { HDLitMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
-                { HDLitMasterNode1.SlotMask.Tangent, HDBlockFields.SurfaceDescription.Tangent },
+                { HDLitMasterNode1.SlotMask.Tangent, tangentBlock },
                 { HDLitMasterNode1.SlotMask.Anisotropy, HDBlockFields.SurfaceDescription.Anisotropy },
                 { HDLitMasterNode1.SlotMask.SubsurfaceMask, HDBlockFields.SurfaceDescription.SubsurfaceMask },
                 { HDLitMasterNode1.SlotMask.Thickness, HDBlockFields.SurfaceDescription.Thickness },

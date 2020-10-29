@@ -88,7 +88,7 @@ public class HDRP_GraphicTestRunner
                 try
                 {
                     // GC alloc from Camera.CustomRender (case 1206364)
-                    int gcAllocThreshold = 2;
+                    int gcAllocThreshold = 0;
 
                     ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings, gcAllocThreshold);
                 }
