@@ -6,7 +6,7 @@ This document describes the main principles behind a render graph and an overvie
 
 There are a few things to know before you can write render passes with the [RenderGraph](../api/UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.html) API. The following principles are the foundation of how a render graph works.
 
-- You no longer handle resources directly and instead use render graph system-specific handles. All RenderGraph APIs use these handles to manipulate resources. The resource types a render graph manages are `RTHandles*`*, `ComputeBuffers*`*, and `RendererLists*`*.
+- You no longer handle resources directly and instead use render graph system-specific handles. All RenderGraph APIs use these handles to manipulate resources. The resource types a render graph manages are [RTHandles](rthandle-system.md), [ComputeBuffers](https://docs.unity3d.com/ScriptReference/ComputeBuffer.html), and [RendererLists](../api/UnityEngine.Experimental.Rendering.RendererList.html).
 - Actual resource references are only accessible within the execution code of a render pass.
 - The framework requires an explicit declaration of render passes. Each render pass needs to state which resources it reads from and/or writes to.
 - There is no persistence between each execution of a render graph. This means that the resources you create inside one execution of the render graph cannot carry over to the next execution.

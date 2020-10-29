@@ -68,7 +68,7 @@ public ComputeBufferHandle RenderGraph.ImportComputeBuffer(ComputeBuffer compute
 
 These are the main ways to create resources. There are additional variations of these functions, for the complete list, see the [API documentation](../api/UnityEngine.Experimental.Rendering.RenderGraphModule.RenderGraph.html). Note the specific function to use to import the camera back buffer is `RenderTargetIdentifier`.
 
-To create resources, each API requires a descriptor structure as a parameter. The properties in these structures are similar to the properties in the resources they represent (respectively [RTHandle](../api/UnityEngine.Rendering.RTHandleSystem.html), [ComputeBuffer](https://docs.unity3d.com/ScriptReference/ComputeBuffer.html), and [RendererLists](../api/UnityEngine.Experimental.Rendering.RendererList.html)). However, some properties are specific to render graph textures.
+To create resources, each API requires a descriptor structure as a parameter. The properties in these structures are similar to the properties in the resources they represent (respectively [RTHandle](rthandle-system.md), [ComputeBuffer](https://docs.unity3d.com/ScriptReference/ComputeBuffer.html), and [RendererLists](../api/UnityEngine.Experimental.Rendering.RendererList.html)). However, some properties are specific to render graph textures.
 
 Here are the most important ones:
 
