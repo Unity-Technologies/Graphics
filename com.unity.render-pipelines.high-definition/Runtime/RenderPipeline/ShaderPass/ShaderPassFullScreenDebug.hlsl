@@ -1,4 +1,4 @@
-#if (SHADERPASS != SHADERPASS_FULLSCREEN_DEBUG)
+#if (SHADERPASS != SHADERPASS_FULL_SCREEN_DEBUG)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
