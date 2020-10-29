@@ -113,6 +113,7 @@ float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
 float _BlendMode;
+float _EnableBlendModePreserveSpecularLighting;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;
@@ -164,6 +165,8 @@ float4 _BaseColorMap_TexelSize;
 float4 _BaseColorMap_MipInfo;
 
 float _Metallic;
+float _MetallicRemapMin;
+float _MetallicRemapMax;
 float _Smoothness;
 float _SmoothnessRemapMin;
 float _SmoothnessRemapMax;
@@ -218,6 +221,8 @@ float4 _BaseColorMap0_TexelSize;
 float4 _BaseColorMap0_MipInfo;
 
 PROP_DECL(float, _Metallic);
+PROP_DECL(float, _MetallicRemapMin);
+PROP_DECL(float, _MetallicRemapMax);
 PROP_DECL(float, _Smoothness);
 PROP_DECL(float, _SmoothnessRemapMin);
 PROP_DECL(float, _SmoothnessRemapMax);
@@ -286,9 +291,10 @@ float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
 
-// Following two variables are feeded by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
+float4 _SelectionID;
 
 CBUFFER_END
 
@@ -304,6 +310,14 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic1)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic2)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic3)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin0)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin1)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin2)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin3)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax0)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax1)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax2)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax3)
     UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor0)
     UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor1)
     UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor2)
@@ -370,10 +384,14 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _Metallic1               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic1)
 #define _Metallic2               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic2)
 #define _Metallic3               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic3)
-#define _Smoothness0             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness0)
-#define _Smoothness1             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness1)
-#define _Smoothness2             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness2)
-#define _Smoothness3             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness3)
+#define _MetallicRemapMin0       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin0)
+#define _MetallicRemapMin1       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin1)
+#define _MetallicRemapMin2       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin2)
+#define _MetallicRemapMin3       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin3)
+#define _MetallicRemapMax0       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax0)
+#define _MetallicRemapMax1       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax1)
+#define _MetallicRemapMax2       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax2)
+#define _MetallicRemapMax3       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax3)
 #define _EmissiveColor0          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor0)
 #define _EmissiveColor1          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor1)
 #define _EmissiveColor2          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor2)
@@ -454,6 +472,8 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor)
 #define _Metallic               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic)
+#define _MetallicRemapMin       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin)
+#define _MetallicRemapMax       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax)
 #define _Smoothness             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness)
 #define _EmissiveColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor)
 #define _SpecularColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__SpecularColor)

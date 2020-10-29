@@ -231,11 +231,17 @@ namespace UnityEngine.Rendering.HighDefinition
             // For now we assume that all "outside" textures are both read and written.
             // We can change that once we properly integrate render graph into custom passes.
             // Problem with that is that it will extend the lifetime of any of those textures to the last custom pass that is executed...
-            output.colorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.colorBufferRG));
-            output.nonMSAAColorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.nonMSAAColorBufferRG));
-            output.depthBufferRG = builder.ReadTexture(builder.WriteTexture(targets.depthBufferRG));
-            output.normalBufferRG = builder.ReadTexture(builder.WriteTexture(targets.normalBufferRG));
-            output.motionVectorBufferRG = builder.ReadTexture(targets.motionVectorBufferRG);
+            // Also, we test validity of all handles because depending on where the custom pass is executed, they may not always be.
+            if (targets.colorBufferRG.IsValid())
+                output.colorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.colorBufferRG));
+            if (targets.nonMSAAColorBufferRG.IsValid())
+                output.nonMSAAColorBufferRG = builder.ReadTexture(builder.WriteTexture(targets.nonMSAAColorBufferRG));
+            if (targets.depthBufferRG.IsValid())
+                output.depthBufferRG = builder.ReadTexture(builder.WriteTexture(targets.depthBufferRG));
+            if (targets.normalBufferRG.IsValid())
+                output.normalBufferRG = builder.ReadTexture(builder.WriteTexture(targets.normalBufferRG));
+            if (targets.motionVectorBufferRG.IsValid())
+                output.motionVectorBufferRG = builder.ReadTexture(targets.motionVectorBufferRG);
 
             return output;
         }
@@ -261,10 +267,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     var customPass = data.customPass;
 
                     ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
-                    if (customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                    if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
-                    if (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                    if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess))
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
                     if (!customPass.isSetup)
