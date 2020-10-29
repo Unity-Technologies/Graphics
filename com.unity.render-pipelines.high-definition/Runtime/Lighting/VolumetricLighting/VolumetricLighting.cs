@@ -490,7 +490,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
         {
-            GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo, frameIndex), m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
+            if (Fog.IsVolumetricFogEnabled(camera))
+                GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo, frameIndex), m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
         }
 
         static internal void CreateVolumetricHistoryBuffers(HDCamera hdCamera, int bufferCount)
