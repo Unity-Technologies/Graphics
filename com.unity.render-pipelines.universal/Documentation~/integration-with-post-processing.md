@@ -1,6 +1,6 @@
 # Post-processing in the Universal Render Pipeline
 
-The Universal Render Pipeline (URP) includes an integrated implementation of [post-processing](https://docs.unity3d.com/Manual/PostProcessingOverview.html) stack for optimal performace, so you do not need to install any other package. URP is not compatible with the [post-processing version 2](https://docs.unity3d.com/Packages/com.unity.postprocessing@2.2/manual/index.html) package. 
+The Universal Render Pipeline (URP) includes an integrated implementation of [post-processing](https://docs.unity3d.com/Manual/PostProcessingOverview.html) effects. If you use URP, it's not necessary to install an extra package for post-processing effects. URP is not compatible with the [Post&nbsp;Processing&nbsp;Stack&nbsp;v2](https://docs.unity3d.com/Packages/com.unity.postprocessing@latest/index.html) package. 
 
 The images below show a Scene with and without URP post-processing.
 
@@ -12,13 +12,21 @@ With post-processing:
 
 ![](Images/AssetShots/Beauty/SceneWithPost.png)
 
-## Enabling Post-processing
+## How to configure Post-processing in URP
 
-In order to use post-processing you have enable it by toggling the `Post Processing` in the camera and add a [Volume](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/Volumes.html) component. You can add post-processing effects to your Camera by adding [Volume Overrides](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@10.0/manual/VolumeOverrides.html).
+To add post-processing effects to a Camera:
 
-![](Images/post-proc/camera-post-processing.jpg)
+1. Select a Camera, and select the **Post Processing** check box.
 
-**Note:** Post-processing is not supported when using GLES2.
+    ![Select a Camera, select the Post Processing check box.](Images/post-proc/camera-post-proc-check.png)
+
+2. In the Hierarchy, add a [Volume](Volumes.md) component, and add a Volume profile to the Volume.
+
+3. Add post-processing effects to the Camera by adding [Volume Overrides](VolumeOverrides.md) to the Volume component.
+
+    ![Add post-processing effects to the Camera by adding Volume Overrides to the Volume component.](Images/post-proc/volume-with-post-proc.png)
+
+> **Note:** URP does not support Post-processing on OpenGL&nbsp;ES&nbsp;2.0.
 
 ## Post-processing in URP for mobile devices
 
