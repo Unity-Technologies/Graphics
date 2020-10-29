@@ -66,6 +66,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed supported platform build and error message.
 - Fixed exceptions occuring when selecting mulitple decal projectors without materials assigned (case 1283659).
 - Fixed LookDev error message when pipeline is not loaded.
+- Properly reject history when enabling seond denoiser for RTGI.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
