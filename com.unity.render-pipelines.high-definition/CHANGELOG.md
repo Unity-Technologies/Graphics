@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved the punctual light shadow rescale algorithm.
 - Changed the names of some of the parameters for the Eye Utils SG Nodes.
 - Restored frame setting for async compute of contact shadows.
+- Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
 
 ## [10.1.0] - 2020-10-12
 
