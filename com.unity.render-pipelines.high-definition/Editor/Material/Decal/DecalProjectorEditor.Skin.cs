@@ -9,6 +9,11 @@ namespace UnityEditor.Rendering.HighDefinition
         const string k_EditUVTooltip = "Modify the UV positions only";
 
         static readonly GUIContent k_SizeContent = EditorGUIUtility.TrTextContent("Size", "Sets the size of the projector.");
+        static readonly GUIContent[] k_SizeSubContent = new[] {
+            EditorGUIUtility.TrTextContent("Width", "Sets the width of the projection plan."),
+            EditorGUIUtility.TrTextContent("Height", "Sets the height of the projection plan.")
+        };
+        static readonly GUIContent k_ProjectionDepthContent = EditorGUIUtility.TrTextContent("Projection Depth", "Sets the projection depth of the projector.");
         static readonly GUIContent k_MaterialContent = EditorGUIUtility.TrTextContent("Material", "Specifies the Material this component projects as a decal.");
         static readonly GUIContent k_DecalLayerMaskContent = EditorGUIUtility.TrTextContent("Decal Layer", "Specify the decal layer mask to use for this projector. RenderingLayerMask of Mesh matching this value will receive the decal. Enable Layers in Decal section of HDRP settings to access it.");
         static readonly GUIContent k_DistanceContent = EditorGUIUtility.TrTextContent("Draw Distance", "Sets the distance from the Camera at which HDRP stop rendering the decal.");

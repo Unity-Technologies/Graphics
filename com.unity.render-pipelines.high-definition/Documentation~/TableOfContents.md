@@ -73,9 +73,13 @@
       * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
+    * [Cottom/Wool Shader](cotton-wool-shader.md)
+    * [Eye Shader](eye-shader.md)
+    * [Hair Shader](hair-shader.md)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader)
     * [Lit Shader](Lit-Shader)
+    * [Silk Shader](silk-shader.md)
     * [Terrain Lit Shader](Terrain-Lit-Shader.md)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
@@ -155,6 +159,7 @@
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
   * Shader Graph Keywords
     * [Raytracing Quality](SGNode-Raytracing-Quality)
+  * [Ray Tracing and Animations](Ray-Tracing-Animations.md)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components

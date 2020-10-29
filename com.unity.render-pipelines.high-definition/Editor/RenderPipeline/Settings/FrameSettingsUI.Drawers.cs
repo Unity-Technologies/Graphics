@@ -236,6 +236,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 });
 
             area.AmmendInfo(FrameSettingsField.RayTracing, overrideable: () => hdrpSettings.supportRayTracing);
+#if !ENABLE_VIRTUALTEXTURES
+            area.AmmendInfo(FrameSettingsField.VirtualTexturing, overrideable: () => false);
+#endif
             area.AmmendInfo(FrameSettingsField.MotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
             area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, overrideable: () => hdrpSettings.supportMotionVectors);

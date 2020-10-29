@@ -53,7 +53,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor BentNormal =              new FieldDescriptor(string.Empty, "BentNormal", "_BENT_NORMAL 1");
         public static FieldDescriptor AmbientOcclusion =        new FieldDescriptor(string.Empty, "AmbientOcclusion", "_AMBIENT_OCCLUSION 1");
         public static FieldDescriptor CoatMask =                new FieldDescriptor(string.Empty, "CoatMask", "_COAT_MASK 1");
-        public static FieldDescriptor Tangent =                 new FieldDescriptor(string.Empty, "Tangent", "_TANGENT 1");
         public static FieldDescriptor LightingGI =              new FieldDescriptor(string.Empty, "LightingGI", "_LIGHTING_GI 1");
         public static FieldDescriptor BackLightingGI =          new FieldDescriptor(string.Empty, "BackLightingGI", "_BACK_LIGHTING_GI 1");
         public static FieldDescriptor DepthOffset =             new FieldDescriptor(string.Empty, "DepthOffset", "_DEPTH_OFFSET 1");
