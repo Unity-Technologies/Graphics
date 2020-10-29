@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing passthrough camera to not render. [case 1283894](https://issuetracker.unity3d.com/product/unity/issues/guid/1283894/) 
 
 - Fixed MSAA override on camera does not work in non-XR project if target eye is selected to both eye.
+- Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 
 ## [10.1.0] - 2020-10-12
 ### Added
