@@ -58,6 +58,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed scene picking passes.
 - Fixed broken ray tracing light cluster full screen debug.
 - Fixed dead code causing error.
+- Fixed exceptions occuring when selecting mulitple decal projectors without materials assigned (case 1283659).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
