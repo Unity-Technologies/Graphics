@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue (null reference in console) when selecting a DensityVolume with rectangle selection.
 - Fixed issue when linking the field of view with the focal length in physical camera
 - Fixed supported platform build and error message.
+- Fixed exceptions occuring when selecting mulitple decal projectors without materials assigned (case 1283659).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
