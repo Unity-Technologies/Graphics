@@ -446,9 +446,9 @@ class VisualEffectAssetEditor : Editor
         }
         
         EditorGUI.showMixedValue = !initialFixedDeltaTime.HasValue;
-        var deltaTimeContent = EditorGUIUtility.TrTextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode.");
-        var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant for fixed delta time mode, if enabled, can process several updates per frame (e.g.: if a frame is 30ms but the fixed frame rate is set to 5ms, it will update 6 times with a 5ms deltaTime instead of one time with a 30ms deltaTime). This update mode isn't efficient and should only be used for really high quality purpose.");
-        var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "If enabled, the computed visual effect delta time ignore the game time scale value (play rate is still applied).");
+        var deltaTimeContent = EditorGUIUtility.TrTextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode, otherwise, use the default Time.deltaTime.");
+        var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant when using Fixed Delta Time. When enabled, several updates can be processed per frame (e.g.: if a frame is 10ms and the fixed frame rate is set to 5 ms, the effect will update twice with a 5ms deltaTime instead of once with a 10ms deltaTime). This method is expensive and should only be used for high-end scenarios.");
+        var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "When enabled, the computed visual effect delta time ignores the game Time Scale value (Play Rate is still applied).");
 
         EditorGUI.BeginChangeCheck();
 
@@ -456,8 +456,9 @@ class VisualEffectAssetEditor : Editor
         bool newFixedDeltaTime = EditorGUILayout.Toggle(deltaTimeContent, initialFixedDeltaTime ?? false);
         bool newExactFixedTimeStep = false;
         EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
-        if (initialFixedDeltaTime.HasValue && initialFixedDeltaTime.Value || resourceUpdateModeProperty.hasMultipleDifferentValues)
-            newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+        EditorGUI.BeginDisabledGroup((!initialFixedDeltaTime.HasValue || !initialFixedDeltaTime.Value) && !resourceUpdateModeProperty.hasMultipleDifferentValues);
+        newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+        EditorGUI.EndDisabledGroup();
         EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
         bool newIgnoreTimeScale = EditorGUILayout.Toggle(ignoreTimeScaleContent, initialIgnoreGameTimeScale ?? false);
 
