@@ -14,7 +14,7 @@ HDRP_Hybrid_Win_DX12_playmode_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -38,7 +38,7 @@ HDRP_Hybrid_Win_DX12_playmode_XR_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -81,7 +81,7 @@ Build_HDRP_Hybrid_Win_DX12_Player_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_HybridTests && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
