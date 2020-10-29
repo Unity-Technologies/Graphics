@@ -160,7 +160,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_apiNet4_Li
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
+                  cd TestProjects/BoatAttack && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -323,7 +323,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_apiNet2_Line
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
+                  cd TestProjects/BoatAttack && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -498,7 +498,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_il2cpp_apiNet4_Li
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
+                  cd TestProjects/BoatAttack && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:
@@ -676,7 +676,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_apiNet2_Line
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-force-d3d11"
+                  cd TestProjects/BoatAttack && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-force-d3d11"
     artifacts:
         logs:
             paths:

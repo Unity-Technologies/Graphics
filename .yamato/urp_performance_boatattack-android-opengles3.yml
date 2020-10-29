@@ -166,7 +166,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_a
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -336,7 +336,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_api
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -518,7 +518,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_a
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -703,7 +703,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_mono_api
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+                 utr --suite=editor --platform=editmode --testproject=TestProjects\BoatAttack --editor-location=WindowsEditor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

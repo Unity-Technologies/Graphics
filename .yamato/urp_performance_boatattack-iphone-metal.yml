@@ -143,7 +143,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_apiNet
       -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -289,7 +289,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_apiNet2_
       -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -447,7 +447,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_apiNet
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
@@ -608,7 +608,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_mono_apiNet2_
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --testproject=TestProjects/BoatAttack --extra-editor-arg="-playergraphicsapi=Metal" --editor-location=.Editor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --testfilter=Build --report-performance-data --performance-project-id=BoatAttack --extra-editor-arg="-executemethod Editor.Setup" --category=URP --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
     artifacts:
         logs:
             paths:
