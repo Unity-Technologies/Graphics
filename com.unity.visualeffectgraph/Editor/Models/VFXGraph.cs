@@ -231,8 +231,8 @@ namespace UnityEditor.VFX
         // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
         // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
         // 5: Harmonized position blocks composition: PositionAABox was the only one with Overwrite position
-        public static readonly int CurrentVersion = 5;
-
+        // 6: Remove automatic strip orientation from quad strip context
+        public static readonly int CurrentVersion = 6;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
@@ -731,7 +731,7 @@ namespace UnityEditor.VFX
 
                 foreach (var instanceID in dependentAsset)
                 {
-                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
                     {
                         return;
                     }
@@ -756,7 +756,7 @@ namespace UnityEditor.VFX
 
                     foreach (var instanceID in dependentAsset)
                     {
-                        if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                        if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
                         {
                             return;
                         }
@@ -879,7 +879,10 @@ namespace UnityEditor.VFX
             GetImportDependentAssets(dependentAsset);
 
             foreach (var dep in dependentAsset)
-                visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+            {
+                if (dep != 0)
+                    visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+            }
 
             return dependentAsset.Select(t => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(t))).Distinct().ToArray();
         }
