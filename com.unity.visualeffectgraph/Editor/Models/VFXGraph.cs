@@ -230,9 +230,9 @@ namespace UnityEditor.VFX
         // 2: Change some SetAttribute to spaceable slot
         // 3: Remove Masked from blendMode in Outputs and split feature to UseAlphaClipping
         // 4: TransformVector|Position|Direction & DistanceToSphere|Plane|Line have now spaceable outputs
-        public static readonly int CurrentVersion = 4;
-
-
+        // 5: Harmonized position blocks composition: PositionAABox was the only one with Overwrite position
+        // 6: Remove automatic strip orientation from quad strip context
+        public static readonly int CurrentVersion = 6;
 
         public readonly VFXErrorManager errorManager = new VFXErrorManager();
 
@@ -470,11 +470,14 @@ namespace UnityEditor.VFX
                 UpdateSubAssets();
                 if (model == this)
                     VFXSubgraphContext.CallOnGraphChanged(this);
+
+                m_DependentDirty = true;
             }
 
             if (cause == VFXModel.InvalidationCause.kSettingChanged && model is VFXParameter)
             {
                 VFXSubgraphContext.CallOnGraphChanged(this);
+                m_DependentDirty = true;
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
@@ -728,7 +731,7 @@ namespace UnityEditor.VFX
 
                 foreach (var instanceID in dependentAsset)
                 {
-                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
                     {
                         return;
                     }
@@ -753,7 +756,7 @@ namespace UnityEditor.VFX
 
                     foreach (var instanceID in dependentAsset)
                     {
-                        if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                        if (instanceID != 0 && EditorUtility.InstanceIDToObject(instanceID) == null)
                         {
                             return;
                         }
@@ -803,15 +806,12 @@ namespace UnityEditor.VFX
             }
             if (!preventDependencyRecompilation && m_DependentDirty)
             {
-                if (m_DependentDirty)
+                var obj = GetResource().visualEffectObject;
+                foreach (var graph in GetAllGraphs<VisualEffectAsset>())
                 {
-                    var obj = GetResource().visualEffectObject;
-                    foreach (var graph in GetAllGraphs<VisualEffectAsset>())
-                    {
-                        graph.SubgraphDirty(obj);
-                    }
-                    m_DependentDirty = false;
+                    graph.SubgraphDirty(obj);
                 }
+                m_DependentDirty = false;
             }
         }
 
@@ -879,7 +879,10 @@ namespace UnityEditor.VFX
             GetImportDependentAssets(dependentAsset);
 
             foreach (var dep in dependentAsset)
-                visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+            {
+                if (dep != 0)
+                    visualEffectResource.AddImportDependency(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(dep)));
+            }
 
             return dependentAsset.Select(t => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(t))).Distinct().ToArray();
         }
