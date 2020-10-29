@@ -214,7 +214,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // These two buffers do not depend on the frameID and are therefore shared by all views.
         RTHandle                      m_DensityBuffer;
         RTHandle                      m_LightingBuffer;
-        Vector3Int                    m_CurrentVolumetricBufferSize;
+        RTHandle                      m_MaxZMask8x;
+        RTHandle                      m_MaxZMask;
+        RTHandle                      m_DilatedMaxZMask;
+
+        Vector3Int m_CurrentVolumetricBufferSize;
 
         ShaderVariablesVolumetric     m_ShaderVariablesVolumetricCB = new ShaderVariablesVolumetric();
 
@@ -258,17 +262,34 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int   viewportWidth  = hdCamera.actualWidth;
             int   viewportHeight = hdCamera.actualHeight;
-            float screenFraction = controller.screenResolutionPercentage.value * 0.01f;
-            int   sliceCount     = controller.volumeSliceCount.value;
+
+            float screenFraction;
+            int   sliceCount;
+            if (controller.fogControlMode == FogControl.Balance)
+            {
+                // Evaluate the ssFraction and sliceCount based on the control parameters
+                float maxScreenSpaceFraction = (1.0f - controller.resolutionDepthRatio) * (Fog.maxFogScreenResolutionPercentage - Fog.minFogScreenResolutionPercentage) + Fog.minFogScreenResolutionPercentage;
+                screenFraction = Mathf.Lerp(Fog.minFogScreenResolutionPercentage, maxScreenSpaceFraction, controller.volumetricFogBudget) * 0.01f;
+                float maxSliceCount = Mathf.Max(1.0f, controller.resolutionDepthRatio * Fog.maxFogSliceCount);
+                sliceCount = (int)Mathf.Lerp(1.0f, maxSliceCount, controller.volumetricFogBudget);
+
+                // Evaluate the voxel size
+                voxelSize = 1.0f / screenFraction;
+            }
+            else
+            {
+                screenFraction = controller.screenResolutionPercentage.value * 0.01f;
+                sliceCount = controller.volumeSliceCount.value;
+
+                if (controller.screenResolutionPercentage.value == Fog.optimalFogScreenResolutionPercentage)
+                    voxelSize = 8;
+                else
+                    voxelSize = 1.0f / screenFraction; // Does not account for rounding (same function, above)
+            }
 
             int w = Mathf.RoundToInt(viewportWidth  * screenFraction);
             int h = Mathf.RoundToInt(viewportHeight * screenFraction);
             int d = sliceCount;
-
-            if (controller.screenResolutionPercentage.value == (1.0f/8.0f) * 100)
-                voxelSize = 8;
-            else
-                voxelSize = 1.0f / screenFraction; // Does not account for rounding (same function, above)
 
             return new Vector3Int(w, h, d);
         }
@@ -364,6 +385,113 @@ namespace UnityEngine.Rendering.HighDefinition
                                      dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: name);
             }
         }
+        struct GenerateMaxZParameters
+        {
+            public ComputeShader generateMaxZCS;
+            public int maxZKernel;
+            public int maxZDownsampleKernel;
+            public int dilateMaxZKernel;
+
+            public Vector2Int intermediateMaskSize;
+            public Vector2Int finalMaskSize;
+            public Vector2Int minDepthMipOffset;
+
+            public float dilationWidth;
+            public int viewCount;
+        }
+
+
+        GenerateMaxZParameters PrepareGenerateMaxZParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
+        {
+            var parameters = new GenerateMaxZParameters();
+            parameters.generateMaxZCS = defaultResources.shaders.maxZCS;
+            parameters.maxZKernel = parameters.generateMaxZCS.FindKernel("ComputeMaxZ");
+            parameters.maxZDownsampleKernel = parameters.generateMaxZCS.FindKernel("ComputeFinalMask");
+            parameters.dilateMaxZKernel = parameters.generateMaxZCS.FindKernel("DilateMask");
+
+            parameters.intermediateMaskSize.x = HDUtils.DivRoundUp(hdCamera.actualWidth, 8);
+            parameters.intermediateMaskSize.y = HDUtils.DivRoundUp(hdCamera.actualHeight, 8);
+
+            parameters.finalMaskSize.x = parameters.intermediateMaskSize.x / 2;
+            parameters.finalMaskSize.y = parameters.intermediateMaskSize.y / 2;
+
+            parameters.minDepthMipOffset.x = depthMipInfo.mipLevelOffsets[4].x;
+            parameters.minDepthMipOffset.y = depthMipInfo.mipLevelOffsets[4].y;
+
+            var currIdx = frameIndex & 1;
+            var currentParams = hdCamera.vBufferParams[currIdx];
+
+            float ratio = (float)currentParams.viewportSize.x / (float)hdCamera.actualWidth;
+            parameters.dilationWidth = ratio < 0.1f ? 2 :
+                                       ratio < 0.5f ? 1 : 0;
+
+            parameters.viewCount = hdCamera.viewCount;
+
+            return parameters;
+        }
+
+        static void GenerateMaxZ(in GenerateMaxZParameters parameters, RTHandle maxZ8x, RTHandle maxZ, RTHandle dilatedMaxZ, CommandBuffer cmd)
+        {
+            // --------------------------------------------------------------
+            // Downsample 8x8 with max operator
+
+            var cs = parameters.generateMaxZCS;
+            var kernel = parameters.maxZKernel;
+
+            int maskW = parameters.intermediateMaskSize.x;
+            int maskH = parameters.intermediateMaskSize.y;
+
+            int dispatchX = maskW;
+            int dispatchY = maskH;
+
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, maxZ8x);
+
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
+
+            // --------------------------------------------------------------
+            // Downsample to 16x16 and compute gradient if required
+
+            kernel = parameters.maxZDownsampleKernel;
+
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, maxZ8x);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, maxZ);
+
+            Vector4 srcLimitAndDepthOffset = new Vector4(
+                maskW,
+                maskH,
+                parameters.minDepthMipOffset.x,
+                parameters.minDepthMipOffset.y
+                );
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
+            cmd.SetComputeFloatParam(cs, HDShaderIDs._DilationWidth, parameters.dilationWidth);
+
+            int finalMaskW = maskW / 2;
+            int finalMaskH = maskH / 2;
+
+            dispatchX = HDUtils.DivRoundUp(finalMaskW, 8);
+            dispatchY = HDUtils.DivRoundUp(finalMaskH, 8);
+
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
+
+            // --------------------------------------------------------------
+            // Dilate max Z and gradient.
+            kernel = parameters.dilateMaxZKernel;
+
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, maxZ);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, dilatedMaxZ);
+
+            srcLimitAndDepthOffset.x = finalMaskW;
+            srcLimitAndDepthOffset.y = finalMaskH;
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._SrcOffsetAndLimit, srcLimitAndDepthOffset);
+
+            cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
+
+        }
+
+        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
+        {
+            GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo, frameIndex), m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
+        }
 
         static internal void CreateVolumetricHistoryBuffers(HDCamera hdCamera, int bufferCount)
         {
@@ -456,12 +584,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_LightingBuffer = RTHandles.Alloc(minSize, minSize, minSize, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                                                dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "VBufferLighting");
+
+
+            m_MaxZMask8x = RTHandles.Alloc(Vector2.one * 0.125f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
+                                    enableRandomWrite: true, name: "MaxZ mask 8x");
+
+            m_MaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
+                                                enableRandomWrite: true, name: "MaxZ mask");
+
+            m_DilatedMaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
+                                    enableRandomWrite: true, name: "Dilated MaxZ mask");
+
         }
 
         internal void DestroyVolumetricLightingBuffers()
         {
             RTHandles.Release(m_LightingBuffer);
             RTHandles.Release(m_DensityBuffer);
+            RTHandles.Release(m_MaxZMask8x);
+            RTHandles.Release(m_MaxZMask);
+            RTHandles.Release(m_DilatedMaxZMask);
 
             CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
             CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
@@ -838,12 +980,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader                volumetricLightingCS;
             public ComputeShader                volumetricLightingFilteringCS;
             public int                          volumetricLightingKernel;
-            public int                          volumetricFilteringKernelX;
-            public int                          volumetricFilteringKernelY;
+            public int                          volumetricFilteringKernel;
             public bool                         tiledLighting;
             public Vector4                      resolution;
             public bool                         enableReprojection;
             public int                          viewCount;
+            public int                          sliceCount;
             public bool                         filterVolume;
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;
@@ -863,49 +1005,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
             parameters.tiledLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass);
-            parameters.enableReprojection = hdCamera.IsVolumetricReprojectionEnabled();
+            bool volumeAllowsReprojection = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Reprojection) != 0;
+            parameters.enableReprojection = hdCamera.IsVolumetricReprojectionEnabled() && volumeAllowsReprojection;
             bool enableAnisotropy = fog.anisotropy.value != 0;
+            // The multi-pass integration is only possible if re-projection is possible and the effect is not in anisotropic mode.
             bool optimal = currParams.voxelSize == 8;
-
             parameters.volumetricLightingCS = m_VolumetricLightingCS;
+            parameters.volumetricLightingFilteringCS = m_VolumetricLightingFilteringCS;
             parameters.volumetricLightingCS.shaderKeywords = null;
 
-            if(!parameters.tiledLighting)
-            {
-                parameters.volumetricLightingCS.EnableKeyword("LIGHTLOOP_DISABLE_TILE_AND_CLUSTER");
-            }
-
-            if(parameters.enableReprojection)
-            {
-                parameters.volumetricLightingCS.EnableKeyword("ENABLE_REPROJECTION");
-            }
-
-            if(enableAnisotropy)
-            {
-                parameters.volumetricLightingCS.EnableKeyword("ENABLE_ANISOTROPY");
-            }
-
-            if (optimal)
-            {
-                parameters.volumetricLightingCS.EnableKeyword("VL_PRESET_OPTIMAL");
-            }
-            else
-            {
-                parameters.volumetricLightingCS.DisableKeyword("VL_PRESET_OPTIMAL");
-            }
+            CoreUtils.SetKeyword(parameters.volumetricLightingCS, "LIGHTLOOP_DISABLE_TILE_AND_CLUSTER", !parameters.tiledLighting);
+            CoreUtils.SetKeyword(parameters.volumetricLightingCS, "ENABLE_REPROJECTION", parameters.enableReprojection);
+            CoreUtils.SetKeyword(parameters.volumetricLightingCS, "ENABLE_ANISOTROPY", enableAnisotropy);
+            CoreUtils.SetKeyword(parameters.volumetricLightingCS, "VL_PRESET_OPTIMAL", optimal);
+            CoreUtils.SetKeyword(parameters.volumetricLightingCS, "SUPPORT_LOCAL_LIGHTS", !fog.directionalLightsOnly.value);
 
             parameters.volumetricLightingKernel = parameters.volumetricLightingCS.FindKernel("VolumetricLighting");
 
-
-            parameters.volumetricLightingFilteringCS = m_VolumetricLightingFilteringCS;
-            parameters.volumetricFilteringKernelX = parameters.volumetricLightingFilteringCS.FindKernel("FilterVolumetricLightingX");
-            parameters.volumetricFilteringKernelY = parameters.volumetricLightingFilteringCS.FindKernel("FilterVolumetricLightingY");
+            parameters.volumetricFilteringKernel = parameters.volumetricLightingFilteringCS.FindKernel("FilterVolumetricLighting");
 
             var cvp = currParams.viewportSize;
 
             parameters.resolution = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
             parameters.viewCount = hdCamera.viewCount;
-            parameters.filterVolume = fog.filter.value;
+            parameters.filterVolume = ((int)fog.denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0;
+            parameters.sliceCount = (int)(cvp.z);
 
             UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution, frameIndex);
             parameters.volumetricCB = m_ShaderVariablesVolumetricCB;
@@ -918,6 +1042,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             RTHandle                        depthTexture,
                                             RTHandle                        densityBuffer,
                                             RTHandle                        lightingBuffer,
+                                            RTHandle                        maxZTexture,
                                             RTHandle                        historyRT,
                                             RTHandle                        feedbackRT,
                                             ComputeBuffer                   bigTileLightList,
@@ -925,6 +1050,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (parameters.tiledLighting)
                 cmd.SetComputeBufferParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, bigTileLightList);
+
+            cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._MaxZMaskTexture, maxZTexture);  // Read
 
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._CameraDepthTexture, depthTexture);  // Read
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._VBufferDensity,  densityBuffer);  // Read
@@ -943,20 +1070,17 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
         }
 
-        static void FilterVolumetricLighting(in VolumetricLightingParameters parameters, RTHandle outputBuffer, RTHandle inputBuffer, CommandBuffer cmd)
+        static void FilterVolumetricLighting(in VolumetricLightingParameters parameters, RTHandle lightingBuffer, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLightingFiltering)))
             {
-                ConstantBuffer.Push(cmd, parameters.volumetricCB, parameters.volumetricLightingCS, HDShaderIDs._ShaderVariablesVolumetric);
+                ConstantBuffer.Push(cmd, parameters.volumetricCB, parameters.volumetricLightingFilteringCS, HDShaderIDs._ShaderVariablesVolumetric);
 
-                // The shader defines GROUP_SIZE_1D = 8.
-                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferFilteringInput,  inputBuffer);  // Read
-                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelX, HDShaderIDs._VBufferFilteringOutput, outputBuffer); // Write
-                cmd.DispatchCompute(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelX, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
-
-                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferFilteringInput,  outputBuffer); // Read
-                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelY, HDShaderIDs._VBufferFilteringOutput, inputBuffer);  // Write
-                cmd.DispatchCompute(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernelY, ((int)parameters.resolution.x + 7) / 8, ((int)parameters.resolution.y + 7) / 8, parameters.viewCount);
+                // The shader defines GROUP_SIZE_1D_XY = 8 and GROUP_SIZE_1D_Z = 1
+                cmd.SetComputeTextureParam(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernel, HDShaderIDs._VBufferLighting, lightingBuffer);
+                cmd.DispatchCompute(parameters.volumetricLightingFilteringCS, parameters.volumetricFilteringKernel, HDUtils.DivRoundUp((int)parameters.resolution.x, 8),
+                                                                                                                    HDUtils.DivRoundUp((int)parameters.resolution.y, 8),
+                                                                                                                    parameters.sliceCount);
             }
         }
 
@@ -983,7 +1107,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     historyRT  = hdCamera.volumetricHistoryBuffers[prevIdx];
                 }
 
-                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
+                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, m_DilatedMaxZMask, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
 
                 if (parameters.enableReprojection)
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...
@@ -991,7 +1115,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Let's filter out volumetric buffer
             if (parameters.filterVolume)
-                FilterVolumetricLighting(parameters, m_DensityBuffer, m_LightingBuffer, cmd);
+                FilterVolumetricLighting(parameters, m_LightingBuffer, cmd);
 
             cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, m_LightingBuffer);
         }

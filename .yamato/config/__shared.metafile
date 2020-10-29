@@ -6,19 +6,30 @@ editors: # applied for all yml files
     name: trunk
     rerun_strategy: on-new-revision
     editor_pinning: True
+    abv_pr: False
     nightly: True
-  - track: 2020.2
-    name: 2020.2
-    rerun_strategy: on-new-revision
-    editor_pinning: True
-    # fast: True
-    abv_pr: True
-    nightly: True
+    weekly: True
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: always
     editor_pinning: False
     fast: False
+build_configs:
+  - name: il2cpp_apiNet2
+    scripting_backend: IL2CPP
+    api_level: NET_2_0
+  - name: il2cpp_apiNet4
+    scripting_backend: IL2CPP
+    api_level: NET_4_6
+  - name: mono_apiNet2
+    scripting_backend: Mono2x
+    api_level: NET_2_0
+  - name: mono_apiNet4
+    scripting_backend: Mono2x
+    api_level: NET_4_6
+color_spaces:
+  - Linear
+  - gamma
 platforms:
   Win:
     name: Win
@@ -46,7 +57,7 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-    agent_package: 
+    agent_package:
       type: Unity::VM
       image: package-ci/win10:stable
       flavor: b1.large
@@ -61,6 +72,7 @@ platforms:
           - editmode
       - name: OpenGLCore
         exclude_test_platforms:
+          - playmode_XR
           - Standalone
     components:
       - editor
@@ -75,7 +87,7 @@ platforms:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
-    agent_package: 
+    agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:stable
       flavor: m1.mac
@@ -84,7 +96,7 @@ platforms:
   Linux:
     name: Linux
     os: linux
-    apis: 
+    apis:
       - name: OpenGLCore
         cmd: -force-glcore
         exclude_test_platforms:
@@ -120,6 +132,7 @@ platforms:
           - playmode
           - playmode_XR
       - name: Vulkan
+      - name: Vulkan
         exclude_test_platforms:
           - editmode
           - playmode
@@ -143,9 +156,9 @@ platforms:
     apis:
       - name: Metal
         exclude_test_platforms:
-        - editmode
-        - playmode
-        - playmode_XR
+          - editmode
+          - playmode
+          - playmode_XR
     components:
       - editor
       - iOS

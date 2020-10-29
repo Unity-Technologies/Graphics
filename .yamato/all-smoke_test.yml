@@ -6,29 +6,20 @@
 All_Smoke_Test_trunk:
     name: All Smoke_Test CI - trunk
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_trunk
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_trunk
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_trunk
-         rerun: on-new-revision
-All_Smoke_Test_2020.2:
-    name: All Smoke_Test CI - 2020.2
-    dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_2020.2
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
 All_Smoke_Test_CUSTOM-REVISION:
     name: All Smoke_Test CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

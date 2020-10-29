@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.SamplerState;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => false;
         internal override bool isRenamable => false;
 
@@ -30,9 +29,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            return $"SAMPLER({referenceName}){delimiter}";
+            action(new HLSLProperty(HLSLType._SamplerState, referenceName, HLSLDeclaration.Global));
         }
 
         internal override string GetPropertyAsArgumentString()
