@@ -192,22 +192,12 @@ namespace UnityEngine.Rendering
 
             public override void Release()
             {
-                try
-                {
-                    foreach (int shaderId in m_GlobalBindings)
-                        Shader.SetGlobalConstantBuffer(shaderId, (ComputeBuffer)null, 0, 0);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.Log(e);
-                }
-                finally
-                {
-                    m_GlobalBindings.Clear();
-                    CoreUtils.SafeRelease(m_GPUConstantBuffer);
-                    s_Instance = null;
-                }
+                foreach (int shaderId in m_GlobalBindings)
+                    Shader.SetGlobalConstantBuffer(shaderId, (ComputeBuffer)null, 0, 0);
+                m_GlobalBindings.Clear();
 
+                CoreUtils.SafeRelease(m_GPUConstantBuffer);
+                s_Instance = null;
             }
         }
     }
