@@ -134,7 +134,11 @@ namespace UnityEngine.Rendering
 
         class TypedConstantBuffer<CBType> : ConstantBufferBase where CBType : struct
         {
-            CBType[] m_Data = new CBType[1]; // Array is required by the ComputeBuffer SetData API
+            // Used to track all global bindings used by this CB type.
+            HashSet<int> m_GlobalBindings = new HashSet<int>();
+            // Array is required by the ComputeBuffer SetData API
+            CBType[] m_Data = new CBType[1];
+
             static TypedConstantBuffer<CBType> s_Instance = null;
             internal static TypedConstantBuffer<CBType> instance
             {
@@ -169,6 +173,7 @@ namespace UnityEngine.Rendering
 
             public void SetGlobal(CommandBuffer cmd, int shaderId)
             {
+                m_GlobalBindings.Add(shaderId);
                 cmd.SetGlobalConstantBuffer(m_GPUConstantBuffer, shaderId, 0, m_GPUConstantBuffer.stride);
             }
 
@@ -187,8 +192,22 @@ namespace UnityEngine.Rendering
 
             public override void Release()
             {
-                CoreUtils.SafeRelease(m_GPUConstantBuffer);
-                s_Instance = null;
+                try
+                {
+                    foreach (int shaderId in m_GlobalBindings)
+                        Shader.SetGlobalConstantBuffer(shaderId, (ComputeBuffer)null, 0, 0);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.Log(e);
+                }
+                finally
+                {
+                    m_GlobalBindings.Clear();
+                    CoreUtils.SafeRelease(m_GPUConstantBuffer);
+                    s_Instance = null;
+                }
+
             }
         }
     }
