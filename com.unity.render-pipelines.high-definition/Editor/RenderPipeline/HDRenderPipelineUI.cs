@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             LightingQuality = 1 << 25,
             SSRQuality = 1 << 26,
             VirtualTexturing = 1 << 27,
+            FogQuality = 1 << 28
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -88,7 +89,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(Styles.lightingQualitySettings, Expandable.LightingQuality, k_ExpandedState,
                     CED.FoldoutGroup(Styles.SSAOQualitySettingSubTitle, Expandable.SSAOQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSAOQualitySettings),
                     CED.FoldoutGroup(Styles.contactShadowsSettingsSubTitle, Expandable.ContactShadowQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionContactShadowQualitySettings),
-                    CED.FoldoutGroup(Styles.SSRSettingsSubTitle, Expandable.SSRQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSRQualitySettings)
+                    CED.FoldoutGroup(Styles.SSRSettingsSubTitle, Expandable.SSRQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSRQualitySettings),
+                    CED.FoldoutGroup(Styles.FogSettingsSubTitle, Expandable.FogQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionFogQualitySettings)
                     ),
                 CED.FoldoutGroup(Styles.materialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
                 CED.FoldoutGroup(Styles.postProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings),
@@ -192,6 +194,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.GeneralSection.shaderVariantLogLevel);
 
             EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.GeneralSection.lensAttenuationModeContent);
+            EditorGUILayout.PropertyField(serialized.useRenderGraph, Styles.GeneralSection.useRenderGraphContent);
 
             m_ShowLightLayerNames = EditorGUILayout.Foldout(m_ShowLightLayerNames, Styles.lightLayerNamesText, true);
             if (m_ShowLightLayerNames)
@@ -254,7 +257,9 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportSSR.boolValue))
             {
+                ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSRTransparent, Styles.supportSSRTransparentContent);
+                --EditorGUI.indentLevel;
             }
 
             EditorGUILayout.Space();
@@ -287,17 +292,29 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize, Styles.planarAtlasSizeContent);
-            if (serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.hasMultipleDifferentValues)
-                EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
-            else
+            // Planar reflection probes section
             {
-                long currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(1, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.intValue, GraphicsFormat.R16G16B16A16_UNorm);
-                string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                EditorGUILayout.HelpBox(message, MessageType.Info);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize, Styles.planarAtlasSizeContent);
+                serialized.renderPipelineSettings.planarReflectionResolution.ValueGUI<PlanarReflectionAtlasResolution>(Styles.planarResolutionTitle);
+                // We need to clamp the values to the resolution
+                int atlasResolution = serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.intValue;
+                int numLevels = serialized.renderPipelineSettings.planarReflectionResolution.values.arraySize;
+                for(int levelIdx = 0; levelIdx < numLevels; ++levelIdx)
+                {
+                    SerializedProperty levelValue = serialized.renderPipelineSettings.planarReflectionResolution.values.GetArrayElementAtIndex(levelIdx);
+                    levelValue.intValue = Mathf.Min(levelValue.intValue, atlasResolution);
+                }
+                if (serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.hasMultipleDifferentValues)
+                    EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
+                else
+                {
+                    long currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(1, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.intValue, GraphicsFormat.R16G16B16A16_UNorm);
+                    string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                    EditorGUILayout.HelpBox(message, MessageType.Info);
+                }
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen, Styles.maxPlanarReflectionOnScreen);
             }
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen, Styles.maxPlanarReflectionOnScreen);
-
+            
             EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck();
@@ -673,6 +690,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void DrawBloomQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomRes.GetArrayElementAtIndex(tier), Styles.resolutionQuality);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighPrefilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityPrefiltering);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessQualitySettings.BloomHighFilteringQuality.GetArrayElementAtIndex(tier), Styles.highQualityFiltering);
         }
 
@@ -843,6 +861,53 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSRMaxRaySteps.GetArrayElementAtIndex(quality), Styles.contactShadowsSampleCount);
             }
         }
+
+        static private bool m_ShowFogLowQualitySection = false;
+        static private bool m_ShowFogMediumQualitySection = false;
+        static private bool m_ShowFogHighQualitySection = false;
+
+        static void Drawer_SectionFogQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowFogLowQualitySection = EditorGUILayout.Foldout(m_ShowFogLowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowFogLowQualitySection);
+            if (m_ShowFogLowQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Low;
+                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
+                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
+                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
+                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+            }
+
+            m_ShowFogMediumQualitySection = EditorGUILayout.Foldout(m_ShowFogMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowFogMediumQualitySection);
+            if (m_ShowFogMediumQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Medium;
+                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
+                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
+                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
+                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+            }
+
+            m_ShowFogHighQualitySection = EditorGUILayout.Foldout(m_ShowFogHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowFogHighQualitySection);
+            if (m_ShowFogHighQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.High;
+                var budget = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogBudget.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(budget, Styles.FogSettingsBudget);
+                budget.floatValue = Mathf.Clamp(budget.floatValue, 0.0f, 1.0f);
+                var ratio = serialized.renderPipelineSettings.lightingQualitySettings.VolumetricFogRatio.GetArrayElementAtIndex(quality);
+                EditorGUILayout.PropertyField(ratio, Styles.FogSettingsRatio);
+                ratio.floatValue = Mathf.Clamp(ratio.floatValue, 0.0f, 1.0f);
+            }
+        }
+
 
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {

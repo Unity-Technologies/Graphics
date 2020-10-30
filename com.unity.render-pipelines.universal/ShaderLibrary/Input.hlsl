@@ -7,8 +7,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
 
-#if defined(SHADER_API_MOBILE) && (SHADER_TARGET < 45)
-#define MAX_VISIBLE_LIGHTS 16
+#if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
+    #define MAX_VISIBLE_LIGHTS 16
 #elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround for bug on Nintendo Switch where SHADER_API_GLCORE is mistakenly defined
     #define MAX_VISIBLE_LIGHTS 32
 #else
@@ -43,7 +43,7 @@ half4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
 
 // xyz are currently unused
-// w directLightStrength
+// w: directLightStrength
 half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;

@@ -4,6 +4,6 @@ namespace UnityEditor.ShaderGraph
 {
     interface IHasDependencies
     {
-        void GetSourceAssetDependencies(List<string> paths);
+        void GetSourceAssetDependencies(AssetCollection assetCollection);
     }
 }

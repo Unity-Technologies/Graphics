@@ -157,11 +157,12 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorApplication.update -= UpgradeIfNeeded;
         }
 
-        public void GetSourceAssetDependencies(List<string> paths)
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {
-            if(diffusionProfile != null)
+            if ((diffusionProfile != null) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(diffusionProfile, out string guid, out long localId))
             {
-                paths.Add(AssetDatabase.GetAssetPath(diffusionProfile));
+                // diffusion profile is a ScriptableObject, so this is an artifact dependency
+                assetCollection.AddAssetDependency(new GUID(guid), AssetCollection.Flags.ArtifactDependency | AssetCollection.Flags.IncludeInExportPackage);
             }
         }
     }

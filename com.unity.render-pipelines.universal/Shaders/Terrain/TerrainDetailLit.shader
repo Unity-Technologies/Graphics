@@ -257,7 +257,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
 
         Pass
         {
-            Name "Depth"
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On

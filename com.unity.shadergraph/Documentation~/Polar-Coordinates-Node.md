@@ -14,8 +14,8 @@ These values can be scaled by the values of inputs **Radial Scale** and **Length
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
 | Center | Input      |    Vector 2 | None | Center reference point |
-| Radial Scale | Input      |    Vector 1 | None | Scale of distance value |
-| Length Scale | Input      |    Vector 1 | None | Scale of angle value |
+| Radial Scale | Input      |    Float    | None | Scale of distance value |
+| Length Scale | Input      |    Float    | None | Scale of angle value |
 | Out | Output      |    Vector 2 | None | Output value |
 
 ## Generated Code Example

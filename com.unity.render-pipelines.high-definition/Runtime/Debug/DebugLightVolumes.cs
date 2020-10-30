@@ -54,8 +54,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ColorGradientTexture = renderPipelineResources.textures.colorGradient;
 
             m_Blit = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.blitPS);
-
-            InitializeNonRenderGraphResources();
         }
 
         public void ReleaseData()
