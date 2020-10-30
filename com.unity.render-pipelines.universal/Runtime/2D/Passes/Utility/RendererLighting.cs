@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
-                        SetPointLightShaderGlobals(cmd, light);
+                        SetPointLightShaderGlobals(pass, cmd, light);
 
                     // Light code could be combined...
                     if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
@@ -237,7 +237,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                     // Is this needed
                                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
-                                        SetPointLightShaderGlobals(cmd, light);
+                                        SetPointLightShaderGlobals(pass, cmd, light);
 
                                     // Could be combined...
                                     if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
@@ -271,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalVector(k_InvertedFilterPropIDs[i], blendStyle.maskTextureChannelFilter.inverted);
             }
 
-            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
+            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture(pass.rendererData));
         }
 
         private static float GetNormalizedInnerRadius(Light2D light)
@@ -297,7 +297,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
         }
 
-        private static void SetPointLightShaderGlobals(CommandBuffer cmd, Light2D light)
+        private static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
         {
             // This is used for the lookup texture
             GetScaledLightInvMatrix(light, out var lightInverseMatrix, true);
@@ -315,7 +315,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.SetGlobalFloat(k_OuterAngleID, outerAngle);
             cmd.SetGlobalFloat(k_InnerAngleMultID, 1 / (outerAngle - innerAngle));
             cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
-            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
+            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture(pass.rendererData));
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
 

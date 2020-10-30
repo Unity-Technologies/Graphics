@@ -14,11 +14,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return s_PointLightLookupTexture;
         }
 
-        public static Texture GetFalloffLookupTexture()
+        public static Texture GetFalloffLookupTexture(Renderer2DData data)
         {
             if (s_FalloffLookupTexture == null)
             {
-                s_FalloffLookupTexture = Resources.Load<Texture2D>("FalloffLookupTexture");
+                s_FalloffLookupTexture = data.fallOffLookup;
                 if (s_FalloffLookupTexture == null)
                     s_FalloffLookupTexture = CreateFalloffLookupTexture();
             }

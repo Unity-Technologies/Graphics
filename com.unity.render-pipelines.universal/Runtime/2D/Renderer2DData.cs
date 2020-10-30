@@ -63,10 +63,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Runtime/Data/PostProcessData.asset")]
         PostProcessData m_PostProcessData = null;
 
+        [SerializeField, Reload("Runtime/2D/Data/Textures/FalloffLookupTexture.png")]
+        [HideInInspector]
+        private Texture2D m_FallOffLookup = null;
+
         public float hdrEmulationScale => m_HDREmulationScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
-
+        internal Texture2D fallOffLookup => m_FallOffLookup;
         internal Shader shapeLightShader => m_ShapeLightShader;
         internal Shader shapeLightVolumeShader => m_ShapeLightVolumeShader;
         internal Shader pointLightShader => m_PointLightShader;
