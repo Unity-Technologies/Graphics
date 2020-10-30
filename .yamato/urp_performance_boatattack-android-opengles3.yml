@@ -19,7 +19,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -95,7 +95,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_mono_a
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -172,7 +172,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -255,7 +255,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_mono_a
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --reruncount=2 --report-performance-data --performance-project-id=BoatAttack --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
