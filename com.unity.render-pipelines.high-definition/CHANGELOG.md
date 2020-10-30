@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed a null ref exception when baking reflection probes.
+- Fixed shadow resolution settings level in the light explorer.
 
 ## [7.5.1] - 2020-09-02
 
