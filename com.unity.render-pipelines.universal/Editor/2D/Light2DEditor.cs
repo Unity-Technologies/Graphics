@@ -356,13 +356,21 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.BeginHorizontal();
             EditorGUI.indentLevel = 0;
             EditorGUIUtility.labelWidth = style.CalcSize(content1).x;
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(innerRadius, content1);
-            if (innerRadius.floatValue > outerRadius.floatValue)
-                innerRadius.floatValue = outerRadius.floatValue;
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (innerRadius.floatValue > outerRadius.floatValue)
+                    innerRadius.floatValue = outerRadius.floatValue;
+                else if (innerRadius.floatValue < 0)
+                    innerRadius.floatValue = 0;
+            }
 
             EditorGUIUtility.labelWidth = style.CalcSize(content2).x;
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(outerRadius, content2);
-            if (innerRadius.floatValue < outerRadius.floatValue)
+            if (EditorGUI.EndChangeCheck() && outerRadius.floatValue < innerRadius.floatValue)
                 outerRadius.floatValue = innerRadius.floatValue;
 
             EditorGUILayout.EndHorizontal();
