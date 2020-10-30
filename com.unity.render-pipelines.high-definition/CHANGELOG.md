@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix shadow resolution settings level in the light explorer.
 - Fixed the ShaderGraph being dirty after the first save.
 - Fixed XR shadows culling
+- Fixed stylesheet reloading for LookDev window and Wizard window.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
