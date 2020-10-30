@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that could cause objects to not be rendered when using Vulkan API.
 - Fixed issue with lookdev shadows looking wrong upon exiting playmode. 
 - Fixed temporary Editor freeze when selecting AOV output in graphics compositor (case 1288744).
+- Fixed normal flip with double sided materials.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -82,6 +83,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the names of some of the parameters for the Eye Utils SG Nodes.
 - Restored frame setting for async compute of contact shadows.
 - Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
+- Range handles for decal projector angle fading.
+- Smoother angle fading for decal projector.
 
 ## [10.1.0] - 2020-10-12
 
