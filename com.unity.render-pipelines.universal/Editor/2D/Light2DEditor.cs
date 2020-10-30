@@ -281,7 +281,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_BlendingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.blendingSettingsFoldout, m_BlendingSettingsFoldout.value);
             if (m_BlendingSettingsFoldout.value)
             {
-                EditorGUI.indentLevel++;
                 if (!m_AnyBlendStyleEnabled)
                     EditorGUILayout.HelpBox(Styles.generalLightNoLightEnabled);
                 else
@@ -289,36 +288,32 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                 EditorGUILayout.PropertyField(m_LightOrder, Styles.generalLightOrder);
                 EditorGUILayout.PropertyField(m_OverlapOperation, Styles.generalLightOverlapOperation);
-                EditorGUI.indentLevel--;
             }
         }
 
         void DrawShadowsGroup()
         {
-            m_ShadowsSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.shadowsSettingsFoldout, m_ShadowsSettingsFoldout.value);
-            if (m_ShadowsSettingsFoldout.value)
+            if (CoreEditorUtils.DrawHeaderToggle(Styles.shadowsSettingsFoldout.text, m_ShadowIntensityEnabled, m_ShadowIntensityEnabled))
             {
-                EditorGUI.indentLevel++;
-                DrawToggleProperty(Styles.generalShadowIntensity, m_ShadowIntensityEnabled, m_ShadowIntensity);
-                EditorGUI.indentLevel--;
+                EditorGUI.BeginDisabledGroup(!m_ShadowIntensityEnabled.boolValue);
+                EditorGUILayout.PropertyField(m_ShadowIntensity, Styles.generalShadowIntensity);
+                EditorGUI.EndDisabledGroup();
             }
         }
 
         void DrawVolumetricGroup()
         {
-            m_VolumetricSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.volumetricSettingsFoldout, m_VolumetricSettingsFoldout.value);
-            if (m_VolumetricSettingsFoldout.value)
+            if (CoreEditorUtils.DrawHeaderToggle(Styles.volumetricSettingsFoldout.text, m_VolumetricIntensityEnabled, m_VolumetricIntensityEnabled))
             {
-                EditorGUI.indentLevel++;
-
-                DrawToggleProperty(Styles.generalVolumeIntensity, m_VolumetricIntensityEnabled, m_VolumetricIntensity);
+                EditorGUI.BeginDisabledGroup(!m_VolumetricIntensityEnabled.boolValue);
+                EditorGUILayout.PropertyField(m_VolumetricIntensity, Styles.generalVolumeIntensity);
+                EditorGUI.EndDisabledGroup();
                 if (m_VolumetricIntensity.floatValue < 0)
                     m_VolumetricIntensity.floatValue = 0;
 
                 EditorGUI.BeginDisabledGroup(!m_VolumetricIntensityEnabled.boolValue);
                 DrawToggleProperty(Styles.generalShadowVolumeIntensity, m_ShadowVolumeIntensityEnabled, m_ShadowVolumeIntensity);
                 EditorGUI.EndDisabledGroup();
-                EditorGUI.indentLevel--;
             }
         }
 
@@ -327,7 +322,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_NormalMapsSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.normalMapsSettingsFoldout, m_NormalMapsSettingsFoldout.value);
             if (m_NormalMapsSettingsFoldout.value)
             {
-                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_NormalMapQuality, Styles.generalNormalMapLightQuality);
 
                 EditorGUI.BeginDisabledGroup(m_NormalMapQuality.intValue == (int)Light2D.NormalMapQuality.Disabled);
@@ -337,7 +331,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     m_NormalMapZDistance.floatValue = Mathf.Max(0.0f, m_NormalMapZDistance.floatValue);
 
                 EditorGUI.EndDisabledGroup();
-                EditorGUI.indentLevel--;
             }
         }
 
@@ -379,22 +372,19 @@ namespace UnityEditor.Experimental.Rendering.Universal
         void DrawToggleProperty(GUIContent label, SerializedProperty boolProperty, SerializedProperty property)
         {
             int savedIndentLevel = EditorGUI.indentLevel;
-            float savedLabelWidth = EditorGUIUtility.labelWidth;
-            const int kCheckboxWidth = 20;
-
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(boolProperty, GUIContent.none, GUILayout.MaxWidth(kCheckboxWidth));
+            EditorGUILayout.PrefixLabel(label);
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.indentLevel = 0;
+            EditorGUILayout.PropertyField(boolProperty, GUIContent.none, GUILayout.MaxWidth(20));
 
-            EditorGUIUtility.labelWidth = EditorGUIUtility.labelWidth - kCheckboxWidth;
             EditorGUI.BeginDisabledGroup(!boolProperty.boolValue);
-            EditorGUILayout.PropertyField(property, label);
+            EditorGUILayout.PropertyField(property, GUIContent.none);
             EditorGUI.EndDisabledGroup();
-            
+
             EditorGUILayout.EndHorizontal();
-
+            EditorGUILayout.EndHorizontal();
             EditorGUI.indentLevel = savedIndentLevel;
-
-            EditorGUIUtility.labelWidth = savedLabelWidth;
         }
 
         public void DrawInnerAndOuterSpotAngle(SerializedProperty minProperty, SerializedProperty maxProperty, GUIContent label)
