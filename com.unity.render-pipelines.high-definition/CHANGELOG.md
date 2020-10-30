@@ -77,6 +77,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed stylesheet reloading for LookDev window and Wizard window.
 - Fixed Nans happening when upscaling the RTGI.
 - Fixed the adjust weight operation not being done for the non-rendergraph pipeline.
+- Fixed overlap with SSR Transparent default frame settings message on DXR Wizard.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
