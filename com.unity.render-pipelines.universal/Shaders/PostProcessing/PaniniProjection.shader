@@ -97,7 +97,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             return cyl_pos / (cyl_dist - d);
         }
 
-        half4 Frag(FullscreenVaryings input) : SV_Target
+        half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 

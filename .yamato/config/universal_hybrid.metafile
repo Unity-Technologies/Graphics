@@ -2,9 +2,21 @@ project:
   name: Universal_Hybrid
   folder: UniversalHybridTest
 test_platforms:
-  - Standalone
-  - playmode
-#  - editmode
+  - type: Standalone
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
+    timeout:
+      OSX_Metal: 2400
+    timeout_build:
+      Android: 1800
+    extra_utr_flags_build:
+      - --compilation-errors-as-warnings
+  - type: playmode
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
+#  - type: editmode
+#    extra_utr_flags:
+#      - --compilation-errors-as-warnings
 platforms:
   - name: Win
     apis:

@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 lightPositionWS = lightData.positionRWS;
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
-                lightPositionWS += hdCamera.camera.transform.position;
+                lightPositionWS -= hdCamera.camera.transform.position;
             }
             rtsartParams.worldToLocalMatrix.SetColumn(3, lightPositionWS);
             rtsartParams.worldToLocalMatrix.m33 = 1.0f;

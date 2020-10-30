@@ -42,6 +42,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public RenderObjectsPass(string profilerTag, RenderPassEvent renderPassEvent, string[] shaderTags, RenderQueueType renderQueueType, int layerMask, RenderObjects.CustomCameraSettings cameraSettings)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(RenderObjectsPass));
+
             m_ProfilerTag = profilerTag;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
             this.renderPassEvent = renderPassEvent;

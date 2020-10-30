@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 maskScaleBias;
         public Vector4 baseColor;
         public Vector4 remappingAOS;
-        public Vector4 scalingMAB; // metalness, alpha basemap, blue mask map
+        public Vector4 scalingMBAndAngle; // x metalness, y blue mask map, zw angle fade scale and bias for angle in radian
         public Vector3 blendParams; // x normal blend source, y mask blend source, z mask blend mode
         public uint decalLayerMask;
     };

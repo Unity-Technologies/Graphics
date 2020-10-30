@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
                         new Entry(InclusiveScope.DXR, Style.dxr64bits, IsArchitecture64Bits, FixArchitecture64Bits),
                         new Entry(InclusiveScope.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
-						
+
                         // Optional checks
                         new Entry(InclusiveScope.DXROptional, Style.dxrScreenSpaceShadow, IsDXRScreenSpaceShadowCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
                         new Entry(InclusiveScope.DXROptional, Style.dxrReflections, IsDXRReflectionsCorrect, null, forceDisplayCheck: true, skipErrorIcon: true),
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     });
         }
 
-        #endregion 
+        #endregion
 
         #region Queue
 
@@ -233,7 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public void Stop() => m_StopRequested = true;
 
             // Function to pause/unpause the action execution
-            public void Pause() => m_OnPause = true;  
+            public void Pause() => m_OnPause = true;
             public void Unpause() => m_OnPause = false;
 
             public int remainingFixes => m_Queue.Count;
@@ -569,7 +569,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => !PlayerSettings.GetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget());
         void FixDXRAutoGraphicsAPI(bool fromAsyncUnused)
             => PlayerSettings.SetUseDefaultGraphicsAPIs(CalculateSelectedBuildTarget(), false);
-        
+
         bool IsDXRDirect3D12Correct()
             => PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() == GraphicsDeviceType.Direct3D12 && !HDProjectSettings.wizardNeedRestartAfterChangingToDX12;
         void FixDXRDirect3D12(bool fromAsyncUnused)
@@ -610,21 +610,17 @@ namespace UnityEditor.Rendering.HighDefinition
             if (WillEditorUseFirstGraphicsAPI(target))
             {
                 if (EditorUtility.DisplayDialog("Changing editor graphics device",
-                    "You've changed the active graphics API. This requires a restart of the Editor. After restarting finish fixing DXR configuration by launching the wizard again.",
+                    "You've changed the active graphics API. This requires a restart of the Editor. After restarting, finish fixing DXR configuration by launching the wizard again.",
                     "Restart Editor", "Not now"))
                 {
-                    if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                    {
-                        HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
-                        RequestCloseAndRelaunchWithCurrentArguments();
-                        GUIUtility.ExitGUI();
-                    }
+                    HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
+                    RequestCloseAndRelaunchWithCurrentArguments();
                 }
                 else
                     EditorApplication.quitting += () => HDProjectSettings.wizardNeedRestartAfterChangingToDX12 = false;
             }
         }
-        
+
         void CheckPersistantNeedReboot()
         {
             if (HDProjectSettings.wizardNeedRestartAfterChangingToDX12)
@@ -633,7 +629,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRAssetCorrect()
             => HDRenderPipeline.defaultAsset != null
-            && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null;
+            && HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources != null
+            && SystemInfo.supportsRayTracing;
         void FixDXRAsset(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
@@ -641,6 +638,14 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+            // IMPORTANT: We display the error only if we are D3D12 as the supportsRayTracing always return false in any other device even if OS/HW supports DXR.
+            // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12. 
+            if (!SystemInfo.supportsRayTracing && IsDXRDirect3D12Correct()) 
+                Debug.LogError("Your hardware and/or OS don't support DXR!");
+            if (!HDProjectSettings.wizardNeedRestartAfterChangingToDX12 && PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() != GraphicsDeviceType.Direct3D12)
+            {
+                Debug.LogWarning("DXR is supported only with DX12");
+            }
         }
 
         bool IsDXRScreenSpaceShadowCorrect()
@@ -658,7 +663,7 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsDXRGICorrect()
             => HDRenderPipeline.currentAsset != null
             && HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportSSGI;
-			
+
 		bool IsArchitecture64Bits()
             => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
 		void FixArchitecture64Bits(bool fromAsyncUnused)
@@ -705,7 +710,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 callback?.Invoke(lastPackageConfigInstalledCheck = false);
                 return;
             }
-            
+
             m_UsedPackageRetriever.ProcessAsync(
                 k_HdrpConfigPackageName,
                 (installed, info) =>
@@ -728,7 +733,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     // installed is not used because this one will be always installed
 
+                    bool copyFolder = false;
                     if (!Directory.Exists(k_LocalHdrpConfigPackagePath))
+                    {
+                        copyFolder = true;
+                    }
+                    else
+                    {
+                        if (EditorUtility.DisplayDialog("Installing local configuration package",
+                            "A local configuration package already exists. Do you want to replace it or keep it? Replacing it may overwrite local changes you made and keeping it may make it desynchronized with the main HDRP packages version.",
+                            "Replace", "Keep"))
+                        {
+                            Directory.Delete(k_LocalHdrpConfigPackagePath, true);
+                            copyFolder = true;
+                        }
+                    }
+
+                    if (copyFolder)
                     {
                         CopyFolder(info.resolvedPath, k_LocalHdrpConfigPackagePath);
                     }
@@ -739,7 +760,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         onCompletion?.Invoke();
                     });
                 });
-        
+
         void RefreshDisplayOfConfigPackageArea()
         {
             if (!m_UsedPackageRetriever.isRunning)
@@ -773,7 +794,7 @@ namespace UnityEditor.Rendering.HighDefinition
             string m_CurrentPackageName;
 
             Queue<(string packageName, Action<bool, PackageManager.PackageInfo> action)> m_Queue = new Queue<(string packageName, Action<bool, PackageManager.PackageInfo> action)>();
-            
+
             bool isCurrentInProgress => m_CurrentRequest != null && !m_CurrentRequest.Equals(null) && !m_CurrentRequest.IsCompleted;
 
             public bool isRunning => isCurrentInProgress || m_Queue.Count() > 0;
@@ -836,7 +857,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
         UsedPackageRetriever m_UsedPackageRetriever = new UsedPackageRetriever();
-        
+
         class LastAvailablePackageVersionRetriever
         {
             PackageManager.Requests.SearchRequest m_CurrentRequest;
@@ -901,7 +922,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
         LastAvailablePackageVersionRetriever m_LastAvailablePackageRetriever = new LastAvailablePackageVersionRetriever();
-        
+
         class PackageInstaller
         {
             PackageManager.Requests.AddRequest m_CurrentRequest;

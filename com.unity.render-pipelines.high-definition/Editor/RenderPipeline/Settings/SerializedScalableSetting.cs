@@ -91,7 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 LevelValuesFieldGUI<int>(contentRect, self, count, schema);
             else if (typeof(T) == typeof(float))
                 LevelValuesFieldGUI<float>(contentRect, self, count, schema);
-
+            else if (typeof(T).IsEnum)
+                LevelValuesFieldGUI<T>(contentRect, self, count, schema);
             EditorGUI.showMixedValue = false;
         }
 
@@ -178,6 +179,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         values[index] = (T)(object)EditorGUI.Toggle(fieldSlot, (bool)(object)values[index]);
                     else if (typeof(T) == typeof(float))
                         values[index] = (T)(object)EditorGUI.FloatField(fieldSlot, (float)(object)values[index]);
+                    else if (typeof(T).IsEnum)
+                        values[index] = (T)(object)EditorGUI.EnumPopup(fieldSlot, (Enum)(object)values[index]);
                     else
                         throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
                 }

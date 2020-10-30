@@ -32,49 +32,14 @@ HDRP now includes new debug modes that can help you to set the correct exposure 
 
 For more information about the debug modes, see [Exposure](Override-Exposure.md) and [Render Pipeline Debug](Render-Pipeline-Debug-Window.md).
 
-### Path tracing
-
-#### Path-traced depth of field
-
-![](Images/Path-traced-DOF.png)
-
-This version of HDRP includes a new depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works correctly with multiple layers of transparency and does not produce any artifacts, apart from noise typical in path traced images (which you can mitigate by increasing the sample count and/or using an external denoising tool).
-
-For more information about this feature, see [Depth-of-field](Post-Processing-Depth-of-Field.md).
-
-#### Accumulation motion blur and path tracer convergence APIs
-
-![](Images/Path_tracing_recording.png)
-HDRP now includes a recording API which you can use to render effects such as high-quality accumulation motion blur and converged path-traced images. These techniques create the final "converged" frame by combining information from multiple intermediate sub-frames. The new API allows your scripts to extract the properly converged final frames and do further processing or save them to disk.
-
-For information about this feature and for some example scripts, see [Multiframe rendering and accumulation documentation](Accumulation.md).
-
-#### Path-traced sub-surface scattering
-
-![](Images/Path-traced-SSS.png)
-
-Path tracing now supports subsurface scattering (SSS), using a random walk approach. To use it, enable path tracing and set up SSS in the same way as you would for HDRP materials.
-
-For information on SSS in HDRP, see [subsurface scattering](Subsurface-Scattering.md).
-
-#### Path-traced fog
-![](Images/Path-traced-fog.png)
-
-Path tracing now supports fog absorption. Like SSS, to use this feature, enable path tracing and set up fog in the same way as you would for standard fog in HDRP.
-
-For information on fog in HDRP, see [fog](Override-Fog.md).
-
-#### Support for shader graph in path tracing
-
-Path tracing now supports Lit and Unlit Shader Graph nodes.
-
-Note that the graph should not contain nodes that rely on screen-space differentials (ddx, ddy). Nodes that compute the differences between the current pixel and a neighboring one do not compute correctly when you use ray tracing.
 
 ### Scalability settings
 
 This version of HDRP includes scalability settings for fog and subsurface scattering. These settings allow for more control over the performance and quality of volumetric lighting.
 
-### Screen-space global illumination (in preview)
+### Screen-space global illumination
+
+![](Images/HDRPFeatures-SSGI.png)
 
 This version of HDRP introduces screen-space global illumination (SSGI) as a fallback for ray-traced global illumination (RTGI). It is an algorithm that accesses indirect diffuse lighting the environment generates. It works in the same way as the [Screen Space Reflection](Override-Screen-Space-Reflection.md) in that it uses ray marching to calculate the result.
 
@@ -112,6 +77,14 @@ For more information, see the Lighting panel section in the [HDRP debug window](
 
 The Render Pipeline Debug window now has a new Volume panel which you can use to visualize the Volume components that affect a specific Camera. For each Volume that contributes to the final interpolated value, this panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance. For more information, see the Volume panel section in the [HDRP debug window](Render-Pipeline-Debug-Window.md#VolumePanel).
 
+#### Quad Overdraw and Vertex Density
+
+![quad_density](Images/quad_density_example.png)
+To help you finding GameObjects in you scene that need LODs, HDRP includes two new full screen rendering debug modes to spot Meshes far away or with too many details.
+
+- Quad Overdraw: highlights GPU quads running multiple fragment shaders, which is mainly caused by small or thin triangles. (Not supported on Metal and PS4)
+- Vertex Density: displays pixels running multiple vertex shaders. (Not supported on Metal)
+
 ### Alpha to Mask
 
 This version of HDRP adds support for alpha to mask (or alpha to coverage) to all HDRP and Shader Graph shaders.
@@ -132,17 +105,17 @@ This version of HDRP adds support for emissive maps with parallax occlusion mapp
 
 HDRP's screen-space reflection (SSR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
 
-### Fabric and Hair material examples
+### Fabric, Hair, and Eye material examples
 
-HDRP now includes a new sample that contains example fabric and hair materials. You can use these materials as references to more quickly develop fabric and hair materials for your application.
+HDRP now includes a new sample that contains example fabric and hair materials. You can use these materials as references to more quickly develop fabric and hair materials for your application. HDRP now also includes an eye Shader Graph which you can use to create a realistic eye Material. There are also new HDRP-specific Shader Graph nodes which allow you to more easier customize this eye Shader Graph.
 
-### Decal Layers
+### Decal Layers and Decal angle fading
 
-This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md).
+This version of HDRP introduces Decal Layers which allow you to specify which decals affect which Materials on a layer by layer basis. For more information about Decal Layers, see the [Decal documentation](Decal.md). This version also introduce the support of angle based fading for Decal when Decal Layers are enabled.
 
-### Eye Shader Graph
+### Input System package support
 
-HDRP now includes an eye Shader Graph which you can use to create a realistic eye Material. There are also new HDRP-specific Shader Graph nodes which allow you to more easier customize this eye Shader Graph.
+This version of HDRP introduces support for the [Input System package](http://docs.unity3d.com/Packages/com.unity.inputsystem@latest). Before this version, if you enabled the Input System package and disabled the built-in input system, the debug menu and camera control scripts HDRP provides would no longer work. Now, both the debug menu and camera control scripts work when you exclusively enable the Input System package.
 
 ### HDRI Flowmap
 
@@ -152,7 +125,7 @@ For more information, see the [HDRI Sky documentation](Override-HDRI-Sky.md).
 
 ### Graphics Compositor (in Preview)
 
-![](Images/Compositor-HDRPTemplateWithLogo.png)
+![](Images/Compositor-HDRPTemplateWithLogo_Feature.png)
 The Graphics Compositor allows real-time compositing operations between layers of 3D content, static images, and videos.
 
 The tool support three types of compositing techniques:
@@ -165,33 +138,48 @@ Overall, this tool allows you to compose a final frame by mixing images and vide
 
 For information about the feature, see the [HDRP Compositor documentation](Compositor-Main.md).
 
+### Path tracing
+
+#### Path-traced depth of field
+
+![](Images/Path-traced-DOF-Feature.png)
+
+This version of HDRP includes a new depth of field mode for producing path-traced images with high-quality defocus blur. Compared to post-processed depth of field, this mode works correctly with multiple layers of transparency and does not produce any artifacts, apart from noise typical in path traced images (which you can mitigate by increasing the sample count and/or using an external denoising tool).
+
+For more information about this feature, see [Depth-of-field](Post-Processing-Depth-of-Field.md).
+
+#### Accumulation motion blur and path tracer convergence APIs
+
+![](Images/Path_tracing_recording-Feature.png)
+HDRP now includes a recording API which you can use to render effects such as high-quality accumulation motion blur and converged path-traced images. These techniques create the final "converged" frame by combining information from multiple intermediate sub-frames. The new API allows your scripts to extract the properly converged final frames and do further processing or save them to disk.
+
+For information about this feature and for some example scripts, see [Multiframe rendering and accumulation documentation](Accumulation.md).
+
+#### Path-traced sub-surface scattering
+
+![](Images/Path-traced-SSS-Feature.png)
+
+Path tracing now supports subsurface scattering (SSS), using a random walk approach. To use it, enable path tracing and set up SSS in the same way as you would for HDRP materials.
+
+For information on SSS in HDRP, see [subsurface scattering](Subsurface-Scattering.md).
+
+#### Path-traced fog
+![](Images/Path-traced-fog-Feature.png)
+
+Path tracing now supports fog absorption. Like SSS, to use this feature, enable path tracing and set up fog in the same way as you would for standard fog in HDRP.
+
+For information on fog in HDRP, see [fog](Override-Fog.md).
+
+#### Support for shader graph in path tracing
+
+Path tracing now supports Lit and Unlit Shader Graph nodes.
+
+Note that the graph should not contain nodes that rely on screen-space differentials (ddx, ddy). Nodes that compute the differences between the current pixel and a neighboring one do not compute correctly when you use ray tracing.
+
 ## Improvements
 
 The following is a list of improvements Unity made to the High Definition Render Pipeline in version 10.0. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
 
-### Ray tracing
-
-#### Fallback for transparents
-
-Before this version, if transparent GameObjects were set up for [recursive rendering](Ray-Tracing-Recursive-Rendering.md) and you did not use recursive rendering in your Scene, they would disappear. Also, if they were not refractive, they would appear opaque. Now, HDRP has a set off fallbacks so the visuals of transparent GameObjects are coherent with and without recursive rendering and refraction.
-
-#### Shadow quality
-
-The denoiser for [ray-traced shadows](Ray-Traced-Shadows.md) now produces higher quality shadows.
-
-#### Colored shadows
-
-HDRP now supports colored ray-traced shadows for transparent and transmissive GameObjects.
-
-For more information, see [ray-traced shadows](Ray-Traced-Shadows.md).
-
-#### ray-traced reflection on transparent Materials
-
-HDRP's ray-traced reflection (RTR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
-
-#### Virtual Reality (VR)
-
-Ray tracing now supports VR. However, since ray tracing is resource intensive and VR amplifies this, the performance is very slow.
 
 ### Scene view Camera properties
 
@@ -201,7 +189,11 @@ For information on HDRP's Scene view Camera properties, see [Scene view Camera](
 
 ### Shadow caching system
 
-This version of HDRP improves on shadow atlas and shadow caching management. You can now stagger cascade shadows which means you can update each cascade independently. Cached shadows (those that use **OnEnable**) render everything they can see independently of the main view. This version also introduces more API which you can use to more finely control cached shadows. For more information, see [Shadows](Shadows-in-HDRP.md)
+This version of HDRP improves on shadow atlas and shadow caching management. You can now stagger cascade shadows which means you can update each cascade independently. Cached shadows (those that use **OnEnable**) render everything they can see independently of the main view. This version also introduces more API which you can use to more finely control cached shadows. For more information, see [Shadows](Shadows-in-HDRP.md).
+
+### Custom post-processing: new injection point
+
+This version of HDRP introduces a new injection point for custom post-processing effects. You can now inject custom post-processing effects before the [temporal anti-aliasing](Anti-Aliasing.md#TAA) pass.
 
 ### Compute shaders now use multi-compile
 
@@ -209,7 +201,7 @@ HDRP, being a high-end modern renderer, contains a lot of compute shader passes.
 
 ### Planar reflection probe filtering
 
-![](Images/PlanarReflectionFiltering.png)
+![](Images/PlanarReflectionFiltering-Feature.png)
 
 Planar reflection probe filtering is a process that combines the result of planar reflection and surfaces smoothness. Up until this version, the implementation for planar reflection probe filtering did not always produce results of fantastic quality. This version of HDRP includes a new implementation that is closer to being physically-based and improves on the image quality significantly.
 
@@ -239,9 +231,15 @@ You can now control the texture mapping mode for all textures in the [AxF Shader
 
 For more information about this improvement, see [AxF Shader](AxF-Shader.md).
 
-### Contact Shadows Improvements
+### Contact shadows improvements
 
-More control is given for contact shadows, in particular now a bias can be set to avoid self intersection issues and a new thickness parameter is introduced to fill gaps that can be left by contact shadows. 
+More options are now available for [contact shadows](Override-Contact-Shadows.md). You can now set a bias to avoid self-intersection issues as well as use a new thickness property to fill gaps that contact shadows can leave.
+
+### Light component user experience
+
+![](Images/NewLightUX.png)
+
+The [Light component](Light-Component.md) now includes a visualization to help you set the intensity of your lights using [physical light units](Physical-Light-Units.md).
 
 ### Exposure
 
@@ -260,6 +258,34 @@ Auto-exposure systems calculate the average scene luminance and try to map this 
 From this version, within the rendering of your main Camera, you can now render GameObjects from another point of view (a disabled camera for example). The new API also comes with built-in support for rendering Depth, Normal and Tangent into an RTHandle.
 
 You can also use this Camera override to render some GameObjects with a different field of view, like arms in a first-person application.
+
+### Ray tracing
+
+#### Fallback for transparents
+
+Before this version, if transparent GameObjects were set up for [recursive rendering](Ray-Tracing-Recursive-Rendering.md) and you did not use recursive rendering in your Scene, they would disappear. Also, if they were not refractive, they would appear opaque. Now, HDRP has a set off fallbacks so the visuals of transparent GameObjects are coherent with and without recursive rendering and refraction.
+
+#### Shadow quality
+
+The denoiser for [ray-traced shadows](Ray-Traced-Shadows.md) now produces higher quality shadows.
+
+#### Colored shadows
+
+HDRP now supports colored ray-traced shadows for transparent and transmissive GameObjects.
+
+For more information, see [ray-traced shadows](Ray-Traced-Shadows.md).
+
+#### Ray-traced reflection on transparent Materials
+
+HDRP's ray-traced reflection (RTR) solution now support transparent materials. This is useful for transparent surfaces such as windows or water.
+
+#### Virtual Reality (VR)
+
+Ray tracing now supports VR. However, since ray tracing is resource intensive and VR amplifies this, the performance is very slow.
+
+### Render Graph
+
+HDRP now internally uses a Render Graph system. This has no impact on features available to you and it should improve overall memory usage significantly. In the new HDRP template, GPU memory usage decreased by 25%.
 
 ## Issues resolved
 

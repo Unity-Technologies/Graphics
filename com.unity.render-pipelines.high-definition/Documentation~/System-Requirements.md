@@ -26,7 +26,14 @@ For more information, see [System requirements for Unity](https://docs.unity3d.c
 HRDP is only compatible with the following platforms:
 
 - Windows and Windows Store, with DirectX 11 or DirectX 12 and Shader Model 5.0
-- Modern consoles (Sony PS4 and Microsoft Xbox One)
+- Google
+  - Stadia
+- Sony
+  - PlayStation 4
+  - PlayStation 5
+- Microsoft
+  - Xbox One
+  - Xbox Series X and Xbox Series S
 - MacOS (minimum version 10.13) using Metal graphics
 - Linux and Windows platforms with Vulkan
 

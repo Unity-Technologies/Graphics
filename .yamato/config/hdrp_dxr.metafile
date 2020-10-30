@@ -2,10 +2,16 @@ project:
   name: HDRP_DXR
   folder: HDRP_DXR_Tests
 test_platforms:
-  - Standalone
-  - playmode
-  - playmode_XR
-  - playmode_RenderGraph
+  - type: Standalone
+  - type: playmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
+  - type: playmode
+    name: playmode_NonRenderGraph
+    extra_utr_flags:
+      - --extra-editor-arg="-non-rendergraph-tests"
 platforms:
   - name: Win
     apis:
@@ -25,5 +31,5 @@ all:
         - Standalone
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
+        - playmode_NonRenderGraph
 

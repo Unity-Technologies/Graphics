@@ -82,6 +82,8 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        /// A ProfilingSampler for the entire pass. Used by higher level objects such as ScriptableRenderer etc.
+        protected internal ProfilingSampler profilingSampler { get; set; }
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
@@ -100,6 +102,7 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
+            profilingSampler = new ProfilingSampler(nameof(ScriptableRenderPass));
         }
 
         /// <summary>

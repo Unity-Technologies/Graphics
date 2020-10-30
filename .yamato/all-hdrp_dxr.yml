@@ -12,18 +12,18 @@ All_HDRP_DXR_trunk:
          rerun: on-new-revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_RenderGraph_trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_trunk
          rerun: on-new-revision
-All_HDRP_DXR_fast-trunk:
-    name: All HDRP_DXR CI - fast-trunk
+All_HDRP_DXR_2020.2:
+    name: All HDRP_DXR CI - 2020.2
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_Standalone_fast-trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_Standalone_2020.2
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_fast-trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_2020.2
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_fast-trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_2020.2
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_RenderGraph_fast-trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_2020.2
          rerun: on-new-revision
 All_HDRP_DXR_CUSTOM-REVISION:
     name: All HDRP_DXR CI - CUSTOM-REVISION
@@ -34,7 +34,7 @@ All_HDRP_DXR_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_RenderGraph_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

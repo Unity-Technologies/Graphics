@@ -16,6 +16,10 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_CameraColor;
         RenderTargetHandle m_CameraDepth;
 
+        Material m_BlitMaterial;
+
+        string m_profilerTag = "Test 107 Renderer";
+
         public Test107Renderer(Test107RendererData data) : base(data)
         {
             m_DefaultStencilState = new StencilState();
@@ -23,14 +27,12 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, -1 /*data.opaqueLayerMask*/);
             m_RenderOpaqueForwardPass = new DrawObjectsPass("Render Opaques", false, RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, -1 /*data.opaqueLayerMask*/, m_DefaultStencilState, 0 /*stencilData.stencilReference*/);
 
-            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
 
             m_CameraColor.Init("_CameraColor");
             m_CameraDepth.Init("_CameraDepth");
         }
-
-        string m_profilerTag = "Test 107 Renderer";
 
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -62,6 +64,11 @@ namespace UnityEngine.Rendering.Universal
         {
             cmd.ReleaseTemporaryRT(m_CameraColor.id);
             cmd.ReleaseTemporaryRT(m_CameraDepth.id);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            CoreUtils.Destroy(m_BlitMaterial);
         }
     }
 }

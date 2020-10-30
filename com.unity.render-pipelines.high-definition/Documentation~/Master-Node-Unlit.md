@@ -23,14 +23,14 @@ There are properties on the master node as well as properties on the Materials t
 
 The following table describes the input ports on an Unlit Master node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader stage](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Shader-Stage.html).
 
-| **Property**                              | **Type** | **Stage** | **Description**                                              |
-| ----------------------------------------- | -------- | --------- | ------------------------------------------------------------ |
-| **Position**                              | Vector 3 | Vertex    | Defines the absolute object space position of the Material per vertex.|
-| **Color**             		            | Vector 3 | Fragment  | Defines the color of the Material. To assign an image, connect a Sample Texture2D to this Master node. |
-| **Alpha**				                    | Vector 1 | Fragment  | Defines the Material's alpha value. Used for transparency and/or alpha clip. Expected range 0 - 1.|
-| **AlphaClipThreshold**                    | Vector 1 | Fragment  | Set the alpha value limit that HDRP uses to determine whether it should render each pixel of the Material. If the alpha value of the pixel is equal to or higher than this threshold then HDRP renders the pixel. If the value is lower than this threshold then HDRP does not render the pixel. This port only appears when you enable the **Alpha Clipping** setting.|
-| **Emission**                           	| Vector 3 | Fragment  | Defines the Material's emission color value. Expects positive values.|
-| **Shadow Tint**                              | Vector 4 | Fragment  | Defines the shadow color value with alpha value. Enable only if Shadow Matte enable cf. [Master node settings menu](#SettingsMenu)|
+| **Property**           | **Type** | **Stage** | **Description**                                              |
+| ---------------------- | -------- | --------- | ------------------------------------------------------------ |
+| **Position**           | Vector 3 | Vertex    | Defines the absolute object space position of the Material per vertex. |
+| **Color**              | Vector 3 | Fragment  | Defines the color of the Material. To assign an image, connect a Sample Texture2D to this Master node. |
+| **Alpha**              | Float    | Fragment  | Defines the Material's alpha value. Used for transparency and/or alpha clip. Expected range 0 - 1. |
+| **AlphaClipThreshold** | Float    | Fragment  | Set the alpha value limit that HDRP uses to determine whether it should render each pixel of the Material. If the alpha value of the pixel is equal to or higher than this threshold then HDRP renders the pixel. If the value is lower than this threshold then HDRP does not render the pixel. This port only appears when you enable the **Alpha Clipping** setting. |
+| **Emission**           | Vector 3 | Fragment  | Defines the Material's emission color value. Expects positive values. |
+| **Shadow Tint**        | Vector 4 | Fragment  | Defines the shadow color value with alpha value. The **Shadow Tint** property only has an effect if you enable the **Shadow Matte** property located in the [Master node settings menu](#SettingsMenu). |
 
 <a name="SettingsMenu"></a>
 

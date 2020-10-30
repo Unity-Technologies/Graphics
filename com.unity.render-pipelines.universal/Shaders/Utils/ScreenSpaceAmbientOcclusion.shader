@@ -1,8 +1,6 @@
 Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 {
     HLSLINCLUDE
-        #pragma exclude_renderers d3d11_9x
-
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"

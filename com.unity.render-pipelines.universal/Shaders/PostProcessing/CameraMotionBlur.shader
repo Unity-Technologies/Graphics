@@ -12,9 +12,14 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
         TEXTURE2D_X(_SourceTex);
-
+#if defined(USING_STEREO_MATRICES)
+        float4x4 _PrevViewProjMStereo[2];
+#define _PrevViewProjM  _PrevViewProjMStereo[unity_StereoEyeIndex]
+#define _ViewProjM unity_MatrixVP
+#else
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
+#endif
         float _Intensity;
         float _Clamp;
         float4 _SourceSize;
@@ -26,7 +31,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
-        VaryingsCMB VertCMB(FullscreenAttributes input)
+        VaryingsCMB VertCMB(Attributes input)
         {
             VaryingsCMB output;
             UNITY_SETUP_INSTANCE_ID(input);

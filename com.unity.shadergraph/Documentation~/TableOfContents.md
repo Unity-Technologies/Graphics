@@ -72,7 +72,7 @@
             * [Integer](Integer-Node)  
             * [Slider](Slider-Node)  
             * [Time](Time-Node)  
-            * [Vector 1](Vector-1-Node)  
+            * [Float](Float)  
             * [Vector 2](Vector-2-Node)  
             * [Vector 3](Vector-3-Node)  
             * [Vector 4](Vector-4-Node)  
@@ -89,6 +89,10 @@
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)  
             * [Sample Gradient](Sample-Gradient-Node)
+        * High Definition Render Pipeline
+            * [Diffusion Profile](Diffusion-Profile-Node.md)
+            * [Exposure](Exposure-Node.md)
+            * [HD Scene Color](HD-Scene-Color-Node.md)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node)  
             * [Matrix 3x3](Matrix-3x3-Node)  
@@ -224,9 +228,11 @@
             * [Nand](Nand-Node)  
             * [Not](Not-Node)  
             * [Or](Or-Node)
+        * High Definition Render Pipeline
+            * [Emission](Emission-Node.md)
         * [Custom Function](Custom-Function-Node)
         * [Keyword](Keyword-Node)
-        * [Preview](Preview-Node)  
+        * [Preview](Preview-Node)
         * [Sub Graph](Sub-graph-Node)            
     * [UV](UV-Nodes)
         * [Flipbook](Flipbook-Node)  

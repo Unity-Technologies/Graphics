@@ -2,30 +2,39 @@ project:
   name: Universal
   folder: UniversalGraphicsTest
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
-  - playmode_XR
+  - type: Standalone
+    timeout:
+      OSX_Metal: 2400
+    timeout_build:
+      Android: 2700
+      iOS: 1800
+      Win: 2000
+  - type: playmode
+  - type: editmode
+  - type: playmode
+    name: playmode_XR
+    extra_utr_flags:
+      - --extra-editor-arg="-xr-tests" 
 platforms:
   - name: Win
     apis:
       - DX11
       - DX12
       - Vulkan
-  - name: OSX 
+  - name: OSX
     apis:
       - Metal
       - OpenGLCore
   - name: Linux
-    apis: 
+    apis:
       - Vulkan
       - OpenGLCore
   - name: Android
-    apis: 
+    apis:
       - Vulkan
       - OpenGLES3
   - name: iPhone
-    apis: 
+    apis:
       - Metal
 all:
   dependencies:
@@ -39,14 +48,13 @@ all:
     - platform: OSX
       api: Metal
       test_platforms:
-        - Standalone
-        - playmode 
-        - playmode_XR
+        # - Standalone
+        - playmode
     - platform: OSX
       api: OpenGLCore
       test_platforms:
-        - editmode  
+        - editmode
     - project: Universal_Stereo
       all: true
     - project: Universal_Hybrid
-      all: true  
+      all: true

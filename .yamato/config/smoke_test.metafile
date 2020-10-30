@@ -1,0 +1,20 @@
+project:
+  name: Smoke_Test
+  folder: SRP_SmokeTest
+test_platforms:
+  - type: playmode
+  - type: editmode
+  - type: Standalone
+platforms:
+  - name: Win
+    apis:
+      - DX11
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+        - Standalone
+        

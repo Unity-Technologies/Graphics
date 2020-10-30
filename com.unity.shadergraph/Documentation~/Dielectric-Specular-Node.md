@@ -12,7 +12,7 @@ You can use **Custom** material type to define your own physically based materia
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Vector 1 | None | Output value |
+| Out | Output      |    Float    | None | Output value |
 
 ## Controls
 

@@ -27,9 +27,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_SpectralLUT);
             PropertyField(m_Intensity);
-            GUI.enabled = useCustomValue;
-            PropertyField(m_MaxSamples);
-            GUI.enabled = true;
+            using (new EditorGUI.DisabledScope(!useCustomValue))
+            {
+                PropertyField(m_MaxSamples);
+            }
         }
     }
 }

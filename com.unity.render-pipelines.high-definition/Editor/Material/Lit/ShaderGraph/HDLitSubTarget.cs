@@ -32,6 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public HDLitSubTarget() => displayName = "Lit";
 
+        static readonly GUID kSubTargetSourceCodeGuid = new GUID("caab952c840878340810cca27417971c");  // HDLitSubTarget.cs
+
         static string[] passTemplateMaterialDirectories = new string[]
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/",
@@ -40,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
-        protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
+        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
         protected override string raytracingInclude => CoreIncludes.kLitRaytracing;

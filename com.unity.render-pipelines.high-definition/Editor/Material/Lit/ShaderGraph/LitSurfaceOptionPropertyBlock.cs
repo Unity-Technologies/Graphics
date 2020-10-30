@@ -35,9 +35,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CreatePropertyGUI();
 
             AddProperty(Styles.enableClearCoat, () => litData.clearCoat, (newValue) => litData.clearCoat = newValue);
-            AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
+            if (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering)
+            {
+                AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
+            }
             AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
-            AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
+            if (litData.materialType == HDLitData.MaterialType.SpecularColor)
+            {
+                AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
+            }
         }
     }
 }

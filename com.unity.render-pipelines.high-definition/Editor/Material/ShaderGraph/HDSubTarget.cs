@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract ShaderID shaderID { get; }
         protected abstract string customInspector { get; }
-        protected abstract string subTargetAssetGuid { get; }
+        protected abstract GUID subTargetAssetGuid { get; }
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
         protected abstract string templatePath { get; }
@@ -84,10 +84,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         }
 
+        static readonly GUID kSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs
+
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("c09e6e9062cbd5a48900c48a0c2ed1c2")); // HDSubTarget.cs
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(subTargetAssetGuid));
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
             context.SetDefaultShaderGUI(customInspector);
 
             if (migrationSteps.Migrate(this))

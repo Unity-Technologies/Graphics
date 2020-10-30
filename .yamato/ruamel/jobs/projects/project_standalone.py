@@ -1,5 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import project_filepath_specific, project_job_id_build, project_job_id_test
+from ..shared.constants import get_editor_revision
 from .commands._cmd_mapper import get_cmd
 from ._project_base import _job
 from .project_standalone_build import Project_StandaloneBuildJob
@@ -10,14 +11,14 @@ class Project_StandaloneJob():
         self.build_job = self.get_StandaloneBuildJob(project, editor, platform, api, test_platform)
 
         self.project_name = project["name"]
-        self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"],editor["version"])
+        self.job_id = project_job_id_test(project["name"],platform["name"],api["name"],test_platform["name"], editor["name"])
         self.yml = self.get_job_definition(project, editor, platform, api, test_platform, self.build_job).get_yml()
 
     
     def get_StandaloneBuildJob(self, project, editor, platform, api, test_platform):
         try:
             return Project_StandaloneBuildJob(project, editor, platform, api, test_platform)
-        except:
+        except NotImplementedError:
             return None
     
     
@@ -25,7 +26,7 @@ class Project_StandaloneJob():
 
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone', "") 
-        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["args"]))
+        job = _job(project, test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform, editor))
 
         if build_job is not None:
 

@@ -26,6 +26,8 @@ publish_core_project:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core
@@ -43,6 +45,8 @@ publish_core_project_dry:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core --dry-run
@@ -60,6 +64,8 @@ publish_lwrp_project:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
@@ -77,6 +83,8 @@ publish_lwrp_project_dry:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight --dry-run
@@ -94,6 +102,8 @@ publish_shadergraph_project:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph
@@ -111,6 +121,8 @@ publish_shadergraph_project_dry:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph --dry-run
@@ -128,6 +140,8 @@ publish_hdrp_project:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
@@ -145,6 +159,8 @@ publish_hdrp_project_dry:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition --dry-run
@@ -162,6 +178,8 @@ publish_universal_project:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal
@@ -179,6 +197,8 @@ publish_universal_project_dry:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal --dry-run
@@ -196,6 +216,8 @@ publish_vfx_project:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph
@@ -213,6 +235,8 @@ publish_vfx_project_dry:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph --dry-run
@@ -230,6 +254,8 @@ publish_config_project:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
@@ -247,6 +273,8 @@ publish_config_project_dry:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config --dry-run
@@ -261,12 +289,11 @@ test_all_project_windows_trunk:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:windows
       -  .yamato/_projectcontext.yml#pack_all_project
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor --wait --published-only
       -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
@@ -279,48 +306,45 @@ test_all_project_macos_trunk:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:trunk:macos
       -  .yamato/_projectcontext.yml#pack_all_project
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor --wait --published-only
       -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-test_all_project_windows_fast-trunk:
-    name: Test all packages [project context] Win fast-trunk
+test_all_project_windows_2020.2:
+    name: Test all packages [project context] Win 2020.2
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
       -  .yamato/_projectcontext.yml#pack_all_project
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor --wait --published-only
       -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-test_all_project_macos_fast-trunk:
-    name: Test all packages [project context] OSX fast-trunk
+test_all_project_macos_2020.2:
+    name: Test all packages [project context] OSX 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
       -  .yamato/_projectcontext.yml#pack_all_project
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  unity-downloader-cli -u 2ea77e477b085e913ac2cdc798fcd655b010f1a2 -c editor --wait --published-only
       -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
@@ -333,8 +357,8 @@ test_all_project_windows_CUSTOM-REVISION:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -344,6 +368,8 @@ test_all_project_windows_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
 test_all_project_macos_CUSTOM-REVISION:
     name: Test all packages [project context] OSX CUSTOM-REVISION
     agent:
@@ -351,8 +377,46 @@ test_all_project_macos_CUSTOM-REVISION:
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
       -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+test_all_project_windows_min_editor:
+    name: Test minimum editor version - all packages [project context] Win
+    agent:
+        type: Unity::VM
+        image: package-ci/win10:stable
+        flavor: b1.large
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:test_min_editor:windows
+    commands:
+      -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
+      -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+test_all_project_macos_min_editor:
+    name: Test minimum editor version - all packages [project context] OSX
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
+    dependencies:
+      -  .yamato/_projectcontext.yml#pack_all_project
+      -  .yamato/_editor_priming.yml#editor:priming:test_min_editor:macos
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -370,26 +434,26 @@ all_package_ci_project_trunk:
         flavor: b1.large
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_min_editor
       -  .yamato/_projectcontext.yml#test_all_project_macos_trunk
+      -  .yamato/_projectcontext.yml#test_all_project_macos_min_editor
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
-all_package_ci_project_fast-trunk:
-    name: Pack and test all packages - fast-trunk [project context]
+all_package_ci_project_2020.2:
+    name: Pack and test all packages - 2020.2 [project context]
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_projectcontext.yml#test_all_project_windows_fast-trunk
-      -  .yamato/_projectcontext.yml#test_all_project_macos_fast-trunk
+      -  .yamato/_projectcontext.yml#test_all_project_windows_2020.2
+      -  .yamato/_projectcontext.yml#test_all_project_macos_2020.2
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
       -  upm-ci package izon -d
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.push.changes.any match ["**/Documentation*/**/*"]
 all_package_ci_project_CUSTOM-REVISION:
     name: Pack and test all packages - CUSTOM-REVISION [project context]
     agent:
@@ -399,6 +463,8 @@ all_package_ci_project_CUSTOM-REVISION:
     dependencies:
       -  .yamato/_projectcontext.yml#test_all_project_windows_CUSTOM-REVISION
       -  .yamato/_projectcontext.yml#test_all_project_macos_CUSTOM-REVISION
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
@@ -413,10 +479,6 @@ publish_all_project:
       -  .yamato/_projectcontext.yml#publish_universal_project
       -  .yamato/_projectcontext.yml#publish_vfx_project
       -  .yamato/_projectcontext.yml#publish_config_project
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 publish_all_project_tag:
     name: Publish all packages [project context][manual][tag]
     agent:

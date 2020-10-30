@@ -2,8 +2,8 @@ project:
   name: URPUpdate_BoatAttack
   folder: BoatAttack-19-4
 test_platforms:
-  - playmode
-  - editmode
+  - type: playmode
+  - type: editmode
 platforms:
   - name: Win
     apis:

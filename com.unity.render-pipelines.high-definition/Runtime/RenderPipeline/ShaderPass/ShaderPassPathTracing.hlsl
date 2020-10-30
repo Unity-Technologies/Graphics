@@ -4,7 +4,7 @@
 
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 #ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
@@ -89,7 +89,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
 #ifdef HAS_LIGHTLOOP
 
     // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
-    float3 shadingPosition = GetAbsolutePositionWS(fragInput.positionRWS);
+    float3 shadingPosition = fragInput.positionRWS;
 
     // Generate the new sample (following values of the sequence)
     float3 inputSample = 0.0;

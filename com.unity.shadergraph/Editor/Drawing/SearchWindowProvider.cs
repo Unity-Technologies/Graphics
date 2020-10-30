@@ -111,7 +111,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (titleAttribute != null)
                 {
                     var node = (AbstractMaterialNode) Activator.CreateInstance(type);
-                    AddEntries(node, titleAttribute.title, nodeEntries);
+                    if(ShaderGraphPreferences.allowDeprecatedBehaviors && node.latestVersion > 0)
+                    {
+                        for(int i = 0; i <= node.latestVersion; ++i)
+                        {
+                            var depNode = (AbstractMaterialNode)Activator.CreateInstance(type);
+                            depNode.ChangeVersion(i);
+                            AddEntries(depNode, titleAttribute.title.Append($"V{i}").ToArray(), nodeEntries);
+                        }
+                    }
+                    else
+                    {
+                        AddEntries(node, titleAttribute.title, nodeEntries);
+                    }
                 }
             }
 
@@ -264,13 +276,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         //if we have slot entries and are at a leaf, add the slot name to the entry title
                         if (nodeEntry.compatibleSlotId != -1 && i == nodeEntry.title.Length - 1)
-                            item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry);
+                            item = new SearchNodeItem(pathEntry + ": " + nodeEntry.slotName, nodeEntry, nodeEntry.node.synonyms);
                         //if we don't have slot entries and are at a leaf, add userdata to the entry
                         else if (nodeEntry.compatibleSlotId == -1 && i == nodeEntry.title.Length - 1)
-                            item = new SearchNodeItem(pathEntry, nodeEntry);
+                            item = new SearchNodeItem(pathEntry, nodeEntry, nodeEntry.node.synonyms);
                         //if we aren't a leaf, don't add user data
                         else
-                            item = new SearchNodeItem(pathEntry, dummyEntry);
+                            item = new SearchNodeItem(pathEntry, dummyEntry, null);
 
                         if (parent != null)
                         {
@@ -352,6 +364,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
         {
             var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
+            if (ShaderGraphPreferences.allowDeprecatedBehaviors && oldNode.sgVersion != newNode.sgVersion)
+            {
+                newNode.ChangeVersion(oldNode.sgVersion);
+            }
             if (newNode is SubGraphNode subgraphNode)
             {
                 subgraphNode.asset = ((SubGraphNode)oldNode).asset;
