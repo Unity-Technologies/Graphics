@@ -160,11 +160,11 @@ namespace UnityEditor.VFX
                     }).ToArray();
 
                     //Then, patch them if appropriate (if there will be an evaluation, we should skipped patch)
-                    if (gpuTransformation && !ShouldEvaluate(expression, parents))
+                    if ((gpuTransformation || patchReadAttributeForSpawn) && !ShouldEvaluate(expression, parents))
                     {
                         parents = parents.Select(parent =>
                         {
-                            bool currentGPUTransformation = true;
+                            bool currentGPUTransformation = gpuTransformation;
                             if (!expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU) || parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
                             {
                                 //TODO: Add comment
