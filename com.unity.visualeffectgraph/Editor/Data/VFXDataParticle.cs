@@ -206,13 +206,13 @@ namespace UnityEditor.VFX
         [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")][Tooltip("Sets the maximum particle capacity of this system. Particles spawned after the capacity has been reached are discarded.")]
         protected uint capacity = 128;
         [VFXSetting, Delayed, SerializeField]
-        protected uint stripCapacity = 16;
+        protected uint stripCapacity = 1;
         [VFXSetting, Delayed, SerializeField]
-        protected uint particlePerStripCount = 16;
+        protected uint particlePerStripCount = 128;
 
         public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
 
-        protected override void OnSettingModified(VFXSetting setting)
+        public override void OnSettingModified(VFXSetting setting)
         {
             base.OnSettingModified(setting);
 

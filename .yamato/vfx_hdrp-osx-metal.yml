@@ -17,7 +17,7 @@ VFX_HDRP_OSX_Metal_Standalone_mono_apiNet2_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=2400"
@@ -44,7 +44,7 @@ VFX_HDRP_OSX_Metal_playmode_mono_apiNet2_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2"
@@ -71,88 +71,7 @@ VFX_HDRP_OSX_Metal_playmode_XR_mono_apiNet2_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 5181ec54d595526303eb2714f480cbc3ee1911bd -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests""
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_OSX_Metal_Standalone_mono_apiNet2_Linear_2020.2:
-    name: VFX_HDRP on OSX_Metal_Standalone_mono_apiNet2_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --platform=StandaloneOSX --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --timeout=2400"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_OSX_Metal_playmode_mono_apiNet2_Linear_2020.2:
-    name: VFX_HDRP on OSX_Metal_playmode_mono_apiNet2_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only'
-      -  |5-
-
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2"
-                 UTR_RESULT=$? 
-                 mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
-                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
-                 exit $UTR_RESULT
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_OSX_Metal_playmode_XR_mono_apiNet2_Linear_2020.2:
-    name: VFX_HDRP on OSX_Metal_playmode_XR_mono_apiNet2_Linear on version 2020.2
-    agent:
-        type: Unity::metal::macmini
-        image: slough-ops/macos-10.14-xcode:stable
-        flavor: m1.mac
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_HDRP/utr
-      -  chmod +x TestProjects/VisualEffectGraph_HDRP/utr
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only'
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-xr-tests""
