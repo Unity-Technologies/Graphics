@@ -69,6 +69,7 @@ The version number for this package has increased due to a version update of a r
 - Properly reject history when enabling seond denoiser for RTGI.
 - Fixed an issue that could cause objects to not be rendered when using Vulkan API.
 - Fixed issue with lookdev shadows looking wrong upon exiting playmode. 
+- Fixed temporary Editor freeze when selecting AOV output in graphics compositor (case 1288744).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
