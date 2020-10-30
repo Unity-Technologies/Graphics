@@ -1,6 +1,7 @@
 using System;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 using RenderPipelineManager = UnityEngine.Rendering.RenderPipelineManager;
@@ -651,13 +652,20 @@ namespace UnityEditor.Rendering.LookDev
 
         void Update()
         {
+            if (LookDev.waitingConfigure)
+                return;
+
             // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
-            // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check.
-            if (!LookDev.supported && OnUpdateRequestedInternal != null)
+            // Note: After an editor reload, we might get a null SRP for a couple of frames, hence the check.
+            if (!LookDev.supported)
             {
                 // Print an error and close the Lookdev window (to avoid spamming the console)
-                Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
-                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
+                if (RenderPipelineManager.currentPipeline != null)
+                    Debug.LogError("LookDev is not supported by this Scriptable Render Pipeline: " + RenderPipelineManager.currentPipeline.ToString());
+                else if (GraphicsSettings.currentRenderPipeline != null)
+                    Debug.LogError("LookDev is not available until a camera render occurs.");
+                else
+                    Debug.LogError("LookDev is not supported: No SRP detected.");
                 LookDev.Close();
             }
         }

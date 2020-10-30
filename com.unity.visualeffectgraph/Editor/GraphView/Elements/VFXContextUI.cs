@@ -755,6 +755,15 @@ namespace UnityEditor.VFX.UI
             if (!(desc.model is VFXAbstractParticleOutput))
                 return false;
 
+            foreach( var links in controller.model.inputFlowSlot.Select((t,i)=>new { index = i, links = t.link }))
+            {
+                foreach (var link in links.links)
+                {
+                    if (!VFXContext.CanLink(link.context, (VFXContext)desc.model, links.index, link.slotIndex))
+                        return false;
+                }
+            }
+
             return (desc.model as VFXContext).contextType == VFXContextType.Output;
         }
 

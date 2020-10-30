@@ -4,6 +4,7 @@ using UnityEditor.ProjectWindowCallback;
 #endif
 using System;
 using UnityEngine.Scripting.APIUpdating;
+using System.ComponentModel;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -46,12 +47,14 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
-            [Reload("Shaders/Utils/TileDepthInfo.shader")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            //[Reload("Shaders/Utils/TileDepthInfo.shader")]
             public Shader tileDepthInfoPS;
 
-            [Reload("Shaders/Utils/TileDeferred.shader")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            //[Reload("Shaders/Utils/TileDeferred.shader")]
             public Shader tileDeferredPS;
-
+            
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
@@ -145,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Rendering mode.
+        /// Rendering mode. Only Forward rendering is supported in this version.
         /// </summary>
         public RenderingMode renderingMode
         {
