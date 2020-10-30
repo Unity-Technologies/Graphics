@@ -338,6 +338,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
 
     }
 #else // Opaque - used DBuffer
+
     DBufferType0 DBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
     DBufferType1 DBuffer1 = float4(0.5, 0.5, 0.5, 1.0);
     DBufferType2 DBuffer2 = float4(0.0, 0.0, 0.0, 1.0);
@@ -346,8 +347,8 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
 #else
     float2 DBuffer3 = float2(1.0, 1.0);
 #endif
-    DBuffer0.xyz = float3(0.0, 0.0, 0.0);
 
+if (g_prepasslessDecals != 0) {
     #if !defined(TILE_SIZE_CLUSTERED)
     #define TILE_SIZE_CLUSTERED (32)
     #endif
@@ -393,6 +394,16 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
                 // EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
         }
     }
+
+} else { // (g_PrepasslessDecals)
+    DBuffer0 = LOAD_TEXTURE2D_X(_DBufferTexture0, int2(posInput.positionSS.xy));
+    DBuffer1 = LOAD_TEXTURE2D_X(_DBufferTexture1, int2(posInput.positionSS.xy));
+    DBuffer2 = LOAD_TEXTURE2D_X(_DBufferTexture2, int2(posInput.positionSS.xy));
+#ifdef DECALS_4RT
+    DBuffer3 = LOAD_TEXTURE2D_X(_DBufferTexture3, int2(posInput.positionSS.xy)).xy;
+#endif
+} // (g_PrepasslessDecals)
+
 #endif
 
     DecalSurfaceData decalSurfaceData;
