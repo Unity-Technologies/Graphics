@@ -13,6 +13,8 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         /// <summary>
         ///     Bake the <paramref name="probe" /> and updated its baked texture.
+        ///
+        ///     Note: The update of the probe is persistent only in editor mode.
         /// </summary>
         /// <param name="probe">The probe to bake.</param>
         /// <param name="path">The asset path to write the baked texture to.</param>
