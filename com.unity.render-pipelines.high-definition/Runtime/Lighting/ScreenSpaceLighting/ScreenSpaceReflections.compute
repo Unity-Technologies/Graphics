@@ -93,6 +93,12 @@ TEXTURE2D_X(_DepthTexture);
 // Helpers
 //--------------------------------------------------------------------------------------------------
 
+// Simplified Weight for SSR where Fresnel == 1.0f
+float GetWeight(float lambdaL, float lambdaVPlusOne)
+{
+    return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
+}
+
 // Adapted from: "Sampling the GGX Distribution of Visible Normals", by E. Heitz
 // http://jcgt.org/published/0007/04/01/paper.pdf
 void SampleGGXVisibleNormal(float2 u,
@@ -162,7 +168,7 @@ bool SampleGGX_VNDF(float roughness_,
     // pdf = pdfNoGV / lambdaVPlusOne;
     // weight = value / pdf;
     //     fresnel == 1.0f
-    weight = 1.0f + lambdaL / lambdaVPlusOne;
+    weight = GetWeight(lambdaL, lambdaVPlusOne);
 
     if (weight < 0.001)
         return false;
@@ -297,19 +303,11 @@ float2 GetSampleInfo(uint2 positionSS, out float3 color, out float weight, out f
 
     roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
-    float NdotV = dot(normalData.normalWS, V);
-    float NdotL = dot(normalData.normalWS, L);
-    float VdotH = dot(V, H);
-    float NdotH = dot(normalData.normalWS, H);
-    float Vg = V_SmithJointGGX(NdotL, NdotV, roughness);
-
-    float jac = 4.0 * NdotV;
-
     float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
 
     float lambdaL = Lambda_GGX(roughness, L);
 
-    weight = 1.0f + lambdaL / lambdaVPlusOne;
+    weight = GetWeight(lambdaL, lambdaVPlusOne);
 
     color = GetHitColor(hitData.xy, normalData.perceptualRoughness, opacity, 0);
 
