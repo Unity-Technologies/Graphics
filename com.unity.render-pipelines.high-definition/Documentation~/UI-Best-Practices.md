@@ -27,4 +27,4 @@ For example, if you want to blur the scene background when a UI menu is active, 
 ## Known limitations
 Here is a list of known issues between Unity UI and HDRP:
 * HDRP only supports Unlit UI.
-* On XR platforms, HDRP only supports the **World Space** Canvas **Render Mode**.
+* On VR platforms, HDRP only supports the **World Space** Canvas **Render Mode**.
