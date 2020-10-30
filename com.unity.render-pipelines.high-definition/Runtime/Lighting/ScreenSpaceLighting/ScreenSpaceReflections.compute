@@ -94,8 +94,18 @@ TEXTURE2D_X(_DepthTexture);
 //--------------------------------------------------------------------------------------------------
 
 // Simplified Weight for SSR where Fresnel == 1.0f
-float GetSSRImportanceSamplingWeight(float lambdaL, float lambdaVPlusOne)
+float GetSSRSampleWeight(float3 V, float3 L, float roughness)
 {
+    // Simplification:
+    // float pdfNoGV = D_GGX(localH.z, roughness);
+    // value = F_Schlick(fresnel0, VdotH) * pdfNoGV / (lambdaVPlusOne + lambdaL);
+    // pdf = pdfNoGV / lambdaVPlusOne;
+    // weight = value / pdf;
+    //     fresnel == 1.0f
+
+    const float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
+    const float lambdaL = Lambda_GGX(roughness, L);
+
     return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
 }
 
@@ -158,17 +168,7 @@ bool SampleGGX_VNDF(float roughness_,
         return false;
     }
 
-    float pdfNoGV = D_GGX(localH.z, roughness);
-    float lambdaVPlusOne = Lambda_GGX(roughness, localV) + 1.0;
-
-    float lambdaL = Lambda_GGX(roughness, localL);
-
-    // Simplification:
-    // value = F_Schlick(fresnel0, VdotH) * pdfNoGV / (lambdaVPlusOne + lambdaL);
-    // pdf = pdfNoGV / lambdaVPlusOne;
-    // weight = value / pdf;
-    //     fresnel == 1.0f
-    weight = GetSSRImportanceSamplingWeight(lambdaL, lambdaVPlusOne);
+    weight = GetSSRSampleWeight(localV, localL, roughness);
 
     if (weight < 0.001)
         return false;
@@ -303,11 +303,7 @@ float2 GetSampleInfo(uint2 positionSS, out float3 color, out float weight, out f
 
     roughness = clamp(roughness, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
-    float lambdaVPlusOne = Lambda_GGX(roughness, V) + 1.0;
-
-    float lambdaL = Lambda_GGX(roughness, L);
-
-    weight = GetSSRImportanceSamplingWeight(lambdaL, lambdaVPlusOne);
+    weight = GetSSRSampleWeight(V, L, roughness);
 
     color = GetHitColor(hitData.xy, normalData.perceptualRoughness, opacity, 0);
 
