@@ -68,6 +68,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed LookDev error message when pipeline is not loaded.
 - Properly reject history when enabling seond denoiser for RTGI.
 - Fixed an issue that could cause objects to not be rendered when using Vulkan API.
+- Fixed issue with lookdev shadows looking wrong upon exiting playmode. 
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
