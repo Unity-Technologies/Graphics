@@ -45,7 +45,7 @@ nightly:
     - project: Universal
       platform: iPhone
       api: Metal
-      build_config: mono
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - Standalone

@@ -33,7 +33,7 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_mono_Linear_trunk
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_mono_Linear_trunk
          rerun: on-new-revision
