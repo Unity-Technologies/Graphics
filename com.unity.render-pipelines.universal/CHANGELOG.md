@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
+### Added
+- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
+
 ### Fixed
 - Removed the warning about mis-matched vertex streams when creating a default Particle System. [case 1285272](https://issuetracker.unity3d.com/issues/particles-urp-default-material-shows-warning-in-inspector)
 - Fixed latest mockHMD renderviewport scale doesn't fill whole view after scaling. [case 1286161] (https://issuetracker.unity3d.com/issues/xr-urp-renderviewportscale-doesnt-fill-whole-view-after-scaling)
@@ -40,7 +43,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Smooth shadow fading.
 - The pipeline now outputs a warning in the console when trying to access camera color or depth texture when those are not valid. Those textures are only available in the context of `ScriptableRenderPass`.
 - Added a property to access the renderer from the `CameraData`.
-- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
 
 ### Changed
 - Shader functions SampleSH9, SampleSHPixel, SampleSHVertex are now gamma corrected in gamma space. As result LightProbes are gamma corrected too.
