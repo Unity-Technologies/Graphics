@@ -77,7 +77,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(dispatchThreadId.xy >= uint2(_TexelSize.xy)))
         return; // Out of bounds, discard
 
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw, uint2(GROUP_RES, GROUP_RES));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw);
     float2 uv = posInputs.positionNDC;
     float2 barrelUV = (uv * 2.0 - 1.0) * BarrelClipping;
 

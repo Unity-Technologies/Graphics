@@ -62,7 +62,7 @@ void TemporalDenoise(uint3 dispatchThreadId : SV_DispatchThreadID)
     float currDepth, currAO;
     UnpackData(currFrameData, currAO, currDepth);
 
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(8, 8));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw);
 
 #if HALF_RES
     float2 closest = posInputs.positionSS * 2;
