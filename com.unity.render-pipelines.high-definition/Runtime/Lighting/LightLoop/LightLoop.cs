@@ -4134,6 +4134,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     isGBufferNeeded: true
                 );
 
+                unsafe
+                {
+                    int row, col;
+
+                    if (parameters.lightListCB.g_isOrthographic != 0)
+                    {
+                        row = 4; col = 4;
+                    }
+                    else
+                    {
+                        row = 4; col = 3;
+                    }
+
+                    float flip = parameters.lightListCB.g_mProjectionArr[4 * (col - 1) + (row - 1)]; // Transposed
+
+                    Debug.Assert(flip == 1.0f, "View space with the z-axis pointing backwards is not supported!");
+                }
 
                 // The algorithm (below) works even if the bounded entity count is 0.
                 // That is fairly efficient, and allows us to avoid weird special cases.
