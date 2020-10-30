@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(parameters.bilateralUpsampleCS, parameters.upscaleKernel, numTilesXHR, numTilesYHR, parameters.viewCount);
         }
 
-        private float EvaluateIndirectDiffuseHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        private float EvaluateIndirectDiffuseHistoryValidityCombined(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
             // Evaluate the history validity
             float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced)
@@ -403,9 +403,33 @@ namespace UnityEngine.Rendering.HighDefinition
             return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
         }
 
-        private void PropagateIndirectDiffuseHistoryValidity(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        private float EvaluateIndirectDiffuseHistoryValidity0(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        {
+            // Evaluate the history validity
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
+        }
+
+        private float EvaluateIndirectDiffuseHistoryValidity1(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        {
+            // Evaluate the history validity
+            float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced) ? 1.0f : 0.0f;
+            return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
+        }
+
+        private void PropagateIndirectDiffuseHistoryValidityCombined(HDCamera hdCamera, bool fullResolution, bool rayTraced)
         {
             hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced);
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced);
+        }
+
+        private void PropagateIndirectDiffuseHistoryValidity0(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        {
+            hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced);
+        }
+
+        private void PropagateIndirectDiffuseHistoryValidity1(HDCamera hdCamera, bool fullResolution, bool rayTraced)
+        {
             hdCamera.PropagateEffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced);
         }
 
@@ -445,13 +469,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SSGIDenoise)))
                 {
                     // Evaluate the history validity
-                    float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
+                    float historyValidity = EvaluateIndirectDiffuseHistoryValidityCombined(hdCamera, giSettings.fullResolutionSS, false);
 
                     SSGIDenoiser ssgiDenoiser = GetSSGIDenoiser();
                     ssgiDenoiser.Denoise(cmd, hdCamera, buffer00, buffer01, buffer10, buffer11, halfResolution: !giSettings.fullResolutionSS, historyValidity: historyValidity);
 
                     // Propagate the history
-                    PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
+                    PropagateIndirectDiffuseHistoryValidityCombined(hdCamera, giSettings.fullResolutionSS, false);
                 }
 
                 // Convert it
