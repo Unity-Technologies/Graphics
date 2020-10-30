@@ -80,6 +80,9 @@ The version number for this package has increased due to a version update of a r
 - Fixed overlap with SSR Transparent default frame settings message on DXR Wizard.
 - Fixed alpha channel in the stop NaNs and motion blur shaders.
 - Fixed undo of duplicate environments in the look dev environment library.
+- Fixed a ghosting issue with RTShadows (Sun, Point and Spot), RTAO and RTGI when the camera is moving fast.
+- Fixed a SSGI denoiser bug for large scenes.
+- Fixed a Nan issue with SSGI.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
