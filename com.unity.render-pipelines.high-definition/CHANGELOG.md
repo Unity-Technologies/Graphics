@@ -68,6 +68,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed LookDev error message when pipeline is not loaded.
 - Properly reject history when enabling seond denoiser for RTGI.
 - Fixed an issue that could cause objects to not be rendered when using Vulkan API.
+- Fixed issue with lookdev shadows looking wrong upon exiting playmode. 
+- Fixed temporary Editor freeze when selecting AOV output in graphics compositor (case 1288744).
 - Fixed normal flip with double sided materials.
 
 ### Changed
