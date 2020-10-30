@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
+### Fixed
+- Fixed XR shadows culling
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
@@ -58,6 +61,20 @@ The version number for this package has increased due to a version update of a r
 - Fixed scene picking passes.
 - Fixed broken ray tracing light cluster full screen debug.
 - Fixed dead code causing error.
+- Fixed issue when dragging slider in inspector for ProjectionDepth.
+- Fixed issue when resizing Inspector window that make the DecalProjector editor flickers.
+- Fixed issue in DecalProjector editor when the Inspector window have a too small width: the size appears on 2 lines but the editor not let place for the second one.
+- Fixed issue (null reference in console) when selecting a DensityVolume with rectangle selection.
+- Fixed issue when linking the field of view with the focal length in physical camera
+- Fixed supported platform build and error message.
+- Fixed exceptions occuring when selecting mulitple decal projectors without materials assigned (case 1283659).
+- Fixed LookDev error message when pipeline is not loaded.
+- Properly reject history when enabling seond denoiser for RTGI.
+- Fixed an issue that could cause objects to not be rendered when using Vulkan API.
+- Fixed issue with lookdev shadows looking wrong upon exiting playmode. 
+- Fixed temporary Editor freeze when selecting AOV output in graphics compositor (case 1288744).
+- Fixed normal flip with double sided materials.
+- Fix shadow resolution settings level in the light explorer.
 - Fixed the ShaderGraph being dirty after the first save.
 
 ### Changed
@@ -75,6 +92,9 @@ The version number for this package has increased due to a version update of a r
 - Improved the punctual light shadow rescale algorithm.
 - Changed the names of some of the parameters for the Eye Utils SG Nodes.
 - Restored frame setting for async compute of contact shadows.
+- Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
+- Range handles for decal projector angle fading.
+- Smoother angle fading for decal projector.
 
 ## [10.1.0] - 2020-10-12
 
