@@ -966,8 +966,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (selection != null)
             {
                 // Blackboard
-                if (selection.OfType<BlackboardField>().Any())
-                    dragging = true;
+                bool validFields = false;
+                foreach (BlackboardField field in selection.OfType<BlackboardField>())
+                {
+                    if ((field != null) && !(field.userData is MultiJsonInternal.UnknownShaderPropertyType))
+                        validFields = true;
+                }
+                dragging = validFields;
             }
             else
             {
@@ -1124,6 +1129,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case AbstractShaderProperty property:
                     {
+                        if (property is MultiJsonInternal.UnknownShaderPropertyType)
+                            break;
+
                         // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
                         if (graph.properties.FirstOrDefault(p => p == property) == null)
                         {
