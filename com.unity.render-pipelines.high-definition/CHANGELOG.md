@@ -76,6 +76,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed normal flip with double sided materials.
 - Fix shadow resolution settings level in the light explorer.
 - Fixed the ShaderGraph being dirty after the first save.
+- Fixed undo of duplicate environments in the look dev environment library.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
