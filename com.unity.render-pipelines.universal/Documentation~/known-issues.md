@@ -35,8 +35,8 @@ In XR projects, the SSAO effect does not match between eyes in stereo rendering 
 
 To see updates on this issue, refer to the [Unity Issue Tracker](https://issuetracker.unity3d.com/issues/urp-xr-ssao-renderer-mismatch-between-eyes-when-using-multiview-rendering-on-quest).
 
-## On Oculus Quest OpenGL ES 3, URP does not render Particle Systems correctly
+## On Oculus Quest OpenGL ES 3, URP does not render VFX Graph Particle Systems correctly
 
-On Oculus Quest OpenGL ES 3, Particle effects might look stretched, or might be missing.
+On Oculus Quest OpenGL ES 3, VFX Graph Particle effects might look stretched, or might be missing.
 
 To see updates on this issue, refer to the [Unity Issue Tracker](https://issuetracker.unity3d.com/issues/srp-urp-particles-missing-or-very-stretched-using-urp-10-dot-1-on-quest-gles3).
