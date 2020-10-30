@@ -6,6 +6,11 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // copy across graph values, if defined
     $SurfaceDescription.BaseColor: surfaceData.color = surfaceDescription.BaseColor;
 
+    #ifdef WRITE_NORMAL_BUFFER
+    // When we need to export the normal (in the depth prepass, we write the geometry one)
+    surfaceData.normalWS = fragInputs.tangentToWorld[2];
+    #endif
+
     #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {

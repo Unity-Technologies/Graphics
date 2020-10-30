@@ -45,6 +45,14 @@ namespace UnityEditor.Rendering.HighDefinition
             public Func<object> customGetter;
             public Action<object> customSetter;
             public object overridedDefaultValue;
+            /// <summary>
+            /// Use this field to force displaying mixed values in the UI.
+            ///
+            /// By default the drawer will displayed mixed values if a bit has different values, but some frame settings
+            /// relies on other data, like material quality level. In that case, the other data may have mixed values
+            /// and we draw the UI accordingly.
+            /// </summary>
+            public bool hasMixedValues;
             public GUIContent label => EditorGUIUtility.TrTextContent(attributes[field].displayedName, attributes[field].tooltip);
             public bool IsOverrideableWithDependencies(SerializedFrameSettings serialized, FrameSettings defaultFrameSettings)
             {
@@ -87,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return area;
         }
 
-        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, Func<bool> customOverrideable = null, string labelOverride = null)
+        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, Func<bool> customOverrideable = null, string labelOverride = null, bool hasMixedValues = false)
         {
             var matchIndex = fields.FindIndex(f => f.field == field);
 
@@ -107,6 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 match.overridedDefaultValue = overridedDefaultValue;
             if (labelOverride != null)
                 match.label.text = labelOverride;
+            match.hasMixedValues = hasMixedValues;
             fields[matchIndex] = match;
         }
 
@@ -200,7 +209,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new EditorGUI.DisabledScope(shouldBeDisabled))
             {
-                EditorGUI.showMixedValue = serializedFrameSettings.HaveMultipleValue(field.field);
+                EditorGUI.showMixedValue = serializedFrameSettings.HaveMultipleValue(field.field) || field.hasMixedValues;
                 using (new EditorGUILayout.VerticalScope())
                 {
                     //the following block will display a default value if provided instead of actual value (case if(true))
@@ -270,8 +279,14 @@ namespace UnityEditor.Rendering.HighDefinition
                                 break;
                             case FrameSettingsFieldAttribute.DisplayType.Others:
                                 var oldValue = field.customGetter();
+                                EditorGUI.BeginChangeCheck();
                                 var newValue = DrawFieldShape(fieldRect, oldValue);
-                                if (oldValue != newValue)
+                                // We need an extensive check here, otherwise in some case with boxing or polymorphism
+                                // the != operator won't be accurate. (This is the case for enum types).
+                                var valuesAreEquals = oldValue == null && newValue == null || oldValue != null && oldValue.Equals(newValue);
+                                // If the UI reported a change, we also assign values.
+                                // When assigning to a multiple selection, the equals check may fail while there was indeed a change.
+                                if (EditorGUI.EndChangeCheck() || !valuesAreEquals)
                                 {
                                     Undo.RecordObject(serializedFrameSettings.serializedObject.targetObject, "Changed FrameSettings " + field.field);
                                     field.customSetter(newValue);

@@ -90,8 +90,11 @@ Shader "Hidden/HDRP/TemporalAA"
         TEXTURE2D_X(_DepthTexture);
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
+        #ifdef SHADER_API_PSSL
+        RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u0);
+        #else
         RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u1);
-
+        #endif
 
         #define _HistorySharpening _TaaPostParameters.x
         #define _AntiFlickerIntensity _TaaPostParameters.y
@@ -100,7 +103,11 @@ Shader "Hidden/HDRP/TemporalAA"
 
 #if VELOCITY_REJECTION
         TEXTURE2D_X(_InputVelocityMagnitudeHistory);
-        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory);
+        #ifdef SHADER_API_PSSL
+        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u1);
+        #else
+        RW_TEXTURE2D_X(float, _OutputVelocityMagnitudeHistory) : register(u2);
+        #endif
 #endif
 
         float4 _TaaPostParameters;
@@ -156,7 +163,7 @@ Shader "Hidden/HDRP/TemporalAA"
             float2 prevUV = input.texcoord - motionVector;
 
             CTYPE history = GetFilteredHistory(_InputHistoryTexture, prevUV, _HistorySharpening, _TaaHistorySize);
-            bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (2.0 * _TaaHistorySize.zw)));
+            bool offScreen = any(abs(prevUV * 2 - 1) >= (1.0f - (1.0 * _TaaHistorySize.zw)));
             history.xyz *= PerceptualWeight(history);
             // -----------------------------------------------------
 
@@ -228,6 +235,10 @@ Shader "Hidden/HDRP/TemporalAA"
 
             color.xyz = ConvertToOutputSpace(finalColor.xyz);
             color.xyz = clamp(color.xyz, 0, CLAMP_MAX);
+#if defined(ENABLE_ALPHA)
+            // Set output alpha to the antialiased alpha.
+            color.w = filteredColor.w;
+#endif
 
             _OutputHistoryTexture[COORD_TEXTURE2D_X(input.positionCS.xy)] = color.CTYPE_SWIZZLE;
             outColor = color.CTYPE_SWIZZLE;

@@ -566,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // class ProbeVolumeArtistParameters
 
     [ExecuteAlways]
-    [AddComponentMenu("Light/Experimental/Probe Volume")]
+    //[AddComponentMenu("Light/Experimental/Probe Volume")]
     internal class ProbeVolume : MonoBehaviour
     {
 #if UNITY_EDITOR

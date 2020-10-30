@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MaxVelocityInPixels;
         SerializedDataParameter m_MinVelInPixels;
 
-        //  Advanced properties 
+        //  Advanced properties
         SerializedDataParameter m_CameraRotClamp;
         SerializedDataParameter m_DepthCmpScale;
         SerializedDataParameter m_CameraMotionBlur;
@@ -23,8 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
 
             m_Intensity = Unpack(o.Find(x => x.intensity));
@@ -34,6 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
             m_DepthCmpScale = Unpack(o.Find(x => x.depthComparisonExtent));
             m_CameraMotionBlur = Unpack(o.Find(x => x.cameraMotionBlur));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()
@@ -44,9 +44,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             base.OnInspectorGUI();
 
-            GUI.enabled = useCustomValue;
-            PropertyField(m_SampleCount);
-            GUI.enabled = true;
+            using (new HDEditorUtils.IndentScope())
+            using (new QualityScope(this))
+            {
+                PropertyField(m_SampleCount);
+            }
 
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);
@@ -57,6 +59,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_CameraRotClamp);
                 PropertyField(m_CameraMotionBlur);
             }
+        }
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
+        {
+            if (settings == null)
+                settings = new QualitySettingsBlob();
+
+            settings.Save<int>(m_SampleCount);
+
+            return settings;
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            settings.TryLoad<int>(ref m_SampleCount);
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            CopySetting(ref m_SampleCount, settings.postProcessQualitySettings.MotionBlurSampleCount[level]);
         }
     }
 }

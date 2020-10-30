@@ -316,9 +316,9 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
             Cull Off
 
             HLSLPROGRAM
-
             #pragma exclude_renderers d3d11_9x gles gles3 glcore
             #pragma target 4.5 // for GatherRed
+
             #pragma multi_compile_fragment __ DOWNSAMPLING_SIZE_2 DOWNSAMPLING_SIZE_4 DOWNSAMPLING_SIZE_8 DOWNSAMPLING_SIZE_16
             #pragma multi_compile_fragment USE_GATHER
 
@@ -340,9 +340,9 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
             Cull Off
 
             HLSLPROGRAM
-
             #pragma exclude_renderers d3d11_9x gles gles3 glcore
             #pragma target 4.5 // for GatherRed
+
             #pragma multi_compile_fragment __ DOWNSAMPLING_SIZE_2 DOWNSAMPLING_SIZE_4 DOWNSAMPLING_SIZE_8
             #pragma multi_compile_fragment USE_GATHER
 
@@ -355,6 +355,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
         }
     }
 
+    // No gather support: cannot implement it as a shader variant
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "ShaderModel" = "2.0"}
@@ -370,7 +371,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
 
             HLSLPROGRAM
 
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles3 glcore
             #pragma target 2.0
             #pragma multi_compile_fragment __ DOWNSAMPLING_SIZE_2 DOWNSAMPLING_SIZE_4 DOWNSAMPLING_SIZE_8 DOWNSAMPLING_SIZE_16
 
@@ -393,7 +394,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
 
             HLSLPROGRAM
 
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles3 glcore
             #pragma target 2.0
             #pragma multi_compile_fragment __ DOWNSAMPLING_SIZE_2 DOWNSAMPLING_SIZE_4 DOWNSAMPLING_SIZE_8
 
