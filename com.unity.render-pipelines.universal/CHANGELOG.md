@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
 - Optimized 2D Renderer performance by rendering the normal buffer at the same lower resolution as the light buffers.
 - 2D Renderer: The per Blend Style render texture scale setting was replaced by a global scale setting for all Blend Styles.
+- Optimized 2D Renderer performance by using a tiny light texture for layer/blend style pairs for which no light is rendered.
 
 ### Fixed
 - Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
