@@ -42,5 +42,3 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 To calculate SSR, HDRP reads a color buffer with a blurred mipmap generated during the previous frame. The color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). 
 
 When the 'Receive SSR transparent' surface option on Material is enabled, the transparent SSR will always used the 'Approximation' mode even if 'PBR Accumulation' is selected.
-
-'PBR Accumulation' isn't compatible with dynamic resolution, it produce incorrect result.
