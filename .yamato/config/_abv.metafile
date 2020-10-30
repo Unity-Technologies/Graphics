@@ -16,20 +16,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - Linear
 weekly:
   extra_dependencies: # additional project jobs to run weekly
-    - project: HDRP
-      platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_NonRenderGraph
-    - project: HDRP_DXR
-      platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode_NonRenderGraph
+    []
 nightly:
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
     - project: Smoke_Test

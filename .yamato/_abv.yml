@@ -61,11 +61,7 @@ all_project_ci_nightly_trunk:
              frequency: 0 * * ?
 all_project_ci_weekly_trunk:
     name: _Weekly ABV against trunk
-    dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_Linear_trunk
-         rerun: on-new-revision
+    dependencies: []
     triggers:
         recurring:
           -  branch: master
