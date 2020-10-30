@@ -84,6 +84,9 @@ namespace UnityEditor.VFX
 
             private bool ShouldEvaluate(VFXExpression exp, VFXExpression[] reducedParents)
             {
+                //Apply first reduction, flag could change depending on parent after reduction (e.g.: PerElement removed)
+                exp = exp.Reduce(reducedParents);
+
                 if (!HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding))
                     return false;
 
@@ -149,13 +152,28 @@ namespace UnityEditor.VFX
                 VFXExpression reduced;
                 if (!m_ReducedCache.TryGetValue(expression, out reduced))
                 {
+                    //First Compile parents
                     var parents = expression.parents.Select(e =>
                     {
                         var parent = Compile(e);
-                        bool currentGPUTransformation = gpuTransformation && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU) && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
-                        parent = PatchVFXExpression(parent, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
                         return parent;
                     }).ToArray();
+
+                    //Then, patch them if appropriate (if there will be an evaluation, we should skipped patch)
+                    if (gpuTransformation && !ShouldEvaluate(expression, parents))
+                    {
+                        parents = parents.Select(parent =>
+                        {
+                            bool currentGPUTransformation = true;
+                            if (!expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU) || parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
+                            {
+                                //TODO: Add comment
+                                currentGPUTransformation = false;
+                            }
+                            parent = PatchVFXExpression(parent, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
+                            return parent;
+                        }).ToArray();
+                    }
 
                     if (ShouldEvaluate(expression, parents))
                     {

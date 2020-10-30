@@ -186,11 +186,13 @@ namespace UnityEditor.VFX.Test
             var minMax = random.inputSlots.Where(o => o.valueType == VFXValueType.Float);
             Assert.AreEqual(2, minMax.Count());
             foreach (var slot in minMax)
-                slot.value = 0.326f; //Having the same value in minMax will lead to a reduction.
-
+                slot.value = 0.326f; //Having the same value in minMax will lead to a reduction
             graph.AddChild(random);
 
             var sampleGradient = ScriptableObject.CreateInstance<VFX.Operator.SampleGradient>();
+            var gradientSlot = sampleGradient.inputSlots.FirstOrDefault(o => o.valueType == VFXValueType.ColorGradient);
+            gradientSlot.value = new Gradient() { alphaKeys = new GradientAlphaKey[] { }, colorKeys = new GradientColorKey[] { new GradientColorKey(new Color(0.765f, 0.765f, 0.765f), 0.0f), new GradientColorKey(new Color(0.765f, 0.765f, 0.765f), 1.0f) } };
+
             graph.AddChild(sampleGradient);
 
             var pointOutput = graph.children.OfType<VFXPointOutput>().FirstOrDefault();
@@ -209,6 +211,7 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             yield return null;
 
+            //Should not log any error at import
         }
 
         [UnityTest]
