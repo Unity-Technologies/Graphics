@@ -2590,7 +2590,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 viewMatrix = GetWorldToViewMatrix(hdCamera, viewIndex); // Non-RWS
             Vector3   positionVS = viewMatrix.MultiplyPoint(positionWS);
 
-            return -positionVS.z; // The coordinate system of the view space is right-handed, Z pointing backwards
+            return positionVS.z; // Assume the z-axis actually points forwards and is not flipped...
         }
 
         // 'w' is the linear depth (Z coordinate of the view-space position).
