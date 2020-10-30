@@ -221,6 +221,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     {
         // We only take the current value
         accumulationFactor = 0.0;
+        history = 0.0;
         // And the sample count of history becomes 1 (or 0 if the previous sample was mooving)
         sampleCount = sampleVelocity > MINIMAL_MOTION_DISTANCE ? 0.0 : 1.0;
     }
