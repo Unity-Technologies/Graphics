@@ -166,6 +166,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed null reference in the Undo callback of the graphics compositor 
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
+- Added a new API to bake HDRP probes from C# (case 1276360)
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
