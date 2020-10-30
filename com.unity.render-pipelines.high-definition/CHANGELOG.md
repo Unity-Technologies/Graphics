@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
+### Fixed
+- Fixed XR shadows culling
+
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
@@ -67,6 +70,12 @@ The version number for this package has increased due to a version update of a r
 - Fixed exceptions occuring when selecting mulitple decal projectors without materials assigned (case 1283659).
 - Fixed LookDev error message when pipeline is not loaded.
 - Properly reject history when enabling seond denoiser for RTGI.
+- Fixed an issue that could cause objects to not be rendered when using Vulkan API.
+- Fixed issue with lookdev shadows looking wrong upon exiting playmode. 
+- Fixed temporary Editor freeze when selecting AOV output in graphics compositor (case 1288744).
+- Fixed normal flip with double sided materials.
+- Fix shadow resolution settings level in the light explorer.
+- Fixed the ShaderGraph being dirty after the first save.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -84,6 +93,8 @@ The version number for this package has increased due to a version update of a r
 - Changed the names of some of the parameters for the Eye Utils SG Nodes.
 - Restored frame setting for async compute of contact shadows.
 - Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
+- Range handles for decal projector angle fading.
+- Smoother angle fading for decal projector.
 
 ## [10.1.0] - 2020-10-12
 
