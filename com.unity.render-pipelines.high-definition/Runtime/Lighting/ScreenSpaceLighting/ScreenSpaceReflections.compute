@@ -94,7 +94,7 @@ TEXTURE2D_X(_DepthTexture);
 //--------------------------------------------------------------------------------------------------
 
 // Simplified Weight for SSR where Fresnel == 1.0f
-float GetWeight(float lambdaL, float lambdaVPlusOne)
+float GetSSRImportanceSamplingWeight(float lambdaL, float lambdaVPlusOne)
 {
     return lambdaVPlusOne / (lambdaVPlusOne + lambdaL);
 }
@@ -168,7 +168,7 @@ bool SampleGGX_VNDF(float roughness_,
     // pdf = pdfNoGV / lambdaVPlusOne;
     // weight = value / pdf;
     //     fresnel == 1.0f
-    weight = GetWeight(lambdaL, lambdaVPlusOne);
+    weight = GetSSRImportanceSamplingWeight(lambdaL, lambdaVPlusOne);
 
     if (weight < 0.001)
         return false;
@@ -307,7 +307,7 @@ float2 GetSampleInfo(uint2 positionSS, out float3 color, out float weight, out f
 
     float lambdaL = Lambda_GGX(roughness, L);
 
-    weight = GetWeight(lambdaL, lambdaVPlusOne);
+    weight = GetSSRImportanceSamplingWeight(lambdaL, lambdaVPlusOne);
 
     color = GetHitColor(hitData.xy, normalData.perceptualRoughness, opacity, 0);
 
