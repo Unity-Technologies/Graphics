@@ -172,7 +172,7 @@ namespace UnityEditor.VFX
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {
                     var exp = kvp.Key;
-                    return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU); // remove per element expression from flattened data // TODO Remove uniform constants too
+                    return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU); // remove per element expression from flattened data // TODOPAUL (now, otherwise, we will never do it, can be done with usage maybe ?) Remove uniform constants too
                 });
 
                 var expressionPerSpawn = sortedList.Where(o => o.Key.Is(VFXExpression.Flags.PerSpawn));
