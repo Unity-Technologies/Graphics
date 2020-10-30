@@ -278,6 +278,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawBlendingGroup()
         {
+            CoreEditorUtils.DrawSplitter(false);
             m_BlendingSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.blendingSettingsFoldout, m_BlendingSettingsFoldout.value);
             if (m_BlendingSettingsFoldout.value)
             {
@@ -293,21 +294,21 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawShadowsGroup()
         {
-            if (CoreEditorUtils.DrawHeaderToggle(Styles.shadowsSettingsFoldout.text, m_ShadowIntensityEnabled, m_ShadowIntensityEnabled))
+            CoreEditorUtils.DrawSplitter(false);
+            m_ShadowsSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.shadowsSettingsFoldout, m_ShadowsSettingsFoldout.value);
+            if (m_ShadowsSettingsFoldout.value)
             {
-                EditorGUI.BeginDisabledGroup(!m_ShadowIntensityEnabled.boolValue);
-                EditorGUILayout.PropertyField(m_ShadowIntensity, Styles.generalShadowIntensity);
-                EditorGUI.EndDisabledGroup();
+                DrawToggleProperty(Styles.generalShadowIntensity, m_ShadowIntensityEnabled, m_ShadowIntensity);
             }
         }
 
         void DrawVolumetricGroup()
         {
-            if (CoreEditorUtils.DrawHeaderToggle(Styles.volumetricSettingsFoldout.text, m_VolumetricIntensityEnabled, m_VolumetricIntensityEnabled))
+            CoreEditorUtils.DrawSplitter(false);
+            m_VolumetricSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.volumetricSettingsFoldout, m_VolumetricSettingsFoldout.value);
+            if (m_VolumetricSettingsFoldout.value)
             {
-                EditorGUI.BeginDisabledGroup(!m_VolumetricIntensityEnabled.boolValue);
-                EditorGUILayout.PropertyField(m_VolumetricIntensity, Styles.generalVolumeIntensity);
-                EditorGUI.EndDisabledGroup();
+                DrawToggleProperty(Styles.generalVolumeIntensity, m_VolumetricIntensityEnabled, m_VolumetricIntensity);
                 if (m_VolumetricIntensity.floatValue < 0)
                     m_VolumetricIntensity.floatValue = 0;
 
@@ -319,6 +320,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawNormalMapGroup()
         {
+            CoreEditorUtils.DrawSplitter(false);
             m_NormalMapsSettingsFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.normalMapsSettingsFoldout, m_NormalMapsSettingsFoldout.value);
             if (m_NormalMapsSettingsFoldout.value)
             {
@@ -372,19 +374,22 @@ namespace UnityEditor.Experimental.Rendering.Universal
         void DrawToggleProperty(GUIContent label, SerializedProperty boolProperty, SerializedProperty property)
         {
             int savedIndentLevel = EditorGUI.indentLevel;
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(label);
-            EditorGUILayout.BeginHorizontal();
-            EditorGUI.indentLevel = 0;
-            EditorGUILayout.PropertyField(boolProperty, GUIContent.none, GUILayout.MaxWidth(20));
+            float savedLabelWidth = EditorGUIUtility.labelWidth;
+            const int kCheckboxWidth = 20;
 
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(boolProperty, GUIContent.none, GUILayout.MaxWidth(kCheckboxWidth));
+
+            EditorGUIUtility.labelWidth = EditorGUIUtility.labelWidth - kCheckboxWidth;
             EditorGUI.BeginDisabledGroup(!boolProperty.boolValue);
-            EditorGUILayout.PropertyField(property, GUIContent.none);
+            EditorGUILayout.PropertyField(property, label);
             EditorGUI.EndDisabledGroup();
+            
+            EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.EndHorizontal();
             EditorGUI.indentLevel = savedIndentLevel;
+
+            EditorGUIUtility.labelWidth = savedLabelWidth;
         }
 
         public void DrawInnerAndOuterSpotAngle(SerializedProperty minProperty, SerializedProperty maxProperty, GUIContent label)

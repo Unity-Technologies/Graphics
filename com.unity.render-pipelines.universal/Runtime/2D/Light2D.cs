@@ -62,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] Color m_Color = Color.white;
         [SerializeField] float m_Intensity = 1;
 
-
         [FormerlySerializedAs("m_LightVolumeOpacity")]
         [SerializeField] float m_LightVolumeIntensity = 1.0f;
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
@@ -86,16 +85,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [FormerlySerializedAs("m_PointLightQuality")]
         [SerializeField] NormalMapQuality m_NormalMapQuality = NormalMapQuality.Disabled;
 
-
         [SerializeField] bool m_ShadowIntensityEnabled = false;
         [Range(0, 1)]
-        [SerializeField] float m_ShadowIntensity = 1.0f;
+        [SerializeField] float m_ShadowIntensity = 0.75f;
 
         [SerializeField] bool m_ShadowVolumeIntensityEnabled = false;
         [Range(0, 1)]
-        [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
-
-
+        [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
         // Transients
         int m_PreviousLightCookieSprite;
