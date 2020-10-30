@@ -73,6 +73,20 @@ float4x4 Homogenize3x3(float3x3 R)
     return M;
 }
 
+float4x4 OptimizeOrthographicMatrix(float4x4 M)
+{
+    // | x 0 0 x |
+    // | 0 x 0 x |
+    // | x x x x |
+    // | 0 0 0 1 |
+
+    M._12_13    = 0;
+    M._21_23    = 0;
+    M._41_42_43 = 0; M._44 = 1;
+
+    return M;
+}
+
 float SqDistPointAaBb(float2 pt, float2 aaBbMinPt, float2 aaBbMaxPt)
 {
     float sqDist = 0;

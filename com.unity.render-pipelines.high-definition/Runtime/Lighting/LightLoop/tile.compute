@@ -208,9 +208,11 @@ bool TryCullSphere(float3 center, float radius, float2 aaBbMinPtNDC, float2 aaBb
     // We do not consider the near and the far plane (as as in 'scrbound.compute').
     if (g_isOrthographic)
     {
+        float4x4 orthoProj = OptimizeOrthographicMatrix(projMat);
+
         // Compute the center and the extents (half-diagonal) of the bounding box.
-        float2 sphereCenterCS  = mul(projMat, float4(center,       1)).xy;
-        float2 sphereExtentsCS = mul(projMat, float4(radius.xx, 0, 0)).xy; // Axis-aligned ellipse
+        float2 sphereCenterCS  = mul(orthoProj, float4(center.xyz,   1)).xy;
+        float2 sphereExtentsCS = mul(orthoProj, float4(radius.xx, 0, 0)).xy; // Axis-aligned ellipse
 
         // Convert to clip-space coordinates.
         float2 aaBbMinPtCS = aaBbMinPtNDC * 2 - 1;

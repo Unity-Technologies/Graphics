@@ -215,6 +215,7 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     // We can avoid loading and doing math with constants.
     M._21_41 = 0;
     M._12_42 = 0;
+
     return M;
 }
 
