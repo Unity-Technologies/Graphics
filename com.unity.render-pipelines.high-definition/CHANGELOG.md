@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed XR shadows culling
+- Fixed a ghosting issue with RTShadows (Sun, Point and Spot), RTAO and RTGI when the camera is moving fast.
+- Fixed a SSGI denoiser bug for large scenes.
+- Fixed a Nan issue with SSGI.
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
