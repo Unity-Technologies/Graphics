@@ -32,6 +32,13 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
 
+    for i in range(0,len(utr_args)):
+        if '%' in utr_args[i]:
+            utr_arg = utr_args[i]
+            utr_arg = utr_args[i].replace('%', '$', 2)
+            utr_arg = utr_arg[:-2]
+            utr_args[i] = utr_arg + '"'
+
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
     extra_cmds = extra_perf_cmd(project_folder)
@@ -57,6 +64,13 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     )
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
+
+    for i in range(0,len(utr_args)):
+        if '%' in utr_args[i]:
+            utr_arg = utr_args[i]
+            utr_arg = utr_args[i].replace('%', '$', 2)
+            utr_arg = utr_arg[:-2]
+            utr_args[i] = utr_arg + '"'
 
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
@@ -86,6 +100,14 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     utr_args.extend(test_platform["extra_utr_flags"])
     utr_args.extend(platform["extra_utr_flags"])
     utr_args.append(f'--timeout={get_timeout(test_platform, "OSX_Metal")}')
+
+    for i in range(0,len(utr_args)):
+        if '%' in utr_args[i]:
+            utr_arg = utr_args[i]
+            utr_arg = utr_args[i].replace('%', '$', 2)
+            utr_arg = utr_arg[:-2]
+            utr_args[i] = utr_arg + '"'
+
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
     extra_cmds = extra_perf_cmd(project_folder)
