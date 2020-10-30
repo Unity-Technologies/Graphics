@@ -16,7 +16,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     CTYPE color = LOAD_TEXTURE2D_X(_InputTexture, dispatchThreadId.xy).CTYPE_SWIZZLE;
 
     if (AnyIsNaN(color) || AnyIsInf(color))
-        color.xyz = (0.0).xxx;
+        color.CTYPE_SWIZZLE = 0.0;
 
     _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = color;
 }
