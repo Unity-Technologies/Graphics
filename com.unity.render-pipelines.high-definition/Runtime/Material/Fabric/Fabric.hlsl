@@ -621,7 +621,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 R = preLightData.iblR;
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
+    float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
 
     // If it is a silk, we need to use the GGX convolution (slice0), otherwise the charlie convolution (slice1)
     int sliceIndex = 0;
@@ -630,7 +630,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         sliceIndex = _EnvSliceSize - 1;
     }
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC, sliceIndex);
+    float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness, intersectionDistance, sliceIndex);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
     envLighting = preLightData.specularFGD * preLD.rgb;
