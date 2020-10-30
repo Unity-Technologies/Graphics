@@ -14,7 +14,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:
@@ -78,7 +78,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --compilation-errors-as-warnings --timeout=1200
     artifacts:
         logs:
             paths:

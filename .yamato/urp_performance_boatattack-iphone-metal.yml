@@ -14,7 +14,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -160,7 +160,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_Linear
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -307,7 +307,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:
@@ -468,7 +468,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_mono_Linear
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --report-performance-data --performance-project-id=BoatAttack
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2 --report-performance-data --performance-project-id=BoatAttack
     artifacts:
         logs:
             paths:

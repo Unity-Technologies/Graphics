@@ -14,7 +14,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2
     artifacts:
         logs:
             paths:
@@ -56,7 +56,7 @@ Universal_iPhone_Metal_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2
     artifacts:
         logs:
             paths:
@@ -99,7 +99,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=IL2CPP --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2
     artifacts:
         logs:
             paths:
@@ -148,7 +148,7 @@ Universal_iPhone_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2
+      -  ./utr --suite=playmode --platform=iOS --artifacts_path=test-results --player-load-path=players --reruncount=2
     artifacts:
         logs:
             paths:
