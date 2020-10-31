@@ -86,12 +86,14 @@
 // PackingRules = Exact
 struct FiniteLightBound
 {
-    float3 boxAxisX;
-    float3 boxAxisY;
-    float3 boxAxisZ;
     float3 center;
-    float scaleXY;
     float radius;
+    float3 boxAxisX;
+    float scaleXY;
+    float3 boxAxisY;
+    float __pad0__;
+    float3 boxAxisZ;
+    float __pad1__;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightVolumeData

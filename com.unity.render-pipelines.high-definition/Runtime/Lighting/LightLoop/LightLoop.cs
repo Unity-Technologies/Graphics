@@ -414,12 +414,14 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     struct FiniteLightBound
     {
+        public Vector3 center;   // Center (in the view space) shared by the bounding box and the bounding sphere
+        public float   radius;   // Of the bounding sphere
         public Vector3 boxAxisX; // Scaled by the extents (half-size)
-        public Vector3 boxAxisY; // Scaled by the extents (half-size)
-        public Vector3 boxAxisZ; // Scaled by the extents (half-size)
-        public Vector3 center;   // Center of the bounding box in the view space
         public float   scaleXY;  // Scale applied to the top of the box to turn it into a truncated pyramid (X = Y)
-        public float   radius;   // Bounding sphere (may or may not be tighter than the bounding box)
+        public Vector3 boxAxisY; // Scaled by the extents (half-size)
+        public float   __pad0__;
+        public Vector3 boxAxisZ; // Scaled by the extents (half-size)
+        public float   __pad1__;
     }
 
     [GenerateHLSL]
