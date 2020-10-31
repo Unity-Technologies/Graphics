@@ -65,10 +65,8 @@
 // !!! IMPORTANT !!!
 // The legacy code from Morten provides us special projection matrices (and their inverses).
 // These matrices are different from the matrices the HDRP uses.
-// There is no reversed-Z buffering (effectively, forced UNITY_REVERSED_Z = 0).
-// Additionally, there is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
-// Therefore, all coordinate systems are left-handed, Y-up, without W-flip.
-// Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
+// There is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
+// All coordinate systems are left-handed, Y-up, Z-forward.
 // y  z
 // | /
 // 0 -- x
@@ -201,17 +199,17 @@ groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL
 #define THREADS_PER_TILE (THREADS_PER_ENTITY) // Helps with naming
 #define TILES_PER_GROUP  (THREADS_PER_GROUP / THREADS_PER_TILE)
 
+// We do not clip the sphere against the near and the far plane (same as in 'scrbound.compute').
 bool TryCullSphere(float3 C, float r, float2 aaBbMinPtNDC, float2 aaBbMaxPtNDC, float4x4 projMat, float4x4 invProjMat)
 {
     bool isCulled = false;
 
     if ((C.z + r) > 0) // Is the sphere at least *partially* in front of the origin?
     {
-        // Convert to clip-space coordinates.
+        // Transform to clip-space coordinates.
         float2 aaBbMinPtCS = aaBbMinPtNDC * 2 - 1;
         float2 aaBbMaxPtCS = aaBbMaxPtNDC * 2 - 1;
 
-        // We do not clip the sphere against the near and the far plane (same as in 'scrbound.compute').
         if (g_isOrthographic)
         {
             float4x4 orthoProj = OptimizeOrthographicMatrix(projMat);

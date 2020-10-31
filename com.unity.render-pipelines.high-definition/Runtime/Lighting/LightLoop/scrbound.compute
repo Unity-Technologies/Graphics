@@ -28,10 +28,8 @@ RWStructuredBuffer<float2>  _wBoundsBuffer : register(u1); // {w_min, w_max}
 // !!! IMPORTANT !!!
 // The legacy code from Morten provides us special projection matrices (and their inverses).
 // These matrices are different from the matrices the HDRP uses.
-// There is no reversed-Z buffering (effectively, forced UNITY_REVERSED_Z = 0).
-// Additionally, there is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
-// Therefore, all coordinate systems are left-handed, Y-up, without W-flip.
-// Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
+// There is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
+// All coordinate systems are left-handed, Y-up, Z-forward.
 // y  z
 // | /
 // 0 -- x
