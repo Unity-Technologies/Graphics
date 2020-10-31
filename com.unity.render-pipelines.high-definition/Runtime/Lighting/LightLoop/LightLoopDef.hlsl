@@ -159,7 +159,7 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
     const uint tileRangeData         = TILE_BUFFER[tileBufferHeaderIndex]; // {last << 16 | first}
     const bool isTileEmpty           = tileRangeData == UINT16_MAX;
 
-    if (!isTileEmpty)
+    if (!isTileEmpty) // Avoid wasted work
     {
         const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
         const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
@@ -167,7 +167,7 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
         const uint2 tileEntityIndexRange = uint2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
         const uint2 zBinEntityIndexRange = uint2(zBinRangeData & UINT16_MAX, zBinRangeData >> 16);
 
-        if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange))
+        if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange)) // Avoid wasted work
         {
             const uint tileBufferBodyIndex = ComputeTileBufferBodyIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
 

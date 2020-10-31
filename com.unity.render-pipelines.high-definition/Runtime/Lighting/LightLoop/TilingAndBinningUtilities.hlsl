@@ -87,16 +87,6 @@ float4x4 OptimizeOrthographicMatrix(float4x4 M)
     return M;
 }
 
-float SqDistPointAaBb(float2 pt, float2 aaBbMinPt, float2 aaBbMaxPt)
-{
-    float sqDist = 0;
-
-    sqDist += Sq(Max3(pt.x - aaBbMaxPt.x, aaBbMinPt.x - pt.x, 0.0f));
-    sqDist += Sq(Max3(pt.y - aaBbMaxPt.y, aaBbMinPt.y - pt.y, 0.0f));
-
-    return sqDist;
-}
-
 // a: aspect ratio.
 // p: distance to the projection plane.
 // n: distance to the near plane.

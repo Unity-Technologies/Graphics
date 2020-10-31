@@ -99,4 +99,16 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
     }
 }
 
+float2 ClosestPointAaBb(float2 pt, float2 aaBbMinPt, float2 aaBbMaxPt)
+{
+    return clamp(pt, aaBbMinPt, aaBbMaxPt);
+}
+
+float SqDistToClosestPointAaBb(float2 pt, float2 aaBbMinPt, float2 aaBbMaxPt)
+{
+    float2 qt = ClosestPointAaBb(pt, aaBbMinPt, aaBbMaxPt);
+
+    return dot(pt - qt, pt - qt);
+}
+
 #endif // UNITY_CLIPPINGUTILITIES_INCLUDED

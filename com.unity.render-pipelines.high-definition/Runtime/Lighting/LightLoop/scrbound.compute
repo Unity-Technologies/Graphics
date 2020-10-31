@@ -260,7 +260,7 @@ float2 ComputeBoundsOfProjectedSphere(float3 C, float r, float projScale, float 
     float lenSqOC = dot(C.xz, C.xz);
     float lenSqOB = lenSqOC - r * r;
     // If |OB'| = 0 or |OC'| = 0, the bounding planes tangent to the sphere do not exist.
-    if (lenSqOB > 0)
+    if (lenSqOB > 0) // The sphere does not contain the origin
     {
         float lenOB = sqrt(lenSqOB);
         // |OB' x OC'| = |OB'| * |OC'| * Sin[a'].
@@ -292,7 +292,7 @@ float2 ComputeBoundsOfProjectedSphere(float3 C, float r, float projScale, float 
         D.x = C.x * lenOB + (C.z * r);
         D.z = C.z * lenOB - (C.x * r);
         // We can transform OB and OD as direction vectors.
-        // For the simplification below, see OptimizeProjectionMatrix.
+        // Manually optimize the perspective projection (see OptimizeProjectionMatrix).
         float rapBx = (B.x * rcp(B.z)) * projScale + projOffset;
         float rapDx = (D.x * rcp(D.z)) * projScale + projOffset;
         // One problem with the above is that this direction may, for certain spheres,
@@ -686,8 +686,8 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
             }
             else // Perspective
             {
-                float2 xBounds = ComputeBoundsOfProjectedSphere(rbpC.xxz, radius, projMat._m00, projMat._m02); // X-Z plane
-                float2 yBounds = ComputeBoundsOfProjectedSphere(rbpC.yyz, radius, projMat._m11, projMat._m12); // Y-Z plane
+                float2 xBounds = ComputeBoundsOfProjectedSphere(rbpC.xxz, radius, projMat._11, projMat._13); // X-Z plane
+                float2 yBounds = ComputeBoundsOfProjectedSphere(rbpC.yyz, radius, projMat._22, projMat._23); // Y-Z plane
 
                 rectMin = float2(xBounds.r, yBounds.r);
                 rectMax = float2(xBounds.g, yBounds.g);
