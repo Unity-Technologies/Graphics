@@ -10,7 +10,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         private static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
         private static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
-        private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
         private static readonly string k_UseNormalMap = "USE_NORMAL_MAP";
         private static readonly string k_UseAdditiveBlendingKeyword = "USE_ADDITIVE_BLENDING";
@@ -469,9 +468,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (light.lightType == Light2D.LightType.Sprite)
                 material.EnableKeyword(k_SpriteLightKeyword);
-
-            if (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                material.EnableKeyword(k_UsePointLightCookiesKeyword);
 
             if (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
