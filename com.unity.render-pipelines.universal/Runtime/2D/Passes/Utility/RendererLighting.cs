@@ -172,10 +172,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
+                    float intensity = light.intensity * light.color.a;
+                    Color color = intensity * light.color;
+                    color.a = 1.0f;
+
+                    cmd.SetGlobalColor(k_LightColorID, intensity * color);
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
                     cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
                     cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
-                    cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
                     cmd.SetGlobalColor(k_VolumeColorID, light.volumeIntensity * light.color);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
