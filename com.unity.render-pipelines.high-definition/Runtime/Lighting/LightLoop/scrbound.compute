@@ -184,7 +184,7 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
 
     // Sutherland-Hodgeman polygon clipping algorithm.
     // It works by clipping the entire polygon against one clipping plane at a time.
-    while (clipMaskOfFace != 0)
+    while ((clipMaskOfFace != 0) && (srcSize != 0))
     {
         uint p = firstbitlow(clipMaskOfFace);
 
