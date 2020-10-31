@@ -298,12 +298,12 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, uint2 tileCoord, u
     // Bounding sphere.
     const float radius = cullData.radius;
 
-    bool trivialReject = false, trivialAccept = false;
+    bool isCulled = false;
 
     // 1. Attempt to trivially reject the entity by considering its bounding sphere.
-    trivialReject = TryCullSphere(rbpC, radius, tileAaBbMinPtNDC, tileAaBbMaxPtNDC, projMat, invProjMat);
+    isCulled = TryCullSphere(rbpC, radius, tileAaBbMinPtNDC, tileAaBbMaxPtNDC, projMat, invProjMat);
 
-    return trivialReject;
+    return isCulled;
 }
 
 // *************************************************************************************************
@@ -312,8 +312,8 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, uint2 tileCoord, u
 // We use roughly the same idea as in 'scrbound.compute':
 // we test the bounding volume of the entity against the mini-frustum of the tile.
 // The difference is that we do not need to compute the AABB.
-// Thus, there is a "slow" path and a "fast" path. The latter includes "trivial" accept or reject.
-// "trivial" accept or reject ..........
+// Thus, there is a "slow" path and a "fast" path. The "fast" path means we try to find a way
+// to "trivial" reject the entity if its bounding volume clearly does not overlap the tile.
 // *************************************************************************************************
 
 [numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
