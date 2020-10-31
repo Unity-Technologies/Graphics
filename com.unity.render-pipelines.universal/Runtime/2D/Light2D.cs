@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.PlayerLoop;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -58,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField] float m_FalloffIntensity = 0.5f;
 
-        [ColorUsage(false)]
+        [ColorUsage(true)]
         [SerializeField] Color m_Color = Color.white;
         [SerializeField] float m_Intensity = 1;
 
@@ -67,7 +68,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
-        [SerializeField] Sprite m_LightCookieSprite = null;
+        [SerializeField, Reload("Textures/2D/Sparkle.png")]
+        Sprite m_LightCookieSprite;
+
         [SerializeField] bool m_UseNormalMap = false;
 
         [SerializeField] int m_LightOrder = 0;
@@ -263,6 +266,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_OverlapOperation = OverlapOperation.AlphaBlend;
                 m_AlphaBlendOnOverlap = false;
             }
+
+            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
             #endif
         }
 
