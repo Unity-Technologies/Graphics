@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void Sanitize_Parameter_With_Previous_Type_Structure()
+        public void Sanitize_Parameter_With_Sphere_Without_Angle()
         {
             string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitize_Test.vfx.rename_me";
             var rand = Guid.NewGuid().ToString();
@@ -34,9 +34,32 @@ namespace UnityEditor.VFX.Test
             File.Copy(kSourceAsset, name);
             m_ToDeleteAsset.Add(name);
             AssetDatabase.ImportAsset(name);
-            AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(name);
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(name);
 
-            //TODOPAUL : Check also the actual structure of the graph
+            VisualEffectResource resource = asset.GetResource();
+            var graph = resource.GetOrCreateGraph();
+
+            Assert.AreEqual(3, graph.GetNbChildren());
+            var parameter = graph.children.OfType<VFXParameter>().FirstOrDefault();
+            var lerp = graph.children.OfType<Operator.Lerp>().FirstOrDefault();
+            var inline = graph.children.OfType<VFXInlineOperator>().FirstOrDefault();
+            Assert.IsNotNull(parameter);
+            Assert.IsNotNull(lerp);
+            Assert.IsNotNull(inline);
+
+            Assert.IsTrue(parameter.exposed);
+
+            Assert.IsTrue(inline.inputSlots[0].value is Sphere);
+            Assert.IsTrue(parameter.outputSlots[0].value is Sphere);
+
+            //0. Center
+            //1. Angle
+            //2. Radius
+            Assert.IsTrue(inline.inputSlots[0][0].HasLink());
+            Assert.IsTrue(inline.inputSlots[0][2].HasLink());
+
+            Assert.IsTrue(parameter.outputSlots[0][0].HasLink());
+            Assert.IsTrue(parameter.outputSlots[0][2].HasLink());
         }
     }
 }
