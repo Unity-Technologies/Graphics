@@ -679,6 +679,7 @@ namespace UnityEditor.VFX
         {
             if (!isOutput)
             {
+                UpdateSlotsAndValue(); //Update cache of expression (can be modified through sanitize)
                 for (int i = 0; i < m_ExprSlots.Length; ++i)
                 {
                     m_ValueExpr[i].SetContent(m_ExprSlots[i].value);

@@ -416,12 +416,6 @@ namespace UnityEditor.VFX
             m_GraphVersion = CurrentVersion;
 
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
-
-            //TODO : Shouldn't be needed, VFXParameter keeps reference on slot which can be incorrect after a sanitize.
-            foreach (var parameter in children.OfType<VFXParameter>())
-            {
-                parameter.ForceUpdateCacheAfterAllSanitize();
-            }
         }
 
         public void ClearCompileData()
