@@ -113,6 +113,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             public static GUIContent renderPipelineUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("Universal scriptable renderpipeline asset must be assigned in Graphics Settings or Quality Settings.", MessageType.Warning);
             public static GUIContent asset2DUnassignedWarning = EditorGUIUtility.TrTextContentWithIcon("2D renderer data must be assigned to your universal render pipeline asset or camera.", MessageType.Warning);
+
+            public static string deprecatedParametricLightDialogTextSingle = "The upgrade will convert the selected parametric light into a freeform light. You can't undo this operation.";
+            public static string deprecatedParametricLightDialogTextMulti = "The upgrade will convert the selected parametric lights into freeform lights. You can't undo this operation.";
+            public static string deprecatedParametricLightDialogTitle = "Parametric Light Upgrader";
+            public static string deprecatedParametricLightDialogProceed = "Proceed";
+            public static string deprecatedParametricLightDialogCancel = "Cancel";
         }
 
         const float     k_GlobalLightGizmoSize      = 1.2f;
@@ -466,6 +472,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             GUIContent buttonText = targets.Length > 1 ? Styles.deprecatedParametricLightButtonMulti : Styles.deprecatedParametricLightButtonSingle;
             GUIContent helpText = targets.Length > 1 ? Styles.deprecatedParametricLightWarningMulti : Styles.deprecatedParametricLightWarningSingle;
+            string dialogText = targets.Length > 1 ? Styles.deprecatedParametricLightDialogTextMulti : Styles.deprecatedParametricLightDialogTextSingle;
 
             EditorGUILayout.HelpBox(helpText);
             EditorGUILayout.Space();
@@ -473,14 +480,16 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (GUILayout.Button(buttonText))
             {
-                for (int i = 0; i < targets.Length; i++)
+                if (EditorUtility.DisplayDialog(Styles.deprecatedParametricLightDialogTitle, dialogText, Styles.deprecatedParametricLightDialogProceed, Styles.deprecatedParametricLightDialogCancel))
                 {
-                    Light2D light = (Light2D)targets[i];
+                    for (int i = 0; i < targets.Length; i++)
+                    {
+                        Light2D light = (Light2D)targets[i];
 
-                    if(light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric)
-                        Renderer2DUpgrader.UpgradeParametricLight(light);
+                        if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric)
+                            Renderer2DUpgrader.UpgradeParametricLight(light);
+                    }
                 }
-
             }
             EditorGUILayout.Space();
             EditorGUILayout.HelpBox(Styles.deprecatedParametricLightInstructions);  
