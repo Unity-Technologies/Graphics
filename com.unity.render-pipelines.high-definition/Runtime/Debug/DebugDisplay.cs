@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MinLightingFullScreenDebug,
         /// <summary>Display Screen Space Ambient Occlusion buffer.</summary>
         ScreenSpaceAmbientOcclusion,
-        /// <summary>Display Screen Space Reflections buffer.</summary>
+        /// <summary>Display Screen Space Reflections buffer used for lighting.</summary>
         ScreenSpaceReflections,
         /// <summary>Display the Transparent Screen Space Reflections buffer.</summary>
         TransparentScreenSpaceReflections,
@@ -116,7 +116,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display specular Color validation mode.</summary>
         ValidateSpecularColor,
         /// <summary>Maximum Full Screen Material debug mode value (used internally).</summary>
-        MaxMaterialFullScreenDebug
+        MaxMaterialFullScreenDebug,
+        // TODO: Move before count for 11.0
+        /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
+        ScreenSpaceReflectionsPrev,
+        /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
+        ScreenSpaceReflectionsAccum
     }
 
     /// <summary>
@@ -1944,7 +1949,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
                     (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                     (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
-                    (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination ||
+                    (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination ||
                     (debugLighting == DebugLightingMode.ProbeVolume || debugProbeVolume == ProbeVolumeDebugMode.VisualizeAtlas);
         }
     }

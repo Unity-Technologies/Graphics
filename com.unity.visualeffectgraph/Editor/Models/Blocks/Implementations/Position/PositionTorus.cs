@@ -36,6 +36,7 @@ namespace UnityEditor.VFX.Block
                 var thickness = allSlots.FirstOrDefault(o => o.name == "Thickness").exp;
                 var majorRadius = allSlots.FirstOrDefault(o => o.name == "ArcTorus_majorRadius").exp;
                 var minorRadius = allSlots.FirstOrDefault(o => o.name == "ArcTorus_minorRadius").exp;
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, majorRadius, thickness), "volumeFactor");
 
                 yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, majorRadius, thickness), "volumeFactor");
                 yield return new VFXNamedExpression(VFXOperatorUtility.Saturate(minorRadius / majorRadius), "r"); // Saturate can be removed once degenerated torus are correctly handled
@@ -52,8 +53,6 @@ namespace UnityEditor.VFX.Block
 
                 var transformMatrix = new VFXExpressionVector3sToMatrix(i, j, k, center);
                 yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
-            }
-        }
 
         protected override bool needDirectionWrite => true;
 
@@ -98,7 +97,7 @@ else
 
 float s,c;
 sincos(phi,c,s);
-float3 t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);
+float3 t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);";
 
 float3 finalPos = ArcTorus_majorRadius * t2;
 float3 finalDir = t2;
