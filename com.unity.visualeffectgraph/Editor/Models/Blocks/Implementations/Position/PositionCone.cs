@@ -39,7 +39,6 @@ namespace UnityEditor.VFX.Block
             get
             {
                 var properties = PropertiesFromType("InputProperties");
-                foreach (var p in allSlots.Where(e => e.name != "Thickness"))
 
                 if (supportsVolumeSpawning)
                 {
@@ -61,6 +60,9 @@ namespace UnityEditor.VFX.Block
         }
 
         public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
                 var allSlots = GetExpressionsFromSlots(this);
 
                 foreach (var p in allSlots.Where(e => e.name == "ArcCone_arc"
@@ -94,6 +96,8 @@ namespace UnityEditor.VFX.Block
 
                 var transformMatrix = new VFXExpressionVector3sToMatrix(i, k, j, center); //Expected axis inversion
                 yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
+            }
+        }
 
         protected override bool needDirectionWrite => true;
 
@@ -146,11 +150,12 @@ float hNorm = HeightSequencer;
 ";
                 }
 
-                outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction.xzy", "normalize(float3(pos * sincosSlope.x, sincosSlope.y))", "blendDirection") + "\n";
+                outSource += @"
 float3 finalPos = lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm);
 float3 finalDir = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
 finalPos = mul(transformMatrix, float4(finalPos, 1.0f)).xyz;
 finalDir = mul((float3x3)transformMatrix, finalDir);
+";
                 outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction", "finalDir", "blendDirection") + "\n";
                 outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position", "finalPos", "blendPosition");
 
