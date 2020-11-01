@@ -28,7 +28,6 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void Sanitize_Parameter_With_Previous_Type_Structure()
         {
-            //TODOPAUL : Simplify the content of this asset
             string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitize_Test.vfx.rename_me";
             var rand = Guid.NewGuid().ToString();
             var name = "Assets/Temp_" + rand + ".vfx";
