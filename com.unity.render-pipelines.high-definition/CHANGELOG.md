@@ -69,7 +69,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow resolution settings level in the light explorer.
 - Fixed the ShaderGraph being dirty after the first save.
 - Fixed XR shadows culling
-- Fixed stylesheet reloading for LookDev window and Wizard window.
 - Fixed Nans happening when upscaling the RTGI.
 - Fixed the adjust weight operation not being done for the non-rendergraph pipeline.
 - Fixed overlap with SSR Transparent default frame settings message on DXR Wizard.

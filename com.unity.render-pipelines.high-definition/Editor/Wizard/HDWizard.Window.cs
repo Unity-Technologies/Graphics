@@ -278,7 +278,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         #region DRAWERS
 
-        private void CreateGUI()
+        private void OnEnable()
         {
             titleContent = Style.title;
 
