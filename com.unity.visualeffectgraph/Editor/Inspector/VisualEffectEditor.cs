@@ -160,11 +160,12 @@ namespace UnityEditor.VFX
                 return false;
             }
             EditorGUILayout.BeginHorizontal();
-
-            var height = 16f;
-            if (EditorGUIUtility.currentViewWidth < 333f && GenerateMultipleField(ref parameter, valueProperty))
+            
+            var height = 18f;
+            if (!EditorGUIUtility.wideMode && GenerateMultipleField(ref parameter, valueProperty))
             {
                 height *= 2.0f;
+                height += 1;
             }
 
             var rect = EditorGUILayout.GetControlRect(false, height);
@@ -778,9 +779,8 @@ namespace UnityEditor.VFX
                 DrawRendererProperties();
                 DrawParameters(resource);
             }
-
+            EditorGUI.indentLevel = 0;
             serializedObject.ApplyModifiedProperties();
-            GUI.enabled = true;
         }
 
 
@@ -794,7 +794,6 @@ namespace UnityEditor.VFX
                 graph = resource.GetOrCreateGraph();
 
 
-            GUI.enabled = true;
             if (graph == null)
             {
                 ShowHeader(Contents.headerProperties, true, showPropertyCategory);
@@ -806,7 +805,6 @@ namespace UnityEditor.VFX
                 {
                     graph.BuildParameterInfo();
                 }
-
 
                 m_PropertyToProp.Clear();
 
@@ -1142,78 +1140,169 @@ namespace UnityEditor.VFX
                 m_RendererEditor.OnInspectorGUI();
         }
 
-        private class RendererEditor
+        internal class RendererEditor
         {
+            const string kRendererProbesFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer.Probes";
+            const string kRendererAdditionnalSettingsFoldoutStatePreferenceName = "VFX.VisualEffectEditor.Foldout.Renderer.AdditionnalSettings";
+
             private VFXRenderer[] m_Renderers;
             private SerializedObject m_SerializedRenderers;
 
-            private SerializedProperty m_TransparentPriority;
+            private SerializedProperty m_RendererPriority;
             private SerializedProperty m_RenderingLayerMask;
             private SerializedProperty m_LightProbeUsage;
             private SerializedProperty m_LightProbeVolumeOverride;
+            private SerializedProperty m_ReflectionProbeUsage;
             private SerializedProperty m_ProbeAnchor;
+
+            private bool m_ShowProbesCategory;
+            private bool m_ShowAdditionnalCategory;
 
             public RendererEditor(params VFXRenderer[] renderers)
             {
+                m_ShowProbesCategory = EditorPrefs.GetBool(kRendererProbesFoldoutStatePreferenceName, true);
+                m_ShowAdditionnalCategory = EditorPrefs.GetBool(kRendererAdditionnalSettingsFoldoutStatePreferenceName, true);
+
                 m_Renderers = renderers;
                 m_SerializedRenderers = new SerializedObject(m_Renderers);
 
-                m_TransparentPriority = m_SerializedRenderers.FindProperty("m_RendererPriority");
+                m_RendererPriority = m_SerializedRenderers.FindProperty("m_RendererPriority");
                 m_RenderingLayerMask = m_SerializedRenderers.FindProperty("m_RenderingLayerMask");
                 m_LightProbeUsage = m_SerializedRenderers.FindProperty("m_LightProbeUsage");
                 m_LightProbeVolumeOverride = m_SerializedRenderers.FindProperty("m_LightProbeVolumeOverride");
+                m_ReflectionProbeUsage = m_SerializedRenderers.FindProperty("m_ReflectionProbeUsage");
                 m_ProbeAnchor = m_SerializedRenderers.FindProperty("m_ProbeAnchor");
+            }
+
+            public static readonly string[] s_DefaultRenderingLayerNames = GetDefaultRenderingLayerNames();
+            private static string[] GetDefaultRenderingLayerNames()
+            {
+                //Find UnityEditor.RendererEditorBase.defaultRenderingLayerNames by reflection to avoid any breakage due to an API change
+                var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
+                if (type != null)
+                {
+                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic);
+                    if (property != null)
+                    {
+                        var invokeResult = property.GetMethod.Invoke(null, null);
+                        if (invokeResult != null && invokeResult is string[])
+                            return invokeResult as string[];
+                    }
+                }
+                return null;
             }
 
             public void OnInspectorGUI()
             {
                 m_SerializedRenderers.Update();
 
-                if (m_TransparentPriority != null)
-                    EditorGUILayout.PropertyField(m_TransparentPriority, Contents.rendererPriorityStyle);
-
-                if (m_RenderingLayerMask != null)
+                bool showProbesCategory = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShowProbesCategory, Contents.probeSettings);
+                if (showProbesCategory != m_ShowProbesCategory)
                 {
-                    RenderPipelineAsset srpAsset = GraphicsSettings.currentRenderPipeline;
-                    if (srpAsset != null)
+                    m_ShowProbesCategory = showProbesCategory;
+                    EditorPrefs.SetBool(kRendererProbesFoldoutStatePreferenceName, m_ShowProbesCategory);
+                }
+
+                if (m_ShowProbesCategory)
+                {
+                    if (m_ReflectionProbeUsage != null && SupportedRenderingFeatures.active.reflectionProbes)
                     {
-                        var layerNames = srpAsset.renderingLayerMaskNames;
+                        Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
+                        EditorGUI.BeginProperty(r, Contents.reflectionProbeUsageStyle, m_ReflectionProbeUsage);
+                        EditorGUI.BeginChangeCheck();
+                        var newValue = EditorGUI.EnumPopup(r, Contents.reflectionProbeUsageStyle, (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue);
+                        if (EditorGUI.EndChangeCheck())
+                            m_ReflectionProbeUsage.intValue = (int)(ReflectionProbeUsage)newValue;
+                        EditorGUI.EndProperty();
+                    }
+
+                    if (m_LightProbeUsage != null)
+                    {
+                        Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
+                        EditorGUI.BeginProperty(r, Contents.lightProbeUsageStyle, m_LightProbeUsage);
+                        EditorGUI.BeginChangeCheck();
+                        var newValue = EditorGUI.EnumPopup(r, Contents.lightProbeUsageStyle, (LightProbeUsage)m_LightProbeUsage.intValue);
+                        if (EditorGUI.EndChangeCheck())
+                            m_LightProbeUsage.intValue = (int)(LightProbeUsage)newValue;
+                        EditorGUI.EndProperty();
+
+                        if (!m_LightProbeUsage.hasMultipleDifferentValues && m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
+                        {
+                            if (!LightProbeProxyVolume.isFeatureSupported || !SupportedRenderingFeatures.active.lightProbeProxyVolumes)
+                                EditorGUILayout.HelpBox(Contents.lightProbeVolumeUnsupportedNote.text, MessageType.Warning);
+                            EditorGUILayout.PropertyField(m_LightProbeVolumeOverride, Contents.lightProbeVolumeOverrideStyle);
+                        }
+                    }
+
+                    bool useReflectionProbes = m_ReflectionProbeUsage != null && !m_ReflectionProbeUsage.hasMultipleDifferentValues && (ReflectionProbeUsage)m_ReflectionProbeUsage.intValue != ReflectionProbeUsage.Off;
+                    bool lightProbesEnabled = m_LightProbeUsage != null && !m_LightProbeUsage.hasMultipleDifferentValues && (LightProbeUsage)m_LightProbeUsage.intValue != LightProbeUsage.Off;
+                    bool needsProbeAnchor = useReflectionProbes || lightProbesEnabled;
+
+                    if (needsProbeAnchor)
+                        EditorGUILayout.PropertyField(m_ProbeAnchor, Contents.lightProbeAnchorStyle);
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+
+                var showAdditionnalCategory = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShowAdditionnalCategory, Contents.otherSettings);
+                if (showAdditionnalCategory != m_ShowAdditionnalCategory)
+                {
+                    m_ShowAdditionnalCategory = showAdditionnalCategory;
+                    EditorPrefs.SetBool(kRendererAdditionnalSettingsFoldoutStatePreferenceName, m_ShowAdditionnalCategory);
+                }
+
+                if (showAdditionnalCategory)
+                {
+                    if (m_RenderingLayerMask != null)
+                    {
+                        string[] layerNames = null;
+                        var srpAsset = GraphicsSettings.currentRenderPipeline;
+                        if (srpAsset != null)
+                            layerNames = srpAsset.renderingLayerMaskNames;
+
+                        if (layerNames == null)
+                            layerNames = s_DefaultRenderingLayerNames;
+
                         if (layerNames != null)
                         {
                             var mask = (int)m_Renderers[0].renderingLayerMask;
-                            var rect = EditorGUILayout.GetControlRect();
 
+                            var rect = EditorGUILayout.GetControlRect();
+                            EditorGUI.showMixedValue = m_RenderingLayerMask.hasMultipleDifferentValues;
                             EditorGUI.BeginProperty(rect, Contents.renderingLayerMaskStyle, m_RenderingLayerMask);
                             EditorGUI.BeginChangeCheck();
 
                             mask = EditorGUI.MaskField(rect, Contents.renderingLayerMaskStyle, mask, layerNames);
 
                             if (EditorGUI.EndChangeCheck())
-                                m_RenderingLayerMask.intValue = mask;
-
+                            {
+                                Undo.RecordObjects(m_SerializedRenderers.targetObjects, "Set rendering layer mask");
+                                foreach (var t in m_SerializedRenderers.targetObjects)
+                                {
+                                    var r = t as VFXRenderer;
+                                    if (r != null)
+                                    {
+                                        r.renderingLayerMask = (uint)mask;
+                                        EditorUtility.SetDirty(t);
+                                    }
+                                }
+                            }
                             EditorGUI.EndProperty();
+                            EditorGUI.showMixedValue = false;
                         }
                     }
-                }
 
-                if (m_LightProbeUsage != null)
-                {
-                    Rect r = EditorGUILayout.GetControlRect(true, EditorGUI.kSingleLineHeight, EditorStyles.popup);
-                    EditorGUI.BeginProperty(r, Contents.lightProbeUsageStyle, m_LightProbeUsage);
-                    EditorGUI.BeginChangeCheck();
-                    var newValue = EditorGUI.EnumPopup(r, Contents.lightProbeUsageStyle, (LightProbeUsage)m_LightProbeUsage.intValue);
-                    if (EditorGUI.EndChangeCheck())
-                        m_LightProbeUsage.intValue = (int)(LightProbeUsage)newValue;
-                    EditorGUI.EndProperty();
-                }
+                    if (m_RendererPriority != null && SupportedRenderingFeatures.active.rendererPriority)
+                    {
+                        EditorGUILayout.PropertyField(m_RendererPriority, Contents.rendererPriorityStyle);
+                    }
 
-                if (!m_LightProbeUsage.hasMultipleDifferentValues)
-                {
-                    if (m_LightProbeUsage.intValue == (int)LightProbeUsage.UseProxyVolume)
-                        EditorGUILayout.PropertyField(m_LightProbeVolumeOverride, Contents.lightProbeVolumeOverrideStyle);
-                    else if (m_LightProbeUsage.intValue == (int)LightProbeUsage.BlendProbes)
-                        EditorGUILayout.PropertyField(m_ProbeAnchor, Contents.lightProbeAnchorStyle);
+                    //As classic MeshRenderer, VisualEffect doesn't support the single mesh batching of UI.
+                    //if (m_SortingOrder != null && m_SortingLayerID != null)
+                    //{
+                    //    SortingLayerEditorUtility.RenderSortingLayerFields(m_SortingOrder, m_SortingLayerID);
+                    //}
                 }
+                EditorGUILayout.EndFoldoutHeaderGroup();
 
                 m_SerializedRenderers.ApplyModifiedProperties();
             }
@@ -1221,10 +1310,15 @@ namespace UnityEditor.VFX
             private static class Contents
             {
                 public static readonly GUIContent renderingLayerMaskStyle =         EditorGUIUtility.TrTextContent("Rendering Layer Mask", "Mask that can be used with SRP DrawRenderers command to filter renderers outside of the normal layering system.");
-                public static readonly GUIContent rendererPriorityStyle =           EditorGUIUtility.TrTextContent("Transparency Priority", "Priority used for sorting objects on top of material render queue.");
+                public static readonly GUIContent rendererPriorityStyle =           EditorGUIUtility.TrTextContent("Priority", "Priority used for sorting objects on top of material render queue.");
                 public static readonly GUIContent lightProbeUsageStyle =            EditorGUIUtility.TrTextContent("Light Probes", "Specifies how Light Probes will handle the interpolation of lighting and occlusion.");
+                public static readonly GUIContent reflectionProbeUsageStyle =       EditorGUIUtility.TrTextContent("Reflection Probes", "Specifies if or how the object is affected by reflections in the Scene.  This property cannot be disabled in deferred rendering modes.");
                 public static readonly GUIContent lightProbeVolumeOverrideStyle =   EditorGUIUtility.TrTextContent("Proxy Volume Override", "If set, the Renderer will use the Light Probe Proxy Volume component from another GameObject.");
                 public static readonly GUIContent lightProbeAnchorStyle =           EditorGUIUtility.TrTextContent("Anchor Override", "Specifies the Transform position that will be used for sampling the light probes and reflection probes.");
+                public static readonly GUIContent lightProbeVolumeUnsupportedNote = EditorGUIUtility.TrTextContent("The Light Probe Proxy Volume feature is unsupported by the current graphics hardware or API configuration. Simple 'Blend Probes' mode will be used instead.");
+
+                public static readonly GUIContent probeSettings =                   EditorGUIUtility.TrTextContent("Probes");
+                public static readonly GUIContent otherSettings =                   EditorGUIUtility.TrTextContent("Additional Settings");
             }
         }
 

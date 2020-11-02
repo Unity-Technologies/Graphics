@@ -54,10 +54,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToPS.name, "instanceID", "", ShaderValueType.Uint,
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
-            public static FieldDescriptor primitiveID = new FieldDescriptor(VaryingsMeshToPS.name, "primitiveID", "VARYINGS_NEED_PRIMITIVEID", ShaderValueType.Uint,
-                "SV_PrimitiveID", "defined(PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER) && defined(SHADER_STAGE_FRAGMENT) && (defined(VARYINGS_NEED_PRIMITIVEID) || (SHADERPASS == SHADERPASS_FULLSCREEN_DEBUG))", StructFieldOptions.Generated & StructFieldOptions.Optional);
-            public static FieldDescriptor cullFace = new FieldDescriptor(VaryingsMeshToPS.name, "cullFace", "VARYINGS_NEED_CULLFACE", "FRONT_FACE_TYPE",
-                "FRONT_FACE_SEMANTIC", "defined(SHADER_STAGE_FRAGMENT) && defined(VARYINGS_NEED_CULLFACE)", StructFieldOptions.Generated & StructFieldOptions.Optional);
         }
 
         public struct VaryingsMeshToDS

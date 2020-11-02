@@ -4,12 +4,12 @@ from ..shared.yml_job import YMLJob
 
 class ABV_AllProjectCiNightlyJob():
     
-    def __init__(self, editor, test_platforms, nightly_config, target_branch):
+    def __init__(self, editor, projects, nightly_config, target_branch, build_configs, color_space):
         self.job_id = abv_job_id_all_project_ci_nightly(editor["name"])
-        self.yml = self.get_job_definition(editor,test_platforms, nightly_config.get("extra_dependencies",[]), target_branch).get_yml()
+        self.yml = self.get_job_definition(editor, projects, nightly_config.get("extra_dependencies",[]), target_branch, build_configs, color_space).get_yml()
 
     
-    def get_job_definition(self, editor, test_platforms, extra_dependencies, target_branch): 
+    def get_job_definition(self, editor, projects, extra_dependencies, target_branch, build_configs, color_space): 
 
         # define dependencies
         dependencies = [
@@ -32,7 +32,7 @@ class ABV_AllProjectCiNightlyJob():
             else:
                 for tp in dep["test_platforms"]:
                     dependencies.append({
-                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["name"])}',
+                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["name"], dep["build_config"], dep["color_space"])}',
                         'rerun': editor["rerun_strategy"]})
             
         # construct job

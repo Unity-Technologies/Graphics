@@ -128,7 +128,7 @@ The Terrain Lit Shader is compatible with the built-in terrain system and suppor
 
 ![](Images/HDRPFeatures-LightTypes.png)
 
-The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. For lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). The HDRP light types are:
+The HDRP light types use [physical light units](#PLU) to help you light your Scene in the most realistic way possible. To assist you in creating physically-accurate lights, the [Light component](Light-Component.md) Inspector includes icons alongside the **Intensity** and **Temperature** properties. Each icon displays the real-world light source that the value of each property currently represents. Each icon is also a button which you can click to access a list of preset values that match real-world light sources. For lights to behave properly when using PLU, you need to respect HDRP unit convention (1 Unity unit equals 1 meter). The HDRP light types are:
 
 - **Directional**
   - Color temperature
@@ -159,7 +159,7 @@ The HDRP light types use [physical light units](#PLU) to help you light your Sce
   - Color temperature
   - No [Shadowmask](Lighting-Mode-Shadowmask.md) support
 
-For more information, including the full list of light properties, see the [Light component documentation](Light-Component).
+For more information, including the full list of light properties, see the [Light component documentation](Light-Component.md).
 
 ### IES Profiles and light cookies
 
@@ -171,7 +171,7 @@ HDRP supports the Illuminating Engineering Society's (IES) file format for descr
 
 ![](Images/HDRPFeatures-ReflectionProbes.png)
 
-HDRP supports cubemap reflections that take surface smoothness into account. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
+HDRP supports cubemap reflections that take surface smoothness into account. HDRP cubemap reflection support a fake distance based roughness. This helps you produce realistic reflections in your Scene in real time.  For more information, see the [introduction to Reflection Probes](Reflection-Probes-Intro.md)
 
 ### Planar reflection probe
 

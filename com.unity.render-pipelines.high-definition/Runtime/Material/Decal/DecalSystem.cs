@@ -380,8 +380,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Material == null)
                     return;
 
-                bool perChannelMask = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
-
                 // TODO: this test is ambiguous, it should say, I am decal or not.
                 // We should have 2 function: I am decal or not and I am a SG or not...
                 m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material);
@@ -404,17 +402,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     // convert to float
                     m_BlendParams.z = (float)affectFlags;
 
-                    m_ScalingMB = new Vector2(0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"));
+                    m_ScalingBAndRemappingM = new Vector4(0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f, 0.0f);
                     // If we have a texture, we use the remapping parameter, otherwise we use the regular one and the default texture is white
                     if (m_Material.GetTexture("_MaskMap"))
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
-                        m_ScalingMB.x = m_Material.GetFloat("_MetallicScale");
+                        m_ScalingBAndRemappingM.z = m_Material.GetFloat("_MetallicRemapMin");
+                        m_ScalingBAndRemappingM.w = m_Material.GetFloat("_MetallicRemapMax");
                     }
                     else
                     {
                         m_RemappingAOS = new Vector4(m_Material.GetFloat("_AO"), m_Material.GetFloat("_AO"), m_Material.GetFloat("_Smoothness"), m_Material.GetFloat("_Smoothness"));
-                        m_ScalingMB.x = m_Material.GetFloat("_Metallic");
+                        m_ScalingBAndRemappingM.z = m_Material.GetFloat("_Metallic");
                     }
 
                     // For HDRP/Decal, pass are always present but can be enabled/disabled
@@ -694,7 +693,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 var camera = instance.CurrentCamera;
                 Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(camera);
-                bool perChannelMask = instance.perChannelMask;
                 int cullingMask = camera.cullingMask;
                 ulong sceneCullingMask = HDUtils.GetSceneCullingMaskFromCamera(camera);
 
@@ -734,7 +732,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                                 m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
                                 m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
-                                m_DecalDatas[m_DecalDatasCount].scalingMBAndAngle = new Vector4(m_ScalingMB.x, m_ScalingMB.y, m_CachedAngleFade[decalIndex].x, m_CachedAngleFade[decalIndex].y);
+                                m_DecalDatas[m_DecalDatasCount].scalingBAndRemappingM = m_ScalingBAndRemappingM;
                                 m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
 
                                 // we have not allocated the textures in atlas yet, so only store references to them
@@ -896,7 +894,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private float m_Blend = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
-            private Vector2 m_ScalingMB; // metal, mask map blue
+            private Vector4 m_ScalingBAndRemappingM; // mask map blue, metal remap
             private Vector3 m_BlendParams;
 
             private bool m_IsHDRenderPipelineDecal;

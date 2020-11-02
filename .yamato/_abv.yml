@@ -23,137 +23,73 @@ all_project_ci_nightly_trunk:
     dependencies:
       -  path: .yamato/_abv.yml#all_project_ci_trunk
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_trunk
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_trunk
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_trunk
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_trunk
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_apiNet4_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_apiNet4_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_trunk
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_trunk
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_XR_trunk
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_trunk
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_trunk
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_trunk
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_trunk
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_trunk
+      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_trunk
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_trunk
+      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_apiNet2_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/all-urp_performance_boatattack.yml#All_URP_Performance_BoatAttack_trunk
          rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master
              frequency: 0 * * ?
+all_project_ci_weekly_trunk:
+    name: _Weekly ABV against trunk
+    dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_apiNet2_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_apiNet2_Linear_trunk
+         rerun: on-new-revision
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: weekly
 trunk_verification_trunk:
     name: Trunk verification - trunk
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_trunk
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_trunk
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_trunk
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_trunk
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_trunk
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_trunk
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_trunk
-         rerun: on-new-revision
-all_project_ci_2020.2:
-    name: _ABV for SRP repository - 2020.2
-    dependencies:
-      -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-universal.yml#All_Universal_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-hdrp.yml#All_HDRP_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_2020.2
-         rerun: on-new-revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
-all_project_ci_nightly_2020.2:
-    name: _Nightly ABV against 2020.2
-    dependencies:
-      -  path: .yamato/_abv.yml#all_project_ci_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_XR_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/urpupdate-win-dx11.yml#URPUpdate_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: 0 * * ?
-trunk_verification_2020.2:
-    name: Trunk verification - 2020.2
-    dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_2020.2
-         rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_2020.2
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_apiNet2_Linear_trunk
          rerun: on-new-revision
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION
@@ -175,23 +111,23 @@ all_project_ci_CUSTOM-REVISION:
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string renderQueue
         {
-            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
+            get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderQueueType, systemData.sortPriority, systemData.alphaTest, lightingData.receiveDecals));
         }
 
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
@@ -102,8 +102,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.DisableDecals);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSR);
             pass.keywords.Add(CoreKeywordDescriptors.DisableSSRTransparent);
-            pass.keywords.Add(CoreKeywordDescriptors.BlendModePreserveSpecularLighting);
             // pass.keywords.Add(CoreKeywordDescriptors.EnableGeometricSpecularAA);
+
+            pass.keywords.Add(CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting);
 
             if (pass.IsDepthOrMV())
             {
