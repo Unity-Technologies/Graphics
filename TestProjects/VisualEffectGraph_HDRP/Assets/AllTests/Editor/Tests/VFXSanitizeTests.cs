@@ -13,7 +13,7 @@ using System.IO;
 namespace UnityEditor.VFX.Test
 {
     [TestFixture]
-    public class VFXSanitizeTests
+    class VFXSanitizeTests
     {
         private static List<string> m_ToDeleteAsset = new List<string>();
         [OneTimeTearDown]

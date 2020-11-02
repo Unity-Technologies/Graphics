@@ -89,6 +89,7 @@ namespace UnityEditor.VFX.Block
                 var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
 
+                //Warning : we can't manipulate eulerAngle result in input of VFXExpressionTRSToMatrix to keep possible reduction of VFXExpressionExtractAnglesFromMatrix
                 VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
                 VFXExpression i = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(0));
                 VFXExpression j = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(1));
