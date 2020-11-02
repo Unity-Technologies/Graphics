@@ -17,8 +17,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
-            public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Light RT Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
-            public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Light RT Count", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
+            public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Render Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
+            public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Render Textures", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
             public static readonly GUIContent defaultMaterialType = EditorGUIUtility.TrTextContent("Default Material Type", "Material to use when adding new objects to a scene");
             public static readonly GUIContent defaultCustomMaterial = EditorGUIUtility.TrTextContent("Default Custom Material", "Material to use when adding new objects to a scene");
 
@@ -145,7 +145,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUI.indentLevel--;
 
             EditorGUILayout.PropertyField(m_TransparencySortMode, Styles.transparencySortMode);
-            if (m_TransparencySortMode.intValue == (int)TransparencySortMode.CustomAxis)
+
+            using (new EditorGUI.DisabledGroupScope(m_TransparencySortMode.intValue != (int)TransparencySortMode.CustomAxis))
                 EditorGUILayout.PropertyField(m_TransparencySortAxis, Styles.transparencySortAxis);
 
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
