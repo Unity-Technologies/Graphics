@@ -11,12 +11,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
         class Styles
         {
             public static readonly GUIContent generalHeader = EditorGUIUtility.TrTextContent("General");
+            public static readonly GUIContent lightRenderTexturesHeader = EditorGUIUtility.TrTextContent("Light Render Textures");
+            public static readonly GUIContent lightBlendStylesHeader = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
+
             public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Light RT Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
             public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Light RT Count", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
-            public static readonly GUIContent lightBlendStyles = EditorGUIUtility.TrTextContent("Light Blend Styles", "A Light Blend Style is a collection of properties that describe a particular way of applying lighting.");
             public static readonly GUIContent defaultMaterialType = EditorGUIUtility.TrTextContent("Default Material Type", "Material to use when adding new objects to a scene");
             public static readonly GUIContent defaultCustomMaterial = EditorGUIUtility.TrTextContent("Default Custom Material", "Material to use when adding new objects to a scene");
 
@@ -41,6 +43,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
         enum Expandable
         {
             General = 1 << 0,
+            LightRenderTextures = 1 << 1,
+            LightBlendStyles = 1 << 2
         }
 
         SerializedProperty m_TransparencySortMode;
@@ -61,6 +65,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
         static ExpandedState<Expandable, Renderer2DData> s_ExpandedState;
 
         CED.IDrawer m_GeneralDrawer;
+        CED.IDrawer m_LightRenderTexturesDrawer;
+        CED.IDrawer m_LightBlendStylesDrawer;
 
         void SendModifiedAnalytics(Analytics.IAnalytics analytics)
         {
@@ -113,6 +119,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             s_ExpandedState = new ExpandedState<Expandable, Renderer2DData>(~(-1), "URP2D");
             m_GeneralDrawer = CED.FoldoutGroup(Styles.generalHeader, Expandable.General, s_ExpandedState, DrawGeneral);
+            m_LightRenderTexturesDrawer = CED.FoldoutGroup(Styles.lightRenderTexturesHeader, Expandable.LightRenderTextures, s_ExpandedState, DrawLightRenderTextures);
+            m_LightBlendStylesDrawer = CED.FoldoutGroup(Styles.lightBlendStylesHeader, Expandable.LightBlendStyles, s_ExpandedState, DrawLightBlendStyles);
         }
 
         private void OnDestroy()
@@ -125,8 +133,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             serializedObject.Update();
 
             m_GeneralDrawer.Draw(this, this);
-            DrawLightRenderTextures();
-            DrawLightBlendStyles();
+            m_LightRenderTexturesDrawer.Draw(this, this);
+            m_LightBlendStylesDrawer.Draw(this, this);
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
@@ -134,6 +142,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private void DrawGeneral(Renderer2DDataEditor data, Editor owner)
         {
+            EditorGUI.indentLevel--;
+
             EditorGUILayout.PropertyField(m_TransparencySortMode, Styles.transparencySortMode);
             if (m_TransparencySortMode.intValue == (int)TransparencySortMode.CustomAxis)
                 EditorGUILayout.PropertyField(m_TransparencySortAxis, Styles.transparencySortAxis);
@@ -148,21 +158,23 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_HDREmulationScale, Styles.hdrEmulationScale);
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
+
+            EditorGUI.indentLevel++;
         }
 
-        private void DrawLightRenderTextures()
+        private void DrawLightRenderTextures(Renderer2DDataEditor data, Editor owner)
         {
-            EditorGUILayout.BeginFoldoutHeaderGroup(true, "Light Render Textures");
+            EditorGUI.indentLevel--;
 
             EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRTScale);
             EditorGUILayout.PropertyField(m_MaxLightRenderTextureCount, Styles.maxLightRTCount);
 
-            EditorGUILayout.EndFoldoutHeaderGroup();
+            EditorGUI.indentLevel++;
         }
 
-        private void DrawLightBlendStyles()
+        private void DrawLightBlendStyles(Renderer2DDataEditor data, Editor owner)
         {
-            EditorGUILayout.BeginFoldoutHeaderGroup(true, Styles.lightBlendStyles);
+            EditorGUI.indentLevel--;
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
             for (int i = 0; i < numBlendStyles; ++i)
@@ -201,7 +213,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUILayout.Space();
             }
 
-            EditorGUILayout.EndFoldoutHeaderGroup();
+            EditorGUI.indentLevel++;
         }
     }
 }
