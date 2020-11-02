@@ -18,32 +18,9 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public void OnBeforeSerialize()
         {
-            if (MultiJsonInternal.isSerializing && m_Value != null)
+            if (MultiJsonInternal.isSerializing && m_Value != null && MultiJsonInternal.serializedSet.Add(m_Id))
             {
-                if (MultiJsonInternal.serializedSet.TryGetValue(m_Id, out JsonObject existingJsonObject))
-                {
-                    // ID has already been found by serialization, double check it is actually the same value (same reference)
-                    if (m_Value != existingJsonObject)
-                    {
-                        Type existType = existingJsonObject.GetType();
-                        Type valueType = m_Value.GetType();
-
-                        Debug.LogError(
-                            "Encountered two different objects with the same objectID, this may cause unexpected behavior. " +
-                            "This should never occur, please report it as a bug! " +
-                            "In the meantime, you can likely work around this issue by finding one of the duplicate objects and recreating or copy-pasting it. " +
-                            "The object will be in one of the subgraphs used by this graph, usually a subgraph that has been copied from another subgraph. " +
-                            "The first object is of type '" + existType + "'. " +
-                            "The second object is of type '" + valueType + "'. " +
-                            "Both objects have the objectID '" + m_Id + "', which will show up in the text of the subgraph files containing these objects.");
-                    }
-                }
-                else
-                {
-                    // new ID encountered -- add it's value to the serialization queue
-                    MultiJsonInternal.serializedSet.Add(m_Id, m_Value);
-                    MultiJsonInternal.serializationQueue.Add(m_Value);
-                }
+                MultiJsonInternal.serializationQueue.Add(m_Value);
             }
         }
 
