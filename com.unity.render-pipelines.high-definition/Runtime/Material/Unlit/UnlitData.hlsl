@@ -16,6 +16,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.color = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).rgb * _UnlitColor.rgb;
     float alpha = SAMPLE_TEXTURE2D(_UnlitColorMap, sampler_UnlitColorMap, unlitColorMapUv).a * _UnlitColor.a;
 
+    // The shader graph can require to export the geometry normal. We thus need to initialize this variable
+    surfaceData.normalWS = 0.0;
+
 #ifdef _ALPHATEST_ON
     GENERIC_ALPHA_TEST(alpha, _AlphaCutoff);
 #endif

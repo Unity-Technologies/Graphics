@@ -108,14 +108,17 @@ EditorBuildSettings:
     path: Assets/Scenes/041_Lighting_BasicArea.unity
     guid: cd37c7e9d54e74dd7add9b40a2698ada
   - enabled: 1
+    path: Assets/Scenes/043_Lighting_Mixed_ShadowMask.unity
+    guid: a27d5eebd041b42dab7ad89ce8249e81
+  - enabled: 1
     path: Assets/Scenes/045_CustomLWPipe.unity
     guid: 349df85634812cd4e9157f31eace4abe
   - enabled: 1
     path: Assets/Scenes/046_Camera_OpaqueTexture.unity
     guid: 2614aae0a36c9456b9e20ac481fbda4c
   - enabled: 1
-    path: Assets/Scenes/047_Lighting_DirectionalCascades.unity
-    guid: 4e49334e530744e0eaeaa5e3a7e874ca
+    path: Assets/Scenes/049_Lighting_Mixed_Subtractive.unity
+    guid: ffaad23a2c7fc41b48e4e7ab7e9273e4
   - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
@@ -276,6 +279,20 @@ EditorBuildSettings:
     path: Assets/Scenes/133_ShadowFading.unity
     guid: 137382e53d5a3714088dc0496a166199
   - enabled: 1
+    path: Assets/Scenes/134_Lighting_Mixed_ShadowMask_Distance.unity
+    guid: 7ec898d33586cf84ca02ac537472e20d
+    path: Assets/Scenes/135_Lighting_Directional1Cascades.unity
+    guid: f1454a5402867f14e8df402c507e29db
+  - enabled: 1
+    path: Assets/Scenes/136_Lighting_Directional2Cascades.unity
+    guid: d99ff34133a649145adf85fcdfc11ddb
+  - enabled: 1
+    path: Assets/Scenes/137_Lighting_Directional3Cascades.unity
+    guid: 9a39ba2c4ee3d0a4ebb103a52b6030cd
+  - enabled: 1
+    path: Assets/Scenes/138_Lighting_Directional4Cascades.unity
+    guid: 69d2953b4a7ccaa468758f8517116950
+  - enabled: 1
     path: Assets/Scenes/142_SSAO_DepthNormal_Projection.unity
     guid: c207f769f3e194ebc8cbd51e788ac65d
   - enabled: 1
@@ -284,7 +301,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/144_SSAO_RenderToBackBuffer.unity
     guid: b23d8daad85b546c883dbbdc58ab8fef
+  - enabled: 1
+    path: Assets/Scenes/145_SoftParticlesStackWithPP.unity
+    guid: 7b2479971db0f4b1b87c121244585fe5
   m_configObjects: {}
-  m_configObjects:
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 13858d33c7f214305af3f1b67ea8f9da,
-      type: 2}

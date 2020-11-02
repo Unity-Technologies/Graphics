@@ -259,6 +259,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluation parameters
             dssdParams.cameraFov = hdCamera.camera.fieldOfView * Mathf.PI / 180.0f;
             dssdParams.lightPosition = lightPosition;
+            // Make sure the position is in the right space before injecting it
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                dssdParams.lightPosition -= hdCamera.camera.transform.position;
+            }
             dssdParams.lightRadius = lightRadius;
             dssdParams.kernelSize = kernelSize;
 

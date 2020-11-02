@@ -21,6 +21,18 @@
 
 #pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
 
+// Pi variables are redefined here as UnityCG.cginc, this include isn't mandatory anymore.
+#ifndef UNITY_CG_INCLUDED
+#define UNITY_PI            3.14159265359f
+#define UNITY_TWO_PI        6.28318530718f
+#define UNITY_FOUR_PI       12.56637061436f
+#define UNITY_INV_PI        0.31830988618f
+#define UNITY_INV_TWO_PI    0.15915494309f
+#define UNITY_INV_FOUR_PI   0.07957747155f
+#define UNITY_HALF_PI       1.57079632679f
+#define UNITY_INV_HALF_PI   0.636619772367f
+#endif
+
 struct VFXSampler2D
 {
     Texture2D t;
@@ -60,50 +72,52 @@ struct VFXSamplerCubeArray
 #endif
 
 #ifdef VFX_WORLD_SPACE
-float3 TransformDirectionVFXToWorld(float3 dir)             { return dir; }
-float3 TransformPositionVFXToWorld(float3 pos)              { return pos; }
-float3 TransformPositionVFXToView(float3 pos)               { return VFXTransformPositionWorldToView(pos); }
-float4 TransformPositionVFXToClip(float3 pos)               { return VFXTransformPositionWorldToClip(pos); }
-float4 TransformPositionVFXToPreviousClip(float3 pos)       { return VFXTransformPositionWorldToPreviousClip(pos); }
-float4 TransformPositionVFXToNonJitteredClip(float3 pos)    { return VFXTransformPositionWorldToNonJitteredClip(pos); }
-float3x3 GetVFXToViewRotMatrix()                            { return VFXGetWorldToViewRotMatrix(); }
-float3 GetViewVFXPosition()                                 { return VFXGetViewWorldPosition(); }
+float3 TransformDirectionVFXToWorld(float3 dir) { return dir; }
+float3 TransformPositionVFXToWorld(float3 pos) { return pos; }
+float3 TransformNormalVFXToWorld(float3 n) { return n; }
+float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorldToView(pos); }
+float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionWorldToClip(pos); }
+float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionWorldToPreviousClip(pos); }
+float4 TransformPositionVFXToNonJitteredClip(float3 pos) { return VFXTransformPositionWorldToNonJitteredClip(pos); }
+float3x3 GetVFXToViewRotMatrix() { return VFXGetWorldToViewRotMatrix(); }
+float3 GetViewVFXPosition() { return VFXGetViewWorldPosition(); }
 #else
-float3 TransformDirectionVFXToWorld(float3 dir)             { return mul(VFXGetObjectToWorldMatrix(),float4(dir,0.0f)).xyz; }
-float3 TransformPositionVFXToWorld(float3 pos)              { return mul(VFXGetObjectToWorldMatrix(),float4(pos,1.0f)).xyz; }
-float3 TransformPositionVFXToView(float3 pos)               { return VFXTransformPositionWorldToView(mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz); }
-float4 TransformPositionVFXToClip(float3 pos)               { return VFXTransformPositionObjectToClip(pos); }
-float4 TransformPositionVFXToPreviousClip(float3 pos)       { return VFXTransformPositionObjectToPreviousClip(pos); }
-float4 TransformPositionVFXToNonJitteredClip(float3 pos)    { return VFXTransformPositionObjectToNonJitteredClip(pos); }
-float3x3 GetVFXToViewRotMatrix()                            { return mul(VFXGetWorldToViewRotMatrix(),(float3x3)VFXGetObjectToWorldMatrix()); }
-float3 GetViewVFXPosition()                                 { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
+float3 TransformDirectionVFXToWorld(float3 dir) { return mul(VFXGetObjectToWorldMatrix(), float4(dir, 0.0f)).xyz; }
+float3 TransformPositionVFXToWorld(float3 pos) { return mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz; }
+float3 TransformNormalVFXToWorld(float3 n) { return mul(n, (float3x3)GetWorldToObjectMatrix()); }
+float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorldToView(mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz); }
+float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionObjectToClip(pos); }
+float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionObjectToPreviousClip(pos); }
+float4 TransformPositionVFXToNonJitteredClip(float3 pos) { return VFXTransformPositionObjectToNonJitteredClip(pos); }
+float3x3 GetVFXToViewRotMatrix() { return mul(VFXGetWorldToViewRotMatrix(), (float3x3)VFXGetObjectToWorldMatrix()); }
+float3 GetViewVFXPosition() { return mul(VFXGetWorldToObjectMatrix(), float4(VFXGetViewWorldPosition(), 1.0f)).xyz; }
 #endif
 
 #define VFX_SAMPLER(name) GetVFXSampler(name,sampler##name)
 
-float4 SampleTexture(VFXSampler2D s,float2 coords,float level = 0.0f)
+float4 SampleTexture(VFXSampler2D s, float2 coords, float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,coords, level);
+    return s.t.SampleLevel(s.s, coords, level);
 }
 
-float4 SampleTexture(VFXSampler2DArray s,float2 coords,float slice,float level = 0.0f)
+float4 SampleTexture(VFXSampler2DArray s, float2 coords, float slice, float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,float3(coords,slice),level);
+    return s.t.SampleLevel(s.s, float3(coords, slice), level);
 }
 
-float4 SampleTexture(VFXSampler3D s,float3 coords,float level = 0.0f)
+float4 SampleTexture(VFXSampler3D s, float3 coords, float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,coords,level);
+    return s.t.SampleLevel(s.s, coords, level);
 }
 
-float4 SampleTexture(VFXSamplerCube s,float3 coords,float level = 0.0f)
+float4 SampleTexture(VFXSamplerCube s, float3 coords, float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,coords,level);
+    return s.t.SampleLevel(s.s, coords, level);
 }
 
-float4 SampleTexture(VFXSamplerCubeArray s,float3 coords,float slice,float level = 0.0f)
+float4 SampleTexture(VFXSamplerCubeArray s, float3 coords, float slice, float level = 0.0f)
 {
-    return s.t.SampleLevel(s.s,float4(coords,slice),level);
+    return s.t.SampleLevel(s.s, float4(coords, slice), level);
 }
 
 float4 LoadTexture(VFXSampler2D s, int3 pixelCoords)
@@ -121,9 +135,9 @@ float4 LoadTexture(VFXSampler3D s, int4 pixelCoords)
     return s.t.Load(pixelCoords);
 }
 
-float SampleSDF(VFXSampler3D s,float3 coords,float level = 0.0f)
+float SampleSDF(VFXSampler3D s, float3 coords, float level = 0.0f)
 {
-    return SampleTexture(s,coords,level).x;
+    return SampleTexture(s, coords, level).x;
 }
 
 float3 SampleSDFDerivativesFast(VFXSampler3D s, float3 coords, float dist, float level = 0.0f)
@@ -137,7 +151,7 @@ float3 SampleSDFDerivativesFast(VFXSampler3D s, float3 coords, float dist, float
     return d - dist;
 }
 
-float3 SampleSDFDerivatives(VFXSampler3D s,float3 coords,float level = 0.0f)
+float3 SampleSDFDerivatives(VFXSampler3D s, float3 coords, float level = 0.0f)
 {
     float3 d;
     // 6 taps
@@ -148,7 +162,46 @@ float3 SampleSDFDerivatives(VFXSampler3D s,float3 coords,float level = 0.0f)
     return d;
 }
 
-VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
+float GetDistanceFromSDF(VFXSampler3D s, float3 uvw, float3 extents, float level = 0.0f)
+{
+    float3 projUVW = saturate(uvw);
+    float scalingFactor = max(extents.x, max(extents.y, extents.z));
+    float dist = SampleSDF(s, projUVW, level) * scalingFactor;
+    float3 absPos = abs(uvw - 0.5f);
+    float outsideDist = max(absPos.x, max(absPos.y, absPos.z));
+    if (outsideDist > 0.5f) // Check whether point is outside the box
+    {
+
+        float extraDist = length(extents * (uvw - projUVW) );
+        dist += extraDist;
+    }
+    return dist;
+}
+
+//Computes the normal of the SDF in the texture space.
+float3 GetNormalFromSDF(VFXSampler3D s, float3 uvw, float level = 0.0f)
+{
+    float3 projUVW = saturate(uvw);
+    float dist = SampleSDF(s, projUVW, level);
+    float3 absPos = abs(uvw - 0.5f);
+    float outsideDist = max(absPos.x, max(absPos.y, absPos.z));
+    float3 normal;
+    if (outsideDist > 0.5f) // Check whether point is outside the box
+    {
+        normal = normalize(uvw - 0.5f);
+    }
+    else
+    {
+        // compute normal
+        float3 dir = SampleSDFDerivatives(s, projUVW, level);
+        if (dist < 0)
+            dir = -dir;
+        normal =  normalize(dir);
+    }
+    return normal;
+}
+
+VFXSampler2D GetVFXSampler(Texture2D t, SamplerState s)
 {
     VFXSampler2D vfxSampler;
     vfxSampler.t = t;
@@ -156,7 +209,7 @@ VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
     return vfxSampler;
 }
 
-VFXSampler2DArray GetVFXSampler(Texture2DArray t,SamplerState s)
+VFXSampler2DArray GetVFXSampler(Texture2DArray t, SamplerState s)
 {
     VFXSampler2DArray vfxSampler;
     vfxSampler.t = t;
@@ -164,7 +217,7 @@ VFXSampler2DArray GetVFXSampler(Texture2DArray t,SamplerState s)
     return vfxSampler;
 }
 
-VFXSampler3D GetVFXSampler(Texture3D t,SamplerState s)
+VFXSampler3D GetVFXSampler(Texture3D t, SamplerState s)
 {
     VFXSampler3D vfxSampler;
     vfxSampler.t = t;
@@ -172,7 +225,7 @@ VFXSampler3D GetVFXSampler(Texture3D t,SamplerState s)
     return vfxSampler;
 }
 
-VFXSamplerCube GetVFXSampler(TextureCube t,SamplerState s)
+VFXSamplerCube GetVFXSampler(TextureCube t, SamplerState s)
 {
     VFXSamplerCube vfxSampler;
     vfxSampler.t = t;
@@ -180,7 +233,7 @@ VFXSamplerCube GetVFXSampler(TextureCube t,SamplerState s)
     return vfxSampler;
 }
 
-VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t,SamplerState s)
+VFXSamplerCubeArray GetVFXSampler(TextureCubeArray t, SamplerState s)
 {
     VFXSamplerCubeArray vfxSampler;
     vfxSampler.t = t;
@@ -209,7 +262,7 @@ uint3 ConvertFloatToSortableUint(float3 f)
 
 #define RAND_24BITS 0
 
-uint VFXMul24(uint a,uint b)
+uint VFXMul24(uint a, uint b)
 {
 #ifndef SHADER_API_PSSL
     return (a & 0xffffff) * (b & 0xffffff); // Tmp to ensure correct inputs
@@ -230,12 +283,12 @@ uint WangHash(uint seed)
 
 uint WangHash2(uint seed) // without mul on integers
 {
-    seed += ~(seed<<15);
-    seed ^=  (seed>>10);
-    seed +=  (seed<<3);
-    seed ^=  (seed>>6);
-    seed += ~(seed<<11);
-    seed ^=  (seed>>16);
+    seed += ~(seed << 15);
+    seed ^= (seed >> 10);
+    seed += (seed << 3);
+    seed ^= (seed >> 6);
+    seed += ~(seed << 11);
+    seed ^= (seed >> 16);
     return seed;
 }
 
@@ -243,8 +296,8 @@ uint WangHash2(uint seed) // without mul on integers
 uint AnotherHash(uint seed)
 {
 #if RAND_24BITS
-    seed = VFXMul24((seed >> 16) ^ seed,0x5d9f3b);
-    seed = VFXMul24((seed >> 16) ^ seed,0x5d9f3b);
+    seed = VFXMul24((seed >> 16) ^ seed, 0x5d9f3b);
+    seed = VFXMul24((seed >> 16) ^ seed, 0x5d9f3b);
 #else
     seed = ((seed >> 16) ^ seed) * 0x45d9f3b;
     seed = ((seed >> 16) ^ seed) * 0x45d9f3b;
@@ -287,45 +340,72 @@ float FixedRand(uint seed)
 ///////////////////
 // Mesh sampling //
 ///////////////////
-float4 SampleMeshFloat4(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+
+float   FetchBuffer(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load(offset << 2)); }
+float2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load2(offset << 2)); }
+float3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load3(offset << 2)); }
+float4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load4(offset << 2)); }
+
+float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float4(vertices[offset], vertices[offset + 1u], vertices[offset + 2u], vertices[offset + 3u]);
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer4(vertices, offset);
+    }
+    return r;
 }
 
-float3 SampleMeshFloat3(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float3(0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float3(vertices[offset], vertices[offset + 1u], vertices[offset + 2u]);
+    float3 r = float3(0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer3(vertices, offset);
+    }
+    return r;
 }
 
-float2 SampleMeshFloat2(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
+float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float2(0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float2(vertices[offset], vertices[offset + 1]);
+    float2 r = float2(0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer2(vertices, offset);
+    }
+    return r;
 }
 
-float SampleMeshFloat(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
+float SampleMeshFloat(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return 0.0f;
-    int offset = vertexIndex * vertexStride + channelOffset;
-    return vertices[offset];
+    float r = 0.0f;
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        r = FetchBuffer(vertices, offset);
+    }
+    return r;
 }
 
-float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
+float4 SampleMeshColor(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
 {
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint colorByte = asuint(vertices[vertexIndex * vertexStride + channelOffset]);
-    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
-    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    [branch]
+    if (channelOffset != -1)
+    {
+        uint offset = vertexIndex * vertexStride + channelOffset;
+        uint colorByte = asuint(FetchBuffer(vertices, offset));
+        float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
+        r = float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
+    }
+    return r;
 }
 
 ///////////////////////////
@@ -337,12 +417,12 @@ float3 HUEtoRGB(in float H)
     float R = abs(H * 6 - 3) - 1;
     float G = 2 - abs(H * 6 - 2);
     float B = 2 - abs(H * 6 - 4);
-    return saturate(float3(R,G,B));
+    return saturate(float3(R, G, B));
 }
 
 float3 RGBtoHCV(in float3 RGB)
 {
-    float4 P = (RGB.g < RGB.b) ? float4(RGB.bg, -1.0, 2.0/3.0) : float4(RGB.gb, 0.0, -1.0/3.0);
+    float4 P = (RGB.g < RGB.b) ? float4(RGB.bg, -1.0, 2.0 / 3.0) : float4(RGB.gb, 0.0, -1.0 / 3.0);
     float4 Q = (RGB.r < P.x) ? float4(P.xyw, RGB.r) : float4(RGB.r, P.yzx);
     float C = Q.x - min(Q.w, Q.y);
     float H = abs((Q.w - Q.y) / (6 * C + 1e-10) + Q.z);
@@ -376,33 +456,52 @@ float HalfTexelOffset(float f)
     return (a * f) + b;
 }
 
-float4 SampleGradient(float v,float u)
+float SnapToTexel(float f)
 {
-    float2 uv = float2(HalfTexelOffset(saturate(u)),v);
-    return bakedTexture.SampleLevel(samplerbakedTexture,uv,0);
+    const float kInvTextureWidth = 1.0f / 128.0f;
+    return f - fmod(f, kInvTextureWidth) + 0.5f * kInvTextureWidth;
 }
 
-float SampleCurve(float4 curveData,float u)
+float4 SampleGradient(float2 gradientData, float u)
+{
+    float2 uv = float2(HalfTexelOffset(saturate(u)), gradientData.x);
+	if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
+    return bakedTexture.SampleLevel(samplerbakedTexture, uv, 0);
+}
+
+float4 SampleGradient(float gradientData, float u)
+{
+	return SampleGradient(float2(gradientData, 0.0f), u);
+}
+
+float SampleCurve(float4 curveData, float u)
 {
     float uNorm = (u * curveData.x) + curveData.y;
 
 #if defined(SHADER_API_METAL)
     // Workaround metal compiler crash that is caused by switch statement uint byte shift
-    switch(asint(curveData.w) >> 2)
+    switch (asint(curveData.w) >> 2)
 #else
-    switch(asuint(curveData.w) >> 2)
+    switch (asuint(curveData.w) >> 2)
 #endif
     {
-        case 1: uNorm = HalfTexelOffset(frac(min(1.0f - 1e-10f,uNorm))); break; // clamp end. Dont clamp at 1 or else the frac will make it 0...
-        case 2: uNorm = HalfTexelOffset(frac(max(0.0f,uNorm))); break; // clamp start
+        case 1: uNorm = HalfTexelOffset(frac(min(1.0f - 1e-10f, uNorm))); break; // clamp end. Dont clamp at 1 or else the frac will make it 0...
+        case 2: uNorm = HalfTexelOffset(frac(max(0.0f, uNorm))); break; // clamp start
         case 3: uNorm = HalfTexelOffset(saturate(uNorm)); break; // clamp both
     }
-    return bakedTexture.SampleLevel(samplerbakedTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
+    return bakedTexture.SampleLevel(samplerbakedTexture, float2(uNorm, curveData.z), 0)[asuint(curveData.w) & 0x3];
 }
 
 ///////////
 // Utils //
 ///////////
+float4x4 VFXCreateMatrixFromColumns(float4 i, float4 j, float4 k, float4 o)
+{
+    return float4x4(i.x, j.x, k.x, o.x,
+                    i.y, j.y, k.y, o.y,
+                    i.z, j.z, k.z, o.z,
+                    i.w, j.w, k.w, o.w);
+}
 
 // Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
 // Inverts upper left by calculating its determinant and multiplying it to the symmetric
@@ -437,12 +536,12 @@ float4x4 VFXInverseTRSMatrix(float4x4 input)
 
 float3x3 GetScaleMatrix(float3 scale)
 {
-    return float3x3(scale.x,    0,          0,
-                    0,          scale.y,    0,
-                    0,          0,          scale.z);
+    return float3x3(scale.x, 0, 0,
+        0, scale.y, 0,
+        0, 0, scale.z);
 }
 
-float3x3 GetRotationMatrix(float3 axis,float angle)
+float3x3 GetRotationMatrix(float3 axis, float angle)
 {
     float2 sincosA;
     sincos(angle, sincosA.x, sincosA.y);
@@ -453,67 +552,73 @@ float3x3 GetRotationMatrix(float3 axis,float angle)
     const float y = axis.y;
     const float z = axis.z;
 
-    return float3x3(t * x * x + c,      t * x * y - s * z,  t * x * z + s * y,
-                    t * x * y + s * z,  t * y * y + c,      t * y * z - s * x,
-                    t * x * z - s * y,  t * y * z + s * x,  t * z * z + c);
+    return float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+        t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+        t * x * z - s * y, t * y * z + s * x, t * z * z + c);
 }
 
 float3x3 GetEulerMatrix(float3 angles)
 {
-    float3 s,c;
+    float3 s, c;
     sincos(angles, s, c);
 
-    return float3x3(c.y * c.z + s.x * s.y * s.z,    c.z * s.x * s.y - c.y * s.z,    c.x * s.y,
-                    c.x * s.z,                      c.x * c.z,                      -s.x,
-                    -c.z * s.y + c.y * s.x * s.z,   c.y * c.z * s.x + s.y * s.z,    c.x * c.y);
+    return float3x3(c.y * c.z + s.x * s.y * s.z, c.z * s.x * s.y - c.y * s.z, c.x * s.y,
+        c.x * s.z, c.x * c.z, -s.x,
+        -c.z * s.y + c.y * s.x * s.z, c.y * c.z * s.x + s.y * s.z, c.x * c.y);
 }
 
 float4x4 GetTRSMatrix(float3 pos, float3 angles, float3 scale)
 {
     float3x3 rotAndScale = GetEulerMatrix(radians(angles));
-    rotAndScale = mul(rotAndScale,GetScaleMatrix(scale));
+    rotAndScale = mul(rotAndScale, GetScaleMatrix(scale));
     return float4x4(
-        float4(rotAndScale[0],pos.x),
-        float4(rotAndScale[1],pos.y),
-        float4(rotAndScale[2],pos.z),
-        float4(0,0,0,1));
+        float4(rotAndScale[0], pos.x),
+        float4(rotAndScale[1], pos.y),
+        float4(rotAndScale[2], pos.z),
+        float4(0, 0, 0, 1));
 }
 
-float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3x3 rot,float3 pivot,float3 size,float3 pos)
+float4x4 GetElementToVFXMatrix(float3 axisX, float3 axisY, float3 axisZ, float3x3 rot, float3 pivot, float3 size, float3 pos)
 {
     float3x3 rotAndScale = GetScaleMatrix(size);
-    rotAndScale = mul(rot,rotAndScale);
-    rotAndScale = mul(transpose(float3x3(axisX,axisY,axisZ)),rotAndScale);
-    pos -= mul(rotAndScale,pivot);
+    rotAndScale = mul(rot, rotAndScale);
+    rotAndScale = mul(transpose(float3x3(axisX, axisY, axisZ)), rotAndScale);
+    pos -= mul(rotAndScale, pivot);
     return float4x4(
-        float4(rotAndScale[0],pos.x),
-        float4(rotAndScale[1],pos.y),
-        float4(rotAndScale[2],pos.z),
-        float4(0,0,0,1));
+        float4(rotAndScale[0], pos.x),
+        float4(rotAndScale[1], pos.y),
+        float4(rotAndScale[2], pos.z),
+        float4(0, 0, 0, 1));
 }
 
-float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
+float4x4 GetElementToVFXMatrix(float3 axisX, float3 axisY, float3 axisZ, float3 angles, float3 pivot, float3 size, float3 pos)
 {
     float3x3 rot = GetEulerMatrix(radians(angles));
-    return GetElementToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,pos);
+    return GetElementToVFXMatrix(axisX, axisY, axisZ, rot, pivot, size, pos);
 }
 
-float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
+// VFXToMatrix for normals (with invert size). TODO Should use inverse transpose but it only works for orthonormal basis atm
+float3x3 GetElementToVFXMatrixNormal(float3 axisX, float3 axisY, float3 axisZ, float3 angles, float3 size)
 {
-    float3x3 rotAndScale = float3x3(axisX,axisY,axisZ);
-    rotAndScale = mul(transpose(GetEulerMatrix(radians(angles))),rotAndScale);
-    rotAndScale = mul(GetScaleMatrix(1.0f / size),rotAndScale);
-    pos = pivot - mul(rotAndScale,pos);
+    return (float3x3)GetElementToVFXMatrix(axisX, axisY, axisZ, angles, float3(0, 0, 0), rcp(size), float3(0, 0, 0));
+}
+
+float4x4 GetVFXToElementMatrix(float3 axisX, float3 axisY, float3 axisZ, float3 angles, float3 pivot, float3 size, float3 pos)
+{
+    float3x3 rotAndScale = float3x3(axisX, axisY, axisZ); // Works only for orthonormal basis
+    rotAndScale = mul(transpose(GetEulerMatrix(radians(angles))), rotAndScale);
+    rotAndScale = mul(GetScaleMatrix(rcp(size)), rotAndScale);
+    pos = pivot - mul(rotAndScale, pos);
     return float4x4(
-        float4(rotAndScale[0],pos.x),
-        float4(rotAndScale[1],pos.y),
-        float4(rotAndScale[2],pos.z),
-        float4(0,0,0,1));
+        float4(rotAndScale[0], pos.x),
+        float4(rotAndScale[1], pos.y),
+        float4(rotAndScale[2], pos.z),
+        float4(0, 0, 0, 1));
 }
 
 float3 VFXSafeNormalize(float3 v)
 {
-    float sqrLength = max(VFX_FLT_MIN,dot(v,v));
+    float sqrLength = max(VFX_FLT_MIN, dot(v, v));
     return v * rsqrt(sqrLength);
 }
 

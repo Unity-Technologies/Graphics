@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
 
         static string Unity_DDX(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
-            [Slot(1, Binding.None)] out DynamicDimensionVector Out)
+            [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
             return
                 @"

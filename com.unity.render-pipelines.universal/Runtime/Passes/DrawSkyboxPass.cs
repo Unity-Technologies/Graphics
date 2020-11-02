@@ -9,6 +9,8 @@ namespace UnityEngine.Rendering.Universal
     {
         public DrawSkyboxPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(DrawSkyboxPass));
+
             renderPassEvent = evt;
         }
 
@@ -43,6 +45,9 @@ namespace UnityEngine.Rendering.Universal
                     context.ExecuteCommandBuffer(cmd);
 
                     CommandBufferPool.Release(cmd);
+
+                    renderingData.cameraData.camera.ResetStereoProjectionMatrices();
+                    renderingData.cameraData.camera.ResetStereoViewMatrices();
                 }
                 else
                 {
@@ -50,6 +55,9 @@ namespace UnityEngine.Rendering.Universal
                     renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.GetViewMatrix(0);
 
                     context.DrawSkybox(renderingData.cameraData.camera);
+
+                    renderingData.cameraData.camera.ResetProjectionMatrix();
+                    renderingData.cameraData.camera.ResetWorldToCameraMatrix();
                 }
             }
             else

@@ -164,9 +164,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (tileDataCapacity <= 0)
                 tileDataCapacity = m_TileXCount * m_TileYCount * m_AvgLightPerTile;
 
-            m_Counters = new NativeArray<int>(3, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            m_TileData = new NativeArray<ushort>(tileDataCapacity, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            m_TileHeaders = new NativeArray<uint>(m_TileXCount * m_TileYCount * m_TileHeaderSize, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            m_Counters = new NativeArray<int>(3, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            m_TileData = new NativeArray<ushort>(tileDataCapacity, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            m_TileHeaders = new NativeArray<uint>(m_TileXCount * m_TileYCount * m_TileHeaderSize, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             m_Counters[0] = 0;
             m_Counters[1] = 0;

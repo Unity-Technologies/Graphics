@@ -5,17 +5,18 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL,PATH_PACKAGES_temp
 
 class Package_PublishJob():
     
-    def __init__(self, package, agent, platforms, target_editor):
+    def __init__(self, package, agent, platforms, editor_tracks):
         self.package_id = package["id"]
         self.job_id = package_job_id_publish(package["id"])
-        self.yml = self.get_job_definition(package, agent, platforms, target_editor).get_yml()
+        self.yml = self.get_job_definition(package, agent, platforms, editor_tracks).get_yml()
 
     
-    def get_job_definition(self, package, agent, platforms, target_editor):
+    def get_job_definition(self, package, agent, platforms, editor_tracks):
         
         # define dependencies
         dependencies = [f'{packages_filepath()}#{package_job_id_pack(package["id"])}']
-        dependencies.extend([f'{packages_filepath()}#{package_job_id_test(package["id"],  platform["os"], target_editor)}' for platform in platforms])
+        for editor_track in editor_tracks:
+            dependencies.extend([f'{packages_filepath()}#{package_job_id_test(package["id"],  platform["os"], editor_track)}' for platform in platforms])
         
         # construct job
         job = YMLJob()

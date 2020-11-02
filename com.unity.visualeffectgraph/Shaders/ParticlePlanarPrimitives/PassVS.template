@@ -2,6 +2,8 @@
 #error VFX_PRIMITIVE_QUAD must be defined when HAS_STRIPS is.
 #endif
 
+#define VFX_NON_UNIFORM_SCALE VFX_LOCAL_SPACE
+
 struct vs_input
 {
 	VFX_DECLARE_INSTANCE_ID
@@ -165,8 +167,19 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
     #ifdef VFX_VARYING_POSWS
         o.VFX_VARYING_POSWS = vPosWS;
     #endif
+	
+#if VFX_NON_UNIFORM_SCALE
+	float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		size3);
+#else
+	float3x3 elementToVFX_N = (float3x3)elementToVFX;
+#endif
 
-	float3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
+	float3 normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));
 	#ifdef VFX_VARYING_NORMAL
 	float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
 	o.VFX_VARYING_NORMAL = normalFlip * normalWS;

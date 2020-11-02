@@ -4,6 +4,9 @@ using UnityEngine.Serialization;
 using UnityEditor.Experimental;
 using Unity.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Unity.Rendering.Hybrid")]
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -41,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // The data in the SH probe sample passed here is expected to already be normalized with kNormalizationConstants.
     // The complete normalization must be deferred until sample time on the GPU, since it should only be applied for SH2.
     // GPU code will be responsible for performing final normalization + swizzle into formats
-    // that SampleSH9(), and SHEvalLinearL0L1() expect. 
+    // that SampleSH9(), and SHEvalLinearL0L1() expect.
     // Note: the names for these coefficients is consistent with Unity's internal spherical harmonics use,
     // and are originally from: https://www.ppsloan.org/publications/StupidSH36.pdf
     /*
@@ -263,11 +266,11 @@ namespace UnityEngine.Rendering.HighDefinition
             payload.dataSHL01[indexDataBaseSHL01 + 3] = sh.shAr.x;
             payload.dataSHL01[indexDataBaseSHL01 + 4] = sh.shAr.y;
             payload.dataSHL01[indexDataBaseSHL01 + 5] = sh.shAr.z;
-            
+
             payload.dataSHL01[indexDataBaseSHL01 + 6] = sh.shAg.x;
             payload.dataSHL01[indexDataBaseSHL01 + 7] = sh.shAg.y;
             payload.dataSHL01[indexDataBaseSHL01 + 8] = sh.shAg.z;
-            
+
             payload.dataSHL01[indexDataBaseSHL01 + 9] = sh.shAb.x;
             payload.dataSHL01[indexDataBaseSHL01 + 10] = sh.shAb.y;
             payload.dataSHL01[indexDataBaseSHL01 + 11] = sh.shAb.z;
@@ -563,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // class ProbeVolumeArtistParameters
 
     [ExecuteAlways]
-    [AddComponentMenu("Light/Experimental/Probe Volume")]
+    //[AddComponentMenu("Light/Experimental/Probe Volume")]
     internal class ProbeVolume : MonoBehaviour
     {
 #if UNITY_EDITOR
@@ -796,11 +799,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            
+
             // TODO: Currently, we need to always allocate and pass this octahedralDepth array into GetAdditionalBakedProbes().
             // In the future, we should add an API call for GetAdditionalBakedProbes() without octahedralDepth required.
             var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            
+
             if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
             {
                 if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
@@ -812,7 +815,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumeAsset.resolutionZ = parameters.resolutionZ;
 
                 ProbeVolumePayload.Ensure(ref probeVolumeAsset.payload, numProbes);
-                
+
                 // Always serialize L0, L1 and L2 coefficients, even if atlas is configured to only store L1.
                 // In the future we will strip the L2 coefficients from the project at build time if L2 is never used.
                 for (int i = 0, iLen = sh.Length; i < iLen; ++i)

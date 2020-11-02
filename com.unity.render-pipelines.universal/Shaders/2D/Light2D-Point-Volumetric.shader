@@ -54,9 +54,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
             SAMPLER(sampler_LightLookup);
             half4 _LightLookup_TexelSize;
 
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
-
             half4   _LightColor;
             half    _VolumeOpacity;
             float4   _LightPosition;
@@ -106,7 +103,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
             half4 frag(Varyings input) : SV_Target
             {
-                half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);
                 half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 

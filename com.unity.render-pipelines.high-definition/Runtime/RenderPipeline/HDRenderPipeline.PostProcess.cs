@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.afterPostProcessBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
                         new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, clearBuffer = true, clearColor = Color.black, name = "OffScreen AfterPostProcess" }), 0);
                     if (passData.parameters.useDepthBuffer)
-                        passData.depthStencilBuffer = builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
+                        passData.depthStencilBuffer = builder.UseDepthBuffer(prepassOutput.resolvedDepthBuffer, DepthAccess.ReadWrite);
                     passData.opaqueAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.opaqueAfterPPDesc));
                     passData.transparentAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparentAfterPPDesc));
 
@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            var motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors) ? prepassOutput.resolvedMotionVectorsBuffer : renderGraph.defaultResources.blackTextureXR;
             m_PostProcessSystem.Render(
                 renderGraph,
                 parameters.hdCamera,
@@ -59,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 prepassOutput.resolvedDepthBuffer,
                 prepassOutput.depthPyramidTexture,
                 prepassOutput.resolvedNormalBuffer,
-                prepassOutput.resolvedMotionVectorsBuffer,
+                motionVectors,
                 dest,
                 parameters.flipYInPostProcess
             );
