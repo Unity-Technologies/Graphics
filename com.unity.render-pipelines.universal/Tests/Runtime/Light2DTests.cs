@@ -115,25 +115,8 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.AreEqual(true, light.hasCachedMesh);
         }
 
-        [UnityTest]
-        public IEnumerator CachedMeshDataIsUsedOnRuntime()
-        {
-            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
-            var light = m_TestObjectCached.AddComponent<Light2D>();
-            light.lightType = Light2D.LightType.Freeform;
-            light.SetShapePath(shapePath);
-            light.UpdateMesh(true);
-
-            yield return new EnterPlayMode();
-
-            // Check if Cached Data and the actual data are the same.
-            Assert.AreEqual(true, light.hasCachedMesh);
-
-            yield return new ExitPlayMode();
-        }
-
-        [UnityTest]
-        public IEnumerator CachedMeshDataIsOverriddenByRuntimeChanges()
+        [Test]
+        public void CachedMeshDataIsOverriddenByRuntimeChanges()
         {
             var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
             var light = m_TestObjectCached.AddComponent<Light2D>();
@@ -143,15 +126,10 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             int vertexCount = 0, triangleCount = 0;
 
-            yield return new EnterPlayMode();
-            yield return null;
-
             // Check if Cached Data and the actual data are the same.
             Assert.AreEqual(true, light.hasCachedMesh);
             vertexCount = light.lightMesh.triangles.Length;
             triangleCount = light.lightMesh.vertices.Length;
-
-            yield return null;
 
             // Simulate Runtime Behavior.
             var shapePathChanged = new Vector3[5] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0.5f, 1.5f, 0), new Vector3(0, 1, 0) };
@@ -161,7 +139,6 @@ namespace UnityEngine.Rendering.Universal.Tests
             // Check if Cached Data and the actual data are no longer the same. (We don't save cache on Runtime)
             Assert.AreNotEqual(vertexCount, light.lightMesh.triangles.Length);
             Assert.AreNotEqual(triangleCount, light.lightMesh.vertices.Length);
-            yield return new ExitPlayMode();
         }
     }
 }
