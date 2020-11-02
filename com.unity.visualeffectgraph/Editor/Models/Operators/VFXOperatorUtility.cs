@@ -664,9 +664,8 @@ namespace UnityEditor.VFX
             return new VFXExpressionVector4sToMatrix(m0, m1, m2, m3);
         }
 
-        static public VFXExpression GetRotationMatrixFromTRS(VFXExpression matrix)
+        static public VFXExpression GetRotationMatrixFromTRS(VFXExpression matrix, VFXExpression injectedTranslate = null)
         {
-            var zero = ZeroExpression[VFXValueType.Float];
             var zeroF3 = ZeroExpression[VFXValueType.Float3];
             var oneF3 = OneExpression[VFXValueType.Float3];
 
@@ -684,7 +683,7 @@ namespace UnityEditor.VFX
             j = j / lossyScale.yyy;
             k = k / lossyScale.zzz;
 
-            var rotation = new VFXExpressionVector3sToMatrix(i, j, k, zeroF3);
+            var rotation = new VFXExpressionVector3sToMatrix(i, j, k, injectedTranslate != null ? injectedTranslate : zeroF3);
             return rotation;
         }
 

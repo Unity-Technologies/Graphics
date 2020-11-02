@@ -42,15 +42,9 @@ namespace UnityEditor.VFX.Block
 
                 var eulerAngle = allSlots.FirstOrDefault(o => o.name == "ArcTorus_angles").exp;
                 var center = allSlots.FirstOrDefault(o => o.name == "ArcTorus_center").exp;
-                var zeroF3 = VFXOperatorUtility.ZeroExpression[VFXValueType.Float3];
+
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
-
-                VFXExpression rotationMatrix = new VFXExpressionTRSToMatrix(zeroF3, eulerAngle, oneF3);
-                VFXExpression i = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(0));
-                VFXExpression j = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(1));
-                VFXExpression k = new VFXExpressionMatrixToVector3s(rotationMatrix, VFXValue.Constant(2));
-
-                var transformMatrix = new VFXExpressionVector3sToMatrix(i, j, k, center);
+                var transformMatrix = new VFXExpressionTRSToMatrix(center, eulerAngle, oneF3);
                 yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
             }
         }
