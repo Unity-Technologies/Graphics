@@ -98,6 +98,9 @@
             * [Matrix 3x3](Matrix-3x3-Node)  
             * [Matrix 4x4](Matrix-4x4-Node)  
             * [Transformation Matrix](Transformation-Matrix-Node)  
+        * Mesh Deformation
+          * [Compute Deformation](Compute-Deformation-Node)    
+          * [Linear Blend Skinning](Linear-Blend-Skinning-Node)
         * PBR 
             * [Dielectric Specular](Dielectric-Specular-Node)  
             * [Metal Reflectance](Metal-Reflectance-Node)
@@ -199,10 +202,7 @@
             * [Noise Sine Wave](Noise-Sine-Wave-Node)  
             * [Sawtooth Wave](Sawtooth-Wave-Node)
             * [Square Wave](Square-Wave-Node)  
-            * [Triangle Wave](Triangle-Wave-Node)    
-    * Mesh Deformation
-        * [Compute Deformation](Compute-Deformation-Node)    
-        * [Linear Blend Skinning](Linear-Blend-Skinning-Node)    
+            * [Triangle Wave](Triangle-Wave-Node)        
     * [Procedural](Procedural-Nodes)
         * Noise   
             * [Gradient Noise](Gradient-Noise-Node)  

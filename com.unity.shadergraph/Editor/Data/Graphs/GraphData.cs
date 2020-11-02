@@ -1758,7 +1758,7 @@ namespace UnityEditor.ShaderGraph
             ChangeVersion(latestVersion);
         }
 
-        static T DeserializeLegacy<T>(string typeString, string json) where T : JsonObject
+        static T DeserializeLegacy<T>(string typeString, string json, Guid? overrideObjectId = null) where T : JsonObject
         {
             var jsonObj = MultiJsonInternal.CreateInstance(typeString);
             var value = jsonObj as T;
@@ -1767,11 +1767,18 @@ namespace UnityEditor.ShaderGraph
                 Debug.Log($"Cannot create instance for {typeString}");
                 return null;
             }
+
+            // by default, MultiJsonInternal.CreateInstance will create a new objectID randomly..
+            // we need some created objects to have deterministic objectIDs, because they affect the generated shader.
+            // if the generated shader is not deterministic, it can create ripple effects (i.e. causing Materials to be modified randomly as properties are renamed)
+            // so we provide this path to allow the calling code to override the objectID with something deterministic
+            if (overrideObjectId.HasValue)
+                value.OverrideObjectId(overrideObjectId.Value.ToString("N"));
             MultiJsonInternal.Enqueue(value, json);
             return value as T;
         }
 
-        static AbstractMaterialNode DeserializeLegacy(string typeString, string json)
+        static AbstractMaterialNode DeserializeLegacyNode(string typeString, string json, Guid? overrideObjectId = null)
         {
             var jsonObj = MultiJsonInternal.CreateInstance(typeString);
             var value = jsonObj as AbstractMaterialNode;
@@ -1779,11 +1786,15 @@ namespace UnityEditor.ShaderGraph
             {
                 //Special case - want to support nodes of unknwon type for cross pipeline compatability 
                 value = new LegacyUnknownTypeNode(typeString, json);
+                if (overrideObjectId.HasValue)
+                    value.OverrideObjectId(overrideObjectId.Value.ToString("N"));
                 MultiJsonInternal.Enqueue(value, json);
                 return value as AbstractMaterialNode;
             }
             else
             {
+                if (overrideObjectId.HasValue)
+                    value.OverrideObjectId(overrideObjectId.Value.ToString("N"));
                 MultiJsonInternal.Enqueue(value, json);
                 return value as AbstractMaterialNode;
             }
@@ -1804,6 +1815,9 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
+                    Guid assetGuid;
+                    if (!Guid.TryParse(this.assetGuid, out assetGuid))
+                        assetGuid = JsonObject.GenerateNamespaceUUID(Guid.Empty, json);
 
                     var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
                     var propertyGuidMap = new Dictionary<string, AbstractShaderProperty>();
@@ -1833,11 +1847,10 @@ namespace UnityEditor.ShaderGraph
 
                     foreach (var serializedProperty in graphData0.m_SerializedProperties)
                     {
-                        var property = DeserializeLegacy<AbstractShaderProperty>(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData);
+                        var propObjectId = JsonObject.GenerateNamespaceUUID(assetGuid, serializedProperty.JSONnodeData);
+                        var property = DeserializeLegacy<AbstractShaderProperty>(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData, propObjectId);
                         if (property == null)
-                        {
                             continue;
-                        }
 
                         m_Properties.Add(property);
 
@@ -1879,7 +1892,8 @@ namespace UnityEditor.ShaderGraph
                     {
                         var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
 
-                        var node = DeserializeLegacy(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData);
+                        var nodeObjectId = JsonObject.GenerateNamespaceUUID(node0.m_GuidSerialized, "node");
+                        var node = DeserializeLegacyNode(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData, nodeObjectId);
                         if (node == null)
                         {
                             continue;
@@ -1903,7 +1917,8 @@ namespace UnityEditor.ShaderGraph
 
                         foreach (var serializedSlot in node0.m_SerializableSlots)
                         {
-                            var slot = DeserializeLegacy<MaterialSlot>(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData);
+                            var slotObjectId = JsonObject.GenerateNamespaceUUID(node0.m_GuidSerialized, serializedSlot.JSONnodeData);
+                            var slot = DeserializeLegacy<MaterialSlot>(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData, slotObjectId);
                             if (slot == null)
                             {
                                 continue;
