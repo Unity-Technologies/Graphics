@@ -170,8 +170,8 @@ namespace UnityEditor.VFX.Test
             return graph;
         }
 
+        //See Case 1284358
         [UnityTest]
-        //See case 1284358
         public IEnumerator Create_SampleGradient_Only_Sampled_On_GPU()
         {
             var graph = CreateGraph_And_System();
@@ -208,6 +208,33 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             Assert.IsTrue(sampleGradient.inputSlots.First(o => o.valueType == VFXValueType.Float).Link(random.outputSlots[0]));
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+            yield return null;
+
+            //Should not log any error at import
+        }
+
+        // Variant for 1284358
+        [UnityTest]
+        public IEnumerator Create_SampleCurve_In_SpawnContext()
+        {
+            var graph = CreateGraph_And_System();
+
+            var spawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            Assert.IsNotNull(spawner);
+            spawner.SetSettingValue("loopDuration", VFXBasicSpawner.LoopMode.Constant);
+
+            var sampleCurve = ScriptableObject.CreateInstance<Operator.SampleCurve>();
+            graph.AddChild(sampleCurve);
+
+            var getAge = ScriptableObject.CreateInstance<VFXAttributeParameter>();
+            getAge.SetSettingValue("attribute", "age");
+            Assert.IsTrue(getAge.outputSlots[0].Link(sampleCurve.inputSlots.FirstOrDefault(o => o.valueType == VFXValueType.Float)));
+
+            var loopDurationSlot = spawner.inputSlots.FirstOrDefault(o => o.name == "LoopDuration");
+            Assert.IsNotNull(loopDurationSlot);
+            Assert.IsTrue(loopDurationSlot.Link(sampleCurve.outputSlots[0]));
+
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
             yield return null;
 
