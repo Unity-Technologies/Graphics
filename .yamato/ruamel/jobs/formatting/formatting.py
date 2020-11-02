@@ -13,7 +13,7 @@ class Formatting_Job():
     def get_job_definition(self, metafile):
         # define commands
         commands = [
-            dss(f'echo -e "[extensions]\nlargefiles=\n" > ~/.hgrc'),
+            f'echo -e "[extensions]\nlargefiles=\n" > ~/.hgrc',
             f'hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta',
             f'perl ~/unity-meta/Tools/Format/format.pl --hgroot $(pwd) --dry-run .'
         ]
