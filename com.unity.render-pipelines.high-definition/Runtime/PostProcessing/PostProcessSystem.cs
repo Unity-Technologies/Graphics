@@ -1038,6 +1038,13 @@ namespace UnityEngine.Rendering.HighDefinition
             stopNanParams.width = camera.actualWidth;
             stopNanParams.height = camera.actualHeight;
             stopNanParams.viewCount = camera.viewCount;
+
+            stopNanParams.nanKillerCS.shaderKeywords = null;
+            if (m_EnableAlpha)
+            {
+                stopNanParams.nanKillerCS.EnableKeyword("ENABLE_ALPHA");
+            }
+
             return stopNanParams;
         }
 
