@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                 ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius, true);
                 RTHandle historySignal = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
+                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
             }
 
             return rtrResult;
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                 ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius, rtrQRenderingParameters.bounceCount == 1);
                 RTHandle historySignal = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
+                rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, rtrResult, historySignal);
             }
 
             return rtrResult;
