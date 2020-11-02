@@ -27,6 +27,7 @@ RW_TEXTURE2D_X(float, _TileToScatterMin);
 
 CBUFFER_START(MotionBlurUniformBuffer)
 float4x4 _PrevVPMatrixNoTranslation;
+float4x4 _CurrVPMatrixNoTranslation;
 float4 _TileTargetSize;     // .xy size, .zw 1/size
 float4 _MotionBlurParams0;  // Unpacked below.
 float4 _MotionBlurParams1;  // Upacked below.
@@ -49,6 +50,7 @@ CBUFFER_END
 
 #if defined(USING_STEREO_MATRICES)
 #define _PrevVPMatrixNoTranslation          _XRPrevViewProjMatrixNoCameraTrans[unity_StereoEyeIndex]
+#define _CurrVPMatrixNoTranslation          _XRViewProjMatrixNoCameraTrans[unity_StereoEyeIndex]
 #endif
 
 
