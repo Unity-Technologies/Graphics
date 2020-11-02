@@ -2,7 +2,7 @@
 
 The HD Scene Color Node does the same thing as the Scene Color Node, but allows you to access the mips of the color buffer.
 
-## Render pipeline compatability
+## Render pipeline compatibility
 
 | **Node**       | **Universal Render Pipeline (URP)** | **High Definition Render Pipeline (HDRP)** |
 | -------------- | ----------------------------------- | ------------------------------------------ |

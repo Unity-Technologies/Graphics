@@ -22,7 +22,6 @@ editor_pin_agent: package_ci_ubuntu_small
 trunk_track: '2021.1' # track running on trunk: this must match across all release branches
 editor_tracks: # specifies tracks which go in _latest_editor_versions: this must differ per release branches
 - trunk
-- 2020.2
 
 
 # Paths relative to the root. Use forward slashes as directory separators.

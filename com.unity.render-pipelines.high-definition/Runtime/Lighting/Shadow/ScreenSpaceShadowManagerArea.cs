@@ -421,6 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
+
                 if (hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred)
                 {
                     passData.gbuffer0 = builder.ReadTexture(prepassOutput.gbuffer.mrt[0]);
