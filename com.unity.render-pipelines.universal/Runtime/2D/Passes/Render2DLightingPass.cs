@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly ShaderTagId k_CombinedRenderingPassNameOld = new ShaderTagId("Lightweight2D");
         private static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
-		private static readonly ShaderTagId k_DepthRenderingPassName = new ShaderTagId("DepthRendering");
+        private static readonly ShaderTagId k_DepthRenderingPassName = new ShaderTagId("DepthRendering");
         private static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         private static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
 
@@ -161,6 +161,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             }
                         }
 
+                        cmd.SetGlobalFloat("_CustomDepth", 1.0f);
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
 
@@ -218,19 +219,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var depthDrawSettings = CreateDrawingSettings(k_DepthRenderingPassName, ref renderingData, SortingCriteria.CommonOpaque);
 
                 // Depth pre-pass.
-				cmd.Clear();
-				CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None);
-				context.ExecuteCommandBuffer(cmd);
-				filterSettings.renderQueueRange = RenderQueueRange.opaque;
-				context.DrawRenderers(renderingData.cullResults, ref depthDrawSettings, ref filterSettings);
-				filterSettings.renderQueueRange = RenderQueueRange.transparent;
+                var cmd = CommandBufferPool.Get();
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None);
+                context.ExecuteCommandBuffer(cmd);
+                filterSettings.renderQueueRange = RenderQueueRange.opaque;
+                context.DrawRenderers(renderingData.cullResults, ref depthDrawSettings, ref filterSettings);
+                filterSettings.renderQueueRange = RenderQueueRange.transparent;
 
                 var sortSettings = combinedDrawSettings.sortingSettings;
                 GetTransparencySortingMode(camera, ref sortSettings);
                 combinedDrawSettings.sortingSettings = sortSettings;
                 normalsDrawSettings.sortingSettings = sortSettings;
 
-                var cmd = CommandBufferPool.Get();
+                cmd.Clear();
                 cmd.SetGlobalFloat(k_HDREmulationScaleID, m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
                 cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
