@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering.Universal;
@@ -11,10 +12,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
         private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
-        private static readonly int k_ShapeLightTexture0ID = Shader.PropertyToID("_ShapeLightTexture0");
-        private static readonly int k_ShapeLightTexture1ID = Shader.PropertyToID("_ShapeLightTexture1");
-        private static readonly int k_ShapeLightTexture2ID = Shader.PropertyToID("_ShapeLightTexture2");
-        private static readonly int k_ShapeLightTexture3ID = Shader.PropertyToID("_ShapeLightTexture3");
+
+        private static readonly int[] k_ShapeLightTextureIDs =
+        {
+            Shader.PropertyToID("_ShapeLightTexture0"),
+            Shader.PropertyToID("_ShapeLightTexture1"),
+            Shader.PropertyToID("_ShapeLightTexture2"),
+            Shader.PropertyToID("_ShapeLightTexture3")
+        };
 
         private static readonly ShaderTagId k_CombinedRenderingPassNameOld = new ShaderTagId("Lightweight2D");
         private static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
@@ -23,14 +28,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
         private static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
 
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render 2D Lighting");
+        private static readonly ProfilingSampler m_ProfilingDrawLights = new ProfilingSampler("Draw 2D Lights");
+        private static readonly ProfilingSampler m_ProfilingDrawLightTextures = new ProfilingSampler("Draw 2D Lights Textures");
+        private static readonly ProfilingSampler m_ProfilingDrawRenderers = new ProfilingSampler("Draw All Renderers");
+        private static readonly ProfilingSampler m_ProfilingDrawLayerBatch = new ProfilingSampler("Draw Layer Batch");
         private static readonly ProfilingSampler m_ProfilingSamplerUnlit = new ProfilingSampler("Render Unlit");
 
         private readonly Renderer2DData m_Renderer2DData;
+        private bool m_HasValidDepth;
 
         public Render2DLightingPass(Renderer2DData rendererData)
         {
             m_Renderer2DData = rendererData;
+        }
+
+        internal void Setup(bool hasValidDepth)
+        {
+            m_HasValidDepth = hasValidDepth;
         }
 
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
@@ -59,27 +73,121 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        private bool CompareLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers)
+        private int DrawLayerBatches(
+            LayerBatch[] layerBatches,
+            int batchCount,
+            int startIndex,
+            CommandBuffer cmd,
+            ScriptableRenderContext context,
+            ref RenderingData renderingData,
+            ref FilteringSettings filterSettings,
+            ref DrawingSettings normalsDrawSettings,
+            ref DrawingSettings drawSettings,
+            ref RenderTextureDescriptor desc)
         {
-            var layerId1 = sortingLayers[layerIndex1].id;
-            var layerId2 = sortingLayers[layerIndex2].id;
-            foreach (var light in m_Renderer2DData.lightCullResult.visibleLights)
+            var batchesDrawn = 0;
+            var rtCount = 0U;
+            // Draw lights
+            using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
-                if (light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2))
-                    return false;
-            }
-            return true;
-        }
+                for (var i = startIndex; i < batchCount; ++i)
+                {
+                    ref var layerBatch = ref layerBatches[i];
 
-        private int FindUpperBoundInBatch(int startLayerIndex, SortingLayer[] sortingLayers)
-        {
-            // start checking at the next layer
-            for (var i = startLayerIndex+1; i < sortingLayers.Length; i++)
-            {
-                if(!CompareLightsInLayer(startLayerIndex, i, sortingLayers))
-                    return i-1;
+                    var blendStyleMask = layerBatch.lightStats.blendStylesUsed;
+                    var blendStyleCount = 0U;
+                    while (blendStyleMask > 0)
+                    {
+                        blendStyleCount += blendStyleMask & 1;
+                        blendStyleMask >>= 1;
+                    }
+
+                    rtCount += blendStyleCount;
+
+                    if (rtCount > LayerUtility.maxTextureCount)
+                        break;
+
+                    batchesDrawn++;
+
+                    if (layerBatch.lightStats.totalNormalMapUsage > 0)
+                    {
+                        filterSettings.sortingLayerRange = layerBatch.layerRange;
+                        var depthTarget = m_HasValidDepth ? depthAttachment : BuiltinRenderTextureType.None;
+                        this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
+                    }
+
+                    using (new ProfilingScope(cmd, m_ProfilingDrawLightTextures))
+                    {
+                        this.RenderLights(renderingData, cmd, layerBatch.startLayerID, ref layerBatch, ref desc);
+                    }
+                }
             }
-            return sortingLayers.Length-1;
+
+            // Draw renderers
+            var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
+            using (new ProfilingScope(cmd, m_ProfilingDrawRenderers))
+            {
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
+
+                for (var i = startIndex; i < startIndex + batchesDrawn; i++)
+                {
+                    using (new ProfilingScope(cmd, m_ProfilingDrawLayerBatch))
+                    {
+                        // This is a local copy of the array element (it's a struct). Remember to add a ref here if you need to modify the real thing.
+                        var layerBatch = layerBatches[i];
+
+                        if (layerBatch.lightStats.totalLights > 0)
+                        {
+                            for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
+                            {
+                                var blendStyleMask = (uint)(1 << blendStyleIndex);
+                                var blendStyleUsed = (layerBatch.lightStats.blendStylesUsed & blendStyleMask) > 0;
+
+                                if (blendStyleUsed)
+                                {
+                                    var identifier = layerBatch.GetRTId(cmd, desc, blendStyleIndex);
+                                    cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], identifier);
+                                }
+
+                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
+                            }
+                        }
+                        else
+                        {
+                            for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                            {
+                                cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+                                RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
+                            }
+                        }
+
+                        context.ExecuteCommandBuffer(cmd);
+                        cmd.Clear();
+
+                        filterSettings.sortingLayerRange = layerBatch.layerRange;
+                        context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+
+                        // Draw light volumes
+                        if (layerBatch.lightStats.totalVolumetricUsage > 0)
+                        {
+                            var sampleName = "Render 2D Light Volumes";
+                            cmd.BeginSample(sampleName);
+
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights);
+
+                            cmd.EndSample(sampleName);
+                        }
+                    }
+                }
+            }
+
+            for (var i = startIndex; i < startIndex + batchesDrawn; ++i)
+            {
+                ref var layerBatch = ref layerBatches[i];
+                layerBatch.ReleaseRT(cmd);
+            }
+
+            return batchesDrawn;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -93,129 +201,53 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (renderingData.cameraData.camera.cameraType == CameraType.Preview)
                 isLitView = false;
 #endif
-            var cachedSortingLayers = Light2DManager.GetCachedSortingLayer();
             var camera = renderingData.cameraData.camera;
-
             var filterSettings = new FilteringSettings();
             filterSettings.renderQueueRange = RenderQueueRange.all;
             filterSettings.layerMask = -1;
             filterSettings.renderingLayerMask = 0xFFFFFFFF;
             filterSettings.sortingLayerRange = SortingLayerRange.all;
 
+            LayerUtility.InitializeBudget(m_Renderer2DData.lightRenderTextureMemoryBudget);
+
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)
             {
+                var combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
+                var normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
+                var depthDrawSettings = CreateDrawingSettings(k_DepthRenderingPassName, ref renderingData, SortingCriteria.CommonOpaque);
+
+                // Depth pre-pass.
+				cmd.Clear();
+				CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None);
+				context.ExecuteCommandBuffer(cmd);
+				filterSettings.renderQueueRange = RenderQueueRange.opaque;
+				context.DrawRenderers(renderingData.cullResults, ref depthDrawSettings, ref filterSettings);
+				filterSettings.renderQueueRange = RenderQueueRange.transparent;
+
+                var sortSettings = combinedDrawSettings.sortingSettings;
+                GetTransparencySortingMode(camera, ref sortSettings);
+                combinedDrawSettings.sortingSettings = sortSettings;
+                normalsDrawSettings.sortingSettings = sortSettings;
+
                 var cmd = CommandBufferPool.Get();
-                cmd.Clear();
+                cmd.SetGlobalFloat(k_HDREmulationScaleID, m_Renderer2DData.hdrEmulationScale);
+                cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
+                cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
+                cmd.SetGlobalColor(k_RendererColorID, Color.white);
+                this.SetShapeLightShaderGlobals(cmd);
 
-                using (new ProfilingScope(cmd, m_ProfilingSampler))
-                {
-                    this.CreateNormalMapRenderTexture(renderingData, cmd);
+                var desc = this.GetBlendStyleRenderTextureDesc(renderingData);
 
-                    cmd.SetGlobalFloat(k_HDREmulationScaleID, m_Renderer2DData.hdrEmulationScale);
-                    cmd.SetGlobalFloat(k_InverseHDREmulationScaleID, 1.0f / m_Renderer2DData.hdrEmulationScale);
-                    cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
-                    cmd.SetGlobalColor(k_RendererColorID, Color.white);
-					cmd.SetGlobalFloat("_CustomDepth", 1.0f);
-                    this.SetShapeLightShaderGlobals(cmd);
+                var layerBatches = LayerUtility.CalculateBatches(m_Renderer2DData.lightCullResult, out var batchCount);
+                var batchesDrawn = 0;
 
-                    context.ExecuteCommandBuffer(cmd);
+                for (var i = 0; i < batchCount; i += batchesDrawn)
+                    batchesDrawn = DrawLayerBatches(layerBatches, batchCount, i, cmd, context, ref renderingData, ref filterSettings, ref normalsDrawSettings, ref combinedDrawSettings, ref desc);
 
-                    var combinedDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
-                    var normalsDrawSettings = CreateDrawingSettings(k_NormalsRenderingPassName, ref renderingData, SortingCriteria.CommonTransparent);
-				    var depthDrawSettings = CreateDrawingSettings(k_DepthRenderingPassName, ref renderingData, SortingCriteria.CommonOpaque);
-					
-					// Depth pre-pass.
-					cmd.Clear();
-					CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None);
-					context.ExecuteCommandBuffer(cmd);
-					filterSettings.renderQueueRange = RenderQueueRange.opaque;
-					context.DrawRenderers(renderingData.cullResults, ref depthDrawSettings, ref filterSettings);
-					filterSettings.renderQueueRange = RenderQueueRange.transparent;
-
-                    var sortSettings = combinedDrawSettings.sortingSettings;
-                    GetTransparencySortingMode(camera, ref sortSettings);
-                    combinedDrawSettings.sortingSettings = sortSettings;
-                    normalsDrawSettings.sortingSettings = sortSettings;
-
-                    var blendStylesCount = m_Renderer2DData.lightBlendStyles.Length;
-                    for (var i = 0; i < cachedSortingLayers.Length;)
-                    {
-                        var layerToRender = cachedSortingLayers[i].id;
-                        var lightStats = m_Renderer2DData.lightCullResult.GetLightStatsByLayer(layerToRender);
-
-                        cmd.Clear();
-                        for (var blendStyleIndex = 0; blendStyleIndex < blendStylesCount; blendStyleIndex++)
-                        {
-                            var blendStyleMask = (uint) (1 << blendStyleIndex);
-                            var blendStyleUsed = (lightStats.blendStylesUsed & blendStyleMask) > 0;
-
-                            if (blendStyleUsed && !m_Renderer2DData.lightBlendStyles[blendStyleIndex].hasRenderTarget)
-                            {
-                                this.CreateBlendStyleRenderTexture(renderingData, cmd, blendStyleIndex);
-                            }
-
-                            RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleUsed);
-                        }
-
-                        context.ExecuteCommandBuffer(cmd);
-
-                        // find the highest layer that share the same set of lights as this layer
-                        var upperLayerInBatch = FindUpperBoundInBatch(i, cachedSortingLayers);
-                        // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
-                        // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
-                        // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
-                        var startLayerValue = (short) cachedSortingLayers[i].value;
-                        var lowerBound = (i == 0) ? short.MinValue : startLayerValue;
-                        var endLayerValue = (short) cachedSortingLayers[upperLayerInBatch].value;
-                        var upperBound = (upperLayerInBatch == cachedSortingLayers.Length - 1) ? short.MaxValue : endLayerValue;
-                        // renderer within this range share the same set of lights so they should be rendered together
-                        filterSettings.sortingLayerRange = new SortingLayerRange(lowerBound, upperBound);
-
-                        // Start Rendering
-                        if (lightStats.totalNormalMapUsage > 0)
-                            this.RenderNormals(context, renderingData.cullResults, normalsDrawSettings, filterSettings, depthAttachment);
-
-                        cmd.Clear();
-                        if (lightStats.totalLights > 0)
-                        {
-                            this.RenderLights(renderingData, cmd, layerToRender, lightStats.blendStylesUsed);
-                        }
-                        else
-                        {
-                            this.ClearDirtyLighting(cmd, lightStats.blendStylesUsed);
-                        }
-
-                        CoreUtils.SetRenderTarget(cmd, colorAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, depthAttachment, RenderBufferLoadAction.Load, RenderBufferStoreAction.DontCare, ClearFlag.None, Color.white);
-                        context.ExecuteCommandBuffer(cmd);
-
-                        Profiler.BeginSample("RenderSpritesWithLighting - Draw Transparent Renderers");
-                        context.DrawRenderers(renderingData.cullResults, ref combinedDrawSettings, ref filterSettings);
-                        Profiler.EndSample();
-
-                        if (lightStats.totalVolumetricUsage > 0)
-                        {
-                            cmd.Clear();
-                            this.RenderLightVolumes(renderingData, cmd, layerToRender, colorAttachment, depthAttachment, lightStats.blendStylesUsed);
-                            context.ExecuteCommandBuffer(cmd);
-                            cmd.Clear();
-                        }
-
-                        // move on to the next one
-                        i = upperLayerInBatch + 1;
-                    }
-
-                    cmd.Clear();
-                    Profiler.BeginSample("RenderSpritesWithLighting - Release RenderTextures");
-                    this.ReleaseRenderTextures(cmd);
-                    Profiler.EndSample();
-                }
-
+                this.ReleaseRenderTextures(cmd);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
-
-                filterSettings.sortingLayerRange = SortingLayerRange.all;
-                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
             }
             else
             {
@@ -225,13 +257,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
                 {
                     CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment, ClearFlag.None, Color.white);
-                    cmd.SetGlobalTexture(k_ShapeLightTexture0ID, Texture2D.blackTexture);
-                    cmd.SetGlobalTexture(k_ShapeLightTexture1ID, Texture2D.blackTexture);
-                    cmd.SetGlobalTexture(k_ShapeLightTexture2ID, Texture2D.blackTexture);
-                    cmd.SetGlobalTexture(k_ShapeLightTexture3ID, Texture2D.blackTexture);
+
                     cmd.SetGlobalFloat(k_UseSceneLightingID, isLitView ? 1.0f : 0.0f);
                     cmd.SetGlobalColor(k_RendererColorID, Color.white);
-                    cmd.EnableShaderKeyword("USE_SHAPE_LIGHT_TYPE_0");
+
+                    for (var blendStyleIndex = 0; blendStyleIndex < k_ShapeLightTextureIDs.Length; blendStyleIndex++)
+                    {
+                        if (blendStyleIndex == 0)
+                            cmd.SetGlobalTexture(k_ShapeLightTextureIDs[blendStyleIndex], Texture2D.blackTexture);
+
+                        RendererLighting.EnableBlendStyle(cmd, blendStyleIndex, blendStyleIndex == 0);
+                    }
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -240,9 +276,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 Profiler.BeginSample("Render Sprites Unlit");
                     context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
                 Profiler.EndSample();
-
-                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
             }
+
+            filterSettings.sortingLayerRange = SortingLayerRange.all;
+            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
         }
 
         Renderer2DData IRenderPass2D.rendererData

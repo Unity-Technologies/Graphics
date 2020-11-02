@@ -26,8 +26,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static BlockFieldDescriptor BentNormal = new BlockFieldDescriptor(SurfaceDescription.name, "BentNormal", "Bent Normal", "SURFACEDESCRIPTION_BENTNORMAL",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
-            public static BlockFieldDescriptor Tangent = new BlockFieldDescriptor(SurfaceDescription.name, "Tangent", "SURFACEDESCRIPTION_TANGENT",
+            public static BlockFieldDescriptor TangentTS = new BlockFieldDescriptor(SurfaceDescription.name, "TangentTS", "Tangent (Tangent Space)", "SURFACEDESCRIPTION_TANGENTTS",
                 new TangentControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+            public static BlockFieldDescriptor TangentOS = new BlockFieldDescriptor(SurfaceDescription.name, "TangentOS", "Tangent (Object Space)", "SURFACEDESCRIPTION_TANGENTOS",
+                new TangentControl(CoordinateSpace.Object), ShaderStage.Fragment);
+            public static BlockFieldDescriptor TangentWS = new BlockFieldDescriptor(SurfaceDescription.name, "TangentWS", "Tangent (World Space)", "SURFACEDESCRIPTION_TANGENTWS",
+                new TangentControl(CoordinateSpace.World), ShaderStage.Fragment);
+
             public static BlockFieldDescriptor Anisotropy = new BlockFieldDescriptor(SurfaceDescription.name, "Anisotropy", "SURFACEDESCRIPTION_ANISOTROPY", 
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SubsurfaceMask = new BlockFieldDescriptor(SurfaceDescription.name, "SubsurfaceMask", "Subsurface Mask", "SURFACEDESCRIPTION_SUBSURFACEMASK", 
