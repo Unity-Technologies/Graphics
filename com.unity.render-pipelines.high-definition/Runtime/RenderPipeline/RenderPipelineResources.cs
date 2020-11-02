@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    partial class RenderPipelineResources : ScriptableObject
+    public partial class RenderPipelineResources : ScriptableObject
     {
         [Serializable, ReloadGroup]
         public sealed class ShaderResources

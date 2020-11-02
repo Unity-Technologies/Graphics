@@ -183,6 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public PrepareDispatchRaysAction<UnityEngine.Rendering.CommandBuffer> PrepareDispatchRays;
 
         public bool isContinousCaptureEnabled = true;
+        public PostProcessSystem postProcessSystem;
 //SensorSDK - End - Tonemapping support
 
         internal Vector4[]              frustumPlaneEquations;

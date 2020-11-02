@@ -304,10 +304,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return customPass;
         }
 
-#if UNITY_EDITOR
         // In the editor, we refresh the list of colliders at every frame because it's frequent to add/remove them
         void Update() => GetComponents(m_Colliders);
 
+#if UNITY_EDITOR
         void OnDrawGizmos()
         {
             if (isGlobal || m_Colliders.Count == 0 || !enabled)
