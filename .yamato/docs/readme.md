@@ -26,6 +26,7 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### ABV related changes (_abv.metafile)
 - Add a new project to ABV: add the project name (the one used inside the project’s own metafile, e.g. Universal) under abv.projects 
 - Add a new job to Nightly: add the dependency under nightly.extra_dependencies (these dependencies run in addition to ABV)
+- Add a new job to Weekly: add the dependency under weekly.extra_dependencies
 - Add job to trunk verification: add the dependency under trunk_verification.dependencies
 
 ### Project related changes (project_name.metafile)
@@ -52,6 +53,36 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 
 ### If trunk track changes:
   - Change `trunk_track` in `_editor.metafile`
+
+### Custom test platforms:
+- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
+- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
+- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
+- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
+- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `extra_utr_flags_build` (scroll down to see project metafile docs)
+  ```
+    - type: playmode
+      name: playmode_perf_build
+      extra_utr_flags:
+        - --scripting-backend=il2cpp
+        - --timeout=1200
+        - --performance-project-id=URP_Performance
+        - --testfilter=Build
+        - --suite=Editor
+  ```
+  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
+  ```
+  iPhone:
+    name: iPhone
+    os: ios
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+        - editmode
+        - ...
+        - playmode_perf_build
+  ```
+
 
 ### Custom test platforms:
 - There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
@@ -156,12 +187,13 @@ target_editor: trunk
 
 # editors applied for all yml files (overridable) (bunch of examples)
 editors: 
-  # run editor pinning for trunk, and set up a recurrent nightly
+  # run editor pinning for trunk, and set up a recurrent nightly and weekly
   - track: trunk 
     name: trunk #name used in job ids
     rerun_strategy: on-new-revision
     editor_pinning: True  #use editor pinning for this track
     nightly: True  #run the _Nightly job nightly
+    weekly: True  #run the _Weekly job weekly
   
   # run editor pinning for 2020.2, and set up a recurrent nightly
   - track: 2020.2
@@ -308,6 +340,14 @@ nightly: # all_project_ci_nightly job configuration
       all: true  
     - ...  
 
+weekly: # all_project_ci_nightly job configuration
+  extra_dependencies: # project jobs to run in addition to ABV
+    - project: HDRP # use this format to run a specific job
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode_NonRenderGraph
+    - ...
 smoke_test: # smoke tests configuration. Agents refer back to __shared.metafile
   folder: SRP_SmokeTest
   agent: sdet_win_large # (used for editmode)

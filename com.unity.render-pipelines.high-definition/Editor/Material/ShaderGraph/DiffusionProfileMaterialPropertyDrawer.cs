@@ -4,7 +4,7 @@ using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    public class DiffusionProfileDrawer : MaterialPropertyDrawer
+    class DiffusionProfileDrawer : MaterialPropertyDrawer
     {
         public override float GetPropertyHeight(MaterialProperty prop, string label, MaterialEditor editor) => 0;
 

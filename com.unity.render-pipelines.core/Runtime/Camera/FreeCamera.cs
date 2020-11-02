@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float m_Turbo = 10.0f;
 
+#if !USE_INPUT_SYSTEM
         private static string kMouseX = "Mouse X";
         private static string kMouseY = "Mouse Y";
         private static string kRightStickX = "Controller Right Stick X";
@@ -44,6 +45,7 @@ namespace UnityEngine.Rendering
 
         private static string kYAxis = "YAxis";
         private static string kSpeedAxis = "Speed Axis";
+#endif
 
 #if USE_INPUT_SYSTEM
         InputAction lookAction;
@@ -151,7 +153,6 @@ namespace UnityEngine.Rendering
 
             leftShift = Input.GetKeyDown(KeyCode.LeftShift);
             fire1 = Input.GetAxis("Fire1") > 0.0f;
-            Debug.Log(fire1);
 
             inputChangeSpeed = Input.GetAxis(kSpeedAxis);
 
@@ -166,7 +167,7 @@ namespace UnityEngine.Rendering
             // If the debug menu is running, we don't want to conflict with its inputs.
             if (DebugManager.instance.displayRuntimeUI)
                 return;
-            
+
             UpdateInputs();
 
             if (inputChangeSpeed != 0.0f)
