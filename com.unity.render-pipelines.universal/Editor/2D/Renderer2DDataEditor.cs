@@ -24,7 +24,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Use Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
-            public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post-processing Data", "Resources (textures, shaders, etc.) required by post-processing effects.");
         }
 
         struct LightBlendStyleProps
@@ -43,7 +42,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_LightBlendStyles;
         LightBlendStyleProps[] m_LightBlendStylePropsArray;
         SerializedProperty m_UseDepthStencilBuffer;
-        SerializedProperty m_PostProcessData;
         SerializedProperty m_DefaultMaterialType;
         SerializedProperty m_DefaultCustomMaterial;
         SerializedProperty m_MaxLightRenderTextureCount;
@@ -98,7 +96,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
 
             m_UseDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
-            m_PostProcessData = serializedObject.FindProperty("m_PostProcessData");
             m_DefaultMaterialType = serializedObject.FindProperty("m_DefaultMaterialType");
             m_DefaultCustomMaterial = serializedObject.FindProperty("m_DefaultCustomMaterial");
         }
@@ -112,81 +109,88 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             serializedObject.Update();
 
-            EditorGUI.BeginChangeCheck();
+            DrawGeneral();
+            DrawLightRenderTextures();
+            DrawLightBlendStyles();
 
+            m_WasModified |= serializedObject.hasModifiedProperties;
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawGeneral()
+        {
+            EditorGUILayout.BeginFoldoutHeaderGroup(true, "General");
 
             EditorGUILayout.PropertyField(m_TransparencySortMode, Styles.transparencySortMode);
-            if(m_TransparencySortMode.intValue == (int)TransparencySortMode.CustomAxis)
+            if (m_TransparencySortMode.intValue == (int)TransparencySortMode.CustomAxis)
                 EditorGUILayout.PropertyField(m_TransparencySortAxis, Styles.transparencySortAxis);
 
+            EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
+            if (m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
+                EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
+
+            EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_HDREmulationScale, Styles.hdrEmulationScale);
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
 
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        private void DrawLightRenderTextures()
+        {
+            EditorGUILayout.BeginFoldoutHeaderGroup(true, "Light Render Textures");
+
             EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRTScale);
             EditorGUILayout.PropertyField(m_MaxLightRenderTextureCount, Styles.maxLightRTCount);
 
-            EditorGUILayout.LabelField(Styles.lightBlendStyles);
-            EditorGUI.indentLevel++;
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
 
-            EditorGUI.BeginChangeCheck();
+        private void DrawLightBlendStyles()
+        {
+            EditorGUILayout.BeginFoldoutHeaderGroup(true, Styles.lightBlendStyles);
+
             int numBlendStyles = m_LightBlendStyles.arraySize;
             for (int i = 0; i < numBlendStyles; ++i)
             {
-                SerializedProperty blendStyleProp = m_LightBlendStyles.GetArrayElementAtIndex(i);
                 ref LightBlendStyleProps props = ref m_LightBlendStylePropsArray[i];
 
-                EditorGUILayout.BeginHorizontal();
-                blendStyleProp.isExpanded = EditorGUILayout.Foldout(blendStyleProp.isExpanded, props.name.stringValue, true);
-                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.PropertyField(props.name, Styles.name);
+                EditorGUILayout.PropertyField(props.maskTextureChannel, Styles.maskTextureChannel);
+                EditorGUILayout.PropertyField(props.blendMode, Styles.blendMode);
 
-                if (blendStyleProp.isExpanded)
+                if (props.blendMode.intValue == (int)Light2DBlendStyle.BlendMode.Custom)
                 {
+                    EditorGUILayout.BeginHorizontal();
+
                     EditorGUI.indentLevel++;
-
-                    EditorGUILayout.PropertyField(props.name, Styles.name);
-                    EditorGUILayout.PropertyField(props.maskTextureChannel, Styles.maskTextureChannel);
-                    EditorGUILayout.PropertyField(props.blendMode, Styles.blendMode);
-
-                    if (props.blendMode.intValue == (int)Light2DBlendStyle.BlendMode.Custom)
-                    {
-                        EditorGUILayout.BeginHorizontal();
-
-                        EditorGUI.indentLevel++;
-                        EditorGUILayout.LabelField(Styles.customBlendFactors, GUILayout.MaxWidth(200.0f));
-                        EditorGUI.indentLevel--;
-
-                        int oldIndentLevel = EditorGUI.indentLevel;
-                        EditorGUI.indentLevel = 0;
-
-                        EditorGUIUtility.labelWidth = 80.0f;
-                        EditorGUILayout.PropertyField(props.blendFactorMultiplicative, Styles.blendFactorMultiplicative, GUILayout.MinWidth(110.0f));
-
-                        GUILayout.Space(10.0f);
-
-                        EditorGUIUtility.labelWidth = 50.0f;
-                        EditorGUILayout.PropertyField(props.blendFactorAdditive, Styles.blendFactorAdditive, GUILayout.MinWidth(90.0f));
-
-                        EditorGUIUtility.labelWidth = 0.0f;
-                        EditorGUI.indentLevel = oldIndentLevel;
-                        EditorGUILayout.EndHorizontal();
-                    }
-
+                    EditorGUILayout.LabelField(Styles.customBlendFactors, GUILayout.MaxWidth(200.0f));
                     EditorGUI.indentLevel--;
+
+                    int oldIndentLevel = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
+
+                    EditorGUIUtility.labelWidth = 80.0f;
+                    EditorGUILayout.PropertyField(props.blendFactorMultiplicative, Styles.blendFactorMultiplicative, GUILayout.MinWidth(110.0f));
+
+                    GUILayout.Space(10.0f);
+
+                    EditorGUIUtility.labelWidth = 50.0f;
+                    EditorGUILayout.PropertyField(props.blendFactorAdditive, Styles.blendFactorAdditive, GUILayout.MinWidth(90.0f));
+
+                    EditorGUIUtility.labelWidth = 0.0f;
+                    EditorGUI.indentLevel = oldIndentLevel;
+                    EditorGUILayout.EndHorizontal();
                 }
+
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
             }
 
-
-            EditorGUI.indentLevel--;
-            EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
-            EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-
-            EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
-            if(m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
-                EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
-
-            m_WasModified |= serializedObject.hasModifiedProperties;
-            serializedObject.ApplyModifiedProperties();
+            EditorGUILayout.EndFoldoutHeaderGroup();
         }
     }
 }
