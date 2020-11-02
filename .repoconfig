@@ -30,6 +30,4 @@ path=<<EOT
 |^com\.unity\.[^\/]*\/\w+~\/                                # allows editor excluded folders, like Documentation~, for core package
 |^com\.unity\.[^\/]*\/Packages\/com\.unity\.[^\/]*\/\w+~\/  # as above but for embedded packages
 |^com\.unity\.[^\/]*\/[^@]+@\d+x\.                          # industry standard for icons with differnet resolution
-|^com\.unity\.[^\/]*\/Editor\ Default\ Resources\/          # special name for Unity
-|^com\.unity\.[^\/]*\/Editor\ Default\ Resources\.meta      # ditto
 EOT
