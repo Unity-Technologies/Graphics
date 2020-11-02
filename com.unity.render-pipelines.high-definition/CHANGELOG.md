@@ -53,7 +53,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issues with physically-based DoF, improved speed and robustness 
 - Fixed a warning happening when putting the range of lights to 0.
 - Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
-- Fix volument component creation via script.
+- Fixed volument component creation via script.
 - Fixed GC allocs in render graph.
 - Fixed scene picking passes.
 - Fixed broken ray tracing light cluster full screen debug.
@@ -67,6 +67,22 @@ The version number for this package has increased due to a version update of a r
 - Fixed exceptions occuring when selecting mulitple decal projectors without materials assigned (case 1283659).
 - Fixed LookDev error message when pipeline is not loaded.
 - Properly reject history when enabling seond denoiser for RTGI.
+- Fixed an issue that could cause objects to not be rendered when using Vulkan API.
+- Fixed issue with lookdev shadows looking wrong upon exiting playmode. 
+- Fixed temporary Editor freeze when selecting AOV output in graphics compositor (case 1288744).
+- Fixed normal flip with double sided materials.
+- Fixed shadow resolution settings level in the light explorer.
+- Fixed the ShaderGraph being dirty after the first save.
+- Fixed XR shadows culling
+- Fixed stylesheet reloading for LookDev window and Wizard window.
+- Fixed Nans happening when upscaling the RTGI.
+- Fixed the adjust weight operation not being done for the non-rendergraph pipeline.
+- Fixed overlap with SSR Transparent default frame settings message on DXR Wizard.
+- Fixed alpha channel in the stop NaNs and motion blur shaders.
+- Fixed undo of duplicate environments in the look dev environment library.
+- Fixed a ghosting issue with RTShadows (Sun, Point and Spot), RTAO and RTGI when the camera is moving fast.
+- Fixed a SSGI denoiser bug for large scenes.
+- Fixed a Nan issue with SSGI.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -84,6 +100,8 @@ The version number for this package has increased due to a version update of a r
 - Changed the names of some of the parameters for the Eye Utils SG Nodes.
 - Restored frame setting for async compute of contact shadows.
 - Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
+- Range handles for decal projector angle fading.
+- Smoother angle fading for decal projector.
 
 ## [10.1.0] - 2020-10-12
 
