@@ -2,7 +2,7 @@
 
 The Emission Node allows you to apply emission in your Shader Graph.
 
-## Render pipeline compatability
+## Render pipeline compatibility
 
 | **Node** | **Universal Render Pipeline (URP)** | **High Definition Render Pipeline (HDRP)** |
 | -------- | ----------------------------------- | ------------------------------------------ |
