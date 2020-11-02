@@ -1,5 +1,7 @@
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
+using CED = UnityEditor.Rendering.CoreEditorDrawer<UnityEditor.Experimental.Rendering.Universal.Renderer2DDataEditor>;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -8,6 +10,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
     {
         class Styles
         {
+            public static readonly GUIContent generalHeader = EditorGUIUtility.TrTextContent("General");
             public static readonly GUIContent transparencySortMode = EditorGUIUtility.TrTextContent("Transparency Sort Mode", "Default sorting mode used for transparent objects");
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
@@ -35,6 +38,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public SerializedProperty blendFactorAdditive;
         }
 
+        enum Expandable
+        {
+            General = 1 << 0,
+        }
+
         SerializedProperty m_TransparencySortMode;
         SerializedProperty m_TransparencySortAxis;
         SerializedProperty m_HDREmulationScale;
@@ -49,6 +57,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
         bool m_WasModified;
+
+        static ExpandedState<Expandable, Renderer2DData> s_ExpandedState;
+
+        CED.IDrawer m_GeneralDrawer;
 
         void SendModifiedAnalytics(Analytics.IAnalytics analytics)
         {
@@ -98,6 +110,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_UseDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
             m_DefaultMaterialType = serializedObject.FindProperty("m_DefaultMaterialType");
             m_DefaultCustomMaterial = serializedObject.FindProperty("m_DefaultCustomMaterial");
+
+            s_ExpandedState = new ExpandedState<Expandable, Renderer2DData>(~(-1), "URP2D");
+            m_GeneralDrawer = CED.FoldoutGroup(Styles.generalHeader, Expandable.General, s_ExpandedState, DrawGeneral);
         }
 
         private void OnDestroy()
@@ -109,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             serializedObject.Update();
 
-            DrawGeneral();
+            m_GeneralDrawer.Draw(this, this);
             DrawLightRenderTextures();
             DrawLightBlendStyles();
 
@@ -117,10 +132,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawGeneral()
+        private void DrawGeneral(Renderer2DDataEditor data, Editor owner)
         {
-            EditorGUILayout.BeginFoldoutHeaderGroup(true, "General");
-
             EditorGUILayout.PropertyField(m_TransparencySortMode, Styles.transparencySortMode);
             if (m_TransparencySortMode.intValue == (int)TransparencySortMode.CustomAxis)
                 EditorGUILayout.PropertyField(m_TransparencySortAxis, Styles.transparencySortAxis);
@@ -135,8 +148,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_HDREmulationScale, Styles.hdrEmulationScale);
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
-
-            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         private void DrawLightRenderTextures()
