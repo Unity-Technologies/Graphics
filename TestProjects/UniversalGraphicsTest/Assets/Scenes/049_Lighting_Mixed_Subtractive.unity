@@ -177,7 +177,7 @@ MonoBehaviour:
     TargetWidth: 512
     TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.005
-    AverageCorrectnessThreshold: 0.001
+    AverageCorrectnessThreshold: 0.0012
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0

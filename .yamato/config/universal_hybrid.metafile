@@ -2,9 +2,37 @@ project:
   name: Universal_Hybrid
   folder: UniversalHybridTest
 test_platforms:
-  - Standalone
-  - playmode
-#  - editmode
+  - type: Standalone
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
+    timeout:
+      OSX_Metal: 2400
+    timeout_build:
+      Android: 1800
+    extra_utr_flags_build:
+      - --compilation-errors-as-warnings
+  - type: playmode
+    extra_utr_flags:
+      - --compilation-errors-as-warnings
+#  - type: editmode
+#    extra_utr_flags:
+#      - --compilation-errors-as-warnings
+build_configs:
+#- name: il2cpp_apiNet2
+#  scripting_backend: IL2CPP
+#  api_level: NET_2_0
+#- name: il2cpp_apiNet4
+#  scripting_backend: IL2CPP
+#  api_level: NET_4_6
+- name: mono_apiNet2
+  scripting_backend: Mono2x
+  api_level: NET_2_0
+#- name: mono_apiNet4
+#  scripting_backend: Mono2x
+#  api_level: NET_4_6
+color_spaces:
+  - Linear
+#  - gamma
 platforms:
   - name: Win
     apis:
@@ -27,10 +55,14 @@ all:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
     - platform: OSX
       api: Metal
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
       #  - Standalone
         - playmode 

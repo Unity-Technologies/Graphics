@@ -33,6 +33,9 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
     min: 0
+  upperHemisphereLuxColor:
+    m_OverrideState: 0
+    m_Value: {x: 0, y: 0, z: 0}
   desiredLuxValue:
     m_OverrideState: 1
     m_Value: 20000
@@ -130,7 +133,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
+  m_AdvancedMode: 1
   enabled:
     m_OverrideState: 1
     m_Value: 1
@@ -140,6 +143,12 @@ MonoBehaviour:
   color:
     m_OverrideState: 1
     m_Value: {r: 1, g: 0, b: 0, a: 1}
+    hdr: 1
+    showAlpha: 0
+    showEyeDropper: 1
+  tint:
+    m_OverrideState: 0
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
     hdr: 1
     showAlpha: 0
     showEyeDropper: 1
@@ -166,12 +175,6 @@ MonoBehaviour:
   maximumHeight:
     m_OverrideState: 0
     m_Value: 500
-  albedo:
-    m_OverrideState: 1
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
-    hdr: 0
-    showAlpha: 1
-    showEyeDropper: 1
   meanFreePath:
     m_OverrideState: 1
     m_Value: 50
@@ -179,11 +182,12 @@ MonoBehaviour:
   enableVolumetricFog:
     m_OverrideState: 1
     m_Value: 1
-  anisotropy:
+  albedo:
     m_OverrideState: 1
-    m_Value: 0
-    min: -1
-    max: 1
+    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    hdr: 0
+    showAlpha: 1
+    showEyeDropper: 1
   globalLightProbeDimmer:
     m_OverrideState: 1
     m_Value: 1
@@ -193,11 +197,22 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 25
     min: 0.1
+  denoisingMode:
+    m_OverrideState: 1
+    m_Value: 0
+  anisotropy:
+    m_OverrideState: 1
+    m_Value: 0
+    min: -1
+    max: 1
   sliceDistributionUniformity:
     m_OverrideState: 1
     m_Value: 0.75
     min: 0
     max: 1
+  fogControlMode:
+    m_OverrideState: 1
+    m_Value: 1
   screenResolutionPercentage:
     m_OverrideState: 1
     m_Value: 25
@@ -208,6 +223,19 @@ MonoBehaviour:
     m_Value: 128
     min: 1
     max: 1024
+  volumetricFogBudget:
+    m_OverrideState: 0
+    m_Value: 0.25
+    min: 0
+    max: 1
+  resolutionDepthRatio:
+    m_OverrideState: 0
+    m_Value: 0.5
+    min: 0
+    max: 1
+  directionalLightsOnly:
+    m_OverrideState: 0
+    m_Value: 0
 --- !u!114 &3474294613101294443
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -226,6 +254,11 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 500
     min: 0
+  directionalTransmissionMultiplier:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
   cascadeShadowSplitCount:
     m_OverrideState: 1
     m_Value: 4

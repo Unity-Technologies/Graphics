@@ -38,8 +38,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
+        ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Main Shadowmap");
+
         public MainLightShadowCasterPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(MainLightShadowCasterPass));
             renderPassEvent = evt;
 
             m_MainLightShadowMatrices = new Matrix4x4[k_MaxCascades + 1];
@@ -65,6 +68,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public bool Setup(ref RenderingData renderingData)
         {
+            using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
+
             if (!renderingData.shadowData.supportsMainLightShadows)
                 return false;
 

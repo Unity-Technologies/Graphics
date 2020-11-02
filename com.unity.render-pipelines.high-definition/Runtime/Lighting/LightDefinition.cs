@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 influenceRight;
 
         public Vector3 influenceExtents;
-        public float unused00;
+        public float roughReflections; // Use only with planar reflections. 1.0 mean supported rough reflections
 
         public Vector3 blendDistancePositive;
         public Vector3 blendDistanceNegative;

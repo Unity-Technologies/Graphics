@@ -8,7 +8,7 @@ Returns true if the input **In** is not a number (NaN). This is useful for [Bran
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| In      | Input | Vector 1 | None | Input value |
+| In      | Input | Float    | None | Input value |
 | Out | Output      |    Boolean | None | Output value |
 
 ## Generated Code Example

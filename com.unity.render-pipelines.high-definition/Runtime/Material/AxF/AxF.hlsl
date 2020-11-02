@@ -298,11 +298,17 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     {
     case DEBUGVIEW_AXF_SURFACEDATA_NORMAL_VIEW_SPACE:
         // Convert to view space
-        result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
-        break;
+        {
+            float3 vsNormal = TransformWorldToViewDir(surfaceData.normalWS);
+            result = IsNormalized(vsNormal) ?  vsNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        }
     case DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-        result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
-        break;
+        {
+            float3 vsGeomNormal = TransformWorldToViewDir(surfaceData.geomNormalWS);
+            result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        }
     }
 }
 
@@ -315,11 +321,17 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     {
     case DEBUGVIEW_AXF_BSDFDATA_NORMAL_VIEW_SPACE:
         // Convert to view space
-        result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
-        break;
+        {
+            float3 vsNormal = TransformWorldToViewDir(bsdfData.normalWS);
+            result = IsNormalized(vsNormal) ?  vsNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        }
     case DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-        result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
-        break;
+        {
+            float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
+            result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        }  
     }
 }
 
@@ -1477,12 +1489,12 @@ void    ComputeClearcoatReflectionAndExtinction_UsePreLightData(inout float3 vie
 void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)
 {
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
+    builtinData.bakeDiffuseLighting *= GetDiffuseIndirectDimmer();
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-    builtinData.bakeDiffuseLighting *= GetDiffuseIndirectDimmer() * preLightData.diffuseFGD * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
-#else
-    // diffuse is Lambert, but we want the influence of the color still...
-    // TODO_diffuseFGDColor
-    builtinData.bakeDiffuseLighting *= GetDiffuseIndirectDimmer() * preLightData.singleBRDFColor * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
+#elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
+    // diffuse is Lambert, but we want the influence of the color table still...
+    builtinData.bakeDiffuseLighting *= preLightData.singleBRDFColor * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
     // debugtest
     //builtinData.bakeDiffuseLighting *= 0;
 #endif
@@ -2518,7 +2530,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     envSamplingDirForBottomLayer = GetModifiedEnvSamplingDir(lightData, bsdfData.clearcoatNormalWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, preLightData.iblPerceptualRoughness, NdotV);
 
     // Note: using _influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)    
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
+    float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
     // ...here the normal is only used for normal fading mode of the influence volume.
 
     // Another problem with having even two fetch directions is the reflection hierarchy that only supports one weight.
@@ -2531,7 +2543,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // changes the direction vs the coat.)
 
     // Sample the pre-integrated environment lighting
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation);
+    float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, envSamplingDirForBottomLayer, preLightData.iblPerceptualRoughness, intersectionDistance);
     weight *= preLD.w; // Used by planar reflection to discard pixel
 
     envLighting = GetSpecularIndirectDimmer() * preLightData.specularFGD * preLD.xyz;
@@ -2547,7 +2559,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // for BRDFColor and flakes, see GetPreLightData.
 
     // Note: we don't use GetModifiedEnvSamplingDir() per lobe here, and see comment above about reflection hierarchy.
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
+    float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
 
     #if USE_COOK_TORRANCE_MULTI_LOBES
 
@@ -2556,10 +2568,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float probeSkipFactor = 1;
     for (uint lobeIndex = 0; lobeIndex < CARPAINT2_LOBE_COUNT; lobeIndex++)
     {
-        float   coeff = _CarPaint2_CTCoeffs[lobeIndex];
+        float coeff = _CarPaint2_CTCoeffs[lobeIndex];
 
-        float   lobeMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[lobeIndex]);
-        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, lobeMipLevel, lightData.rangeCompressionFactorCompensation);
+        float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, envSamplingDirForBottomLayer, preLightData.iblPerceptualRoughness[lobeIndex], intersectionDistance);
 
         //todotodo: try removing coeff
         envLighting += coeff * GetCarPaintSpecularFGDForLobe(preLightData, lobeIndex) * preLD.xyz;
@@ -2578,14 +2589,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Sample flakes
     //TODO_FLAKES
     float   flakesMipLevel = 0;   // Flakes are supposed to be perfect mirrors
-    envLighting += preLightData.singleFlakesComponent * SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
+    envLighting += preLightData.singleFlakesComponent * SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, flakesMipLevel, lightData.rangeCompressionFactorCompensation, posInput.positionNDC).xyz;
 
     #else // USE_COOK_TORRANCE_MULTI_LOBES
 
     // Single lobe approach
     // We computed an average mip level stored in preLightData.iblPerceptualRoughness that we use for all CT lobes
     // Sample the actual environment lighting
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation);
+    float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, envSamplingDirForBottomLayer, preLightData.iblPerceptualRoughness, intersectionDistance);
     float3  envLighting;
 
     envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();
@@ -2619,7 +2630,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         //envLighting *= Sq(1.0 - preLightData.coatFGD);
 
         // Then add the environment lighting reflected by the clearcoat (with mip level 0, like mirror)
-        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, lightWS_Clearcoat, 0.0, lightData.rangeCompressionFactorCompensation);
+        float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, lightWS_Clearcoat, 0.0, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
         envLighting += preLightData.coatFGD * preLD.xyz * bsdfData.clearcoatColor;
     }
 
