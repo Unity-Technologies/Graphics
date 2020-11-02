@@ -4,6 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
 ## [10.2.0] - 2020-10-19
 
 ### Changed
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing passthrough camera to not render. [case 1283894](https://issuetracker.unity3d.com/product/unity/issues/guid/1283894/) 
 - Fixed MSAA override on camera does not work in non-XR project if target eye is selected to both eye.
 - Fixed a compiler error in BakedLit shader when using Hybrid Renderer.
+- Fixed XR camera fov can be changed through camera inspector.
 
 ## [10.1.0] - 2020-10-12
 ### Added
