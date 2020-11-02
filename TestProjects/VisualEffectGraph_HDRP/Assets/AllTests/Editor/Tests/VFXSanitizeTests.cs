@@ -20,9 +20,17 @@ namespace UnityEditor.VFX.Test
         public void CleanUp()
         {
             foreach (var asset in m_ToDeleteAsset)
-            {
-                File.Delete(asset);
-            }
+                AssetDatabase.DeleteAsset(asset);
+            m_ToDeleteAsset.Clear();
+        }
+
+        static readonly string tempBasePath = "Assets/TmpTests/";
+        static readonly string tempFileFormat = tempBasePath + "vfx_{0}.vfx";
+
+        [OneTimeSetUp]
+        public void SetUp()
+        {
+            Directory.CreateDirectory(tempBasePath);
         }
 
         [Test]
@@ -30,7 +38,7 @@ namespace UnityEditor.VFX.Test
         {
             string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSanitize_Test.vfx.rename_me";
             var rand = Guid.NewGuid().ToString();
-            var name = "Assets/Temp_" + rand + ".vfx";
+            var name = string.Format(tempFileFormat, rand);
             File.Copy(kSourceAsset, name);
             m_ToDeleteAsset.Add(name);
             AssetDatabase.ImportAsset(name);
@@ -52,9 +60,9 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(inline.inputSlots[0].value is Sphere);
             Assert.IsTrue(parameter.outputSlots[0].value is Sphere);
 
-            //0. Center
-            //1. Angle
-            //2. Radius
+            //0. Sphere/Center
+            //1. Sphere/Angle
+            //2. Sphere/Radius
             Assert.IsTrue(inline.inputSlots[0][0].HasLink());
             Assert.IsTrue(inline.inputSlots[0][2].HasLink());
 

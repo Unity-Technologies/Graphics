@@ -163,7 +163,7 @@ namespace UnityEditor.VFX
                         inputSlots[0].UnlinkAll(true);
                         RemoveSlot(inputSlots[0]);
                         AddSlot(newSlot);
-                        UpdateSlotsAndValue();
+                        UpdateSlotsAndValueCacheReference();
                     }
                 }
             }
@@ -407,10 +407,10 @@ namespace UnityEditor.VFX
             {
                 throw new InvalidOperationException("Cannot init VFXParameter");
             }
-            UpdateSlotsAndValue();
+            UpdateSlotsAndValueCacheReference();
         }
 
-        void UpdateSlotsAndValue()
+        void UpdateSlotsAndValueCacheReference()
         {
             if (!isOutput)
             {
@@ -427,16 +427,11 @@ namespace UnityEditor.VFX
             }
         }
 
-        public void ForceUpdateCacheAfterAllSanitize()
-        {
-            UpdateSlotsAndValue();
-        }
-
         private void OnModified(VFXObject obj, bool uiChange)
         {
             if (m_ExprSlots == null || m_ValueExpr == null)
             {
-                UpdateSlotsAndValue();
+                UpdateSlotsAndValueCacheReference();
             }
         }
 
@@ -445,7 +440,7 @@ namespace UnityEditor.VFX
             base.OnEnable();
 
             onModified += OnModified;
-            UpdateSlotsAndValue();
+            UpdateSlotsAndValueCacheReference();
 
             if (m_Nodes != null)
             {
@@ -679,7 +674,7 @@ namespace UnityEditor.VFX
         {
             if (!isOutput)
             {
-                UpdateSlotsAndValue(); //Update cache of expression (can be modified through sanitize)
+                UpdateSlotsAndValueCacheReference(); //Update cache of expression (could have been modified through sanitize)
                 for (int i = 0; i < m_ExprSlots.Length; ++i)
                 {
                     m_ValueExpr[i].SetContent(m_ExprSlots[i].value);

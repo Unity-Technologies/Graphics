@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.Test
     }
 
     [TestFixture]
-    internal class VFXSpacePropagationTest
+    class VFXSpacePropagationTest
     {
         public static IEnumerable<VFXExpression> CollectParentExpression(VFXExpression expression, HashSet<VFXExpression> hashSet = null)
         {
