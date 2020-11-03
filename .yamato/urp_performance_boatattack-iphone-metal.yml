@@ -36,7 +36,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
+      -  ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -205,7 +205,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
+      -  ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
