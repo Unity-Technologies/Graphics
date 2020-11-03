@@ -11,7 +11,7 @@ test_platforms:
       - --report-performance-data
       - --performance-project-id=BoatAttack
     extra_utr_flags_build:
-      - --extra-editor-arg="-executemethod Editor.Setup"
+      - --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
       - --category=URP
       - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
       - --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
@@ -24,7 +24,7 @@ test_platforms:
     extra_utr_flags:
       - --report-performance-data
       - --performance-project-id=BoatAttack
-      - --extra-editor-arg="-executemethod Editor.Setup"
+      - --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
       - --category=URP
       - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
       - --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
@@ -38,7 +38,7 @@ test_platforms:
       - --testfilter=Build
       - --report-performance-data
       - --performance-project-id=BoatAttack
-      - --extra-editor-arg="-executemethod Editor.Setup"
+      - --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
       - --category=URP
       - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
       - --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
