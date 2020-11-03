@@ -14,7 +14,11 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-reuse-tests" 
+  - type: Standalone
+    name: Standalone_XR
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-reuse-tests" 
 platforms:
   - name: Win
     apis:
@@ -31,10 +35,13 @@ platforms:
       - name: Metal
         exclude_test_platforms:
           - name: editmode
+          - name: playmode_XR
+          - name: Standalone_XR
       - name: OpenGLCore
         exclude_test_platforms:
           - name: playmode_XR
           - name: Standalone
+          - name: Standalone_XR
     build_configs:
       - name: il2cpp_apiNet4
       - name: mono_apiNet2
@@ -46,9 +53,11 @@ platforms:
         exclude_test_platforms:
           - name: Standalone
           - name: playmode_XR
+          - name: Standalone_XR
       - name: Vulkan
         exclude_test_platforms:
           - name: playmode_XR
+          - name: Standalone_XR
     build_configs:
       - name: il2cpp_apiNet4
       - name: mono_apiNet2
@@ -78,6 +87,7 @@ platforms:
           - name: playmode
           - name: editmode
           - name: playmode_XR
+          - name: Standalone_XR
     build_configs:
       - name: il2cpp_apiNet4
       - name: mono_apiNet2
@@ -91,6 +101,7 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
+        - Standalone_XR
         - editmode
         - playmode
         - playmode_XR

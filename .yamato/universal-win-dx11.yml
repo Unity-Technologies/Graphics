@@ -41,7 +41,7 @@ Build_Universal_Win_DX11_Player_il2cpp_apiNet4_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testproject=. --timeout=2000
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -116,12 +116,32 @@ Universal_Win_DX11_playmode_XR_il2cpp_apiNet4_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+Universal_Win_DX11_Standalone_XR_il2cpp_apiNet4_Linear_trunk:
+    name: Universal on Win_DX11_Standalone_XR_il2cpp_apiNet4_Linear on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
+      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+      -  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Player_il2cpp_apiNet4_Linear_trunk
+         rerun: on-new-revision
 Universal_Win_DX11_Standalone_mono_apiNet2_Linear_trunk:
     name: Universal on Win_DX11_Standalone_mono_apiNet2_Linear on version trunk
     agent:
@@ -160,7 +180,7 @@ Build_Universal_Win_DX11_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=2000
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -235,12 +255,32 @@ Universal_Win_DX11_playmode_XR_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+Universal_Win_DX11_Standalone_XR_mono_apiNet2_Linear_trunk:
+    name: Universal on Win_DX11_Standalone_XR_mono_apiNet2_Linear on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
+      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+      -  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Player_mono_apiNet2_Linear_trunk
+         rerun: on-new-revision
 Universal_Win_DX11_Standalone_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
     name: Universal on Win_DX11_Standalone_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
     agent:
@@ -283,7 +323,7 @@ Build_Universal_Win_DX11_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testproject=. --timeout=2000
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -370,7 +410,7 @@ Universal_Win_DX11_playmode_XR_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -378,6 +418,29 @@ Universal_Win_DX11_playmode_XR_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+Universal_Win_DX11_Standalone_XR_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
+    name: Universal on Win_DX11_Standalone_XR_il2cpp_apiNet4_Linear on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
+      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+      -  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+      -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION
          rerun: always
 Universal_Win_DX11_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     name: Universal on Win_DX11_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
@@ -421,7 +484,7 @@ Build_Universal_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=2000
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -508,7 +571,7 @@ Universal_Win_DX11_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-reuse-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -516,4 +579,27 @@ Universal_Win_DX11_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+Universal_Win_DX11_Standalone_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
+    name: Universal on Win_DX11_Standalone_XR_mono_apiNet2_Linear on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
+      -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
+      -  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-xr-reuse-tests" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+      -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION
          rerun: always
