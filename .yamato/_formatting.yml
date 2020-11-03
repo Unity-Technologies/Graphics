@@ -3,6 +3,10 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+trunk_revision: 52f22899794dede9082eef163349e305c7a785b4
+
+ ---
+
 formatting:
     name: Formatting
     agent:

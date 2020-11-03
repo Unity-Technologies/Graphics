@@ -3,6 +3,10 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+trunk_revision: 52f22899794dede9082eef163349e305c7a785b4
+
+ ---
+
 Universal_Win_Vulkan_Standalone_il2cpp_apiNet4_Linear_trunk:
     name: Universal on Win_Vulkan_Standalone_il2cpp_apiNet4_Linear on version trunk
     agent:
@@ -34,7 +38,7 @@ Build_Universal_Win_Vulkan_Player_il2cpp_apiNet4_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -61,7 +65,7 @@ Universal_Win_Vulkan_playmode_il2cpp_apiNet4_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -85,7 +89,7 @@ Universal_Win_Vulkan_editmode_il2cpp_apiNet4_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -109,7 +113,7 @@ Universal_Win_Vulkan_playmode_XR_il2cpp_apiNet4_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -153,7 +157,7 @@ Build_Universal_Win_Vulkan_Player_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -180,7 +184,7 @@ Universal_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -204,7 +208,7 @@ Universal_Win_Vulkan_editmode_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -228,7 +232,7 @@ Universal_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
