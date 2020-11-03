@@ -38,7 +38,7 @@ def get_unity_downloader_cli_cmd(editor, platform_os, cd=False, git_root=False):
         else:
             return f'--source-file {PATH_UNITY_REVISION}'
     else:
-        return '-u {{trunk_revision}}'
+        return '-u {{editor_versions.' + f"{editor['track']}_latest_internal.{platform_os}.revision" + '}}'
         return f'-u {get_editor_revision(editor, platform_os)}'
 
 def get_timeout(test_platform, os_name, build=False):
