@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 URPUpdate_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk:
     name: URPUpdate on Win_Vulkan_playmode_mono_apiNet2_Linear on version trunk
     agent:

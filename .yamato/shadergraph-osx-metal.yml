@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 ShaderGraph_OSX_Metal_Standalone_mono_apiNet2_Linear_trunk:
     name: ShaderGraph on OSX_Metal_Standalone_mono_apiNet2_Linear on version trunk
     agent:

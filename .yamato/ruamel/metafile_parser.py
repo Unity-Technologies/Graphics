@@ -15,14 +15,14 @@ def format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root
 def _get_editors(metafile, shared, latest_editor_versions):
     '''Retrieves the editors from shared metafile, if not overriden by 'override_editors' in metafile.'''
     editors = shared['editors']
-    for editor in editors:
-        if editor["editor_pinning"]:
-            editor['revisions'] = {}
-            revisions = [{k:v} for k,v in latest_editor_versions[editor['track']]['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
-            # loop over the list of dictionaries to get the revisions into proper dictionary format
-            for rev in revisions:
-                for k,v in rev.items():
-                    editor['revisions'][k] = v
+    # for editor in editors:
+    #     if editor["editor_pinning"]:
+    #         editor['revisions'] = {}
+    #         revisions = [{k:v} for k,v in latest_editor_versions[editor['track']]['editor_versions'].items() if str(editor['track']) in k] # get all revisions for this track
+    #         # loop over the list of dictionaries to get the revisions into proper dictionary format
+    #         for rev in revisions:
+    #             for k,v in rev.items():
+    #                 editor['revisions'][k] = v
             
     #print(json.dumps(editors, indent=2))
     return editors

@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 All_Smoke_Test_trunk:
     name: All Smoke_Test CI - trunk
     dependencies:

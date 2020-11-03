@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 auto-version:
     name: Auto version
     agent:

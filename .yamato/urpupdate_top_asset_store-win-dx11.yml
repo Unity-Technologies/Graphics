@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
     name: URPUpdate_Top_Asset_Store on Win_DX11_playmode_mono_apiNet2_Linear on version trunk
     agent:

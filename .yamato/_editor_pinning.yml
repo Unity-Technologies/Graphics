@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 editor-pinning-target-to-ci:
     name: Merge master to ci/editor-pinning
     agent:

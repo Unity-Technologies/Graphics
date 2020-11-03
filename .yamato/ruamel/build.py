@@ -55,7 +55,7 @@ def add_comments():
             yml = f.read()
             f.seek(0, 0)
             f.write(comment)
-            f.write('{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}\n\n')
+            f.write('{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}\n\n---\n\n')
             f.write(yml)
 
 def get_metafile(metafile_name, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
@@ -79,9 +79,9 @@ if __name__== "__main__":
     shared = yml_load(os.path.join(config_dir,'__shared.metafile'))
     editor_tracks = shared['editors']
     latest_editor_versions = {}
-    for editor in editor_tracks:
-        if editor['editor_pinning']:
-            latest_editor_versions[editor['track']] = yml_load(os.path.join(config_dir,f'_latest_editor_versions_{str(editor["track"])}.metafile'))
+    # for editor in editor_tracks:
+    #     if editor['editor_pinning']:
+    #         latest_editor_versions[editor['track']] = yml_load(f'_latest_editor_versions_{str(editor["track"])}.metafile')
 
     # create editor
     print(f'Running: editor')

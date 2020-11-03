@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 HDRP_Hybrid_OSX_Metal_playmode_mono_apiNet2_Linear_trunk:
     name: HDRP_Hybrid on OSX_Metal_playmode_mono_apiNet2_Linear on version trunk
     agent:

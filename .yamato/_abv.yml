@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 all_project_ci_trunk:
     name: _ABV for SRP repository - trunk
     dependencies:

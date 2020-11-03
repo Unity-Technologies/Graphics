@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
     name: Smoke_Test on Win_DX11_playmode_mono_apiNet2_Linear on version trunk
     agent:

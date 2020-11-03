@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 All_VFX_URP_trunk:
     name: All VFX_URP CI - trunk
     dependencies:

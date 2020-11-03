@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 ShaderGraph_Stereo_Win_Standalone_mono_apiNet2_Linear_trunk:
     name: ShaderGraph_Stereo on Win__Standalone_mono_apiNet2_Linear on version trunk
     agent:

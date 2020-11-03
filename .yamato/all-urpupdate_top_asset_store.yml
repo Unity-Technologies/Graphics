@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 All_URPUpdate_Top_Asset_Store_trunk:
     name: All URPUpdate_Top_Asset_Store CI - trunk
     dependencies:

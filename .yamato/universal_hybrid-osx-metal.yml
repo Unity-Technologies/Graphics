@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 Universal_Hybrid_OSX_Metal_Standalone_mono_apiNet2_Linear_trunk:
     name: Universal_Hybrid on OSX_Metal_Standalone_mono_apiNet2_Linear on version trunk
     agent:

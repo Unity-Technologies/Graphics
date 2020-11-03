@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 All_Universal_Hybrid_trunk:
     name: All Universal_Hybrid CI - trunk
     dependencies:

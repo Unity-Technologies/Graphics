@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 All_HDRP_trunk:
     name: All HDRP CI - trunk
     dependencies:

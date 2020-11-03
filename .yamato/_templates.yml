@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 pack_hdrp_template:
     name: Pack HDRP Template
     agent:

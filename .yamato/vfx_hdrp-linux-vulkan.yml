@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 VFX_HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
     name: VFX_HDRP on Linux_Vulkan_Standalone_mono_apiNet2_Linear on version trunk
     agent:

@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 All_ShaderGraph_Stereo_trunk:
     name: All ShaderGraph_Stereo CI - trunk
     dependencies:

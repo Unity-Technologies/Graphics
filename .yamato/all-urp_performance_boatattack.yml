@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 All_URP_Performance_BoatAttack_trunk:
     name: All URP_Performance_BoatAttack CI - trunk
     dependencies:

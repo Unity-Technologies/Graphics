@@ -5,6 +5,8 @@
 
 {% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
+---
+
 editor:priming:CUSTOM-REVISION:macos:
     name: '[CUSTOM-REVISION,macos] Editor priming'
     agent:
