@@ -200,9 +200,10 @@ groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL
 #define TILES_PER_GROUP  (THREADS_PER_GROUP / THREADS_PER_TILE)
 
 // We do not clip the sphere against the near and the far plane (same as in 'scrbound.compute').
-bool TryCullSphere(float3 C, float r, float2 aaBbMinPtNDC, float2 aaBbMaxPtNDC, float4x4 projMat, float4x4 invProjMat)
+void TryCullSphere(float3 C, float r, float2 aaBbMinPtNDC, float2 aaBbMaxPtNDC, float4x4 projMat, float4x4 invProjMat,
+                   out bool trivialAccept, out bool trivialReject)
 {
-    bool isCulled = false;
+    trivialAccept = trivialReject = false;
 
     if ((C.z + r) > 0) // Is the sphere at least *partially* in front of the origin?
     {
@@ -214,80 +215,85 @@ bool TryCullSphere(float3 C, float r, float2 aaBbMinPtNDC, float2 aaBbMaxPtNDC, 
         {
             float4x4 orthoProj = OptimizeOrthographicMatrix(projMat);
 
-            // Compute the center and the extents (half-diagonal) of the bounding box.
-            float2 sphereCenterCS  = mul(orthoProj, float4(C.xyz,   1)).xy;
-            float2 sphereExtentsCS = mul(orthoProj, float4(r.xx, 0, 0)).xy; // Axis-aligned ellipse
-
-            // Make them relative to the ellipse.
-            aaBbMinPtCS -= sphereCenterCS;
-            aaBbMaxPtCS -= sphereCenterCS;
-
-            // Transform the ellipse into a unit circle.
-            aaBbMinPtCS *= rcp(sphereExtentsCS);
-            aaBbMaxPtCS *= rcp(sphereExtentsCS);
-
-            // Compute the distance from the center of the sphere (at the origin) to the AABB.
-            float sqDist = SqDistToClosestPointAaBb(0, aaBbMinPtCS, aaBbMaxPtCS);
-
-            isCulled = sqDist > 1;
-        }
-        else if ((C.z > 0) && ((dot(C, C) - r * r) > 0)) // Perspective; the sphere does not contain the origin
-        {
             // Project the center of the bounding sphere (ellipse).
-            float2 projC;
-            // Manually optimize the perspective projection (see OptimizeProjectionMatrix).
-            projC.x = (C.x * rcp(C.z)) * projMat._11 + projMat._13;
-            projC.y = (C.y * rcp(C.z)) * projMat._22 + projMat._23;
+            float3 projC  = mul(orthoProj, float4(C.xyz,   1)).xyz;
+            trivialAccept = all(aaBbMinPtCS <= projC.xy && projC.xy <= aaBbMaxPtCS.xy) && (0 <= projC.z <= 1);
 
-            // Find the closest point inside the AABB.
-            float2 projQ = ClosestPointAaBb(projC, aaBbMinPtCS, aaBbMaxPtCS);
+            if (!trivialAccept)
+            {
+                float2 projDims = mul(orthoProj, float4(r.xx, 0, 0)).xy; // Axis-aligned ellipse
 
-            // Unproject the closest point (Q') into the view space (Q).
-            // Inverse of an arbitrary perspective projection matrix looks like this:
-            // | x 0 0 x |
-            // | 0 x 0 x |
-            // | 0 0 0 1 |
-            // | x x x x |
-            // Q.x = (InvProj._11 * Q'.x + InvProj._14) / Q.w
-            // Q.y = (InvProj._22 * Q'.y + InvProj._24) / Q.w
-            // Q.z = 1 / Q.w
-            // We don't need to normalize.
+                // Make them relative to the ellipse.
+                aaBbMinPtCS -= projC.xy;
+                aaBbMaxPtCS -= projC.xy;
 
-            float3 Q;
-            Q.x = (invProjMat._11 * projQ.x + invProjMat._14);
-            Q.y = (invProjMat._22 * projQ.y + invProjMat._24);
-            Q.z = 1; // Near plane
+                // Transform the ellipse into a unit circle.
+                aaBbMinPtCS *= rcp(projDims);
+                aaBbMaxPtCS *= rcp(projDims);
 
-        #if 0
-            // Compute the angle of the bounding cone.
-            float sinAlpha = r * rsqrt(dot(C, C));
-            float cosAlpha = sqrt(1 - sinAlpha * sinAlpha);
-            // Compute the angle between OC and OQ.
-            float cosBeta  = dot(C, Q) * rsqrt(dot(C, C) * dot(Q, Q));
+                // Compute the distance from the center of the sphere (at the origin) to the AABB.
+                float sqDist = SqDistToClosestPointAaBb(0, aaBbMinPtCS, aaBbMaxPtCS);
 
-            isCulled = cosBeta < cosAlpha;
-        #else
-            // Same, but faster.
-            isCulled = dot(C, Q) < sqrt(dot(Q, Q) * (dot(C, C) - r * r));
-        #endif
+                trivialReject = sqDist > 1;
+            }
+        }
+        else if (C.z > 0) // Perspective; the sphere is in front of the origin
+        {
+            float4x4 perspProj = OptimizePerspectiveMatrix(projMat);
+
+            // Project the center of the bounding sphere (ellipse).
+            float3 projC  = mul(perspProj, float4(C.xyz, 1)).xyz * rcp(C.z); // Assume M[3] = (0,0,1,0)
+            trivialAccept = all(aaBbMinPtCS <= projC.xy && projC.xy <= aaBbMaxPtCS.xy) && (0 <= projC.z <= 1);
+
+            if (!trivialAccept && (dot(C, C) - r * r) > 0)
+            {
+                // Find the closest point inside the AABB.
+                float2 projQ = ClosestPointAaBb(projC.xy, aaBbMinPtCS, aaBbMaxPtCS);
+
+                // Unproject the closest point (Q') into the view space (Q).
+                // Inverse of an arbitrary perspective projection matrix looks like this:
+                // | x 0 0 x |
+                // | 0 x 0 x |
+                // | 0 0 0 1 |
+                // | x x x x |
+                // Q.x = (InvProj._11 * Q'.x + InvProj._14) / Q.w
+                // Q.y = (InvProj._22 * Q'.y + InvProj._24) / Q.w
+                // Q.z = 1 / Q.w
+                // We don't need to normalize.
+
+                float3 Q;
+                Q.x = (invProjMat._11 * projQ.x + invProjMat._14);
+                Q.y = (invProjMat._22 * projQ.y + invProjMat._24);
+                Q.z = 1; // Near plane with reversed Z-buffering
+
+            #if 0
+                // Compute the angle of the bounding cone.
+                float sinAlpha = r * rsqrt(dot(C, C));
+                float cosAlpha = sqrt(1 - sinAlpha * sinAlpha);
+                // Compute the angle between OC and OQ.
+                float cosBeta  = dot(C, Q) * rsqrt(dot(C, C) * dot(Q, Q));
+
+                trivialReject = cosBeta < cosAlpha;
+            #else
+                // Same, but faster.
+                trivialReject = dot(C, Q) < sqrt(dot(Q, Q) * (dot(C, C) - r * r));
+            #endif
+            }
         }
     }
-
-    return isCulled;
+    else // if ((C.z + r) <= 0)
+    {
+        trivialReject = true;
+    }
 }
 
-bool TryCullEntity(uint entityIndex, uint category, uint eye, uint2 tileCoord, uint t /* thread */)
+bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMinPtNDC, float2 tileAaBbMaxPtNDC , uint t /* thread */)
 {
-    const uint2  tileAaBbMinPtSS  = tileCoord       * TILE_SIZE;
-    const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS + TILE_SIZE;                // (tileCoord + 1) * TILE_SIZE
-    const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
-    const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
+    const float4x4 projMat    = g_mProjectionArr[eye];    // For the entire view frustum
+    const float4x4 invProjMat = g_mInvProjectionArr[eye]; // For the entire view frustum
 
     const uint             bufferIndex = ComputeEntityBoundsBufferIndex(entityIndex, category, eye);
     const FiniteLightBound cullData    = _EntityBoundsBuffer[bufferIndex];
-
-    const float4x4 projMat    = g_mProjectionArr[eye];    // For the entire view frustum
-    const float4x4 invProjMat = g_mInvProjectionArr[eye]; // For the entire view frustum
 
     // Bounding frustum.
     const float3 rbpC  = cullData.center.xyz;   // View-space
@@ -298,12 +304,13 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, uint2 tileCoord, u
     // Bounding sphere.
     const float radius = cullData.radius;
 
-    bool isCulled = false;
+    // 1. Attempt to trivially accept/reject the entity by considering its bounding sphere.
+    bool trivialAccept, trivialReject;
+    TryCullSphere(rbpC, radius, tileAaBbMinPtNDC, tileAaBbMaxPtNDC, projMat, invProjMat,
+                  trivialAccept, trivialReject);
 
-    // 1. Attempt to trivially reject the entity by considering its bounding sphere.
-    isCulled = TryCullSphere(rbpC, radius, tileAaBbMinPtNDC, tileAaBbMaxPtNDC, projMat, invProjMat);
 
-    return isCulled;
+    return trivialReject;
 }
 
 // *************************************************************************************************
@@ -311,9 +318,9 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, uint2 tileCoord, u
 // The idea it to spend a few more clock cycles to remove entities that do not belong to the tile.
 // We use roughly the same idea as in 'scrbound.compute':
 // we test the bounding volume of the entity against the mini-frustum of the tile.
-// The difference is that we do not need to compute the AABB.
-// Thus, there is a "slow" path and a "fast" path. The "fast" path means we try to find a way
-// to "trivial" reject the entity if its bounding volume clearly does not overlap the tile.
+// The difference is that this time we do not need to compute the AABB.
+// Thus, there is a "slow" path and a "fast" path. The fast path includes "trivial" accept and reject.
+// If we cannot find a way to accept or reject a tile with certainty, we must conservatively keep it.
 // *************************************************************************************************
 
 [numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
@@ -329,6 +336,11 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
     const uint  globalTileIndex  = IndexFromCoordinate(uint2(tile, g), TILES_PER_GROUP);
     const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
     const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x);
+
+    const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
+    const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                // (tileCoord + 1) * TILE_SIZE
+    const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
+    const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
 
     const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(clampedTileIndex, cat, eye);
           uint tileRangeData         = _SrcCoarseTileBuffer[tileBufferHeaderIndex]; // {last << 16 | first}
@@ -354,7 +366,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
                 break; // Reached the terminator
             }
 
-            if (!TryCullEntity(entityIndex, cat, eye, clampedTileCoord, t))
+            if (!TryCullEntity(entityIndex, cat, eye, tileAaBbMinPtNDC, tileAaBbMaxPtNDC, t))
             {
                 // The entity was not culled, so transfer it over.
                 first = min(entityIndex, first);

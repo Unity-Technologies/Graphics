@@ -87,6 +87,20 @@ float4x4 OptimizeOrthographicMatrix(float4x4 M)
     return M;
 }
 
+float4x4 OptimizePerspectiveMatrix(float4x4 M)
+{
+    // | x 0 x 0 |
+    // | 0 x x 0 |
+    // | x x x x |
+    // | 0 0 x 0 |
+
+    M._12_14    = 0;
+    M._21_24    = 0;
+    M._41_42_44 = 0; // Unity sometimes sets M._43 = -1 :(
+
+    return M;
+}
+
 // a: aspect ratio.
 // p: distance to the projection plane.
 // n: distance to the near plane.
