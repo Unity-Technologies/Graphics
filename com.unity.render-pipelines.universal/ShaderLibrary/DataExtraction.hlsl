@@ -35,6 +35,19 @@ struct ExtractionInputs
     float3 emission;
 };
 
+float4 PackEntityIdToRGBA8888(uint entityId)
+{
+    uint b0 = (entityId >>  0) & 0xff;
+    uint b1 = (entityId >>  8) & 0xff;
+    uint b2 = (entityId >> 16) & 0xff;
+    uint b3 = (entityId >> 24) & 0xff;
+    float f0 = (float)b0 / 255.0f;
+    float f1 = (float)b1 / 255.0f;
+    float f2 = (float)b2 / 255.0f;
+    float f3 = (float)b3 / 255.0f;
+    return float4(f0, f1, f2, f3);
+}
+
 float4 OutputExtraction(ExtractionInputs inputs)
 {
     float3 specular, diffuse, baseColor;
@@ -62,7 +75,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
     //@TODO
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
-        return float4(float2(unity_EntityId), 0, 1);
+        return PackEntityIdToRGBA8888(unity_EntityId.x);
 #else
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
         return 0;
