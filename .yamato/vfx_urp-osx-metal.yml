@@ -5,7 +5,7 @@
 
 trunk_revision: 52f22899794dede9082eef163349e305c7a785b4
 
- ---
+---
 
 VFX_URP_OSX_Metal_Standalone_mono_apiNet2_Linear_trunk:
     name: VFX_URP on OSX_Metal_Standalone_mono_apiNet2_Linear on version trunk

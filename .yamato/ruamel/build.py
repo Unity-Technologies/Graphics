@@ -55,7 +55,7 @@ def add_comments():
             yml = f.read()
             f.seek(0, 0)
             f.write(comment)
-            f.write('trunk_revision: 52f22899794dede9082eef163349e305c7a785b4\n\n ')
+            f.write('trunk_revision: 52f22899794dede9082eef163349e305c7a785b4\n\n')
             f.write('---\n\n')
             f.write(yml)
 

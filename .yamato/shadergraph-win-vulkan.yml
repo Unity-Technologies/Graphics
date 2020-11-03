@@ -5,7 +5,7 @@
 
 trunk_revision: 52f22899794dede9082eef163349e305c7a785b4
 
- ---
+---
 
 ShaderGraph_Win_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
     name: ShaderGraph on Win_Vulkan_Standalone_mono_apiNet2_Linear on version trunk
