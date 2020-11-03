@@ -19,7 +19,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -48,7 +48,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects/UniversalHybridTest --timeout=1800
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/UniversalHybridTest --timeout=1800
     artifacts:
         logs:
             paths:
@@ -74,7 +74,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_CUSTOM-REVISIO
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -106,7 +106,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_CUSTOM-REVIS
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects/UniversalHybridTest --timeout=1800
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/UniversalHybridTest --timeout=1800
     artifacts:
         logs:
             paths:
