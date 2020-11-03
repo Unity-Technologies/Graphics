@@ -304,4 +304,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/145_SoftParticlesStackWithPP.unity
     guid: 7b2479971db0f4b1b87c121244585fe5
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: e8d6f781ac7d8e54986dba190f85fef2,
+      type: 2}
+    xr.sdk.mock-hmd.settings: {fileID: 11400000, guid: c943e3d2438ac2c43993e9c265f76648,
+      type: 2}
