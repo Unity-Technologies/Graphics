@@ -25,6 +25,7 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBg)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHC)
+    UNITY_DOTS_INSTANCED_PROP(uint2,    unity_EntityId)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared in UnityInstancing.hlsl
@@ -45,6 +46,7 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBg)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
+#define unity_EntityId              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(uint2,    Metadata_unity_EntityId)
 #endif
 
 #endif

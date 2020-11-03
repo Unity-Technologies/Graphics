@@ -60,8 +60,13 @@ float4 OutputExtraction(ExtractionInputs inputs)
     if (UNITY_DataExtraction_Mode == RENDER_WORLD_POSITION_RGB)
         return float4(inputs.positionWS, 1.0);
     //@TODO
+#ifdef UNITY_DOTS_INSTANCING_ENABLED
+    if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
+        return float4(float2(unity_EntityId), 0, 1);
+#else
     if (UNITY_DataExtraction_Mode == RENDER_ENTITY_ID)
         return 0;
+#endif
     if (UNITY_DataExtraction_Mode == RENDER_BASE_COLOR_RGBA)
         return float4(baseColor, inputs.alpha);
     if (UNITY_DataExtraction_Mode == RENDER_SPECULAR_RGB)
