@@ -78,7 +78,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
         f'chmod +x ./utr',
         f'./utr {" ".join(utr_args)}'
      ]
-    extra_cmds = extra_perf_cmd(project_folder)
+    extra_cmds = []
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
