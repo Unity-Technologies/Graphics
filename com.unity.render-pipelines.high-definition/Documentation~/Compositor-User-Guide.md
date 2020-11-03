@@ -1,8 +1,12 @@
 # Using the Graphics Compositor
 To open the Graphics Compositor window in the Unity Editor, select **Window > Render Pipeline > Graphics Compositor** from the menu. From this window, you can enable the Graphics Compositor and control its configuration. The first time you enable the Graphics Compositor, it automatically uses a default *"pass-through"* composition profile that forwards the output of the main [Camera](HDRP-Camera.md) to the final composed frame. You can add more [Layers](#layer-types) to this profile and edit their properties or you can load another profile from disk. For information on the properties in the Compositor window, see [Compositor window](Compositor-User-Options.md).
 
+## General Workflow
+- The composition output render in the Game view, while you can edit the scene in the Scene view. To have a live preview of the output, it is best practice to have the Scene view and Game view side-by-side, or undock the Game view from the Editor and put it on a separate monitor (if available).
+- If the Game view is set to show **Display 1**, , make sure the Graphics Compositor outputs (in the Compositor window) to **Display 1**. Furthermore, you should set any Cameras in the scene to output to other displays, such as **Display 2** or **Display 3**. This ensures that no unnecessary drawing operations occur and that there are no conflicts in the display output.
+
 ## Alpha-based composition
-Many compositing operations require an alpha channel. To properly use all features of the graphics compositor, it is recomented (but not necessary) to:
+Many compositing operations require an alpha channel. To properly use all features of the graphics compositor, it is recommended (but not necessary) to:
 - Set the color buffer format for Rendering to 16-bit half float (R16G16B16A16)
 - Set the buffer format for post-processing to 16-bit half float (R16G16B16A16)
 

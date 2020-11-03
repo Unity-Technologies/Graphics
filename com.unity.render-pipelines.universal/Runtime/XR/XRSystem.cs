@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderTexture.ReleaseTemporary(testRenderTexture);
         }
 
-        bool RefreshXrSdk()
+        internal bool RefreshXrSdk()
         {
             GetDisplaySubsystem();
 
@@ -273,6 +273,9 @@ namespace UnityEngine.Rendering.Universal
 
                 // Update culling params for this xr pass using camera's culling params
                 cameraData.camera.TryGetCullingParameters(false, out var cullingParams);
+                cullingParams.stereoProjectionMatrix = cameraData.camera.projectionMatrix;
+                cullingParams.stereoViewMatrix = cameraData.camera.worldToCameraMatrix;
+
                 //// Disable legacy stereo culling path
                 cullingParams.cullingOptions &= ~CullingOptions.Stereo;
                 xrPass.UpdateCullingParams(0, cullingParams);

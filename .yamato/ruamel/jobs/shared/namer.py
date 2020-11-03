@@ -142,6 +142,14 @@ def abv_job_id_trunk_verification(editor_name):
     return f'trunk_verification_{editor_name}'
 
 
+# formatting specific
+def formatting_filepath():
+    return f'{parent_dir}/_formatting.yml'.lower()
+
+def formatting_job_id():
+    return f'formatting'
+
+
 # preview publish specific
 def pb_filepath():
     return f'{parent_dir}/_preview_publish.yml'.lower()
