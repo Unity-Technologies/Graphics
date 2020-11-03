@@ -15,7 +15,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_MinVelInPixels;
 
         //  Advanced properties
+        SerializedDataParameter m_CameraMVClampMode;
+        SerializedDataParameter m_CameraTransClamp;
         SerializedDataParameter m_CameraRotClamp;
+        SerializedDataParameter m_CameraFullClamp;
+
         SerializedDataParameter m_DepthCmpScale;
         SerializedDataParameter m_CameraMotionBlur;
 
@@ -29,6 +33,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SampleCount = Unpack(o.Find("m_SampleCount"));
             m_MinVelInPixels = Unpack(o.Find(x => x.minimumVelocity));
             m_MaxVelocityInPixels = Unpack(o.Find(x => x.maximumVelocity));
+            m_CameraMVClampMode = Unpack(o.Find(x => x.specialCameraClampMode));
+            m_CameraFullClamp = Unpack(o.Find(x => x.cameraVelocityClamp));
+            m_CameraTransClamp = Unpack(o.Find(x => x.cameraTranslationVelocityClamp));
             m_CameraRotClamp = Unpack(o.Find(x => x.cameraRotationVelocityClamp));
             m_DepthCmpScale = Unpack(o.Find(x => x.depthComparisonExtent));
             m_CameraMotionBlur = Unpack(o.Find(x => x.cameraMotionBlur));
@@ -53,11 +60,25 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);
 
-            if(advanced)
+            if (advanced)
             {
                 PropertyField(m_DepthCmpScale);
-                PropertyField(m_CameraRotClamp);
+
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Camera Velocity", EditorStyles.miniLabel);
+
                 PropertyField(m_CameraMotionBlur);
+
+                PropertyField(m_CameraMVClampMode);
+                var mode = m_CameraMVClampMode.value.intValue;
+                if (mode == (int)CameraClampMode.Rotation || mode == (int)CameraClampMode.SeparateTranslationAndRotation)
+                    PropertyField(m_CameraRotClamp);
+                if (mode == (int)CameraClampMode.Translation || mode == (int)CameraClampMode.SeparateTranslationAndRotation)
+                    PropertyField(m_CameraTransClamp);
+                if (mode == (int)CameraClampMode.Full)
+                    PropertyField(m_CameraFullClamp);
+
+
             }
         }
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
