@@ -84,6 +84,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a SSGI denoiser bug for large scenes.
 - Fixed a Nan issue with SSGI.
 - Fixed CustomPassUtils.RenderFrom* functions and CustomPassUtils.DisableSinglePassRendering struct in VR.
+- Fixed custom pass markers not recorded when render graph was enabled.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
