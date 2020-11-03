@@ -8,6 +8,7 @@ test_platforms:
     utr_flags:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
+      - [iPhone_Metal]: --testfilter=RuntimeProfilerMetrics
     utr_flags_build:
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
       - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
