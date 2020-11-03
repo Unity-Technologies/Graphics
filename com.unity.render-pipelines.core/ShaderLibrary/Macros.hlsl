@@ -46,6 +46,7 @@
 #define HALF_MIN_SQRT 0.0078125  // 2^-7 == sqrt(HALF_MIN), useful for ensuring HALF_MIN after x^2
 #define HALF_MAX 65504.0
 #define UINT_MAX 0xFFFFFFFFu
+#define INT_MAX  0x7FFFFFFF
 
 
 #ifdef SHADER_API_GLES

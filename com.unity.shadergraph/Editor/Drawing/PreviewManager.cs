@@ -16,16 +16,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     delegate void OnPrimaryMasterChanged();
 
-    static class ListSliceUtility
-    {
-        // Ideally, we should build a non-yield return, struct version of Slice
-        public static IEnumerable<T> Slice<T>(this List<T> list, int start, int end)
-        {
-            for (int i = start; i < end; i++)
-                yield return list[i];
-        }
-    }
-
     class PreviewManager : IDisposable
     {
         GraphData m_Graph;
@@ -332,7 +322,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if ((node is BlockNode) || (node is SubGraphOutputNode))
                     UpdateMasterPreview(ModificationScope.Topological);
                 else
+                {
                     m_NodesShaderChanged.Add(node);
+                    //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
+                    //Fix for https://fogbugz.unity3d.com/f/cases/1284033/
+                    m_NodesPropertyChanged.Add(node);
+                }
                 m_TopologyDirty = true;
             }
             foreach (var edge in m_Graph.addedEdges)
@@ -666,8 +661,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (var previewsToCompile = PooledHashSet<PreviewRenderData>.Get())
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
-                if ((m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling) &&
-                    ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
+                if (m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling)
                 {
                     if (m_PreviewsNeedsRecompile.Contains(m_MasterRenderData) &&
                         !m_PreviewsCompiling.Contains(m_MasterRenderData))
@@ -728,7 +722,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         Assert.IsNotNull(node); // master preview is handled above
 
                         // Get shader code and compile
-                        var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
+                        var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}", null);
                         BeginCompile(preview, generator.generatedShader);
                     }
 
@@ -799,7 +793,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
-                CoreUtils.Destroy(shaderData.mat);
+                // Due to case 1259744, we have to re-create the material to update the preview material keywords
+                Object.DestroyImmediate(shaderData.mat);
 
                 if (shaderData.mat == null)
                 {
@@ -1131,7 +1126,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Skip generation for VFXTarget
             if(!m_Graph.isOnlyVFXTarget)
             {
-                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master");
+                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master", null);
                 shaderData.shaderString = generator.generatedShader;
 
                 // Blocks from the generation include those temporarily created for missing stack blocks

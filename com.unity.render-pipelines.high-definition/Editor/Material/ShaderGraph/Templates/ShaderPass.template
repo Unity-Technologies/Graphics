@@ -25,7 +25,11 @@ Pass
     $splice(GraphKeywords)
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
 
     // --------------------------------------------------
     // Defines
@@ -45,12 +49,31 @@ Pass
     $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
+
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
+
+    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
+
     $splice(GraphDefines)
+
+    // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
+    // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
+    // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here
+    // to still allow us to rename the field and keyword of this node without breaking existing code.
+    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT 
+    #define RAYTRACING_SHADER_GRAPH_HIGH
+    #endif
+
+    #ifdef RAYTRACING_SHADER_GRAPH_RAYTRACED
+    #define RAYTRACING_SHADER_GRAPH_LOW
+    #endif
+    // end
 
     #ifndef SHADER_UNLIT
     // We need isFrontFace when using double sided - it is not required for unlit as in case of unlit double sided only drive the cullmode
-    #ifdef _DOUBLESIDED_ON
+    // VARYINGS_NEED_CULLFACE can be define by VaryingsMeshToPS.FaceSign input if a IsFrontFace Node is included in the shader graph.
+    #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
         #define VARYINGS_NEED_CULLFACE
     #endif
     #endif
@@ -95,16 +118,26 @@ Pass
     // Dots Instancing
     $splice(DotsInstancingOptions)
 
+    // Various properties
+
     $splice(HybridV1InjectedBuiltinProperties)
 
-    // Includes
-    $splice(PreGraphIncludes)
+    // -- Graph Properties
+    $splice(GraphProperties)
 
-    // Properties used by SceneSelectionPass
+    // -- Property used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
+
+    // -- Properties used by SceneSelectionPass
     #ifdef SCENESELECTIONPASS
     int _ObjectId;
     int _PassValue;
     #endif
+
+    // Includes
+    $splice(PreGraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
@@ -116,8 +149,6 @@ Pass
     // --------------------------------------------------
     // Graph
 
-    // Graph Properties
-    $splice(GraphProperties)
 
     // Graph Functions
     $splice(GraphFunctions)
@@ -176,7 +207,7 @@ Pass
             #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
             // DepthPostpass always use its own alpha threshold
             alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
-            #elif SHADERPASS == SHADERPASS_SHADOWS
+            #elif (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
             // If use shadow threshold isn't enable we don't allow any test
             $DoAlphaTestShadow: alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
             #endif

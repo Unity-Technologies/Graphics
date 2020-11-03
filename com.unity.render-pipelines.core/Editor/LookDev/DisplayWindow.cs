@@ -1,6 +1,7 @@
 using System;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 using RenderPipelineManager = UnityEngine.Rendering.RenderPipelineManager;
@@ -216,30 +217,48 @@ namespace UnityEditor.Rendering.LookDev
         StyleSheet styleSheet = null;
         StyleSheet styleSheetLight = null;
 
-        void OnEnable()
+        void ReloadStyleSheets()
         {
-            //Stylesheet
-            // Try to load stylesheet. Timing can be odd while upgrading packages (case 1219692).
-            // In this case, it will be fixed in OnGUI. Though it can spawn error while reimporting assets.
-            // Waiting for filter on stylesheet (case 1228706) to remove last error.
-            if (styleSheet == null || styleSheet.Equals(null))
+            if(styleSheet == null || styleSheet.Equals(null))
             {
                 styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
-                if (styleSheet != null && !styleSheet.Equals(null))
-                    rootVisualElement.styleSheets.Add(styleSheet);
+                if(styleSheet == null || styleSheet.Equals(null))
+                {
+                    //Debug.LogWarning("[LookDev] Could not load Stylesheet.");
+                    return;
+                }
             }
-            if (!EditorGUIUtility.isProSkin && styleSheetLight != null && !styleSheetLight.Equals(null))
+
+            if(!rootVisualElement.styleSheets.Contains(styleSheet))
+                rootVisualElement.styleSheets.Add(styleSheet);
+
+            //Additively load Light Skin
+            if(!EditorGUIUtility.isProSkin)
             {
-                styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
-                if (styleSheetLight != null && !styleSheetLight.Equals(null))
+                if(styleSheetLight == null || styleSheetLight.Equals(null))
+                {
+                    styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
+                    if(styleSheetLight == null || styleSheetLight.Equals(null))
+                    {
+                        //Debug.LogWarning("[LookDev] Could not load Light skin.");
+                        return;
+                    }
+                }
+                 
+                if(!rootVisualElement.styleSheets.Contains(styleSheetLight))
                     rootVisualElement.styleSheets.Add(styleSheetLight);
             }
+        }
+        
+        void CreateGUI()
+        {
+            ReloadStyleSheets();
 
             //Call the open function to configure LookDev
             // in case the window where open when last editor session finished.
             // (Else it will open at start and has nothing to display).
             if (!LookDev.open)
-                LookDev.Open();
+                LookDev.Initialize(this);
 
             titleContent = Style.k_WindowTitleAndIcon;
 
@@ -259,7 +278,10 @@ namespace UnityEditor.Rendering.LookDev
 
             ApplyLayout(viewLayout);
             ApplySidePanelChange(layout.showedSidePanel);
+        }
 
+        void OnEnable()
+        { 
             Undo.undoRedoPerformed += FullRefreshEnvironmentList;
         }
 
@@ -625,81 +647,33 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        void OnGUI()
+        void Update()
         {
-            //Stylesheet
-            // [case 1219692] if LookDev is open while reimporting CoreRP package,
-            // stylesheet can be null. In this case, we can have a null stylesheet
-            // registered as it got destroyed. Reloading it. As we cannot just
-            // remove a null entry, we must filter and reconstruct the while list.
-            if (styleSheet == null || styleSheet.Equals(null)
-                || (!EditorGUIUtility.isProSkin && (styleSheetLight == null || styleSheetLight.Equals(null))))
-            {
-                // While (case 1228706) is still on going, we sill close and reopen the look dev.
-                // This will prevent spawning error at frame.
-                // Note 2: This actually causes the lookdev to break completely with light theme.
-                // Until the actual issue is fixed, we'll comment this fix out as it only concerns an upgrade problem.
-                //LookDev.Close();
-                //LookDev.Open();
-                //return;
-
-                // Following lines is the correct fix if UIElement filter garbage collected Stylesheet.
-
-                //System.Collections.Generic.List<StyleSheet> usedStyleSheets = new System.Collections.Generic.List<StyleSheet>();
-                //int currentCount = rootVisualElement.styleSheets.count;
-                //for (int i = 0; i < currentCount; ++i)
-                //{
-                //    StyleSheet sheet = rootVisualElement.styleSheets[i];
-                //    if (sheet != null && !sheet.Equals(null))
-                //        usedStyleSheets.Add(sheet);
-                //}
-                //rootVisualElement.styleSheets.Clear();
-                //foreach (StyleSheet sheet in usedStyleSheets)
-                //    rootVisualElement.styleSheets.Add(sheet);
-
-                //styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
-                //if (styleSheet != null && !styleSheet.Equals(null))
-                //{
-                //    rootVisualElement.styleSheets.Add(styleSheet);
-                //    if (!EditorGUIUtility.isProSkin)
-                //    {
-                //        rootVisualElement.styleSheets.Add(
-                //            AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload));
-                //    }
-                //}
-
-                //if (styleSheet == null || styleSheet.Equals(null))
-                //{
-                //    styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
-                //    if (styleSheet != null && !styleSheet.Equals(null))
-                //        rootVisualElement.styleSheets.Add(styleSheet);
-                //}
-                //if (!EditorGUIUtility.isProSkin && styleSheetLight != null && !styleSheetLight.Equals(null))
-                //{
-                //    styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
-                //    if (styleSheetLight != null && !styleSheetLight.Equals(null))
-                //        rootVisualElement.styleSheets.Add(styleSheetLight);
-                //}
-            }
-            else
-            {
-                //deal with missing style when domain reload...
-                if (!rootVisualElement.styleSheets.Contains(styleSheet))
-                    rootVisualElement.styleSheets.Add(styleSheet);
-                if (!EditorGUIUtility.isProSkin && !rootVisualElement.styleSheets.Contains(styleSheetLight))
-                    rootVisualElement.styleSheets.Add(styleSheetLight);
-            }
+            if (LookDev.waitingConfigure)
+                return;
 
             // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
-            // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check.
-            if (!LookDev.supported && OnUpdateRequestedInternal !=null)
+            // Note: After an editor reload, we might get a null SRP for a couple of frames, hence the check.
+            if (!LookDev.supported)
             {
                 // Print an error and close the Lookdev window (to avoid spamming the console)
-                Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
-                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
+                if (RenderPipelineManager.currentPipeline != null)
+                    Debug.LogError("LookDev is not supported by this Scriptable Render Pipeline: " + RenderPipelineManager.currentPipeline.ToString());
+                else if (GraphicsSettings.currentRenderPipeline != null)
+                    Debug.LogError("LookDev is not available until a camera render occurs.");
+                else
+                    Debug.LogError("LookDev is not supported: No SRP detected.");
                 LookDev.Close();
-                return;
             }
+        }
+
+        void OnGUI()
+        {
+            if(EditorApplication.isUpdating)
+                return;
+           
+            //deal with missing style on domain reload...
+            ReloadStyleSheets();
 
             OnUpdateRequestedInternal?.Invoke();
         }

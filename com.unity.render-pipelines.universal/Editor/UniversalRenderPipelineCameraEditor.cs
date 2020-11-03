@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Both"),
             };
             public static int[] xrTargetEyeValues = { 0, 1 };
-            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise.");
+            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Select which eye of an XR device the Camera renders to. Selecting the option Both enables XR rendering on this Camera, selecting other options disables the XR rendering. Enabling XR rendering on a Camera:\n* Disables the MSAA property in the Camera Inspector. The URP asset defines the MSAA level for all XR Cameras.\n* Disables all effects that are not compatible with XR rendering, for example, lens distortion.");
 #endif
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
@@ -309,11 +309,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                // HIG doesnt allow us to remove data on a re-draw and without a user input.
-                GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
-                m_NameContent.text = "MISSING CAMERA";
-                string warningInfo = "Camera is missing";
-                EditorGUI.LabelField(rect, m_NameContent, TempContent("", warningInfo, m_ErrorIcon), errorStyle);
+                camera.GetComponent<UniversalAdditionalCameraData>().UpdateCameraStack();
 
                 // Need to clean out the errorCamera list here.
                 errorCameras.Clear();
@@ -717,6 +713,10 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawMSAA()
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if(m_AdditionalCameraDataAllowXRRendering.boolValue)
+                return;
+#endif
             Rect controlRect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(controlRect, Styles.allowMSAA, settings.allowMSAA);
             int selectedValue = !settings.allowMSAA.boolValue ? 0 : 1;
@@ -940,13 +940,28 @@ namespace UnityEditor.Rendering.Universal
                 return;
             }
 
-            Undo.SetCurrentGroupName("Remove Universal Camera");
-            var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-            if (additionalCameraData)
+            var isAssetEditing = EditorUtility.IsPersistent(camera);
+            try
             {
-                Undo.DestroyObjectImmediate(additionalCameraData);
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StartAssetEditing();
+                }
+                Undo.SetCurrentGroupName("Remove Universal Camera");
+                var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+                if (additionalCameraData != null)
+                {
+                    Undo.DestroyObjectImmediate(additionalCameraData);
+                }
+                Undo.DestroyObjectImmediate(camera);
             }
-            Undo.DestroyObjectImmediate(camera);
+            finally
+            {
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+            }
         }
     }
 }

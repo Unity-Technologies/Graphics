@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.Universal
 
             public readonly GUIContent BakingWarning = EditorGUIUtility.TrTextContent("Light mode is currently overridden to Realtime mode. Enable Baked Global Illumination to use Mixed or Baked light modes.");
             public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TrTextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
+            public readonly GUIContent SunSourceWarning = EditorGUIUtility.TrTextContent("This light is set as the current Sun Source, which requires a directional light. Go to the Lighting Window's Environment settings to edit the Sun Source.");
 
             public readonly GUIContent ShadowsNotSupportedWarning = EditorGUIUtility.TrTextContent("Realtime shadows for point lights are not supported. Either disable shadows or set the light mode to Baked.");
             public static readonly GUIContent ShadowRealtimeSettings = EditorGUIUtility.TrTextContent("Realtime Shadows", "Settings for realtime direct shadows.");
@@ -111,6 +112,12 @@ namespace UnityEditor.Rendering.Universal
 
             settings.DrawLightType();
 
+            Light light = target as Light;
+            if (LightType.Directional != light.type && light == RenderSettings.sun)
+            {
+                EditorGUILayout.HelpBox(s_Styles.SunSourceWarning.text, MessageType.Warning);
+            }
+
             EditorGUILayout.Space();
 
             // When we are switching between two light types that don't show the range (directional and area lights)
@@ -141,7 +148,6 @@ namespace UnityEditor.Rendering.Universal
             using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimAreaOptions.faded))
                 if (group.visible)
                 {
-                    Light light = target as Light;
                     if (light.type != LightType.Disc)
                     {
                         settings.DrawLightmapping();

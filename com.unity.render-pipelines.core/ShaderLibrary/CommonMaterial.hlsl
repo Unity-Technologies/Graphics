@@ -330,7 +330,6 @@ real3 LerpWhiteTo(real3 b, real t)
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
 
-
 // ----------------------------------------------------------------------------
 // Helper methods to convert specular <-> metallic workflow
 // NOTE: Specular -> metallic is lossy, metallic can not fully represent all possible specular materials.

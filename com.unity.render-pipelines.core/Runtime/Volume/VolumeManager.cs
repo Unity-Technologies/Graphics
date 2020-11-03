@@ -124,7 +124,8 @@ namespace UnityEngine.Rendering
             // Look for existing cached layer masks and add it there if needed
             foreach (var kvp in m_SortedVolumes)
             {
-                if ((kvp.Key & (1 << layer)) != 0)
+                // We add the volume to sorted lists only if the layer match and if it doesn't contain the volume already.
+                if ((kvp.Key & (1 << layer)) != 0 && !kvp.Value.Contains(volume))
                     kvp.Value.Add(volume);
             }
 
@@ -226,8 +227,11 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < count; i++)
                 {
-                    target.parameters[i].overrideState = false;
-                    target.parameters[i].SetValue(component.parameters[i]);
+                    if(target.parameters[i] != null)
+                    {
+                        target.parameters[i].overrideState = false;
+                        target.parameters[i].SetValue(component.parameters[i]);
+                    }
                 }
             }
         }

@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering
 
         class DebugFieldInfo
         {
-            public DebugFieldInfo(string defineName, string fieldName, Type fieldType, bool isDirection, bool isSRGB, string displayName = "")
+            public DebugFieldInfo(string defineName, string fieldName, Type fieldType, bool isDirection, bool isSRGB, bool checkIsNormalized, string displayName = "")
             {
                 this.defineName = defineName;
                 this.fieldName = fieldName;
@@ -164,6 +164,7 @@ namespace UnityEditor.Rendering
                 this.isDirection = isDirection;
                 this.isSRGB = isSRGB;
                 this.displayName = displayName;
+                this.checkIsNormalized = checkIsNormalized;
             }
 
             public string defineName;
@@ -172,6 +173,7 @@ namespace UnityEditor.Rendering
             public Type fieldType;
             public bool isDirection;
             public bool isSRGB;
+            public bool checkIsNormalized;
         }
 
         class PackedFieldInfo
@@ -585,7 +587,15 @@ namespace UnityEditor.Rendering
                 {
                     if (debugField.isDirection)
                     {
-                        shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + " * 0.5 + 0.5;\n";
+                        if (debugField.checkIsNormalized)
+                        {
+                            shaderText += "            result = IsNormalized(" + lowerStructName + "." + debugField.fieldName +")? " + lowerStructName + "." + debugField.fieldName + " * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);\n";
+
+                        }
+                        else
+                        {
+                            shaderText += "            result = " + lowerStructName + "." + debugField.fieldName + " * 0.5 + 0.5;\n";
+                        }
                     }
                     else
                     {
@@ -1087,6 +1097,7 @@ namespace UnityEditor.Rendering
 
                     bool isDirection = false;
                     bool sRGBDisplay = false;
+                    bool checkIsNormalized = false;
 
                     // Check if the display name have been override by the users
                     if (Attribute.IsDefined(field, typeof(SurfaceDataAttributes)))
@@ -1102,6 +1113,7 @@ namespace UnityEditor.Rendering
                         }
                         isDirection = propertyAttr[0].isDirection;
                         sRGBDisplay = propertyAttr[0].sRGBDisplay;
+                        checkIsNormalized = propertyAttr[0].checkIsNormalized;
                     }
 
 
@@ -1117,7 +1129,7 @@ namespace UnityEditor.Rendering
                             string defineName = ("DEBUGVIEW_" + className + "_" + name).ToUpper();
                             m_Statics[defineName] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
 
-                            m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, fieldType, isDirection, sRGBDisplay));
+                            m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, fieldType, isDirection, sRGBDisplay, checkIsNormalized));
                         }
                     }
                 }
@@ -1127,12 +1139,15 @@ namespace UnityEditor.Rendering
                     // Define only once, it is safe to assume that colors and directions are not packed with something else
                     bool isDirection = false;
                     bool sRGBDisplay = false;
+                    bool checkIsNormalized = false;
 
                     if (Attribute.IsDefined(field, typeof(PackingAttribute)))
                     {
                         var packingAttributes = (PackingAttribute[])field.GetCustomAttributes(typeof(PackingAttribute), false);
                         isDirection = packingAttributes[0].isDirection;
                         sRGBDisplay = packingAttributes[0].sRGBDisplay;
+                        checkIsNormalized = packingAttributes[0].checkIsNormalized;
+
                         // Generate debug names
                         string className = type.FullName.Substring(type.FullName.LastIndexOf((".")) + 1); // ClassName include nested class
                         className = className.Replace('+', '_'); // FullName is Class+NestedClass replace by Class_NestedClass
@@ -1162,7 +1177,7 @@ namespace UnityEditor.Rendering
                                     typeForDebug = fieldType;
                                 }
 
-                                m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, typeForDebug, isDirection, sRGBDisplay, packAttr.displayNames[0]));
+                                m_DebugFields.Add(new DebugFieldInfo(defineName, field.Name, typeForDebug, isDirection, sRGBDisplay, checkIsNormalized, packAttr.displayNames[0]));
                             }
 
                             m_PackedFieldsInfos.Add(new PackedFieldInfo(packAttr, fieldType, field.Name));

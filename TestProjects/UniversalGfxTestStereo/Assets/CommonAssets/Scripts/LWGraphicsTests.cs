@@ -30,12 +30,12 @@ public class LWGraphicsTests
         var settings = Object.FindObjectOfType<LWGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find LWGraphicsTestSettings");
 
-        // Stereo screen capture on Mac generates monoscopic images and won't be fixed.
+        // Stereo screen capture on Mac generates monoscopic images.
         Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo tests do not run on MacOSX.");
 
         var referenceImage = testCase.ReferenceImage;
         // make sure we're rendering in the same size as the reference image, otherwise this is not really comparable.
-        Screen.SetResolution(referenceImage.width, referenceImage.height, FullScreenMode.Windowed);
+        Screen.SetResolution(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight, FullScreenMode.Windowed);
 
 #if UNITY_2020_2_OR_NEWER
         // Ensure a valid XR display is active
@@ -65,7 +65,7 @@ public class LWGraphicsTests
         // wait for rendering to complete
         yield return new WaitForEndOfFrame();
 
-        // we'll take a screenshot here, as what we want to compare is the actual result on-screen.
+        // take a screenshot here.
         // ScreenCapture.CaptureScreenshotAsTexture --> does not work since colorspace is wrong, would need colorspace change and thus color compression
         // ScreenCapture.CaptureScreenshotIntoRenderTexture --> does not work since texture is flipped, would need another pass
         // so we need to capture and reload the resulting file.
@@ -80,18 +80,18 @@ public class LWGraphicsTests
             yield return null;
 
         // load the screenshot back into memory and change to the same format as we want to compare with
-        var actualImage = new Texture2D(referenceImage.width, referenceImage.height);
+        var actualImage = new Texture2D(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
         actualImage.LoadImage(System.IO.File.ReadAllBytes(tempScreenshotFile));
 
-        if (actualImage.width != referenceImage.width || actualImage.height != referenceImage.height)
+        if (actualImage.width != settings.ImageComparisonSettings.TargetWidth || actualImage.height != settings.ImageComparisonSettings.TargetHeight)
         {
             Debug.LogWarning("[" + testCase.ScenePath + "] Image size differs (ref: " + referenceImage.width + "x" + referenceImage.height + " vs. actual: " + actualImage.width + "x" + actualImage.height + "). " + (Application.isEditor ? " is your GameView set to a different resolution than the reference images?" : "is your build size different than the reference images?"));
-            actualImage = ChangeTextureSize(actualImage, referenceImage.width, referenceImage.height);
+            actualImage = ChangeTextureSize(actualImage, settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
         }
         // ref is usually in RGB24 or RGBA32 while actual is in ARGB32, we need to convert formats
-        if (referenceImage.format != actualImage.format)
+        if (actualImage.format != TextureFormat.RGB24)
         {
-            actualImage = ChangeTextureFormat(actualImage, referenceImage.format);
+            actualImage = ChangeTextureFormat(actualImage, TextureFormat.RGB24);
         }
 
         // delete temporary file

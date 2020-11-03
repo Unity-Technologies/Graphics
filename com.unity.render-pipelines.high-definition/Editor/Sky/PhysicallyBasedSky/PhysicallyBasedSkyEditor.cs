@@ -1,4 +1,5 @@
 using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -7,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(PhysicallyBasedSky))]
     class PhysicallyBasedSkyEditor : SkySettingsEditor
     {
-        SerializedDataParameter m_EarthPreset;
+        SerializedDataParameter m_Type;
         SerializedDataParameter m_SphericalMode;
         SerializedDataParameter m_SeaLevel;
         SerializedDataParameter m_PlanetaryRadius;
@@ -42,6 +43,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_NumberOfBounces;
 
+        GUIContent      m_ModelTypeLabel = new GUIContent("Type", "Specifies a preset to simplify the interface.");
+
+        GUIContent[]    m_ModelTypes = { new GUIContent("Earth (Simple)"), new GUIContent("Earth (Advanced)"), new GUIContent("Custom Planet") };
+        int[]           m_ModelTypeValues = { (int)PhysicallyBasedSkyModel.EarthSimple, (int)PhysicallyBasedSkyModel.EarthAdvanced, (int)PhysicallyBasedSkyModel.Custom };
+
         public override void OnEnable()
         {
             base.OnEnable();
@@ -52,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
-			m_EarthPreset              = Unpack(o.Find(x => x.earthPreset));
+			m_Type                     = Unpack(o.Find(x => x.type));
 			m_SphericalMode            = Unpack(o.Find(x => x.sphericalMode));
 			m_SeaLevel                 = Unpack(o.Find(x => x.seaLevel));
 			m_PlanetaryRadius          = Unpack(o.Find(x => x.planetaryRadius));
@@ -90,37 +96,65 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.LabelField("Planet");
-			PropertyField(m_EarthPreset);
-            bool isEarth = !m_EarthPreset.overrideState.boolValue || m_EarthPreset.value.boolValue;
-            if (!isEarth)
+            EditorGUILayout.LabelField("Model");
+
+            using (new EditorGUILayout.HorizontalScope())
             {
-			    PropertyField(m_PlanetaryRadius);
+                DrawOverrideCheckbox(m_Type);
+
+                using (new EditorGUI.DisabledScope(!m_Type.overrideState.boolValue))
+                {
+                    m_Type.value.intValue = EditorGUILayout.IntPopup(m_ModelTypeLabel, m_Type.value.intValue, m_ModelTypes, m_ModelTypeValues);
+                }
             }
 
-			PropertyField(m_SphericalMode);
-            bool isSpherical = !m_SphericalMode.overrideState.boolValue || m_SphericalMode.value.boolValue;
-            if (isSpherical)
-            {
-			    PropertyField(m_PlanetCenterPosition);
-            }
+            PhysicallyBasedSkyModel type = (PhysicallyBasedSkyModel)m_Type.value.intValue;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Planet");
+
+            if (type == PhysicallyBasedSkyModel.EarthSimple)
+                    PropertyField(m_SeaLevel);
             else
             {
-			    PropertyField(m_SeaLevel);
+                PropertyField(m_SphericalMode);
+
+                using (new HDEditorUtils.IndentScope())
+                {
+                    bool isSpherical = !m_SphericalMode.overrideState.boolValue || m_SphericalMode.value.boolValue;
+                    if (isSpherical)
+                    {
+                        PropertyField(m_PlanetCenterPosition);
+                        if (type == PhysicallyBasedSkyModel.Custom)
+                            PropertyField(m_PlanetaryRadius);
+                    }
+                    else
+                        PropertyField(m_SeaLevel);
+                }
+
+                PropertyField(m_PlanetRotation);
+                PropertyField(m_GroundColorTexture);
             }
 
-			PropertyField(m_PlanetRotation);
-			PropertyField(m_GroundColorTexture);
 			PropertyField(m_GroundTint);
-			PropertyField(m_GroundEmissionTexture);
-			PropertyField(m_GroundEmissionMultiplier);
-
-            EditorGUILayout.LabelField("Space");
-			PropertyField(m_SpaceRotation);
-			PropertyField(m_SpaceEmissionTexture);
-			PropertyField(m_SpaceEmissionMultiplier);
-            if (!isEarth)
+            if (type != PhysicallyBasedSkyModel.EarthSimple)
             {
+                PropertyField(m_GroundEmissionTexture);
+                PropertyField(m_GroundEmissionMultiplier);
+            }
+
+            if (type != PhysicallyBasedSkyModel.EarthSimple)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Space");
+                PropertyField(m_SpaceRotation);
+                PropertyField(m_SpaceEmissionTexture);
+                PropertyField(m_SpaceEmissionMultiplier);
+            }
+
+            if (type == PhysicallyBasedSkyModel.Custom)
+            {
+                EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Air");
 			    PropertyField(m_AirMaximumAltitude);
 			    PropertyField(m_AirDensityR);
@@ -128,12 +162,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_AirDensityB);
 			    PropertyField(m_AirTint);
             }
-            EditorGUILayout.LabelField("Aerosols");
-			PropertyField(m_AerosolMaximumAltitude);
-			PropertyField(m_AerosolDensity);
-			PropertyField(m_AerosolTint);
-			PropertyField(m_AerosolAnisotropy);
 
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Aerosols");
+			PropertyField(m_AerosolDensity);
+            PropertyField(m_AerosolTint);
+            if (type != PhysicallyBasedSkyModel.EarthSimple)
+            {
+                PropertyField(m_AerosolAnisotropy);
+                PropertyField(m_AerosolMaximumAltitude);
+            }
+
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Artistic Overrides");
 			PropertyField(m_ColorSaturation);
 			PropertyField(m_AlphaSaturation);
@@ -142,6 +182,7 @@ namespace UnityEditor.Rendering.HighDefinition
 			PropertyField(m_HorizonZenithShift);
 			PropertyField(m_ZenithTint);
 
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Miscellaneous");
 			PropertyField(m_NumberOfBounces);
 
