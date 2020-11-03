@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Clamp camera rotation separately.
         /// </summary>
-        Translation= 2,
+        Translation = 2,
 
         /// <summary>
         /// Clamp camera rotation and translation separately.
@@ -89,22 +89,22 @@ namespace UnityEngine.Rendering.HighDefinition
         public CameraClampModeParameter specialCameraClampMode = new CameraClampModeParameter(CameraClampMode.None);
 
         /// <summary>
-        /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera movement can have.
+        /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera movement can have. Only valid if specialCameraClampMode is set to CameraClampMode.FullCameraMotionVector.
         /// </summary>
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera can have.")]
         public ClampedFloatParameter cameraVelocityClamp = new ClampedFloatParameter(0.05f, 0.0f, 0.3f);
 
         /// <summary>
-        /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera can have.
+        /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera can have. Only valid if specialCameraClampMode is set to CameraClampMode.Translation or CameraClampMode.SeparateTranslationAndRotation.
         /// </summary>
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera can have.")]
         public ClampedFloatParameter cameraTranslationVelocityClamp = new ClampedFloatParameter(0.05f, 0.0f, 0.3f);
 
         /// <summary>
-        /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera rotation can have.
+        /// Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera rotation can have. Only valid if specialCameraClampMode is set to CameraClampMode.Rotation or CameraClampMode.SeparateTranslationAndRotation.
         /// </summary>
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the motion vectors resulting from Camera rotation can have.")]
-        public ClampedFloatParameter cameraRotationVelocityClamp = new ClampedFloatParameter(0.03f, 0.0f, 0.2f);
+        public ClampedFloatParameter cameraRotationVelocityClamp = new ClampedFloatParameter(0.03f, 0.0f, 0.3f);
 
         /// <summary>
         /// Value used for the depth based weighting of samples. Tweak if unwanted leak of background onto foreground or viceversa is detected.
