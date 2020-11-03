@@ -114,6 +114,8 @@ test_platforms:
       - [all]: --reruncount=2
       
       - [all]: --testproject=.
+      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
+      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
@@ -136,6 +138,8 @@ test_platforms:
       - [all]: --platform=editmode
       
       - [all]: --testproject=.
+      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
+      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor

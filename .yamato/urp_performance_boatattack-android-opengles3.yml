@@ -119,7 +119,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=./TestProjects/BoatAttack
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -250,7 +250,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
+                 utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=./TestProjects/BoatAttack
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

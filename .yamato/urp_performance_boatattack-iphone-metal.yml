@@ -124,7 +124,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_editor_il2cpp_Linea
       -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
+      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/BoatAttack
     artifacts:
         logs:
             paths:
@@ -165,7 +165,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear
       -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
+      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=TestProjects/BoatAttack
     artifacts:
         logs:
             paths:
@@ -300,7 +300,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_editor_il2cpp_Linea
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
+      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/BoatAttack
     artifacts:
         logs:
             paths:
@@ -345,7 +345,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
+      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=TestProjects/BoatAttack
     artifacts:
         logs:
             paths:
