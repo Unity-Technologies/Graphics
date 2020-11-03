@@ -119,6 +119,7 @@ test_platforms:
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
       
       - [all]: --artifacts_path=test-results
@@ -143,6 +144,7 @@ test_platforms:
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
       
       - [all]: --artifacts_path=test-results
