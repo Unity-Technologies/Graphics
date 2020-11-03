@@ -946,10 +946,16 @@ namespace UnityEngine.Rendering.HighDefinition
             unsupportedGraphicDevice = SystemInfo.graphicsDeviceType;
 
             if (!SystemInfo.supportsComputeShaders)
+            {
+                HDUtils.DisplayMessageNotification("Current platform / API don't support ComputeShaders which is a requirement.");
                 return false;
+            }
 
             if (!(defaultResources?.shaders.defaultPS?.isSupported ?? true))
+            {
+                HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
+            }            
 
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;

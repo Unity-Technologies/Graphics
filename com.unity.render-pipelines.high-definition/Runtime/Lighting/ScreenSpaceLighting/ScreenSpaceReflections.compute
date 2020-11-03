@@ -152,6 +152,8 @@ bool SampleGGX_VNDF(float roughness_,
                 out float3 outgoingDir,
                 out float weight)
 {
+    weight = 0.0f;
+
     float roughness = clamp(roughness_, MIN_GGX_ROUGHNESS, MAX_GGX_ROUGHNESS);
 
     float VdotH;
@@ -164,7 +166,6 @@ bool SampleGGX_VNDF(float roughness_,
 
     if (localL.z < 0.001)
     {
-        weight = 0.0f;
         return false;
     }
 
