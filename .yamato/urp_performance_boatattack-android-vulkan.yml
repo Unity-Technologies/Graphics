@@ -66,7 +66,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_il2cpp_apiNet4_Linear_tru
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli {{trunk_revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u {{trunk_revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
@@ -142,7 +142,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_Player_mono_apiNet2_Linear_trunk
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli {{trunk_revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u {{trunk_revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 

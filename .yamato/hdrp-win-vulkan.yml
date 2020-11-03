@@ -19,7 +19,7 @@ HDRP_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -44,7 +44,7 @@ HDRP_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -69,7 +69,7 @@ HDRP_Win_Vulkan_playmode_NonRenderGraph_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -93,7 +93,7 @@ HDRP_Win_Vulkan_editmode_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -137,7 +137,7 @@ Build_HDRP_Win_Vulkan_Player_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

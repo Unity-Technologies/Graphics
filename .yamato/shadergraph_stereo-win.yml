@@ -37,7 +37,7 @@ Build_ShaderGraph_Stereo_Win_Player_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli -u {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -64,7 +64,7 @@ ShaderGraph_Stereo_Win_editmode_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/ShaderGraphUniversalStereo/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/ShaderGraphUniversalStereo && unity-downloader-cli -u {{trunk_revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
