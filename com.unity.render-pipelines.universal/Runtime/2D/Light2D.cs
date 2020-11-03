@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Serialization;
+using UnityEngine.U2D;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -13,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D (Experimental)")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
-    public sealed partial class Light2D : MonoBehaviour
+    public sealed partial class Light2D : Light2DBase
     {
         /// <summary>
         /// an enumeration of the types of light
