@@ -214,6 +214,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool allowSRGBConversion = true;
             /// <summary>Whether to display the average timings every second.</summary>
             public bool averageProfilerTimingsOverASecond = false;
+            /// <summary>Debug value requires high precision.</summary>
+            public bool requireHighPrecision = false;
 
             /// <summary>Current material debug settings.</summary>
             public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
@@ -1423,7 +1425,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var container = new DebugUI.Container
                 {
-                    children = 
+                    children =
                     {
                         new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)data.lightingDebugSettings.lightVolumeDebugByCategory, setter = value => data.lightingDebugSettings.lightVolumeDebugByCategory = (LightVolumeDebug)value, autoEnum = typeof(LightVolumeDebug), getIndex = () => data.lightVolumeDebugTypeEnumIndex, setIndex = value => data.lightVolumeDebugTypeEnumIndex = value, onValueChanged = RefreshLightingDebug }
                     }
@@ -1972,6 +1974,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
                     (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination ||
                     (debugLighting == DebugLightingMode.ProbeVolume || debugProbeVolume == ProbeVolumeDebugMode.VisualizeAtlas);
+        }
+
+        public void SetRequireHighPrecision(bool requireHighPrecision)
+        {
+            data.requireHighPrecision = requireHighPrecision;
         }
     }
 }

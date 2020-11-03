@@ -310,6 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This target is only used in Dev builds as an intermediate destination for post process and where debug rendering will be done.
         RTHandle                        m_IntermediateAfterPostProcessBuffer;
         RTHandle                        m_IntermediateAfterPostProcessBufferFloat;
+        RTHandle                        m_HighPrecisionDebugBufferFloat;
 
         // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
         bool                            m_FullScreenDebugPushed;
@@ -2971,7 +2972,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.BeforePostProcess, aovRequest, aovCustomPassBuffers);
 
             if (aovRequest.isValid)
-                aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
+                aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, GetDebugViewTargetBuffer(), aovBuffers);
 
             RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
             RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
@@ -4131,7 +4132,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // When rendering debug material we shouldn't rely on a depth prepass for optimizing the alpha clip test. As it is control on the material inspector side
                     // we must override the state here.
-                    CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
+                    var debugViewTargetBuffer = GetDebugViewTargetBuffer();
+                    CoreUtils.SetRenderTarget(cmd, debugViewTargetBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
 
                     // [case 1273223] When the camera is stacked on top of another one, we need to clear the debug view RT using the data from the previous camera in the stack
                     var clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
@@ -4150,6 +4152,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
                 }
             }
+        }
+
+        private RTHandle GetDebugViewTargetBuffer()
+        {
+            if (m_CurrentDebugDisplaySettings.data.requireHighPrecision)
+                return m_DebugFullScreenTempBuffer;
+            else
+                return m_CameraColorBuffer;
         }
 
         struct TransparencyOverdrawParameters

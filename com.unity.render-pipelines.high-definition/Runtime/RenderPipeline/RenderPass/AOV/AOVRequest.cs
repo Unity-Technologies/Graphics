@@ -190,6 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_RequestMode != Camera.RenderRequestMode.None)
             {
                 debug.SetAllowSRGBConversion(false);
+                debug.SetRequireHighPrecision(false);
 
                 switch (m_RequestMode)
                 {
@@ -206,6 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
                         break;
                     case Camera.RenderRequestMode.EntityId:
+                        debug.SetRequireHighPrecision(true);
                         debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.EntityID);
                         break;
                     case Camera.RenderRequestMode.BaseColor:

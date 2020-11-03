@@ -61,6 +61,19 @@ void DecodeDistortion(float4 inBuffer, out float2 distortion, out float distorti
     isValidSource = (inBuffer.z != 0.0);
 }
 
+float3 PackEntityIdToRGB16f(uint entityId)
+{
+    // half can represent up to 2^11 exactly as an integer,
+    // use 10 bits of each channel.
+    uint b0 = (entityId >>  0) & 0x3ff;
+    uint b1 = (entityId >> 10) & 0x3ff;
+    uint b2 = (entityId >> 20) & 0x3ff;
+    float f0 = (float)b0 / 1023.0f;
+    float f1 = (float)b1 / 1023.0f;
+    float f2 = (float)b2 / 1023.0f;
+    return float3(f0, f1, f2);
+}
+
 void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs posInput, inout float3 result, inout bool needLinearToSRGB)
 {
     GetGeneratedBuiltinDataDebug(paramId, builtinData, result, needLinearToSRGB);
@@ -80,7 +93,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs p
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_ENTITY_ID:
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
-        result = float3(unity_EntityId.x, 0, 0);
+        result = PackEntityIdToRGB16f(unity_EntityId.x);
 #else
         result = 0;
 #endif
