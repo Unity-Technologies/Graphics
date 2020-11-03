@@ -30,6 +30,9 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
 - Fixed an issue where ShaderGraph could not read matrices from a Material or MaterialPropertyBlock while rendering with SRP batcher [1256374]
 - Fixed an issue where user setting a property to not Exposed, Hybrid-Instanced would result in a non-Hybrid Global property [1285700]
+- Fixed an issue with Gradient when it is used as expose parameters. Generated code was failing [1285640 ]
+- Fixed the subgraph slot sorting function [1286805]
+- Fixed Parallax Occlusion Mapping not working in sub graphs. [1221317](https://issuetracker.unity3d.com/product/unity/issues/guid/1221317/)
 - All textures in a ShaderGraph, even those not used, will now be pulled into an Exported Package [1283902]
 
 ## [10.1.0] - 2020-10-12

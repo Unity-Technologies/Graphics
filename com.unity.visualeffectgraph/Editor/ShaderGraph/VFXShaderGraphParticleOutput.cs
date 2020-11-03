@@ -180,13 +180,15 @@ namespace UnityEditor.VFX
                         if (property.property.propertyType == PropertyType.Float)
                         {
                             var prop = property.property as Vector1ShaderProperty;
-
-                            if (prop.floatType == FloatType.Slider)
-                                shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName, new RangeAttribute(prop.rangeValues.x, prop.rangeValues.y)), GetSGPropertyValue(property.property)));
-                            else if (prop.floatType == FloatType.Integer)
-                                shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(typeof(int), property.property.referenceName), VFXConverter.ConvertTo(GetSGPropertyValue(property.property), typeof(int))));
-                            else
-                                shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName), GetSGPropertyValue(property.property)));
+                            if (prop != null)
+                            {
+                                if (prop.floatType == FloatType.Slider)
+                                    shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName, new RangeAttribute(prop.rangeValues.x, prop.rangeValues.y)), GetSGPropertyValue(property.property)));
+                                else if (prop.floatType == FloatType.Integer)
+                                    shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(typeof(int), property.property.referenceName), VFXConverter.ConvertTo(GetSGPropertyValue(property.property), typeof(int))));
+                                else
+                                    shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName), GetSGPropertyValue(property.property)));
+                            }
                         }
                         else
                             shaderGraphProperties.Add(new VFXPropertyWithValue(new VFXProperty(property.type, property.property.referenceName), GetSGPropertyValue(property.property)));
@@ -258,7 +260,8 @@ namespace UnityEditor.VFX
             {
                 foreach (var sgProperty in shaderGraph.properties)
                 {
-                    yield return slotExpressions.First(o => o.name == sgProperty.referenceName);
+                    if( inputSlots.Any(t=>t.property.name == sgProperty.referenceName))
+                        yield return slotExpressions.First(o => o.name == sgProperty.referenceName);
                 }
             }
         }
@@ -508,7 +511,7 @@ namespace UnityEditor.VFX
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Object) != 0)
                                 callSG.builder.AppendLine("INSG.ObjectSpacePosition = TransformWorldToObject(posRelativeWS);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.View) != 0)
-                                callSG.builder.AppendLine("INSG.ViewSpacePosition = TransformPositionVFXToView(i.VFX_VARYING_POSWS);");
+                                callSG.builder.AppendLine("INSG.ViewSpacePosition = VFXTransformPositionWorldToView(posRelativeWS);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.Tangent) != 0)
                                 callSG.builder.AppendLine("INSG.TangentSpacePosition = float3(0.0f, 0.0f, 0.0f);");
                             if ((graphCode.requirements.requiresPosition & NeededCoordinateSpace.AbsoluteWorld) != 0)
