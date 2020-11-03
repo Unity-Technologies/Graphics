@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void OpenWindow()
         {
             var window = GetWindow<HDWizard>("HD Render Pipeline Wizard");
-            window.minSize = new Vector2(420, 450);
+            window.minSize = new Vector2(500, 450);
             HDProjectSettings.wizardPopupAlreadyShownOnce = true;
         }
 
