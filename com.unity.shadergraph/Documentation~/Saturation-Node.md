@@ -9,7 +9,7 @@ Adjusts the saturation of input **In** by the amount of input **Saturation**. A 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | In      | Input | Vector 3 | None | Input value |
-| Saturation      | Input | Vector 1 | None | Saturation value |
+| Saturation      | Input | Float    | None | Saturation value |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Generated Code Example

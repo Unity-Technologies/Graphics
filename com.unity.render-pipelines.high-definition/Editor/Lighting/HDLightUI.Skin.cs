@@ -116,6 +116,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent contactShadows = new GUIContent("Enable", "Enable support for Contact Shadows on this Light. This is better for lights with a lot of visible shadows.");
             public readonly GUIContent rayTracedContactShadow = new GUIContent("Ray Tracing (Preview)", "Uses ray tracing to compute the contact shadow for a light.");
             public readonly GUIContent shadowUpdateMode = new GUIContent("Update Mode", "Specifies when HDRP updates the shadow map.");
+            public readonly GUIContent shadowAlwaysDrawDynamic = new GUIContent("Always draw dynamic", "Specifies whether HDRP renders dynamic shadow caster every frame regardless of the update mode.");
+            public readonly GUIContent shadowUpdateOnLightTransformChange = new GUIContent("Update on light movement", "Whether a cached shadow map will be automatically updated when the light transform changes.");
             public readonly GUIContent useCustomSpotLightShadowCone = new GUIContent("Custom Spot Angle", "When enabled, this Spot Light uses the custom angle for shadow map rendering.");
             public readonly GUIContent customSpotLightShadowCone = new GUIContent("Shadow Angle", "Controls the custom angle this Spot Light uses for shadow map rendering.");
 

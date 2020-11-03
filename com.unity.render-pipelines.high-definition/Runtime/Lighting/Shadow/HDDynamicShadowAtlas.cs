@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     partial class HDDynamicShadowAtlas : HDShadowAtlas
     {
         readonly List<HDShadowResolutionRequest>    m_ShadowResolutionRequests = new List<HDShadowResolutionRequest>();
+        readonly List<HDShadowRequest>              m_MixedRequestsPendingBlits = new List<HDShadowRequest>();
 
         float m_RcpScaleFactor = 1;
         HDShadowResolutionRequest[] m_SortedRequestsCache;
@@ -77,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 viewport.x = curX;
                 viewport.y = curY;
-                shadowRequest.atlasViewport = viewport;
+                shadowRequest.dynamicAtlasViewport = viewport;
                 shadowRequest.resolution = viewport.size;
                 curX += viewport.width;
             }
@@ -120,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     y += r.height;
                     currentY = Mathf.Max(currentY, y);
                     currentMaxXCache = Mathf.Max(currentMaxXCache, currentMaxX + r.width);
-                    m_ShadowResolutionRequests[index].atlasViewport = r;
+                    m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
                     index++;
                 } while (y < currentMaxY && index < m_ShadowResolutionRequests.Count);
                 currentMaxY = Mathf.Max(currentMaxY, currentY);
@@ -137,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     x += r.width;
                     currentX = Mathf.Max(currentX, x);
                     currentMaxYCache = Mathf.Max(currentMaxYCache, currentMaxY + r.height);
-                    m_ShadowResolutionRequests[index].atlasViewport = r;
+                    m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
                     index++;
                 } while (x < currentMaxX && index < m_ShadowResolutionRequests.Count);
                 currentMaxX = Mathf.Max(currentMaxX, currentX);
@@ -151,11 +152,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Scale down every shadow rects to fit with the current atlas size
             foreach (var r in m_ShadowResolutionRequests)
             {
-                Vector4 s = new Vector4(r.atlasViewport.x, r.atlasViewport.y, r.atlasViewport.width, r.atlasViewport.height);
+                Vector4 s = new Vector4(r.dynamicAtlasViewport.x, r.dynamicAtlasViewport.y, r.dynamicAtlasViewport.width, r.dynamicAtlasViewport.height);
                 Vector4 reScaled = Vector4.Scale(s, scale);
 
-                r.atlasViewport = new Rect(reScaled.x, reScaled.y, reScaled.z, reScaled.w);
-                r.resolution = r.atlasViewport.size;
+                r.dynamicAtlasViewport = new Rect(reScaled.x, reScaled.y, reScaled.z, reScaled.w);
+                r.resolution = r.dynamicAtlasViewport.size;
             }
         }
 
@@ -164,10 +165,67 @@ namespace UnityEngine.Rendering.HighDefinition
             base.DisplayAtlas(atlasTexture, cmd, debugMaterial, atlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb, m_RcpScaleFactor);
         }
 
+        public void AddRequestToPendingBlitFromCache(HDShadowRequest request)
+        {
+            if (request.isMixedCached)
+                m_MixedRequestsPendingBlits.Add(request);
+        }
+
+        public void ClearPendingBlitsRequests()
+        {
+            m_MixedRequestsPendingBlits.Clear();
+        }
+
+        public bool HasPendingBlitsRequests()
+        {
+            return m_MixedRequestsPendingBlits.Count > 0;
+        }
+
+        internal struct ShadowBlitParameters
+        {
+            public List<HDShadowRequest> requestsWaitingBlits;
+            public Material              blitMaterial;
+            public MaterialPropertyBlock blitMaterialPropertyBlock;
+            public Vector2Int            cachedShadowAtlasSize;
+
+        }
+
+        internal ShadowBlitParameters PrepareShadowBlitParameters(HDCachedShadowAtlas cachedAtlas, Material blitMaterial, MaterialPropertyBlock blitMpb)
+        {
+            ShadowBlitParameters parameters = new ShadowBlitParameters();
+            parameters.requestsWaitingBlits = m_MixedRequestsPendingBlits;
+            parameters.blitMaterial = blitMaterial;
+            parameters.blitMaterialPropertyBlock = blitMpb;
+            parameters.cachedShadowAtlasSize = new Vector2Int(cachedAtlas.width, cachedAtlas.height);
+            return parameters;
+        }
+
+        static internal void BlitCachedIntoAtlas(in ShadowBlitParameters parameters, RTHandle dynamicTexture, RTHandle cachedTexture, CommandBuffer cmd)
+        {
+            foreach (var request in parameters.requestsWaitingBlits)
+            {
+                cmd.SetRenderTarget(dynamicTexture);
+
+                cmd.SetViewport(request.dynamicAtlasViewport);
+
+                Vector4 sourceScaleBias = new Vector4(request.cachedAtlasViewport.width / parameters.cachedShadowAtlasSize.x,
+                    request.cachedAtlasViewport.height / parameters.cachedShadowAtlasSize.y,
+                    request.cachedAtlasViewport.x / parameters.cachedShadowAtlasSize.x,
+                    request.cachedAtlasViewport.y / parameters.cachedShadowAtlasSize.y);
+
+                parameters.blitMaterialPropertyBlock.SetTexture(HDShaderIDs._CachedShadowmapAtlas, cachedTexture);
+                parameters.blitMaterialPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, sourceScaleBias);
+                CoreUtils.DrawFullScreen(cmd, parameters.blitMaterial, parameters.blitMaterialPropertyBlock, 0);
+            }
+
+            parameters.requestsWaitingBlits.Clear();
+        }
+
         public override void Clear()
         {
             base.Clear();
             m_ShadowResolutionRequests.Clear();
+            m_MixedRequestsPendingBlits.Clear();
         }
     }
 }

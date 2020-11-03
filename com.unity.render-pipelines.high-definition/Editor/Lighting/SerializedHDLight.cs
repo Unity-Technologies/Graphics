@@ -94,6 +94,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shadowTint;
         public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
+        public SerializedProperty shadowAlwaysDrawDynamic;
+        public SerializedProperty shadowUpdateUponTransformChange;
         public SerializedScalableSettingValue shadowResolution;
 
         // Bias control
@@ -408,6 +410,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 shadowTint = o.Find("m_ShadowTint");
                 penumbraTint = o.Find("m_PenumbraTint");
                 shadowUpdateMode = o.Find("m_ShadowUpdateMode");
+                shadowAlwaysDrawDynamic = o.Find("m_AlwaysDrawDynamicShadows");
+                shadowUpdateUponTransformChange = o.Find("m_UpdateShadowOnLightMovement");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
 				slopeBias = o.Find("m_SlopeBias");

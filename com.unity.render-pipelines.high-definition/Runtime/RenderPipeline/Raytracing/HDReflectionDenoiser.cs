@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // De-noising parameters
         public int maxKernelSize;
         public float historyValidity;
+        public int singleReflectionBounce;
 
         // Kernels
         public int temporalAccumulationKernel;
@@ -75,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        internal ReflectionDenoiserParameters PrepareReflectionDenoiserParameters(HDCamera hdCamera, float historyValidity, int maxKernelSize)
+        internal ReflectionDenoiserParameters PrepareReflectionDenoiserParameters(HDCamera hdCamera, float historyValidity, int maxKernelSize, bool singleReflectionBounce)
         {
             ReflectionDenoiserParameters reflDenoiserParams = new ReflectionDenoiserParameters();
             // Camera parameters
@@ -86,6 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // De-noising parameters
             reflDenoiserParams.historyValidity = historyValidity;
             reflDenoiserParams.maxKernelSize = maxKernelSize;
+            reflDenoiserParams.singleReflectionBounce = singleReflectionBounce ? 1 : 0;
 
             // Kernels
             reflDenoiserParams.temporalAccumulationKernel = s_TemporalAccumulationKernel;
@@ -130,6 +132,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer0);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, reflDenoiserResources.motionVectorBuffer);
             cmd.SetComputeFloatParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._HistoryValidity, reflDenoiserParameters.historyValidity);
+            cmd.SetComputeIntParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._SingleReflectionBounce, reflDenoiserParameters.singleReflectionBounce);
+            
             cmd.DispatchCompute(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, numTilesX, numTilesY, reflDenoiserParameters.viewCount);
 
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer0);

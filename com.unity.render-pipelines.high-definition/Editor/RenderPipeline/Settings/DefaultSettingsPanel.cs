@@ -69,6 +69,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public void DoGUI(string searchContext)
             {
+                if (HDRenderPipeline.defaultAsset == null)
+                {
+                    EditorGUILayout.HelpBox("Base SRP Asset is not a HDRenderPipelineAsset.", MessageType.Warning);
+                    return;
+                }
+
                 m_SerializeHDRPAsset.Update();
 
                 m_ScrollViewPosition = GUILayout.BeginScrollView(m_ScrollViewPosition, EditorStyles.largeLabel);
@@ -98,6 +104,9 @@ namespace UnityEditor.Rendering.HighDefinition
             /// <param name="rootElement"></param>
             public void OnActivate(string searchContext, VisualElement rootElement)
             {
+                if (HDRenderPipeline.defaultAsset == null)
+                    return;
+
                 m_ScrollViewPosition = Vector2.zero;
                 InitializeCustomPostProcessesLists();
 
@@ -201,7 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var hdrpAsset = HDRenderPipeline.defaultAsset;
                 if (hdrpAsset == null)
                 {
-                    EditorGUILayout.HelpBox("Base SRP Asset is not an HDRenderPipelineAsset.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Base SRP Asset is not a HDRenderPipelineAsset.", MessageType.Warning);
                     return;
                 }
 

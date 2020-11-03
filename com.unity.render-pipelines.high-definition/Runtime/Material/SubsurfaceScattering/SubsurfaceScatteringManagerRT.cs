@@ -467,7 +467,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 rtsssResult = DenoiseRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, normalBuffer, motionVectorsBuffer);
 
                 // Compose it
-                return CombineRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
+                rtsssResult = CombineRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
+
+                // Push this version of the texture for debug
+                PushFullScreenDebugTexture(renderGraph, diffuseBuffer, FullScreenDebugMode.RayTracedSubSurface);
+
+                // Return the result
+                return rtsssResult;
             }
         }
     }

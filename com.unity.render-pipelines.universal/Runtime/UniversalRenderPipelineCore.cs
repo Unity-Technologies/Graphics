@@ -179,7 +179,12 @@ namespace UnityEngine.Rendering.Universal
         public bool isDitheringEnabled;
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
-        internal ScriptableRenderer renderer;
+
+        /// <summary>
+        /// Returns the current renderer used by this camera.
+        /// <see cref="ScriptableRenderer"/>
+        /// </summary>
+        public ScriptableRenderer renderer;
 
         /// <summary>
         /// True if this camera is resolving rendering to the final camera render target.
@@ -362,7 +367,7 @@ namespace UnityEngine.Rendering.Universal
         // directional lights to return 1.0 for both distance and angle attenuation
         static Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         static Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-        static Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
+        static Vector4 k_DefaultLightsProbeChannel = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
@@ -417,11 +422,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
+#if UNITY_2021_1_OR_NEWER
+        void SortCameras(List<Camera> cameras)
+        {
+            if (cameras.Count > 1)
+                cameras.Sort(cameraComparison);
+        }
+#else
         void SortCameras(Camera[] cameras)
         {
             if (cameras.Length > 1)
                 Array.Sort(cameras, cameraComparison);
         }
+#endif
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, int msaaSamples, bool needsAlpha)
@@ -628,16 +641,11 @@ namespace UnityEngine.Rendering.Universal
 
             Light light = lightData.light;
 
-            lightOcclusionProbeChannel = Vector4.zero;
             if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                 0 <= light.bakingOutput.occlusionMaskChannel &&
                 light.bakingOutput.occlusionMaskChannel < 4)
             {
                 lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
-            }
-            else
-            {
-                lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
             }
         }
     }

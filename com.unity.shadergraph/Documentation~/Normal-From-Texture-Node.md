@@ -13,8 +13,8 @@ The strength of the created normal map can be defined by inputs **Offset** and *
 | Texture      | Input | Texture | None | Height map |
 | UV      | Input | Vector 2 | UV | Texture coordinates |
 | Sampler      | Input | Sampler State | None | Sampler for **Texture** |
-| Offset      | Input | Vector 1 | None | Amount to offset samples |
-| Strength      | Input | Vector 1 | None | Strength multiplier |
+| Offset      | Input | Float    | None | Amount to offset samples |
+| Strength      | Input | Float    | None | Strength multiplier |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Generated Code Example

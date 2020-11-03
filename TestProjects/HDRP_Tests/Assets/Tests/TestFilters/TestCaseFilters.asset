@@ -79,6 +79,15 @@ MonoBehaviour:
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: c59b82120d32fbf4d96793fb7e0ec339, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: With rendergraph - unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -88,19 +97,19 @@ MonoBehaviour:
     Reason: Memory allocation test failed, 2 allocations detected.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 3ac6122326e687b439415cfacaf7d48e, type: 3}
+    - {fileID: 102900000, guid: cf78ea2211e5e6c45b8a85261bb291dd, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 18
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
-    Reason: cause crash on sucessive XR test
+    Reason: instability on Yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -109,7 +118,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -230,3 +239,21 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 86f8f2a99d6720b48abc19c684103d74, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato XR
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 708bd21bc204d2342bc1702a5a6de1d3, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: mising object on Yamato (but not locally)

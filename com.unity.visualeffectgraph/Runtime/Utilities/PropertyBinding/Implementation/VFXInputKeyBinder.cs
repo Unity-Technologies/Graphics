@@ -29,15 +29,19 @@ namespace UnityEngine.VFX.Utility
 
         private void Start()
         {
+#if ENABLE_LEGACY_INPUT_MANAGER
             if (UseKeySmooth)
             {
                 m_CachedSmoothValue = Input.GetKeyDown(Key) ? 1.0f : 0.0f;
             }
+#endif
         }
 
         public override void UpdateBinding(VisualEffect component)
         {
+#if ENABLE_LEGACY_INPUT_MANAGER
             bool press = Input.GetKey(Key);
+
             component.SetBool(m_KeyProperty, press);
             if (UseKeySmooth)
             {
@@ -45,6 +49,7 @@ namespace UnityEngine.VFX.Utility
                 m_CachedSmoothValue = Mathf.Clamp01(m_CachedSmoothValue);
                 component.SetFloat(m_KeySmoothProperty, m_CachedSmoothValue);
             }
+#endif
         }
 
         public override string ToString()

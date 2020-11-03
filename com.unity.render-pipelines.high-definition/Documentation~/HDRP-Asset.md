@@ -115,6 +115,10 @@ Use the Reflection settings to configure the max number and resolution of the pr
 | **Reflection Cubemap Size**              | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
 | **Probe Cache Size**                     | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
 | **Planar Reflection Atlas Size**         | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution. |
+| ****Planar Resolution Tiers**** |                                                              |
+| **- L**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Low** use this resolution for their planar reflection. |
+| **- M**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Medium** use this resolution for their planar reflection. |
+| **- H**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **High** use this resolution for their planar reflection. |
 | **Max Planar Reflection On Screen**      | The maximum number of planar reflections on screen at once.  |
 | **Maximum Environment Lights on Screen** | The maximum number of environment Lights HDRP can manage on screen at once. |
 

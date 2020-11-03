@@ -78,7 +78,7 @@ VaryingsPassToDS InterpolateWithBaryCoordsPassToDS(VaryingsPassToDS input0, Vary
 
 void MotionVectorPositionZBias(VaryingsToPS input)
 {
-#if defined(UNITY_REVERSED_Z)
+#if UNITY_REVERSED_Z
     input.vmesh.positionCS.z -= unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
 #else
     input.vmesh.positionCS.z += unity_MotionVectorsParams.z * input.vmesh.positionCS.w;

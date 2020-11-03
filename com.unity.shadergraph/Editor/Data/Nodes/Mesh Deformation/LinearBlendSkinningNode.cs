@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Mesh Deformation", "Linear Blend Skinning")]
+    [Title("Input", "Mesh Deformation", "Linear Blend Skinning")]
     class LinearBlendSkinningNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireVertexSkinning, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const int kPositionSlotId = 0;

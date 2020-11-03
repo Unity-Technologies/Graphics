@@ -150,7 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Evaluate the history validity
                 float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
                 SSGIDenoiser ssgiDenoiser = GetSSGIDenoiser();
-                SSGIDenoiser.SSGIDenoiserOutput denoiserOutput = ssgiDenoiser.Denoise(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectorsBuffer, traceOutput.outputBuffer0, traceOutput.outputBuffer1, !giSettings.fullResolutionSS, historyValidity: historyValidity);
+                SSGIDenoiser.SSGIDenoiserOutput denoiserOutput = ssgiDenoiser.Denoise(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectorsBuffer, traceOutput.outputBuffer0, traceOutput.outputBuffer1, m_DepthBufferMipChainInfo, !giSettings.fullResolutionSS, historyValidity: historyValidity);
                 // Propagate the history
                 PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolutionSS, false);
 

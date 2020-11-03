@@ -9,9 +9,9 @@ test_platforms:
     extra_utr_flags:
       - --extra-editor-arg="-xr-tests" 
   - type: playmode
-    name: playmode_RenderGraph
+    name: playmode_NonRenderGraph
     extra_utr_flags:
-      - --extra-editor-arg="-rendergraph-tests"
+      - --extra-editor-arg="-non-rendergraph-tests"
   - type: editmode
   - type: Standalone
     timeout:
@@ -43,42 +43,67 @@ platforms:
           type: Unity::VM
           image: graphics-foundation/win10-dxr:stable
           flavor: b1.xlarge
-          model: rtx2080
   - name: OSX
     apis:
       - Metal
   - name: Linux
     apis:
       - Vulkan
+build_configs:
+#- name: il2cpp_apiNet2
+#  scripting_backend: IL2CPP
+#  api_level: NET_2_0
+#- name: il2cpp_apiNet4
+#  scripting_backend: IL2CPP
+#  api_level: NET_4_6
+- name: mono_apiNet2
+  scripting_backend: Mono2x
+  api_level: NET_2_0
+#- name: mono_apiNet4
+#  scripting_backend: Mono2x
+#  api_level: NET_4_6
+color_spaces:
+  - Linear
+#  - gamma
 all:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - editmode
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
+        # - playmode_NonRenderGraph
         - Standalone
     - platform: Win
       api: DX12
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR
         - Standalone
     - platform: Win
       api: Vulkan
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR
         - Standalone
     - platform: OSX
       api: Metal
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - editmode
         - playmode
@@ -86,9 +111,11 @@ all:
     - project: HDRP_DXR
       platform: Win
       api: DX12
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
+        # - playmode_NonRenderGraph
     - project: HDRP_Hybrid
       all: true

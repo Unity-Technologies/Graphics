@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.Block
                 }
                 else //if(spawnMode == SpawnMode.Random)
                 {
-                    var rand = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+                    var rand = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false, new RandId(this));
                     vertexIndex = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(meshVertexCount));
                 }
                 yield return new VFXNamedExpression(vertexIndex, "vertexIndex");

@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "DXR is not activated!");
             public static readonly ConfigStyle dxrResources = new ConfigStyle(
                 label: "DXR resources",
-                error: "There is an issue with the DXR resources! Or your hardware and/or OS cannot be used for DXR! (unfixable in second case)");
+                error: "There is an issue with the DXR resources! Alternatively, Direct3D is not set as API (can be fixed with option above) or your hardware and/or OS cannot be used for DXR! (unfixable)");
             public static readonly ConfigStyle dxrScene = new ConfigStyle(
                 label: "Default DXR scene prefab",
                 error: "Default DXR scene prefab must be set to create HD templated scene!");
