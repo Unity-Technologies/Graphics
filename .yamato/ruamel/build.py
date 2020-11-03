@@ -55,7 +55,7 @@ def add_comments():
             yml = f.read()
             f.seek(0, 0)
             f.write(comment)
-            f.write('{% metadata_file .yamato/latest_editor_versions_trunk.metafile -%}\n\n')
+            f.write('{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}\n\n')
             f.write(yml)
 
 def get_metafile(metafile_name, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
