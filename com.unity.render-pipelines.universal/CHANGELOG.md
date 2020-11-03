@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed MSAA override on camera does not work in non-XR project if target eye is selected to both eye.
 - Fixed a compiler error in BakedLit shader when using Hybrid Renderer.
 - Fixed XR camera fov can be changed through camera inspector.
+- Fixed an issue causing materials to be upgraded multiple times.
 
 ## [10.1.0] - 2020-10-12
 ### Added
