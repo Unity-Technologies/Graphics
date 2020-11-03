@@ -290,7 +290,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { PassVariant(LitPasses.Forward,         CorePragmas.DOTSForward) },
-                    { LitPasses.DataExtraction },
+                    { PassVariant(LitPasses.DataExtraction, CorePragmas.DOTSDataExtraction) },
                     { LitPasses.GBuffer },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
