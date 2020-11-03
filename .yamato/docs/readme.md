@@ -172,17 +172,11 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     - There are 3 types of revisions retrieved from _unity-downloader-cli_: `staging` corresponds to `--fast`, `latest_public` corresponds to `--published-only`, and `latest_internal` corresponds to no flags
     - There are 2 `merge-all` jobs, which are identical except for triggers and dependencies:
         - _[ABV] [CI]_ is the main one used in the CI flow. It is has the branch trigger for versions file, and the dependent merge revision jobs have ABV as dependency (updated revisions only get merged on green ABV)
-        - _[no ABV] [no CI]_ is the manual counterpart of CI flow. It has no triggers, and it does not have ABV dependencies, i.e. it is essentially a forced push of updated revisions (since no ABV is run, it merges whatever revisions are on ci branch into target, and regenerates ymls based on those). It is useful for either testing the editor pinning, or to force updating the revisions when ABV dependency is seen as blocking.
-    - Setup on master: 
-        - 2 nightlies, one for trunk and other for 2020.2 (nightlies contain ABV, package pack/test all, and some additional jobs)
-        - ABV on PRs is triggered for 2020.2 (change under `_abv.metafile` `abv.trigger_editors`)
-        - Trunk targets latest_internal, 2020.2 targets staging (editor revisions)
-        - Package publish all (dependencies) run against trunk (change under `_packages.metafile` `publish_all_track`)
+        - _[no ABV] [no CI]_ is the manual counterpart of CI flow. It has no triggers, and it does not have ABV dependencies, i.e. it is essentially a forced push of updated revisions (since no ABV is run, it merges whatever revisions are on ci branch into target). It is useful for either testing the editor pinning, or to force updating the revisions when ABV dependency is seen as blocking.
     - Workflow in short:
-        - Update job runs nightly on target-branch. It merges target-branch into ci-branch (syncs), gets new revisions for all tracks and pushes these together with updated ymls to ci branch
-        - Merge job is triggered on changes to editor version files on ci-branch. It runs a merge job per each track, which (if the ABV with updated revisions passes green) pushes the corresponding editor revisions file to target-branch. Once everything is done, it regenerates all ymls based on whichever revisions have reached master branch.
-    - NOTE: _Merge [track] revisions to master [ABV]_ job only merges the `latest_editor_versions_[track].metafile`, but doesn't update ymls (because its meant as a child-dependency of the merge-all job). To update the ymls, run _Merge all_ job or make a manual PR with updated ymls.
-    - Workflow in details is on figure below
+        - Update job runs nightly on target-branch. It merges target-branch into ci-branch (syncs), gets new revisions for all tracks and pushes these to ci branch
+        - Merge job is triggered on changes to editor version files on ci-branch. It runs a merge job per each track, which (if the ABV with updated revisions passes green) pushes the corresponding editor revisions file to target-branch. 
+    - Workflow in details is on figure below (figure is for 2 tracks, but currently master works with 1 track)
     ![Editor pinning flow](editor_pinning.png)
 
 - Running editor pinning locally:
