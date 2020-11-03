@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static Material s_ActiveMaterial = null;
 
-        public static Material sActiveMaterial => s_ActiveMaterial;
+        internal static Material sActiveMaterial => s_ActiveMaterial;
 
         internal static void StartScope()
         {
