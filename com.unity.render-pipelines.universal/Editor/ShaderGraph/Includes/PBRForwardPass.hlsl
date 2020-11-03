@@ -97,23 +97,18 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 }
 
 PackedVaryings vertExtraction(
-    Attributes input,
-    float2 uv2 : TEXCOORD2,
-    float2 uv3 : TEXCOORD3,
-    float2 uv4 : TEXCOORD4,
-    float2 uv5 : TEXCOORD5,
-    float2 uv6 : TEXCOORD6,
-    float2 uv7 : TEXCOORD7)
+    Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
     PackedVaryings packedOutput = (PackedVaryings)0;
     packedOutput = PackVaryings(output);
 
+/*  Not yet supported.
     if (UNITY_DataExtraction_Space == 0)
-        packedOutput.positionCS = float4(input.uv0.xy, 0.0F, 1.0f);
+        packedOutput.positionCS = float4(uv0, 0.0F, 1.0f);
     else if (UNITY_DataExtraction_Space == 1)
-        packedOutput.positionCS = float4(input.uv1.xy, 0.0F,  1.0f);
+        packedOutput.positionCS = float4(uv1, 0.0F,  1.0f);
     else if (UNITY_DataExtraction_Space == 2)
         packedOutput.positionCS = float4(uv2, 0.0F, 1.0f);
     else if (UNITY_DataExtraction_Space == 3)
@@ -126,7 +121,7 @@ PackedVaryings vertExtraction(
         packedOutput.positionCS = float4(uv6, 0.0F, 1.0f);
     else if (UNITY_DataExtraction_Space == 7)
         packedOutput.positionCS = float4(uv7, 0.0F, 1.0f);
-
+*/
     return packedOutput;
 }
 
