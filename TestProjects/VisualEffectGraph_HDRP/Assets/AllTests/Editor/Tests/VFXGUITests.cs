@@ -4,6 +4,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
+using UnityEngine.TestTools;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
@@ -15,7 +17,7 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXGUITests
     {
-        private const int testAssetCount = 8;
+        private const int testAssetCount = 9;
         private VisualEffectAsset[] m_GuiTestAssets = new VisualEffectAsset[testAssetCount];
 
         [OneTimeSetUp]
@@ -323,6 +325,40 @@ namespace UnityEditor.VFX.Test
         {
             EditTestAsset(4);
             CreateAllOperators();
+        }
+
+
+        [UnityTest]
+        public IEnumerator CollapseTest()
+        {
+            EditTestAsset(8);
+
+            var builtInItem = VFXLibrary.GetOperators().Where(t => typeof(VFXDynamicBuiltInParameter).IsAssignableFrom(t.modelType)).First();
+
+            var builtIn = m_ViewController.AddVFXOperator(Vector2.zero, builtInItem);
+
+            yield return null;
+
+            builtIn.collapsed = true;
+
+            yield return null;
+
+            yield return null;
+
+            builtIn.collapsed = false;
+
+            yield return null;
+
+            yield return null;
+
+            builtIn.superCollapsed = true;
+
+            yield return null;
+
+            yield return null;
+
+            builtIn.superCollapsed = false;
+
         }
 
         List<VFXOperator> CreateAllOperators()

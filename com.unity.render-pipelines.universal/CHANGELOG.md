@@ -6,17 +6,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
+
+### Fixed
+- Removed the warning about mis-matched vertex streams when creating a default Particle System. [case 1285272](https://issuetracker.unity3d.com/issues/particles-urp-default-material-shows-warning-in-inspector)
+- Fixed latest mockHMD renderviewport scale doesn't fill whole view after scaling. [case 1286161] (https://issuetracker.unity3d.com/issues/xr-urp-renderviewportscale-doesnt-fill-whole-view-after-scaling)
+- Fixed camera renders black in XR when user sets invalid MSAA value.
+- Fixed an issue causing additional lights to stop working when set as the sun source. [case 1278768](https://issuetracker.unity3d.com/issues/urp-every-light-type-is-rendered-as-directional-light-if-it-is-set-as-sun-source-of-the-environment)
+- Fixed an issue causing passthrough camera to not render. [case 1283894](https://issuetracker.unity3d.com/product/unity/issues/guid/1283894/) 
+- Fixed an issue that caused a null reference when Lift Gamma Gain was being displayed in the Inspector and URP was upgraded to a newer version.  [case 1283588](https://issuetracker.unity3d.com/issues/argumentnullexception-is-thrown-when-upgrading-urp-package-and-volume-with-lift-gamma-gain-is-focused-in-inspector)
+- Fixed an issue where soft particles were not rendered when depth texture was disabled in the URP Asset. [case 1162556](https://issuetracker.unity3d.com/issues/lwrp-unlit-particles-shader-is-not-rendered-when-soft-particles-are-enabled-on-built-application)
+- Fixed an issue where soft particles were rendered opaque on OpenGL. [case 1226288](https://issuetracker.unity3d.com/issues/urp-objects-that-are-using-soft-particles-are-rendered-opaque-when-opengl-is-used)
+- Fixed an issue where the depth texture sample node used an incorrect texture in some frames. [case 1268079](https://issuetracker.unity3d.com/issues/urp-depth-texture-sample-node-does-not-use-correct-texture-in-some-frames)
+- Fixed a compiler error in BakedLit shader when using Hybrid Renderer.
+- Fixed XR camera fov can be changed through camera inspector.
 
 ## [10.2.0] - 2020-10-19
 
 ### Changed
 - Changed RenderObjectsFeature UI to only expose valid events. Previously, when selecting events before BeforeRenderingPrepasses objects would not be drawn correctly as stereo and camera setup only happens before rendering opaques objects.
+- Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 
 ### Fixed
 - Fixed the Unlit shader not being SRP Batcher compatible on OpenGLES/OpenGLCore. [case 1263720](https://issuetracker.unity3d.com/issues/urp-mobile-srp-batcher-is-not-visible-on-mobile-devices-in-frame-debugger)
 - Fixed an issue with soft particles not rendering correctly for overlay cameras with post processing. [case 1241626](https://issuetracker.unity3d.com/issues/soft-particles-does-not-fade-out-near-the-opaque-surfaces-when-post-processing-is-enabled-on-a-stacked-camera)
+- Fixed MSAA override on camera does not work in non-XR project if target eye is selected to both eye.
+
 
 ## [10.1.0] - 2020-10-12
 ### Added
@@ -72,6 +88,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed MissingReferenceException when removing Missing camera from camera stack by removing Missing camera label. [case 1252263](https://issuetracker.unity3d.com/issues/universal-rp-missingreferenceexception-errors-when-removing-missing-camera-from-stack)
 - Fixed slow down in the editor when editing properties in the UI for renderer features. [case 1279804](https://issuetracker.unity3d.com/issues/a-short-freeze-occurs-in-the-editor-when-expanding-or-collapsing-with-the-arrow-the-renderer-feature-in-the-forward-renderer)
 - Fixed test 130_UnityMatrixIVP on OpenGL ES 3
+- Fixed MSAA on Metal MacOS and Editor.
 
 ## [10.0.0] - 2020-06-10
 ### Added

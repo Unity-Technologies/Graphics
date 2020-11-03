@@ -42,11 +42,20 @@ Pass
     $VaryingsMeshToPS.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
-    $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
+    
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+
+    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
+
     $splice(GraphDefines)
 
     $splice(HybridV1InjectedBuiltinProperties)
+
+    // -- Properties used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
 
     // Includes
     $splice(PreGraphIncludes)
