@@ -457,12 +457,24 @@ class VisualEffectAssetEditor : Editor
         bool newExactFixedTimeStep = false;
         EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
         EditorGUI.BeginDisabledGroup((!initialFixedDeltaTime.HasValue || !initialFixedDeltaTime.Value) && !resourceUpdateModeProperty.hasMultipleDifferentValues);
+
+        bool forceApply = false;
+#if CASE_1289829_HAS_BEEN_FIXED
         newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+#else
+        if (initialProcessEveryFrame.HasValue && initialProcessEveryFrame.Value)
+        {
+            forceApply = true;
+            newExactFixedTimeStep = false;
+            Debug.Log("Exact Fixed Time has been automatically reset to false to avoid an unexpected behavior.");
+        }
+#endif
+
         EditorGUI.EndDisabledGroup();
         EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
         bool newIgnoreTimeScale = EditorGUILayout.Toggle(ignoreTimeScaleContent, initialIgnoreGameTimeScale ?? false);
 
-        if (EditorGUI.EndChangeCheck())
+        if (EditorGUI.EndChangeCheck() || forceApply)
         {
             if (!resourceUpdateModeProperty.hasMultipleDifferentValues)
             {
