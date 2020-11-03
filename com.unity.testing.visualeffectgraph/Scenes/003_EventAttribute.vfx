@@ -1418,7 +1418,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114590727687198930}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 4
+  m_GraphVersion: 6
   m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
@@ -2224,6 +2224,8 @@ MonoBehaviour:
   - {fileID: 114555564021938684}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 0
+  compositionDirection: 0
   positionMode: 1
   spawnMode: 0
 --- !u!114 &114594740755427554
