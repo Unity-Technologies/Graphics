@@ -49,7 +49,7 @@ def assert_dependencies():
                     print(f'Mistake in file {yml_file}#{job_id} for dependency {dep_file}#{dep_job_id}')
 
 
-def add_comments():
+def add_headers():
     for yml_file, yml_value in yml_files.items():
         with open(os.path.join(root_dir,yml_value['path']), 'r+') as f:
             yml = f.read()
@@ -58,9 +58,9 @@ def add_comments():
             f.write('{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}\n\n---\n\n')
             f.write(yml)
 
-def get_metafile(metafile_name, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
+def get_metafile(metafile_name):
     metafile = yml_load(metafile_name)
-    return format_metafile(metafile, shared, latest_editor_versions, unfold_agents_root_keys, unfold_test_platforms_root_keys)
+    return format_metafile(metafile, shared)
 
 
 if __name__== "__main__":
@@ -77,11 +77,7 @@ if __name__== "__main__":
 
     # read shared file
     shared = yml_load(os.path.join(config_dir,'__shared.metafile'))
-    editor_tracks = shared['editors']
-    latest_editor_versions = {}
-    # for editor in editor_tracks:
-    #     if editor['editor_pinning']:
-    #         latest_editor_versions[editor['track']] = yml_load(f'_latest_editor_versions_{str(editor["track"])}.metafile')
+    
 
     # create editor
     print(f'Running: editor')
@@ -124,6 +120,6 @@ if __name__== "__main__":
     print(f'Checking dependency paths')
     assert_dependencies()
 
-    # # add comments on top of all yml files
-    print(f'Adding comments')
-    add_comments()
+    # # add headers on top of all yml files (comment + metafile path)
+    print(f'Adding headers')
+    add_headers()
