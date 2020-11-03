@@ -64,7 +64,7 @@ float4 OutputExtraction(ExtractionInputs inputs)
     #endif
 
     if (UNITY_DataExtraction_Mode == RENDER_OBJECT_ID)
-        return float4(asint(unity_LODFade.z), 0, 0, 1);
+         return PackEntityIdToRGBA8888(asuint(unity_LODFade.z));
     //@TODO
     if (UNITY_DataExtraction_Mode == RENDER_DEPTH)
         return 0;
