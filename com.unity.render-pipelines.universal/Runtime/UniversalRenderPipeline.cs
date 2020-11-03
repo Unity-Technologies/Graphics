@@ -9,6 +9,7 @@ using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.LWRP
 {
