@@ -22,6 +22,7 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS (112)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (113)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK (114)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_ENTITY_ID (115)
 
 // Generated from UnityEngine.Rendering.HighDefinition.Builtin+BuiltinData
 // PackingRules = Exact
@@ -42,6 +43,7 @@ struct BuiltinData
     uint renderingLayers;
     float depthOffset;
     real4 vtPackedFeedback;
+    uint entityId;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.Builtin+LightTransportData
@@ -105,6 +107,9 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
             break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_VT_PACKED_FEEDBACK:
             result = builtindata.vtPackedFeedback.xyz;
+            break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_ENTITY_ID:
+            result = GetIndexColor(builtindata.entityId);
             break;
     }
 }

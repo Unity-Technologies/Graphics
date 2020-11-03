@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
                         break;
                     case Camera.RenderRequestMode.EntityId:
-                        //@TODO:
+                        debug.SetDebugViewCommonMaterialProperty(MaterialSharedProperty.EntityID);
                         break;
                     case Camera.RenderRequestMode.BaseColor:
                         //@TODO: This should perform metallic / specular conversion

@@ -372,6 +372,7 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
     UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
+    UNITY_DOTS_INSTANCED_PROP(uint2,    unity_EntityId)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
@@ -389,6 +390,7 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
+#define unity_EntityId              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(uint2,    Metadata_unity_EntityId)
 #define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
 #define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
 
