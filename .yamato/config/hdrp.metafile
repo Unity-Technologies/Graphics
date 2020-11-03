@@ -74,7 +74,7 @@ all:
         - editmode
         - playmode
         - playmode_XR
-        # - playmode_NonRenderGraph
+        - playmode_NonRenderGraph
         - Standalone
     - platform: Win
       api: DX12
@@ -115,6 +115,6 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        # - playmode_NonRenderGraph
+        - playmode_NonRenderGraph
     - project: HDRP_Hybrid
       all: true

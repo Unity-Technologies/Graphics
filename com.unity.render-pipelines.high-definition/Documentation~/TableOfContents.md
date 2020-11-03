@@ -73,9 +73,13 @@
       * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
+    * [Cottom/Wool Shader](cotton-wool-shader.md)
+    * [Eye Shader](eye-shader.md)
+    * [Hair Shader](hair-shader.md)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader)
     * [Lit Shader](Lit-Shader)
+    * [Silk Shader](silk-shader.md)
     * [Terrain Lit Shader](Terrain-Lit-Shader.md)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
@@ -141,6 +145,8 @@
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
   * [Propagating NaNs](Post-Processing-Propagating-NaNs)
+* UI
+  * [UI Best Pratices](UI-Best-Practices)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
@@ -155,6 +161,7 @@
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
   * Shader Graph Keywords
     * [Raytracing Quality](SGNode-Raytracing-Quality)
+  * [Ray Tracing and Animations](Ray-Tracing-Animations.md)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components
@@ -177,5 +184,6 @@
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
   * [Editing Frame Settings at Runtime](Frame-Settings-API)
+  * [Render Graph](render-graph.md)
 * [HDRP Glossary](Glossary)
 * [Known Issues and How To Fix Them](Known-Issues)
