@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 MigrateTo(ShaderGraphVersion.FirstTimeMigration);
                 systemData.firstTimeMigrationExecuted = true;
                 OnBeforeSerialize();
+                systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
             }
 
             foreach (var subShader in EnumerateSubShaders())

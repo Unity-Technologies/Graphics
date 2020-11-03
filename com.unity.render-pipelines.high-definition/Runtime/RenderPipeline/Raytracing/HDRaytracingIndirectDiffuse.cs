@@ -411,6 +411,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     DenoiseIndirectDiffuseBuffer(hdCamera, cmd, settings);
                 }
             }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseAdjustWeight)))
+            {
+                // Upscale the indirect diffuse buffer
+                AdjustRTIDWeightParameters artidParamters = PrepareAdjustRTIDWeightParametersParameters(hdCamera);
+                AdjustRTIDWeight(cmd, artidParamters, m_IndirectDiffuseBuffer0, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetStencilBuffer());
+            }
         }
 
         struct QualityRTIndirectDiffuseParameters
@@ -554,6 +561,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     DenoiseIndirectDiffuseBuffer(hdCamera, cmd, giSettings);
                 }
+            }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseAdjustWeight)))
+            {
+                // Upscale the indirect diffuse buffer
+                AdjustRTIDWeightParameters artidParamters = PrepareAdjustRTIDWeightParametersParameters(hdCamera);
+                AdjustRTIDWeight(cmd, artidParamters, m_IndirectDiffuseBuffer0, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetStencilBuffer());
             }
         }
 

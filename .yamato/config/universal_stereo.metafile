@@ -3,20 +3,17 @@ project:
   folder: UniversalGfxTestStereo
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
-      - compilation-errors-as-warnings
+    utr_flags:
+      - [all]: compilation-errors-as-warnings
  # - type: playmode
   - type: editmode
 platforms:
   - name: Win
     apis: 
-build_configs:
-  - name: mono
-    scripting_backend: Mono2x
-    api_level: ''
-color_spaces:
-  - Linear
-#  - gamma
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win

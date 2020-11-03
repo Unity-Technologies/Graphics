@@ -8,14 +8,11 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
-build_configs:
-  - name: mono
-    scripting_backend: Mono2x
-    api_level: ''
-color_spaces:
-  - Linear
-#  - gamma
+      - name: DX11
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win

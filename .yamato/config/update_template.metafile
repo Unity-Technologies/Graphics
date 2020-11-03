@@ -7,19 +7,20 @@ test_platforms:
 platforms:
   - name: Win
     apis:
-      - DX11
-      - Vulkan
+      - name: DX11
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 #  - name: OSX
 #    apis:
-#      - OpenGLCore
-#      - Metal
-build_configs:
-  - name: mono
-    scripting_backend: Mono2x
-    api_level: ''
-color_spaces:
-  - Linear
-#  - gamma
+#      - name: OpenGLCore
+#      - name: Metal
+#    build_configs:
+#      - name: mono
+#    color_spaces:
+#      - Linear
 all:
   dependencies:
     - platform: Win
