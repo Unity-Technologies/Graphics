@@ -2789,7 +2789,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     parameters.motionVecPrepCS.EnableKeyword("CAMERA_TRANS_CLAMP");
                 else if (m_MotionBlur.specialCameraClampMode == CameraClampMode.SeparateTranslationAndRotation)
                     parameters.motionVecPrepCS.EnableKeyword("CAMERA_SEPARATE_CLAMP");
-                else if (m_MotionBlur.specialCameraClampMode == CameraClampMode.Full)
+                else if (m_MotionBlur.specialCameraClampMode == CameraClampMode.FullCameraMotionVector)
                     parameters.motionVecPrepCS.EnableKeyword("CAMERA_FULL_CLAMP");
             }
 
