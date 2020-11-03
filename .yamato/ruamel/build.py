@@ -22,7 +22,6 @@ comment = '''
 \n'''
 
 shared = {}
-latest_editor_versions = {}
 yml_files = {}
        
 def yml_load(filepath):
@@ -49,13 +48,16 @@ def assert_dependencies():
                     print(f'Mistake in file {yml_file}#{job_id} for dependency {dep_file}#{dep_job_id}')
 
 
-def add_headers():
+def add_headers(editors):
     for yml_file, yml_value in yml_files.items():
         with open(os.path.join(root_dir,yml_value['path']), 'r+') as f:
             yml = f.read()
             f.seek(0, 0)
             f.write(comment)
-            f.write('{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}\n\n---\n\n')
+            for editor in editors:
+                if not str(editor['track']).lower()=='custom-revision' and editor['editor_pinning']:
+                    f.write('{% metadata_file .yamato/_latest_editor_versions_'+ str(editor["track"]) +'.metafile -%}\n')
+            f.write('\n---\n\n')
             f.write(yml)
 
 def get_metafile(metafile_name):
@@ -122,4 +124,4 @@ if __name__== "__main__":
 
     # # add headers on top of all yml files (comment + metafile path)
     print(f'Adding headers')
-    add_headers()
+    add_headers(shared["editors"])
