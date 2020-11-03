@@ -16,7 +16,7 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_apiNet2_Linear_trunk:
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -36,7 +36,7 @@ VFX_URP_OSX_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/VisualEffectGraph_URP && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+      -  cd TestProjects/VisualEffectGraph_URP && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:

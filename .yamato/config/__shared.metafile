@@ -34,7 +34,7 @@ test_platforms:
       - [all]: --timeout=1200
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [all]: --extra-editor-arg="SetColorSpace<COLORSPACE>"
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -58,7 +58,7 @@ test_platforms:
       - [all]: --suite=playmode
       - [all]: --build-only
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [all]: --extra-editor-arg="SetColorSpace<COLORSPACE>"
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -89,11 +89,11 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
       - [Win_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
       
-      - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
-      - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
-      - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D11"
+      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Direct3D12"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Vulkan"
+      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="OpenGLES3"
+      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Metal"
       
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
   
@@ -101,7 +101,7 @@ test_platforms:
     utr_flags:
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [all]: --extra-editor-arg="SetColorSpace<COLORSPACE>"
       - [all]: --reruncount=2
       
       - [all]: --testproject=.
@@ -123,7 +123,7 @@ test_platforms:
       - [all]: --suite=editor
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [all]: --extra-editor-arg="SetColorSpace<COLORSPACE>"
       - [all]: --platform=editmode
       
       - [all]: --testproject=.
