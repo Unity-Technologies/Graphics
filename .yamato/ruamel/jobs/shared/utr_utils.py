@@ -82,9 +82,9 @@ def utr_standalone_build_flags(platform_spec, suite='playmode', platform='Standa
         f'--player-save-path={player_save_path}' if player_save_path!=None else '',
         f'--build-only',
         f'--scripting-backend={scripting_backend}',
+        f'--extra-editor-arg="-executemethod" --extra-editor-arg="SetColorSpace{color_space}"',
         f'--extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings"',
         f'--extra-editor-arg="{graphics_api}"',
-        f'--extra-editor-arg="{color_space}"'
         #f'--extra-editor-arg="-apicompatibilitylevel={api_level}"',
         ]
     return [f for f in flags if f]
