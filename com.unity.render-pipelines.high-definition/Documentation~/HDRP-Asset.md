@@ -49,7 +49,7 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 | **Transparent Depth Postpass**          | Enable the checkbox to make HDRP support transparent depth render postpasses. If your Unity Project does not make use of a transparent depth postpass. Uncheck this checkbox to reduce build time . |
 | **Custom Pass**                         | Enable the checkbox to make HDRP support custom passes. If your Unity Project does not make use [Custom Passes](Custom-Pass.md), Uncheck this checkbox to save memory . |
 | - **Custom Buffer Format**              | Specify the texture format for the custom buffer. If you experience banding issues due to your custom passes, you can change it to either `R11G11B10` if you don't need alpha or `R16G16B16A16`. |
-| **Realtime Raytracing (Preview)**       | Enable the checkbox to enable HDRP realtime ray tracing (Experimental). It requires to have ray tracing compatible hardware. For more information, please refer to the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md#HardwareRequirements) page. |
+| **Realtime Raytracing (Preview)**       | Enable the checkbox to enable HDRP realtime ray tracing (Preview). It requires to have ray tracing compatible hardware. For more information, please refer to the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md#HardwareRequirements) page. |
 | **Supported Ray Tracing Mode (Preview)**| Select the supported modes for ray tracing effects (Performance, Quality or Both). For more information, see the [Ray Tracing Getting Started](Ray-Tracing-Getting-Started.md) page. |
 | - **LOD Bias**                          | Set the value that Cameras use to calculate their LOD bias. The Camera uses this value differently depending on the **LOD Bias Mode** you select. |
 | - **Maximum LOD Level**                 | Set the value that Cameras use to calculate their maximum level of detail. The Camera uses this value differently depending on the **Maximum LOD Level Mode** you select. |
@@ -110,6 +110,7 @@ Use the Reflection settings to configure the max number and resolution of the pr
 | **Property**                             | **Description**                                              |
 | ---------------------------------------- | ------------------------------------------------------------ |
 | **Screen Space Reflection**              | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html). SSR is a technique for calculating reflections by reusing screen space data. |
+| **- Transparent**                        | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html) on transparent materials.|
 | **Reflection and Planar Probes Format**  | Color format used for reflection and planar probes. |
 | **Compress Reflection Probe Cache**      | Enable the checkbox to compress the [Reflection Probe](Reflection-Probe.md) cache in order to save space on disk. |
 | **Reflection Cubemap Size**              | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |

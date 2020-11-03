@@ -54,8 +54,13 @@ namespace UnityEngine.Rendering.Universal
             public static class Pipeline
             {
                 // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs, requires changes outside of Universal.
+#if UNITY_2021_1_OR_NEWER
+                public static readonly ProfilingSampler beginContextRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginContextRendering)}");
+                public static readonly ProfilingSampler endContextRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndContextRendering)}");
+#else
                 public static readonly ProfilingSampler beginFrameRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginFrameRendering)}");
                 public static readonly ProfilingSampler endFrameRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndFrameRendering)}");
+#endif
                 public static readonly ProfilingSampler beginCameraRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginCameraRendering)}");
                 public static readonly ProfilingSampler endCameraRendering   = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndCameraRendering)}");
 
@@ -181,16 +186,34 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
         }
 
+#if UNITY_2021_1_OR_NEWER
+        protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
+        {
+            Render(renderContext, new List<Camera>(cameras));
+        }
+#endif
+
+#if UNITY_2021_1_OR_NEWER
+        protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
+#else
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
+#endif
         {
             // TODO: Would be better to add Profiling name hooks into RenderPipelineManager.
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
 
+#if UNITY_2021_1_OR_NEWER
+            using (new ProfilingScope(null, Profiling.Pipeline.beginContextRendering))
+            {
+                BeginContextRendering(renderContext, cameras);
+            }
+#else
             using(new ProfilingScope(null, Profiling.Pipeline.beginFrameRendering))
             {
                 BeginFrameRendering(renderContext, cameras);
             }
+#endif
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
@@ -199,8 +222,14 @@ namespace UnityEngine.Rendering.Universal
             // Update XR MSAA level per frame.
             XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
 #endif
+
+
             SortCameras(cameras);
+#if UNITY_2021_1_OR_NEWER
+            for (int i = 0; i < cameras.Count; ++i)
+#else
             for (int i = 0; i < cameras.Length; ++i)
+#endif
             {
                 var camera = cameras[i];
                 if (IsGameCamera(camera))
@@ -227,11 +256,17 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
             }
-
-            using (new ProfilingScope(null, Profiling.Pipeline.endFrameRendering))
+#if UNITY_2021_1_OR_NEWER
+            using (new ProfilingScope(null, Profiling.Pipeline.endContextRendering))
+            {
+                EndContextRendering(renderContext, cameras);
+            }
+#else
+            using(new ProfilingScope(null, Profiling.Pipeline.endFrameRendering))
             {
                 EndFrameRendering(renderContext, cameras);
             }
+#endif
         }
 
         /// <summary>
@@ -267,6 +302,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 cullingParams = cameraData.xr.cullingParams;
+
+                // Sync the FOV on the camera to match the projection from the XR device
+                if (!cameraData.camera.usePhysicalProperties)
+                    cameraData.camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
+
                 return true;
             }
 #endif
@@ -652,7 +692,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering;
+                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && m_XRSystem.RefreshXrSdk();
 #endif
             }
             else
@@ -664,7 +704,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = true;
+                cameraData.xrRendering = m_XRSystem.RefreshXrSdk();
 #endif
             }
 
@@ -681,7 +721,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             // Use XR's MSAA if camera is XR camera. XR MSAA needs special handle here because it is not per Camera.
             // Multiple cameras could render into the same XR display and they should share the same MSAA level.
-            if (cameraData.xrRendering)
+            if (cameraData.xrRendering && rendererSupportsMSAA)
                 msaaSamples = XRSystem.GetMSAALevel();
 #endif
 
@@ -768,6 +808,12 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.renderer = asset.scriptableRenderer;
             }
 
+            // Disables post if GLes2
+            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
+
+            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
+            cameraData.resolveFinalTarget = resolveFinalTarget;
+
             // Disable depth and color copy. We should add it in the renderer instead to avoid performance pitfalls
             // of camera stacking breaking render pass execution implicitly.
             bool isOverlayCamera = (cameraData.renderType == CameraRenderType.Overlay);
@@ -776,12 +822,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresDepthTexture = false;
                 cameraData.requiresOpaqueTexture = false;
             }
-
-            // Disables post if GLes2
-            cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-
-            cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
-            cameraData.resolveFinalTarget = resolveFinalTarget;
 
             Matrix4x4 projectionMatrix = camera.projectionMatrix;
 
@@ -982,14 +1022,18 @@ namespace UnityEngine.Rendering.Universal
                 if (currLight == null)
                     break;
 
-                if (currLight == sunLight)
-                    return i;
-
-                // In case no shadow light is present we will return the brightest directional light
-                if (currVisibleLight.lightType == LightType.Directional && currLight.intensity > brightestLightIntensity)
+                if (currVisibleLight.lightType == LightType.Directional)
                 {
-                    brightestLightIntensity = currLight.intensity;
-                    brightestDirectionalLightIndex = i;
+                    // Sun source needs be a directional light
+                    if (currLight == sunLight)
+                        return i;
+
+                    // In case no sun light is present we will return the brightest directional light
+                    if (currLight.intensity > brightestLightIntensity)
+                    {
+                        brightestLightIntensity = currLight.intensity;
+                        brightestDirectionalLightIndex = i;
+                    }
                 }
             }
 

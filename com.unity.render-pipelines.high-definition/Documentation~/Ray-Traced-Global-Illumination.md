@@ -69,3 +69,7 @@ Alongside the standard properties, Unity makes different properties available de
 | ---------------- | ------------------------------------------------------------ |
 | **Sample Count** | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly. |
 | **Bounce Count** | Controls the number of bounces that Global Illumination rays can do. Increasing this value increases execution time exponentially. |
+
+## Limitations
+
+Currently, ray tracing in HDRP does not support [decals](decal.md). This means that ray-traced global illumination does not affect decals in your Scene.

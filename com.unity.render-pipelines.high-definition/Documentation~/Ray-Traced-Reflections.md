@@ -46,7 +46,7 @@ All Cameras can now process screen space reflection unless they use custom [Fram
 Ray-Traced Reflections uses the [Volume](Volumes.md) framework, so to enable this feature, and modify its properties, you need to add a Screen Space Reflection override to a [Volume](Volumes.md) in your Scene. To do this:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
-2. In the Inspector, navigate to ****Add Override > Lighting**** and click on Screen Space Reflection. HDRP now applies screen space reflection to any Camera this Volume affects.
+2. In the Inspector, navigate to **Add Override > Lighting** and click on Screen Space Reflection. HDRP now applies screen space reflection to any Camera this Volume affects.
 3. In the Inspector for the Screen Space Reflection Volume Override, enable Ray Tracing. HDRP now uses ray tracing to calculate reflections. If you do not see the Ray Tracing option, make sure your HDRP Project supports ray tracing. For information on setting up ray tracing in HDRP, see [Getting started with ray tracing](Ray-Tracing-Getting-Started.md).
 
 ## Properties
@@ -86,3 +86,7 @@ When using quality mode, there are extra properties that you can use to customiz
 | ---------------- | ------------------------------------------------------------ |
 | **Sample Count** | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly. |
 | **Bounce Count** | Controls the number of bounces that reflection rays can do. Increasing this value increases execution time exponentially. |
+
+## Limitations
+Currently, ray tracing in HDRP does not support [decals](decal.md). This means that, when you use ray-traced reflection, decals do not appear in reflective surfaces.
+
