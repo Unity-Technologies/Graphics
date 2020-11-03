@@ -83,6 +83,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a ghosting issue with RTShadows (Sun, Point and Spot), RTAO and RTGI when the camera is moving fast.
 - Fixed a SSGI denoiser bug for large scenes.
 - Fixed a Nan issue with SSGI.
+- Fixed CustomPassUtils.RenderFrom* functions and CustomPassUtils.DisableSinglePassRendering struct in VR.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
