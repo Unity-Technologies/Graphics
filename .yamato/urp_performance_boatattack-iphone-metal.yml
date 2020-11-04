@@ -14,7 +14,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --testfilter=RuntimeProfilerMetrics --timeout=1200
+      -  ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -161,7 +161,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --testfilter=RuntimeProfilerMetrics --timeout=1200
+      -  ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
