@@ -33,6 +33,7 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     float4 _HalfScreenSize;
     int _IndirectDiffuseSpatialFilter;
     float _HistoryValidity;
+    float _PixelSpreadAngleTangent;
 CBUFFER_END
 
 // Denoised output buffer
@@ -42,6 +43,10 @@ RW_TEXTURE2D_X(float4, _OutputFilteredBuffer1);
 #define SPATIAL_FILTER_SIGMA_RATIO 0.9
 #define DEPTH_WEIGHT_MULTIPLIER 100.0f
 #define NORMAL_WEIGHT_MULTIPLIER 5.0
+// The maximal world space distance for temporal reprojection
+#define MAX_WORLD_SPACE_DISTANCE 0.1
+// The maximal pixel reprojection distance
+#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 4
 
 // Number of samples to compelte the accumulation loop
 #define NUM_SAMPLE_LOOP 8.0
@@ -121,6 +126,9 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
             NormalData normalDataTap;
             DecodeFromNormalBuffer(tapCoord, normalDataTap);
 #endif
+            if (tapDepth == UNITY_RAW_FAR_CLIP_VALUE)
+                continue;
+
             // Convert the tapped depth to linear for weight evaluation
             float tapz01 = Linear01Depth(tapDepth, _ZBufferParams);
 
@@ -221,8 +229,18 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
     // Compute the world space position (from previous frame)
     float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
+    // Real the normal data for this pixel
+    NormalData normalData;
+    DecodeFromNormalBuffer(centerCoord, normalData);
+
+    // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel.
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInputs.positionWS);
+    float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(posInputs.positionWS);
+    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, viewWS));
+    float maxRadius = max(MAX_WORLD_SPACE_DISTANCE, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
+
     // Is it too far from the current position?
-    if (length(historyPositionWS - posInputs.positionWS) > 0.1)
+    if (length(historyPositionWS - posInputs.positionWS) > maxRadius)
         invalidHistory = true;
 
     // Fetch history data
@@ -241,7 +259,7 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
 
         // To avoid nan values
         history0 = 0.0;
-        history1 = 0.0;
+        history1 = float4(0.501960784f, 0.501960784f, 0.0, 0.0);
         sampleCount = 1.0;
     }
     else
