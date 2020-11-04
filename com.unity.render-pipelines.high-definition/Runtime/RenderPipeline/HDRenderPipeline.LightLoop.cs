@@ -611,7 +611,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
-                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
+                    if (passData.parameters.tiledLighting)
+                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
@@ -694,7 +695,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     //builder.EnableAsyncCompute(hdCamera.frameSettings.VolumetricLightingRunsAsync());
 
                     passData.parameters = parameters;
-                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
+                    if (passData.parameters.tiledLighting)
+                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
