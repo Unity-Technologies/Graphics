@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         static bool FilterRenderPassEvent(int evt) =>
             // Return all events higher or equal than before rendering prepasses
-            evt >= (int) RenderPassEvent.BeforeRenderingPrepasses &&
+            evt >= (int) RenderPassEvent.BeforeRenderingPrePasses &&
             // filter obsolete events
             typeof(RenderPassEvent).GetField(Enum.GetName(typeof(RenderPassEvent), evt))?.GetCustomAttribute(typeof(ObsoleteAttribute)) == null;
 

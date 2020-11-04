@@ -50,6 +50,7 @@ namespace UnityEngine.Rendering.Universal
         /// Camera matrices and stereo rendering are already setup at this point.
         /// </summary>
         BeforeRenderingPrePasses = 150,
+
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Obsolete, to match the capital from 'Prepass' to 'PrePass'")]
         BeforeRenderingPrepasses = 151,

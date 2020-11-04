@@ -370,7 +370,7 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half4 shadowMask, 
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)
 {
-#ifdef _MAIN_LIGHT_SHADOWS_SCREEN
+#if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
     return ComputeScreenPos(vertexInput.positionCS);
 #else
     return TransformWorldToShadowCoord(vertexInput.positionWS);
