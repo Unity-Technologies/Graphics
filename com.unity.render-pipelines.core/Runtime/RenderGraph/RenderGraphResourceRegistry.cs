@@ -269,6 +269,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Resources[(int)RenderGraphResourceType.ComputeBuffer].releaseResourceCallback = ReleaseComputeBuffer;
         }
 
+        internal void BeginRenderGraph(int executionCount)
+        {
+            ResourceHandle.NewFrame(executionCount);
+        }
+
         internal void BeginExecute(int currentFrameIndex)
         {
             m_CurrentFrameIndex = currentFrameIndex;
@@ -276,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             current = this;
         }
 
-        internal void EndRender()
+        internal void EndExecute()
         {
             current = null;
         }

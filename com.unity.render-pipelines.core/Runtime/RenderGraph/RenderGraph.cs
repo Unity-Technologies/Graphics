@@ -514,7 +514,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_CurrentFrameIndex = parameters.currentFrameIndex;
             m_HasRenderGraphBegun = true;
 
-            ResourceHandle.NewFrame(m_ExecutionCount++);
+            m_Resources.BeginRenderGraph(m_ExecutionCount++);
 
             m_Logger.Initialize();
 
@@ -564,6 +564,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                     CompileRenderGraph();
 
+                    m_Resources.BeginExecute(m_CurrentFrameIndex);
+
                     ExecuteRenderGraph();
                 }
             }
@@ -587,7 +589,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
                     Debug.Log(m_Logger.GetLog());
 
-                m_Resources.EndRender();
+                m_Resources.EndExecute();
 
                 InvalidateContext();
 
@@ -1146,8 +1148,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Execute the compiled render graph
         void ExecuteRenderGraph()
         {
-            m_Resources.BeginExecute(m_CurrentFrameIndex);
-
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
             {
                 ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
