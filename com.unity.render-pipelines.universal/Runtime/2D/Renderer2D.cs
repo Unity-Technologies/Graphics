@@ -63,6 +63,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
+            // always dispose unmanaged resources
+            m_PostProcessPass.Cleanup();
+            m_FinalPostProcessPass.Cleanup();
+            m_ColorGradingLutPass.Cleanup();
+            
             CoreUtils.Destroy(m_BlitMaterial);
         }
 
@@ -179,6 +184,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
+            var hasValidDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
+            m_Render2DLightingPass.Setup(hasValidDepth);
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 

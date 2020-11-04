@@ -9,9 +9,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class ColorGradingLutPass : ScriptableRenderPass
     {
-        const string k_ProfilerTag = "Color Grading LUT";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(k_ProfilerTag);
-
         readonly Material m_LutBuilderLdr;
         readonly Material m_LutBuilderHdr;
         readonly GraphicsFormat m_HdrLutFormat;
@@ -21,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
             renderPassEvent = evt;
             overrideCameraTarget = true;
 
@@ -63,7 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ColorGradingLUT)))
             {
                 // Fetch all color grading settings
                 var stack = VolumeManager.instance.stack;
@@ -182,6 +180,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnFinishCameraStackRendering(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(m_InternalLut.id);
+        }
+
+        public void Cleanup()
+        {
+            CoreUtils.Destroy(m_LutBuilderLdr);
+            CoreUtils.Destroy(m_LutBuilderHdr);
         }
 
         // Precomputed shader ids to same some CPU cycles (mostly affects mobile)

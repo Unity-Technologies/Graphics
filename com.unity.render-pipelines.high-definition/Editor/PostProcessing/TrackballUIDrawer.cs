@@ -107,6 +107,39 @@ namespace UnityEditor.Rendering.HighDefinition
             bounds.y += hsize - radius;
             bounds.width = bounds.height = radius * 2f;
             hsv = GetInput(bounds, hsv, thumbPos, radius);
+
+
+            Vector3Int displayHSV = new Vector3Int(Mathf.RoundToInt(hsv.x * 360), Mathf.RoundToInt(hsv.y * 100), 100);
+            bool displayInputFields = EditorGUIUtility.currentViewWidth > 600;
+            if (displayInputFields)
+            {
+                var valuesRect = GUILayoutUtility.GetRect(1f, 17f);
+                valuesRect.width /= 5f;
+                float textOff = valuesRect.width * 0.2f;
+                EditorGUI.LabelField(valuesRect, "Y");
+                valuesRect.x += textOff;
+                offset = EditorGUI.DelayedFloatField(valuesRect, offset);
+                offset = Mathf.Clamp(offset, -1.0f, 1.0f);
+                valuesRect.x += valuesRect.width + valuesRect.width * 0.05f;
+                EditorGUI.LabelField(valuesRect, "H");
+                valuesRect.x += textOff;
+                displayHSV.x = EditorGUI.DelayedIntField(valuesRect, displayHSV.x);
+                hsv.x = displayHSV.x / 360.0f;
+                valuesRect.x += valuesRect.width + valuesRect.width * 0.05f;
+                EditorGUI.LabelField(valuesRect, "S");
+                valuesRect.x += textOff;
+                displayHSV.y = EditorGUI.DelayedIntField(valuesRect, displayHSV.y);
+                displayHSV.y = Mathf.Clamp(displayHSV.y, 0, 100);
+                hsv.y = displayHSV.y / 100.0f;
+                valuesRect.x += valuesRect.width + valuesRect.width * 0.05f;
+                EditorGUI.LabelField(valuesRect, "V");
+                valuesRect.x += textOff;
+                GUI.enabled = false;
+                EditorGUI.IntField(valuesRect, 100);
+                GUI.enabled = true;
+            }
+
+
             value = Color.HSVToRGB(hsv.x, hsv.y, 1f);
             value.w = offset;
 
@@ -122,11 +155,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Values
             var displayValue = m_ComputeFunc(value);
-
             using (new EditorGUI.DisabledGroupScope(true))
             {
                 var valuesRect = GUILayoutUtility.GetRect(1f, 17f);
-                valuesRect.width /= 3f;
+                valuesRect.width /= (displayInputFields ? 4f : 3.0f);
+                if(displayInputFields)
+                {
+                    GUI.Label(valuesRect, "RGB Value:", EditorStyles.centeredGreyMiniLabel);
+                    valuesRect.x += valuesRect.width;
+                }
                 GUI.Label(valuesRect, displayValue.x.ToString("F2"), EditorStyles.centeredGreyMiniLabel);
                 valuesRect.x += valuesRect.width;
                 GUI.Label(valuesRect, displayValue.y.ToString("F2"), EditorStyles.centeredGreyMiniLabel);

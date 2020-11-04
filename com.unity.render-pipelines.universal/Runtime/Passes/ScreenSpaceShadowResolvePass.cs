@@ -11,11 +11,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_ScreenSpaceShadowsMaterial;
         RenderTargetHandle m_ScreenSpaceShadowmap;
         RenderTextureDescriptor m_RenderTextureDescriptor;
-        const string m_ProfilerTag = "Resolve Shadows";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
         public ScreenSpaceShadowResolvePass(RenderPassEvent evt, Material screenspaceShadowsMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(ScreenSpaceShadowResolvePass));
+
             m_ScreenSpaceShadowsMaterial = screenspaceShadowsMaterial;
             m_ScreenSpaceShadowmap.Init("_ScreenSpaceShadowmapTexture");
             renderPassEvent = evt;
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Camera camera = renderingData.cameraData.camera;
 
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ResolveShadows)))
             {
                 if (!renderingData.cameraData.xr.enabled)
                 {

@@ -11,7 +11,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
             Cull Off
 
             HLSLPROGRAM
-            #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
@@ -54,9 +53,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
             half4 _LightLookup_TexelSize;
-
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
 
             half4   _LightColor;
             half    _VolumeOpacity;
@@ -107,7 +103,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
             half4 frag(Varyings input) : SV_Target
             {
-                half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);
                 half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 

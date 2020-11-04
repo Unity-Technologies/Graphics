@@ -22,6 +22,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Gizmos.DrawIcon(transform.position, s_IconsPath + s_LightIconFileNames[(int)m_LightType], true);
         }
 
+        internal void SetShapePath(Vector3[] path)
+        {
+            m_ShapePath = path;
+        }
+
         void Reset()
         {
             m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };

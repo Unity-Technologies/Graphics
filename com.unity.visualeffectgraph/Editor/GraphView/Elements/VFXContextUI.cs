@@ -602,6 +602,8 @@ namespace UnityEditor.VFX.UI
                             blockUI = InstantiateBlock(blockController);
                             m_BlockContainer.Add(blockUI);
                             m_BlockContainer.Insert(prevBlock == null ? 0 : m_BlockContainer.IndexOf(prevBlock) + 1, blockUI);
+                            //Refresh error can only be called after the block has been instanciated
+                            blockController.model.RefreshErrors(controller.viewController.graph);
                         }
                         prevBlock = blockUI;
                     }
