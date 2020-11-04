@@ -22,9 +22,9 @@ def get_editor_revision(editor, platform_os):
     if str(editor['track']).lower()=='custom-revision':
         return f'-u {VAR_CUSTOM_REVISION}'
     elif str(editor['track']).lower()=='trunk':
-        return '-u {{editor_versions.' + f"{editor['track']}_latest_internal.{platform_os}.revision" + '}}'
+        return '-u {{editor_versions.' + f"{str(editor['track']).replace('.','_')}_latest_internal.{platform_os}.revision" + '}}'
     else:
-        return '-u {{editor_versions.' + f"{editor['track']}_staging.{platform_os}.revision" + '}}'
+        return '-u {{editor_versions.' + f"{str(editor['track']).replace('.','_')}_staging.{platform_os}.revision" + '}}'
 
 def get_unity_downloader_cli_cmd(editor, platform_os, cd=False, git_root=False):
     '''Returns the revision used by unity-downloader-cli. 
