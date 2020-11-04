@@ -40,11 +40,12 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._Texture2D, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
+            action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl));
         }
 
         internal override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURE2D_PARAM({referenceName}, sampler{referenceName}), {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize";
+            return $"TEXTURE2D_PARAM({referenceName}, sampler{referenceName}), {concretePrecision.ToShaderString()}4 {referenceName}_TexelSize, {concretePrecision.ToShaderString()}4 {referenceName}_ST";
         }
 
         [SerializeField]

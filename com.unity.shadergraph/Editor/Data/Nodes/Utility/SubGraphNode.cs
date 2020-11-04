@@ -217,7 +217,7 @@ namespace UnityEditor.ShaderGraph
                 switch (prop)
                 {
                     case Texture2DShaderProperty texture2DProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
+                        arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize, {0}_ST", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
                         break;
                     case Texture2DArrayShaderProperty texture2DArrayProp:
                         arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
