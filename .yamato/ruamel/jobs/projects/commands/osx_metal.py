@@ -63,9 +63,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
     scripting_backend = build_config["scripting_backend"]
     api_level = build_config["api_level"]
-    # utr_args.extend(test_platform["extra_utr_flags"])
-    # utr_args.extend(platform["extra_utr_flags"])
-    utr_args.append(f'--timeout={get_timeout(test_platform, "OSX_Metal")}')
 
     for i in range(0,len(utr_args)):
         if '%' in utr_args[i]:
