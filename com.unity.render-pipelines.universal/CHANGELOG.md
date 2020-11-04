@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Missing camera cannot be removed after scene is saved by removing the Missing camera label. [case 1252255](https://issuetracker.unity3d.com/issues/universal-rp-missing-camera-cannot-be-removed-from-camera-stack-after-scene-is-saved)
 - Fixed MissingReferenceException when removing Missing camera from camera stack by removing Missing camera label. [case 1252263](https://issuetracker.unity3d.com/issues/universal-rp-missingreferenceexception-errors-when-removing-missing-camera-from-stack)
 - Fixed an issue that caused the unity_CameraToWorld matrix to have z flipped values. [case 1257518](https://issuetracker.unity3d.com/issues/parameter-unity-cameratoworld-dot-13-23-33-is-inverted-when-using-universal-rp-7-dot-4-1-and-newer)
+- Fixed a memory leak in Scriptable Renderer Data Editor.
 - Fixed an issue causing additional lights to stop working when set as the sun source. [case 1278768](https://issuetracker.unity3d.com/issues/urp-every-light-type-is-rendered-as-directional-light-if-it-is-set-as-sun-source-of-the-environment)
 
 ## [7.5.1] - 2020-09-02
