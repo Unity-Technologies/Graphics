@@ -3187,6 +3187,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 var additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                if (additionaCameraData == null)
+                {
+                    camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                    additionaCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                }
                 additionaCameraData.SetAOVRequests(requests.Build());
 
                 Render(renderContext, new[] {camera});
