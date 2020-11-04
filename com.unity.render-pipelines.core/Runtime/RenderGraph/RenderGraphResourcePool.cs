@@ -3,8 +3,15 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    abstract class IRenderGraphResourcePool
+    {
+        public abstract void PurgeUnusedResources(int currentFrameIndex);
+        public abstract void Cleanup();
+        public abstract void CheckFrameAllocation(bool onException, int frameIndex);
+        public abstract void LogResources(RenderGraphLogger logger);
+    }
 
-    abstract class RenderGraphResourcePool<Type> where Type : class
+    abstract class RenderGraphResourcePool<Type> : IRenderGraphResourcePool where Type : class
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations, potentially in the middle of the stack).
        protected  Dictionary<int, List<(Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, List<(Type resource, int frameIndex)>>();
@@ -16,10 +23,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         protected static int s_CurrentFrameIndex;
 
         // Release the GPU resource itself
-        abstract protected void ReleaseInternalResource(Type res);
-        abstract protected string GetResourceName(Type res);
-        abstract protected long GetResourceSize(Type res);
-        abstract protected string GetResourceTypeName();
+        protected abstract void ReleaseInternalResource(Type res);
+        protected abstract string GetResourceName(Type res);
+        protected abstract long GetResourceSize(Type res);
+        protected abstract string GetResourceTypeName();
 
         public void ReleaseResource(int hash, Type resource, int currentFrameIndex)
         {
@@ -45,9 +52,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return false;
         }
 
-        abstract public void PurgeUnusedResources(int currentFrameIndex);
-
-        public void Cleanup()
+        public override void Cleanup()
         {
             foreach (var kvp in m_ResourcePool)
             {
@@ -70,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_FrameAllocatedResources.Remove((hash, value));
         }
 
-        public void CheckFrameAllocation(bool onException, int frameIndex)
+        public override void CheckFrameAllocation(bool onException, int frameIndex)
         {
             // In case of exception we need to release all resources to the pool to avoid leaking.
             // If it's not an exception then it's a user error so we need to log the problem.
@@ -94,14 +99,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_FrameAllocatedResources.Clear();
         }
 
-
         struct ResourceLogInfo
         {
             public string name;
             public long size;
         }
 
-        public void LogResources(RenderGraphLogger logger)
+        public override void LogResources(RenderGraphLogger logger)
         {
             List<ResourceLogInfo> allocationList = new List<ResourceLogInfo>();
             foreach (var kvp in m_ResourcePool)
@@ -146,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Another C# nicety.
         // We need to re-implement the whole thing every time because:
         // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, ComputeBuffers etc)
-        // - We can't use a virtual release function because it will capture this in the lambda for RemoveAll generating GCAlloc in the process.
+        // - We can't use a virtual release function because it will capture 'this' in the lambda for RemoveAll generating GCAlloc in the process.
         override public void PurgeUnusedResources(int currentFrameIndex)
         {
             // Update the frame index for the lambda. Static because we don't want to capture.
