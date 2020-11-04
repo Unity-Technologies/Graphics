@@ -190,19 +190,37 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static List<VFXContext> CollectContextParentRecursively(IEnumerable <VFXContext> inputList, ref SubgraphInfos subgraphContexts)
+        class VFXSpawnContextLayer
+        {
+            public VFXContext context;
+            public int depth;
+        }
+
+        private static List<VFXSpawnContextLayer> CollectContextParentRecursively(IEnumerable<VFXContext> inputList, ref SubgraphInfos subgraphContexts, int currentDepth = 0)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
-            var contextList = inputList.SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t)).Select(t => t.context).Distinct().ToList();
+            var contextList = inputList .SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t))
+                                        .Select(t => t.context).Distinct()
+                                        .Select(c => new VFXSpawnContextLayer()
+                                        {
+                                            context = c,
+                                            depth = currentDepth
+                                        }).ToList();
 
-            if (contextList.Any(o => contextEffectiveInputLinks[o].Any()))
+            if (contextList.Any(o => contextEffectiveInputLinks[o.context].Any()))
             {
-                var parentContextList = CollectContextParentRecursively(contextList.Except(inputList), ref subgraphContexts);
-                foreach (var context in parentContextList)
+                //TODOPAUL : Fix & Cover by a test
+                var parentContextList = CollectContextParentRecursively(contextList.Select(c => c.context).Except(inputList), ref subgraphContexts, currentDepth + 1);
+                foreach (var parentContextEntry in parentContextList)
                 {
-                    if (!contextList.Contains(context))
+                    var currentEntry = contextList.FirstOrDefault(o => o.context);
+                    if (currentEntry == null)
                     {
-                        contextList.Add(context);
+                        contextList.Add(parentContextEntry);
+                    }
+                    else if (parentContextEntry.depth > currentEntry.depth)
+                    {
+                        currentEntry.depth = parentContextEntry.depth;
                     }
                 }
             }
@@ -212,8 +230,11 @@ namespace UnityEditor.VFX
         private static VFXContext[] CollectSpawnersHierarchy(IEnumerable<VFXContext> vfxContext, ref SubgraphInfos subgraphContexts)
         {
             var initContext = vfxContext.Where(o => o.contextType == VFXContextType.Init || o.contextType == VFXContextType.OutputEvent).ToList();
-            var spawnerList = CollectContextParentRecursively(initContext, ref subgraphContexts);
-            return spawnerList.Where(o => o.contextType == VFXContextType.Spawner).Reverse().ToArray();
+            var spawnerHierarchy = CollectContextParentRecursively(initContext, ref subgraphContexts);
+            var spawnerList = spawnerHierarchy  .Where(o => o.context.contextType == VFXContextType.Spawner)
+                                                .OrderByDescending(o => o.depth)
+                                                .Select(o => o.context).ToArray();
+            return spawnerList;
         }
 
         struct SpawnInfo
