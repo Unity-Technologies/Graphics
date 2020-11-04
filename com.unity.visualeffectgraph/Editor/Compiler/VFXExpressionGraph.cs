@@ -119,6 +119,14 @@ namespace UnityEditor.VFX
                 }
             }
 
+            //Convention : if there is a spawnCount, should be the first attribute
+            if (globalEventAttributes.Any(o => o.name == VFXAttribute.SpawnCount.name) && globalEventAttributes.First().name != VFXAttribute.SpawnCount.name)
+            {
+                var spawnCount = globalEventAttributes.First(o => o.name == VFXAttribute.SpawnCount.name);
+                globalEventAttributes.RemoveAll(o => o.name == VFXAttribute.SpawnCount.name);
+                globalEventAttributes.Insert(0, spawnCount);
+            }
+
             var structureLayoutTotalSize = (uint)globalEventAttributes.Sum(e => (long)VFXExpression.TypeToSize(e.type));
             var currentLayoutSize = 0u;
             var listWithOffset = new List<VFXLayoutElementDesc>();
