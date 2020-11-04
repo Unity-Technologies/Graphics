@@ -60,7 +60,7 @@ public class UniversalGraphicsTests
         {
             for(int i = 0; i < firstSceneAdditionalFrames; i++)
             {
-                yield return null;
+                yield return new WaitForEndOfFrame();
             }
             wasFirstSceneRan = true;
         }

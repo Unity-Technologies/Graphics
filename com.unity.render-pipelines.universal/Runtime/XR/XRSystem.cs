@@ -363,7 +363,7 @@ namespace UnityEngine.Rendering.Universal
         internal void RenderMirrorView(CommandBuffer cmd, Camera camera)
         {
             // XRTODO : remove this check when the Quest plugin is fixed
-            if (Application.platform == RuntimePlatform.Android)
+            if (Application.platform == RuntimePlatform.Android && !XRGraphicsAutomatedTests.running)
                 return;
 
             if (display == null || !display.running || !mirrorViewMaterial)
