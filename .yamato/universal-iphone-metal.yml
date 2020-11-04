@@ -18,7 +18,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+      -  ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -61,7 +61,7 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --extra-editor-arg="-colorspace=Linear" --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+      -  ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:

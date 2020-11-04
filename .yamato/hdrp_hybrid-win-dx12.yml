@@ -65,7 +65,7 @@ HDRP_Hybrid_Win_DX12_Standalone_mono_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-colorspace=Linear" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --artifacts_path=test-results --compilation-errors-as-warnings --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -168,7 +168,7 @@ HDRP_Hybrid_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_HybridTests/utr.bat
-      -  cd TestProjects/HDRP_HybridTests && utr --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-colorspace=Linear" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/HDRP_HybridTests && utr --artifacts_path=test-results --compilation-errors-as-warnings --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:

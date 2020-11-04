@@ -58,7 +58,6 @@ test_platforms:
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
      
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
