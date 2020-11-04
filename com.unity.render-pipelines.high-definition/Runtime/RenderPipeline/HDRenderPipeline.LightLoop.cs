@@ -647,6 +647,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                {
+                    return renderGraph.defaultResources.blackTextureXR;
+                }
+
                 using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
                     passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo, frameIndex);
