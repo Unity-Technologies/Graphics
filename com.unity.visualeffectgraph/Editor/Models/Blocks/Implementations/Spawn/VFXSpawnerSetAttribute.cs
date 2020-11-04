@@ -11,6 +11,7 @@ namespace UnityEditor.VFX.Block
     {
         public string[] GetAvailableString()
         {
+            //TODOPAUL : it's hacky, should be list in a way or another in attribute
             return VFXAttribute.AllIncludingVariadicExceptWriteOnly.Concat(new[] { "spawnCount" }).ToArray();
         }
     }
