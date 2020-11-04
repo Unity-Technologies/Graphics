@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 for (var i = 0; i < shapeEditor.pointCount; ++i)
                     pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
 
-                ((Light2D)(serializedObject.targetObject)).UpdateMesh();
+                ((Light2D)(serializedObject.targetObject)).UpdateMesh(true);
 
                 // This is untracked right now...
                 serializedObject.ApplyModifiedProperties();
@@ -642,7 +642,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (serializedObject.ApplyModifiedProperties())
             {
                 if(meshChanged)
-                    lightObject.UpdateMesh();
+                    lightObject.UpdateMesh(true);
             }
         }
 
