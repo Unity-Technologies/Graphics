@@ -213,7 +213,7 @@ namespace UnityEditor.VFX
                 var parentContextList = CollectContextParentRecursively(contextList.Select(c => c.context).Except(inputList), ref subgraphContexts, currentDepth + 1);
                 foreach (var parentContextEntry in parentContextList)
                 {
-                    var currentEntry = contextList.FirstOrDefault(o => o.context);
+                    var currentEntry = contextList.FirstOrDefault(o => o.context == parentContextEntry.context);
                     if (currentEntry == null)
                     {
                         contextList.Add(parentContextEntry);
