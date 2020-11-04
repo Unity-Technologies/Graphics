@@ -57,7 +57,8 @@ test_platforms:
         
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
-      - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
      
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
@@ -66,7 +67,8 @@ test_platforms:
     utr_flags_build:
       - [all]: --suite=playmode
       - [all]: --build-only
-      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>" 
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -111,6 +113,7 @@ test_platforms:
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
       - [all]: --reruncount=2
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
@@ -135,6 +138,7 @@ test_platforms:
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
       - [all]: --platform=editmode
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
