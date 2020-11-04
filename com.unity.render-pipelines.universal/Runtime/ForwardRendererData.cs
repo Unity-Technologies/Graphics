@@ -46,8 +46,14 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            [Reload("Shaders/Utils/StencilDeferred.shader")]
+            public Shader stencilDeferredPS;
+
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            [Reload("Shaders/Utils/MaterialError.shader")]
+            public Shader materialErrorPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]
@@ -62,8 +68,11 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_OpaqueLayerMask = -1;
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
-        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
+        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData() { passOperation = StencilOp.Replace }; // This default state is compatible with deferred renderer.
         [SerializeField] bool m_ShadowTransparentReceive = true;
+        [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
+        [SerializeField] bool m_AccurateGbufferNormals = false;
+        //[SerializeField] bool m_TiledDeferredShading = false;
 
         protected override ScriptableRenderer Create()
         {
@@ -128,6 +137,45 @@ namespace UnityEngine.Rendering.Universal
                 m_ShadowTransparentReceive = value;
             }
         }
+
+        /// <summary>
+        /// Rendering mode.
+        /// </summary>
+        public RenderingMode renderingMode
+        {
+            get => m_RenderingMode;
+            set
+            {
+                SetDirty();
+                m_RenderingMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Use Octaedron Octahedron normal vector encoding for gbuffer normals.
+        /// The overhead is negligible from desktop GPUs, while it should be avoided for mobile GPUs.
+        /// </summary>
+        public bool accurateGbufferNormals
+        {
+            get => m_AccurateGbufferNormals;
+            set
+            {
+                SetDirty();
+                m_AccurateGbufferNormals = value;
+            }
+        }
+
+        /*
+        public bool tiledDeferredShading
+        {
+            get => m_TiledDeferredShading;
+            set
+            {
+                SetDirty();
+                m_TiledDeferredShading = value;
+            }
+        }
+        */
 
         protected override void OnEnable()
         {

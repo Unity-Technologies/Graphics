@@ -2,28 +2,39 @@ project:
   name: HDRP_DXR
   folder: HDRP_DXR_Tests
 test_platforms:
-  - Standalone
-  - playmode
-  - playmode_XR
-  - playmode_RenderGraph
+  - type: Standalone
+  - type: playmode
+  - type: playmode
+    name: playmode_XR
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-tests" 
+  - type: playmode
+    name: playmode_NonRenderGraph
+    utr_flags:
+      - [all]: --extra-editor-arg="-non-rendergraph-tests"
 platforms:
   - name: Win
     apis:
-      - DX12
-    overrides:
-      agents_project:
-        default:
-          type: Unity::VM::GPU
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.large
-          model: rtx2080
+      - name: DX12
+    build_configs:
+      - name: mono_apiNet2
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.large
+        model: rtx2080
 all:
   dependencies:
     - platform: Win
       api: DX12
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - Standalone
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
+        - playmode_NonRenderGraph
 

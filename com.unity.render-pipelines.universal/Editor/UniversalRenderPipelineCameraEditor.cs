@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Both"),
             };
             public static int[] xrTargetEyeValues = { 0, 1 };
-            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Allows XR rendering if target eye sets to both eye. Disable XR for this camera otherwise.");
+            public static readonly GUIContent xrTargetEye = EditorGUIUtility.TrTextContent("Target Eye", "Select which eye of an XR device the Camera renders to. Selecting the option Both enables XR rendering on this Camera, selecting other options disables the XR rendering. Enabling XR rendering on a Camera:\n* Disables the MSAA property in the Camera Inspector. The URP asset defines the MSAA level for all XR Cameras.\n* Disables all effects that are not compatible with XR rendering, for example, lens distortion.");
 #endif
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
@@ -123,7 +123,6 @@ namespace UnityEditor.Rendering.Universal
         public bool isSameClearFlags { get { return !settings.clearFlags.hasMultipleDifferentValues; } }
         public bool isSameOrthographic { get { return !settings.orthographic.hasMultipleDifferentValues; } }
 
-        UniversalRenderPipelineAsset m_UniversalRenderPipeline;
         Dictionary<Object, UniversalAdditionalCameraData> m_AdditionalCameraDatas = new Dictionary<Object, UniversalAdditionalCameraData>();
         SerializedObject m_AdditionalCameraDataSO;
 
@@ -183,7 +182,6 @@ namespace UnityEditor.Rendering.Universal
         public new void OnEnable()
         {
             base.OnEnable();
-            m_UniversalRenderPipeline = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
@@ -311,11 +309,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                // HIG doesnt allow us to remove data on a re-draw and without a user input.
-                GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
-                m_NameContent.text = "MISSING CAMERA";
-                string warningInfo = "Camera is missing";
-                EditorGUI.LabelField(rect, m_NameContent, TempContent("", warningInfo, m_ErrorIcon), errorStyle);
+                camera.GetComponent<UniversalAdditionalCameraData>().UpdateCameraStack();
 
                 // Need to clean out the errorCamera list here.
                 errorCameras.Clear();
@@ -362,7 +356,7 @@ namespace UnityEditor.Rendering.Universal
                         result.Add(camera);
                 }
             }
-            
+
             return result.ToArray();
         }
 
@@ -440,8 +434,6 @@ namespace UnityEditor.Rendering.Universal
             m_ShowBGColorAnim.valueChanged.RemoveListener(Repaint);
             m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
             m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
-
-            m_UniversalRenderPipeline = null;
         }
 
         BackgroundType GetBackgroundType(CameraClearFlags clearFlags)
@@ -461,9 +453,10 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            if(m_UniversalRenderPipeline == null)
+            var rpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            if(rpAsset == null)
 			{
-				EditorGUILayout.HelpBox("Universal RP asset not assigned, assign one in the Graphics Settings.", MessageType.Error);
+                base.OnInspectorGUI();
                 return;
 			}
 
@@ -487,13 +480,13 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel++;
 
             DrawCommonSettings();
-            DrawRenderingSettings(camType);
+            DrawRenderingSettings(camType, rpAsset);
             DrawEnvironmentSettings(camType);
 
             // Settings only relevant to base cameras
             if (camType == CameraRenderType.Base)
             {
-                DrawOutputSettings();
+                DrawOutputSettings(rpAsset);
                 DrawStackSettings();
             }
 
@@ -589,12 +582,12 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        void DrawRenderingSettings(CameraRenderType camType)
+        void DrawRenderingSettings(CameraRenderType camType, UniversalRenderPipelineAsset rpAsset)
         {
             m_RenderingSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_RenderingSettingsFoldout.value, Styles.renderingSettingsText);
             if (m_RenderingSettingsFoldout.value)
             {
-                DrawRenderer();
+                DrawRenderer(rpAsset);
 
                 if (camType == CameraRenderType.Base)
                 {
@@ -630,12 +623,12 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
         }
 
-        void DrawOutputSettings()
+        void DrawOutputSettings(UniversalRenderPipelineAsset rpAsset)
         {
             m_OutputSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_OutputSettingsFoldout.value, Styles.outputSettingsText);
             if (m_OutputSettingsFoldout.value)
             {
-                DrawTargetTexture();
+                DrawTargetTexture(rpAsset);
 
                 if (camera.targetTexture == null)
                 {
@@ -720,6 +713,10 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawMSAA()
         {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if(m_AdditionalCameraDataAllowXRRendering.boolValue)
+                return;
+#endif
             Rect controlRect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(controlRect, Styles.allowMSAA, settings.allowMSAA);
             int selectedValue = !settings.allowMSAA.boolValue ? 0 : 1;
@@ -738,14 +735,14 @@ namespace UnityEditor.Rendering.Universal
         }
 #endif
 
-        void DrawTargetTexture()
+        void DrawTargetTexture(UniversalRenderPipelineAsset rpAsset)
         {
             EditorGUILayout.PropertyField(settings.targetTexture, Styles.targetTextureLabel);
 
-            if (!settings.targetTexture.hasMultipleDifferentValues && m_UniversalRenderPipeline != null)
+            if (!settings.targetTexture.hasMultipleDifferentValues && rpAsset != null)
             {
                 var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
-                int pipelineSamplesCount = m_UniversalRenderPipeline.msaaSampleCount;
+                int pipelineSamplesCount = rpAsset.msaaSampleCount;
 
                 if (texture && texture.antiAliasing > pipelineSamplesCount)
                 {
@@ -785,7 +782,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        void DrawRenderer()
+        void DrawRenderer(UniversalRenderPipelineAsset rpAsset)
         {
             int selectedRendererOption = m_AdditionalCameraDataRendererProp.intValue;
             EditorGUI.BeginChangeCheck();
@@ -794,14 +791,13 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginProperty(controlRect, Styles.rendererType, m_AdditionalCameraDataRendererProp);
 
             EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
-            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, m_UniversalRenderPipeline.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
-
+            int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, rpAsset.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
             EditorGUI.EndProperty();
-            if (!m_UniversalRenderPipeline.ValidateRendererDataList())
+            if (!rpAsset.ValidateRendererDataList())
             {
                 EditorGUILayout.HelpBox(Styles.noRendererError, MessageType.Error);
             }
-            else if (!m_UniversalRenderPipeline.ValidateRendererData(selectedRendererOption))
+            else if (!rpAsset.ValidateRendererData(selectedRendererOption))
             {
                 EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
             }
@@ -944,13 +940,28 @@ namespace UnityEditor.Rendering.Universal
                 return;
             }
 
-            Undo.SetCurrentGroupName("Remove Universal Camera");
-            var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-            if (additionalCameraData)
+            var isAssetEditing = EditorUtility.IsPersistent(camera);
+            try
             {
-                Undo.DestroyObjectImmediate(additionalCameraData);
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StartAssetEditing();
+                }
+                Undo.SetCurrentGroupName("Remove Universal Camera");
+                var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+                if (additionalCameraData != null)
+                {
+                    Undo.DestroyObjectImmediate(additionalCameraData);
+                }
+                Undo.DestroyObjectImmediate(camera);
             }
-            Undo.DestroyObjectImmediate(camera);
+            finally
+            {
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+            }
         }
     }
 }

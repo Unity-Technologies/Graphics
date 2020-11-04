@@ -26,6 +26,9 @@ class YMLJob():
     def set_trigger_on_expression(self, expression): 
         self.yml['triggers']['expression'] = expression
 
+    def set_timeout(self, value):
+        self.yml['timeout'] = value
+
     def add_trigger_recurrent(self, branch, frequency):
         existing_triggers = list(self.yml['triggers']['recurring'])
         existing_triggers.append({
@@ -40,9 +43,16 @@ class YMLJob():
         existing_dep = list(self.yml['dependencies'])
         existing_dep.extend(dependencies)
         self.yml['dependencies'] = existing_dep
+
+    def replace_dependency(self, old_dep, new_dep):
+        self.yml['dependencies'][old_dep] = self.yml['dependencies'][new_dep]
     
+
     def add_commands(self, commands):
         self.yml['commands'] = commands
+
+    def allow_failure(self):
+        self.yml['allow_failure'] = True
 
     def add_var_custom_revision(self, editor_version):
         if editor_version == 'CUSTOM-REVISION':
@@ -57,6 +67,9 @@ class YMLJob():
 
     def add_artifacts_test_results(self):
         self.yml['artifacts']['logs']['paths'].append(dss(PATH_TEST_RESULTS_padded)) 
+
+    def add_artifacts_project_logs(self, project_folder):
+        self.yml['artifacts']['logs']['paths'].append(dss(f'TestProjects/{project_folder}/Logs/*.log')) 
 
     def add_artifacts_players(self):
         self.yml['artifacts']['players']['paths'].append(dss(PATH_PLAYERS_padded)) 

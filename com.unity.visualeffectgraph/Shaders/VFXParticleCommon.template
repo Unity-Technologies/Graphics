@@ -190,6 +190,8 @@ void frag(ps_input i
     #endif
 #elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
     , out float4 outSelection : SV_Target0
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+    , out float4 dummy : SV_Target0
 #endif
 )
 {
@@ -223,8 +225,40 @@ void frag(ps_input i
 		#ifndef WRITE_MSAA_DEPTH
 			dummy = (float4)0;
 		#endif
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+		dummy = (float4)0;
 	#else
 		#error VFX_PASSDEPTH undefined 
 	#endif
 }
 ${VFXEnd}
+
+// Strips tangent computation
+${VFXBegin:VFXDeclareGetStripTangent}
+float3 GetParticlePosition(uint index)
+{
+	struct Attributes attributes = (Attributes)0;
+	${VFXLoadAttributes:{position}}
+	return attributes.position;
+}
+
+float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData stripData)
+{
+	float3 prevTangent = (float3)0.0f;
+	if (relativeIndex > 0)
+	{
+		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
+		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
+	}
+	
+	float3 nextTangent = (float3)0.0f;
+	if (relativeIndex < stripData.nextIndex - 1)
+	{
+		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
+		nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
+	}
+	
+	return normalize(prevTangent + nextTangent);
+}
+${VFXEnd}
+

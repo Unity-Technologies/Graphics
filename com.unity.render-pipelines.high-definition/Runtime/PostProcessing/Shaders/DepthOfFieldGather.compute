@@ -97,13 +97,9 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float mip = min(kMaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * Radius);
 #endif
 
-    // Avoid bleeding with the RTHandle autosize system
-#if FAR
-        // A bit more generous maxCoord because of trilinear being involved.
-    float texelsToClamp = 2.0f;
-#else
-    float texelsToClamp = 1.0f;
-#endif
+    uint mipCeiled = ceil(mip);
+    float texelsToClamp = (1u << mipCeiled) + 1;
+
     float4 acc = 0.0;
     float nearWeightAcc = 0.0;
     float accAlpha = 0.0;

@@ -1,0 +1,83 @@
+project:
+  name: URP_Performance_BoatAttack
+  folder: BoatAttack
+test_platforms:
+  - type: Standalone
+    name: performance_playmode_runtime
+    utr_flags:
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=BoatAttack
+    utr_flags_build:
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
+      - [all]: --category=URP
+#  - type: editmode
+#    name: performance_editmode_build
+#    is_performance: True
+#    utr_flags:
+#      - [all]: --report-performance-data
+#      - [all]: --performance-project-id=BoatAttack
+#      - [all]: --testfilter=Build
+#      - [iPhone_Metal]: --platform=iOS
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+    build_configs:
+      - name: il2cpp_apiNet4
+      - name: mono_apiNet2
+    color_spaces:
+      - Linear
+  - name: Android
+    apis: 
+      - name: Vulkan
+      - name: OpenGLES3
+    build_configs:
+      - name: il2cpp_apiNet4
+      - name: mono_apiNet2
+    color_spaces:
+      - Linear
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono_apiNet2
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+#        - performance_editmode_build
+#    - platform: OSX
+#      api: Metal
+#      build_config: il2cpp_apiNet4
+#      color_space: Linear
+#      test_platforms:
+#        #- performance_playmode_runtime
+#        - performance_editmode_build
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp_apiNet4
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+#        - performance_editmode_build
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp_apiNet4
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+#        - performance_editmode_build
+#    - platform: iPhone
+#      api: Metal
+#      build_config: il2cpp_apiNet4
+#      color_space: Linear
+#      test_platforms:
+#        - performance_playmode_runtime
+#        - performance_editmode_build

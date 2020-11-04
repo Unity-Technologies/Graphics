@@ -7,6 +7,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine.Rendering;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -23,14 +24,13 @@ namespace UnityEditor.ShaderGraph
 
         ShaderStringBuilder m_Builder;
         List<PropertyCollector.TextureInfo> m_ConfiguredTextures;
-        List<string> m_AssetDependencyPaths;
+        AssetCollection m_assetCollection;
 
         public string generatedShader => m_Builder.ToCodeBlock();
         public List<PropertyCollector.TextureInfo> configuredTextures => m_ConfiguredTextures;
-        public List<string> assetDependencyPaths => m_AssetDependencyPaths;
         public List<BlockNode> blocks => m_Blocks;
 
-        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name)
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
         {
             m_GraphData = graphData;
             m_OutputNode = outputNode;
@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph
 
             m_Builder = new ShaderStringBuilder();
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
-            m_AssetDependencyPaths = new List<string>();
+            m_assetCollection = assetCollection;
 
             m_Blocks = graphData.GetNodes<BlockNode>().ToList();
             GetTargetImplementations();
@@ -58,24 +58,17 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void GetAssetDependencyPaths(TargetSetupContext context)
-        {
-            foreach(string assetDependency in context.assetDependencyPaths)
-            {
-                m_AssetDependencyPaths.Add(assetDependency);
-            }
-        }
-
         public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> blocks, List<BlockFieldDescriptor> connectedBlocks, Target target)
         {
             var activeFields = new ActiveFields();
             if(outputNode == null)
             {
-                // HDRP needs to know if there are any Dots properties active
-                // Ideally we can determine this in the Target without exposing the PropertyCollector
-                var shaderProperties = new PropertyCollector();
-                m_GraphData.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
-                bool hasDotsProperties = shaderProperties.DotsInstancingProperties(GenerationMode.ForReals).Any();
+                bool hasDotsProperties = false;
+                m_GraphData.ForeachHLSLProperty(h =>
+                    {
+                        if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                            hasDotsProperties = true;
+                    });
 
                 var context = new TargetFieldContext(pass, blocks, connectedBlocks, hasDotsProperties);
                 target.GetFields(ref context);
@@ -145,11 +138,10 @@ namespace UnityEditor.ShaderGraph
 
                 for(int i = 0; i < m_Targets.Length; i++)
                 {
-                    TargetSetupContext context = new TargetSetupContext();
+                    TargetSetupContext context = new TargetSetupContext(m_assetCollection);
 
                     // Instead of setup target, we can also just do get context
                     m_Targets[i].Setup(ref context);
-                    GetAssetDependencyPaths(context);
 
                     foreach(var subShader in context.subShaders)
                     {
@@ -168,10 +160,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                if(m_Mode != GenerationMode.Preview)
-                {
-                    m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
-                }
+                m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
             }
 
             m_ConfiguredTextures = shaderProperties.GetConfiguredTexutres();
@@ -528,7 +517,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
             if(interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision
-                interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Float.ToShaderString());
+                interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
             spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlock());
@@ -541,7 +530,7 @@ namespace UnityEditor.ShaderGraph
                 foreach(StructDescriptor shaderStruct in passStructs)
                 {
                     GenerationUtils.GenerateShaderStruct(shaderStruct, activeFields, out structBuilder);
-                    structBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Float.ToShaderString()); //hard code structs to float, TODO: proper handle precision
+                    structBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString()); //hard code structs to float, TODO: proper handle precision
                     passStructBuilder.Concat(structBuilder);
                 }
             }
@@ -672,10 +661,16 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            bool hasDotsInstancedProps = propertyCollector.DotsInstancingProperties(m_Mode).Any();
+            bool hasDotsProperties = false;
+            m_GraphData.ForeachHLSLProperty(h =>
+            {
+                if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                    hasDotsProperties = true;
+            });
+
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
-                if (hasDotsInstancedProps)
+                if (hasDotsProperties)
                     dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(m_Mode));
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
@@ -691,7 +686,7 @@ namespace UnityEditor.ShaderGraph
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
                 #if !ENABLE_HYBRID_RENDERER_V2
-                if (hasDotsInstancedProps)
+                if (hasDotsProperties)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
@@ -803,7 +798,7 @@ namespace UnityEditor.ShaderGraph
 
             // Process Template
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectories, m_AssetDependencyPaths);
+                isDebug, sharedTemplateDirectories, m_assetCollection);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
         }

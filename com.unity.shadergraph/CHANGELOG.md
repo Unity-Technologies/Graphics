@@ -4,22 +4,92 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.1.0] - 2019-08-04
+## [11.0.0] - 2020-10-21
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+## [10.2.0] - 2020-10-19
+
+### Added
+
+### Changed
+- Renamed the existing Sample Cubemap Node to Sample Reflected Cubemap Node, and created a new Sample Cubemap Node that samples cubemaps with a direction.
+- Removed unnecessary HDRP constant declarations used by Material inspector from the UnityPerMaterial cbuffer [1285701]
+- Virtual Texture properties are now forced to be Exposed, as they do not work otherwise [1256374]
+
+### Fixed
+- Fixed an issue where old ShaderGraphs would import non-deterministically, changing their embedded property names each import [1283800]
+- Using the TexelSize node on a ShaderGraph texture property is now SRP batchable [1284029]
+- Fixed an issue where Mesh Deformation nodes did not have a category color. [1227081](https://issuetracker.unity3d.com/issues/shadergraph-color-mode-vertex-skinning-catagory-has-no-color-associated-with-it)
+- Fixed SampleTexture2DLOD node to return opaque black on unsupported platforms [1241602]
+- ShaderGraph now detects when a SubGraph is deleted while being used by a SubGraph node, and displays appropriate errors [1206438]
+- Fixed an issue where the Main Preview window rendered too large on small monitors during first open. [1254392]
+- Fixed an issue where Block nodes using Color slots would not be automatically removed from the Master Stack. [1259794]
+- Fixed an issue where the Create Node menu would not close when pressing the Escape key. [1263667]
+- Fixed an issue with the Preview Manager not updating correctly when deleting an edge that was created with a node (dragging off an existing node slot)
+- Fixed an issue where ShaderGraph could not read matrices from a Material or MaterialPropertyBlock while rendering with SRP batcher [1256374]
+- Fixed an issue where user setting a property to not Exposed, Hybrid-Instanced would result in a non-Hybrid Global property [1285700]
+- Fixed an issue with Gradient when it is used as expose parameters. Generated code was failing [1285640 ]
+- Fixed the subgraph slot sorting function [1286805]
+- Fixed Parallax Occlusion Mapping not working in sub graphs. [1221317](https://issuetracker.unity3d.com/product/unity/issues/guid/1221317/)
+- All textures in a ShaderGraph, even those not used, will now be pulled into an Exported Package [1283902]
+- Fixed an issue where the presence of an HDRP DiffusionProfile property or node would cause the graph to fail to load when HDRP package was not present [1287904]
+- Fixed an issue where unknown type Nodes (i.e. HDRP-only nodes used without HDRP package) could be copied, resulting in an unloadable graph [1288475]
+
+## [10.1.0] - 2020-10-12
+
 ### Added
 - Added parallax mapping node and parallax occlusion mapping node.
 - Added the possibility to have multiple POM node in a single graph.
+- Added better error feedback when SampleVirtualTexture nodes run into issues with the VirtualTexture property inputs
+- Added ability for Shader Graph to change node behavior without impacting existing graphs via the “Allow Deprecated Nodes”
 
 ### Changed
 - Added method chaining support to shadergraph collection API.
+- Optimized ShaderSubGraph import dependencies to minimize unnecessary reimports when using CustomFunctionNode
+- Changed UI names from `Vector1` to `Float`
+- Renamed `Float` precision to `Single`
+- Cleaned up the UI to add/remove Targets
+- The * in the ShaderGraph title bar now indicates that the graph has been modified when compared to the state it was loaded, instead of compared to what is on disk
+- Cancelling a "Save changes on Close?" will now cancel the Close as well
+- When attempting to Save and encountering a Read Only file or other exception, ShaderGraph will allow the user to retry as many times as they like
 
 ### Fixed
 - Fixed a bug where ShaderGraph subgraph nodes would not update their slot names or order
 - Fixed an issue where very old ShaderGraphs would fail to load because of uninitialized data [1269616](https://issuetracker.unity3d.com/issues/shadergraph-matrix-split-and-matrix-combine-shadergraphs-in-shadergraph-automated-tests-dont-open-throw-error)
 - Fixed an issue where ShaderGraph previews didn't display correctly when setting a texture to "None" [1264932]
+- Fixed an issue with the SampleVirtualTexture node in ShaderGraph, where toggling Automatic Streaming would cause the node to incorrectly display four output slots [1271618]
+- Fixed an issue in ShaderGraph with integer-mode Vector1 properties throwing errors when the value is changed [1264930]
+- Fixed a bug where ShaderGraph would not load graphs using Procedural VT nodes when the nodes were the project had them disabled [1271598]
+- Fixed an issue where the ProceduralVT node was not updating any connected SampleVT nodes when the number of layers was changed [1274288]
+- Fixed an issue with how unknown nodes were treated during validation
+- Fixed an issue where ShaderGraph shaders did not reimport automatically when some of the included files changed [1269634]
+- Fixed an issue where building a context menu on a dragging block node would leave it floating and undo/redo would result in a soft-lock
+- Fixed an issue where ShaderGraph was logging error when edited in play mode [1274148].
+- Fixed a bug where properties copied over with their graph inputs would not hook up correctly in a new graph [1274306]
+- Fixed an issue where renaming a property in the blackboard at creation would trigger an error.
+- Fixed an issue where ShaderGraph shaders did not reimport automatically when missing dependencies were reintroduced [1182895]
+- Fixed an issue where ShaderGraph previews would not show error shaders when the active render pipeline is incompatible with the shader [1257015]
+- ShaderGraph DDX, DDY, DDXY, and NormalFromHeight nodes do not allow themselves to be connected to vertex shader, as the derivative instructions can't be used [1209087]
+- When ShaderGraph detects no active SRP, it will still continue to render the master preview, but it will use the error shader [1264642]
+- VirtualTexture is no longer allowed as a SubGraph output (it is not supported by current system) [1254483]
+- ShaderGraph Custom Function Node will now correctly convert function and slot names to valid HLSL identifiers [1258832]
+- Fixed an issue where ShaderGraph Custom Function Node would reorder slots when you modified them [1280106]
+- Fixed Undo handling when adding or removing Targets from a ShaderGraph [1257028]
+- Fixed an issue with detection of circular subgraph dependencies [1269841]
+- Fixed an issue where subgraph nodes were constantly changing their serialized data [1281975]
+- Modifying a subgraph will no longer cause ShaderGraphs that use them to "reload from disk?" [1198885]
+- Fixed issues with ShaderGraph title bar not correctly displaying the modified status * [1282031]
+- Fixed issues where ShaderGraph could discard modified data without user approval when closed [1170503]
+- Fixed an issue where ShaderGraph file dependency gathering would fail to include any files that didn't exist
+- Fixed issues with ShaderGraph detection and handling of deleted graph files
+- Fixed an issue where the ShaderGraph was corrupting the translation cache
+- Fixed an issue where ShaderGraph would not prompt the user to save unsaved changes after an assembly reload
+- Fixed an issue with Position Node not automatically upgrading
+- Fixed an issue where failing SubGraphs would block saving graph files using them (recursion check would throw exceptions) [1283425]
+- Fixed an issue where choosing "None" as the default texture for a texture property would not correctly preview the correct default color [1283782]
+- Fixed some bugs with Color Nodes and properties that would cause incorrect collorspace conversions
 
 ## [10.0.0] - 2019-06-10
 ### Added

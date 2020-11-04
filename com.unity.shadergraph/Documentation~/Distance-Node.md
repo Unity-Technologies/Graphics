@@ -10,7 +10,7 @@ Returns the euclidean distance between the values of the inputs **A** and **B**.
 |:------------ |:-------------|:-----|:---|
 | A      | Input | Dynamic Vector | First input value |
 | B      | Input | Dynamic Vector | Second input value |
-| Out | Output      |   Vector 1 | Output value |
+| Out | Output      |   Float    | Output value |
 
 ## Generated Code Example
 

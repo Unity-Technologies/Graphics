@@ -11,34 +11,38 @@ namespace UnityEngine.Rendering.Universal
 
         OutputColorsToMRTsRenderPass m_ColorsToMrtsPass;
         RenderTargetHandle[] m_ColorToMrtOutputs; // outputs of render pass "OutputColorsToMRTs"
-        
+
         CopyToViewportRenderPass[] m_CopyToViewportPasses;
         Rect m_Viewport = new Rect(660, 200, 580, 320); // viewport to copy the results into
 
         FinalBlitPass m_FinalBlitPass;
+
+        Material m_ColorToMrtMaterial;
+        Material m_CopyToViewportMaterial;
+        Material m_BlitMaterial;
+
+        string m_profilerTag = "Test 105 Renderer";
 
         public Test105Renderer(Test105RendererData data) : base(data)
         {
             m_CameraColor.Init("_CameraColor");
             m_CameraDepth.Init("_CameraDepth");
 
-            Material colorToMrtMaterial = CoreUtils.CreateEngineMaterial(data.shaders.colorToMrtPS);
-            m_ColorsToMrtsPass = new OutputColorsToMRTsRenderPass(colorToMrtMaterial);
+            m_ColorToMrtMaterial = CoreUtils.CreateEngineMaterial(data.shaders.colorToMrtPS);
+            m_ColorsToMrtsPass = new OutputColorsToMRTsRenderPass(m_ColorToMrtMaterial);
 
             m_ColorToMrtOutputs = new RenderTargetHandle[2];
             m_ColorToMrtOutputs[0].Init("_ColorToMrtOutput0");
             m_ColorToMrtOutputs[1].Init("_ColorToMrtOutput1");
 
-            Material copyToViewportMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyToViewportPS);
+            m_CopyToViewportMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyToViewportPS);
             m_CopyToViewportPasses = new CopyToViewportRenderPass[2];
-            m_CopyToViewportPasses[0] = new CopyToViewportRenderPass(copyToViewportMaterial);
-            m_CopyToViewportPasses[1] = new CopyToViewportRenderPass(copyToViewportMaterial);
+            m_CopyToViewportPasses[0] = new CopyToViewportRenderPass(m_CopyToViewportMaterial);
+            m_CopyToViewportPasses[1] = new CopyToViewportRenderPass(m_CopyToViewportMaterial);
 
-            Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, blitMaterial);
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);
         }
-
-        string m_profilerTag = "Test 105 Renderer";
 
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -95,6 +99,13 @@ namespace UnityEngine.Rendering.Universal
         {
             cmd.ReleaseTemporaryRT(m_CameraColor.id);
             cmd.ReleaseTemporaryRT(m_CameraDepth.id);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            CoreUtils.Destroy(m_ColorToMrtMaterial);
+            CoreUtils.Destroy(m_CopyToViewportMaterial);
+            CoreUtils.Destroy(m_BlitMaterial);
         }
     }
 }
