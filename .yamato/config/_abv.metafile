@@ -6,13 +6,9 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_HDRP
     - name: VFX_URP
   build_configs:
-    - name: mono_apiNet2
-      scripting_backend: Mono2x
-      api_level: NET_2_0
-    - name: il2cpp_apiNet4
-      scripting_backend: IL2CPP
-      api_level: NET_4_6
-  color_spaces:
+    - mono_apiNet2
+    - il2cpp_apiNet4
+  color_spaces: 
     - Linear
 nightly:
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV)

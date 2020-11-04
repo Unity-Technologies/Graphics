@@ -17,7 +17,7 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_2020.2:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli -u 19f63eee530cf75bf6b9e470d2b27eedda41a780 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -38,7 +38,7 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/VisualEffectGraph_URP/utr
       -  chmod +x TestProjects/VisualEffectGraph_URP/utr
       -  cd TestProjects/VisualEffectGraph_URP && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-glcore"
+      -  cd TestProjects/VisualEffectGraph_URP && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:

@@ -13,7 +13,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_apiNet2_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalHybridTest/utr.bat
-      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/UniversalHybridTest && utr --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-colorspace=Linear" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -40,7 +40,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+                  cd TestProjects/UniversalHybridTest && utr --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -67,7 +67,7 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_apiNet2_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalHybridTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalHybridTest && utr --artifacts_path=test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -84,7 +84,7 @@ Universal_Hybrid_Win_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalHybridTest/utr.bat
-      -  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/UniversalHybridTest && utr --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-colorspace=Linear" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -114,7 +114,7 @@ Build_Universal_Hybrid_Win_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalHybridTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --timeout=1200 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+                  cd TestProjects/UniversalHybridTest && utr --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -145,7 +145,7 @@ Universal_Hybrid_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalHybridTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
+                  cd TestProjects/UniversalHybridTest && utr --artifacts_path=test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
