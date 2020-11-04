@@ -2781,15 +2781,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                if (m_MotionBlur.specialCameraClampMode == CameraClampMode.None)
+                var clampMode = m_MotionBlur.specialCameraClampMode.value;
+                if (clampMode == CameraClampMode.None)
                     parameters.motionVecPrepCS.EnableKeyword("NO_SPECIAL_CLAMP");
-                else if (m_MotionBlur.specialCameraClampMode == CameraClampMode.Rotation)
+                else if (clampMode == CameraClampMode.Rotation)
                     parameters.motionVecPrepCS.EnableKeyword("CAMERA_ROT_CLAMP");
-                else if (m_MotionBlur.specialCameraClampMode == CameraClampMode.Translation)
+                else if (clampMode == CameraClampMode.Translation)
                     parameters.motionVecPrepCS.EnableKeyword("CAMERA_TRANS_CLAMP");
-                else if (m_MotionBlur.specialCameraClampMode == CameraClampMode.SeparateTranslationAndRotation)
+                else if (clampMode == CameraClampMode.SeparateTranslationAndRotation)
                     parameters.motionVecPrepCS.EnableKeyword("CAMERA_SEPARATE_CLAMP");
-                else if (m_MotionBlur.specialCameraClampMode == CameraClampMode.FullCameraMotionVector)
+                else if (clampMode == CameraClampMode.FullCameraMotionVector)
                     parameters.motionVecPrepCS.EnableKeyword("CAMERA_FULL_CLAMP");
             }
 
