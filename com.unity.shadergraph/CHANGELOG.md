@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the subgraph slot sorting function [1286805]
 - Fixed an issue where the presence of an HDRP DiffusionProfile property or node would cause the graph to fail to load when HDRP package was not present [1287904]
 - Fixed an issue where unknown type Nodes (i.e. HDRP-only nodes used without HDRP package) could be copied, resulting in an unloadable graph [1288475]
+- Fixed an issue where dropping HDRP-only properties from the blackboard field into the graph would soft-lock the graph [1288887]
+- Fixed Parallax Occlusion Mapping not working in sub graphs. [1221317](https://issuetracker.unity3d.com/product/unity/issues/guid/1221317/)
 - All textures in a ShaderGraph, even those not used, will now be pulled into an Exported Package [1283902]
 
 ## [10.1.0] - 2020-10-12

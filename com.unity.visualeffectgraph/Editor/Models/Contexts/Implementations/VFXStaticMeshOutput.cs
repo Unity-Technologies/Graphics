@@ -260,7 +260,7 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
-
+            ((VFXDataMesh)GetData()).RefreshShader(); // TODO This triggers an invalidate that is theorically not needed but require to fix a bug with shader graph dependency
             ResyncSlots(true);
         }
     }
