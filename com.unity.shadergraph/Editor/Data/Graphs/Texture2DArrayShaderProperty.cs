@@ -5,7 +5,8 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.Texture2DArrayShaderProperty")]
-    public sealed class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
+    [BlackboardInputInfo(51)]
+    public class Texture2DArrayShaderProperty : AbstractShaderProperty<SerializableTextureArray>
     {
         internal Texture2DArrayShaderProperty()
         {
@@ -15,7 +16,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override PropertyType propertyType => PropertyType.Texture2DArray;
 
-        internal override bool isBatchable => false;
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -23,12 +23,15 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"white\" {{}}";
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2DArray) = \"\" {{}}";
         }
 
-        internal override string GetPropertyDeclarationString(string delimiter = ";")
+        internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false; // disable UI, nothing to choose
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
         {
-            return $"TEXTURE2D_ARRAY({referenceName}){delimiter} SAMPLER(sampler{referenceName}){delimiter}";
+            action(new HLSLProperty(HLSLType._Texture2DArray, referenceName, HLSLDeclaration.Global));
+            action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
         }
 
         internal override string GetPropertyAsArgumentString()

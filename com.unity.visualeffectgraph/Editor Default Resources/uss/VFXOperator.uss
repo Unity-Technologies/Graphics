@@ -31,7 +31,7 @@ OperandInfo .unity-text-field
 OperandInfo .PopupButton
 {
     flex:0 0 auto;
-    width: 55px;
+    width: 64px;
 }
 
 VFXUnifiedOperatorEdit OperandInfo .unity-label

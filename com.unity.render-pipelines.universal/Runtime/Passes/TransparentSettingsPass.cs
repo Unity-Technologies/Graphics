@@ -13,6 +13,7 @@ namespace UnityEngine.Rendering.Universal
 
         public TransparentSettingsPass(RenderPassEvent evt, bool shadowReceiveSupported)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(TransparentSettingsPass));
             renderPassEvent = evt;
             m_shouldReceiveShadows = shadowReceiveSupported;
         }
