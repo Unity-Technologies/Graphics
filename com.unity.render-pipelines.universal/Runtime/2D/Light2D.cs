@@ -158,8 +158,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var parametricAngleOffsetChanged = LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
             var spriteInstanceChanged = LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite);
             var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
+            var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
             var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
-                             parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged;
+                             parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
             // Mesh Rebuilding
             if (hashChanged && forceUpdate)
             {

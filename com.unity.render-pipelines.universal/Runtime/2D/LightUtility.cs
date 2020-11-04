@@ -11,6 +11,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class LightUtility
     {
+
+        public static bool CheckForChange(Light2D.LightType a, ref Light2D.LightType b)
+        {
+            var changed = a != b;
+            b = a;
+            return changed;
+        }
         public static bool CheckForChange(int a, ref int b)
         {
             var changed = a != b;
