@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
@@ -32,8 +31,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return changed;
         }
 
-        [Serializable]
-        internal struct ParametricLightMeshVertex
+        private struct ParametricLightMeshVertex
         {
             public float3 position;
             public Color color;
@@ -295,6 +293,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             };
         }
 
+#if UNITY_EDITOR
         public static int GetShapePathHash(Vector3[] path)
         {
             unchecked
@@ -314,6 +313,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return hashCode;
             }
         }
+#endif
 
     }
 }

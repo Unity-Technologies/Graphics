@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int     m_PreviousShapeLightParametricSides         = -1;
         float   m_PreviousShapeLightParametricAngleOffset   = -1;
         float   m_PreviousShapeLightParametricRadius        = -1;
-        int     m_PreviousShapePathHash                     = -1;
+
 
         public int              shapeLightParametricSides       => m_ShapeLightParametricSides;
         public float            shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;

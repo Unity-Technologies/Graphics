@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - 2D Renderer: The per Blend Style render texture scale setting was replaced by a global scale setting for all Blend Styles.
 - Optimized 2D Renderer performance by using a tiny light texture for layer/blend style pairs for which no light is rendered.
 - FallOff Lookup Texture is now part of 2D RenderData.
-- Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
 
 ### Fixed
 - Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
