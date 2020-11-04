@@ -99,12 +99,11 @@ test_platforms:
       - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3"
       - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal"
       
-      ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
-      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11"
-      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
-      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3"
-      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal"
+      - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
+      - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
+      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
       
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
   
