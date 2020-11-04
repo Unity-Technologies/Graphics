@@ -7,8 +7,8 @@
 
 ---
 
-HDRP_Hybrid_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_2020.2:
-    name: HDRP_Hybrid on Linux_OpenGLCore_playmode_mono_apiNet2_Linear on version 2020.2
+HDRP_Hybrid_Linux_OpenGLCore_playmode_mono_Linear_2020.2:
+    name: HDRP_Hybrid on Linux_OpenGLCore_playmode_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -27,8 +27,8 @@ HDRP_Hybrid_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
-HDRP_Hybrid_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: HDRP_Hybrid on Linux_OpenGLCore_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+HDRP_Hybrid_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
+    name: HDRP_Hybrid on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable

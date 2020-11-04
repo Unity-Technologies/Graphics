@@ -7,8 +7,8 @@
 
 ---
 
-URPUpdate_Win_Vulkan_playmode_mono_apiNet2_Linear_2020.2:
-    name: URPUpdate on Win_Vulkan_playmode_mono_apiNet2_Linear on version 2020.2
+URPUpdate_Win_Vulkan_playmode_mono_Linear_2020.2:
+    name: URPUpdate on Win_Vulkan_playmode_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -29,8 +29,8 @@ URPUpdate_Win_Vulkan_playmode_mono_apiNet2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP-Update-Testing/Logs/*.log"
-URPUpdate_Win_Vulkan_editmode_mono_apiNet2_Linear_2020.2:
-    name: URPUpdate on Win_Vulkan_editmode_mono_apiNet2_Linear on version 2020.2
+URPUpdate_Win_Vulkan_editmode_mono_Linear_2020.2:
+    name: URPUpdate on Win_Vulkan_editmode_mono_Linear on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -51,8 +51,8 @@ URPUpdate_Win_Vulkan_editmode_mono_apiNet2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP-Update-Testing/Logs/*.log"
-URPUpdate_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate on Win_Vulkan_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -77,8 +77,8 @@ URPUpdate_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URPUpdate_Win_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate on Win_Vulkan_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

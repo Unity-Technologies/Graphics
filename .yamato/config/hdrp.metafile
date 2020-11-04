@@ -23,7 +23,7 @@ platforms:
       - name: DX12
       - name: Vulkan
     build_configs:
-      - name: mono_apiNet2
+      - name: mono
     color_spaces:
       - Linear
     agents_project:
@@ -52,7 +52,7 @@ platforms:
         exclude_test_platforms:
           - name: editmode
     build_configs:
-      - name: mono_apiNet2
+      - name: mono
     color_spaces:
       - Linear
   - name: Linux
@@ -61,14 +61,14 @@ platforms:
         exclude_test_platforms:
           - name: playmode_XR
     build_configs:
-      - name: mono_apiNet2
+      - name: mono
     color_spaces:
       - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - editmode
@@ -78,7 +78,7 @@ all:
         - Standalone
     - platform: Win
       api: DX12
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -86,7 +86,7 @@ all:
         - Standalone
     - platform: Win
       api: Vulkan
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -94,14 +94,14 @@ all:
         - Standalone
     - platform: OSX
       api: Metal
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - editmode
@@ -110,7 +110,7 @@ all:
     - project: HDRP_DXR
       platform: Win
       api: DX12
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode

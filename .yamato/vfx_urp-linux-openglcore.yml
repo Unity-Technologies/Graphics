@@ -7,8 +7,8 @@
 
 ---
 
-VFX_URP_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_2020.2:
-    name: VFX_URP on Linux_OpenGLCore_playmode_mono_apiNet2_Linear on version 2020.2
+VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_2020.2:
+    name: VFX_URP on Linux_OpenGLCore_playmode_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -27,8 +27,8 @@ VFX_URP_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
-VFX_URP_Linux_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: VFX_URP on Linux_OpenGLCore_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+VFX_URP_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
+    name: VFX_URP on Linux_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable

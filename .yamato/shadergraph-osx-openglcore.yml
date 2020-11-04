@@ -7,8 +7,8 @@
 
 ---
 
-ShaderGraph_OSX_OpenGLCore_playmode_mono_apiNet2_Linear_2020.2:
-    name: ShaderGraph on OSX_OpenGLCore_playmode_mono_apiNet2_Linear on version 2020.2
+ShaderGraph_OSX_OpenGLCore_playmode_mono_Linear_2020.2:
+    name: ShaderGraph on OSX_OpenGLCore_playmode_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -26,8 +26,8 @@ ShaderGraph_OSX_OpenGLCore_playmode_mono_apiNet2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
-ShaderGraph_OSX_OpenGLCore_editmode_mono_apiNet2_Linear_2020.2:
-    name: ShaderGraph on OSX_OpenGLCore_editmode_mono_apiNet2_Linear on version 2020.2
+ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_2020.2:
+    name: ShaderGraph on OSX_OpenGLCore_editmode_mono_Linear on version 2020.2
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -45,8 +45,8 @@ ShaderGraph_OSX_OpenGLCore_editmode_mono_apiNet2_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
-ShaderGraph_OSX_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_OpenGLCore_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+ShaderGraph_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
+    name: ShaderGraph on OSX_OpenGLCore_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -68,8 +68,8 @@ ShaderGraph_OSX_OpenGLCore_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-ShaderGraph_OSX_OpenGLCore_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: ShaderGraph on OSX_OpenGLCore_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
+    name: ShaderGraph on OSX_OpenGLCore_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable

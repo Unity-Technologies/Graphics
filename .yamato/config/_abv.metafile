@@ -6,8 +6,8 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_HDRP
     - name: VFX_URP
   build_configs:
-    - mono_apiNet2
-    - il2cpp_apiNet4
+    - mono
+    - il2cpp
   color_spaces: 
     - Linear
 nightly:
@@ -15,7 +15,7 @@ nightly:
     - project: Smoke_Test
       platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -24,28 +24,28 @@ nightly:
     - project: Universal
       platform: Android
       api: OpenGLES3
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Android
       api: Vulkan
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: iPhone
       api: Metal
-      build_config: mono_apiNet2
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - Standalone
     - project: Universal
       platform: Win
       api: Vulkan
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -53,7 +53,7 @@ nightly:
     - project: Universal
       platform: Win
       api: DX12
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - Standalone
@@ -63,7 +63,7 @@ nightly:
     - project: URPUpdate
       platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - editmode
@@ -71,7 +71,7 @@ nightly:
     - project: URPUpdate_Top_Asset_Store
       platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - editmode
@@ -83,7 +83,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: Universal
       platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -91,7 +91,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: ShaderGraph
       platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -99,7 +99,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: HDRP
       platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -107,7 +107,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: VFX_HDRP
       platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -115,7 +115,7 @@ trunk_verification: # jobs to include in trunk verification job
     - project: VFX_URP
       platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode

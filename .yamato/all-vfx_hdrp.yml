@@ -10,24 +10,24 @@
 All_VFX_HDRP_2020.2:
     name: All VFX_HDRP CI - 2020.2
     dependencies:
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_apiNet2_Linear_2020.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_2020.2
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_apiNet2_Linear_2020.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_2020.2
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_apiNet2_Linear_2020.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_2020.2
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_apiNet2_Linear_2020.2
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_2020.2
          rerun: on-new-revision
 All_VFX_HDRP_CUSTOM-REVISION:
     name: All VFX_HDRP CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
