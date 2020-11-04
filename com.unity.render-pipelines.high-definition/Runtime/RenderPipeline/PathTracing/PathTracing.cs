@@ -244,6 +244,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             CameraData camData = m_SubFrameManager.GetCameraData(hdCamera.camera.GetInstanceID());
+            hdCamera.isLastIteration = camData.currentIteration == m_SubFrameManager.subFrameCount;
+
+            if (Application.isPlaying && hdCamera.isLastIteration && hdCamera.isContinousCaptureEnabled)
+                camData.ResetIteration();
+
             if (camData.currentIteration < m_SubFrameManager.subFrameCount)
             {
 			    // Define the shader pass to use for the path tracing pass

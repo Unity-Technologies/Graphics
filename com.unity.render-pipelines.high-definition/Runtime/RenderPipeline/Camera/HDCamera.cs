@@ -183,6 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public PrepareDispatchRaysAction<UnityEngine.Rendering.CommandBuffer> PrepareDispatchRays;
 
         public bool isContinousCaptureEnabled = true;
+        public bool isLastIteration = false;
         public PostProcessSystem postProcessSystem;
 //SensorSDK - End - Tonemapping support
 
