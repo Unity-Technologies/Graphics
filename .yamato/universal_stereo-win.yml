@@ -44,7 +44,7 @@ Build_Universal_Stereo_Win_Player_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGfxTestStereo && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/UniversalGfxTestStereo && utr --artifacts_path=test-results --build-only --editor-location=.Editor --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -71,7 +71,7 @@ Universal_Stereo_Win_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGfxTestStereo && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/UniversalGfxTestStereo && utr --artifacts_path=test-results --editor-location=.Editor --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -118,7 +118,7 @@ Build_Universal_Stereo_Win_Player_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGfxTestStereo && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/UniversalGfxTestStereo && utr --artifacts_path=test-results --build-only --editor-location=.Editor --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -149,7 +149,7 @@ Universal_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGfxTestStereo && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/UniversalGfxTestStereo && utr --artifacts_path=test-results --editor-location=.Editor --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:

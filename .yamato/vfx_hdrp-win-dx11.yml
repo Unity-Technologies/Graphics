@@ -44,7 +44,7 @@ Build_VFX_HDRP_Win_DX11_Player_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -71,7 +71,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -95,7 +95,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -119,7 +119,7 @@ VFX_HDRP_Win_DX11_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --extra-editor-arg="SetColorSpaceLinear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -166,7 +166,7 @@ Build_VFX_HDRP_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -197,7 +197,7 @@ VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -225,7 +225,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -253,7 +253,7 @@ VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --extra-editor-arg="SetColorSpaceLinear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-force-d3d11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:

@@ -67,7 +67,6 @@ test_platforms:
       - [all]: --suite=playmode
       - [all]: --build-only
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="SetColorSpace<COLORSPACE>"
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -93,11 +92,11 @@ test_platforms:
       - [iPhone]: --timeout=1800
 
       ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
-      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11"
-      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
-      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3"
-      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal"
+      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
       
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
@@ -111,7 +110,6 @@ test_platforms:
     utr_flags:
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="SetColorSpace<COLORSPACE>"
       - [all]: --reruncount=2
       
       - [all]: --testproject=.
@@ -136,7 +134,6 @@ test_platforms:
       - [all]: --suite=editor
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="SetColorSpace<COLORSPACE>"
       - [all]: --platform=editmode
       
       - [all]: --testproject=.

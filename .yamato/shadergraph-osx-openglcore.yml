@@ -20,7 +20,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_mono_Linear_trunk:
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+      -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --editor-location=.Editor --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -39,7 +39,7 @@ ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_trunk:
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+      -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --editor-location=.Editor --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -59,7 +59,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
+      -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --editor-location=.Editor --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -82,7 +82,7 @@ ShaderGraph_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="SetColorSpaceLinear" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+      -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --editor-location=.Editor --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
