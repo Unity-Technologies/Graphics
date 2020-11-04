@@ -19,6 +19,7 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       - [all]: --category=URP
   - type: playmode
     name: performance_playmode_editor
@@ -33,6 +34,7 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
       - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
   - type: editmode
     name: performance_editmode_build
     is_performance: True
@@ -47,6 +49,7 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
       - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       - [iPhone_Metal]: --platform=iOS
 platforms:
   - name: Win
