@@ -1,7 +1,7 @@
 * [High Definition Render Pipeline](index)
 * [Requirements](System-Requirements.md)
 * [What's new](whats-new.md)
-  * [10.0](whats-new-10-0.md)
+  * [10](whats-new-10.md)
 * Features
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
@@ -16,23 +16,25 @@
   * [Menu Items](Menu-Items.md)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade)
-  * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
-  * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
-  * [2019.3 to 2020.1](Upgrading-from-2019.3-to-2020.1)
-  * [2020.1 to 2020.2](Upgrading-from-2020.1-to-2020.2)
+  * [5.x to 6.x](Upgrading-from-2019.1-to-2019.2)
+  * [6.x to 7.x](Upgrading-from-2019.2-to-2019.3)
+  * [7.x to 8.x](Upgrading-from-2019.3-to-2020.1)
+  * [8.x to 9.x-preview/10.x](Upgrading-from-2020.1-to-2020.2)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
   * [Volume Overrides](Volume-Components)
   * Volume Overrides List
-    * [Diffusion Profile](Override-Diffusion-Profile)
     * [Exposure](Override-Exposure)
     * [Fog](Override-Fog)
     * Lighting
       * [Ambient Occlusion](Override-Ambient-Occlusion)
       * [Indirect Lighting Controller](Override-Indirect-Lighting-Controller)
+      * [Screen Space Global Illumination](Override-Screen-Space-GI)
       * [Screen Space Reflection](Override-Screen-Space-Reflection)
       * [Screen Space Refraction](Override-Screen-Space-Refraction)
+    * Material
+      * [Diffusion Profile](Override-Diffusion-Profile)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows)
       * [Micro Shadows](Override-Micro-Shadows)
@@ -65,11 +67,19 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * Autodesk Interactive
+      * [Autodesk Interactive Shader](Autodesk-Interactive-Shader)
+      * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked)
+      * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent)
     * [AxF Shader](AxF-Shader)
     * [Decal Shader](Decal-Shader)
+    * [Cottom/Wool Shader](cotton-wool-shader.md)
+    * [Eye Shader](eye-shader.md)
+    * [Hair Shader](hair-shader.md)
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader)
     * [Lit Shader](Lit-Shader)
+    * [Silk Shader](silk-shader.md)
     * [Terrain Lit Shader](Terrain-Lit-Shader.md)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
@@ -79,21 +89,16 @@
     * [Hair](Master-Node-Hair)
     * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
-  * Shader Graph Nodes
-    * [Emission](SGNode-Emission)
-    * [Baked GI](SGNode-Baked-GI)
-    * [Diffusion Profile](SGNode-Diffusion-Profile)
-    * [Parallax Occlusion Mapping](SGNode-Parallax-Occlusion-Mapping)
-    * [Exposure](SGNode-Exposure)
-    * [HD Scene Color](SGNode-HD-Scene-Color)
+  * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP)
   * [Refraction in HDRP](Refraction-in-HDRP)
-  * Reflection Probes
-    * [Reflection Probes Introduction](Reflection-Probes-Intro)
-    * [Reflection Probe](Reflection-Probe)
-    * [Planar Reflection Probe](Planar-Reflection-Probe)
-    * [Reflection Proxy Volume](Reflection-Proxy-Volume)
+  * [Reflection Probes](Reflection-Probes-Intro)
+    * [Using Reflection Probes](Reflection-Probe-Usage)
+    * Components
+      * [Reflection Probe](Reflection-Probe)
+      * [Planar Reflection Probe](Planar-Reflection-Probe)
+      * [Reflection Proxy Volume](Reflection-Proxy-Volume)
   * [Light](Light-Component)
   * [Environment Lighting](Environment-Lighting)
   * [Atmospheric Scattering](Atmospheric-Scattering)
@@ -139,6 +144,9 @@
     * [Overview](Authoring-LUTs)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop)
     * [Authoring in DaVinci Resolve](LUT-Authoring-Resolve)
+  * [Propagating NaNs](Post-Processing-Propagating-NaNs)
+* UI
+  * [UI Best Pratices](UI-Best-Practices)
 * Ray Tracing
   * [Getting Started with Ray Tracing](Ray-Tracing-Getting-Started)
   * Effects and Volume Overrides
@@ -147,9 +155,13 @@
     * [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination)
     * [Ray-Traced Reflections](Ray-Traced-Reflections)
     * [Ray-Traced Shadows](Ray-Traced-Shadows)
+    * [Ray-Traced-Subsurface-Scattering](Ray-Traced-Subsurface-Scattering)
     * [Light Cluster](Ray-Tracing-Light-Cluster)
     * [Path Tracing](Ray-Tracing-Path-Tracing)
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering)
+  * Shader Graph Keywords
+    * [Raytracing Quality](SGNode-Raytracing-Quality)
+  * [Ray Tracing and Animations](Ray-Tracing-Animations.md)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug)
 * Components
@@ -171,6 +183,7 @@
   * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
-  * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
+  * [Editing Frame Settings at Runtime](Frame-Settings-API)
+  * [Render Graph](render-graph.md)
 * [HDRP Glossary](Glossary)
 * [Known Issues and How To Fix Them](Known-Issues)

@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 foreach (Light2D light in layerSelectionData.targets)
                 {
                     if (light != null && light.lightType == Light2D.LightType.Global)
-                        light.ErrorIfDuplicateGlobalLight();
+                        Light2DManager.ErrorIfDuplicateGlobalLight(light);
                 }
             }
         }

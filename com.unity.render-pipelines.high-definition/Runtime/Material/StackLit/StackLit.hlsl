@@ -898,11 +898,17 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     {
         case DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL_VIEW_SPACE:
             // Convert to view space
-            result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
+        {
+            float3 vsNormal = TransformWorldToViewDir(surfaceData.normalWS);
+            result = IsNormalized(vsNormal) ?  vsNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
+        }
         case DEBUGVIEW_STACKLIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+        {
+            float3 vsGeomNormal = TransformWorldToViewDir(surfaceData.geomNormalWS);
+            result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
+        }
     }
 }
 
@@ -915,11 +921,17 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     {
         case DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_VIEW_SPACE:
             // Convert to view space
-            result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+        {
+            float3 vsNormal = TransformWorldToViewDir(bsdfData.normalWS);
+            result = IsNormalized(vsNormal) ?  vsNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
+        }
         case DEBUGVIEW_STACKLIT_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
+        {
+            float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
+            result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
+        }
     }
 }
 
@@ -4336,9 +4348,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             R[i] = lerp(R[i], preLightData.iblR[i], saturate(smoothstep(0, 1, roughness * roughness)));
         }
 
-        EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
+        float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
 
-        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]), lightData.rangeCompressionFactorCompensation);
+        float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R[i], preLightData.iblPerceptualRoughness[i], intersectionDistance);
 
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;

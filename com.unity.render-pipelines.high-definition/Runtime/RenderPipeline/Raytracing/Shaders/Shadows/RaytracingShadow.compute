@@ -61,7 +61,7 @@ RW_TEXTURE2D_X(float2, _AnalyticProbBuffer);
 RW_TEXTURE2D_X(float2, _RaytracedAreaShadowSample);
 RW_TEXTURE2D_X(float2, _RaytracedAreaShadowIntegration);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
-RW_TEXTURE2D_X(float, _RaytracingDistanceBuffer);
+RW_TEXTURE2D_X(float, _RayTracingLengthBuffer);
 
 // Prepass that evaluates the data required for the ray tracing
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
@@ -79,7 +79,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     // Values that need to be defined per sample
     _RaytracedAreaShadowSample[COORD_TEXTURE2D_X(currentCoord)] = float2(0.0, 0.0);
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
+    _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = 0.0;
 
     // Read the depth value
     float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, currentCoord).x;
@@ -88,12 +88,10 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
 
     // Compute the position input structure
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-
     // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
+    const float3 positionWS = posInput.positionWS;
     // Compute the view vector on the surface
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
@@ -130,7 +128,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
         misInput.viewWS = viewWS;
         misInput.positionWS = positionWS;
         misInput.rectDimension = lightData.size.xy;
-        misInput.rectWSPos = GetAbsolutePositionWS(lightData.positionRWS);
+        misInput.rectWSPos = lightData.positionRWS;
         misInput.noiseValue = noiseValue;
 
         // Setup and check the spherical rectangle
@@ -284,7 +282,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float3 rayDirection = (rayDestination - rayOrigin) / rayDistance;
 
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, 1.0f);
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
+    _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
 }
 
 // Prepass that evaluates the data required for the ray tracing
@@ -308,10 +306,9 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
+    const float3 positionWS = posInput.positionWS;
     // Compute the view vector on the surface
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(positionWS);
 
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
@@ -361,7 +358,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
         misInput.viewWS = viewWS;
         misInput.positionWS = positionWS;
         misInput.rectDimension = lightData.size.xy;
-        misInput.rectWSPos = GetAbsolutePositionWS(lightData.positionRWS);
+        misInput.rectWSPos = lightData.positionRWS;
         misInput.brdfProb = _AnalyticProbBuffer[COORD_TEXTURE2D_X(currentCoord)].y;
         misInput.noiseValue = noiseValue;
 
@@ -470,7 +467,7 @@ void RaytracingAreaShadowNewSample(uint3 dispatchThreadId : SV_DispatchThreadID,
     float3 rayDirection = (rayDestination - rayOrigin) / rayDistance;
 
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, 1.0f);
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
+    _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayDistance;
 }
 
 [numthreads(RAYTRACING_SHADOW_TILE_SIZE, RAYTRACING_SHADOW_TILE_SIZE, 1)]
@@ -494,7 +491,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     DecodeFromNormalBuffer(currentCoord, normalData);
 
     // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+    float3 positionWS = posInput.positionWS;
 
     // Fetch the data of the area light
     DirectionalLightData lightData = _DirectionalLightDatas[_DirectionalShadowIndex];
@@ -542,19 +539,15 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
 
-    // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
-    float3 lightpositionWS = GetAbsolutePositionWS(lightData.positionRWS);
 
     // If the point is inside the sphere, it will be visible
-    float3 dir = (lightpositionWS - positionWS);
+    float3 dir = (lightData.positionRWS - posInput.positionWS);
     float dist2 = dot(dir, dir);
     if (dist2 < _RaytracingLightRadius * _RaytracingLightRadius)
     {
-        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = -1;
+        _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = -1;
         return;
     }
 
@@ -570,16 +563,15 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float samplePDF = 1.0;
     if (_RaytracingLightRadius > 0.001)
     {
-        SampleSphericalSphere(lightpositionWS, _RaytracingLightRadius, noiseValue.x, noiseValue.y,
-        positionWS, normalData.normalWS, lightPosition, samplePDF);
+        SampleSphericalSphere(lightData.positionRWS, _RaytracingLightRadius, noiseValue.x, noiseValue.y, posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
     }
     else
     {
-        lightPosition = lightpositionWS;
+        lightPosition = lightData.positionRWS;
     }
 
     // Compute the ray length and ray direction
-    float3 rayDirection = lightPosition - positionWS;
+    float3 rayDirection = lightPosition - posInput.positionWS;
     float rayLength = length(rayDirection);
     rayDirection = rayDirection / rayLength;
 
@@ -592,7 +584,7 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
+    _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
 }
 
 float _RaytracingSpotAngle;
@@ -617,19 +609,15 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     NormalData normalData;
     DecodeFromNormalBuffer(currentCoord, normalData);
 
-    // Convert this to a world space position
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
     // Fetch the data of the area light
     LightData lightData = _LightDatas[_RaytracingTargetAreaLight];
-    float3 lightpositionWS = GetAbsolutePositionWS(lightData.positionRWS);
 
     // If the point is inside the sphere, it will be visible
-    float3 dir = (lightpositionWS - positionWS);
+    float3 dir = (lightData.positionRWS - posInput.positionWS);
     float dist2 = dot(dir, dir);
     if (dist2 < _RaytracingLightRadius * _RaytracingLightRadius)
     {
-        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = -1;
+        _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = -1;
         return;
     }
 
@@ -646,18 +634,18 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     float samplePDF = 1.0;
     if (_RaytracingLightRadius > 0.001)
     {
-        SampleSphericalCone(lightpositionWS, _RaytracingLightRadius, lightData.forward, 
+        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward, 
             _RaytracingSpotAngle,
             noiseValue.x, noiseValue.y,
-        positionWS, normalData.normalWS, lightPosition, samplePDF);
+            posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
     }
     else
     {
-        lightPosition = GetAbsolutePositionWS(lightData.positionRWS);
+        lightPosition = lightData.positionRWS;
     }
 
     // Compute the ray length and ray direction
-    float3 rayDirection = lightPosition - positionWS;
+    float3 rayDirection = lightPosition - posInput.positionWS;
     float rayLength = length(rayDirection);
     rayDirection = rayDirection / rayLength;
 
@@ -673,7 +661,7 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
+    _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
 }
 
 RW_TEXTURE2D_X(float4, _RaytracedShadowIntegration);

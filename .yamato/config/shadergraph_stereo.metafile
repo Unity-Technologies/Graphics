@@ -2,16 +2,22 @@ project:
   name: ShaderGraph_Stereo
   folder: ShaderGraphUniversalStereo
 test_platforms:
-  - Standalone
-# - playmode
-  - editmode
+  - type: Standalone
+# - type: playmode
+  - type: editmode
 platforms:
   - name: Win
     apis: 
+    build_configs:
+      - name: mono_apiNet2
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: ''
+      build_config: mono_apiNet2
+      color_space: Linear
       test_platforms:
         - Standalone
         - editmode

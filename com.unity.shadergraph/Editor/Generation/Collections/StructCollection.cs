@@ -25,27 +25,32 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<StructCollection.Item>();
         }
 
-        public void Add(StructCollection structs)
+        public StructCollection Add(StructCollection structs)
         {
             foreach(StructCollection.Item item in structs)
             {
                 m_Items.Add(item);
             }
+
+            return this;
         }
 
-        public void Add(StructDescriptor descriptor)
+        public StructCollection Add(StructDescriptor descriptor)
         {
             m_Items.Add(new StructCollection.Item(descriptor, null));
+            return this;
         }
 
-        public void Add(StructDescriptor descriptor, FieldCondition fieldCondition)
+        public StructCollection Add(StructDescriptor descriptor, FieldCondition fieldCondition)
         {
             m_Items.Add(new StructCollection.Item(descriptor, new FieldCondition[]{ fieldCondition }));
+            return this;
         }
 
-        public void Add(StructDescriptor descriptor, FieldCondition[] fieldConditions)
+        public StructCollection Add(StructDescriptor descriptor, FieldCondition[] fieldConditions)
         {
             m_Items.Add(new StructCollection.Item(descriptor, fieldConditions));
+            return this;
         }
 
         public IEnumerator<StructCollection.Item> GetEnumerator()

@@ -15,7 +15,7 @@ This document covers:
 ## Hardware requirements
 
 Full ray tracing hardware acceleration is available on following GPUs:
-- NVIDIA GeForce RTX 2060, RTX 2080 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti
+- NVIDIA GeForce RTX 2060, RTX 2060 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti, and
 NVIDIA TITAN RTX
 - NVIDIA Quadro RTX 3000 (laptop only), RTX 4000, RTX 5000, RTX 6000, RTX 8000
 
@@ -156,6 +156,15 @@ To enable ray tracing for a specific Camera:
 2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
 3. in the **Rendering** section, enable **Ray Tracing**.
 
+<a name="FinalSetup-BuildSettings"></a>
+
+#### Build settings
+
+To build your Project to a Unity Player, ray tracing requires that the build uses 64 bits architecture. To set your build to use 64 bits architecture:
+
+1. Open the Build Settings window (menu: **File > Build Settings**).
+2. From the **Architecture** drop-down, select **x86_64**.
+
 <a name="RayTracingEffectsOverview"></a>
 
 ## Ray tracing effects overview
@@ -196,17 +205,38 @@ You can find a small ray tracing project that contains all the effects mention a
 https://github.com/Unity-Technologies/SmallOfficeRayTracing
 This Project is already set up with ray tracing support.
 
-## Advice and supported feature of preview ray tracing
+## Unsupported features of ray tracing
 
-DX12 and DXR are currently in preview and are thus missing some functionnality. 
-When you enable DX12, Unity shows this error message:
-d3d12: generating mipmaps for array textures is not yet supported.
-
-There is no support for ray tracing on other platform than DX12 for now.
+There is no support for ray tracing on platforms other than DX12 for now.
 
 HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support vertex animation.
-- Does not support tessellation
-- Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset)
+- Does not supports decals.
+- Does not support tessellation.
+- Does not support per pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support VFX and Terrain.
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
+- Does not support MSAA.
+
+## Unsupported features of path tracing
+
+There is no support for path tracing on platforms other than DX12 for now.
+
+HDRP path tracing in Unity 2020.2 has the following limitations:
+
+- Does not support 3D Text and TextMeshPro.
+- Does not support Shader Graph nodes that use derivatives (ex : normal from textures).
+- Does not support decals.
+- Does not support tessellation.
+- Does not support Tube and Disc shaped Area Light.
+- Does not support Translucent Opaque Materials.
+- Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
+- Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
+- Does not support MSAA.
+
+## Unsupported shader graph nodes for ray tracing
+
+When building your custom shaders using shader graph, some nodes are incompatible with ray tracing. You need either to avoid using them or provide an alternative behavior using the ray tracing shader node. Here is the list of the incompatible nodes:
+- DDX, DDY and DDXY nodes.
+- All the nodes under Inputs > Geometry (Position, View Direction, Normal, etc.) in View Space mode.
+- Checkerboard node.

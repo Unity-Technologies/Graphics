@@ -113,7 +113,7 @@ Shader "Hidden/HDRP/DebugExposure"
         {
             float inRange = (uv.x - startSidebar.x) / (endSidebar.x - startSidebar.x);
             evValueRange = clamp(evValueRange, 0.0f, 1.0f);
-            int distanceInPixels = abs(evValueRange - inRange) * sidebarSize.x * _ScreenSize.x;
+            int distanceInPixels = abs(evValueRange - inRange) * sidebarSize.x * _ScreenSize.x / _RTHandleScale.x;
             if (distanceInPixels < indicatorHalfSize)
             {
                 sidebarColor = indicatorColor;
@@ -470,7 +470,7 @@ Shader "Hidden/HDRP/DebugExposure"
         if (all(input.positionCS.xy < topRight))
         {
             float2 scaledUV = uv / pipFraction;
-            float3 pipColor = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
+            float3 pipColor = _ExposureDebugParams.x > 0 ? float3(1.0f, 1.0f, 1.0f) : SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
             float  luminance = SampleLuminance(scaledUV);
             float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy, luminance);
 
@@ -523,7 +523,7 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         // Get value at indicator
-        float2 indicatorUV = _MousePixelCoord.zw;
+        float2 indicatorUV = _MousePixelCoord.xy * _ScreenSize.zw * _RTHandleScale.xy;
         float indicatorEV = GetEVAtLocation(indicatorUV);
         float indicatorEVRange = (indicatorEV - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
 
@@ -559,10 +559,15 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
+        textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX + 1, _MousePixelCoord.y - 1);
+        DrawFloatExplicitPrecision(indicatorEV, 1.0f - textColor, unormCoord, 1, textLocation, outputColor.rgb);
         textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
+
+        textLocation = uint2(_MousePixelCoord.x + 1, _MousePixelCoord.y - 1);
+        DrawCharacter('X', 1.0f - textColor, unormCoord, textLocation, outputColor.rgb);
         textLocation = _MousePixelCoord.xy;
-        DrawCharacter('X', float3(0.0f, 0.0f, 0.0f), unormCoord, textLocation, outputColor.rgb);
+        DrawCharacter('X', textColor, unormCoord, textLocation, outputColor.rgb);
 
         return outputColor;
     }

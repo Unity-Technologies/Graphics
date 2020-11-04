@@ -82,7 +82,7 @@ namespace UnityEditor.Experimental.VFX.Utility
             while (!found_end_header);
         }
 
-        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
+        public override void OnImportAsset(AssetImportContext ctx)
         {
             try
             {
@@ -156,7 +156,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                         switch (prop.PropertyType)
                         {
                             case "byte":
-                                val = Mathf.Clamp01(((int)pcache.buckets[idx][i]) / 256.0f);
+                                val = Mathf.Clamp01(((byte)pcache.buckets[idx][i]) / 255.0f);
                                 break;
                             case "float":
                                 val = ((float)pcache.buckets[idx][i]);
@@ -178,7 +178,6 @@ namespace UnityEditor.Experimental.VFX.Utility
                 foreach (var kvp in surfaces)
                 {
                     kvp.Value.Apply();
-                    kvp.Value.hideFlags = HideFlags.HideInHierarchy;
                     ctx.AddObjectToAsset(kvp.Key.Name, kvp.Value);
                     cache.surfaces[k] = kvp.Value;
                     k++;

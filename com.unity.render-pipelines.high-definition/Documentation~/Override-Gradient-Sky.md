@@ -17,6 +17,8 @@ After you add a **Gradient Sky** override, you must set the Volume to use **Grad
 
 ![](Images/Override-GradientSky1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | Property               | Description                                                  |
 | ---------------------- | ------------------------------------------------------------ |
 | **Top**                | Use the color picker to select the color of the upper hemisphere of the sky. |

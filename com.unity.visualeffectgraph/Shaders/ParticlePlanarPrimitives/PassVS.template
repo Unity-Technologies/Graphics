@@ -2,6 +2,8 @@
 #error VFX_PRIMITIVE_QUAD must be defined when HAS_STRIPS is.
 #endif
 
+#define VFX_NON_UNIFORM_SCALE VFX_LOCAL_SPACE
+
 struct vs_input
 {
 	VFX_DECLARE_INSTANCE_ID
@@ -9,32 +11,7 @@ struct vs_input
 
 #if HAS_STRIPS
 #define PARTICLE_IN_EDGE (id & 1)
-
-float3 GetParticlePosition(uint index)
-{
-	struct Attributes attributes = (Attributes)0;
-	${VFXLoadAttributes:{position}}
-	return attributes.position;
-}
-
-float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData stripData)
-{
-	float3 prevTangent = (float3)0.0f;
-	if (relativeIndex > 0)
-	{
-		uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
-		prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
-	}
-	
-	float3 nextTangent = (float3)0.0f;
-	if (relativeIndex < stripData.nextIndex - 1)
-	{
-		uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
-		nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
-	}
-	
-	return normalize(prevTangent + nextTangent);
-}
+${VFXDeclareGetStripTangent}
 #endif
 
 #pragma vertex vert
@@ -52,13 +29,13 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	id += VFX_GET_INSTANCE_ID(i) * 8192;
 	const uint vertexPerStripCount = (PARTICLE_PER_STRIP_COUNT - 1) << 2;
 	const StripData stripData = GetStripDataFromStripIndex(id / vertexPerStripCount, PARTICLE_PER_STRIP_COUNT);
-	uint currentIndex = ((id % vertexPerStripCount) >> 2) + (id & 1); // relative index of particle
+	uint relativeIndexInStrip = ((id % vertexPerStripCount) >> 2) + (id & 1); // relative index of particle
 	
-	uint maxEdgeIndex = currentIndex - PARTICLE_IN_EDGE + 1;
+	uint maxEdgeIndex = relativeIndexInStrip - PARTICLE_IN_EDGE + 1;
 	if (maxEdgeIndex >= stripData.nextIndex)
 		return o;
 	
-	uint index = GetParticleIndex(currentIndex, stripData);
+	uint index = GetParticleIndex(relativeIndexInStrip, stripData);
 #else
 	uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
 #endif
@@ -78,7 +55,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 
 #if HAS_STRIPS
 #if VFX_STRIPS_UV_STRECHED
-	o.VFX_VARYING_UV.x = (float)(currentIndex) / (stripData.nextIndex - 1);
+	o.VFX_VARYING_UV.x = (float)(relativeIndexInStrip) / (stripData.nextIndex - 1);
 #elif VFX_STRIPS_UV_PER_SEGMENT
 	o.VFX_VARYING_UV.x = PARTICLE_IN_EDGE;
 #else
@@ -92,15 +69,7 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 #if VFX_STRIPS_SWAP_UV
 	o.VFX_VARYING_UV.xy = float2(1.0f - o.VFX_VARYING_UV.y, o.VFX_VARYING_UV.x);
 #endif
-	
-	// Orient strips along their tangents
-	attributes.axisX = GetStripTangent(attributes.position, currentIndex, stripData);
-#if !VFX_STRIPS_ORIENT_CUSTOM
-	attributes.axisZ = attributes.position - GetViewVFXPosition();
-#endif
-	attributes.axisY = normalize(cross(attributes.axisZ, attributes.axisX));
-	attributes.axisZ = normalize(cross(attributes.axisX, attributes.axisY));
-	
+		
 #else
 	o.VFX_VARYING_UV.x = float(id & 1);
 	o.VFX_VARYING_UV.y = float((id & 2) >> 1);
@@ -165,8 +134,19 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
     #ifdef VFX_VARYING_POSWS
         o.VFX_VARYING_POSWS = vPosWS;
     #endif
+	
+#if VFX_NON_UNIFORM_SCALE
+	float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		size3);
+#else
+	float3x3 elementToVFX_N = (float3x3)elementToVFX;
+#endif
 
-	float3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));
+	float3 normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));
 	#ifdef VFX_VARYING_NORMAL
 	float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
 	o.VFX_VARYING_NORMAL = normalFlip * normalWS;

@@ -26,16 +26,25 @@ namespace  UnityEditor.VFX.UI
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
             RegisterCallback<MouseCaptureOutEvent>(OnMouseHover);
+            RegisterCallback<MouseDownEvent>(OnMouseDown);
 
-            this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+            this.Q<Pill>().AddManipulator(new ContextualMenuManipulator(PillBuildContextualMenu));
         }
 
-        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        void PillBuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
-            evt.menu.AppendAction("Delete", (a) => GetFirstAncestorOfType<VFXView>().DeleteElements(new GraphElement[] { this }), DropdownMenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Delete", (a) => Delete(), DropdownMenuAction.AlwaysEnabled);
 
             evt.StopPropagation();
+        }
+
+        void Delete()
+        {
+            if (selected)
+                GetFirstAncestorOfType<VFXView>().DeleteSelection();
+            else
+                GetFirstAncestorOfType<VFXView>().DeleteElements(new GraphElement[] { this });
         }
 
         Controller IControlledElement.controller
@@ -51,17 +60,16 @@ namespace  UnityEditor.VFX.UI
         public void SelfChange()
         {
             if (controller.isOutput)
-            {
                 icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/output dot.png");
-            }
             else if (controller.exposed)
-            {
                 icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/exposed dot.png");
-            }
             else
-            {
                 icon = null;
-            }
+
+            if( (!controller.isOutput && !controller.model.outputSlots.Any(t=>t.HasLink(true))) || (controller.isOutput && !controller.model.inputSlots.Any(t => t.HasLink(true))))
+                AddToClassList("unused");
+            else
+                RemoveFromClassList("unused");
         }
 
         void OnMouseHover(EventBase evt)
@@ -77,6 +85,12 @@ namespace  UnityEditor.VFX.UI
                         parameter.RemoveFromClassList("hovered");
                 }
             }
+        }
+
+        void OnMouseDown(MouseDownEvent e)
+        {
+            if (e.button != (int)MouseButton.LeftMouse)
+                e.StopPropagation();
         }
     }
 }

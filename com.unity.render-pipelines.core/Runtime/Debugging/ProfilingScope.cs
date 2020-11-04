@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering
         {
             if (cmd != null)
 #if UNITY_USE_RECORDER
-                if (sampler != null)
+                if (sampler != null && sampler.isValid)
                     cmd.BeginSample(sampler);
                 else
                     cmd.BeginSample(name);
@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering
         {
             if (cmd != null)
 #if UNITY_USE_RECORDER
-                if (sampler != null)
+                if (sampler != null && sampler.isValid)
                     cmd.EndSample(sampler);
                 else
                     cmd.EndSample(name);

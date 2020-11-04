@@ -16,6 +16,9 @@ The number of shadow maps HDRP renders per Light depends on the **Type** of the 
 - A Point Light renders six shadow maps (the number of faces in a cubemap).
 - A Directional Light renders one shadow map per cascade. Set the cascade count of Directional Lights from the [HD Shadow Settings](Override-Shadows.md) of your Scene’s [Volumes](Volumes.md). The default value is four cascades.
 
+HDRP can perform a dynamic rescale of shadow maps to maximize space usage in shadow atlases, but also to reduce the performance impact of lights that occupy a small portion of the screen. To do this, HDRP scales down a light's shadow map resolution depending on the size of the screen area the light covers. The smaller the area on the screen, the more HDRP scales the resolution down from the value set on the [Light component](Light-Component.md). To enable this feature, go the Shadow section of your Unity Project’s [HDRP Asset](HDRP-Asset.md) and enable the **Dynamic Rescale** property for the shadow atlas you want HDRP to dynamically rescale the shadow maps of.
+Note that HDRP does not support dynamic rescale for cached shadow maps. 
+
 ## Shadow atlases
 
 HDRP renders all real-time shadows for a frame using a shadow map atlas for all [punctual light](Glossary.md#PunctualLight) shadows, and another shadow map atlas for Directional Light shadows.
@@ -41,7 +44,7 @@ In HDRP, each individual Light component controls its own shadow biasing using t
 - **Slope-Scale Depth Bias**
 - **Normal Bias**
 
-Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.md) cog to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
+Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.md) gear to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
 
 ![](Images/Shadows1.png)
 
@@ -107,6 +110,9 @@ When a Light that caches its shadows renders its shadow map for the first time, 
 
 If the Light's **Update Mode** is set to **OnDemand**, you can manually request HDRP to update the Light's shadow map. To do this, access the Light's **HDAdditionalLightData** component and call the `RequestShadowMapRendering` function. Also, if the Light has multiple shadows (e.g. multiple cascades of a directional light), you can request the update of a specific sub-shadow. To do this, use the `RequestSubShadowMapRendering(shadowIndex)` function.
 For a Light that does cache its shadows, if you disable it or set its **Update Mode** to **Every Frame**, you can tell HDRP to preserve the Light's shadow map's place in the cached shadow atlas. This means that, if you enable the Light again, HDRP does not need to re-render the shadow map or place it into a shadow atlas. For information on how to make a Light preserve its shadow map's place in the cached shadow atlas, see [Preserving shadow atlas placement](#preserving-shadow-atlas-placement).
+
+As a shortcut for a common case, HDRP offers an option to automatically trigger an update when either the position or rotation of a light changes above a certain threshold. To enable this option, select a [Light](https://github.com/Unity-Technologies/Graphics/pull/Light-Component.md) and, in the **Shadow** section of its Inspector, enable **Update on light movement**. 
+You can customize the threshold that HDRP uses to determine how much a light needs to move or rotate to trigger an update. To do this, use the properties: `cachedShadowTranslationUpdateThreshold` and `cachedShadowAngleUpdateThreshold` properties on the Light's **HDAdditionalLightData** component. Note that point lights ignore the angle differences when determining if they need to perform an update in this mode. 
 
 ### Customising shadow caching
 HDRP caches shadow maps for punctual Lights into one atlas, area Lights into another, and directional Lights into the same atlas as non-cached Directional Lights. You can change the resolution of the first two cached shadow atlases independently of one another. To do this: 

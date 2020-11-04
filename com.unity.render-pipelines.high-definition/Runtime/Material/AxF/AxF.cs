@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3  normalWS;
 
             [SurfaceDataAttributes("Tangent", true)]
@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Clearcoat IOR")]
             public float    clearcoatIOR;
 
-            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3  geomNormalWS;
         };
 
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float ambientOcclusion;
             public float specularOcclusion;
 
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3  normalWS;
             [SurfaceDataAttributes("", true)]
             public Vector3  tangentWS;
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  clearcoatNormalWS;
             public float    clearcoatIOR;
 
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
         };
 

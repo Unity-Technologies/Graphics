@@ -26,27 +26,31 @@ namespace UnityEditor.ShaderGraph
             m_Items = new List<Item>();
         }
 
-        public void Add(IncludeCollection includes)
+        public IncludeCollection Add(IncludeCollection includes)
         {
             foreach(IncludeCollection.Item item in includes)
             {
                 m_Items.Add(item);
             }
+            return this;
         }
 
-        public void Add(string include, IncludeLocation location)
+        public IncludeCollection Add(string include, IncludeLocation location)
         {
             m_Items.Add(new Item(new IncludeDescriptor() { value = include, location = location }, null));
+            return this;
         }
 
-        public void Add(string include, IncludeLocation location, FieldCondition fieldCondition)
+        public IncludeCollection Add(string include, IncludeLocation location, FieldCondition fieldCondition)
         {
             m_Items.Add(new Item(new IncludeDescriptor() { value = include, location = location }, new FieldCondition[]{ fieldCondition }));
+            return this;
         }
 
-        public void Add(string include, IncludeLocation location, FieldCondition[] fieldConditions)
+        public IncludeCollection Add(string include, IncludeLocation location, FieldCondition[] fieldConditions)
         {
             m_Items.Add(new Item(new IncludeDescriptor() { value = include, location = location }, fieldConditions));
+            return this;
         }
 
         public IEnumerator<Item> GetEnumerator()

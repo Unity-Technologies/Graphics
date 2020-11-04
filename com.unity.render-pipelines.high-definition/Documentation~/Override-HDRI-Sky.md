@@ -19,6 +19,8 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 
 ![](Images/Override-HDRISky1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | Property                         | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |
 | **HDRI Sky**                     | Assign a HDRI Texture that HDRP uses to render the sky.      |

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Converts all file extensions from uppercase to lowercase for the folders passed as arguments."""
+
+# Converts all file extensions from uppercase to lowercase for the folders passed as arguments.
 
 import sys, os, subprocess
 
@@ -20,6 +21,7 @@ def convert_extension_of_file(filename, file_extension):
 		git_move_file(current_meta_filename, correct_meta_filename)
 
 
+# When executed from the git hooks this is the entry point
 def convert_extension_of_files(files):
 	for file in files:
 		filename, file_extension = os.path.splitext(file)
@@ -30,12 +32,12 @@ def convert_extension_of_files(files):
 def convert_extensions_of_folder(folder):
 	for root, directories, files in os.walk(folder):
 		convert_extension_of_files(files)
-				
 
-if __name__== "__main__":
+
+if __name__ == "__main__":
 	targets = sys.argv[1:]
 	if len(targets) == 0:
-		print(f'Usage: ./python {sys.argv[0]} [list of folders containing files to convert]')
+		print(f'Usage: python {sys.argv[0]} [list of folders containing files to convert]')
 		exit(0)
 	for target in targets:
 		convert_extensions_of_folder(target)

@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Collections.Generic;
+using System.Linq;
+
+using Action = System.Action;
 
 namespace UnityEditor.VFX.UI
 {
@@ -9,6 +12,65 @@ namespace UnityEditor.VFX.UI
     {
         protected Slider m_Slider;
         protected INotifyValueChanged<T> m_Field;
+
+
+        class StartFinishSliderManipulator : Manipulator
+        {
+            VFXBaseSliderField<T> m_Slider;
+            bool m_InDrag;
+            protected override void RegisterCallbacksOnTarget()
+            {
+                m_Slider = target.GetFirstOfType<VFXBaseSliderField<T>>();
+
+                target.RegisterCallback<MouseDownEvent>(OnMouseDown,TrickleDown.TrickleDown);
+                target.RegisterCallback<MouseUpEvent>(OnMouseUp, TrickleDown.TrickleDown);
+
+            }
+            protected override void UnregisterCallbacksFromTarget()
+            {
+                target.UnregisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
+                target.UnregisterCallback<MouseUpEvent>(OnMouseUp, TrickleDown.TrickleDown);
+            }
+
+            void OnMouseDown(MouseDownEvent e)
+            {
+                target.RegisterCallback<MouseMoveEvent>(OnMouseMove, TrickleDown.TrickleDown);
+            }
+
+            void OnMouseMove(MouseMoveEvent e)
+            {
+                if( !m_InDrag)
+                {
+                    m_InDrag = true;
+                    m_Slider.ValueDragStarted();
+                    target.UnregisterCallback<MouseMoveEvent>(OnMouseMove, TrickleDown.TrickleDown); //we care only about the first drag event
+                }
+            }
+
+            void OnMouseUp(MouseUpEvent e)
+            {
+                if( m_InDrag)
+                    m_Slider.ValueDragFinished();
+                else
+                    target.UnregisterCallback<MouseMoveEvent>(OnMouseMove, TrickleDown.TrickleDown);
+                m_InDrag = false;
+            }
+        }
+
+        protected void ValueDragFinished()
+        {
+            if (onValueDragFinished != null)
+                onValueDragFinished();
+        }
+
+        protected void ValueDragStarted()
+        {
+            if (onValueDragStarted != null)
+                onValueDragStarted();
+        }
+
+        public Action onValueDragFinished;
+        public Action onValueDragStarted;
 
         public VFXBaseSliderField()
         {
@@ -18,6 +80,8 @@ namespace UnityEditor.VFX.UI
         protected void RegisterCallBack()
         {
             (m_Field as VisualElement).RegisterCallback<BlurEvent>(OnFocusLost);
+
+            m_Slider.Children().First().AddManipulator(new StartFinishSliderManipulator());
         }
 
         void OnFocusLost(BlurEvent e)
@@ -65,8 +129,6 @@ namespace UnityEditor.VFX.UI
                 {
                     m_Slider.lowValue = m_Range.x;
                     m_Slider.highValue = m_Range.y;
-
-                    //TODO ask fix in Slider
 
                     m_Slider.value = m_Range.x;
                     m_Slider.value = m_Range.y;

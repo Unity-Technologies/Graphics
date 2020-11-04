@@ -40,6 +40,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             set => m_OnListRecreatedCallback = value;
         }
 
+        public Func<ConcreteSlotValueType, bool> AllowedTypeCallback;
+
         internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
@@ -101,16 +103,32 @@ namespace UnityEditor.ShaderGraph.Drawing
                 EditorGUI.BeginChangeCheck();
 
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
-                var shaderOutputName = NodeUtils.GetHLSLSafeName(displayName);
-                var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
 
-                if(displayName != oldSlot.RawDisplayName())
-                    displayName = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, oldSlot.id, displayName);
+                var concreteValueType = (ConcreteSlotValueType) EditorGUI.EnumPopup(
+                    new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight),
+                    GUIContent.none,
+                    (ConcreteSlotValueTypePopupName)oldSlot.concreteValueType, // Force ConcreteSlotValueTypePopupName enum which match ConcreteSlotValueType to provide a friendly named in Popup
+                    e => (AllowedTypeCallback == null) ? true : AllowedTypeCallback((ConcreteSlotValueType) e));
 
                 if(EditorGUI.EndChangeCheck())
                 {
-                    // Cant modify existing slots so need to create new and copy values
-                    var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, shaderOutputName, m_SlotType, Vector4.zero);
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Modify Port");
+
+                    displayName = NodeUtils.ConvertToValidHLSLIdentifier(displayName);
+
+                    if (displayName != oldSlot.RawDisplayName())
+                    {
+                        using (var tempSlots = PooledList<MaterialSlot>.Get())
+                        {
+                            m_Node.GetSlots(tempSlots);
+
+                            // deduplicate against other slot shaderOutputNames
+                            displayName = GraphUtil.DeduplicateName(tempSlots.Where(p => p.id != oldSlot.id).Select(p => p.shaderOutputName), "{0}_{1}", displayName);
+                        }
+                    }
+
+                    // Because the type may have changed, we can't (always) just modify the existing slot.  So create a new one and replace it.
+                    var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, displayName, m_SlotType, Vector4.zero);
                     newSlot.CopyValuesFrom(oldSlot);
                     m_Node.AddSlot(newSlot, false);
 
