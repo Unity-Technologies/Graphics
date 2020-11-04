@@ -87,7 +87,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs p
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_OBJECT_ID:
 #ifdef UNITY_SHADER_VARIABLES_INCLUDED
-        result = PackEntityIdToRGB16f(asuint(unity_LODFade.z));
+        result = PackIndexToRGB16f(asuint(unity_LODFade.z));
 #else
         result = 0;
 #endif
