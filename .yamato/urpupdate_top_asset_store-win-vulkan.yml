@@ -18,7 +18,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_apiNet2_Linear_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
@@ -40,7 +40,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_apiNet2_Linear_2020.2:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u dff91d65251a9ab8c12af258ce88fee061d85a7d -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
     artifacts:
         logs:
