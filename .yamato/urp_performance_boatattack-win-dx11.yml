@@ -60,7 +60,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_il2cpp_apiNet4_Linear_2020.2:
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.2020_2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -129,7 +129,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_apiNet2_Linear_2020.2:
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/BoatAttack/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/BoatAttack && unity-downloader-cli -u {{editor_versions.2020_2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

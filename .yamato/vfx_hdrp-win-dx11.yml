@@ -37,7 +37,7 @@ Build_VFX_HDRP_Win_DX11_Player_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2020_2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -64,7 +64,7 @@ VFX_HDRP_Win_DX11_playmode_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2020_2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -88,7 +88,7 @@ VFX_HDRP_Win_DX11_playmode_XR_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2020_2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -112,7 +112,7 @@ VFX_HDRP_Win_DX11_editmode_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph_HDRP && unity-downloader-cli -u {{editor_versions.2020_2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

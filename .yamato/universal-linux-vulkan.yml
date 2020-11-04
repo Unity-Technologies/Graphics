@@ -40,7 +40,7 @@ Build_Universal_Linux_Vulkan_Player_il2cpp_apiNet4_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020.2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=IL2CPP --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -63,7 +63,7 @@ Universal_Linux_Vulkan_playmode_il2cpp_apiNet4_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020.2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=.
     artifacts:
         logs:
@@ -83,7 +83,7 @@ Universal_Linux_Vulkan_editmode_il2cpp_apiNet4_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020.2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=.
     artifacts:
         logs:
@@ -123,7 +123,7 @@ Build_Universal_Linux_Vulkan_Player_mono_apiNet2_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020.2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
@@ -146,7 +146,7 @@ Universal_Linux_Vulkan_playmode_mono_apiNet2_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020.2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
@@ -166,7 +166,7 @@ Universal_Linux_Vulkan_editmode_mono_apiNet2_Linear_2020.2:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020.2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:

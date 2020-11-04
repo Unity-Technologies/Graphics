@@ -37,7 +37,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_apiNet4_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020.2_staging.ios.revision}} -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.ios.revision}} -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
@@ -79,7 +79,7 @@ Build_Universal_iPhone_Metal_Player_mono_apiNet2_Linear_2020.2:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020.2_staging.ios.revision}} -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.ios.revision}} -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
       -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
