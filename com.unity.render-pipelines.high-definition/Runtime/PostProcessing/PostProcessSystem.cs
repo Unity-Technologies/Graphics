@@ -749,7 +749,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         out preppedMotionVec, out minMaxTileVel,
                                         out maxTileNeigbourhood, out tileToScatterMax,
                                         out tileToScatterMin);
-                            DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, motionVecTexture, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
+                            DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, depthMipChain, motionVecTexture, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
                             RecycleMotionBlurRenderTargets(preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
 
                             PoolSource(ref source, destination);
@@ -2836,7 +2836,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DoMotionBlur(in MotionBlurParameters motionBlurParams, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle motionVectorTexture,
+        static void DoMotionBlur(in MotionBlurParameters motionBlurParams, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle depthTexture, RTHandle motionVectorTexture,
                           RTHandle preppedMotionVec, RTHandle minMaxTileVel,
                           RTHandle maxTileNeigbourhood, RTHandle tileToScatterMax,
                           RTHandle tileToScatterMin)
@@ -2864,6 +2864,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cs = motionBlurParams.motionVecPrepCS;
                 kernel = motionBlurParams.motionVecPrepKernel;
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams.motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams.motionBlurParams1);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, motionBlurParams.motionBlurParams2);
