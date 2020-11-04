@@ -7,8 +7,8 @@
 
 ---
 
-URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
-    name: URPUpdate_Top_Asset_Store on Win_DX11_playmode_mono_apiNet2_Linear on version trunk
+URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk:
+    name: URPUpdate_Top_Asset_Store on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -29,8 +29,8 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/Top-URP-Assets/Logs/*.log"
-URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
-    name: URPUpdate_Top_Asset_Store on Win_DX11_editmode_mono_apiNet2_Linear on version trunk
+URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_trunk:
+    name: URPUpdate_Top_Asset_Store on Win_DX11_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -51,8 +51,8 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/Top-URP-Assets/Logs/*.log"
-URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate_Top_Asset_Store on Win_DX11_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_Top_Asset_Store on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -77,8 +77,8 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate_Top_Asset_Store on Win_DX11_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_Top_Asset_Store on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
