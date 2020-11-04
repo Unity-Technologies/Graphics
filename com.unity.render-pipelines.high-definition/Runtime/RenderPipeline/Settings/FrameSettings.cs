@@ -332,22 +332,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         //lightLoop settings from 120 to 127
         /// <summary>When enabled, HDRP uses FPTL for forward opaque.</summary>
-        [FrameSettingsField(3, autoName: FPTLForForwardOpaque)]
+        [FrameSettingsField(3, autoName: FPTLForForwardOpaque, tooltip: "When enabled, HDRP uses FPTL for forward opaque.")]
         FPTLForForwardOpaque = 120,
         /// <summary>When enabled, HDRP uses a big tile prepass for light visibility.</summary>
-        [FrameSettingsField(3, autoName: BigTilePrepass)]
+        [FrameSettingsField(3, autoName: BigTilePrepass, tooltip: "When enabled, HDRP uses a big tile prepass for light visibility.")]
         BigTilePrepass = 121,
         /// <summary>When enabled, HDRP uses tiles to compute deferred lighting.</summary>
-        [FrameSettingsField(3, autoName: DeferredTile)]
+        [FrameSettingsField(3, autoName: DeferredTile, tooltip: "When enabled, HDRP uses tiles to compute deferred lighting.")]
         DeferredTile = 122,
         /// <summary>When enabled, HDRP uses a compute shader to compute deferred lighting.</summary>
-        [FrameSettingsField(3, autoName: ComputeLightEvaluation, positiveDependencies: new[] { DeferredTile })]
+        [FrameSettingsField(3, autoName: ComputeLightEvaluation, positiveDependencies: new[] { DeferredTile }, tooltip: "When enabled, HDRP uses a compute shader to compute deferred lighting.")]
         ComputeLightEvaluation = 123,
         /// <summary>When enabled, HDRP uses light variant classification to compute lighting.</summary>
-        [FrameSettingsField(3, autoName: ComputeLightVariants, positiveDependencies: new[] { DeferredTile })]
+        [FrameSettingsField(3, autoName: ComputeLightVariants, positiveDependencies: new[] { DeferredTile }, tooltip: "When enabled, HDRP uses light variant classification to compute lighting.")]
         ComputeLightVariants = 124,
         /// <summary>When enabled, HDRP uses material variant classification to compute lighting.</summary>
-        [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { DeferredTile })]
+        [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { DeferredTile }, tooltip: "When enabled, HDRP uses material variant classification to compute lighting.")]
         ComputeMaterialVariants = 125,
         /// <summary>When enabled, HDRP uses probe volumes for baked lighting.</summary>
         [FrameSettingsField(1, autoName: ProbeVolume)]
