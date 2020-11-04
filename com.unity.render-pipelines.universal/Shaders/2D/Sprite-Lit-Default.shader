@@ -90,7 +90,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 float4 clipVertex = o.positionCS / o.positionCS.w;
-                o.lightingUV = ComputeScreenPos(clipVertex).xy;
+                o.lightingUV = clipVertex.xy * float2(0.5, 0.5 * _ProjectionParams.x) + 0.5;
                 o.color = v.color;
                 return o;
             }

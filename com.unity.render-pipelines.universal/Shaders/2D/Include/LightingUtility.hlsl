@@ -6,12 +6,12 @@
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)\
             float4 clipVertex = output.positionCS / output.positionCS.w;\
-            output.screenUV = ComputeScreenPos(clipVertex).xy;\
+            output.screenUV = clipVertex.xy * float2(0.5, 0.5 * _ProjectionParams.x) + 0.5;\
             output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;\
             output.lightDirection.z = _LightZDistance;\
             output.lightDirection.w = 0;\
             output.lightDirection.xyz = normalize(output.lightDirection.xyz);
-            
+
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
             half3 normalUnpacked = UnpackNormal(normal);\
@@ -23,7 +23,7 @@
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos) \
             float4 clipVertex = output.positionCS / output.positionCS.w;\
-            output.screenUV = ComputeScreenPos(clipVertex).xy; \
+            output.screenUV = clipVertex.xy * float2(0.5, 0.5 * _ProjectionParams.x) + 0.5; \
             output.positionWS = worldSpacePos;
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
@@ -65,10 +65,10 @@
         color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
     }
 
-    
+
 
 #define TRANSFER_SHADOWS(output)\
-    output.shadowUV = ComputeScreenPos(output.positionCS / output.positionCS.w).xy;
+    output.shadowUV = (output.positionCS.xy / output.positionCS.w) * float2(0.5, 0.5 * _ProjectionParams.x) + 0.5;
 
 #define SHAPE_LIGHT(index)\
     TEXTURE2D(_ShapeLightTexture##index);\
