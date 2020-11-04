@@ -5,6 +5,10 @@ test_platforms:
   - type: Standalone
     utr_flags:
       - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+      - [OSX_Metal, iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
   - type: playmode
   - type: playmode
     name: playmode_XR

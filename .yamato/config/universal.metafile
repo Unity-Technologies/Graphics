@@ -9,6 +9,11 @@ test_platforms:
       - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
       - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
       - [iPhone_Metal]: --timeout=1800
+      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+      - [OSX_Metal, iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
   - type: playmode
   - type: editmode
   - type: playmode
