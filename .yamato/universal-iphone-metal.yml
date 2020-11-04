@@ -36,7 +36,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_apiNet4_Linear_trunk:
       -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Metal" --extra-editor-arg="SetColorSpaceLinear" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
+      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="SetColorSpaceLinear" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
     artifacts:
         logs:
             paths:
@@ -78,7 +78,7 @@ Build_Universal_iPhone_Metal_Player_mono_apiNet2_Linear_trunk:
       -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Metal" --extra-editor-arg="SetColorSpaceLinear" --platform=iOS --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
+      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="SetColorSpaceLinear" --platform=iOS --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
     artifacts:
         logs:
             paths:
@@ -124,7 +124,7 @@ Build_Universal_iPhone_Metal_Player_il2cpp_apiNet4_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Metal" --extra-editor-arg="SetColorSpaceLinear" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
+      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="SetColorSpaceLinear" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
     artifacts:
         logs:
             paths:
@@ -173,7 +173,7 @@ Build_Universal_iPhone_Metal_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="Metal" --extra-editor-arg="SetColorSpaceLinear" --platform=iOS --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
+      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="SetColorSpaceLinear" --platform=iOS --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
     artifacts:
         logs:
             paths:
