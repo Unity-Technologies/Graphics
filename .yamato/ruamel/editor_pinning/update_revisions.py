@@ -279,7 +279,7 @@ def main(argv):
     try:
         
         editor_version_files = create_version_files(config, ROOT)
-        subprocess.call(['python', config['ruamel_build_file']])
+        #subprocess.call(['python', config['ruamel_build_file']])
         if not args.local:
             checkout_and_push(editor_version_files, config['yml_files_path'], args.target_branch, ROOT, args.force_push,
                                   'Updating pinned editor revisions')

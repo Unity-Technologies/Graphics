@@ -3,6 +3,10 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+
+---
+
 HDRP_Win_DX11_playmode_mono_apiNet2_Linear_2020.2:
     name: HDRP on Win_DX11_playmode_mono_apiNet2_Linear on version 2020.2
     agent:
@@ -15,7 +19,7 @@ HDRP_Win_DX11_playmode_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -40,7 +44,7 @@ HDRP_Win_DX11_playmode_XR_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -65,7 +69,7 @@ HDRP_Win_DX11_playmode_NonRenderGraph_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -89,7 +93,7 @@ HDRP_Win_DX11_editmode_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_Tests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -133,7 +137,7 @@ Build_HDRP_Win_DX11_Player_mono_apiNet2_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_RuntimeTests/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u ae2b5bee713dcb20d34bdaffcc39112c8cedd6eb -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli -u {{editor_versions.2020.2_staging.windows.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
