@@ -26,6 +26,11 @@ def extract_flags(utr_flags, platform_name, api_name, build_config, color_space,
                 flag = flag.replace('<SCRIPTING_BACKEND>',build_config["scripting_backend"])
                 flag = flag.replace('<COLORSPACE>',color_space)
                 flag = flag.replace('<PROJECT_FOLDER>',project_folder)
+                if f'{platform_name}_{api_name}'.lower() in ['osx_metal', 'iphone_metal']:
+                    if '%' in flag:
+                        flag = flag.replace('%','$')
+                        flag = flag[:-2]
+                        flag = flag + '"'
 
                 # check if such a flag is already present, if it is then overwrite. otherwise just append it
                 existing_indices = [i for i, existing_flag in enumerate(flags) if flag_key in existing_flag]

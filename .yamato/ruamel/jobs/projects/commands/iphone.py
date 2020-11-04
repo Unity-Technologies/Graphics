@@ -9,14 +9,6 @@ def _cmd_base(project_folder, platform, editor):
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
-
-    for i in range(0,len(utr_args)):
-        if '%' in utr_args[i]:
-            utr_arg = utr_args[i]
-            utr_arg = utr_args[i].replace('%', '$', 2)
-            utr_arg = utr_arg[:-2]
-            utr_args[i] = utr_arg + '"'
-
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
@@ -34,14 +26,6 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
-
-
-    for i in range(0,len(utr_args)):
-        if '%' in utr_args[i]:
-            utr_arg = utr_args[i]
-            utr_arg = utr_args[i].replace('%', '$', 2)
-            utr_arg = utr_arg[:-2]
-            utr_args[i] = utr_arg + '"'
 
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
@@ -61,17 +45,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
     scripting_backend = build_config["scripting_backend"]
     api_level = build_config["api_level"]
-    #utr_args = utr_standalone_split_flags(platform_spec='', platform='iOS', player_load_path='players',player_conn_ip=None, scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}')
-    # utr_args.extend(test_platform["extra_utr_flags"])
-    # utr_args.extend(platform["extra_utr_flags"])
-
-    for i in range(0,len(utr_args)):
-        if '%' in utr_args[i]:
-            utr_arg = utr_args[i]
-            utr_arg = utr_args[i].replace('%', '$', 2)
-            utr_arg = utr_arg[:-2]
-            utr_args[i] = utr_arg + '"'
-
 
     base = [
         f'curl -s {UTR_INSTALL_URL} --output utr',
@@ -84,14 +57,6 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
         
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder)
-
-
-    for i in range(0,len(utr_args)):
-        if '%' in utr_args[i]:
-            utr_arg = utr_args[i]
-            utr_arg = utr_args[i].replace('%', '$', 2)
-            utr_arg = utr_arg[:-2]
-            utr_args[i] = utr_arg + '"'
 
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
