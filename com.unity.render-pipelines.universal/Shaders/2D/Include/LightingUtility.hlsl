@@ -5,8 +5,7 @@
             half2	screenUV   : TEXCOORDB;
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)\
-            float4 clipVertex = output.positionCS / output.positionCS.w;\
-            output.screenUV = clipVertex.xy * float2(0.5, 0.5 * _ProjectionParams.x) + 0.5;\
+            output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS);\
             output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;\
             output.lightDirection.z = _LightZDistance;\
             output.lightDirection.w = 0;\
@@ -22,8 +21,7 @@
             half2	screenUV   : TEXCOORDB;
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos) \
-            float4 clipVertex = output.positionCS / output.positionCS.w;\
-            output.screenUV = clipVertex.xy * float2(0.5, 0.5 * _ProjectionParams.x) + 0.5; \
+            output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS); \
             output.positionWS = worldSpacePos;
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
@@ -68,7 +66,7 @@
 
 
 #define TRANSFER_SHADOWS(output)\
-    output.shadowUV = (output.positionCS.xy / output.positionCS.w) * float2(0.5, 0.5 * _ProjectionParams.x) + 0.5;
+    output.shadowUV = ComputeNormalizedDeviceCoordinates(output.positionCS);
 
 #define SHAPE_LIGHT(index)\
     TEXTURE2D(_ShapeLightTexture##index);\
