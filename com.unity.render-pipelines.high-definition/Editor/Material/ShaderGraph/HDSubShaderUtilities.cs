@@ -226,7 +226,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void AddDissolveOccludersProperties(PropertyCollector collector, bool enableDissolveOnOcclusion, float dissolveOnOcclusionOpacity)
         {
             collector.AddToggleProperty("_EnableDissolveOnOcclusion", enableDissolveOnOcclusion);
-            collector.AddFloatProperty("_DissolveOnOcclusionOpacity", dissolveOnOcclusionOpacity);
+            collector.AddFloatProperty("_DissolveOnOcclusionOpacity", dissolveOnOcclusionOpacity, HLSLDeclaration.UnityPerMaterial);
         }
         // custom-end
 
