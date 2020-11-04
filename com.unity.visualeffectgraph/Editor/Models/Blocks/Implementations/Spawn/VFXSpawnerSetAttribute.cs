@@ -11,8 +11,7 @@ namespace UnityEditor.VFX.Block
     {
         public string[] GetAvailableString()
         {
-            //TODOPAUL : it's hacky, should be list in a way or another in attribute
-            return VFXAttribute.AllIncludingVariadicExceptWriteOnly.Concat(new[] { "spawnCount" }).ToArray();
+            return VFXAttribute.AllIncludingVariadicExceptWriteOnly.ToArray();
         }
     }
 
@@ -29,8 +28,6 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (attribute == "spawnCount") //spawnCount isn't listed in attribute but it belongs to attribute in spawner.
-                    return new VFXAttribute("spawnCount", VFXValueType.Float);
                 return VFXAttribute.Find(attribute);
             }
         }

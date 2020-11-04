@@ -233,7 +233,6 @@ namespace UnityEditor.VFX
         static private VFXShaderWriter GenerateComputeSourceIndex(VFXContext context)
         {
             var r = new VFXShaderWriter();
-            var spawnCountAttribute = new VFXAttribute("spawnCount", VFXValueType.Float);
             if (!context.GetData().dependenciesIn.Any())
             {
                 var spawnLinkCount = context.GetData().sourceCount;
@@ -245,7 +244,7 @@ namespace UnityEditor.VFX
                 r.WriteLine("uint currentSumSpawnCount = 0u;");
                 r.WriteLineFormat("for (sourceIndex=0; sourceIndex<{0}; sourceIndex++)", spawnLinkCount);
                 r.EnterScope();
-                r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(spawnCountAttribute, VFXAttributeLocation.Source));
+                r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(VFXAttribute.SpawnCount, VFXAttributeLocation.Source));
                 r.WriteLine("if (id < currentSumSpawnCount)");
                 r.EnterScope();
                 r.WriteLine("break;");

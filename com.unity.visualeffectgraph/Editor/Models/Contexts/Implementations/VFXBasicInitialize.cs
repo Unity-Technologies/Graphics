@@ -83,6 +83,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override IEnumerable<VFXAttributeInfo> attributes
+        {
+            get
+            {
+                foreach (var attribute in base.attributes)
+                    yield return attribute;
+
+                yield return new VFXAttributeInfo(VFXAttribute.SpawnCount, VFXAttributeMode.ReadSource);
+            }
+        }
+
         public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             if (slot.name == "bounds")

@@ -396,11 +396,6 @@ namespace UnityEditor.VFX
             m_StoredCurrentAttributes.Clear();
             m_LocalCurrentAttributes.Clear();
             m_ReadSourceAttributes.Clear();
-            if ((type & VFXDataType.Particle) != 0)
-            {
-                m_ReadSourceAttributes.Add(new VFXAttribute("spawnCount", VFXValueType.Float)); // TODO dirty
-            }
-
             int contextCount = m_Contexts.Count;
             if (contextCount > 16)
                 throw new InvalidOperationException(string.Format("Too many contexts that use particle data {0} > 16", contextCount));

@@ -190,45 +190,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillEventAttributeDescs(List<VFXLayoutElementDesc> eventAttributeDescs, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts)
-        {
-            foreach (var context in contexts.Where(o => o.contextType == VFXContextType.Spawner))
-            {
-                foreach (var linked in context.outputContexts)
-                {
-                    var data = linked.GetData();
-                    if (data)
-                    {
-                        foreach (var attribute in data.GetAttributes())
-                        {
-                            if ((attribute.mode & VFXAttributeMode.ReadSource) != 0 && !eventAttributeDescs.Any(o => o.name == attribute.attrib.name))
-                            {
-                                eventAttributeDescs.Add(new VFXLayoutElementDesc()
-                                {
-                                    name = attribute.attrib.name,
-                                    type = attribute.attrib.type
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-
-            var structureLayoutTotalSize = (uint)eventAttributeDescs.Sum(e => (long)VFXExpression.TypeToSize(e.type));
-            var currentLayoutSize = 0u;
-            var listWithOffset = new List<VFXLayoutElementDesc>();
-            eventAttributeDescs.ForEach(e =>
-            {
-                e.offset.element = currentLayoutSize;
-                e.offset.structure = structureLayoutTotalSize;
-                currentLayoutSize += (uint)VFXExpression.TypeToSize(e.type);
-                listWithOffset.Add(e);
-            });
-
-            eventAttributeDescs.Clear();
-            eventAttributeDescs.AddRange(listWithOffset);
-        }
-
         private static List<VFXContext> CollectContextParentRecursively(IEnumerable <VFXContext> inputList, ref SubgraphInfos subgraphContexts)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
@@ -1074,9 +1035,6 @@ namespace UnityEditor.VFX
 
                 var exposedParameterDescs = new List<VFXMapping>();
                 FillExposedDescs(exposedParameterDescs, m_ExpressionGraph, m_Graph.children.OfType<VFXParameter>());
-                var globalEventAttributeDescs = new List<VFXLayoutElementDesc>() { new VFXLayoutElementDesc() { name = "spawnCount", type = VFXValueType.Float } };
-                FillEventAttributeDescs(globalEventAttributeDescs, m_ExpressionGraph, compilableContexts);
-
                 SubgraphInfos subgraphInfos;
                 subgraphInfos.subgraphParents = new Dictionary<VFXSubgraphContext, VFXSubgraphContext>();
 
