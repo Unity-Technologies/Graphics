@@ -98,6 +98,13 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, PositionInputs p
         result = 0;
 #endif
         break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_OBJECT_ID:
+#ifdef UNITY_SHADER_VARIABLES_INCLUDED
+        result = PackEntityIdToRGB16f(asuint(unity_LODFade.z));
+#else
+        result = 0;
+#endif
+        break;
 #ifdef DEBUG_DISPLAY
     case DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS:
         // Only 8 first rendering layers are currently in use (used by light layers)

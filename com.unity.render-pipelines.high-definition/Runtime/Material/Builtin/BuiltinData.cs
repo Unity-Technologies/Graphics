@@ -67,9 +67,13 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("VT Packed Feedback", precision = FieldPrecision.Real)]
             public Vector4 vtPackedFeedback;
 
-            [MaterialSharedPropertyMapping(MaterialSharedProperty.EntityID)]
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.EntityId)]
             [SurfaceDataAttributes("Entity Id")]
             public uint entityId;
+
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.ObjectId)]
+            [SurfaceDataAttributes("Object Id")]
+            public uint objectId;
         };
 
         //-----------------------------------------------------------------------------
