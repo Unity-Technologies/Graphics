@@ -105,6 +105,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
         [FrameSettingsField(0, displayedName: "Alpha To Mask", positiveDependencies: new[] { MSAA }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
         AlphaToMask = 56,
+        /// <summary>When enabled, The emissive part of the materials is rendered as a forward pass for the deferred pipeline.</summary>
+        [FrameSettingsField(0, displayedName: "Emissive as Forward", positiveDependencies: new[] { LitShaderMode }, customOrderInGroup: 3, tooltip: "When enabled, The emissive part of the materials is rendered as a forward pass for the deferred pipeline.")]
+        EmissiveAsForward = 57,
         /// <summary>When enabled, Cameras using these Frame Settings render opaque GameObjects.</summary>
         [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
         OpaqueObjects = 2,
@@ -759,6 +762,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: The work will be implemented piecemeal to support all passes
             bool msaa = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MSAA] &= renderPipelineSettings.supportMSAA && sanitizedFrameSettings.litShaderMode == LitShaderMode.Forward && !pipelineSupportsRayTracing;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.EmissiveAsForward] &= sanitizedFrameSettings.litShaderMode == LitShaderMode.Deferred;
 
             // No recursive reflections
             bool ssr = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview;

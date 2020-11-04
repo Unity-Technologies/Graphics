@@ -7,6 +7,9 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Linq;
 
+// Include material common properties names
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+
 namespace UnityEditor.Rendering.HighDefinition
 {
     class EmissionUIBlock : MaterialUIBlock
@@ -48,21 +51,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         MaterialProperty emissiveColorLDR = null;
-        const string kEmissiveColorLDR = "_EmissiveColorLDR";
         MaterialProperty emissiveExposureWeight = null;
-        const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
         MaterialProperty useEmissiveIntensity = null;
-        const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
         MaterialProperty emissiveIntensityUnit = null;
-        const string kEmissiveIntensityUnit = "_EmissiveIntensityUnit";
         MaterialProperty emissiveIntensity = null;
-        const string kEmissiveIntensity = "_EmissiveIntensity";
         MaterialProperty emissiveColor = null;
-        const string kEmissiveColor = "_EmissiveColor";
         MaterialProperty emissiveColorMap = null;
-        const string kEmissiveColorMap = "_EmissiveColorMap";
         MaterialProperty UVEmissive = null;
-        const string kUVEmissive = "_UVEmissive";
         MaterialProperty TexWorldScaleEmissive = null;
         const string kTexWorldScaleEmissive = "_TexWorldScaleEmissive";
         MaterialProperty UVMappingMaskEmissive = null;
@@ -131,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
             bool updateEmissiveColor = EditorGUI.EndChangeCheck();
 
+            // This flag allows us to track is a material has a non-null emission color. That would require us to enable the target pass
             if (useEmissiveIntensity.floatValue == 0)
             {
                 EditorGUI.BeginChangeCheck();

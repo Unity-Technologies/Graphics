@@ -32,6 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         /// <summary>RayTracing Prepass pass name.</summary>
         public static readonly string s_RayTracingPrepassStr = "RayTracingPrepass";
+        /// <summary>Forward emissive pass name.</summary>
+        public static readonly string s_ForwardEmissiveStr = "ForwardEmissive";
         /// <summary>Visibility DXR pass name.</summary>
         public static readonly string s_RayTracingVisibilityStr = "VisibilityDXR";
         /// <summary>PathTracing DXR pass name.</summary>
@@ -62,6 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DepthForwardOnlyName = new ShaderTagId(s_DepthForwardOnlyStr);
         /// <summary>Forward Only shader tag id.</summary>
         public static readonly ShaderTagId s_ForwardOnlyName = new ShaderTagId(s_ForwardOnlyStr);
+        /// <summary>Forward Emissive shader tag id.</summary>
+        public static readonly ShaderTagId s_ForwardEmissiveName = new ShaderTagId(s_ForwardEmissiveStr);
         /// <summary>GBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
         /// <summary>GBufferWithPrepass shader tag id.</summary>
@@ -945,8 +949,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kZTestTransparent = "_ZTestTransparent";
         public const string kRayTracing = "_RayTracing";
 
-        public const string kEmissiveColorMap = "_EmissiveColorMap";
-
         public const string kSurfaceType = "_SurfaceType";
         public const string kMaterialID = "_MaterialID";
         public const string kTransmissionEnable = "_TransmissionEnable";
@@ -1017,5 +1019,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string kDecalStencilRef = "_DecalStencilRef";
 
         public static readonly string kRefractionModel = "_RefractionModel";
+
+        // Emission
+        public static readonly string kEmissiveColorLDR = "_EmissiveColorLDR";
+        public static readonly string kEmissiveExposureWeight = "_EmissiveExposureWeight";
+        public static readonly string kUseEmissiveIntensity = "_UseEmissiveIntensity";
+        public static readonly string kEmissiveIntensityUnit = "_EmissiveIntensityUnit";
+        public static readonly string kEmissiveIntensity = "_EmissiveIntensity";
+        public static readonly string kEmissiveColor = "_EmissiveColor";
+        public static readonly string kEmissiveColorMap = "_EmissiveColorMap";
+        public static readonly string kUVEmissive = "_UVEmissive";
+
     }
 }

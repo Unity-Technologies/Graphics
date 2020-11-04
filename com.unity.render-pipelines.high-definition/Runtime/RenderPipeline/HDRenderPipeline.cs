@@ -218,6 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderTagId[] m_ForwardAndForwardOnlyPassNames = { HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_ForwardName, HDShaderPassNames.s_SRPDefaultUnlitName };
         ShaderTagId[] m_ForwardOnlyPassNames = { HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_SRPDefaultUnlitName };
+        ShaderTagId[] m_ForwardEmissivePassNames = { HDShaderPassNames.s_ForwardEmissiveName};
 
         ShaderTagId[] m_AllTransparentPassNames = {  HDShaderPassNames.s_TransparentBackfaceName,
                                                      HDShaderPassNames.s_ForwardOnlyName,
@@ -1347,6 +1348,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRayTracedReflections = 0;
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
             }
+
+            m_ShaderVariablesGlobalCB._EmissiveAsForwardForDeferred = hdCamera.frameSettings.IsEnabled(FrameSettingsField.EmissiveAsForward) ? 1 : 0;
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
@@ -4263,6 +4266,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 ? m_ForwardAndForwardOnlyPassNames
                 : m_ForwardOnlyPassNames;
             return CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting);
+        }
+
+        RendererListDesc PrepareForwardEmissiveOpaqueRendererList(CullingResults cullResults, HDCamera hdCamera)
+        {
+            return CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, m_ForwardEmissivePassNames, m_CurrentRendererConfigurationBakedLighting);
         }
 
         // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward

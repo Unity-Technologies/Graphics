@@ -24,7 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
             AddedAdaptiveSSS,
             RemoveCookieCubeAtlasToOctahedral2D,
             RoughDistortion,
-            VirtualTexturing
+            VirtualTexturing,
+            EmissiveAsForward
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -136,6 +137,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateVirtualTexturing(ref data.m_RenderingPathDefaultCameraFrameSettings);
                 FrameSettings.MigrateVirtualTexturing(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
                 FrameSettings.MigrateVirtualTexturing(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+            }),
+            MigrationStep.New(Version.EmissiveAsForward, (HDRenderPipelineAsset data) =>
+            {
+                FrameSettings.MigrateEmissiveAsForward(ref data.m_RenderingPathDefaultCameraFrameSettings);
+                FrameSettings.MigrateEmissiveAsForward(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
+                FrameSettings.MigrateEmissiveAsForward(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
             })
         );
 

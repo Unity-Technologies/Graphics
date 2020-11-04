@@ -470,8 +470,51 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #endregion
 
-        #region Back then front pass
+        #region Forward Emissive
 
+        public static PassDescriptor GenerateForwardEmissivePass()
+        {
+            return new PassDescriptor
+            { 
+                // Definition
+                displayName = "ForwardEmissive",
+                referenceName = "SHADERPASS_FORWARD_EMISSIVE",
+                lightMode = "ForwardEmissive",
+                useInPreview = true,
+
+                // Collections
+                requiredFields = GenerateRequiredFields(),
+                renderStates = CoreRenderStates.ForwardEmissive,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ForwardEmissive,
+                includes = GenerateIncludes(),
+
+                virtualTextureFeedback = true,
+            };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                return CoreRequiredFields.LitFull;
+            }
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+                includes.Add(CoreIncludes.CorePregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassForwardEmissive, IncludeLocation.Postgraph);
+                return includes;
+            }
+        }
+
+        #endregion
+
+        #region Back then front pass
+        
         public static PassDescriptor GenerateBackThenFront(bool supportLighting)
         {
             return new PassDescriptor

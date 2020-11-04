@@ -437,5 +437,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.VirtualTexturing, true);
         }
+
+        internal static void MigrateEmissiveAsForward(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.EmissiveAsForward, false);
+        }
     }
 }

@@ -682,6 +682,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         }
     }
 #endif
+    
+    if (_EmissiveAsForwardForDeferred == 1)
+        builtinData.emissiveColor = real3(0.0, 0.0, 0.0);
 
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.

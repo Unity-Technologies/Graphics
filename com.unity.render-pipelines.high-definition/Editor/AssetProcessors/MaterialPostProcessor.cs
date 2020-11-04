@@ -203,6 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition
             FixIncorrectEmissiveColorSpace,
             ExposeRefraction,
             MetallicRemapping,
+            ForwardEmissivePass,
         };
 
         #region Migrations
@@ -641,6 +642,44 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 material.SetFloat(kMetallicRemapMax, metallicScale);
             }
+        }
+
+        static void ForwardEmissivePass(Material material, HDShaderUtils.ShaderID id)
+        {
+            const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
+            const string kEmissiveIntensity = "_EmissiveIntensity";
+            const string kEmissiveColor = "_EmissiveColor";
+            bool emissiveIsActive = false;
+            if (material.HasProperty(kUseEmissiveIntensity))
+            {
+                var useIntensity = material.GetInt(kUseEmissiveIntensity);
+                if (useIntensity == 0)
+                {
+                    if (material.HasProperty(kEmissiveColor))
+                    {
+                        var emissionColor = material.GetColor(kEmissiveColor);
+                        if (emissionColor.r > 0.0 || emissionColor.g > 0.0 || emissionColor.b > 0.0)
+                        {
+                            emissiveIsActive = true;
+                        }
+                    }
+                }
+                else
+                {
+                    if (material.HasProperty(kEmissiveIntensity))
+                    {
+                        var intensityValue = material.GetFloat(kEmissiveIntensity);
+                        if (intensityValue > 0.0)
+                        {
+                            emissiveIsActive = true;
+                        }
+                    }
+                }
+            }
+
+            if (id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
+             || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveStr, emissiveIsActive);
         }
 
         #region Serialization_API

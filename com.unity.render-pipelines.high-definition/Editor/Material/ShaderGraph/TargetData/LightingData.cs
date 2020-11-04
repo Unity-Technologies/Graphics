@@ -88,5 +88,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_OverrideBakedGI;
             set => m_OverrideBakedGI = value;
         }
+
+        [SerializeField]
+        bool m_EmissionOverriden;
+        public bool emissionOverriden
+        {
+            get => m_EmissionOverriden;
+            set => m_EmissionOverriden = value;
+        }
     }
 }

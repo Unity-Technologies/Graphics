@@ -61,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 hash = hash * 23 + builtinData.alphaTestShadow.GetHashCode();
                 hash = hash * 23 + lightingData.receiveSSR.GetHashCode();
                 hash = hash * 23 + lightingData.receiveSSRTransparent.GetHashCode();
+                hash = hash * 23 + lightingData.emissionOverriden.GetHashCode();
             }
 
             return hash;
@@ -84,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(BackLightingGI,                       descs.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
             context.AddField(BentNormal,                           descs.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.connectedBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
             context.AddField(HDFields.AmbientOcclusion,                     context.blocks.Contains((BlockFields.SurfaceDescription.Occlusion, false)) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
-
+            
             // Specular Occlusion Fields
             context.AddField(SpecularOcclusionFromAO,              lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
             context.AddField(SpecularOcclusionFromAOBentNormal,    lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
@@ -93,6 +94,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Double Sided
             context.AddField(DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
             context.AddField(DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
+
+            // We need to grab the emission block to check if it is connected, or the default value is non null.
+            bool emissionPassEnabled = false;
+            if (!context.connectedBlocks.Contains(BlockFields.SurfaceDescription.Emission))
+                emissionPassEnabled = !context.blocks.Contains((BlockFields.SurfaceDescription.Emission, true));
+            else
+                emissionPassEnabled = true;
+            context.AddField(EmissionOverriden, emissionPassEnabled);
+            lightingData.emissionOverriden = emissionPassEnabled;
         }
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)

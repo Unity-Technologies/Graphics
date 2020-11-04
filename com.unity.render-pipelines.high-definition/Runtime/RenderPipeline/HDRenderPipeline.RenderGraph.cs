@@ -148,6 +148,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
 
+                RenderForwardEmissiveOpaque(m_RenderGraph, hdCamera, colorBuffer, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
+
                 // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 if (aovRequest.isValid)
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Normals, hdCamera, prepassOutput.resolvedNormalBuffer, aovBuffers);
@@ -454,6 +456,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public LightingBuffers  lightingBuffers;
         }
 
+        class ForwardEmissiveOpaquePassData : ForwardPassData
+        {
+            public DBufferOutput dbuffer;
+        }
+
         class ForwardTransparentPassData : ForwardPassData
         {
             public bool             decalsEnabled;
@@ -566,6 +573,48 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, context.renderContext, context.cmd);
                     });
+            }
+        }
+
+        void RenderForwardEmissiveOpaque(RenderGraph        renderGraph,
+            HDCamera                    hdCamera,
+            TextureHandle               colorBuffer,
+            in BuildGPULightListOutput  lightLists,
+            TextureHandle               depthBuffer,
+            TextureHandle               vtFeedbackBuffer,
+            ShadowResult                shadowResult,
+            DBufferOutput               dbuffer,
+            CullingResults              cullResults)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.EmissiveAsForward))
+                return;
+
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                return;
+
+            if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.EmissiveLighting && m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.None)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<ForwardEmissiveOpaquePassData>("Forward Opaque Emissive", out var passData, ProfilingSampler.Get(HDProfileId.ForwardEmissive)))
+            {
+                PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, PrepareForwardEmissiveOpaqueRendererList(cullResults, hdCamera), lightLists, depthBuffer, shadowResult);
+                passData.renderTarget[0] = builder.WriteTexture(colorBuffer);
+                passData.renderTargetCount = 1;
+                passData.dbuffer = ReadDBuffer(dbuffer, builder);
+
+                builder.SetRenderFunc(
+                (ForwardEmissiveOpaquePassData data, RenderGraphContext context) =>
+                {
+                    // TODO RENDERGRAPH: replace with UseColorBuffer when removing old rendering (SetRenderTarget is called inside RenderForwardRendererList because of that).
+                    var mrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.renderTargetCount);
+                    for (int i = 0; i < data.renderTargetCount; ++i)
+                        mrt[i] = data.renderTarget[i];
+
+                    BindGlobalLightListBuffers(data, context);
+                    BindDBufferGlobalData(data.dbuffer, context);
+
+                    RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, context.renderContext, context.cmd);
+                });
             }
         }
 
