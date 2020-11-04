@@ -18,10 +18,6 @@ test_platforms:
       - [all]: --compilation-errors-as-warnings
       - [OSX_Metal]: --timeout=2400
     utr_flags_build:
-      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11"
-      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12"
-      - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
-      - [OSX_Metal, iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal"
       - [all]: --compilation-errors-as-warnings
 
 platforms:

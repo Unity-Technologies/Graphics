@@ -15,10 +15,10 @@ def extract_flags(utr_flags, platform_name, api_name, build_config, color_space,
                 
                 # get the the flag without its value
                 flag_keys = flag.split("=")
-                if len(flag_keys) == 3: # for cases with additonal flag nested inside, e.g. -extra-editor-arg="-playergraphicsapi=Direct3D11"
-                    flag_key = "".join(flag_keys[:-1])
-                elif len(flag_keys) > 1 and flag_keys[1].startswith('"-') and len(flag_keys[1].split(' '))>1: # for cases with additional flag nested inside with space, e.g --extra-editor-arg="-executemethod Editor.Setup"
+                if len(flag_keys) > 1 and flag_keys[1].startswith('"-') and len(flag_keys[1].split(' '))>1: # for cases with additional flag nested inside with space, e.g --extra-editor-arg="-executemethod Editor.Setup"
                     flag_key = f'{flag_keys[0]}={flag_keys[1].split(" ")[0]}'
+                elif len(flag_keys) == 3: # for cases with additonal flag nested inside, e.g. -extra-editor-arg="-playergraphicsapi=Direct3D11"
+                    flag_key = "".join(flag_keys[:-1])               
                 else: # most of the cases (--flag=value)
                     flag_key = flag_keys[0]
 

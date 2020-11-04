@@ -3,10 +3,6 @@ project:
   folder: HDRP_DXR_Tests
 test_platforms:
   - type: Standalone
-    utr_flags:
-      - [OSX_Metal]: --timeout=2400
-    utr_flags_build:
-      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12"
   - type: playmode
   - type: playmode
     name: playmode_XR
