@@ -319,9 +319,14 @@ namespace UnityEngine.Rendering.Universal
             requiresDepthPrepass |= renderPassInputs.requiresDepthPrepass;
             requiresDepthPrepass |= renderPassInputs.requiresNormalsTexture;
 
-            // In deferred rendering mode, depth prepass is used to render forward-only geometry.
-            // it allows priming the depth buffer (can avoid gbuffer unecessary overdraw) and calculate SSAO for forward-only geometry pass.
-            requiresDepthPrepass |= this.actualRenderingMode == RenderingMode.Deferred;
+            // Current aim of depth prepass is to generate a copy of depth buffer, it is NOT to prime depth buffer and reduce overdraw on non-mobile platforms.
+            // When deferred renderer is enabled, depth buffer is already accessible so depth prepass is not needed.
+            // The only exception is for generating depth-normal textures: SSAO pass needs it and it must run before forward-only geometry.
+            // DepthNormal prepass will render:
+            // - forward-only geometry when deferred renderer is enabled
+            // - all geometry when forward renderer is enabled
+            if (requiresDepthPrepass && this.actualRenderingMode == RenderingMode.Deferred && !renderPassInputs.requiresNormalsTexture)
+                requiresDepthPrepass = false;
 
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
@@ -434,20 +439,13 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (this.actualRenderingMode == RenderingMode.Deferred)
                     {
-                        // In deferred mode, depth prepass does really primes the depth buffer, instead of creating a copy.
-                        // It is necessary because we need to render depth for forward-only geometry and it is the only way
-                        // to get them before the SSAO pass.
-
-                        m_DepthPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment);
-                        // Depth is allocated by this renderer.
-                        m_DepthPrepass.allocateDepth = false;
-                        // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
-                        m_DepthPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly); // DepthNormalsOnly pass is only way to filter for forwardOnly materials ... need better tags?
+                        // Nothing to do: we never get here.
                     }
                     else
+                    {
                         m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
-
-                    EnqueuePass(m_DepthPrepass);
+                        EnqueuePass(m_DepthPrepass);
+                    }
                 }
             }
 
@@ -474,11 +472,9 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            // If deferred rendering path was selected, it has already made a copy.
             bool requiresDepthCopyPass = !requiresDepthPrepass
                                          && renderingData.cameraData.requiresDepthTexture
-                                         && createDepthTexture
-                                         && this.actualRenderingMode != RenderingMode.Deferred;
+                                         && createDepthTexture;
             if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);

@@ -88,11 +88,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
         #endif
 
-        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL) || defined(_SSAO_ONLY)
-        output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
+        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL) || (defined(_SSAO_ONLY) && defined(_SCREEN_SPACE_OCCLUSION))
+            // Full screen render using a large triangle.
+            output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
+        #elif defined(_SSAO_ONLY) && !defined(_SCREEN_SPACE_OCCLUSION)
+            // Deferred renderer does not know whether there is a SSAO feature or not at the C# scripting level.
+            // However, this is known at the shader level because of the shader keyword SSAO feature enables.
+            // If the keyword was not enabled, discard the SSAO_only pass by rendering the geometry outside the screen.
+            output.positionCS = float4(positionOS.xy, -2, 1.0); // Force triangle to be discarded
         #else
-        VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
-        output.positionCS = vertexInput.positionCS;
+            // Light shape geometry is projected as normal.
+            VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
+            output.positionCS = vertexInput.positionCS;
         #endif
 
         output.screenUV = output.positionCS.xyw;
@@ -149,6 +156,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 shadowMask = 1.0;
         #endif
 
+        half surfaceDataOcclusion = gbuffer1.a;
+
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
         bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
         #if SHADER_API_MOBILE || SHADER_API_SWITCH
@@ -161,7 +170,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         #if defined(_DEFERRED_MIXED_LIGHTING)
         // If both lights and geometry are static, then no realtime lighting to perform for this combination.
         [branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
-            return half4(0.0, 0.0, 0.0, 0.0); // Cannot discard because stencil must be updated.
+            return half4(0.0, 0.0, 0.0, 1.0); // Cannot discard because stencil must be updated.
         #endif
 
         #if defined(USING_STEREO_MATRICES)
@@ -209,12 +218,17 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half alpha = 1.0;
 
         #if defined(_SCREEN_SPACE_OCCLUSION)
-        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
-        unityLight.color *= aoFactor.directAmbientOcclusion;
+            AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
+            unityLight.color *= aoFactor.directAmbientOcclusion;
             #if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
-            alpha = aoFactor.indirectAmbientOcclusion;
+            half occlusion = min(surfaceDataOcclusion, aoFactor.indirectAmbientOcclusion);
+            // What we want is really to apply the mininum occlusion between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
+            // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
+            occlusion /= surfaceDataOcclusion;
+            alpha = occlusion;
             #endif
         #endif
+
 
         #if defined(_LIT)
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
@@ -245,7 +259,12 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     {
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
-        return half4(0.0, 0.0, 0.0, aoFactor.indirectAmbientOcclusion);
+        half surfaceDataOcclusion = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0).a;
+        half occlusion = min(surfaceDataOcclusion, aoFactor.indirectAmbientOcclusion);
+        // What we want is really to apply the mininum occlusion between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
+        // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
+        occlusion /= surfaceDataOcclusion;
+        return half4(0.0, 0.0, 0.0, occlusion);
     }
 
     ENDHLSL
@@ -531,6 +550,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             HLSLPROGRAM
 
             #pragma multi_compile _SSAO_ONLY
+            #pragma multi_compile_vertex _ _SCREEN_SPACE_OCCLUSION
 
             #pragma vertex Vertex
             #pragma fragment FragSSAOOnly

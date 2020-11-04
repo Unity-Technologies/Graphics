@@ -90,7 +90,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // If we detect we are in such case (camera isin  overlay mode), we clear the highest bits of stencil we have control of and use them to
                 // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
                 if (m_DeferredLights.IsOverlay)
+                {
                     m_DeferredLights.ClearStencilPartial(gbufferCommands);
+                    context.ExecuteCommandBuffer(gbufferCommands);
+                    gbufferCommands.Clear();
+                }
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;

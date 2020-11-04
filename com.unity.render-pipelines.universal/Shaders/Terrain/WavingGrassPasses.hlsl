@@ -161,7 +161,7 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     outSurfaceData.specular = 0.1;// SampleSpecularSmoothness(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
     outSurfaceData.smoothness = input.posWSShininess.w;
     outSurfaceData.normalTS = 0.0; // unused
-    outSurfaceData.occlusion = 1.0; // unused
+    outSurfaceData.occlusion = 1.0;
     outSurfaceData.emission = 0.0;
 }
 

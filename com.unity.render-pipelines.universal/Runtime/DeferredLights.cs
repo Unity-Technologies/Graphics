@@ -305,7 +305,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
                 return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
             else if (index == GBufferSpecularMetallicIndex) // sRGB specular, reflectivity
-                return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;    
+                return GraphicsFormat.R8G8B8A8_UNorm;
             else if (index == GBufferNormalSmoothnessIndex)
                 return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
             else if (index == GBufferLightingIndex) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
@@ -1210,6 +1210,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 prePunctualLights = new NativeArray<DeferredTiler.PrePunctualLight>(0, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 stencilVisLights = new NativeArray<ushort>(0, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
                 stencilVisLightOffsets = new NativeArray<ushort>(lightTypeCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                for (int i = 0; i < lightTypeCount; ++i)
+                    stencilVisLightOffsets[i] = k_InvalidLightOffset;
                 return;
             }
 

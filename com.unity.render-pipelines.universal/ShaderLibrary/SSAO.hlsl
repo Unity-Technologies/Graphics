@@ -17,7 +17,12 @@ SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 // Params
 float4 _SSAOParams;
 float4 _SourceSize;
-float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used)
+float4 _ProjectionParams2;
+float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used). Handle both non-XR and XR modes.
+float4 _CameraViewTopLeftCorner[2];
+float4 _CameraViewXExtent[2];
+float4 _CameraViewYExtent[2];
+float4 _CameraViewZExtent[2];
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
@@ -136,15 +141,27 @@ float SampleAndGetLinearDepth(float2 uv)
     return RawToLinearDepth(rawDepth);
 }
 
-float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
+// This returns a vector in world unit (not a position), from camera to the given point described by uv screen coordinate and depth (in absolute world unit).
+float3 ReconstructViewPos(float2 uv, float depth)
 {
+    // Screen is y-inverted.
+    uv.y = 1.0 - uv.y;
+
+    // view pos in world space
     #if defined(_ORTHOGRAPHIC)
-        float3 viewPos = float3(((uv.xy * 2.0 - 1.0 - p13_31) * p11_22), -depth);
+        float zScale = depth * _ProjectionParams.w; // divide by far plane
+        float3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
+                       + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
+                       + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y
+                       + _CameraViewZExtent[unity_eyeIndex].xyz * zScale;
     #else
-        float3 viewPos = float3(depth * ((uv.xy * 2.0 - 1.0 - p13_31) * p11_22), -depth);
+        float zScale = depth * _ProjectionParams2.x; // divide by near plane
+        float3 viewPos = _CameraViewTopLeftCorner[unity_eyeIndex].xyz
+                       + _CameraViewXExtent[unity_eyeIndex].xyz * uv.x
+                       + _CameraViewYExtent[unity_eyeIndex].xyz * uv.y;
+        viewPos *= zScale;
     #endif
 
-    viewPos = mul((float3x3)UNITY_MATRIX_I_V, viewPos); // (kchang) Still working on a more optimized implementation ...
     return viewPos;
 }
 
@@ -154,7 +171,7 @@ float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
 // High:   5 taps on each direction: | z | x | * | y | w |
 // https://atyuwen.github.io/posts/normal-reconstruction/
 // https://wickedengine.net/2019/09/22/improved-normal-reconstruction-from-depth/
-float3 ReconstructNormal(float2 uv, float depth, float3 vpos, float2 p11_22, float2 p13_31)
+float3 ReconstructNormal(float2 uv, float depth, float3 vpos)
 {
     #if defined(_RECONSTRUCT_NORMAL_LOW)
         return normalize(cross(ddy(vpos), ddx(vpos)));
@@ -209,34 +226,24 @@ float3 ReconstructNormal(float2 uv, float depth, float3 vpos, float2 p11_22, flo
             P2 = closest_horizontal == 0 ? l1 : u1;
         }
 
-        P1 = ReconstructViewPos(P1.xy, P1.z, p11_22, p13_31);
-        P2 = ReconstructViewPos(P2.xy, P2.z, p11_22, p13_31);
+        P1 = ReconstructViewPos(P1.xy, P1.z);
+        P2 = ReconstructViewPos(P2.xy, P2.z);
 
         // Use the cross product to calculate the normal...
         return normalize(cross(P2 - vpos, P1 - vpos));
     #endif
 }
 
-void SampleDepthNormalView(float2 uv, float2 p11_22, float2 p13_31, out float depth, out float3 normal, out float3 vpos)
+void SampleDepthNormalView(float2 uv, out float depth, out float3 normal, out float3 vpos)
 {
     depth  = SampleAndGetLinearDepth(uv);
-    vpos = ReconstructViewPos(uv, depth, p11_22, p13_31);
+    vpos = ReconstructViewPos(uv, depth);
 
     #if defined(_SOURCE_DEPTH_NORMALS)
         normal = SampleSceneNormals(uv);
     #else
-        normal = ReconstructNormal(uv, depth, vpos, p11_22, p13_31);
+        normal = ReconstructNormal(uv, depth, vpos);
     #endif
-}
-
-float3x3 GetCoordinateConversionParameters(out float2 p11_22, out float2 p13_31)
-{
-    float3x3 camProj = (float3x3)unity_CameraProjection;
-
-    p11_22 = rcp(float2(camProj._11, camProj._22));
-    p13_31 = float2(camProj._13, camProj._23);
-
-    return (float3x3)_CameraViewProjections[unity_eyeIndex];
 }
 
 // Distance-based AO estimator based on Morgan 2011
@@ -249,13 +256,13 @@ float4 SSAO(Varyings input) : SV_Target
 
     // Parameters used in coordinate conversion
     float2 p11_22, p13_31;
-    float3x3 camTransform = GetCoordinateConversionParameters(p11_22, p13_31); // camera viewProjection matrix
+    float3x3 camTransform = (float3x3)_CameraViewProjections[unity_eyeIndex]; // camera viewProjection matrix
 
     // Get the depth, normal and view position for this fragment
     float depth_o;
     float3 norm_o;
     float3 vpos_o;
-    SampleDepthNormalView(uv, p11_22, p13_31, depth_o, norm_o, vpos_o);
+    SampleDepthNormalView(uv, depth_o, norm_o, vpos_o);
 
     // This was added to avoid a NVIDIA driver issue.
     float randAddon = uv.x * 1e-10;
@@ -292,7 +299,7 @@ float4 SSAO(Varyings input) : SV_Target
         float depth_s1 = SampleAndGetLinearDepth(uv_s1_01);
 
         // Relative position of the sample point
-        float3 vpos_s2 = ReconstructViewPos(uv_s1_01, depth_s1, p11_22, p13_31);
+        float3 vpos_s2 = ReconstructViewPos(uv_s1_01, depth_s1);
         float3 v_s2 = vpos_s2 - vpos_o;
 
         // Estimate the obscurance value
@@ -306,7 +313,6 @@ float4 SSAO(Varyings input) : SV_Target
 
     // Apply contrast
     ao = PositivePow(ao * INTENSITY * rcpSampleCount, kContrast);
-
     return PackAONormal(ao, norm_o);
 }
 
@@ -323,14 +329,11 @@ half4 Blur(float2 uv, float2 delta) : SV_Target
         #if defined(_SOURCE_DEPTH_NORMALS)
             float3 n0 = SampleSceneNormals(uv);
         #else
-            float2 p11_22, p13_31;
-            GetCoordinateConversionParameters(p11_22, p13_31);
-
             // Get the depth, normal and view position for this fragment
             float depth_o;
             float3 n0;
             float3 vpos_o;
-            SampleDepthNormalView(uv, p11_22, p13_31, depth_o, n0, vpos_o);
+            SampleDepthNormalView(uv, depth_o, n0, vpos_o);
         #endif
     #else
         float3 n0 = GetPackedNormal(p0);
