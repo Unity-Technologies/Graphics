@@ -7,8 +7,8 @@
 
 ---
 
-Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
-    name: Smoke_Test on Win_DX11_playmode_mono_apiNet2_Linear on version trunk
+Smoke_Test_Win_DX11_playmode_mono_Linear_trunk:
+    name: Smoke_Test on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -31,8 +31,8 @@ Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
-Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
-    name: Smoke_Test on Win_DX11_editmode_mono_apiNet2_Linear on version trunk
+Smoke_Test_Win_DX11_editmode_mono_Linear_trunk:
+    name: Smoke_Test on Win_DX11_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -55,8 +55,8 @@ Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
-Smoke_Test_Win_DX11_Standalone_mono_apiNet2_Linear_trunk:
-    name: Smoke_Test on Win_DX11_Standalone_mono_apiNet2_Linear on version trunk
+Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
+    name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -65,17 +65,17 @@ Smoke_Test_Win_DX11_Standalone_mono_apiNet2_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  cd TestProjects/SRP_SmokeTest && utr --artifacts_path=test-results --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+      -  cd TestProjects/SRP_SmokeTest && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_mono_Linear_trunk
          rerun: on-new-revision
-Build_Smoke_Test_Win_DX11_Player_mono_apiNet2_Linear_trunk:
-    name: Build Smoke_Test on Win_DX11_mono_apiNet2_Linear_Player on version trunk
+Build_Smoke_Test_Win_DX11_Player_mono_Linear_trunk:
+    name: Build Smoke_Test on Win_DX11_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -101,8 +101,8 @@ Build_Smoke_Test_Win_DX11_Player_mono_apiNet2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Smoke_Test on Win_DX11_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
+    name: Smoke_Test on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -129,8 +129,8 @@ Smoke_Test_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Smoke_Test on Win_DX11_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
+    name: Smoke_Test on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -157,8 +157,8 @@ Smoke_Test_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-Smoke_Test_Win_DX11_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Smoke_Test on Win_DX11_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
+Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Smoke_Test on Win_DX11_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -168,7 +168,7 @@ Smoke_Test_Win_DX11_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  cd TestProjects/SRP_SmokeTest && utr --artifacts_path=test-results --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+      -  cd TestProjects/SRP_SmokeTest && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -177,10 +177,10 @@ Smoke_Test_Win_DX11_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Smoke_Test_Win_DX11_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build Smoke_Test on Win_DX11_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_Smoke_Test_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build Smoke_Test on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

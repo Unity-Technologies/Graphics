@@ -7,8 +7,8 @@
 
 ---
 
-HDRP_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk:
-    name: HDRP on Linux_Vulkan_playmode_mono_apiNet2_Linear on version trunk
+HDRP_Linux_Vulkan_playmode_mono_Linear_trunk:
+    name: HDRP on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -27,8 +27,8 @@ HDRP_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
-HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_apiNet2_Linear_trunk:
-    name: HDRP on Linux_Vulkan_playmode_NonRenderGraph_mono_apiNet2_Linear on version trunk
+HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_Linear_trunk:
+    name: HDRP on Linux_Vulkan_playmode_NonRenderGraph_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -47,8 +47,8 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
-HDRP_Linux_Vulkan_editmode_mono_apiNet2_Linear_trunk:
-    name: HDRP on Linux_Vulkan_editmode_mono_apiNet2_Linear on version trunk
+HDRP_Linux_Vulkan_editmode_mono_Linear_trunk:
+    name: HDRP on Linux_Vulkan_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -67,8 +67,8 @@ HDRP_Linux_Vulkan_editmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_Tests/Logs/*.log"
-HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
-    name: HDRP on Linux_Vulkan_Standalone_mono_apiNet2_Linear on version trunk
+HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
+    name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -78,17 +78,17 @@ HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && ./utr --artifacts_path=test-results --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
-Build_HDRP_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
-    name: Build HDRP on Linux_Vulkan_mono_apiNet2_Linear_Player on version trunk
+Build_HDRP_Linux_Vulkan_Player_mono_Linear_trunk:
+    name: Build HDRP on Linux_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -110,8 +110,8 @@ Build_HDRP_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-HDRP_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: HDRP on Linux_Vulkan_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: HDRP on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -134,8 +134,8 @@ HDRP_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: HDRP on Linux_Vulkan_playmode_NonRenderGraph_mono_apiNet2_Linear on version CUSTOM-REVISION
+HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_Linear_CUSTOM-REVISION:
+    name: HDRP on Linux_Vulkan_playmode_NonRenderGraph_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -158,8 +158,8 @@ HDRP_Linux_Vulkan_playmode_NonRenderGraph_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-HDRP_Linux_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: HDRP on Linux_Vulkan_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
+    name: HDRP on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -182,8 +182,8 @@ HDRP_Linux_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: HDRP on Linux_Vulkan_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
+HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -194,7 +194,7 @@ HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_RuntimeTests/utr
       -  chmod +x TestProjects/HDRP_RuntimeTests/utr
-      -  cd TestProjects/HDRP_RuntimeTests && ./utr --artifacts_path=test-results --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+      -  cd TestProjects/HDRP_RuntimeTests && ./utr --artifacts_path=test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -203,10 +203,10 @@ HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build HDRP on Linux_Vulkan_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_HDRP_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build HDRP on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable

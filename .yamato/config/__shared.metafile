@@ -27,14 +27,21 @@ build_configs:
   - name: mono_apiNet4
     scripting_backend: Mono2x
     api_level: NET_4_6
+  - name: il2cpp
+    scripting_backend: IL2CPP
+    api_level: '' # uses the project default
+  - name: mono
+    scripting_backend: Mono2x
+    api_level: '' # uses the project default
+color_spaces:
+  - Linear
+  - gamma
 test_platforms:
   - type: Standalone
     utr_flags:
       - [all]: --suite=playmode
       - [all]: --timeout=1200
       - [all]: --reruncount=2
-      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="SetColorSpace<COLORSPACE>"
 
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -49,6 +56,8 @@ test_platforms:
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
         
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
+
+      - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND> 
      
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
@@ -82,12 +91,13 @@ test_platforms:
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan]: --timeout=2700
       - [iPhone]: --timeout=1800
-      
-      - [Linux_OpenGlCore]: --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxOpenGlCoreLinear"
-      - [Linux_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
-      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear"
-      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX12Linear"
-      - [Win_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+
+      ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
+      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11"
+      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
+      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3"
+      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal"
       
       ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
       - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11"
@@ -106,9 +116,12 @@ test_platforms:
       - [all]: --reruncount=2
       
       - [all]: --testproject=.
+      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
+      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
       
       - [all]: --artifacts_path=test-results
@@ -128,9 +141,12 @@ test_platforms:
       - [all]: --platform=editmode
       
       - [all]: --testproject=.
+      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
+      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
+      - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
       
       - [all]: --artifacts_path=test-results

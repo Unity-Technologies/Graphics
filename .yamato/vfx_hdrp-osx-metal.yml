@@ -7,8 +7,8 @@
 
 ---
 
-VFX_HDRP_OSX_Metal_Standalone_mono_apiNet2_Linear_trunk:
-    name: VFX_HDRP on OSX_Metal_Standalone_mono_apiNet2_Linear on version trunk
+VFX_HDRP_OSX_Metal_Standalone_mono_Linear_trunk:
+    name: VFX_HDRP on OSX_Metal_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -24,7 +24,7 @@ VFX_HDRP_OSX_Metal_Standalone_mono_apiNet2_Linear_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=2400"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=2400"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -34,8 +34,8 @@ VFX_HDRP_OSX_Metal_Standalone_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_OSX_Metal_playmode_mono_apiNet2_Linear_trunk:
-    name: VFX_HDRP on OSX_Metal_playmode_mono_apiNet2_Linear on version trunk
+VFX_HDRP_OSX_Metal_playmode_mono_Linear_trunk:
+    name: VFX_HDRP on OSX_Metal_playmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -61,8 +61,8 @@ VFX_HDRP_OSX_Metal_playmode_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_OSX_Metal_playmode_XR_mono_apiNet2_Linear_trunk:
-    name: VFX_HDRP on OSX_Metal_playmode_XR_mono_apiNet2_Linear on version trunk
+VFX_HDRP_OSX_Metal_playmode_XR_mono_Linear_trunk:
+    name: VFX_HDRP on OSX_Metal_playmode_XR_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -88,8 +88,8 @@ VFX_HDRP_OSX_Metal_playmode_XR_mono_apiNet2_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
-VFX_HDRP_OSX_Metal_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on OSX_Metal_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
+VFX_HDRP_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: VFX_HDRP on OSX_Metal_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -106,7 +106,7 @@ VFX_HDRP_OSX_Metal_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --extra-editor-arg="SetColorSpaceLinear" --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=2400"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/VisualEffectGraph_HDRP && ~/Graphics/TestProjects/VisualEffectGraph_HDRP/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results --editor-location=/Users/bokken/.Editor --platform=StandaloneOSX --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP --timeout=2400"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/VisualEffectGraph_HDRP/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/VisualEffectGraph_HDRP/test-results/ TestProjects/VisualEffectGraph_HDRP/test-results/
@@ -119,8 +119,8 @@ VFX_HDRP_OSX_Metal_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-VFX_HDRP_OSX_Metal_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on OSX_Metal_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+VFX_HDRP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
+    name: VFX_HDRP on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -150,8 +150,8 @@ VFX_HDRP_OSX_Metal_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-VFX_HDRP_OSX_Metal_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: VFX_HDRP on OSX_Metal_playmode_XR_mono_apiNet2_Linear on version CUSTOM-REVISION
+VFX_HDRP_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
+    name: VFX_HDRP on OSX_Metal_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
