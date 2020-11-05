@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
         {
             var propType = concreteValueType.ToPropertyType();
             var pp = new PreviewProperty(propType) { name = name };
-            if (propType == PropertyType.Vector1)
+            if (propType == PropertyType.Float)
                 pp.floatValue = value.x;
             else
                 pp.vector4Value = new Vector4(value.x, value.y, value.z, value.w);

@@ -1,5 +1,8 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Utility class for HDRP specific components.
+    /// </summary>
     public static class ComponentUtility
     {
         /// <summary> Check if the provided camera is compatible with High-Definition Render Pipeline </summary>

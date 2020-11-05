@@ -68,7 +68,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             ColorMask RGB
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -113,7 +112,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -147,7 +145,6 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------

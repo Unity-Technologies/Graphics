@@ -329,5 +329,4 @@ real3 LerpWhiteTo(real3 b, real t)
     real oneMinusT = 1.0 - t;
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
-
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

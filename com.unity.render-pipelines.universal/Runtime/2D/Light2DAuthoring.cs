@@ -22,6 +22,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Gizmos.DrawIcon(transform.position, s_IconsPath + s_LightIconFileNames[(int)m_LightType], true);
         }
 
+        internal void SetShapePath(Vector3[] path)
+        {
+            m_ShapePath = path;
+        }
+
         void Reset()
         {
             m_ShapePath = new Vector3[] { new Vector3(-0.5f, -0.5f), new Vector3(0.5f, -0.5f), new Vector3(0.5f, 0.5f), new Vector3(-0.5f, 0.5f) };
@@ -29,17 +34,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal List<Vector2> GetFalloffShape()
         {
-            var shape = new List<Vector2>();
-            var extrusionDir = LightUtility.GetFalloffShape(m_ShapePath);
-            for (var i = 0; i < m_ShapePath.Length; i++)
-            {
-                shape.Add(new Vector2
-                {
-                    x = m_ShapePath[i].x + this.shapeLightFalloffSize * extrusionDir[i].x,
-                    y = m_ShapePath[i].y + this.shapeLightFalloffSize * extrusionDir[i].y
-                });
-            }
-            return shape;
+            return LightUtility.GetOutlinePath(m_ShapePath, m_ShapeLightFalloffSize);
         }
 #endif
 

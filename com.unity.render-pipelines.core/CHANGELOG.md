@@ -4,10 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.1.0] - 2019-08-04
+## [11.0.0] - 2020-10-21
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.2.0] - 2020-10-19
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.1.0] - 2020-10-12
+
+### Added
+- Added context options "Move to Top", "Move to Bottom", "Expand All" and "Collapse All" for volume components.
+- Added the support of input system V2
+
+### Fixed
+- Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
+- Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+
+### Changed
+- LookDev menu item entry is now disabled if the current pipeline does not support it.
 
 ## [10.0.0] - 2019-06-10
 
@@ -53,6 +71,7 @@ The version number for this package has increased due to a version update of a r
 - Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center
 - Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
 - Fixed a null ref in the volume component list when there is no volume components in the project.
+- Fixed issue with volume manager trying to access a null volume.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
