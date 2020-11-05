@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a compiler error in BakedLit shader when using Hybrid Renderer.
 - Fixed XR camera fov can be changed through camera inspector.
 - Fixed LightProbes to have gamma correct when using gamma color space. [case 1268911](https://issuetracker.unity3d.com/issues/urp-has-no-gamma-correction-for-lightprobes)
+- Fixed an issue causing materials to be upgraded multiple times.
 
 ## [10.1.0] - 2020-10-12
 ### Added
