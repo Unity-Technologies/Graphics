@@ -20,7 +20,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float            shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;
         public float            shapeLightParametricRadius      => m_ShapeLightParametricRadius;
         public float            shapeLightFalloffSize           => m_ShapeLightFalloffSize;
-        public Vector2          shapeLightFalloffOffset         => m_ShapeLightFalloffOffset;
         public Vector3[]        shapePath                       => m_ShapePath;
     }
 }
