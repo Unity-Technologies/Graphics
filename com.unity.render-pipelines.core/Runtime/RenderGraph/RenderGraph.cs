@@ -338,7 +338,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void EndFrame()
         {
-            m_Resources.PurgeUnusedResources();
+            m_Resources.PurgeUnusedGraphicsResources();
             m_DebugParameters.logFrameInformation = false;
             m_DebugParameters.logResources = false;
         }
@@ -728,7 +728,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         info.refCount++;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        passInfo.debugResourceReads[type].Add(m_Resources.GetResourceName(resource));
+                        passInfo.debugResourceReads[type].Add(m_Resources.GetRenderGraphResourceName(resource));
 #endif
                     }
 
@@ -740,11 +740,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         passInfo.refCount++;
 
                         // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
-                        if (m_Resources.IsResourceImported(resource))
+                        if (m_Resources.IsRenderGraphResourceImported(resource))
                             passInfo.hasSideEffect = true;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        passInfo.debugResourceWrites[type].Add(m_Resources.GetResourceName(resource));
+                        passInfo.debugResourceWrites[type].Add(m_Resources.GetRenderGraphResourceName(resource));
 #endif
                     }
 
@@ -1078,14 +1078,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var res in pass.resourceWriteLists[iType])
                 {
-                    if (!m_Resources.IsResourceCreated(res))
+                    if (!m_Resources.IsGraphicsResourceCreated(res))
                     {
                         passInfo.resourceCreateList[iType].Add(res);
                         m_ImmediateModeResourceList[iType].Add(res);
                     }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetResourceName(res));
+                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
 
@@ -1095,15 +1095,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     passInfo.resourceReleaseList[iType].Add(res);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetResourceName(res));
-                    passInfo.debugResourceReads[iType].Add(m_Resources.GetResourceName(res));
+                    passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
+                    passInfo.debugResourceReads[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
 
                 foreach (var res in pass.resourceReadLists[iType])
                 {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                    passInfo.debugResourceReads[iType].Add(m_Resources.GetResourceName(res));
+                    passInfo.debugResourceReads[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
             }
@@ -1381,8 +1381,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     ref var resourceInfo = ref m_CompiledResourcesInfos[type][i];
                     RenderGraphDebugData.ResourceDebugData newResource = new RenderGraphDebugData.ResourceDebugData();
-                    newResource.name = m_Resources.GetResourceName((RenderGraphResourceType)type, i);
-                    newResource.imported = m_Resources.IsResourceImported((RenderGraphResourceType)type, i);
+                    newResource.name = m_Resources.GetRenderGraphResourceName((RenderGraphResourceType)type, i);
+                    newResource.imported = m_Resources.IsRenderGraphResourceImported((RenderGraphResourceType)type, i);
                     newResource.creationPassIndex = -1;
                     newResource.releasePassIndex = -1;
 
