@@ -35,7 +35,7 @@ class Project_StandaloneJob():
                     'rerun' : f'{editor["rerun_strategy"]}'
                 }])
             
-            if not (project["name"].lower() == 'universal' and platform["name"].lower() == 'win' and test_platform["name"].lower() == 'standalone') :
+            if not ('universalgraphicstest' in project_folder.lower() and platform["name"].lower() == 'win' and test_platform["name"].lower() == 'standalone') :
                 job.set_skip_checkout(True)
             
         return job
