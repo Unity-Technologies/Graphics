@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.VFX;
 
-[VFXInfo(category = "Spawn", experimental = true)]
+// DEPRECATED
 class GetSpawnCount : VFXOperator
 {
     public override string name { get { return "Get Spawn Count"; }  }
