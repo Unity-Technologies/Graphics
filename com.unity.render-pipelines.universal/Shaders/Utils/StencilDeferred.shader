@@ -229,7 +229,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #endif
         #endif
 
-
         #if defined(_LIT)
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
             color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
@@ -392,7 +391,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 3 - Directional Light (Lit)
+        // 3 - Deferred Directional Light (Lit)
         Pass
         {
             Name "Deferred Directional Light (Lit)"
@@ -437,7 +436,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 4 - Directional Light (SimpleLit)
+        // 4 - Deferred Directional Light (SimpleLit)
         Pass
         {
             Name "Deferred Directional Light (SimpleLit)"
@@ -507,6 +506,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
 
         // 6 - Clear stencil partial
+        // This pass clears stencil between camera stacks rendering.
+        // This is because deferred renderer encodes material properties in the 4 highest bits of the stencil buffer,
+        // but we don't want to keep this information between camera stacks.
         Pass
         {
             Name "ClearStencilPartial"
@@ -537,6 +539,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
 
         // 7 - SSAO Only
+        // This pass only runs when there is no fullscreen deferred light rendered (no directional light). It will adjust baked lighting with realtime occlusion.
+        // This pass is also completely discarded from vertex shader when SSAO renderer feature is not enabled.
         Pass
         {
             Name "SSAO Only"
