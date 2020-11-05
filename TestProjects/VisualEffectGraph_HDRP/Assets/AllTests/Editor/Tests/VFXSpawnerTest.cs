@@ -916,6 +916,103 @@ namespace UnityEditor.VFX.Test
             return success;
         }
 
+        public static IEnumerable<IEnumerable<T>> PermutationHelper<T>(IEnumerable<T> set, IEnumerable<T> subset = null)
+        {
+            if (subset == null)
+                subset = Enumerable.Empty<T>();
+
+            if (!set.Any())
+                yield return subset;
+
+            for (var i = 0; i < set.Count(); i++)
+            {
+                var newSubset = set.Take(i).Concat(set.Skip(i + 1));
+                foreach (var permutation in PermutationHelper(newSubset, subset.Concat(set.Skip(i).Take(1))))
+                {
+                    yield return permutation;
+                }
+            }
+        }
+
+        public static string[] k_CreateSpawner_Chaining_And_Check_Expected_Ordering = PermutationHelper(new[] { "A", "B", "C", "D" }).Select(o => o.Aggregate((a, b) => a + b)).ToArray();
+        public static bool[] k_CreateSpawner_Chaining_And_Check_Expected_Plug_C_First = { true, false }; 
+        [UnityTest]
+        public IEnumerator CreateSpawner_Chaining_And_Check_Expected_Ordering([ValueSource("k_CreateSpawner_Chaining_And_Check_Expected_Ordering")] string ordering, [ValueSource("k_CreateSpawner_Chaining_And_Check_Expected_Plug_C_First")] bool plugCFirst)
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            // A -> B -> C  -> Init
+            //  \-> D      /
+            var correctSequences = new string[] { "ABCD", "ABDC" };
+
+            foreach (var c in ordering)
+            {
+                var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+                var blockSpawnerConstant = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+                blockSpawnerConstant.GetInputSlot(0).value = 0.1f;
+                spawnerContext.label = c.ToString();
+                spawnerContext.AddChild(blockSpawnerConstant);
+                graph.AddChild(spawnerContext);
+            }
+
+            var initialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var setPosition = ScriptableObject.CreateInstance<SetAttribute>();
+            setPosition.SetSettingValue("attribute", "position");
+            initialize.AddChild(setPosition);
+            var output = ScriptableObject.CreateInstance<VFXPointOutput>();
+            graph.AddChild(initialize);
+            graph.AddChild(output);
+            output.LinkFrom(initialize);
+
+            var spawn_a = graph.children.OfType<VFXBasicSpawner>().First(o => o.label == "A");
+            var spawn_b = graph.children.OfType<VFXBasicSpawner>().First(o => o.label == "B");
+            var spawn_c = graph.children.OfType<VFXBasicSpawner>().First(o => o.label == "C");
+            var spawn_d = graph.children.OfType<VFXBasicSpawner>().First(o => o.label == "D");
+
+            if (plugCFirst)
+            {
+                initialize.LinkFrom(spawn_c);
+                initialize.LinkFrom(spawn_d);
+            }
+            else
+            {
+                initialize.LinkFrom(spawn_d);
+                initialize.LinkFrom(spawn_c);
+            }
+
+            spawn_d.LinkFrom(spawn_a);
+            spawn_c.LinkFrom(spawn_b);
+            spawn_b.LinkFrom(spawn_a);
+
+            Assert.AreEqual(2, spawn_a.outputFlowSlot[0].link.Count);
+            Assert.AreEqual(1, spawn_b.outputFlowSlot[0].link.Count);
+            Assert.AreEqual(1, spawn_c.outputFlowSlot[0].link.Count);
+            Assert.AreEqual(1, spawn_d.outputFlowSlot[0].link.Count);
+            graph.SetCompilationMode(VFXCompilationMode.Runtime);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var gameObj = new GameObject("CreateSpawner_Chaining_And_Check_Expected_Ordering");
+            var vfxComponent = gameObj.AddComponent<VisualEffect>();
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
+
+            var particleSystem = new List<string>();
+            vfxComponent.GetParticleSystemNames(particleSystem);
+            Assert.AreEqual(1, particleSystem.Count);
+
+            var spawnSystem = new List<string>();
+            vfxComponent.GetSpawnSystemNames(spawnSystem);
+            Assert.AreEqual(4, spawnSystem.Count);
+            Assert.Contains("A", spawnSystem);
+            Assert.Contains("B", spawnSystem);
+            Assert.Contains("C", spawnSystem);
+            Assert.Contains("D", spawnSystem);
+
+            var actualSequence = spawnSystem.Aggregate((a, b) => a + b);
+            Assert.Contains(actualSequence, correctSequences);
+            yield return null;
+
+            GameObject.DestroyImmediate(gameObj);
+        }
+
         static readonly System.Reflection.MethodInfo[] k_SpawnerStateGetter = typeof(VFXSpawnerState).GetMethods().Where(o => o.Name.StartsWith("get_") && o.Name != "get_vfxEventAttribute").ToArray();
         static string DebugSpawnerStateAggregate(IEnumerable<string> all)
         {
