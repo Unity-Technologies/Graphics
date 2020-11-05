@@ -71,6 +71,14 @@ URP 10.1 supports the Shadowmask Lighting Mode. Shadowmask Lighting Mode combine
   </tr>
 </tbody></table>
 
+### Parallax mapping and Height Map property
+
+URP implements the parallax mapping technique which uses the [height map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterHeightMap.html) to achieve surface-level occlusion effect. The **Height Map** property is available in the Lit shader.
+
+The following illustration shows how a mesh looks with only the Base Map (left), Base Map and Normal Map (middle), and Base, Normal, and Height Map (right).
+
+![Mesh with only the Base Map (left), Base Map and Normal Map (middle), and Base, Normal, and Height Map (right).](../Images/whats-new/urp-10/parallax-height.png)
+
 ## Improvements
 
 This section contains the overview of the major improvements in this release.
