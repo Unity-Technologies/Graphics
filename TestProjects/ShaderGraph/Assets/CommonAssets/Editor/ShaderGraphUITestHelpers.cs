@@ -95,7 +95,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-
         public static void SendMouseEventToVisualElement(
             VisualElement elementToNotify,
             EventType eventType,

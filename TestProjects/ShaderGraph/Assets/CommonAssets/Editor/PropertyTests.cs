@@ -61,6 +61,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_GraphEditorView = m_Window.graphEditorView;
         }
 
+        [OneTimeTearDown]
+        public void Cleanup()
+        {
+            // Don't spawn ask-to-save dialog
+            m_Window.graphObject = null;
+            m_Window.Close();
+        }
+
         [Test]
         public void SliderPropertyRangeMinLesserThanMax()
         {
