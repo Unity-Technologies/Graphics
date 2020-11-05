@@ -25,7 +25,6 @@ URP_PostPro_Win_Vulkan_Standalone_2020.1:
          rerun: on-new-revision
       -  path: .yamato/urp_postpro-win-vulkan.yml#Build_URP_PostPro_Win_Vulkan_Player_2020.1
          rerun: on-new-revision
-    skip_checkout: true
 Build_URP_PostPro_Win_Vulkan_Player_2020.1:
     name: Build URP_PostPro on Win_Vulkan_Player on version 2020.1
     agent:
@@ -135,7 +134,6 @@ URP_PostPro_Win_Vulkan_Standalone_fast-2020.1:
          rerun: on-new-revision
       -  path: .yamato/urp_postpro-win-vulkan.yml#Build_URP_PostPro_Win_Vulkan_Player_fast-2020.1
          rerun: on-new-revision
-    skip_checkout: true
 Build_URP_PostPro_Win_Vulkan_Player_fast-2020.1:
     name: Build URP_PostPro on Win_Vulkan_Player on version fast-2020.1
     agent:
@@ -246,7 +244,6 @@ URP_PostPro_Win_Vulkan_Standalone_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/urp_postpro-win-vulkan.yml#Build_URP_PostPro_Win_Vulkan_Player_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
 Build_URP_PostPro_Win_Vulkan_Player_CUSTOM-REVISION:
     name: Build URP_PostPro on Win_Vulkan_Player on version CUSTOM-REVISION
     agent:

@@ -37,7 +37,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor):
     utr_args.append(f'--timeout={get_timeout(test_platform, "Win")}')
 
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
-    if project_folder.lower().startswith('universalgraphicstest'):
+    if 'universalgraphicstest' in project_folder.lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
     base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
     
