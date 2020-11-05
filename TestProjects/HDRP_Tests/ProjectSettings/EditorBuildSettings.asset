@@ -285,6 +285,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2211_Probes_Specular.unity
     guid: e67192984ee3d6b44a17da02cda1f17a
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2212_ReflectionProbes_Skies.unity
+    guid: c193bc6b9e5a3764a92da565cdf8d74d
+    enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2222_ReflectionProbeDistanceBased.unity
+    guid: edecbcde87e543140b1f4e2ffe510a3c	
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2220_SmoothPlanarReflection.unity
     guid: d4a7e5df537f6b0468c09ce661d8791d
   - enabled: 1

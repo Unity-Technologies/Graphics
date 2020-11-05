@@ -24,6 +24,9 @@ The version number for this package has increased due to a version update of a r
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
 
+### Changed
+- LookDev menu item entry is now disabled if the current pipeline does not support it.
+
 ## [10.0.0] - 2019-06-10
 
 ### Added
