@@ -158,6 +158,8 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, _DoubleSidedConstants, inputData);
 
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
 
     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);

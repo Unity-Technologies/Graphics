@@ -71,7 +71,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 }
             }
-                
         }
 
         void OnGUI()
@@ -108,10 +107,14 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 compositor.SetupCompositionMaterial();
                 CompositionUtils.SetDefaultCamera(compositor);
                 CompositionUtils.SetDefaultLayers(compositor);
-            }
 
-            if (compositor)
+                Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
+                Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
+            }
+            else if (compositor)
             {
+                string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
+                Undo.RecordObject(compositor, message);
                 compositor.enabled = enableCompositor;
             }
             else
@@ -156,6 +159,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (m_Editor == null || m_Editor.target == null || m_Editor.isDirty || m_RequiresRedraw)
             {
+                if (m_Editor != null)
+                {
+                    // Remember the previously selected layer when recreating the Editor
+                    s_SelectionIndex = m_Editor.selectionIndex;
+                }
                 m_Editor = (CompositionManagerEditor)Editor.CreateEditor(compositor);
                 m_RequiresRedraw = false;
                 m_Editor.defaultSelection = s_SelectionIndex;
@@ -206,6 +214,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             s_SelectionIndex = m_Editor.selectionIndex;
 
             CompositionManager compositor = CompositionManager.GetInstance();
+            // The compositor might be null even if the CompositionManagerEditor is not (in case the user switches from a scene with a compositor to a scene without one)
+            if (compositor)
             {
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(compositor);

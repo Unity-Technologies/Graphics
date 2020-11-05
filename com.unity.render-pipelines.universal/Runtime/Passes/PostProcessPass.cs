@@ -131,6 +131,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
+            m_Descriptor.useMipMap = false;
+            m_Descriptor.autoGenerateMips = false;
             m_Source = source;
             m_Destination = destination;
             m_Depth = depth;
@@ -406,7 +408,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // Setup other effects constants
-                SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
+#if ENABLE_VR && ENABLE_XR_MODULE
+                // Software lens distortion is not supported in XR because it is not compatible with physical HMD lenses.
+                // XR handles HMD lens distortion internally in the final composition pass.
+                if (!cameraData.xr.enabled)
+#endif
+                {
+                    SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
+                }
                 SetupChromaticAberration(m_Materials.uber);
                 SetupVignette(m_Materials.uber);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);

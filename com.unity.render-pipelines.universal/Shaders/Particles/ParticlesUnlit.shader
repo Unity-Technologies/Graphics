@@ -112,6 +112,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Cull Off
 
             HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
             #pragma target 2.0
 
             // -------------------------------------
@@ -145,6 +146,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             Cull Off
 
             HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
             #pragma target 2.0
 
             // -------------------------------------

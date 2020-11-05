@@ -463,7 +463,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.ShadowCasterMeta,
+                renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.Default,
                 keywords = LitKeywords.Meta,
                 includes = LitIncludes.Meta,

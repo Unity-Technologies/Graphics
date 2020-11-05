@@ -259,6 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightVolumeType          lightVolumeType;
         public float                    distanceToCamera;
         public float                    lightDistanceFade;
+        public float                    volumetricDistanceFade;
         public bool                     isBakedShadowMask;
     }
 
@@ -1548,7 +1549,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.lightDimmer           = processedData.lightDistanceFade * (additionalLightData.lightDimmer);
             lightData.diffuseDimmer         = processedData.lightDistanceFade * (additionalLightData.affectDiffuse  ? additionalLightData.lightDimmer : 0);
             lightData.specularDimmer        = processedData.lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
-            lightData.volumetricLightDimmer = processedData.lightDistanceFade * (additionalLightData.volumetricDimmer);
+            lightData.volumetricLightDimmer = Mathf.Min(processedData.volumetricDistanceFade, processedData.lightDistanceFade) * (additionalLightData.volumetricDimmer);
 
             lightData.cookieMode = CookieMode.None;
             lightData.shadowIndex = -1;
@@ -1806,7 +1807,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
-                bound.radius   = extents.magnitude;
+                bound.radius   = extents.x;
                 bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
@@ -1822,11 +1823,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 extents    = 0.5f * dimensions;
                 Vector3 centerVS   = positionVS + extents.z * zAxisVS;
 
+                float d = range + 0.5f * Mathf.Sqrt(lightDimensions.x * lightDimensions.x + lightDimensions.y * lightDimensions.y);
+
                 bound.center   = centerVS;
                 bound.boxAxisX = extents.x * xAxisVS;
                 bound.boxAxisY = extents.y * yAxisVS;
                 bound.boxAxisZ = extents.z * zAxisVS;
-                bound.radius   = extents.magnitude;
+                bound.radius   = Mathf.Sqrt(d * d + (0.5f * range) * (0.5f * range));
                 bound.scaleXY  = 1.0f;
 
                 lightVolumeData.lightPos   = centerVS;
@@ -2278,6 +2281,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     ref processedData.lightCategory, ref processedData.gpuLightType, ref processedData.lightVolumeType);
 
             processedData.lightDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
+            processedData.volumetricDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.volumetricFadeDistance);
             processedData.isBakedShadowMask = IsBakedShadowMaskLight(lightComponent);
         }
 
@@ -2317,8 +2321,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Then we can reject lights based on processed data.
                 var additionalData = processedData.additionalLightData;
-                var lightType = processedData.lightType;
 
+                // If the camera is in ray tracing mode and the light is disabled in ray tracing mode, we skip this light.
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && !additionalData.includeForRayTracing)
+                    continue;
+
+                var lightType = processedData.lightType;
                 if (ShaderConfig.s_AreaLights == 0 && (lightType == HDLightType.Area && (additionalData.areaLightShape == AreaLightShape.Rectangle || additionalData.areaLightShape == AreaLightShape.Tube)))
                     continue;
 
@@ -2355,7 +2363,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Reserve shadow map resolutions and check if light needs to render shadows
                 if (additionalData.WillRenderShadowMap())
                 {
-                    additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light.screenRect, lightType);
+                    additionalData.ReserveShadowMap(hdCamera.camera, m_ShadowManager, hdShadowSettings, m_ShadowInitParameters, light, lightType);
                 }
 
                 // Reserve the cookie resolution in the 2D atlas
@@ -3277,7 +3285,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < resources.gBuffer.Length; ++i)
                         cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], resources.gBuffer[i]);
 
-                    if(resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
+                    if (resources.stencilTexture.rt == null ||
+                        resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
                     {
                         cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
                     }

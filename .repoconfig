@@ -1,0 +1,33 @@
+[version]
+repoconfig=5
+
+[format]
+path-ignore=<<EOT
+# rooted folder paths
+(^|/)(
+ .github
+|.yamato
+|artifacts
+|imgs
+|LocalTestProjects
+|TestProjects
+|Tools
+|com\.unity\.testing\..*
+)(/|$)
+|
+# rooted file paths
+^(
+ build\.py
+|.*\.md
+)$
+EOT
+
+[verify]
+path=<<EOT
+# general rule
+^[:a-z0-9./_-]+$        # technically ':' not allowed, but let the global rule in format.ini do the more thorough test for c: style abs paths
+# exceptions
+|^com\.unity\.[^\/]*\/\w+~\/                                # allows editor excluded folders, like Documentation~, for core package
+|^com\.unity\.[^\/]*\/Packages\/com\.unity\.[^\/]*\/\w+~\/  # as above but for embedded packages
+|^com\.unity\.[^\/]*\/[^@]+@\d+x\.                          # industry standard for icons with differnet resolution
+EOT
