@@ -3,6 +3,10 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
 pack_all_project:
     name: Pack all [project context]
     agent:
@@ -265,7 +269,7 @@ test_all_project_windows_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor --wait --published-only
       -  upm-ci project test -u .\.Editor --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
@@ -282,7 +286,7 @@ test_all_project_macos_trunk:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor --wait --published-only
       -  upm-ci project test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --project-path TestProjects/SRP_SmokeTest --type vetting-tests
     artifacts:
         logs:
