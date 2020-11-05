@@ -312,7 +312,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle                        m_IntermediateAfterPostProcessBuffer;
         RTHandle                        m_IntermediateAfterPostProcessBufferFloat;
         RTHandle                        m_HighPrecisionDebugBufferFloat;
-        RTHandle                        m_OutlineMaskBuffer;
 
         // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
         bool                            m_FullScreenDebugPushed;
@@ -3171,9 +3170,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     renderRequests[0].isValid &&
                     renderRequests[0].mode == Camera.RenderRequestMode.OutlineMask)
                 {
-                    if (m_OutlineMaskBuffer == null)
-                        m_OutlineMaskBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "OutlineMask");
-
                     var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
                     if (additionalCameraData == null)
                     {
