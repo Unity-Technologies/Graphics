@@ -201,9 +201,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Due to various reasons, MSAA and ray tracing are not compatible, if ray tracing is enabled on the asset. MSAA can not be enabled on the frame settings.
             bool emissiveAsForwardCanBeEnabled = ((hdrpAssetSupportDeferred && (frameSettingsOverrideToDeferred || defaultDeferredUsed)) || hdrpAssetIsDeferred);
-            area.AmmendInfo(FrameSettingsField.EmissiveAsForward,
+            area.AmmendInfo(FrameSettingsField.LitEmissiveAsForward,
                 overrideable: () => emissiveAsForwardCanBeEnabled,
-                overridedDefaultValue: emissiveAsForwardCanBeEnabled && defaultFrameSettings.IsEnabled(FrameSettingsField.EmissiveAsForward),
+                overridedDefaultValue: emissiveAsForwardCanBeEnabled && defaultFrameSettings.IsEnabled(FrameSettingsField.LitEmissiveAsForward),
                 customOverrideable: () =>
                 {
                     switch (hdrpSettings.supportedLitShaderMode)

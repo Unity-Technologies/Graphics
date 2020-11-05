@@ -953,6 +953,7 @@ Shader "HDRP/LayeredLit"
 
             ENDHLSL
         }
+
         Pass
         {
             Name "RayTracingPrepass"
