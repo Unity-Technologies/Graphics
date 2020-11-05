@@ -453,7 +453,7 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            var rpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rpAsset = UniversalRenderPipeline.asset;
             if(rpAsset == null)
 			{
                 base.OnInspectorGUI();
