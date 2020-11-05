@@ -14,7 +14,7 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    
+
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
     #if defined(VARYINGS_NEED_NORMAL_WS)
@@ -105,8 +105,11 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    half fogFactor = 0;
+#if !defined(_FOG_FRAGMENT)
+        fogFactor = ComputeFogFactor(output.positionCS.z);
+#endif
     half3 vertexLight = VertexLighting(positionWS, normalWS);
-    half fogFactor = ComputeFogFactor(output.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 #endif
 

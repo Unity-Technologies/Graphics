@@ -382,6 +382,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                defines  = CoreDefines.UseFragmentFog,
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
             };
@@ -410,6 +411,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
+                defines  = CoreDefines.UseFragmentFog,
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
             };
@@ -438,6 +440,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.DOTSGBuffer,
+                defines  = CoreDefines.UseFragmentFog,
                 keywords = LitKeywords.GBuffer,
                 includes = LitIncludes.GBuffer,
             };
@@ -465,6 +468,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.Default,
+                defines  = CoreDefines.UseFragmentFog,
                 keywords = LitKeywords.Meta,
                 includes = LitIncludes.Meta,
             };
@@ -635,6 +639,7 @@ static class LitDefines
 
     public static readonly DefineCollection ComplexLit = new DefineCollection()
     {
+        {CoreKeywordDescriptors.UseFragmentFog, 1},
         {ClearCoat, 1},
     };
 }
