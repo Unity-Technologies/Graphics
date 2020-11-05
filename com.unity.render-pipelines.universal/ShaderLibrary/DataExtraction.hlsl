@@ -16,6 +16,7 @@ int UNITY_DataExtraction_Space;
 #define RENDER_SMOOTHNESS_R            11
 #define RENDER_OCCLUSION_R             12
 #define RENDER_DIFFUSE_COLOR_RGBA      13
+#define RENDER_OUTLINE_MASK            14
 
 struct ExtractionInputs
 {
@@ -83,6 +84,8 @@ float4 OutputExtraction(ExtractionInputs inputs)
        return float4(inputs.occlusion.xxx, 1.0);
     if (UNITY_DataExtraction_Mode == RENDER_DIFFUSE_COLOR_RGBA)
        return float4(diffuse, inputs.alpha);
+    if (UNITY_DataExtraction_Mode == RENDER_OUTLINE_MASK)
+        return float4(0, 1, 1, 1);
 
     return 0;
 }
