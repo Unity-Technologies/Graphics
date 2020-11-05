@@ -20,6 +20,7 @@ The version number for this package has increased due to a version update of a r
 - New particle strip attribute in Initialize: spawnIndexInStrip
 - Added Get Strip Index subgraph utility operator in Additional Samples
 - Added Encompass (Point) subgraph utility operator in Additional Samples
+- Provide explicit access to spawnCount in graph
 
 ### Fixed
 - "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
@@ -57,6 +58,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed Random Vector subgraph utility operator in Additional Samples
 - Fixed Set Strip Progress Attribute utility block in Additional Samples
 - Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
+- Fix unexpected Spawn context ordering
 
 ## [10.1.0] - 2020-10-12
 ### Added
