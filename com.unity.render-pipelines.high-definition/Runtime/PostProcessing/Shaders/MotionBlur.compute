@@ -305,7 +305,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             colorAccumulation.rgb = accumulation.rgb + (1.0 - accumulation.w) * centralColor.rgb;
 #if ENABLE_ALPHA
-            colorAccumulation.w = alphaAccumulation + (1.0 - accumulation.w) * centralColor.w;
+            colorAccumulation.w = alphaAccumulation * invSampleCount + (1.0 - accumulation.w) * centralColor.w;
 #endif
 
 #if DEBUG_VIEW == WEIGHT_VIS

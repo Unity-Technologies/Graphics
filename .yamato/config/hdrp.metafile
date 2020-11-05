@@ -6,80 +6,79 @@ test_platforms:
   - type: playmode
   - type: playmode
     name: playmode_XR
-    extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-tests" 
   - type: playmode
     name: playmode_NonRenderGraph
-    extra_utr_flags:
-      - --extra-editor-arg="-non-rendergraph-tests"
+    utr_flags:
+      - [all]: --extra-editor-arg="-non-rendergraph-tests"
   - type: editmode
   - type: Standalone
-    timeout:
-      OSX_Metal: 2400
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
 platforms:
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
-    overrides:
-      agents_project:
-        # default: package_ci_mac
-        default:
-          type: Unity::VM::GPU
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.xlarge
-          model: rtx2080
-        editmode:
-          type: Unity::VM
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.xlarge
-        standalone:
-          type: Unity::VM::GPU
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.xlarge
-          model: rtx2080
-        standalone_build:
-          type: Unity::VM
-          image: graphics-foundation/win10-dxr:stable
-          flavor: b1.xlarge
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+      standalone:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
   - name: OSX
     apis:
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis:
-      - Vulkan
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-#- name: il2cpp_apiNet4
-#  scripting_backend: IL2CPP
-#  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - editmode
         - playmode
         - playmode_XR
-        # - playmode_NonRenderGraph
+        - playmode_NonRenderGraph
         - Standalone
     - platform: Win
       api: DX12
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -87,7 +86,7 @@ all:
         - Standalone
     - platform: Win
       api: Vulkan
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
@@ -95,14 +94,14 @@ all:
         - Standalone
     - platform: OSX
       api: Metal
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         # - Standalone
         - playmode
     - platform: Linux
       api: Vulkan
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - editmode
@@ -111,11 +110,11 @@ all:
     - project: HDRP_DXR
       platform: Win
       api: DX12
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
         - playmode_XR
-        # - playmode_NonRenderGraph
+        - playmode_NonRenderGraph
     - project: HDRP_Hybrid
       all: true
