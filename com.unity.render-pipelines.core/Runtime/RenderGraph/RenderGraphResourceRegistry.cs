@@ -568,7 +568,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (resource.resource == null)
                 throw new InvalidOperationException($"Tried to release a resource ({resource.GetName()}) that was never created. Check that there is at least one pass writing to it first.");
 
-            resource.LogRelease(m_Logger);
+            if (m_RenderGraphDebug.logFrameInformation)
+            {
+                resource.LogRelease(m_Logger);
+            }
+
             pool.ReleaseResource(resource.cachedHash, resource.resource, m_CurrentFrameIndex);
             pool.UnregisterFrameAllocation(resource.cachedHash, resource.resource);
             resource.cachedHash = -1;
