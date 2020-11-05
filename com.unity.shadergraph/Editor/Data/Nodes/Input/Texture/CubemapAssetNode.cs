@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
     class MinimalCubemapAssetNode : IHasDependencies
     {
         [SerializeField]
-        private SerializableCubemap m_Cubemap;
+        private SerializableCubemap m_Cubemap = null;
 
         public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {
