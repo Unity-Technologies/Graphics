@@ -2777,7 +2777,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ProbeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
 
                 bool probeVolumeNormalBiasEnabled = false;
-                if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
+                if (ShaderConfig.s_EnableProbeVolumes == 1)
                 {
                     var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
                     probeVolumeNormalBiasEnabled = !(settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
@@ -2814,7 +2814,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount;
-                if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
+                if (ShaderConfig.s_EnableProbeVolumes == 1)
                 {
                     m_TotalLightCount += m_ProbeVolumeCount;
                 }
@@ -3356,7 +3356,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
             cb._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
 
-            int probeVolumeIndexShift = (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
+            int probeVolumeIndexShift = (ShaderConfig.s_EnableProbeVolumes == 1)
                     ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
                     : 0;
             cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;

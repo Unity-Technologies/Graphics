@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLighting.cs.hlsl"
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
+#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
     StructuredBuffer<OrientedBBox> _ProbeVolumeBounds;
     StructuredBuffer<ProbeVolumeEngineData> _ProbeVolumeDatas;
 
