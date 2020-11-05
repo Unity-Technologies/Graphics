@@ -207,6 +207,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 1
+  quality:
+    m_OverrideState: 1
+    m_Value: 3
   enabled:
     m_OverrideState: 1
     m_Value: 1
@@ -283,7 +286,7 @@ MonoBehaviour:
     m_Value: 0.75
     min: 0
     max: 1
-  fogControlMode:
+  m_FogControlMode:
     m_OverrideState: 1
     m_Value: 1
   screenResolutionPercentage:
@@ -296,12 +299,12 @@ MonoBehaviour:
     m_Value: 128
     min: 1
     max: 1024
-  volumetricFogBudget:
+  m_VolumetricFogBudget:
     m_OverrideState: 0
     m_Value: 0.25
     min: 0
     max: 1
-  resolutionDepthRatio:
+  m_ResolutionDepthRatio:
     m_OverrideState: 0
     m_Value: 0.5
     min: 0

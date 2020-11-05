@@ -285,10 +285,10 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            if (VFXViewModicationProcessor.assetMoved)
+            if (VFXViewModificationProcessor.assetMoved)
             {
                 graphView.AssetMoved();
-                VFXViewModicationProcessor.assetMoved = false;
+                VFXViewModificationProcessor.assetMoved = false;
             }
             titleContent.text = filename;
 

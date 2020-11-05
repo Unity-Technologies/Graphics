@@ -405,10 +405,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.PropertyScope(horizontal.rect, focalLengthContent, cam.focalLength))
                 using (var checkScope = new EditorGUI.ChangeCheckScope())
                 {
+                    bool isPhysical = p.projectionMatrixMode.intValue == (int)ProjectionMatrixMode.PhysicalPropertiesBased;
+                    // We need to update the focal length if the camera is physical and the FoV has changed.
+                    bool focalLengthIsDirty = (s_FovChanged && isPhysical);
+
                     float sensorLength = cam.fovAxisMode.intValue == 0 ? cam.sensorSize.vector2Value.y : cam.sensorSize.vector2Value.x;
-                    float focalLengthVal = s_FovChanged ? Camera.FieldOfViewToFocalLength(s_FovLastValue, sensorLength) : cam.focalLength.floatValue;
+                    float focalLengthVal = focalLengthIsDirty ? Camera.FieldOfViewToFocalLength(s_FovLastValue, sensorLength) : cam.focalLength.floatValue;
                     focalLengthVal = EditorGUILayout.FloatField(focalLengthContent, focalLengthVal);
-                    if (checkScope.changed || s_FovChanged)
+                    if (checkScope.changed || focalLengthIsDirty)
                         cam.focalLength.floatValue = focalLengthVal;
                 }
 

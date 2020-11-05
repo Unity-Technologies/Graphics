@@ -19,8 +19,20 @@ using PositionType = UnityEngine.UIElements.Position;
 
 namespace UnityEditor.VFX.UI
 {
-
+    /// <summary>
+    /// Unexpected public API VFXViewModicationProcessor : Use a custom UnityEditor.AssetModificationProcessor.
+    /// </summary>
+    [Obsolete("Unexpected public API VFXViewModicationProcessor : Use a custom UnityEditor.AssetModificationProcessor")]
     public class VFXViewModicationProcessor : UnityEditor.AssetModificationProcessor
+    {
+        /// <summary>
+        /// Initialized to false by default.
+        /// Obsolete API : Use a custom UnityEditor.AssetModificationProcessor and implement OnWillMoveAsset if you relied on this behavior.
+        /// </summary>
+        public static bool assetMoved = false;
+    }
+
+    class VFXViewModificationProcessor : UnityEditor.AssetModificationProcessor
     {
         public static bool assetMoved = false;
 
@@ -376,7 +388,7 @@ namespace UnityEditor.VFX.UI
             string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
             if (!string.IsNullOrEmpty(filePath))
             {
-                VisualEffectAssetEditorUtility.CreateNewAsset(filePath);
+                VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
 
                 VFXViewWindow.currentWindow.LoadAsset(AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath), null);
             }
@@ -568,7 +580,10 @@ namespace UnityEditor.VFX.UI
                 return DropdownMenuAction.Status.Normal;
         }
 
+        [NonSerialized]
         Dictionary<VFXModel, List<IconBadge>> m_InvalidateBadges = new Dictionary<VFXModel, List<IconBadge>>();
+
+        [NonSerialized]
         List<IconBadge> m_CompileBadges = new List<IconBadge>();
 
         private void RegisterError(VFXModel model, VFXErrorOrigin errorOrigin,string error,VFXErrorType type, string description)
@@ -595,12 +610,20 @@ namespace UnityEditor.VFX.UI
             }
             else if (model is IVFXSlotContainer)
             {
-                var context = model;
-                var nodeController = controller.GetNodeController(context, 0);
+                var node = model;
+                var nodeController = controller.GetNodeController(node, 0);
                 if (nodeController == null)
                     return;
                 target = GetNodeByController(nodeController);
-                targetParent = target.parent;
+                if (target == null)
+                    return;
+                if (nodeController is VFXBlockController blkController)
+                {
+                    VFXNodeUI targetContext = GetNodeByController(blkController.contextController);
+                    if (targetContext == null)
+                        return;
+                    targetParent = targetContext.parent;
+                }
                 target = (target as VFXNodeUI).titleContainer;
                 alignement = SpriteAlignment.LeftCenter;
             }
@@ -668,7 +691,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if (model != null)
+                if (!object.ReferenceEquals(model,null))
                 {
                     List<IconBadge> badges;
                     if (m_InvalidateBadges.TryGetValue(model, out badges))
@@ -682,17 +705,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
                 else
-                {
-                    foreach( var badges in m_InvalidateBadges.Values)
-                    {
-                        foreach (var badge in badges)
-                        {
-                            badge.Detach();
-                            badge.RemoveFromHierarchy();
-                        }
-                    }
-                    m_InvalidateBadges.Clear();
-                }
+                    throw new InvalidOperationException("Can't clear in Invalidate mode without a model");
 
             }
         }
@@ -1079,6 +1092,7 @@ namespace UnityEditor.VFX.UI
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
                     }
+                    newElement.controller.model.RefreshErrors(controller.graph);
                 }
                 Profiler.EndSample();
 
@@ -1402,13 +1416,19 @@ namespace UnityEditor.VFX.UI
             {
                 if (child is VFXSubgraphOperator ope)
                 {
-                    var graph = ope.subgraph.GetResource().GetOrCreateGraph();
-                    GetGraphsRecursively(graph, graphs);
+                    if (ope.subgraph != null)
+                    {
+                        var graph = ope.subgraph.GetResource().GetOrCreateGraph();
+                        GetGraphsRecursively(graph, graphs);
+                    }
                 }
                 else if (child is VFXSubgraphContext subCtx)
                 {
-                    var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
-                    GetGraphsRecursively(graph, graphs);
+                    if (subCtx.subgraph != null)
+                    {
+                        var graph = subCtx.subgraph.GetResource().GetOrCreateGraph();
+                        GetGraphsRecursively(graph, graphs);
+                    }
                 }
                 else if( child is VFXContext ctx)
                 {
@@ -1416,8 +1436,11 @@ namespace UnityEditor.VFX.UI
                     {
                         if( block is VFXSubgraphBlock subBlock)
                         {
-                            var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
-                            GetGraphsRecursively(graph, graphs);
+                            if( subBlock.subgraph!= null)
+                            {
+                                var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
+                                GetGraphsRecursively(graph, graphs);
+                            }
                         }
                     }
                 }

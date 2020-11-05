@@ -3,8 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
-    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_apiNet2_Linear on version trunk
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
+Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
+    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -14,17 +18,17 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/UniversalHybridTest && ./utr --artifacts_path=test-results --compilation-errors-as-warnings --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
-    name: Build Universal_Hybrid on Linux_Vulkan_mono_apiNet2_Linear_Player on version trunk
+Build_Universal_Hybrid_Linux_Vulkan_Player_mono_Linear_trunk:
+    name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -36,8 +40,8 @@ Build_Universal_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -46,8 +50,8 @@ Build_Universal_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk:
-    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_apiNet2_Linear on version trunk
+Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_trunk:
+    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -59,15 +63,15 @@ Universal_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk:
       -  sudo -H pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
-Universal_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -78,7 +82,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
-      -  cd TestProjects/UniversalHybridTest && ./utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --timeout=1200
+      -  cd TestProjects/UniversalHybridTest && ./utr --artifacts_path=test-results --compilation-errors-as-warnings --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -87,10 +91,10 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Linux_Vulkan_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_Universal_Hybrid_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -104,7 +108,7 @@ Build_Universal_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
       -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --suite=playmode --platform=StandaloneLinux64 --testproject=. --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --compilation-errors-as-warnings --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear"
+      -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
     artifacts:
         logs:
             paths:
@@ -116,8 +120,8 @@ Build_Universal_Hybrid_Linux_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-Universal_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Hybrid_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Linux_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -131,7 +135,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalHybridTest/utr
       -  chmod +x TestProjects/UniversalHybridTest/utr
       -  cd TestProjects/UniversalHybridTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/UniversalHybridTest && DISPLAY=:0.0 ./utr --artifacts_path=test-results --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
