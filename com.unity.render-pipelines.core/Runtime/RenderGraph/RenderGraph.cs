@@ -1209,7 +1209,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var resource in passInfo.resourceCreateList[type])
                 {
-                    m_Resources.CreateResource(rgContext, type, resource);
+                    m_Resources.CreatePoolResource(rgContext, type, resource);
                 }
             }
 
@@ -1254,7 +1254,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var resource in passInfo.resourceReleaseList[type])
                 {
-                    m_Resources.ReleaseResource(rgContext, type, resource);
+                    m_Resources.ReleasePoolResource(rgContext, type, resource);
                 }
             }
         }
@@ -1271,7 +1271,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
                 foreach (var resource in m_ImmediateModeResourceList[type])
-                    m_Resources.ReleaseResource(m_RenderGraphContext, type, resource);
+                    m_Resources.ReleasePoolResource(m_RenderGraphContext, type, resource);
 
             }
         }
