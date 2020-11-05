@@ -319,11 +319,6 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_PostProcessPass);
                 }
 
-                if (renderingData.cameraData.captureActions != null)
-                {
-                    m_CapturePass.Setup(m_ActiveCameraColorAttachment);
-                    EnqueuePass(m_CapturePass);
-                }
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
                 var sourceForFinalPass = (applyPostProcessing) ? m_AfterPostProcessColor : m_ActiveCameraColorAttachment;
@@ -333,6 +328,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FinalPostProcessPass.SetupFinalPass(sourceForFinalPass);
                     EnqueuePass(m_FinalPostProcessPass);
+                }
+
+                if (renderingData.cameraData.captureActions != null)
+                {
+                    m_CapturePass.Setup(sourceForFinalPass);
+                    EnqueuePass(m_CapturePass);
                 }
 
                 // if post-processing then we already resolved to camera target while doing post.
