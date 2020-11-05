@@ -128,7 +128,7 @@ namespace UnityEngine.Rendering.Universal
 
                 RenderTargetIdentifier renderTargetTexture = m_RenderTarget.Identifier();
                 ConfigureTarget(renderTargetTexture);
-                ConfigureClear(ClearFlag.All, Color.white);
+                ConfigureClear(ClearFlag.None, Color.white);
             }
 
             /// <inheritdoc/>
