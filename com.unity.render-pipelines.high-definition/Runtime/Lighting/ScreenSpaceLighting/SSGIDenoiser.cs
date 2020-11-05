@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool halfResolution;
             public float historyValidity;
             public bool historyNeedsClear;
+            public float pixelSpreadTangent;
 
             // Shader
             public ComputeShader ssgiDenoiserCS;
@@ -114,6 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.firstMipOffset.Set(HDShadowUtils.Asfloat((uint)depthMipInfo.mipLevelOffsets[1].x), HDShadowUtils.Asfloat((uint)depthMipInfo.mipLevelOffsets[1].y));
             parameters.historyValidity = historyValidity;
             parameters.viewCount = hdCamera.viewCount;
+            parameters.pixelSpreadTangent = HDRenderPipeline.GetPixelSpreadTangent(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
 
             // Denoising parameters
             parameters.filterRadius = giSettings.filterRadius;
@@ -186,6 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind the input scalars
             cmd.SetComputeVectorParam(parameters.ssgiDenoiserCS, HDShaderIDs._DepthPyramidFirstMipLevelOffset, parameters.firstMipOffset);
             cmd.SetComputeIntParam(parameters.ssgiDenoiserCS, HDShaderIDs._IndirectDiffuseSpatialFilter, parameters.filterRadius);
+            cmd.SetComputeFloatParam(parameters.ssgiDenoiserCS, HDShaderIDs._PixelSpreadAngleTangent, parameters.pixelSpreadTangent);
             // Inject half screen size if required
             if (parameters.halfResolution)
                 cmd.SetComputeVectorParam(parameters.ssgiDenoiserCS, HDShaderIDs._HalfScreenSize, parameters.halfScreenSize);
@@ -312,6 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorsBuffer = builder.ReadTexture(motionVectorsBuffer);
+
 
                 // History buffer
                 bool historyRequireClear = false;

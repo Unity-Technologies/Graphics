@@ -920,6 +920,10 @@ namespace UnityEditor.ShaderGraph
             if (fromNode == null || toNode == null)
                 return null;
 
+            // both nodes must belong to this graph
+            if ((fromNode.owner != this) || (toNode.owner != this))
+                return null;
+
             // if fromNode is already connected to toNode
             // do now allow a connection as toNode will then
             // have an edge to fromNode creating a cycle.
@@ -1121,10 +1125,17 @@ namespace UnityEditor.ShaderGraph
             return edges;
         }
 
+        public void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            foreach (var prop in properties)
+                prop.ForeachHLSLProperty(action);
+        }
+
         public void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             foreach (var prop in properties)
             {
+                // ugh, this needs to be moved to the gradient property implementation
                 if(prop is GradientShaderProperty gradientProp && generationMode == GenerationMode.Preview)
                 {
                     GradientUtil.GetGradientPropertiesForPreview(collector, gradientProp.referenceName, gradientProp.value);
@@ -1657,10 +1668,9 @@ namespace UnityEditor.ShaderGraph
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
-                if(node is BlockNode blockNode)
-                {
+                // cannot paste block nodes, or unknown node types
+                if ((node is BlockNode) || (node is MultiJsonInternal.UnknownNodeType))
                     continue;
-                }
 
                 AbstractMaterialNode pastedNode = node;
 

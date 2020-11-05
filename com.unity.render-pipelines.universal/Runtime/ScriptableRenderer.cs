@@ -244,7 +244,7 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                if (!m_IsPipelineExecuting)
+                if (!(m_IsPipelineExecuting || isCameraColorTargetValid))
                 {
                     Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
                     // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (!m_IsPipelineExecuting)
                 {
-                    Debug.LogWarning("You can only call cameraColorTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
+                    Debug.LogWarning("You can only call cameraDepthTarget inside the scope of a ScriptableRenderPass. Otherwise the pipeline camera target texture might have not been created or might have already been disposed.");
                     // TODO: Ideally we should return an error texture (BuiltinRenderTextureType.None?)
                     // but this might break some existing content, so we return the pipeline texture in the hope it gives a "soft" upgrade to users.
                 }
@@ -333,6 +333,8 @@ namespace UnityEngine.Rendering.Universal
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
         // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
+        // This should be removed when early camera color target assignment is removed.
+        internal bool isCameraColorTargetValid = false;
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
@@ -407,6 +409,12 @@ namespace UnityEngine.Rendering.Universal
         {
             m_CameraColorTarget = colorTarget;
             m_CameraDepthTarget = depthTarget;
+        }
+
+        // This should be removed when early camera color target assignment is removed.
+        internal void ConfigureCameraColorTarget(RenderTargetIdentifier colorTarget)
+        {
+            m_CameraColorTarget = colorTarget;
         }
 
         /// <summary>

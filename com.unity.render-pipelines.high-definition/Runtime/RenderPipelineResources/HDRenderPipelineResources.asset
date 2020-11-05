@@ -35,6 +35,7 @@ MonoBehaviour:
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
     depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
+    maxZCS: {fileID: 7200000, guid: e95abf8c7230c344595f41c4dd5ff517, type: 3}
     copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
     screenSpaceReflectionsCS: {fileID: 7200000, guid: d1de9ac7d9016204da289affe9677942,
       type: 3}

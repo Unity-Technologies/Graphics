@@ -26,6 +26,9 @@ class YMLJob():
     def set_trigger_on_expression(self, expression): 
         self.yml['triggers']['expression'] = expression
 
+    def set_timeout(self, value):
+        self.yml['timeout'] = value
+
     def add_trigger_recurrent(self, branch, frequency):
         existing_triggers = list(self.yml['triggers']['recurring'])
         existing_triggers.append({

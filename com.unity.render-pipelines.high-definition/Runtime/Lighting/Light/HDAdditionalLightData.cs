@@ -51,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// The default intensity value for directional lights in Lux
         /// </summary>
-        public const float k_DefaultDirectionalLightIntensity = 100000; // In lux
+        public const float k_DefaultDirectionalLightIntensity = Mathf.PI; // In lux
         /// <summary>
         /// The default intensity value for punctual lights in Lumen
         /// </summary>
@@ -301,6 +301,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
 
                 m_FadeDistance = Mathf.Clamp(value, 0, float.MaxValue);
+            }
+        }
+
+        // Not used for directional lights.
+        [SerializeField]
+        float m_VolumetricFadeDistance = 10000.0f;
+        /// <summary>
+        /// Get/Set the light fade distance for volumetrics.
+        /// </summary>
+        public float volumetricFadeDistance
+        {
+            get => m_VolumetricFadeDistance;
+            set
+            {
+                if (m_VolumetricFadeDistance == value)
+                    return;
+
+                m_VolumetricFadeDistance = Mathf.Clamp(value, 0, float.MaxValue);
             }
         }
 
@@ -619,6 +637,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights or rectangular light (only square images).");
                     m_IESSpot = null;
                 }
+            }
+        }
+
+        [SerializeField]
+        bool m_IncludeForRayTracing = true;
+        /// <summary>
+        /// Controls if the light is enabled when the camera has the RayTracing frame setting enabled.
+        /// </summary>
+        public bool includeForRayTracing
+        {
+            get => m_IncludeForRayTracing;
+            set
+            {
+                if (m_IncludeForRayTracing == value)
+                    return;
+
+                UpdateAllLightValues();
             }
         }
 
@@ -1944,7 +1979,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, Rect screenRect, HDLightType lightType)
+        internal void ReserveShadowMap(Camera camera, HDShadowManager shadowManager, HDShadowSettings shadowSettings, HDShadowInitParameters initParameters, VisibleLight visibleLight, HDLightType lightType)
         {
             if (!m_WillRenderShadowMap)
                 return;
@@ -1978,14 +2013,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (viewPortRescaling && !shadowIsInCacheSystem)
             {
-                // resize viewport size by the normalized size of the light on screen
-                float screenArea = screenRect.width * screenRect.height;
-                viewportSize *= Mathf.Lerp(64f / viewportSize.x, 1f, screenArea);
-                viewportSize = Vector2.Max(new Vector2(64f, 64f) / viewportSize, viewportSize);
+                // Formulas: https://www.desmos.com/calculator/tdodbuysut f(x) is the distance between 0 and 1, g(x) is the screen ratio (oscillating to simulate different light sizes)
+                // The idea is to have a lot of resolution when the camera is close to the light OR the screen area is high.
 
-                // Prevent flickering caused by the floating size of the viewport
-                viewportSize.x = Mathf.Round(viewportSize.x);
-                viewportSize.y = Mathf.Round(viewportSize.y);
+                // linear normalized distance between the light and camera with max shadow distance
+                float distance01 = Mathf.Clamp01(Vector3.Distance(camera.transform.position, visibleLight.GetPosition()) / shadowSettings.maxShadowDistance.value);
+                // ease out and invert the curve, give more importance to closer distances
+                distance01 = 1.0f - Mathf.Pow(distance01, 2);
+
+                // normalized ratio between light range and distance 
+                float range01 = Mathf.Clamp01(visibleLight.range / Vector3.Distance(camera.transform.position, visibleLight.GetPosition()));
+
+                float scaleFactor01 = Mathf.Max(distance01, range01);
+
+                // We allow a maximum of 64 rescale between the highest and lowest shadow resolution
+                // It prevent having too many resolution changes when the player is moving.
+                const float maxRescaleSteps = 64;
+                scaleFactor01 = Mathf.RoundToInt(scaleFactor01 * maxRescaleSteps) / maxRescaleSteps;
+
+                // resize viewport size by the normalized size of the light on screen
+                viewportSize = Vector2.Lerp(HDShadowManager.k_MinShadowMapResolution * Vector2.one, viewportSize, scaleFactor01);
             }
 
             viewportSize = Vector2.Max(viewportSize, new Vector2(HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MinShadowMapResolution));
@@ -2599,7 +2646,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case HDLightType.Directional:
                     lightData.lightUnit = LightUnit.Lux;
-                    lightData.intensity = k_DefaultDirectionalLightIntensity;
+                    lightData.intensity = k_DefaultDirectionalLightIntensity / Mathf.PI * 100000.0f; // Change back to just k_DefaultDirectionalLightIntensity on 11.0.0 (can't change constant as it's a breaking change)
                     break;
                 case HDLightType.Area: // Rectangle by default when light is created
                     switch (lightData.areaLightShape)

@@ -1,3 +1,6 @@
+#ifndef UNITY_COOKIE_SAMPLING_INCLUDED
+#define UNITY_COOKIE_SAMPLING_INCLUDED
+
 //-----------------------------------------------------------------------------
 // Cookie sampling functions
 // ----------------------------------------------------------------------------
@@ -47,3 +50,5 @@ float3 SamplePointCookie(float3 lightToSample, float4 scaleOffset, float lod = 0
 
     return SampleCookie2D(uv, scaleOffset, lod);
 }
+
+#endif // UNITY_COOKIE_SAMPLING_INCLUDED
