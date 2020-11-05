@@ -50,8 +50,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_SrcBlendID = Shader.PropertyToID("_SrcBlend");
         private static readonly int k_DstBlendID = Shader.PropertyToID("_DstBlend");
         private static readonly int k_FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
-        private static readonly int k_FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
-        private static readonly int k_FalloffOffsetID = Shader.PropertyToID("_FalloffOffset");
         private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
         private static readonly int k_VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
         private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
@@ -86,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (renderScale != pass.rendererData.normalsRenderTargetScale)
             {
-                if(pass.rendererData.isNormalsRenderTargetValid)
+                if (pass.rendererData.isNormalsRenderTargetValid)
                 {
                     cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
                 }
@@ -168,13 +166,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
-                    cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
                     cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
-                        SetPointLightShaderGlobals(cmd, light);
+                        SetPointLightShaderGlobals(pass, cmd, light);
 
                     // Light code could be combined...
                     if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
@@ -215,14 +211,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
-                    cmd.SetGlobalVector(k_FalloffOffsetID, light.shapeLightFalloffOffset);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
                     cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
                     // Is this needed
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
-                        SetPointLightShaderGlobals(cmd, light);
+                        SetPointLightShaderGlobals(pass, cmd, light);
 
                     // Could be combined...
                     if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
@@ -252,7 +246,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmd.SetGlobalVector(k_InvertedFilterPropIDs[i], blendStyle.maskTextureChannelFilter.inverted);
             }
 
-            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
+            cmd.SetGlobalTexture(k_FalloffLookupID, pass.rendererData.fallOffLookup);
         }
 
         private static float GetNormalizedInnerRadius(Light2D light)
@@ -278,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
         }
 
-        private static void SetPointLightShaderGlobals(CommandBuffer cmd, Light2D light)
+        private static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
         {
             // This is used for the lookup texture
             GetScaledLightInvMatrix(light, out var lightInverseMatrix, true);
@@ -296,7 +290,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.SetGlobalFloat(k_OuterAngleID, outerAngle);
             cmd.SetGlobalFloat(k_InnerAngleMultID, 1 / (outerAngle - innerAngle));
             cmd.SetGlobalTexture(k_LightLookupID, Light2DLookupTexture.GetLightLookupTexture());
-            cmd.SetGlobalTexture(k_FalloffLookupID, Light2DLookupTexture.GetFalloffLookupTexture());
+            cmd.SetGlobalTexture(k_FalloffLookupID, pass.rendererData.fallOffLookup);
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
 
@@ -395,7 +389,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         i,
                         cmd,
                         layerToRender,
-                        identifier,
+                            identifier,
                         pass.rendererData.lightCullResult.visibleLights
                     );
                 }
