@@ -5,8 +5,6 @@ test_platforms:
   - type: playmode
   - type: editmode
   - type: Standalone
-    utr_flags_build:
-      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
 platforms:
   - name: Win
     apis:
