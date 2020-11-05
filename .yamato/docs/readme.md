@@ -118,11 +118,11 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 - If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
 - If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
 - Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
-- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `extra_utr_flags_build` (scroll down to see project metafile docs)
+- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
   ```
     - type: playmode
       name: playmode_perf_build
-      extra_utr_flags:
+      utr_flags:
         - --scripting-backend=il2cpp
         - --timeout=1200
         - --performance-project-id=URP_Performance
