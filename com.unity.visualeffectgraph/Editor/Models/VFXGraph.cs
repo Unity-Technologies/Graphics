@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
     {
         void OnPreprocessAsset()
         {
-            bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+            bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
             if (isVFX)
             {
                 VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -124,7 +124,6 @@ namespace UnityEditor.VFX
                 if (resource != null)
                 {
                     VFXGraph graph = resource.GetOrCreateGraph();
-                    graph.SanitizeGraph(); // tmp Necessary for subgraphs
                     AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
                     EditorUtility.SetDirty(resource);
                 }
