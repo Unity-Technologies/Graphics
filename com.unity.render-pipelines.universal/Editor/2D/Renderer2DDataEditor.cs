@@ -40,13 +40,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public SerializedProperty blendFactorAdditive;
         }
 
-        enum Expandable
-        {
-            General = 1 << 0,
-            LightRenderTextures = 1 << 1,
-            LightBlendStyles = 1 << 2
-        }
-
         SerializedProperty m_TransparencySortMode;
         SerializedProperty m_TransparencySortAxis;
         SerializedProperty m_HDREmulationScale;
@@ -61,12 +54,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
         bool m_WasModified;
-
-        static ExpandedState<Expandable, Renderer2DData> s_ExpandedState;
-
-        CED.IDrawer m_GeneralDrawer;
-        CED.IDrawer m_LightRenderTexturesDrawer;
-        CED.IDrawer m_LightBlendStylesDrawer;
 
         void SendModifiedAnalytics(Analytics.IAnalytics analytics)
         {
@@ -116,11 +103,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_UseDepthStencilBuffer = serializedObject.FindProperty("m_UseDepthStencilBuffer");
             m_DefaultMaterialType = serializedObject.FindProperty("m_DefaultMaterialType");
             m_DefaultCustomMaterial = serializedObject.FindProperty("m_DefaultCustomMaterial");
-
-            s_ExpandedState = new ExpandedState<Expandable, Renderer2DData>(~(-1), "URP2D");
-            m_GeneralDrawer = CED.FoldoutGroup(Styles.generalHeader, Expandable.General, s_ExpandedState, DrawGeneral);
-            m_LightRenderTexturesDrawer = CED.FoldoutGroup(Styles.lightRenderTexturesHeader, Expandable.LightRenderTextures, s_ExpandedState, DrawLightRenderTextures);
-            m_LightBlendStylesDrawer = CED.FoldoutGroup(Styles.lightBlendStylesHeader, Expandable.LightBlendStyles, s_ExpandedState, DrawLightBlendStyles);
         }
 
         private void OnDestroy()
@@ -132,17 +114,21 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             serializedObject.Update();
 
-            m_GeneralDrawer.Draw(this, this);
-            m_LightRenderTexturesDrawer.Draw(this, this);
-            m_LightBlendStylesDrawer.Draw(this, this);
+            DrawGeneral();
+            DrawLightRenderTextures();
+            DrawLightBlendStyles();
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawGeneral(Renderer2DDataEditor data, Editor owner)
+        bool m_State = true;
+        private void DrawGeneral()
         {
-            EditorGUI.indentLevel--;
+            CoreEditorUtils.DrawSplitter();
+            m_State = CoreEditorUtils.DrawHeaderFoldout(Styles.generalHeader, m_State);
+            if (!m_State)
+                return;
 
             EditorGUILayout.PropertyField(m_TransparencySortMode, Styles.transparencySortMode);
 
@@ -160,22 +146,28 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (EditorGUI.EndChangeCheck() && m_HDREmulationScale.floatValue < 1.0f)
                 m_HDREmulationScale.floatValue = 1.0f;
 
-            EditorGUI.indentLevel++;
+            EditorGUILayout.Space();
         }
 
-        private void DrawLightRenderTextures(Renderer2DDataEditor data, Editor owner)
+        private void DrawLightRenderTextures()
         {
-            EditorGUI.indentLevel--;
+            CoreEditorUtils.DrawSplitter();
+            m_State = CoreEditorUtils.DrawHeaderFoldout(Styles.lightRenderTexturesHeader, m_State);
+            if (!m_State)
+                return;
 
             EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRTScale);
             EditorGUILayout.PropertyField(m_MaxLightRenderTextureCount, Styles.maxLightRTCount);
 
-            EditorGUI.indentLevel++;
+            EditorGUILayout.Space();
         }
 
-        private void DrawLightBlendStyles(Renderer2DDataEditor data, Editor owner)
+        private void DrawLightBlendStyles()
         {
-            EditorGUI.indentLevel--;
+            CoreEditorUtils.DrawSplitter();
+            m_State = CoreEditorUtils.DrawHeaderFoldout(Styles.lightBlendStylesHeader, m_State);
+            if (!m_State)
+                return;
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
             for (int i = 0; i < numBlendStyles; ++i)
@@ -214,7 +206,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUILayout.Space();
             }
 
-            EditorGUI.indentLevel++;
+            EditorGUILayout.Space();
         }
     }
 }
