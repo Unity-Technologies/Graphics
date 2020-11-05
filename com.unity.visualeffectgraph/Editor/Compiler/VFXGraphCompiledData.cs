@@ -1100,7 +1100,7 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating systems", 9 / nbSteps);
                 cpuBufferDescs.Add(new VFXCPUBufferDesc()
                 {
-                    //Global attribute descriptor, first entry in cpuBufferDesc 
+                    //Global attribute descriptor, always first entry in cpuBufferDesc, it can be empty (stride == 0).
                     capacity = 1u,
                     layout = m_ExpressionGraph.GlobalEventAttributes.ToArray(),
                     stride = m_ExpressionGraph.GlobalEventAttributes.Any() ? m_ExpressionGraph.GlobalEventAttributes.First().offset.structure : 0u,
