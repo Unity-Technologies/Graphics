@@ -226,6 +226,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             case IShaderPropertyDrawer propDrawer:	
                 propDrawer.HandlePropertyField(propertySheet, _preChangeValueCallback, _postChangeValueCallback);	
                 break;
+            case UnityEditor.ShaderGraph.Serialization.MultiJsonInternal.UnknownShaderPropertyType unknownProperty:
+                var helpBox = new HelpBoxRow(MessageType.Warning);
+                helpBox.Add(new Label("Cannot find the code for this Property, a package may be missing."));
+                propertySheet.Add(helpBox);
+                break;
             case Vector1ShaderProperty vector1Property:
                 HandleVector1ShaderProperty(propertySheet, vector1Property);
                 break;
@@ -375,6 +380,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     this._precisionChangedCallback();
                     this._postChangeValueCallback();
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
+            if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
+                precisionField.SetEnabled(false);
         }
 
         void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)

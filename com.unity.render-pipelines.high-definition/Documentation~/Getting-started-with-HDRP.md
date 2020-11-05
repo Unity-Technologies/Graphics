@@ -75,10 +75,6 @@ Use the Light Explorer to change the settings of any type of Light within your P
 
 The [Shadows](Override-Shadows.md) Volume override allows you to determine the overall quality of the Shadows in a Volume. For example, the **Max Distance** field calculates the quality of the Shadows based on the distance of the Camera from the Shadow.
 
-The below gif is from a pre-release version of HDRP and, at that point, the **Shadows** Volume override was named **HD Shadow Settings**.
-
-![](Images/GettingStarted5.gif)
-
 For more information, see [Shadows](Override-Shadows.md).
 
 ## Related information
