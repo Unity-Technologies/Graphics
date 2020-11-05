@@ -2,6 +2,8 @@
 
 The Universal Render Pipeline (URP) includes an integrated implementation of [post-processing](https://docs.unity3d.com/Manual/PostProcessingOverview.html) effects. If you use URP, it's not necessary to install an extra package for post-processing effects. URP is not compatible with the [Post&nbsp;Processing&nbsp;Stack&nbsp;v2](https://docs.unity3d.com/Packages/com.unity.postprocessing@latest/index.html) package. 
 
+URP uses the [Volume](Volumes.md) framework for post-processing effects. 
+
 The images below show a Scene with and without URP post-processing.
 
 Without post-processing:
@@ -12,21 +14,49 @@ With post-processing:
 
 ![](Images/AssetShots/Beauty/SceneWithPost.png)
 
-## How to configure Post-processing in URP
+> **Note:** URP does not support Post-processing on OpenGL&nbsp;ES&nbsp;2.0.
 
-To add post-processing effects to a Camera:
+## How to configure Post-processing in URP<a name="post-proc-how-to"></a>
+
+This section describes how to configure Post-processing in URP.
+
+### Using post-processing in the URP Template Scene
+
+Post-processing is preconfigured in the SampleScene Scene in URP Template.
+
+To see the preconfigured effects, select **Post-process Volume** in the Scene.
+
+![Add post-processing effects to the Camera by adding Volume Overrides to the Volume component.](Images/post-proc/volume-with-post-proc.png)
+
+To add extra effects, [add Volume Overrides to the Volume](VolumeOverrides.md#volume-add-override).
+
+To configure location-based post-processing effects, see [How to use Local Volumes](Volumes.md#volume-local).
+
+### Configuring post-processing in a new URP Scene
+
+To configure post-processing in a new Scene:
 
 1. Select a Camera, and select the **Post Processing** check box.
 
     ![Select a Camera, select the Post Processing check box.](Images/post-proc/camera-post-proc-check.png)
 
-2. In the Hierarchy, add a [Volume](Volumes.md) component, and add a Volume profile to the Volume.
+2. Add a GameObject with a [Volume](Volumes.md) component in the Scene. This instruction adds a Global Volume. Select **GameObject > Volume > Global Volume**.
 
-3. Add post-processing effects to the Camera by adding [Volume Overrides](VolumeOverrides.md) to the Volume component.
+3. Select the **Global Volume** GameObject. In the Volume component, create a new Profile by clicking **New** button on the right side of the Profile property. 
 
-    ![Add post-processing effects to the Camera by adding Volume Overrides to the Volume component.](Images/post-proc/volume-with-post-proc.png)
+    ![Create new Profile.](Images/post-proc/volume-new-scene-new-profile.png)
 
-> **Note:** URP does not support Post-processing on OpenGL&nbsp;ES&nbsp;2.0.
+
+3. Add post-processing effects to the Camera by adding [Volume Overrides](VolumeOverrides.md#volume-add-override) to the Volume component.
+
+    ![Add post-processing effects to the Camera by adding Volume Overrides to the Volume component.](Images/post-proc/volume-new-scene-add-override.png)
+
+
+Now you can adjust post-processing effect settings in Overrides in the Volume component.
+
+![Editing post-processing effects using Overrides.](Images/post-proc/volume-new-scene-post-proc-from-scratch.png)
+
+To configure location-based post-processing effects, see [How to use Local Volumes](Volumes.md#volume-local).
 
 ## Post-processing in URP for mobile devices
 
