@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
+void InitializeInputData(VaryingsParticle input, half3 normalTS, half3 doubleSidedConstants, out InputData output)
 {
     output = (InputData)0;
 
