@@ -6,17 +6,15 @@ URP uses the [Volume](Volumes.md) framework for post-processing effects.
 
 The images below show a Scene with and without URP post-processing.
 
-Without post-processing:
-
+Without post-processing:<br/>
 ![](Images/AssetShots/Beauty/SceneWithoutPost.png)
 
-With post-processing:
-
+With post-processing:<br/>
 ![](Images/AssetShots/Beauty/SceneWithPost.png)
 
 > **Note:** URP does not support Post-processing on OpenGL&nbsp;ES&nbsp;2.0.
 
-## How to configure Post-processing in URP<a name="post-proc-how-to"></a>
+## <a name="post-proc-how-to"></a>How to configure post-processing effects in URP
 
 This section describes how to configure Post-processing in URP.
 

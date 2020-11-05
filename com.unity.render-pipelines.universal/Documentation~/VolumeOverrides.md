@@ -10,7 +10,7 @@ In a the Volume Override, checkboxes to the left of each property let you enable
 
 ![Volume Override property list](Images/post-proc/volume-override-property-list.png)
 
-## How to add a Volume Override to a Volume component<a name="volume-add-override"></a>
+## <a name="volume-add-override"></a>How to add a Volume Override to a Volume component
 
 To add a Volume Override to a Volume component:
 
