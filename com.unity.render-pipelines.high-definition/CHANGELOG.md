@@ -25,6 +25,7 @@ The version number for this package has increased due to a version update of a r
 - Added new algorithm for SSR with temporal accumulation
 - Added quality preset of the new volumetric fog parameters.
 - Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
+- Added documentation for LODs not being supported by ray tracing.
 - Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
 
 ### Fixed
@@ -84,6 +85,13 @@ The version number for this package has increased due to a version update of a r
 - Fixed a ghosting issue with RTShadows (Sun, Point and Spot), RTAO and RTGI when the camera is moving fast.
 - Fixed a SSGI denoiser bug for large scenes.
 - Fixed a Nan issue with SSGI.
+- Fixed an issue with IsFrontFace node in Shader Graph not working properly
+- Fixed CustomPassUtils.RenderFrom* functions and CustomPassUtils.DisableSinglePassRendering struct in VR.
+- Fixed custom pass markers not recorded when render graph was enabled.
+- Fixed exceptions when unchecking "Big Tile Prepass" on the frame settings with render-graph.
+- Fixed an issue causing errors in GenerateMaxZ when opaque objects or decals are disabled. 
+- Fixed an issue with Bake button of Reflection Probe when in custom mode
+- Fixed exceptions related to the debug display settings when changing the default frame settings.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.

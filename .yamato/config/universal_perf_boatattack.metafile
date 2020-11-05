@@ -3,98 +3,99 @@ project:
   folder: BoatAttack
 test_platforms:
   - type: Standalone
-    timeout_build:
-      Android: 2000
     name: performance_playmode_runtime
     is_performance: True
-    extra_utr_flags:
-      - --report-performance-data
-      - --performance-project-id=BoatAttack
-    extra_utr_flags_build:
-      - --extra-editor-arg="-executemethod Editor.Setup"
-      - --category=URP
-      - --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
-      - --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
-      - --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
-      - --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
-      - --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
-#  - type: editmode
-#    name: performance_editmode_build
-#    is_performance: True
-#    extra_utr_flags:
-#      - --testfilter=Build
-#      - --report-performance-data
-#      - --performance-project-id=BoatAttack
+    utr_flags:
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=BoatAttack
+      - [iPhone_Metal]: --testfilter=RuntimeProfilerMetrics
+    utr_flags_build:
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-" 
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
+      - [all]: --category=URP
+  - type: playmode
+    name: performance_playmode_editor
+    is_performance: True
+    utr_flags:
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=BoatAttack
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      - [all]: --category=URP
+      - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+  - type: editmode
+    name: performance_editmode_build
+    is_performance: True
+    utr_flags:
+      - [all]: --testfilter=Build
+      - [all]: --report-performance-data
+      - [all]: --performance-project-id=BoatAttack
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+      - [all]: --category=URP
+      - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
+      - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
+      - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
+      - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
+      - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [iPhone_Metal]: --platform=iOS
 platforms:
   - name: Win
-    extra_utr_flags_build:
-      - --extra-editor-arg="-stripenginecode-" 
-      - --extra-editor-arg="-managedstrippinglevel=Low"
-      - --extra-editor-arg="-allowdebugging-" 
     apis:
-      - DX11
-#      - Vulkan
-#  - name: OSX
-#    apis:
-#      - Metal
-#      - OpenGLCore
+      - name: DX11
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Android
     apis: 
-      - Vulkan
-      - OpenGLES3
-#  - name: iPhone
-#    apis: 
-#      - Metal
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-- name: il2cpp_apiNet4
-  scripting_backend: IL2CPP
-  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: performance_playmode_editor
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+  - name: iPhone
+    apis: 
+      - name: Metal
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-#        - performance_editmode_build
-#    - platform: OSX
-#      api: Metal
-#      build_config: il2cpp_apiNet4
-#      color_space: Linear
-#      test_platforms:
-#        #- performance_playmode_runtime
-#        - performance_editmode_build
+        - performance_playmode_editor
+        - performance_editmode_build
     - platform: Android
       api: OpenGLES3
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-#        - performance_editmode_build
+        - performance_editmode_build
     - platform: Android
       api: Vulkan
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-#        - performance_editmode_build
-#    - platform: iPhone
-#      api: Metal
-#      build_config: il2cpp_apiNet4
-#      color_space: Linear
-#      test_platforms:
-#        - performance_playmode_runtime
-#        - performance_editmode_build
+        - performance_editmode_build
