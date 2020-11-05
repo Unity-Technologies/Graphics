@@ -210,7 +210,7 @@ namespace UnityEditor.VFX
             if (contextList.Any(o => contextEffectiveInputLinks[o.context].Any()))
             {
                 //TODOPAUL : Fix & Cover by a test
-                var parentContextList = CollectContextParentRecursively(contextList.Select(c => c.context).Except(inputList), ref subgraphContexts, currentDepth + 1);
+                var parentContextList = CollectContextParentRecursively(contextList.Select(c => c.context), ref subgraphContexts, currentDepth + 1);
                 foreach (var parentContextEntry in parentContextList)
                 {
                     var currentEntry = contextList.FirstOrDefault(o => o.context == parentContextEntry.context);
