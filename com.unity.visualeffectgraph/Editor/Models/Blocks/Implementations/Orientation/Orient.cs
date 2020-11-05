@@ -160,7 +160,7 @@ namespace UnityEditor.VFX.Block
                 {
                     case Mode.FaceCameraPlane:
                         if (canTestStrips && hasStrips)
-                            throw new NotImplementedException("This orient mode is only available for strips");
+                            throw new NotImplementedException("This orient mode (FaceCameraPlane) is only available for strips");
 
                         return @"
 float3x3 viewRot = GetVFXToViewRotMatrix();
@@ -266,7 +266,7 @@ axisY = cross(axisZ,axisX);
 
                     case Mode.FixedAxis:
                         if (canTestStrips && hasStrips)
-                            throw new NotImplementedException("This orient mode is not available for strips");
+                            throw new NotImplementedException("This orient (FixedAxis) mode is not available for strips");
 
                         return @"
 axisY = Up;
@@ -277,7 +277,7 @@ axisZ = cross(axisX,axisY);
 
                     case Mode.AlongVelocity:
                         if (canTestStrips && hasStrips)
-                            throw new NotImplementedException("This orient mode is not available for strips");
+                            throw new NotImplementedException("This orient mode (AlongVelocity) is not available for strips");
 
                         return @"
 axisY = normalize(velocity);
@@ -288,7 +288,7 @@ axisZ = cross(axisX,axisY);
 
                     case Mode.CustomZ:
                         if (canTestStrips && !hasStrips)
-                            throw new NotImplementedException("This orient mode is only available for strips");
+                            throw new NotImplementedException("This orient mode (CustomZ) is only available for strips");
 
                         return
 @"axisX = stripTangent;
@@ -299,7 +299,7 @@ axisZ = cross(axisX, axisY);
 
                     case Mode.CustomY:
                         if (canTestStrips && !hasStrips)
-                            throw new NotImplementedException("This orient mode is only available for strips");
+                            throw new NotImplementedException("This orient mode (CustomY) is only available for strips");
 
                         return
 @"axisX = stripTangent;
