@@ -267,10 +267,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + 1 : -1; } }
         internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0); } }
 
-        internal GraphicsFormat GBufferDefaultNormalsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render)
-                ? GraphicsFormat.R8G8B8A8_SNorm
-                : GraphicsFormat.R8G8B8A8_UNorm;
-
         internal GraphicsFormat GetGBufferFormat(int index)
         {
             if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
