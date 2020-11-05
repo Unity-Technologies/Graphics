@@ -8,10 +8,16 @@ test_platforms:
 platforms:
   - name: Win
     apis: 
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: ''
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - Standalone
         - editmode
