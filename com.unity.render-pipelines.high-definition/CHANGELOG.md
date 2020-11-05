@@ -25,6 +25,7 @@ The version number for this package has increased due to a version update of a r
 - Added new algorithm for SSR with temporal accumulation
 - Added quality preset of the new volumetric fog parameters.
 - Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
+- Added documentation for LODs not being supported by ray tracing.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
