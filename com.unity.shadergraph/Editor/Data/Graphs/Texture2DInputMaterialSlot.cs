@@ -78,6 +78,7 @@ namespace UnityEditor.ShaderGraph
             {
                 name = name,
                 textureValue = texture,
+                texture2DDefaultType = defaultType
             };
             properties.Add(pp);
         }

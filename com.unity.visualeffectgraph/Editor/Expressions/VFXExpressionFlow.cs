@@ -17,12 +17,19 @@ namespace UnityEditor.VFX
     class VFXExpressionCondition : VFXExpression
     {
         public VFXExpressionCondition()
-            : this(VFXCondition.Equal, VFXValue.Constant(0.0f), VFXValue.Constant(0.0f))
+            : this(VFXValueType.Float, VFXCondition.Equal, VFXValue.Constant(0.0f), VFXValue.Constant(0.0f))
         {}
 
-        public VFXExpressionCondition(VFXCondition cond, VFXExpression left, VFXExpression right) : base(VFXExpression.Flags.None, new VFXExpression[] { left, right })
+        public VFXExpressionCondition(VFXValueType type, VFXCondition cond, VFXExpression left, VFXExpression right) : base(VFXExpression.Flags.None, new VFXExpression[] { left, right })
         {
+            if (type != left.valueType || type != right.valueType)
+                throw new InvalidOperationException(string.Format("Unexpected value type in condition expression : {0}/{1} (expected {2})", left.valueType, right.valueType, type));
+
+            if (type != VFXValueType.Float && type != VFXValueType.Uint32 && type != VFXValueType.Int32)
+                throw new NotImplementedException("This type is not handled by condition expression: " + type);
+
             condition = cond;
+            this.type = type;
         }
 
         public override VFXExpressionOperation operation
@@ -33,23 +40,36 @@ namespace UnityEditor.VFX
             }
         }
 
-        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        private VFXValue<bool> Evaluate<T>(VFXExpression[] constParents) where T : IComparable<T>
         {
-            bool res = false;
-            float left = constParents[0].Get<float>();
-            float right = constParents[1].Get<float>();
+            T left = constParents[0].Get<T>();
+            T right = constParents[1].Get<T>();
+            int comp = left.CompareTo(right);
 
+            bool res = false;
             switch (condition)
             {
-                case VFXCondition.Equal:            res = left == right;    break;
-                case VFXCondition.NotEqual:         res = left != right;    break;
-                case VFXCondition.Less:             res = left < right;     break;
-                case VFXCondition.LessOrEqual:      res = left <= right;    break;
-                case VFXCondition.Greater:          res = left > right;     break;
-                case VFXCondition.GreaterOrEqual:   res = left >= right;    break;
+                case VFXCondition.Equal:            res = comp == 0; break;
+                case VFXCondition.NotEqual:         res = comp != 0; break;
+                case VFXCondition.Less:             res = comp < 0; break;
+                case VFXCondition.LessOrEqual:      res = comp <= 0; break;
+                case VFXCondition.Greater:          res = comp > 0; break;
+                case VFXCondition.GreaterOrEqual:   res = comp >= 0; break;
+                default: throw new NotImplementedException("Invalid VFXCondition: " + condition);
             }
 
             return VFXValue.Constant<bool>(res);
+        }
+
+        sealed protected override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            switch(type)
+            {
+                case VFXValueType.Float:    return Evaluate<float>(constParents);
+                case VFXValueType.Int32:    return Evaluate<int>(constParents);
+                case VFXValueType.Uint32:   return Evaluate<uint>(constParents);
+                default: throw new NotImplementedException("This type is not handled by condition expression: " + type);
+            }
         }
 
         public override string GetCodeString(string[] parents)
@@ -72,10 +92,12 @@ namespace UnityEditor.VFX
         {
             var newExpression = (VFXExpressionCondition)base.Reduce(reducedParents);
             newExpression.condition = condition;
+            newExpression.type = type;
             return newExpression;
         }
 
-        protected override int[] additionnalOperands { get { return new int[] { (int)condition }; } }
+        protected override int[] additionnalOperands { get { return new int[] { (int)type, (int)condition }; } }
+        private VFXValueType type;
         private VFXCondition condition;
     }
 

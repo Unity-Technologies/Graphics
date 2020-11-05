@@ -2,6 +2,7 @@
 #pragma kernel RaytracingIndirectDiffuseFullRes
 #pragma kernel IndirectDiffuseIntegrationUpscaleHalfRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleHalfRes HALF_RESOLUTION
 #pragma kernel IndirectDiffuseIntegrationUpscaleFullRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleFullRes
+#pragma kernel AdjustIndirectDiffuseWeight
 
 #pragma only_renderers d3d11
 
@@ -28,6 +29,9 @@
 TEXTURE2D_X(_DepthTexture);
 RW_TEXTURE2D_X(float4, _RaytracingDirectionBuffer);
 
+// Flag value that defines if a given pixel recieves reflections or not
+TEXTURE2D_X_UINT2(_StencilTexture);
+int _SsrStencilBit;
 
 [numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -55,12 +59,10 @@ void RaytracingIndirectDiffuseHalfRes(uint3 dispatchThreadId : SV_DispatchThread
     if (depthValue == UNITY_RAW_FAR_CLIP_VALUE)
         return;
 
-    // Convert this to a world space position 
+    // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(sourceCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
-    // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    // Compute the view in world space
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -102,10 +104,8 @@ void RaytracingIndirectDiffuseFullRes(uint3 dispatchThreadId : SV_DispatchThread
 
     // Convert this to a world space position
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-
-    // Compute the incident vector on the surfaces
-    float3 viewWS = normalize(_WorldSpaceCameraPos - positionWS);
+    // Compute the view in world space
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
     // Decode the world space normal
     NormalData normalData;
@@ -167,7 +167,7 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
 
     // Compute the world space position
     PositionInputs posInput = GetPositionInput(targetCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+    float3 positionWS = posInput.positionWS;
 
     // Initialize the output pixels
     float4 resultSum = float4(0.0 ,0.0, 0.0, 0.0);
@@ -211,7 +211,7 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
 
             // Fetch the Depth
             float sampleDepth = LOAD_TEXTURE2D_X(_DepthTexture, actualSourceCoord).x;
-            
+
             // If this the background, it should not be used as a valid sample
             if(sampleDepth == UNITY_RAW_FAR_CLIP_VALUE) continue;
 
@@ -236,4 +236,30 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
     {
         _UpscaledIndirectDiffuseTextureRW[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, 1.0);
     }
+}
+
+RW_TEXTURE2D_X(float4, _IndirectDiffuseTextureRW);
+
+[numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
+void AdjustIndirectDiffuseWeight(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    uint2 sourceCoord = dispatchThreadId.xy;
+
+    // Fetch the depth
+    float depth = LOAD_TEXTURE2D_X(_DepthTexture, sourceCoord).x;
+    // If this is a background pixel, there is nothing to do
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    float4 previousGIValue = _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(sourceCoord)];
+
+    // Nullify the weight if the surface is not supposed to recieve SSGI
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, sourceCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
+        previousGIValue.w = 0.0f;
+    else
+        previousGIValue.w = 1.0f;
+
+    _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(sourceCoord)] = previousGIValue;
 }

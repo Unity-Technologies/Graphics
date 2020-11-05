@@ -46,9 +46,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         List<int> m_ShadowCastingLightIndicesMap = new List<int>();
 
         bool m_SupportsBoxFilterForShadows;
+        ProfilingSampler m_ProfilingSetupSampler = new ProfilingSampler("Setup Additional Shadows");
 
         public AdditionalLightsShadowCasterPass(RenderPassEvent evt)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(AdditionalLightsShadowCasterPass));
             renderPassEvent = evt;
 
             AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow = Shader.PropertyToID("_AdditionalLightsWorldToShadow");
@@ -76,6 +78,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public bool Setup(ref RenderingData renderingData)
         {
+            using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
+
             Clear();
 
             m_ShadowmapWidth = renderingData.shadowData.additionalLightsShadowmapWidth;

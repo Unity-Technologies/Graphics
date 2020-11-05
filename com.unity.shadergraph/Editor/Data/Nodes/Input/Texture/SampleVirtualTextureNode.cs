@@ -283,7 +283,15 @@ namespace UnityEditor.ShaderGraph
             base.ValidateNode();
             if (!IsSlotConnected(VirtualTextureInputId))
             {
-                owner.AddValidationError(objectId, k_NoPropertyConnected, ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, k_NoPropertyConnected);
+            }
+            else
+            {
+                var vtProp = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProp == null)
+                {
+                    owner.AddValidationError(objectId, $"VT slot is not connected to a valid VirtualTexture property");
+                }
             }
         }
 

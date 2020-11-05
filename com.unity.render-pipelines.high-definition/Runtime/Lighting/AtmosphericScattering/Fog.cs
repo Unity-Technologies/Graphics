@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -7,7 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Fog Volume Component.
     /// </summary>
     [Serializable, VolumeComponentMenu("Fog")]
-    public class Fog : VolumeComponent
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Fog" + Documentation.endURL)]
+    public class Fog : VolumeComponentWithQuality
     {
         /// <summary>Enable fog.</summary>
         [Tooltip("Enables the fog.")]
@@ -39,10 +41,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public FloatParameter baseHeight = new FloatParameter(0.0f);
         /// <summary>Height fog maximum height.</summary>
         public FloatParameter maximumHeight = new FloatParameter(50.0f);
-
-        // Common Fog Parameters (Exponential/Volumetric)
-        /// <summary>Fog albedo.</summary>
-        public ColorParameter albedo = new ColorParameter(Color.white);
         /// <summary>Fog mean free path.</summary>
         [DisplayInfo(name = "Fog Attenuation Distance")]
         public MinFloatParameter meanFreePath = new MinFloatParameter(400.0f, 1.0f);
@@ -51,28 +49,93 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable volumetric fog.</summary>
         [DisplayInfo(name = "Volumetric Fog")]
         public BoolParameter enableVolumetricFog = new BoolParameter(false);
-        /// <summary>Volumetric fog anisotropy.</summary>
-        public ClampedFloatParameter anisotropy = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+        // Common Fog Parameters (Exponential/Volumetric)
+        /// <summary>Stores the fog albedo. This defines the color of the fog.</summary>
+        public ColorParameter albedo = new ColorParameter(Color.white);
         /// <summary>Multiplier for ambient probe contribution.</summary>
         [DisplayInfo(name = "Ambient Light Probe Dimmer")]
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
-
-        /// <summary>Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.</summary>
-        [Tooltip("Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer.")]
+        /// <summary>Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer. The lower the distance is, the higher the fog quality is.</summary>
         public MinFloatParameter depthExtent = new MinFloatParameter(64.0f, 0.1f);
+        /// <summary>Controls which denoising technique to use for the volumetric effect.</summary>
+        /// <remarks>Reprojection mode is effective for static lighting but can lead to severe ghosting artifacts with highly dynamic lighting. Gaussian mode is effective with dynamic lighting. You can also use both modes together which produces high-quality results, but increases the resource intensity of processing the effect.</remarks>
+        [Tooltip("Controls which denoising technique to use for the volumetric effect. Reprojection is very effective for static lighting, but can lead to severe ghosting for highly dynamic lighting. Gaussian is a good alternative for dynamic lighting. Using both techniques can give high quality results but significantly increases the resource intensity of the effect.")]
+        public FogDenoisingModeParameter denoisingMode = new FogDenoisingModeParameter(FogDenoisingMode.Gaussian);
+
+        // Advanced parameters
+        /// <summary>Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering.</summary>
+        public ClampedFloatParameter anisotropy = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
         /// <summary>Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.</summary>
         [Tooltip("Controls the distribution of slices along the Camera's focal axis. 0 is exponential distribution and 1 is linear distribution.")]
         public ClampedFloatParameter sliceDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
-        /// <summary>Resolution of the volumetric buffer (3D texture) along the X and Y axes relative to the resolution of the frame buffer.</summary>
-        [Tooltip("Resolution of the volumetric buffer, along the x-axis and y-axis, relative to the resolution of the frame buffer.")]
-        public ClampedFloatParameter screenResolutionPercentage = new ClampedFloatParameter((1.0f/8.0f) * 100, (1.0f/16.0f) * 100, 100);
+
+        // Limit parameters for the fog quality
+        internal const float minFogScreenResolutionPercentage = (1.0f / 16.0f) * 100;
+        internal const float optimalFogScreenResolutionPercentage = (1.0f / 8.0f) * 100;
+        internal const float maxFogScreenResolutionPercentage = 0.5f * 100;
+        internal const int maxFogSliceCount = 512;
+
+        /// <summary>Controls which method to use to control the performance and quality of the volumetric fog.</summary>
+        /// <remarks>Balance mode allows you to use a performance-oriented approach to define the quality of the volumetric fog. Manual mode gives you access to the internal set of properties which directly control the effect.</remarks>
+        public FogControl fogControlMode
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_FogControlMode.value;
+                else
+                    return GetLightingQualitySettings().Fog_ControlMode[(int)quality.value];
+            }
+            set { m_FogControlMode.value = value; }
+        }
+        [SerializeField, FormerlySerializedAs("fogControlMode")]
+        [Tooltip("Controls which method to use to control the performance and quality of the volumetric fog. Balance mode allows you to use a performance-oriented approach to define the quality of the volumetric fog. Manual mode gives you access to the internal set of properties which directly control the effect.")]
+        private FogControlParameter m_FogControlMode = new FogControlParameter(FogControl.Balance);
+
+        /// <summary>Stores the resolution of the volumetric buffer (3D texture) along the x-axis and y-axis relative to the resolution of the frame buffer.</summary>
+        [Tooltip("Stores the resolution of the volumetric buffer (3D texture) along the x-axis and y-axis relative to the resolution of the frame buffer.")]
+        public ClampedFloatParameter screenResolutionPercentage = new ClampedFloatParameter(optimalFogScreenResolutionPercentage, minFogScreenResolutionPercentage, maxFogScreenResolutionPercentage);
         /// <summary>Number of slices of the volumetric buffer (3D texture) along the camera's focal axis.</summary>
         [Tooltip("Number of slices of the volumetric buffer (3D texture) along the camera's focal axis.")]
-        public ClampedIntParameter volumeSliceCount = new ClampedIntParameter(64, 1, 1024);
+        public ClampedIntParameter volumeSliceCount = new ClampedIntParameter(64, 1, maxFogSliceCount);
+        
+        /// <summary>Defines the performance to quality ratio of the volumetric fog. A value of 0 being the least resource-intensive and a value of 1 being the highest quality.</summary>
+        /// <remarks>Try to minimize this value to find a compromise between quality and performance. </remarks>
+        public float volumetricFogBudget
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_VolumetricFogBudget.value;
+                else
+                    return GetLightingQualitySettings().Fog_Budget[(int)quality.value];
+            }
+            set { m_VolumetricFogBudget.value = value; }
+        }
+        [SerializeField, FormerlySerializedAs("volumetricFogBudget")]
+        [Tooltip("Defines the performance to quality ratio of the volumetric fog. A value of 0 being the least resource-intensive and a value of 1 being the highest quality.")]
+        private ClampedFloatParameter m_VolumetricFogBudget = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
 
-        /// <summary>Applies a blur to smoothen the volumetric lighting output.</summary>
-        [Tooltip("Applies a blur to smoothen the volumetric lighting output.")]
-        public BoolParameter filter = new BoolParameter(false);
+        /// <summary>Controls how Unity shares resources between Screen (XY) and Depth (Z) resolutions.</summary>
+        /// <remarks>A value of 0 means Unity allocates all of the resources to the XY resolution, which reduces aliasing, but increases noise. A value of 1 means Unity allocates all of the resources to the Z resolution, which reduces noise, but increases aliasing. This property allows for linear interpolation between the two configurations.<remarks>
+        public float resolutionDepthRatio
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_ResolutionDepthRatio.value;
+                else
+                    return GetLightingQualitySettings().Fog_DepthRatio[(int)quality.value];
+            }
+            set { m_ResolutionDepthRatio.value = value; }
+        }
+        [SerializeField, FormerlySerializedAs("resolutionDepthRatio")]
+        [Tooltip("Controls how Unity shares resources between Screen (XY) and Depth (Z) resolutions.")]
+        public ClampedFloatParameter m_ResolutionDepthRatio = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+
+        /// <summary>Indicates whether Unity includes or excludes non-directional light types when it evaluates the volumetric fog. Including non-directional lights increases the resource intensity of the effect.</summary>
+        [Tooltip("Indicates whether Unity includes or excludes non-directional light types when it evaluates the volumetric fog. Including non-directional lights increases the resource intensity of the effect.")]
+        public BoolParameter directionalLightsOnly = new BoolParameter(false);
 
         internal static bool IsFogEnabled(HDCamera hdCamera)
         {
@@ -164,6 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._HeightFogExponents = new Vector2(1.0f / H, H);
             cb._HeightFogBaseHeight = crBaseHeight;
             cb._GlobalFogAnisotropy = anisotropy.value;
+            cb._VolumetricFilteringEnabled = ((int)denoisingMode.value & (int)FogDenoisingMode.Gaussian) != 0 ? 1 : 0;
         }
     }
 
@@ -199,5 +263,72 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideState">Initial override state.</param>
         public FogColorParameter(FogColorMode value, bool overrideState = false)
             : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// Options that control the quality and resource intensity of the volumetric fog.
+    /// </summary>
+    public enum FogControl
+    {
+        /// <summary>
+        /// Use this mode if you want to change the fog control properties based on a higher abstraction level centered around performance.
+        /// </summary>
+        Balance,
+
+        /// <summary>
+        /// Use this mode if you want to have direct access to the internal properties that control volumetric fog.
+        /// </summary>
+        Manual
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="ExposureMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class FogControlParameter : VolumeParameter<FogControl>
+    {
+        /// <summary>
+        /// Creates a new <see cref="FogControlParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public FogControlParameter(FogControl value, bool overrideState = false) : base(value, overrideState) { }
+    }
+
+    /// <summary>
+    /// Options that control which denoising algorithms Unity should use on the volumetric fog signal.
+    /// </summary>
+    public enum FogDenoisingMode
+    {
+        /// <summary>
+        /// Use this mode to not filter the volumetric fog.
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// Use this mode to reproject data from previous frames to denoise the signal. This is effective for static lighting, but it can lead to severe ghosting artifacts for highly dynamic lighting.
+        /// </summary>
+        Reprojection = 1 << 0,
+        /// <summary>
+        /// Use this mode to reduce the aliasing patterns that can appear on the volumetric fog.
+        /// </summary>
+        Gaussian = 1 << 1,
+        /// <summary>
+        /// Use this mode to use both Reprojection and Gaussian filtering techniques. This produces high visual quality, but significantly increases the resource intensity of the effect.
+        /// </summary>
+        Both = Reprojection | Gaussian
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="FogDenoisingMode"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class FogDenoisingModeParameter : VolumeParameter<FogDenoisingMode>
+    {
+        /// <summary>
+        /// Creates a new <see cref="FogDenoisingModeParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public FogDenoisingModeParameter(FogDenoisingMode value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

@@ -82,6 +82,36 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class AdjustRTGIWeightPassData
+        {
+            public AdjustRTIDWeightParameters parameters;
+            public TextureHandle depthPyramid;
+            public TextureHandle stencilBuffer;
+            public TextureHandle indirectDiffuseBuffer;
+        }
+
+        TextureHandle AdjustRTGIWeight(RenderGraph renderGraph, in AdjustRTIDWeightParameters parameters, TextureHandle indirectDiffuseBuffer, TextureHandle depthPyramid, TextureHandle stencilBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<AdjustRTGIWeightPassData>("Adjust the RTGI weight", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseAdjustWeight)))
+            {
+                builder.EnableAsyncCompute(false);
+
+                passData.parameters = parameters;
+                passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
+                passData.indirectDiffuseBuffer = builder.ReadTexture(builder.WriteTexture(indirectDiffuseBuffer));
+
+                builder.SetRenderFunc(
+                (AdjustRTGIWeightPassData data, RenderGraphContext ctx) =>
+                {
+                    // We need to fill the structure that holds the various resources
+                    AdjustRTIDWeight(ctx.cmd, data.parameters, data.indirectDiffuseBuffer, data.depthPyramid, data.stencilBuffer);
+                });
+
+                return passData.indirectDiffuseBuffer;
+            }
+        }
+
         static RTHandle RequestRayTracedIndirectDiffuseHistoryTexture(HDCamera hdCamera)
         {
             return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseHF)
@@ -90,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderIndirectDiffusePerformance(RenderGraph renderGraph, HDCamera hdCamera,
-                                            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, Texture skyTexture,
+                                            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, Texture skyTexture,
                                             int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             // Pointer to the final result
@@ -110,6 +140,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                     depthPyramid, normalBuffer, lightingBuffer, directionBuffer);
             // Denoise if required
             rtgiResult = DenoiseRTGI(renderGraph, hdCamera, rtgiResult, depthPyramid, normalBuffer, motionVectors);
+
+            // Adjust the weight
+            AdjustRTIDWeightParameters artidParamters = PrepareAdjustRTIDWeightParametersParameters(hdCamera);
+            rtgiResult = AdjustRTGIWeight(renderGraph, in artidParamters, rtgiResult, depthPyramid, stencilBuffer);
 
             return rtgiResult;
         }
@@ -153,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderIndirectDiffuseQuality(RenderGraph renderGraph, HDCamera hdCamera,
-                                    TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, Texture skyTexture,
+                                    TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle rayCountTexture, Texture skyTexture,
                                     int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -164,6 +198,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Denoise if required
             rtgiResult = DenoiseRTGI(renderGraph, hdCamera, rtgiResult, depthPyramid, normalBuffer, motionVectors);
+
+            // Adjust the weight
+            AdjustRTIDWeightParameters artidParamters = PrepareAdjustRTIDWeightParametersParameters(hdCamera);
+            rtgiResult = AdjustRTGIWeight(renderGraph, in artidParamters, rtgiResult, depthPyramid, stencilBuffer);
 
             return rtgiResult;
         }
@@ -188,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (giSettings.denoise)
             {
                 // Evaluate the history's validity
-                float historyValidity = EvaluateHistoryValidity(hdCamera);
+                float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolution, true);
 
                 HDTemporalFilter temporalFilter = GetTemporalFilter();
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
@@ -199,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rtGIBuffer, historyBufferHF, depthPyramid, normalBuffer, motionVectorBuffer);
 
                 // Apply the diffuse denoiser
-                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.denoiserRadius, giSettings.halfResolutionDenoiser);
+                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.denoiserRadius, giSettings.halfResolutionDenoiser, giSettings.secondDenoiserPass);
                 rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
 
                 // If the second pass is requested, do it otherwise blit
@@ -211,9 +249,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     denoisedRTGI = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rtGIBuffer, historyBufferLF, depthPyramid, normalBuffer, motionVectorBuffer);
 
                     // Apply the diffuse denoiser
-                    ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.secondDenoiserRadius, giSettings.halfResolutionDenoiser);
+                    ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, giSettings.denoiserRadius * 0.5f, giSettings.halfResolutionDenoiser, false);
                     rtGIBuffer = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTGI, depthPyramid, normalBuffer, rtGIBuffer);
                 }
+
+                // Propagate the history
+                PropagateIndirectDiffuseHistoryValidity(hdCamera, giSettings.fullResolution, true);
 
                 return rtGIBuffer;
             }
@@ -222,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderRayTracedIndirectDiffuse(RenderGraph renderGraph, HDCamera hdCamera,
-                                TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, Texture skyTexture, TextureHandle rayCountTexture,
+                                TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, Texture skyTexture, TextureHandle rayCountTexture,
                                 int frameCount, ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -239,11 +280,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (qualityMode)
                 rtreflResult = RenderIndirectDiffuseQuality(renderGraph, hdCamera,
-                                                    depthPyramid, normalBuffer, motionVectors, rayCountTexture, skyTexture,
+                                                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, skyTexture,
                                                     frameCount, shaderVariablesRaytracing);
             else
                 rtreflResult = RenderIndirectDiffusePerformance(renderGraph, hdCamera,
-                                                    depthPyramid, normalBuffer, motionVectors, rayCountTexture, skyTexture,
+                                                    depthPyramid, stencilBuffer, normalBuffer, motionVectors, rayCountTexture, skyTexture,
                                                     frameCount, shaderVariablesRaytracing);
 
             return rtreflResult;

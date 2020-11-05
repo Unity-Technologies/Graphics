@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal
 {
-    static class ShadowCascadeSplitGUI
+    static partial class ShadowCascadeSplitGUI
     {
         private const int kSliderbarTopMargin = 2;
         private const int kSliderbarHeight = 29;
@@ -56,8 +56,9 @@ namespace UnityEditor.Rendering.Universal
             *  @param  normalizedCascadePartition      The array of partition sizes in the range 0.0f - 1.0f; expects ONE entry if cascades = 2, and THREE if cascades=4
             *                                          The last entry will be automatically determined by summing up the array, and doing 1.0f - sum
             */
-        public static void HandleCascadeSliderGUI(ref float[] normalizedCascadePartitions)
+        public static void HandleCascadeSliderGUI(ref float[] normalizedCascadePartitions, float distance, EditorUtils.Unit unit)
         {
+            EditorGUI.indentLevel--;
             EditorGUILayout.BeginHorizontal();
             GUILayout.Space(EditorGUI.indentLevel * 15f);
             // get the inspector width since we need it while drawing the partition rects.
@@ -85,7 +86,7 @@ namespace UnityEditor.Rendering.Universal
             System.Array.Copy(normalizedCascadePartitions, adjustedCascadePartitions, normalizedCascadePartitions.Length);
             adjustedCascadePartitions[adjustedCascadePartitions.Length - 1] = 1.0f - normalizedCascadePartitions.Sum();
 
-
+            string cascadeText = "";
             // check for user input on any of the partition handles
             // this mechanism gets the current event in the queue... make sure that the mouse is over our control before consuming the event
             int sliderControlId = GUIUtility.GetControlID(s_CascadeSliderId, FocusType.Passive);
@@ -109,7 +110,16 @@ namespace UnityEditor.Rendering.Universal
                 // cascade box percentage text
                 GUI.color = Color.white;
                 Rect textRect = partitionRect;
-                var cascadeText = string.Format("{0}\n{1:F1}%", i, currentPartition * 100.0f);
+
+                if (unit == EditorUtils.Unit.Percent)
+                {
+                    cascadeText = $"{i+1}\n{currentPartition * 100.0f:F1}%";
+                }
+                else
+                {
+                    var m = currentPartition* distance;
+                    cascadeText = $"{i+1}\n{m:F1}m";
+                }
 
                 GUI.Label(textRect, cascadeText, s_TextCenteredStyle);
 
@@ -167,7 +177,6 @@ namespace UnityEditor.Rendering.Universal
 #else
                                 s_OldSceneLightingMode = s_RestoreSceneView.m_SceneLighting;
 #endif
-                                s_RestoreSceneView.cameraMode = SceneView.GetBuiltinCameraMode(DrawCameraMode.ShadowCascades);
                             }
                         }
                     }

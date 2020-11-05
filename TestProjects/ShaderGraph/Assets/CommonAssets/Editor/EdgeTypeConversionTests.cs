@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         void CompileNodeShader(AbstractMaterialNode node, GenerationMode mode, string nodeName)
         {
-            var generator = new Generator(m_Graph, node, mode, nodeName);
+            var generator = new Generator(m_Graph, node, mode, nodeName, null);
             var shader = ShaderUtil.CreateShaderAsset(generator.generatedShader, true);
             shader.hideFlags = HideFlags.HideAndDontSave;
             var mat = new Material(shader) {hideFlags = HideFlags.HideAndDontSave};

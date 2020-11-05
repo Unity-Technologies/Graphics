@@ -16,10 +16,10 @@ def create_projectcontext_ymls(metafile):
     job = Project_PackJob(metafile["agent_pack"])
     yml[job.job_id] = job.yml
     for package in metafile["packages"]:
-        job = Project_PublishJob(package, metafile["agent_publish"], metafile["platforms"], metafile["target_editor"])
+        job = Project_PublishJob(package, metafile["agent_publish"], metafile["platforms"], metafile["publish_all_tracks"])
         yml[job.job_id] = job.yml
 
-        job = Project_PublishJob_DryRun(package, metafile["agent_publish"], metafile["platforms"], metafile["target_editor"])
+        job = Project_PublishJob_DryRun(package, metafile["agent_publish"], metafile["platforms"], metafile["publish_all_tracks"])
         yml[job.job_id] = job.yml
 
     for editor in metafile["editors"]:
@@ -32,7 +32,7 @@ def create_projectcontext_ymls(metafile):
         yml[job.job_id] = job.yml
     
     for editor in metafile['editors']:
-        job = Project_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], metafile["target_editor"], metafile["target_branch"], editor)
+        job = Project_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], metafile["target_branch"], editor)
         yml[job.job_id] = job.yml
 
     job = Project_PublishAllJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
