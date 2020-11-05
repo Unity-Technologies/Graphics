@@ -483,11 +483,18 @@ namespace UnityEditor.Rendering.Universal
             DrawRenderingSettings(camType, rpAsset);
             DrawEnvironmentSettings(camType);
 
-            // Settings only relevant to base cameras
             if (camType == CameraRenderType.Base)
             {
+                // Settings only relevant to base cameras
                 DrawOutputSettings(rpAsset);
                 DrawStackSettings();
+            }
+            else if (camType == CameraRenderType.Overlay)
+            {
+                // ScriptableRenderContext.SetupCameraProperties still depends on camera target texture
+                // In order for overlay camera not to override base camera target texture we null it here
+                if (settings.targetTexture.objectReferenceValue != null)
+                    settings.targetTexture.objectReferenceValue = null;
             }
 
             EditorGUI.indentLevel--;
