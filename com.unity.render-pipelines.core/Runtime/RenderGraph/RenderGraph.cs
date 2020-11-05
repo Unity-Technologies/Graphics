@@ -378,8 +378,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Create a new Render Graph Shared Texture resource.
         /// This texture will be persistent across render graph executions.
         /// </summary>
-        /// <param name="desc"></param>
-        /// <returns></returns>
+        /// <param name="desc">Creation descriptor of the texture.</param>
+        /// <returns>A new TextureHandle.</returns>
         public TextureHandle CreateSharedTexture(in TextureDesc desc)
         {
             if (m_HasRenderGraphBegun)
@@ -388,6 +388,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources.CreateSharedTexture(desc);
         }
 
+        /// <summary>
+        /// Release a Render Graph shared texture resource.
+        /// </summary>
+        /// <param name="texture">The handle to the texture that needs to be release.</param>
         public void ReleaseSharedTexture(TextureHandle texture)
         {
             if (m_HasRenderGraphBegun)
