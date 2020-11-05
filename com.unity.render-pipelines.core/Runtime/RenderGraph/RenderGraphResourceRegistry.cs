@@ -35,7 +35,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public int  cachedHash;
             public int  transientPassIndex;
             public int sharedResourceLastFrameUsed;
-            public bool wasReleased;
 
             protected IRenderGraphResourcePool m_Pool;
 
@@ -45,7 +44,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 cachedHash = -1;
                 transientPassIndex = -1;
                 sharedResourceLastFrameUsed = -1;
-                wasReleased = false;
 
                 m_Pool = pool;
             }
@@ -125,18 +123,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     pool.UnregisterFrameAllocation(cachedHash, resource);
                 }
 
-                cachedHash = -1;
-                resource = null;
-                wasReleased = true;
+                Reset(null);
             }
 
             public override void ReleaseResource()
             {
                 base.ReleaseResource();
 
-                cachedHash = -1;
-                resource = null;
-                wasReleased = true;
+                Reset(null);
             }
         }
 
@@ -457,10 +451,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 textureIndex = m_Resources[(int)RenderGraphResourceType.Texture].AddNewResource(out texResource, pooledResource: false);
             }
 
-            texResource.resource = null;
             texResource.imported = true;
 
             return new TextureHandle(textureIndex);
+        }
+
+        internal void ReleaseSharedTexture(TextureHandle texture)
+        {
+            var texResources = m_Resources[(int)RenderGraphResourceType.Texture];
+            if (texture.handle >= texResources.sharedResourcesCount)
+                throw new InvalidOperationException("Tried to release a non shared texture.");
+
+            GetTextureResource(texture.handle).ReleaseResource();
         }
 
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
@@ -569,7 +571,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        public void CreatePoolResource(RenderGraphContext rgContext, int type, int index)
+        internal void CreatePooledResource(RenderGraphContext rgContext, int type, int index)
         {
             var resource = m_Resources[type].resourceArray[index];
             if (!resource.imported)
@@ -607,7 +609,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        internal void ReleasePoolResource(RenderGraphContext rgContext, int type, int index)
+        internal void ReleasePooledResource(RenderGraphContext rgContext, int type, int index)
         {
             var resource = m_Resources[type].resourceArray[index];
 

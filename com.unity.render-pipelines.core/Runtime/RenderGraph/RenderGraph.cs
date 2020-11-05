@@ -388,6 +388,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources.CreateSharedTexture(desc);
         }
 
+        public void ReleaseSharedTexture(TextureHandle texture)
+        {
+            if (m_HasRenderGraphBegun)
+                throw new InvalidOperationException("A shared texture can only be release outside of render graph execution.");
+
+            m_Resources.ReleaseSharedTexture(texture);
+        }
+
         /// <summary>
         /// Create a new Render Graph Texture resource using the descriptor from another texture.
         /// </summary>
@@ -1209,7 +1217,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var resource in passInfo.resourceCreateList[type])
                 {
-                    m_Resources.CreatePoolResource(rgContext, type, resource);
+                    m_Resources.CreatePooledResource(rgContext, type, resource);
                 }
             }
 
@@ -1254,7 +1262,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 foreach (var resource in passInfo.resourceReleaseList[type])
                 {
-                    m_Resources.ReleasePoolResource(rgContext, type, resource);
+                    m_Resources.ReleasePooledResource(rgContext, type, resource);
                 }
             }
         }
@@ -1271,7 +1279,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
                 foreach (var resource in m_ImmediateModeResourceList[type])
-                    m_Resources.ReleasePoolResource(m_RenderGraphContext, type, resource);
+                    m_Resources.ReleasePooledResource(m_RenderGraphContext, type, resource);
 
             }
         }
