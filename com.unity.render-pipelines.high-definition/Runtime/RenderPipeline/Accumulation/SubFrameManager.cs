@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderAccumulation(HDCamera hdCamera, RTHandle inputTexture, RTHandle outputTexture, bool needExposure, CommandBuffer cmd)
         {
-            // Grab the history buffer (hijack the reflections one)
+            // Grab the history buffer
             RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1);
 

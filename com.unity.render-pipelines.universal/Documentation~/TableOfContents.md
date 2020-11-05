@@ -1,5 +1,7 @@
 * [Universal Render Pipeline](index.md)
 * [Requirements](requirements)
+* [What's new](whats-new/urp-whats-new.md)
+  * [URP 10](whats-new/urp-whats-new-10.md)
 * [Features]()
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
 * [Getting started](InstallingAndConfiguringURP.md)
@@ -103,3 +105,4 @@
 * [Building for consoles](Building-For-Consoles.md)
   
 * [Frequently asked questions (FAQ)](faq.md)
+* [Known issues](known-issues.md)
