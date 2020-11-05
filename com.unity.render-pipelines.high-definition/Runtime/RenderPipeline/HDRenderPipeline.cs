@@ -339,13 +339,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool showCascade
         {
-            get => m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
+            get => m_DebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
             set
             {
                 if (value)
-                    m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.VisualizeCascade);
+                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.VisualizeCascade);
                 else
-                    m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
+                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
             }
         }
 
