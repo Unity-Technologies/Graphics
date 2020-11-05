@@ -7,12 +7,12 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    ///     Lightmapping utilities for HDRP
+    ///     Provides methods to help you with lightmapping in the High Definition Render Pipeline.
     /// </summary>
     public static class LightmappingHDRP
     {
         /// <summary>
-        ///     Bake the <paramref name="probe" /> and updated its baked texture.
+        ///     Bakes the <paramref name="probe" /> and updates its baked texture.
         ///
         ///     Note: The update of the probe is persistent only in editor mode.
         /// </summary>
@@ -20,12 +20,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="path">The asset path to write the baked texture to.</param>
         /// <param name="options">The options to use for the bake.</param>
         /// <returns>
-        ///     <c>null</c> on success or the error that occured.
+        ///     Returns <c>null</c> if successful. Otherwise, returns the error that occured.
         ///     The error can be:
         ///     * <see cref="ArgumentException" /> if the <paramref name="path" /> is invalid.
         ///     * <see cref="ArgumentNullException" /> if the <paramref name="probe" /> is <c>null</c>.
         ///     * <see cref="Exception" /> if the <paramref name="probe" /> is not supported. Only
-        ///     <see cref="HDAdditionalReflectionData" /> probes are currently supported.
+        ///     This functional currently only supports <see cref="HDAdditionalReflectionData" /> probes.
         /// </returns>
         public static Exception BakeProbe([NotNull] HDProbe probe, [NotNull] string path, BakeProbeOptions options)
         {
@@ -68,27 +68,27 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        ///     Options of <see cref="LightmappingHDRP.BakeProbe" /> function.
+        ///     Represents options to use with the <see cref="LightmappingHDRP.BakeProbe" /> function.
         /// </summary>
         public struct BakeProbeOptions
         {
             /// <summary>
-            ///     Determines the size of the baked texture.
+            ///     Represents the size of a probe's baked texture.
             /// </summary>
             public struct TextureSize
             {
                 /// <summary>
-                ///     Which methods to use to evaluate the value.
+                ///     Options for which method to use to determine the size of the baked texture.
                 /// </summary>
                 public enum Mode
                 {
                     /// <summary>
-                    ///     Use the probe resolution as texture size.
+                    ///     Uses the probe's resolution as the size of the baked texture.
                     /// </summary>
                     UseProbeResolution,
 
                     /// <summary>
-                    ///     Use the value of <see cref="TextureSize.customValue" />.
+                    ///     Uses the value of <see cref="TextureSize.customValue" /> as the size of the baked texture.
                     /// </summary>
                     CustomValue
                 }
@@ -96,14 +96,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 /// <summary>
                 ///     Returns a <see cref="TextureSize" /> with default values.
                 /// </summary>
-                /// <returns>A <see cref="TextureSize" /> with default values.</returns>
+                /// <returns>Returns a <see cref="TextureSize" /> with default values.</returns>
                 public static TextureSize NewDefault()
                 {
                     return new TextureSize {mode = Mode.UseProbeResolution};
                 }
 
                 /// <summary>
-                ///     The mode to use.
+                ///     The method to use to determine the size of the baked texture.
                 /// </summary>
                 public Mode mode;
 
@@ -113,10 +113,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 public int customValue;
 
                 /// <summary>
-                ///     Evaluate the texture size to use for baking.
+                ///     Evaluates a probe and gets the texture size to use for baking.
                 /// </summary>
-                /// <param name="probe">The probe that will be baked.</param>
-                /// <returns>The value of the texture size to use for the bake.</returns>
+                /// <param name="probe">The probe to get the texture size for.</param>
+                /// <returns>Returns the size of the texture to use for the bake.</returns>
                 /// <exception cref="ArgumentNullException">
                 ///     When <paramref name="probe" /> is <c>null</c> and the mode
                 ///     <see cref="Mode.UseProbeResolution" /> is used.
@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             /// <summary>
-            ///     Return a <see cref="BakeProbeOptions" /> with default values.
+            ///     Constructs a <see cref="BakeProbeOptions" /> with default values and returns it.
             /// </summary>
             /// <returns>A <see cref="BakeProbeOptions" /> with default values.</returns>
             public static BakeProbeOptions NewDefault()
