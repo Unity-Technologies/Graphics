@@ -264,6 +264,88 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        [UnityTest]
+        public IEnumerator Create_Asset_And_Component_Spawner_With_Manual_Set_SpawnCount_And_Output_Event_Check_Expected_Count()
+        {
+            yield return new EnterPlayMode();
+
+            //This mainly cover return value & expected behavior, event attribute values are covered by a graphic test
+            var spawnCountValue = 1.0f; //We running these test at 10FPS, half of rate provided by constantRate, the other comes from manaul spawnCount
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(spawnCountValue / 2.0f, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            //Manual constant rate
+            var spawnState = ScriptableObject.CreateInstance<Operator.SpawnState>();
+            graph.AddChild(spawnState);
+
+            var currentSpawnCount = ScriptableObject.CreateInstance<VFXAttributeParameter>(); //Also available in spawn state
+            currentSpawnCount.SetSettingValue("location", VFXAttributeLocation.Current);
+            currentSpawnCount.SetSettingValue("attribute", VFXAttribute.SpawnCount.name);
+            graph.AddChild(currentSpawnCount);
+
+            graph.AddChild(spawnState);
+
+            var multiply = ScriptableObject.CreateInstance<Operator.Multiply>();
+            multiply.SetOperandType(0, typeof(float));
+            multiply.SetOperandType(1, typeof(float));
+            graph.AddChild(multiply);
+
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
+            add.SetOperandType(0, typeof(float));
+            add.SetOperandType(1, typeof(float));
+            graph.AddChild(add);
+
+            var setSpawnCount = ScriptableObject.CreateInstance<Block.VFXSpawnerSetAttribute>();
+            setSpawnCount.SetSettingValue("attribute", VFXAttribute.SpawnCount.name);
+            graph.children.OfType<VFXBasicSpawner>().First().AddChild(setSpawnCount);
+
+            Assert.IsTrue(spawnState.outputSlots.First(o => o.name == "SpawnDeltaTime").Link(multiply.inputSlots[0]));
+            multiply.inputSlots[1].value = spawnCountValue / 2.0f;
+
+            Assert.IsTrue(multiply.outputSlots[0].Link(add.inputSlots[0]));
+            Assert.IsTrue(currentSpawnCount.outputSlots[0].Link(add.inputSlots[1]));
+            Assert.IsTrue(add.outputSlots[0].Link(setSpawnCount.inputSlots[0]));
+
+            //Create output event
+            var outputEvent = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            graph.AddChild(outputEvent);
+            outputEvent.LinkFrom(basicSpawner);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            s_receivedEvent = new List<int>();
+            vfxComponent.outputEventReceived += OnEventReceived;
+
+            int maxFrame = 512;
+            while (vfxComponent.culled && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.IsTrue(maxFrame > 0);
+
+            vfxComponent.Reinit();
+            float deltaTime = 0.1f;
+            uint count = 32;
+            vfxComponent.Simulate(deltaTime, count);
+            Assert.AreEqual(0u, s_receivedEvent.Count); //The simulate is asynchronous
+
+            float simulateTime = deltaTime * count;
+            uint expectedEventCount = (uint)Mathf.Floor(simulateTime / spawnCountValue);
+
+            maxFrame = 64; s_receivedEvent.Clear();
+            cameraObj.SetActive(false);
+            while (s_receivedEvent.Count == 0u && --maxFrame > 0)
+            {
+                yield return null;
+            }
+            Assert.AreEqual(expectedEventCount, (uint)s_receivedEvent.Count);
+            yield return null;
+
+            yield return new ExitPlayMode();
+        }
+
 
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner()
