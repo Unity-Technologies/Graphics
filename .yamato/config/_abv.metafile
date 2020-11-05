@@ -10,6 +10,9 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - il2cpp
   color_spaces: 
     - Linear
+weekly:
+  extra_dependencies: # additional project jobs to run weekly
+    []
 nightly:
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
     - project: Smoke_Test

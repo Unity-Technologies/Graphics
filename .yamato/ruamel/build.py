@@ -10,6 +10,7 @@ from jobs.packages.yml_project import create_projectcontext_ymls
 from jobs.abv.yml_abv import create_abv_ymls
 from jobs.preview_publish.yml_pb import create_preview_publish_ymls
 from jobs.templates.yml_template import create_template_ymls
+from jobs.formatting.yml_formatting import create_formatting_ymls
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 yamato_dir = os.path.join(root_dir,'.yamato')
@@ -104,6 +105,11 @@ if __name__== "__main__":
     print(f'Running: templates')
     template_metafile = get_metafile(os.path.join(config_dir,'_templates.metafile'))
     yml_dump_files(create_template_ymls(template_metafile))
+
+    # create template jobs
+    # print(f'Running: formatting')
+    # formatting_metafile = get_metafile(os.path.join(config_dir,'_formatting.metafile'))
+    # yml_dump_files(create_formatting_ymls(formatting_metafile))
 
     # create yml jobs for each specified project
     #for project_metafile in glob.glob(os.path.join(config_dir,'*universal*.metafile')):

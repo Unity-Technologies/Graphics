@@ -135,8 +135,19 @@ def abv_job_id_all_project_ci(editor_name):
 def abv_job_id_all_project_ci_nightly(editor_name):
     return f'all_project_ci_nightly_{editor_name}'
 
+def abv_job_id_all_project_ci_weekly(editor_name):
+    return f'all_project_ci_weekly_{editor_name}'
+
 def abv_job_id_trunk_verification(editor_name):
     return f'trunk_verification_{editor_name}'
+
+
+# formatting specific
+def formatting_filepath():
+    return f'{parent_dir}/_formatting.yml'.lower()
+
+def formatting_job_id():
+    return f'formatting'
 
 
 # preview publish specific
