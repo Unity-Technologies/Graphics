@@ -1,4 +1,4 @@
-# What's new in version 10.0
+# What's new in version 10
 
 This page contains an overview of new features, improvements, and issues resolved in version 10 of the High Definition Render Pipeline (HDRP).
 
@@ -204,6 +204,14 @@ HDRP, being a high-end modern renderer, contains a lot of compute shader passes.
 ![](Images/PlanarReflectionFiltering-Feature.png)
 
 Planar reflection probe filtering is a process that combines the result of planar reflection and surfaces smoothness. Up until this version, the implementation for planar reflection probe filtering did not always produce results of fantastic quality. This version of HDRP includes a new implementation that is closer to being physically-based and improves on the image quality significantly.
+
+### Screen space reflection
+
+[Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always use the color pyramid generate after the Before Refraction transparent pass. Thus the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md).
+
+### Distortion
+
+The distortion effect now supports a rough distortion which is disabled by default. Disabling Rough Distortion saves resources as the effect does not generate a color pyramid and instead uses a copy of the screen.
 
 ### Platform stability
 

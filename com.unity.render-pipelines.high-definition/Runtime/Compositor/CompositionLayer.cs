@@ -234,8 +234,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 // - it has no layer overrides
                 // - is not shared between layers
                 // - is not used in an mage/video layer (in this case the camera is not exposed at all, so it makes sense to let the compositor manage it)
+                // - it does not force-clear the RT (the first layer of a stack, even if disabled by the user), still clears the RT   
+                bool shouldClear = !enabled && m_LayerPositionInStack == 0;
                 bool isImageOrVideo = (m_Type == LayerType.Image || m_Type == LayerType.Video);
-                if (!isImageOrVideo && !hasLayerOverrides && !compositor.IsThisCameraShared(m_Camera))
+                if (!isImageOrVideo && !hasLayerOverrides && !shouldClear && !compositor.IsThisCameraShared(m_Camera))
                 {
                     m_LayerCamera = m_Camera;
                 }
@@ -396,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return true;
         }
 
-        public void DestroyRT()
+        public void DestroyCameras()
         {
             // We should destroy the layer camera only if it was cloned
             if (m_LayerCamera != null)
@@ -418,7 +420,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     m_LayerCamera = null;
                 }
             }
+        }
 
+        public void DestroyRT()
+        {
             if (m_RTHandle != null)
             {
                 RTHandles.Release(m_RTHandle);
@@ -451,6 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void Destroy()
         {
+            DestroyCameras();
             DestroyRT();
         }
 

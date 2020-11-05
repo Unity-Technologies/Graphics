@@ -277,6 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AddPassToFrame(Camera camera, XRPass xrPass)
         {
+            xrPass.UpdateOcclusionMesh();
             framePasses.Add((camera, xrPass));
         }
 

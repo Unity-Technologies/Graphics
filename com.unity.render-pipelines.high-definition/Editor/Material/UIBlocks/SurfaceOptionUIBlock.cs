@@ -217,7 +217,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // Refraction (for show pre-refraction pass enum)
         protected MaterialProperty refractionModel = null;
-        protected const string kRefractionModel = "_RefractionModel";
 
         MaterialProperty transparentZWrite = null;
         MaterialProperty stencilRef = null;
@@ -482,11 +481,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawSurfaceGUI()
         {
-            // TODO: does not work with multi-selection
-            bool showBlendModePopup = refractionModel == null
-                || refractionModel.floatValue == 0
-                || materials.All(m => HDRenderQueue.k_RenderQueue_PreRefraction.Contains(m.renderQueue));
-
             SurfaceTypePopup();
 
             if (surfaceTypeValue == SurfaceType.Transparent)
@@ -506,7 +500,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new EditorGUI.DisabledScope(true))
                         EditorGUILayout.LabelField(Styles.blendModeText, Styles.notSupportedInMultiEdition);
                 }
-                else if (blendMode != null && showBlendModePopup)
+                else if (blendMode != null)
                     BlendModePopup();
 
                 if ((m_Features & Features.PreserveSpecularLighting) != 0)
@@ -516,7 +510,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         using (new EditorGUI.DisabledScope(true))
                             EditorGUILayout.LabelField(Styles.enableBlendModePreserveSpecularLightingText, Styles.notSupportedInMultiEdition);
                     }
-                    else if (enableBlendModePreserveSpecularLighting != null && blendMode != null && showBlendModePopup)
+                    else if (enableBlendModePreserveSpecularLighting != null && blendMode != null)
                         materialEditor.ShaderProperty(enableBlendModePreserveSpecularLighting, Styles.enableBlendModePreserveSpecularLightingText);
                     EditorGUI.indentLevel--;
                 }
@@ -646,7 +640,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 case SurfaceType.Transparent:
                     //GetTransparentEquivalent: prevent issue when switching surface type
                     HDRenderQueue.TransparentRenderQueue renderQueueTransparentType = HDRenderQueue.ConvertToTransparentRenderQueue(HDRenderQueue.GetTransparentEquivalent(renderQueueType));
-                    var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)DoTransparentRenderingPassPopup(Styles.renderingPassText, (int)renderQueueTransparentType, showPreRefractionPass, showLowResolutionPass, showAfterPostProcessPass);
+                    var newRenderQueueTransparentType = (HDRenderQueue.TransparentRenderQueue)DoTransparentRenderingPassPopup(Styles.renderingPassText, (int)renderQueueTransparentType, true, showLowResolutionPass, showAfterPostProcessPass);
                     if (newRenderQueueTransparentType != renderQueueTransparentType || renderQueueTypeMismatchRenderQueue) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
                     {
                         materialEditor.RegisterPropertyChangeUndo("Rendering Pass");

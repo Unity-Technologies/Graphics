@@ -4,14 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2020-10-21
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.2.0] - 2020-10-19
 
 ### Added
+- Added a rough distortion frame setting and and info box on distortion materials.
+- Adding support of 4 channel tex coords for ray tracing (case 1265309).
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
+- Fixed an issue when rendering into texture where alpha would not default to 1.0 when using 11_11_10 color buffer in non-dev builds.
+- Fixed issues with reordering and hiding graphics compositor layers (cases 1283903, 1285282, 1283886).
+- Fixed the possibility to have a shader with a pre-refraction render queue and refraction enabled at the same time.
+- Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
+- Fixed upside down XR occlusion mesh.
 
 ### Changed
+- Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
 
 ## [10.1.0] - 2020-10-12
 
@@ -48,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a new ray tracing only function that samples the specular part of the materials.
 - Adding missing marker for ray tracing profiling (RaytracingDeferredLighting)
 - Added the support of eye shader for ray tracing.
+- Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
@@ -171,10 +185,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the denoising and multi-sample not being used for smooth multibounce RTReflections.
 - Fixed issue where multiple cameras would cause GC each frame.
 - Fixed after post process rendering pass options not showing for unlit ShaderGraphs.
-- Fixed a migration issue with the rendering queue in ShaderGraph when upgrading to 10.x;
 - Fixed null reference in the Undo callback of the graphics compositor 
 - Fixed cullmode for SceneSelectionPass.
 - Fixed issue that caused non-static object to not render at times in OnEnable reflection probes.
+- Baked reflection probes now correctly use static sky for ambient lighting.
 
 ### Changed
 - Preparation pass for RTSSShadows to be supported by render graph.
@@ -213,6 +227,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move System Generated Values semantics out of VaryingsMesh structure.
 - Other forms of FSAA are silently deactivated, when path tracing is on.
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
+- SSR now uses the pre-refraction color pyramid.
 
 ## [10.0.0] - 2019-06-10
 

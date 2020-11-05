@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1101_Unlit.unity
     guid: 7fe3f9e94b4355641ba1534c54d5c356
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1101_Unlit_Smooth_Distortion.unity
+    guid: 50b2c92f5c04d254aa8df03d007f00a9
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1102_Unlit_Distortion.unity
     guid: a6e4a81e1988f24459f57a881905a465
   - enabled: 1

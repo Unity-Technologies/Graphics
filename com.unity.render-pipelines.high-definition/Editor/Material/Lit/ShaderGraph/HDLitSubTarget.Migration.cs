@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
             systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.dotsInstancing = false;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
             builtinData.addPrecomputedVelocity = false;
@@ -106,10 +106,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Set data
             systemData.surfaceType = (SurfaceType)hdLitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdLitMasterNode.m_AlphaMode);
-            systemData.renderingPass = hdLitMasterNode.m_RenderingPass;
+            systemData.renderQueueType = HDRenderQueue.MigrateRenderQueueToHDRP10(hdLitMasterNode.m_RenderingPass);
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction && !hdLitMasterNode.m_DrawBeforeRefraction)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
             // Patch rendering pass in case the master node had an old configuration
-            if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
-                systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.Background)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Opaque;
             systemData.alphaTest = hdLitMasterNode.m_AlphaTest;
             systemData.sortPriority = hdLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdLitMasterNode.m_DoubleSidedMode;
@@ -262,7 +264,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Refraction
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
             if(hasRefraction)
             {
                 if(!blockMap.TryGetValue(HDBlockFields.SurfaceDescription.Thickness, out _))
