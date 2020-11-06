@@ -54,14 +54,17 @@
 #define SHADOW_VARIABLES\
     float  _ShadowIntensity;\
     float  _ShadowVolumeIntensity;\
+    half4  _ShadowColorMask = 1;\
     TEXTURE2D(_ShadowTex);\
     SAMPLER(sampler_ShadowTex);
 
+
+//half  shadowIntensity = 1-dot(_ShadowColorMask, shadow); 
 #define APPLY_SHADOWS(input, color, intensity)\
     if(intensity < 1)\
     {\
         half4 shadow = saturate(SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, input.shadowUV)); \
-        half  shadowIntensity = 1 - (shadow.r * saturate(2 * (shadow.g - 0.5f * shadow.b))); \
+        half  shadowIntensity = 1-shadow.r; \
         color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
     }
 

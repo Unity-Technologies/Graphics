@@ -6,34 +6,56 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal static class ShadowRendering
     {
         private static readonly int k_LightPosID = Shader.PropertyToID("_LightPos");
+        private static readonly int k_SelfShadowingID = Shader.PropertyToID("_SelfShadowing");
         private static readonly int k_ShadowStencilGroupID = Shader.PropertyToID("_ShadowStencilGroup");
         private static readonly int k_ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
         private static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
         private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
 
-        private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)
+        private static Material GetProjectedShadowMaterial(this Renderer2DData rendererData)
         {
-            var shadowMaterialIndex = index % 255;
-            if (rendererData.shadowMaterials[shadowMaterialIndex] == null)
-            {
-                rendererData.shadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.shadowGroupShader);
-                rendererData.shadowMaterials[shadowMaterialIndex].SetFloat(k_ShadowStencilGroupID, index);
-            }
+            if (rendererData.projectedShadowMaterial == null)
+                rendererData.projectedShadowMaterial = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
 
-            return rendererData.shadowMaterials[shadowMaterialIndex];
+            return rendererData.projectedShadowMaterial;
         }
 
-        private static Material GetRemoveSelfShadowMaterial(this Renderer2DData rendererData, int index)
+        private static Material GetStencilOnlyShadowMaterial(this Renderer2DData rendererData)
         {
-            var shadowMaterialIndex = index % 255;
-            if (rendererData.removeSelfShadowMaterials[shadowMaterialIndex] == null)
+            if (rendererData.stencilOnlyShadowMaterial == null)
             {
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex] = CoreUtils.CreateEngineMaterial(rendererData.removeSelfShadowShader);
-                rendererData.removeSelfShadowMaterials[shadowMaterialIndex].SetFloat(k_ShadowStencilGroupID, index);
+                Material material = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
+                material.SetPass(1);
+                rendererData.stencilOnlyShadowMaterial = material;
             }
 
-            return rendererData.removeSelfShadowMaterials[shadowMaterialIndex];
+            return rendererData.stencilOnlyShadowMaterial;
         }
+
+        private static Material GetSpriteSelfShadowMaterial(this Renderer2DData rendererData)
+        {
+            if (rendererData.spriteSelfShadowMaterial == null)
+            {
+                Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteShadowShader);
+                material.SetFloat(k_SelfShadowingID, 1.0f);
+                rendererData.spriteSelfShadowMaterial = material;
+            }
+                
+            return rendererData.spriteSelfShadowMaterial;
+        }
+
+        private static Material GetSpriteUnshadowMaterial(this Renderer2DData rendererData)
+        {
+            if (rendererData.spriteUnshadowMaterial == null)
+            {
+                Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteShadowShader);
+                material.SetFloat(k_SelfShadowingID, 0.0f);
+                rendererData.spriteUnshadowMaterial = material;
+            }
+
+            return rendererData.spriteUnshadowMaterial;
+        }
+
 
         private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd)
         {
@@ -69,66 +91,59 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
                 cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
 
-                var shadowMaterial = pass.rendererData.GetShadowMaterial(1);
-                var removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(1);
+                var spriteSelfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial();
+                var spriteUnshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial();
+                var projectedShadowMaterial = pass.rendererData.GetProjectedShadowMaterial();
+                var stencilOnlyShadowMaterial = pass.rendererData.GetStencilOnlyShadowMaterial();
+
                 var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
                 if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
                 {
-                    var previousShadowGroupIndex = -1;
-                    var incrementingGroupIndex = 0;
                     for (var group = 0; group < shadowCasterGroups.Count; group++)
                     {
                         var shadowCasterGroup = shadowCasterGroups[group];
-
                         var shadowCasters = shadowCasterGroup.GetShadowCasters();
-
-                        var shadowGroupIndex = shadowCasterGroup.GetShadowGroup();
-                        if (LightUtility.CheckForChange(shadowGroupIndex, ref previousShadowGroupIndex) || shadowGroupIndex == 0)
-                        {
-                            incrementingGroupIndex++;
-                            shadowMaterial = pass.rendererData.GetShadowMaterial(incrementingGroupIndex);
-                            removeSelfShadowMaterial = pass.rendererData.GetRemoveSelfShadowMaterial(incrementingGroupIndex);
-                        }
 
                         if (shadowCasters != null)
                         {
-                            // Draw the shadow casting group first, then draw the silhouettes..
-                            for (var i = 0; i < shadowCasters.Count; i++)
+                            // Draw the projected shadows
+                            for(int shadowCasterIndex=0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
                             {
-                                var shadowCaster = shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                var shadowCaster = shadowCasters[shadowCasterIndex];
+                                if(shadowCaster.castsShadows)
                                 {
-                                    if (shadowCaster.castsShadows)
-                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, shadowMaterial);
+                                    // If we cast shadows draw the projected shadows
+                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowMaterial, 0, 0);
+                                }
+
+                            }
+
+                            // Draw the sprites
+                            for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
+                            {
+                                var shadowCaster = shadowCasters[shadowCasterIndex];
+                                if (shadowCaster.useRendererSilhouette)
+                                {
+                                    var renderer = shadowCaster.GetComponent<Renderer>();
+                                    if (renderer != null)
+                                    {
+                                        if (shadowCaster.selfShadows)
+                                            cmdBuffer.DrawRenderer(renderer, spriteSelfShadowMaterial);
+                                        else
+                                            cmdBuffer.DrawRenderer(renderer, spriteUnshadowMaterial);
+                                        
+                                    }
                                 }
                             }
 
-                            for (var i = 0; i < shadowCasters.Count; i++)
+                            // Update the stencil buffer
+                            for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
                             {
-                                var shadowCaster = shadowCasters[i];
-
-                                if (shadowCaster != null && shadowMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
+                                var shadowCaster = shadowCasters[shadowCasterIndex];
+                                if (shadowCaster.castsShadows)
                                 {
-                                    if (shadowCaster.useRendererSilhouette)
-                                    {
-                                        var renderer = shadowCaster.GetComponent<Renderer>();
-                                        if (renderer != null)
-                                        {
-                                            if (!shadowCaster.selfShadows)
-                                                cmdBuffer.DrawRenderer(renderer, removeSelfShadowMaterial);
-                                            else
-                                                cmdBuffer.DrawRenderer(renderer, shadowMaterial, 0, 1);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (!shadowCaster.selfShadows)
-                                        {
-                                            var meshMat = shadowCaster.transform.localToWorldMatrix;
-                                            cmdBuffer.DrawMesh(shadowCaster.mesh, meshMat, removeSelfShadowMaterial);
-                                        }
-                                    }
+                                    // If we cast shadows draw update the stencil buffer. Use stencil only pass
+                                    cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, stencilOnlyShadowMaterial, 0, 1);
                                 }
                             }
                         }

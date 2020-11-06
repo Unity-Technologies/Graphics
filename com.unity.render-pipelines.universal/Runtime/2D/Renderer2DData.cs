@@ -60,11 +60,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/Blit.shader")]
         Shader m_BlitShader = null;
 
-        [SerializeField, Reload("Shaders/2D/ShadowGroup2D.shader")]
-        Shader m_ShadowGroupShader = null;
+        [SerializeField, Reload("Shaders/2D/Shadow2DProjected.shader")]
+        Shader m_ProjectedShadowShader = null;
 
-        [SerializeField, Reload("Shaders/2D/Shadow2DRemoveSelf.shader")]
-        Shader m_RemoveSelfShadowShader = null;
+        [SerializeField, Reload("Shaders/2D/Shadow2DSprite.shader")]
+        Shader m_SpriteShadowShader = null;
 
         [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
         Shader m_FallbackErrorShader;
@@ -86,8 +86,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
-        internal Shader shadowGroupShader => m_ShadowGroupShader;
-        internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
+        internal Shader spriteShadowShader => m_SpriteShadowShader;
+        internal Shader projectedShadowShader => m_ProjectedShadowShader;
         internal PostProcessData postProcessData => m_PostProcessData;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
@@ -119,18 +119,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             normalsRenderTarget.Init("_NormalMap");
             shadowsRenderTarget.Init("_ShadowTex");
-
-            const int totalMaterials = 256;
-            if(shadowMaterials == null || shadowMaterials.Length == 0)
-                shadowMaterials = new Material[totalMaterials];
-            if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
-                removeSelfShadowMaterials = new Material[totalMaterials];
         }
 
         // transient data
         internal Dictionary<uint, Material> lightMaterials { get; } = new Dictionary<uint, Material>();
-        internal Material[] shadowMaterials { get; private set; }
-        internal Material[] removeSelfShadowMaterials { get; private set; }
+        internal Material spriteSelfShadowMaterial { get; set; }
+        internal Material spriteUnshadowMaterial { get; set; }
+        internal Material projectedShadowMaterial { get; set; }
+        internal Material stencilOnlyShadowMaterial { get; set; }
 
         internal bool isNormalsRenderTargetValid { get; set; }
         internal float normalsRenderTargetScale { get; set; }
