@@ -138,6 +138,7 @@ test_platforms:
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
       - [all]: --platform=editmode
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
