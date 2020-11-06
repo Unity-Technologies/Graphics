@@ -68,6 +68,8 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         node.Dirty(ModificationScope.Graph);
                     });
                 });
+                if (node is Serialization.MultiJsonInternal.UnknownNodeType)
+                    precisionField.SetEnabled(false);
                 nodeSettings.Add(propertyRow);
             }
             propertyVisualElement = precisionField;

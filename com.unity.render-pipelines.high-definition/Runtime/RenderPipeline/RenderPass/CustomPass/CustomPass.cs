@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.currentRenderTarget = targets;
             this.currentHDCamera = hdCamera;
 
-            using (var builder = renderGraph.AddRenderPass<ExecutePassData>(name, out ExecutePassData passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRenderPass<ExecutePassData>(name, out ExecutePassData passData, profilingSampler))
             {
                 passData.customPass = this;
                 passData.cullingResult = cullingResult;
