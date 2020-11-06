@@ -186,22 +186,29 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         Light unityLight;
 
         #if defined(_DIRECTIONAL)
-            unityLight.direction = _LightDirection;
-            unityLight.color = _LightColor.rgb;
-            unityLight.distanceAttenuation = 1.0;
-            if (materialReceiveShadowsOff)
-                unityLight.shadowAttenuation = 1.0;
-            else
-            {
+            #if defined(_DEFERRED_MAIN_LIGHT)
+                unityLight = GetMainLight();
+                // unity_LightData.z is set per mesh for forward renderer, we cannot cull lights in this fashion with deferred renderer.
+                unityLight.distanceAttenuation = 1.0;
+                
                 #if defined(_MAIN_LIGHT_SHADOWS)
-                    float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
-                    unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
-                #elif defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
-                    unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, shadowMask, _LightOcclusionProbInfo);
-                #else
-                    unityLight.shadowAttenuation = 1.0;
+                    if (!materialReceiveShadowsOff)
+                    {
+                        float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                        unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
+                    }
                 #endif
-            }
+            #else
+                unityLight.direction = _LightDirection;
+                unityLight.distanceAttenuation = 1.0;
+                unityLight.shadowAttenuation = 1.0;
+                unityLight.color = _LightColor.rgb;
+
+                #if defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
+                    if (!materialReceiveShadowsOff)
+                        unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, shadowMask, _LightOcclusionProbInfo);
+                #endif
+            #endif
         #else
             PunctualLightData light;
             light.posWS = _LightPosWS;
@@ -420,7 +427,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _DEFERRED_FIRST_LIGHT
+            #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
+            #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
@@ -465,7 +473,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _DEFERRED_FIRST_LIGHT
+            #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
+            #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
