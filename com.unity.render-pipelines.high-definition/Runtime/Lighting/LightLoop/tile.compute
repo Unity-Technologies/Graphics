@@ -102,7 +102,7 @@
 #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 // Booleans are stored in 2x consecutive SGPRs on GCN.
 // So using LaneSwizzle is probably inefficient in this case...
-// TODO: reimplement this using 'ballot'.
+// TODO: reimplement this using 'ballot' to save VGPRs and VALUs.
 bool LaneSwizzle(bool x, uint andMask, uint orMask, uint xorMask)
 {
     return (bool)LaneSwizzle((uint)x, uint andMask, uint orMask, uint xorMask)
@@ -215,7 +215,7 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 // 1 array * 16 elements * 4 bytes each = 64 bytes.
 groupshared uint gs_CullClipFaceMasks[TILES_PER_GROUP];   // 6 faces each (HLSL does not support small data types)
 // 1 array * 16 elements * 4 bytes each = 64 bytes.
-groupshared uint gs_CulledFaceCounts[TILES_PER_GROUP];    // [0, 6]
+groupshared uint gs_CulledFaceMasks[TILES_PER_GROUP];     // 6 faces each (HLSL does not support small data types)
 // 1 array * 16 elements * 4 bytes each = 64 bytes.
 groupshared uint gs_CullMasksOfAllFaces[TILES_PER_GROUP]; // 6 planes each (HLSL does not support small data types)
 // 1 array * 16 elements * 4 bytes each = 64 bytes.
@@ -324,7 +324,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
     if (t == 0) // Avoid bank conflicts
     {
         gs_CullClipFaceMasks[tile]   = 0;           // Initially all faces are assumed to be inside
-        gs_CulledFaceCounts[tile]    = 0;           // Initially none
+        gs_CulledFaceMasks[tile]     = 0;           // Initially none
         gs_TrivialAcceptFlags[tile]  = (uint)false; // Initially false
     }
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
@@ -334,6 +334,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
     // we can trivially accept that face. If all vertices of a face are behind
     // any single plane, we can trivially reject (cull) that face.
     uint cullClipFaceMask = 0; // Initially inside
+    uint culledFaceMask   = 0; // Initially none
 
     uint i; // Avoid the multiply-declared variable warning
 
@@ -438,8 +439,6 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
     // (2) Test the corners of the view volume.
     // Skipped - pointless in this case.
 
-    uint culledFaceCount = 0; // Potentially, by different planes
-
     // (3) Cull the faces.
     {
         const uint cullFaceMask   = cullClipFaceMask;
@@ -455,8 +454,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
 
                 if (TryCullFace(f, baseVertexOffset))
                 {
-                    culledFaceCount++;
-                    cullClipFaceMask ^= 1 << f;
+                    culledFaceMask |= 1 << f;
                 }
             }
         }
@@ -469,20 +467,17 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
 
-        cullClipFaceMask &= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
-        culledFaceCount  += LaneSwizzle(culledFaceCount,  andMask, orMask, xorMask);
+        culledFaceMask |= LaneSwizzle(culledFaceMask, andMask, orMask, xorMask);
     }
 #else
-    InterlockedAnd(gs_CullClipFaceMasks[tile], cullClipFaceMask);
-    InterlockedAdd(gs_CulledFaceCounts[tile],  culledFaceCount);
+    InterlockedOr(gs_CulledFaceMasks[tile], culledFaceMask);
 
-    GroupMemoryBarrier(); // Wait for writes to gs_CulledFaceCounts, gs_CullClipFaceMasks
+    GroupMemoryBarrier(); // Wait for writes to gs_CulledFaceMasks
 
-    cullClipFaceMask = gs_CullClipFaceMasks[tile];
-    culledFaceCount  = gs_CulledFaceCounts[tile];
+    culledFaceMask = gs_CulledFaceMasks[tile];
 #endif
 
-    if (culledFaceCount == NUM_FACES)
+    if (culledFaceMask == FACE_MASK)
     {
         // If we culled all the faces, there are 2 possibilities:
         // 1. The bounding frustum is entirely outside the view frustum.
@@ -499,7 +494,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
 
     // (4) Clip the faces.
     {
-        const uint clipFaceMask   = cullClipFaceMask;
+        const uint clipFaceMask   = cullClipFaceMask & ~culledFaceMask;
         const uint numFacesToClip = countbits(clipFaceMask); // [0, 6]
 
         for (i = 0; i < FACES_PER_THREAD; i++)
@@ -515,11 +510,11 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
                 if (ClipFaceAgainstCube(f, cubeMin, cubeMax, baseVertexOffset,
                                         srcBegin, srcSize, vertRingBuffer))
                 {
-                    culledFaceCount++; // Clipped completely
+                    culledFaceMask |= 1 << f;
                 }
                 else
                 {
-                    trivialAccept = true;
+                    // trivialAccept = true;
                 }
             }
         }
@@ -532,22 +527,20 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
 
-        culledFaceCount               += LaneSwizzle(culledFaceCount, andMask, orMask, xorMask);
-        trivialAccept = trivialAccept || LaneSwizzle(trivialAccept,   andMask, orMask, xorMask);
+        culledFaceMask                |= LaneSwizzle(culledFaceMask, andMask, orMask, xorMask);
+        // trivialAccept = trivialAccept || LaneSwizzle(trivialAccept,   andMask, orMask, xorMask);
     }
 #else
-    InterlockedAdd(gs_CulledFaceCounts[tile],  culledFaceCount);
-    InterlockedOr(gs_TrivialAcceptFlags[tile], (uint)trivialAccept);
+    InterlockedOr(gs_CulledFaceMasks[tile],    culledFaceMask);
+    // InterlockedOr(gs_TrivialAcceptFlags[tile], (uint)trivialAccept);
 
-    GroupMemoryBarrier(); // Wait for writes to gs_TrivialAcceptFlags, gs_CulledFaceCounts
+    GroupMemoryBarrier(); // Wait for writes to gs_TrivialAcceptFlags, gs_CulledFaceMasks
 
-    culledFaceCount = gs_CulledFaceCounts[tile];
-    trivialAccept   = (bool)gs_TrivialAcceptFlags[tile];
+    culledFaceMask = gs_CulledFaceMasks[tile];
+    // trivialAccept  = (bool)gs_TrivialAcceptFlags[tile];
 #endif
 
-    if (trivialAccept || trivialReject) return;
-
-    if (culledFaceCount == NUM_FACES)
+    if (culledFaceMask == FACE_MASK)
     {
         // If we culled all the faces, there are 2 possibilities:
         // 1. The bounding frustum is entirely outside the view frustum.
