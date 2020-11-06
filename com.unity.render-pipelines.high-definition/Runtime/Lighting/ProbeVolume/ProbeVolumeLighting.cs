@@ -118,10 +118,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void InitializeProbeVolumes()
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
-            m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
+            m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume && (ShaderConfig.s_EnableProbeVolumes == 1);
 
             s_ProbeVolumeAtlasResolution = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasResolution;
             if (GetApproxProbeVolumeAtlasSizeInByte(s_ProbeVolumeAtlasResolution) > HDRenderPipeline.k_MaxCacheSize)
@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         unsafe void UpdateShaderVariablesGlobalProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
             if (!m_SupportProbeVolume)
@@ -413,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushProbeVolumesGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
+            Debug.Assert(ShaderConfig.s_EnableProbeVolumes == 1);
             Debug.Assert(m_SupportProbeVolume);
 
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBuffer);
@@ -428,7 +428,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void PushProbeVolumesGlobalParamsDefault(HDCamera hdCamera, CommandBuffer cmd)
         {
-            Debug.Assert(ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
+            Debug.Assert(ShaderConfig.s_EnableProbeVolumes == 1);
             Debug.Assert(hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) == false);
 
             cmd.SetGlobalBuffer(HDShaderIDs._ProbeVolumeBounds, s_VisibleProbeVolumeBoundsBufferDefault);
@@ -443,7 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ReleaseProbeVolumeFromAtlas(ProbeVolume volume)
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
             if (!m_SupportProbeVolume)
@@ -707,7 +707,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             ProbeVolumeList probeVolumes = new ProbeVolumeList();
 
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return probeVolumes;
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
