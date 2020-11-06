@@ -3,14 +3,13 @@ from ..shared.namer import *
 from ..shared.yml_job import YMLJob
 
 class ABV_AllProjectCiWeeklyJob():
-
-    def __init__(self, editor, projects, weekly_config, target_branch):
+    
+    def __init__(self, editor, projects, weekly_config, target_branch, build_configs, color_space):
         self.job_id = abv_job_id_all_project_ci_weekly(editor["name"])
-        self.yml = self.get_job_definition(editor, projects, weekly_config.get("extra_dependencies",[]), target_branch).get_yml()
+        self.yml = self.get_job_definition(editor, projects, weekly_config.get("extra_dependencies",[]), target_branch, build_configs, color_space).get_yml()
 
-
-    def get_job_definition(self, editor, projects, extra_dependencies, target_branch):
-        # define dependencies
+    
+    def get_job_definition(self, editor, projects, extra_dependencies, target_branch, build_configs, color_space):
         dependencies = [
             {
                 'path': f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["name"])}',
@@ -25,9 +24,9 @@ class ABV_AllProjectCiWeeklyJob():
             else:
                 for tp in dep["test_platforms"]:
                     dependencies.append({
-                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["name"])}',
+                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["name"], dep["build_config"], dep["color_space"])}',
                         'rerun': editor["rerun_strategy"]})
-
+            
         # construct job
         job = YMLJob()
         job.set_name(f'_Weekly ABV against { editor["name"] }')
