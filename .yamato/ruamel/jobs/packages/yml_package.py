@@ -4,6 +4,7 @@ from .package_publish import Package_PublishJob
 from .package_publish_dry import Package_PublishDryJob
 from .package_test import Package_TestJob
 from .package_test_dependencies import Package_TestDependenciesJob
+from .package_publish_all import Package_PublishAllJob
 from .package_publish_all_tag import Package_PublishAllTagJob
 from .package_test_all import Package_AllPackageCiJob
 
@@ -36,6 +37,9 @@ def create_package_ymls(metafile):
         job = Package_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], metafile["target_branch"], editor)
         yml[job.job_id] = job.yml
     
+    # job = Package_PublishAllJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
+    # yml[job.job_id] = job.yml
+
     job = Package_PublishAllTagJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])
     yml[job.job_id] = job.yml
 

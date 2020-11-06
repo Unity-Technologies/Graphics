@@ -6,47 +6,47 @@
 All_URP_2D_2020.1:
     name: All URP_2D CI - 2020.1
     dependencies:
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_2020.1
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_mono_Linear_2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_2020.1
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_2020.1
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_Standalone_2020.1
+      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_Standalone_mono_Linear_2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_playmode_2020.1
+      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_playmode_mono_Linear_2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_2020.1
+      -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_mono_Linear_2020.1
          rerun: on-new-revision
 All_URP_2D_fast-2020.1:
     name: All URP_2D CI - fast-2020.1
     dependencies:
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_fast-2020.1
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_mono_Linear_fast-2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_fast-2020.1
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_fast-2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_fast-2020.1
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_fast-2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_Standalone_fast-2020.1
+      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_Standalone_mono_Linear_fast-2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_playmode_fast-2020.1
+      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_playmode_mono_Linear_fast-2020.1
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_fast-2020.1
+      -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_mono_Linear_fast-2020.1
          rerun: on-new-revision
 All_URP_2D_CUSTOM-REVISION:
     name: All URP_2D CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_Standalone_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-osx-metal.yml#URP_2D_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-osx-openglcore.yml#URP_2D_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

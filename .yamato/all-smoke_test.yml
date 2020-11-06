@@ -6,29 +6,29 @@
 All_Smoke_Test_2020.1:
     name: All Smoke_Test CI - 2020.1
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_2020.1
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_2020.1
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_2020.1
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_2020.1
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_2020.1
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_2020.1
          rerun: on-new-revision
 All_Smoke_Test_fast-2020.1:
     name: All Smoke_Test CI - fast-2020.1
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_fast-2020.1
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_fast-2020.1
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_fast-2020.1
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_fast-2020.1
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_fast-2020.1
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_fast-2020.1
          rerun: on-new-revision
 All_Smoke_Test_CUSTOM-REVISION:
     name: All Smoke_Test CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
