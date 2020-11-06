@@ -974,7 +974,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
 
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
             {
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
                 using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
@@ -1143,7 +1143,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, Styles.supportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
                 AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
 

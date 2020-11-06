@@ -162,8 +162,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
-        public static readonly int g_vProbeVolumesLayeredOffsetsBuffer = Shader.PropertyToID("g_vProbeVolumesLayeredOffsetsBuffer");
-        public static readonly int g_vProbeVolumesLightListGlobal = Shader.PropertyToID("g_vProbeVolumesLightListGlobal");
 
         public static readonly int g_vLayeredOffsetsBuffer = Shader.PropertyToID("g_vLayeredOffsetsBuffer");
 
