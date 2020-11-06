@@ -5,7 +5,7 @@ The **Screen Space Illumination** (SSGI) override is a High Definition Render Pi
 ![](Images/HDRPFeatures-SSGI.png)
 
 ## Enabling Screen Space Global Illumination
-[!include[](Snippets/Volume-Override-Enable.md)]
+[!include[](Snippets/Volume-Override-Enable-Override.md)]
 
 For this feature:
 The property to enable in your HDRP Asset is: **Lighting > Screen Space Global Illumination**.
