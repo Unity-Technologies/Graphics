@@ -60,13 +60,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/Blit.shader")]
         Shader m_BlitShader = null;
 
-        [SerializeField, Reload("Shaders/2D/Shadow2DProjected.shader")]
+        [SerializeField, Reload("Shaders/2D/Shadow2D-Projected.shader")]
         Shader m_ProjectedShadowShader = null;
 
-        [SerializeField, Reload("Shaders/2D/Shadow2DShadowSprite.shader")]
+        [SerializeField, Reload("Shaders/2D/Shadow2D-Shadow-Sprite.shader")]
         Shader m_SpriteShadowShader = null;
 
-        [SerializeField, Reload("Shaders/2D/Shadow2DUnshadowSprite.shader")]
+        [SerializeField, Reload("Shaders/2D/Shadow2D-Unshadow-Sprite.shader")]
         Shader m_SpriteUnshadowShader = null;
 
 

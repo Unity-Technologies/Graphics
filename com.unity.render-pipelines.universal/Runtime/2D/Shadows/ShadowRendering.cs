@@ -12,9 +12,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
         private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
 
+
         private static Material GetProjectedShadowMaterial(this Renderer2DData rendererData)
         {
-            if (rendererData.projectedShadowMaterial == null)
+            //if (rendererData.projectedShadowMaterial == null)
                 rendererData.projectedShadowMaterial = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
 
             return rendererData.projectedShadowMaterial;
@@ -22,19 +23,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static Material GetStencilOnlyShadowMaterial(this Renderer2DData rendererData)
         {
-            if (rendererData.stencilOnlyShadowMaterial == null)
-            {
-                Material material = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
-                material.SetPass(1);
-                rendererData.stencilOnlyShadowMaterial = material;
-            }
+            //if (rendererData.stencilOnlyShadowMaterial == null)
+                rendererData.stencilOnlyShadowMaterial = CoreUtils.CreateEngineMaterial(rendererData.projectedShadowShader);
 
             return rendererData.stencilOnlyShadowMaterial;
         }
 
         private static Material GetSpriteSelfShadowMaterial(this Renderer2DData rendererData)
         {
-            if (rendererData.spriteSelfShadowMaterial == null)
+            //if (rendererData.spriteSelfShadowMaterial == null)
             {
                 Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteShadowShader);
                 rendererData.spriteSelfShadowMaterial = material;
@@ -45,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private static Material GetSpriteUnshadowMaterial(this Renderer2DData rendererData)
         {
-            if (rendererData.spriteUnshadowMaterial == null)
+            //if (rendererData.spriteUnshadowMaterial == null)
             {
                 Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteUnshadowShader);
                 rendererData.spriteUnshadowMaterial = material;

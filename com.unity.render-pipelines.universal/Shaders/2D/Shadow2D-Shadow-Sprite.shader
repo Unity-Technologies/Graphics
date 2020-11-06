@@ -1,9 +1,8 @@
-Shader "Hidden/Shadow2DRemoveSelf"
+Shader "Hidden/Shadow2DShadowSprite"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        [PerRendererData][HideInInspector] _ShadowStencilGroup("__ShadowStencilGroup", Float) = 1.0
     }
     SubShader
     {
@@ -11,18 +10,19 @@ Shader "Hidden/Shadow2DRemoveSelf"
 
         Cull Off
         BlendOp Add
-        Blend One One
+        Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
 
         Pass
         {
-            Stencil
-            {
-                Ref [_ShadowStencilGroup]
-                Comp Equal
-                Pass Keep
-                Fail Keep
-            }
+            // Bit 0: Group Bit, Bit 1: Shadow Bit
+            //Stencil
+            //{
+            //    Ref  2
+            //    Comp LEqual
+            //    Pass Keep
+            //    Fail Keep
+            //}
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -43,8 +43,7 @@ Shader "Hidden/Shadow2DRemoveSelf"
             };
 
             sampler2D _MainTex;
-            float4 _MainTex_ST;
-            float  _ReceivesShadows;
+            float4    _MainTex_ST;
 
             Varyings vert (Attributes v)
             {
@@ -57,13 +56,8 @@ Shader "Hidden/Shadow2DRemoveSelf"
             half4 frag(Varyings i) : SV_Target
             {
                 half4 main = tex2D(_MainTex, i.uv);
-
-                half4 col;
-                col.r = 0;
-                col.g = 0;
-                col.b = main.a;
-                col.a = 0;
-                return col;
+                //return half4(1, 1, 1, main.a);
+                return half4(1, 1, 1, 1);
             }
             ENDHLSL
         }
