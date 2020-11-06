@@ -129,6 +129,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                         
                                     }
                                 }
+                                else
+                                {
+                                    if (shadowCaster.selfShadows)
+                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, spriteSelfShadowMaterial);
+                                    else
+                                        cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, spriteUnshadowMaterial);
+                                }
                             }
 
                             // Update the stencil buffer
