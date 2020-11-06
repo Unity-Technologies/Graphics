@@ -707,12 +707,12 @@ CTYPE SharpenColor(NeighbourhoodSamples samples, CTYPE color, float sharpenStren
 #if YCOCG
     // Rotating back to RGB it leads to better behaviour when sharpening, a better approach needs definitively to be investigated in the future.
 
-    linearC = ConvertToOutputSpace(linearC);
-    linearAvg = ConvertToOutputSpace(linearAvg);
-    linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
-    linearC = clamp(linearC, 0, CLAMP_MAX);
+    linearC.xyz = ConvertToOutputSpace(linearC.xyz);
+    linearAvg.xyz = ConvertToOutputSpace(linearAvg.xyz);
+    linearC.xyz = linearC.xyz + (linearC.xyz - linearAvg.xyz) * sharpenStrength * 3;
+    linearC.xyz = clamp(linearC.xyz, 0, CLAMP_MAX);
 
-    linearC = ConvertToWorkingSpace(linearC);
+    linearC.xyz = ConvertToWorkingSpace(linearC.xyz);
 #else
     linearC = linearC + (linearC - linearAvg) * sharpenStrength * 3;
     linearC = clamp(linearC, 0, CLAMP_MAX);
