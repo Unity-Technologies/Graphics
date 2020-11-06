@@ -21,7 +21,7 @@ class ABV_TrunkVerificationJob():
             else:
                 for tp in dep["test_platforms"]:
                     dependencies.append({
-                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["name"])}',
+                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["name"], dep["build_config"], dep["color_space"])}',
                         'rerun': editor["rerun_strategy"]})
 
         # construct job

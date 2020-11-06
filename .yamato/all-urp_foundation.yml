@@ -6,47 +6,47 @@
 All_URP_Foundation_2019.4:
     name: All URP_Foundation CI - 2019.4
     dependencies:
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_2019.4
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_2019.4
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_2019.4
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_Standalone_2019.4
+      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_Standalone_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_playmode_2019.4
+      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_playmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-osx-openglcore.yml#URP_Foundation_OSX_OpenGLCore_editmode_2019.4
+      -  path: .yamato/urp_foundation-osx-openglcore.yml#URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_2019.4
          rerun: on-new-revision
 All_URP_Foundation_fast-2019.4:
     name: All URP_Foundation CI - fast-2019.4
     dependencies:
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_fast-2019.4
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_fast-2019.4
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_fast-2019.4
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_Standalone_fast-2019.4
+      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_Standalone_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_playmode_fast-2019.4
+      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_playmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-osx-openglcore.yml#URP_Foundation_OSX_OpenGLCore_editmode_fast-2019.4
+      -  path: .yamato/urp_foundation-osx-openglcore.yml#URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
 All_URP_Foundation_CUSTOM-REVISION:
     name: All URP_Foundation CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_Standalone_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-osx-metal.yml#URP_Foundation_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_foundation-osx-openglcore.yml#URP_Foundation_OSX_OpenGLCore_editmode_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-osx-openglcore.yml#URP_Foundation_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

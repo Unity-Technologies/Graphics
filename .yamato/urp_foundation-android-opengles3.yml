@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_Foundation_Android_OpenGLES3_Standalone_2019.4:
-    name: URP_Foundation on Android_OpenGLES3_Standalone on version 2019.4
+URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_2019.4:
+    name: URP_Foundation on Android_OpenGLES3_Standalone_il2cpp_Linear on version 2019.4
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -19,7 +19,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_2019.4:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --reruncount=2 --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -29,11 +29,10 @@ URP_Foundation_Android_OpenGLES3_Standalone_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:android
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-android-opengles3.yml#Build_URP_Foundation_Android_OpenGLES3_Player_2019.4
+      -  path: .yamato/urp_foundation-android-opengles3.yml#Build_URP_Foundation_Android_OpenGLES3_Player_il2cpp_Linear_2019.4
          rerun: on-new-revision
-    skip_checkout: true
-Build_URP_Foundation_Android_OpenGLES3_Player_2019.4:
-    name: Build URP_Foundation on Android_OpenGLES3_Player on version 2019.4
+Build_URP_Foundation_Android_OpenGLES3_Player_il2cpp_Linear_2019.4:
+    name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Player on version 2019.4
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -44,10 +43,14 @@ Build_URP_Foundation_Android_OpenGLES3_Player_2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest_Foundation --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
+      -  NetSh Advfirewall set allprofiles state off
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=2700
     artifacts:
         logs:
             paths:
@@ -59,8 +62,8 @@ Build_URP_Foundation_Android_OpenGLES3_Player_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:android
          rerun: on-new-revision
-URP_Foundation_Android_OpenGLES3_Standalone_fast-2019.4:
-    name: URP_Foundation on Android_OpenGLES3_Standalone on version fast-2019.4
+URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_fast-2019.4:
+    name: URP_Foundation on Android_OpenGLES3_Standalone_il2cpp_Linear on version fast-2019.4
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -75,7 +78,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_fast-2019.4:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --reruncount=2 --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -85,11 +88,10 @@ URP_Foundation_Android_OpenGLES3_Standalone_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:android
          rerun: on-new-revision
-      -  path: .yamato/urp_foundation-android-opengles3.yml#Build_URP_Foundation_Android_OpenGLES3_Player_fast-2019.4
+      -  path: .yamato/urp_foundation-android-opengles3.yml#Build_URP_Foundation_Android_OpenGLES3_Player_il2cpp_Linear_fast-2019.4
          rerun: on-new-revision
-    skip_checkout: true
-Build_URP_Foundation_Android_OpenGLES3_Player_fast-2019.4:
-    name: Build URP_Foundation on Android_OpenGLES3_Player on version fast-2019.4
+Build_URP_Foundation_Android_OpenGLES3_Player_il2cpp_Linear_fast-2019.4:
+    name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Player on version fast-2019.4
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -100,10 +102,14 @@ Build_URP_Foundation_Android_OpenGLES3_Player_fast-2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest_Foundation --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
+      -  NetSh Advfirewall set allprofiles state off
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=2700
     artifacts:
         logs:
             paths:
@@ -115,8 +121,8 @@ Build_URP_Foundation_Android_OpenGLES3_Player_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:android
          rerun: on-new-revision
-URP_Foundation_Android_OpenGLES3_Standalone_CUSTOM-REVISION:
-    name: URP_Foundation on Android_OpenGLES3_Standalone on version CUSTOM-REVISION
+URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Foundation on Android_OpenGLES3_Standalone_il2cpp_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -132,7 +138,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --reruncount=2 --scripting-backend=il2cpp --editor-location=WindowsEditor --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -142,11 +148,10 @@ URP_Foundation_Android_OpenGLES3_Standalone_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/urp_foundation-android-opengles3.yml#Build_URP_Foundation_Android_OpenGLES3_Player_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-android-opengles3.yml#Build_URP_Foundation_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-    skip_checkout: true
-Build_URP_Foundation_Android_OpenGLES3_Player_CUSTOM-REVISION:
-    name: Build URP_Foundation on Android_OpenGLES3_Player on version CUSTOM-REVISION
+Build_URP_Foundation_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -158,10 +163,14 @@ Build_URP_Foundation_Android_OpenGLES3_Player_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\OpenJDK %JAVA_HOME% || exit 0
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\SDK %ANDROID_SDK_ROOT% || exit 0
-      -  mklink /d WindowsEditor\Data\PlaybackEngines\AndroidPlayer\NDK %ANDROID_NDK_ROOT% || exit 0
-      -  utr --suite=playmode --platform=Android --testproject=TestProjects\UniversalGraphicsTest_Foundation --editor-location=WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=il2cpp --timeout=1800
+      -  NetSh Advfirewall set allprofiles state off
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=2700
     artifacts:
         logs:
             paths:

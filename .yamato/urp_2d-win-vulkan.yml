@@ -3,8 +3,8 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URP_2D_Win_Vulkan_Standalone_2019.4:
-    name: URP_2D on Win_Vulkan_Standalone on version 2019.4
+URP_2D_Win_Vulkan_Standalone_mono_Linear_2019.4:
+    name: URP_2D on Win_Vulkan_Standalone_mono_Linear on version 2019.4
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -14,7 +14,7 @@ URP_2D_Win_Vulkan_Standalone_2019.4:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -23,10 +23,10 @@ URP_2D_Win_Vulkan_Standalone_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:windows
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-win-vulkan.yml#Build_URP_2D_Win_Vulkan_Player_2019.4
+      -  path: .yamato/urp_2d-win-vulkan.yml#Build_URP_2D_Win_Vulkan_Player_mono_Linear_2019.4
          rerun: on-new-revision
-Build_URP_2D_Win_Vulkan_Player_2019.4:
-    name: Build URP_2D on Win_Vulkan_Player on version 2019.4
+Build_URP_2D_Win_Vulkan_Player_mono_Linear_2019.4:
+    name: Build URP_2D on Win_Vulkan_mono_Linear_Player on version 2019.4
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -37,7 +37,13 @@ Build_URP_2D_Win_Vulkan_Player_2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=2000
     artifacts:
         logs:
             paths:
@@ -49,8 +55,8 @@ Build_URP_2D_Win_Vulkan_Player_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:windows
          rerun: on-new-revision
-URP_2D_Win_Vulkan_playmode_2019.4:
-    name: URP_2D on Win_Vulkan_playmode on version 2019.4
+URP_2D_Win_Vulkan_playmode_mono_Linear_2019.4:
+    name: URP_2D on Win_Vulkan_playmode_mono_Linear on version 2019.4
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -61,7 +67,13 @@ URP_2D_Win_Vulkan_playmode_2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -70,8 +82,8 @@ URP_2D_Win_Vulkan_playmode_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:windows
          rerun: on-new-revision
-URP_2D_Win_Vulkan_playmode_XR_2019.4:
-    name: URP_2D on Win_Vulkan_playmode_XR on version 2019.4
+URP_2D_Win_Vulkan_playmode_XR_mono_Linear_2019.4:
+    name: URP_2D on Win_Vulkan_playmode_XR_mono_Linear on version 2019.4
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -82,7 +94,13 @@ URP_2D_Win_Vulkan_playmode_XR_2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -91,8 +109,8 @@ URP_2D_Win_Vulkan_playmode_XR_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:windows
          rerun: on-new-revision
-URP_2D_Win_Vulkan_editmode_2019.4:
-    name: URP_2D on Win_Vulkan_editmode on version 2019.4
+URP_2D_Win_Vulkan_editmode_mono_Linear_2019.4:
+    name: URP_2D on Win_Vulkan_editmode_mono_Linear on version 2019.4
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -103,7 +121,13 @@ URP_2D_Win_Vulkan_editmode_2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -112,8 +136,8 @@ URP_2D_Win_Vulkan_editmode_2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:2019.4:windows
          rerun: on-new-revision
-URP_2D_Win_Vulkan_Standalone_fast-2019.4:
-    name: URP_2D on Win_Vulkan_Standalone on version fast-2019.4
+URP_2D_Win_Vulkan_Standalone_mono_Linear_fast-2019.4:
+    name: URP_2D on Win_Vulkan_Standalone_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -123,7 +147,7 @@ URP_2D_Win_Vulkan_Standalone_fast-2019.4:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -132,10 +156,10 @@ URP_2D_Win_Vulkan_Standalone_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:windows
          rerun: on-new-revision
-      -  path: .yamato/urp_2d-win-vulkan.yml#Build_URP_2D_Win_Vulkan_Player_fast-2019.4
+      -  path: .yamato/urp_2d-win-vulkan.yml#Build_URP_2D_Win_Vulkan_Player_mono_Linear_fast-2019.4
          rerun: on-new-revision
-Build_URP_2D_Win_Vulkan_Player_fast-2019.4:
-    name: Build URP_2D on Win_Vulkan_Player on version fast-2019.4
+Build_URP_2D_Win_Vulkan_Player_mono_Linear_fast-2019.4:
+    name: Build URP_2D on Win_Vulkan_mono_Linear_Player on version fast-2019.4
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -146,7 +170,13 @@ Build_URP_2D_Win_Vulkan_Player_fast-2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=2000
     artifacts:
         logs:
             paths:
@@ -158,8 +188,8 @@ Build_URP_2D_Win_Vulkan_Player_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:windows
          rerun: on-new-revision
-URP_2D_Win_Vulkan_playmode_fast-2019.4:
-    name: URP_2D on Win_Vulkan_playmode on version fast-2019.4
+URP_2D_Win_Vulkan_playmode_mono_Linear_fast-2019.4:
+    name: URP_2D on Win_Vulkan_playmode_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -170,7 +200,13 @@ URP_2D_Win_Vulkan_playmode_fast-2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -179,8 +215,8 @@ URP_2D_Win_Vulkan_playmode_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:windows
          rerun: on-new-revision
-URP_2D_Win_Vulkan_playmode_XR_fast-2019.4:
-    name: URP_2D on Win_Vulkan_playmode_XR on version fast-2019.4
+URP_2D_Win_Vulkan_playmode_XR_mono_Linear_fast-2019.4:
+    name: URP_2D on Win_Vulkan_playmode_XR_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -191,7 +227,13 @@ URP_2D_Win_Vulkan_playmode_XR_fast-2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -200,8 +242,8 @@ URP_2D_Win_Vulkan_playmode_XR_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:windows
          rerun: on-new-revision
-URP_2D_Win_Vulkan_editmode_fast-2019.4:
-    name: URP_2D on Win_Vulkan_editmode on version fast-2019.4
+URP_2D_Win_Vulkan_editmode_mono_Linear_fast-2019.4:
+    name: URP_2D on Win_Vulkan_editmode_mono_Linear on version fast-2019.4
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -212,7 +254,13 @@ URP_2D_Win_Vulkan_editmode_fast-2019.4:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -221,8 +269,8 @@ URP_2D_Win_Vulkan_editmode_fast-2019.4:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:fast-2019.4:windows
          rerun: on-new-revision
-URP_2D_Win_Vulkan_Standalone_CUSTOM-REVISION:
-    name: URP_2D on Win_Vulkan_Standalone on version CUSTOM-REVISION
+URP_2D_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: URP_2D on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -233,7 +281,7 @@ URP_2D_Win_Vulkan_Standalone_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  cd Tools && powershell -command ". .\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --player-load-path=../../players --player-connection-ip=auto --reruncount=2 --timeout=1200
+      -  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -242,10 +290,10 @@ URP_2D_Win_Vulkan_Standalone_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_2d-win-vulkan.yml#Build_URP_2D_Win_Vulkan_Player_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-win-vulkan.yml#Build_URP_2D_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_2D_Win_Vulkan_Player_CUSTOM-REVISION:
-    name: Build URP_2D on Win_Vulkan_Player on version CUSTOM-REVISION
+Build_URP_2D_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build URP_2D on Win_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -257,7 +305,13 @@ Build_URP_2D_Win_Vulkan_Player_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --player-save-path=../../players --build-only --extra-editor-arg="-executemethod" --timeout=1200 --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=2000
     artifacts:
         logs:
             paths:
@@ -269,8 +323,8 @@ Build_URP_2D_Win_Vulkan_Player_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_2D_Win_Vulkan_playmode_CUSTOM-REVISION:
-    name: URP_2D on Win_Vulkan_playmode on version CUSTOM-REVISION
+URP_2D_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URP_2D on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -282,7 +336,13 @@ URP_2D_Win_Vulkan_playmode_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -291,8 +351,8 @@ URP_2D_Win_Vulkan_playmode_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_2D_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
-    name: URP_2D on Win_Vulkan_playmode_XR on version CUSTOM-REVISION
+URP_2D_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION:
+    name: URP_2D on Win_Vulkan_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -304,7 +364,13 @@ URP_2D_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-xr-tests" --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-xr-tests" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -313,8 +379,8 @@ URP_2D_Win_Vulkan_playmode_XR_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URP_2D_Win_Vulkan_editmode_CUSTOM-REVISION:
-    name: URP_2D on Win_Vulkan_editmode on version CUSTOM-REVISION
+URP_2D_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URP_2D on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -326,7 +392,13 @@ URP_2D_Win_Vulkan_editmode_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest_2D/utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest_2D && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalGraphicsTest_2D && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest_2D && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
