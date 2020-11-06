@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing materials to be upgraded multiple times.
 - Fixed an issue where the Camera inspector was grabbing the URP asset in Graphics Settings rather than the currently active.
 - Fixed an issue where the Light Explorer was grabbing the URP asset in Graphics Settings rather than the currently active.
+- Fixed an issue where the scene view camera ignored the pipeline assets HDR setting. [case 1284369](https://issuetracker.unity3d.com/issues/urp-scene-view-camera-ignores-pipeline-assets-hdr-settings-when-main-camera-uses-pipeline-settings)
 
 ## [10.1.0] - 2020-10-12
 ### Added
