@@ -310,7 +310,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
-                return false;
+                return true;
 
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
             var node = CopyNodeForGraph(nodeEntry.node);
@@ -324,12 +324,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(node is BlockNode blockNode)
             {
                 if(!(target is ContextView contextView))
-                    return false;
+                    return true;
 
                 // Test against all current BlockNodes in the Context
                 // Never allow duplicate BlockNodes
                 if(contextView.contextData.blocks.Where(x => x.value.name == blockNode.name).FirstOrDefault().value != null)
-                    return false;
+                    return true;
                 
                 // Insert block to Data
                 blockNode.owner = m_Graph;

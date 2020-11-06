@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportProbeVolume || debugParameters.debugDisplaySettings.data.lightingDebugSettings.probeVolumeDebugMode == ProbeVolumeDebugMode.None)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("RenderProbeVolumeDebugOverlay", out var passData))
+            using (var builder = renderGraph.AddRenderPass<DebugLightLoopOverlayPassData>("RenderProbeVolumeDebugOverlay", out var passData))
             {
                 passData.debugParameters = debugParameters;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
@@ -510,6 +510,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
+            public bool clearDepth;
         }
 
         TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera)
@@ -563,6 +564,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
                     passData.clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera
+                    passData.clearDepth = hdCamera.clearDepth;
 
                     builder.SetRenderFunc(
                     (DebugViewMaterialData data, RenderGraphContext context) =>
@@ -572,7 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Texture Arrays so this would not work. We might need to revise this in the future. 
                         if (data.clearColorTexture != null)
                         {
-                            HDUtils.BlitColorAndDepth(context.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !hdCamera.clearDepth);
+                            HDUtils.BlitColorAndDepth(context.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
                         }
                         DrawOpaqueRendererList(context, data.frameSettings, data.opaqueRendererList);
                         DrawTransparentRendererList(context, data.frameSettings, data.transparentRendererList);
