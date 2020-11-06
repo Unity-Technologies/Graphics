@@ -9,6 +9,9 @@
 #define NO_SHADERVARIABLESGLOBAL_HLSL
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 #undef  NO_SHADERVARIABLESGLOBAL_HLSL
+#define INCLUDE_SPECIFIC_CLIPPING_CODE
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
+#undef  INCLUDE_SPECIFIC_CLIPPING_CODE
 
 /* ------------------------------ Inputs ------------------------------------ */
 
@@ -22,212 +25,6 @@ RWStructuredBuffer<float4> _xyBoundsBuffer : register(u0); // {x_min, x_max, y_m
 RWStructuredBuffer<float2>  _wBoundsBuffer : register(u1); // {w_min, w_max}
 
 /* ------------------------------ Utilities --------------------------------- */
-
-/* ------------------------------ Implementation ---------------------------- */
-
-// !!! IMPORTANT !!!
-// The legacy code from Morten provides us special projection matrices (and their inverses).
-// These matrices are different from the matrices the HDRP uses.
-// There is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
-// All coordinate systems are left-handed, Y-up, Z-forward.
-// y  z
-// | /
-// 0 -- x
-
-#ifdef SHADER_API_XBOXONE
-// The Xbox shader compiler expects the lane swizzle mask to be a compile-time constant.
-// In our case, the mask is a compile-time constant, but it is defined inside a loop
-// that is unrolled at the compile time, and the constants are generated during the
-// constant propagation pass of the optimizer. This works fine on PlayStation, but does not work
-// on Xbox. In order to avoid writing hideous code specifically for Xbox, we disable the support
-// of wave intrinsics on Xbox until the Xbox compiler is fixed.
-#undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-#endif
-
-// Clipping a plane by a cube may produce a hexagon (6-gon).
-// Clipping a hexagon by 4 planes (substitute a quad for the plane) may produce a decagon (10-gon).
-#define MAX_CLIP_VERTS     (10)
-#define NUM_VERTS          (8)
-#define NUM_FACES          (6)
-#define NUM_PLANES         (6)
-#define THREADS_PER_GROUP  (64)
-#define THREADS_PER_ENTITY (4) // Set to 1 for debugging
-#define ENTITIES_PER_GROUP (THREADS_PER_GROUP / THREADS_PER_ENTITY)
-#define VERTS_PER_GROUP    (NUM_VERTS * ENTITIES_PER_GROUP)
-#define VERTS_PER_THREAD   (NUM_VERTS / THREADS_PER_ENTITY)
-#define FACES_PER_THREAD   (DIV_ROUND_UP(NUM_FACES, THREADS_PER_ENTITY))
-#define VERTS_PER_FACE     (4)
-
-// Needs the defines above.
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
-
-// All planes and faces are always in the standard order (see below).
-// Near and far planes are swapped in the case of Z-reversal, but it does not change the algorithm.
-#define FACE_LEFT   (1 << 0) // -X
-#define FACE_RIGHT  (1 << 1) // +X
-#define FACE_BOTTOM (1 << 2) // -Y
-#define FACE_TOP    (1 << 3) // +Y
-#define FACE_FRONT  (1 << 4) // -Z
-#define FACE_BACK   (1 << 5) // +Z
-#define FACE_MASK   ((1 << NUM_FACES) - 1)
-
-// A list of vertices for each face (CCW order w.r.t. its normal, starting from the LSB).
-#define VERT_LIST_LEFT   ((4) << 9 | (6) << 6 | (2) << 3 | (0) << 0)
-#define VERT_LIST_RIGHT  ((3) << 9 | (7) << 6 | (5) << 3 | (1) << 0)
-#define VERT_LIST_BOTTOM ((1) << 9 | (5) << 6 | (4) << 3 | (0) << 0)
-#define VERT_LIST_TOP    ((6) << 9 | (7) << 6 | (3) << 3 | (2) << 0)
-#define VERT_LIST_FRONT  ((2) << 9 | (3) << 6 | (1) << 3 | (0) << 0)
-#define VERT_LIST_BACK   ((5) << 9 | (7) << 6 | (6) << 3 | (4) << 0)
-
-// All vertices are always in the standard order (see below).
-uint GetFaceMaskOfVertex(uint v)
-{
-    // 0: (-1, -1, -1) -> { FACE_LEFT  | FACE_BOTTOM | FACE_FRONT }
-    // 1: (+1, -1, -1) -> { FACE_RIGHT | FACE_BOTTOM | FACE_FRONT }
-    // 2: (-1, +1, -1) -> { FACE_LEFT  | FACE_TOP    | FACE_FRONT }
-    // 3: (+1, +1, -1) -> { FACE_RIGHT | FACE_TOP    | FACE_FRONT }
-    // 4: (-1, -1, +1) -> { FACE_LEFT  | FACE_BOTTOM | FACE_BACK  }
-    // 5: (+1, -1, +1) -> { FACE_RIGHT | FACE_BOTTOM | FACE_BACK  }
-    // 6: (-1, +1, +1) -> { FACE_LEFT  | FACE_TOP    | FACE_BACK  }
-    // 7: (+1, +1, +1) -> { FACE_RIGHT | FACE_TOP    | FACE_BACK  }
-    // ((v & 1) == 0) ? 1 : 2) | ((v & 2) == 0) ? 4 : 8) | ((v & 4) == 0) ? 16 : 32)
-    uint f = (FACE_LEFT   << BitFieldExtract(v, 0, 1))
-           | (FACE_BOTTOM << BitFieldExtract(v, 1, 1))
-           | (FACE_FRONT  << BitFieldExtract(v, 2, 1));
-
-    return f;
-};
-
-float3 GenerateVertexOfStandardCube(uint v)
-{
-    float3 p;
-
-    p.x = ((v & 1) == 0) ? -1 : 1; // FACE_LEFT   : FACE_RIGHT
-    p.y = ((v & 2) == 0) ? -1 : 1; // FACE_BOTTOM : FACE_TOP
-    p.z = ((v & 4) == 0) ? -1 : 1; // FACE_FRONT  : FACE_BACK
-
-    return p;
-}
-
-uint GetVertexListOfFace(uint f)
-{
-    // Warning: don't add 'static' here unless you want really bad code gen.
-    const uint3 allVertLists = uint3((VERT_LIST_RIGHT << 12) | VERT_LIST_LEFT,
-                                     (VERT_LIST_TOP   << 12) | VERT_LIST_BOTTOM,
-                                     (VERT_LIST_BACK  << 12) | VERT_LIST_FRONT);
-
-    return BitFieldExtract(allVertLists[f >> 1], 12 * (f & 1), 12);
-}
-
-// 5 arrays * 128 elements * 4 bytes each = 2560 bytes.
-groupshared float gs_HapVertsX[VERTS_PER_GROUP];
-groupshared float gs_HapVertsY[VERTS_PER_GROUP];
-groupshared float gs_HapVertsZ[VERTS_PER_GROUP];
-groupshared float gs_HapVertsW[VERTS_PER_GROUP];
-groupshared uint  gs_BehindMasksOfVerts[VERTS_PER_GROUP]; // 6 planes each (HLSL does not support small data types)
-
-#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-// 1 array * 16 elements * 4 bytes each = 64 bytes.
-groupshared uint  gs_CullClipFaceMasks[ENTITIES_PER_GROUP]; // 6 faces each (HLSL does not support small data types)
-
-// 8 arrays * 16 elements * 4 bytes each = 512 bytes.
-// These are actually floats reinterpreted as uints.
-// The reason is because floating-point atomic operations are not supported.
-groupshared uint  gs_NdcAaBbMinPtX[ENTITIES_PER_GROUP];
-groupshared uint  gs_NdcAaBbMaxPtX[ENTITIES_PER_GROUP];
-groupshared uint  gs_NdcAaBbMinPtY[ENTITIES_PER_GROUP];
-groupshared uint  gs_NdcAaBbMaxPtY[ENTITIES_PER_GROUP];
-// Skip Z, we do not need it.
-groupshared uint  gs_NdcAaBbMinPtW[ENTITIES_PER_GROUP]; // View-space Z coordinate
-groupshared uint  gs_NdcAaBbMaxPtW[ENTITIES_PER_GROUP]; // View-space Z coordinate
-#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
-
-// Returns 'true' if it manages to cull the face.
-bool TryCullFace(uint f, uint behindMasksOfVerts[NUM_VERTS])
-{
-    uint cullMaskOfFace = FACE_MASK; // Initially behind
-    uint vertListOfFace = GetVertexListOfFace(f);
-
-    for (uint j = 0; j < VERTS_PER_FACE; j++)
-    {
-        uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
-        // Non-zero if ALL the vertices are behind any of the planes.
-        cullMaskOfFace &= behindMasksOfVerts[v];
-    }
-
-    return (cullMaskOfFace != 0);
-}
-
-void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint baseVertexOffset,
-                               out uint srcBegin, out uint srcSize,
-                               out float4 vertRingBuffer[MAX_CLIP_VERTS])
-{
-    srcBegin = 0;
-    srcSize  = VERTS_PER_FACE;
-
-    uint clipMaskOfFace = 0; // Initially in front
-    uint vertListOfFace = GetVertexListOfFace(f);
-
-    for (uint j = 0; j < VERTS_PER_FACE; j++)
-    {
-        uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
-        // Non-zero if ANY of the vertices are behind any of the planes.
-        clipMaskOfFace |= behindMasksOfVerts[v];
-
-        // Not all edges may require clipping. However, filtering the vertex list
-        // is somewhat expensive, so we currently don't do it.
-        vertRingBuffer[j].x = gs_HapVertsX[baseVertexOffset + v];
-        vertRingBuffer[j].y = gs_HapVertsY[baseVertexOffset + v];
-        vertRingBuffer[j].z = gs_HapVertsZ[baseVertexOffset + v];
-        vertRingBuffer[j].w = gs_HapVertsW[baseVertexOffset + v];
-    }
-
-    // Sutherland-Hodgeman polygon clipping algorithm.
-    // It works by clipping the entire polygon against one clipping plane at a time.
-    while ((clipMaskOfFace != 0) && (srcSize != 0))
-    {
-        uint p = firstbitlow(clipMaskOfFace);
-
-        uint dstBegin, dstSize;
-        ClipPolygonAgainstPlane(p, srcBegin, srcSize, vertRingBuffer, dstBegin, dstSize);
-
-        srcBegin = dstBegin;
-        srcSize  = dstSize;
-
-        clipMaskOfFace ^= 1 << p; // Clear the bit to continue using firstbitlow()
-    }
-}
-
-void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERTS],
-                bool isOrthoProj, float4x4 invProjMat,
-                inout float4 ndcAaBbMinPt, inout float4 ndcAaBbMaxPt)
-{
-#ifdef OBTUSE_COMPILER
-    uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
-#endif
-    for (uint j = srcBegin; j < (srcBegin + srcSize); j++)
-    {
-    #ifndef OBTUSE_COMPILER
-        uint modSrcIdx = j % MAX_CLIP_VERTS;
-    #endif
-        float4 hapVert = vertRingBuffer[modSrcIdx];
-        // Clamp to the bounds in case of numerical errors (may still generate -0).
-        float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w));
-        float  rbpVertVSz = hapVert.w;
-
-        if (isOrthoProj) // Must replace (w = 1)
-        {
-            rbpVertVSz = dot(invProjMat[2], hapVert);
-        }
-
-        ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVSz));
-        ndcAaBbMaxPt = max(ndcAaBbMaxPt, float4(rapVertNDC, rbpVertVSz));
-    #ifdef OBTUSE_COMPILER
-        modSrcIdx++;
-        modSrcIdx = (modSrcIdx == MAX_CLIP_VERTS) ? 0 : modSrcIdx;
-    #endif
-    }
-}
 
 // Given: 'C' is the center of the sphere in the view space, 'r' is its radius;
 // 'projScale' and 'projOffset' are used to perform projection of the X (or Y) component of a vector.
@@ -312,6 +109,43 @@ float2 ComputeBoundsOfProjectedSphere(float3 C, float r, float projScale, float 
     return float2(xMin, xMax);
 }
 
+/* ------------------------------ Implementation ---------------------------- */
+
+// !!! IMPORTANT !!!
+// The legacy code from Morten provides us special projection matrices (and their inverses).
+// These matrices are different from the matrices the HDRP uses.
+// There is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
+// All coordinate systems are left-handed, Y-up, Z-forward.
+// y  z
+// | /
+// 0 -- x
+
+#ifdef SHADER_API_XBOXONE
+// (Sep 16, 2020)
+// The Xbox shader compiler expects the lane swizzle mask to be a compile-time constant.
+// In our case, the mask is a compile-time constant, but it is defined inside a loop
+// that is unrolled at the compile time, and the constants are generated during the
+// constant propagation pass of the optimizer. This works fine on PlayStation, but does not work
+// on Xbox. In order to avoid writing hideous code specifically for Xbox, we disable the support
+// of wave intrinsics on Xbox until the Xbox compiler is fixed.
+#undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+#endif
+
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+// 1 array * 16 elements * 4 bytes each = 64 bytes.
+groupshared uint gs_CullClipFaceMasks[ENTITIES_PER_GROUP]; // 6 faces each (HLSL does not support small data types)
+// 8 arrays * 16 elements * 4 bytes each = 512 bytes.
+// These are actually floats reinterpreted as uints.
+// The reason is because floating-point atomic operations are not supported.
+groupshared uint gs_NdcAaBbMinPtX[ENTITIES_PER_GROUP];
+groupshared uint gs_NdcAaBbMaxPtX[ENTITIES_PER_GROUP];
+groupshared uint gs_NdcAaBbMinPtY[ENTITIES_PER_GROUP];
+groupshared uint gs_NdcAaBbMaxPtY[ENTITIES_PER_GROUP];
+// Skip Z, we do not need it.
+groupshared uint gs_NdcAaBbMinPtW[ENTITIES_PER_GROUP]; // View-space Z coordinate
+groupshared uint gs_NdcAaBbMaxPtW[ENTITIES_PER_GROUP]; // View-space Z coordinate
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
 // *************************************************************************************************
 // The goal of this program is to compute the AABB of a bounded entity in the NDC space ([0, 1] range).
 // The entity is represented by a bounding sphere and a right bounding frustum with 6 faces and 8 vertices.
@@ -375,7 +209,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     // (0) Initialize the TGSM.
     if (t == 0) // Avoid bank conflicts
     {
-        gs_CullClipFaceMasks[entity] = 0; // Initially inside
+        gs_CullClipFaceMasks[entity] = 0; // Initially all faces are assumed to be inside
         gs_NdcAaBbMinPtX[entity]     = asuint(1.0f);
         gs_NdcAaBbMaxPtX[entity]     = asuint(0.0f);
         gs_NdcAaBbMinPtY[entity]     = asuint(1.0f);
@@ -395,7 +229,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     // any single plane, we can trivially reject (cull) that face.
     uint cullClipFaceMask = 0; // Initially inside
 
-    uint i; // Avoid multiply-declared variable warning
+    uint i; // Avoid the multiply-declared variable warning
 
     // (1) Compute the vertices of the bounding frustum.
     for (i = 0; i < VERTS_PER_THREAD; i++)
@@ -414,7 +248,8 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         float3 m = GenerateVertexOfStandardCube(v);
         m.xy *= ((v & 4) == 0) ? scale : 1; // X, Y in [-scale, scale]
 
-        float3 rbpVertVS = rbpC + m.x * rbpX + m.y * rbpY + m.z * rbpZ;
+        float3 rbpVertRVS = m.x * rbpX + m.y * rbpY + m.z * rbpZ;
+        float3 rbpVertVS  = rbpC + rbpVertRVS;
         // Avoid generating (w = 0).
         rbpVertVS.z = (abs(rbpVertVS.z) > FLT_MIN) ? rbpVertVS.z : FLT_MIN;
 
@@ -423,6 +258,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         // Warning: the W component may be negative.
         // Flipping the -W pyramid by negating all coordinates is incorrect
         // and will break both classification and clipping.
+        // We are allowed to change the magnitude of the vector, but not its direction!
         // For the orthographic projection, (w = 1).
 
         // Transform the X and Y components: [-w, w] -> [0, w].
@@ -478,13 +314,15 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 
         cullClipFaceMask |= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
     }
+
+    GroupMemoryBarrier(); // Wait for writes to gs_BehindMasksOfVerts, gs_HapVertsX
 #else
     InterlockedOr(gs_CullClipFaceMasks[entity], cullClipFaceMask);
 
-    GroupMemoryBarrierWithGroupSync();
+    GroupMemoryBarrier(); // Wait for writes to gs_CullClipFaceMasks, gs_BehindMasksOfVerts, gs_HapVertsX
 
     cullClipFaceMask = gs_CullClipFaceMasks[entity];
-#endif
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
     // (2) Test the corners of the view volume.
     if (cullClipFaceMask != 0)
@@ -497,7 +335,6 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         // P_l = (R * S)^{-1} * T^{-1} * P_v
         float4x4 invTranslateToEntitySpace      = Translation4x4(-rbpC);
         float4x4 invRotateAndScaleInEntitySpace = Homogenize3x3(Invert3x3(ScaledRotation3x3(rbpX, rbpY, rbpZ)));
-        // TODO: avoid full inversion by using unit vectors and passing magnitudes explicitly.
 
         // This (orthographic) projection matrix maps a view-space point to a entity-space [-1, 1]^3 cube.
         float4x4 entitySpaceMatrix = mul(invRotateAndScaleInEntitySpace, invTranslateToEntitySpace);
@@ -547,17 +384,6 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         }
     }
 
-#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    GroupMemoryBarrierWithGroupSync();
-#endif
-
-    uint behindMasksOfVerts[NUM_VERTS];
-
-    for (i = 0; i < NUM_VERTS; i++)
-    {
-        behindMasksOfVerts[i] = gs_BehindMasksOfVerts[baseVertexOffset + i];
-    }
-
     // (3) Cull the faces.
     {
         const uint cullFaceMask   = cullClipFaceMask;
@@ -571,9 +397,9 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
             {
                 uint f = NthBitLow(cullFaceMask, n);
 
-                if (TryCullFace(f, behindMasksOfVerts))
+                if (TryCullFace(f, baseVertexOffset))
                 {
-                    cullClipFaceMask ^= 1 << f; // Clear the bit
+                    cullClipFaceMask ^= 1 << f;
                 }
             }
         }
@@ -591,7 +417,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 #else
     InterlockedAnd(gs_CullClipFaceMasks[entity], cullClipFaceMask);
 
-    GroupMemoryBarrierWithGroupSync();
+    GroupMemoryBarrier(); // Wait for writes to gs_CullClipFaceMasks
 
     cullClipFaceMask = gs_CullClipFaceMasks[entity];
 #endif
@@ -611,8 +437,8 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 
                 uint   srcBegin, srcSize;
                 float4 vertRingBuffer[MAX_CLIP_VERTS];
-                ClipFaceAgainstViewVolume(f, behindMasksOfVerts, baseVertexOffset,
-                                          srcBegin, srcSize, vertRingBuffer);
+                ClipFaceAgainstCube(f, 0, 1, baseVertexOffset,
+                                    srcBegin, srcSize, vertRingBuffer);
                 UpdateAaBb(srcBegin, srcSize, vertRingBuffer, g_isOrthographic != 0, invProjMat,
                            ndcAaBbMinPt, ndcAaBbMaxPt);
             }
@@ -645,7 +471,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     InterlockedMin(gs_NdcAaBbMinPtW[entity], asuint(CLEAR_SIGN_BIT(ndcAaBbMinPt.w)));
     InterlockedMax(gs_NdcAaBbMaxPtW[entity], asuint(CLEAR_SIGN_BIT(ndcAaBbMaxPt.w)));
 
-    GroupMemoryBarrierWithGroupSync();
+    GroupMemoryBarrier(); // Wait for writes to gs_NdcAaBbMinPtX
 
     ndcAaBbMinPt.x = asfloat(gs_NdcAaBbMinPtX[entity]);
     ndcAaBbMaxPt.x = asfloat(gs_NdcAaBbMaxPtX[entity]);
