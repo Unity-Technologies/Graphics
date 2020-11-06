@@ -35,14 +35,17 @@ namespace UnityEngine.Rendering.Universal
     {
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
+        [SerializeField, HideInInspector] private Shader m_BlitShader = null;
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
 
         // Private Fields
         private Material m_Material;
+        private Material m_BlitMaterial;
         private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
         // Constants
-        private const string k_ShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion";
+        private const string k_SSAOShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion";
+        private const string k_BlitShaderName = "Hidden/Universal Render Pipeline/Blit";
         private const string k_OrthographicCameraKeyword = "_ORTHOGRAPHIC";
         private const string k_NormalReconstructionLowKeyword = "_RECONSTRUCT_NORMAL_LOW";
         private const string k_NormalReconstructionMediumKeyword = "_RECONSTRUCT_NORMAL_MEDIUM";
@@ -60,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
                 m_SSAOPass = new ScreenSpaceAmbientOcclusionPass();
             }
 
-            GetMaterial();
+            GetMaterials();
             m_SSAOPass.profilerTag = name;
             m_SSAOPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
         }
@@ -68,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if (!GetMaterial())
+            if (!GetMaterials())
             {
                 Debug.LogErrorFormat(
                     "{0}.AddRenderPasses(): Missing material. {1} render pass will not be added. Check for missing reference in the renderer resources.",
@@ -87,27 +90,40 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             CoreUtils.Destroy(m_Material);
+            CoreUtils.Destroy(m_BlitMaterial);
         }
 
-        private bool GetMaterial()
+        private bool GetMaterials()
         {
-            if (m_Material != null)
+            if (m_Material != null && m_BlitMaterial != null)
             {
                 return true;
             }
 
             if (m_Shader == null)
             {
-                m_Shader = Shader.Find(k_ShaderName);
+                m_Shader = Shader.Find(k_SSAOShaderName);
                 if (m_Shader == null)
                 {
                     return false;
                 }
             }
 
+            if (m_BlitShader == null)
+            {
+                m_BlitShader = Shader.Find(k_BlitShaderName);
+                if (m_BlitShader == null)
+                {
+                    return false;
+                }
+            }
+
             m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_BlitShader);
             m_SSAOPass.material = m_Material;
-            return m_Material != null;
+            m_SSAOPass.blitMaterial = m_BlitMaterial;
+
+            return m_Material != null && m_BlitMaterial != null;
         }
 
         // The SSAO Pass
@@ -116,6 +132,9 @@ namespace UnityEngine.Rendering.Universal
             // Public Variables
             internal string profilerTag;
             internal Material material;
+            internal Material blitMaterial;
+
+            internal bool blurFinalUpsample = false;
 
             // Private Variables
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
@@ -123,6 +142,9 @@ namespace UnityEngine.Rendering.Universal
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
+            // if downsapling is enabled, use an additional RT at full resolution to perform upsampling in the final blur pass
+            private RenderTargetIdentifier m_SSAOTexture4Target = new RenderTargetIdentifier(s_SSAOTexture4ID, 0, CubemapFace.Unknown, -1);
+
             private RenderTextureDescriptor m_Descriptor;
 
             // Constants
@@ -135,6 +157,7 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
+            private static readonly int s_SSAOTexture4ID = Shader.PropertyToID("_SSAO_OcclusionTexture4");
 
             private enum ShaderPasses
             {
@@ -174,6 +197,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 int downsampleDivider = m_CurrentSettings.Downsample ? 2 : 1;
+                blurFinalUpsample = m_CurrentSettings.Downsample;
 
                 // Update SSAO parameters in the material
                 Vector4 ssaoParams = new Vector4(
@@ -234,20 +258,31 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.colorFormat = RenderTextureFormat.ARGB32;
                 cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Bilinear);
 
-                m_Descriptor.width *= downsampleDivider;
-                m_Descriptor.height *= downsampleDivider;
                 cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
                 ConfigureTarget(s_SSAOTexture2ID);
                 ConfigureClear(ClearFlag.None, Color.white);
+
+                if (blurFinalUpsample)
+                {
+                    m_Descriptor.width *= downsampleDivider;
+                    m_Descriptor.height *= downsampleDivider;
+
+                    cmd.GetTemporaryRT(s_SSAOTexture4ID, m_Descriptor, FilterMode.Bilinear);
+
+                    // Configure targets and clear color
+                    ConfigureTarget(s_SSAOTexture4ID);
+                    ConfigureClear(ClearFlag.None, Color.white);
+                }
+
             }
 
             /// <inheritdoc/>
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
-                if (material == null)
+                if (material == null || blitMaterial == null)
                 {
                     Debug.LogErrorFormat("{0}.Execute(): Missing material. {1} render pass will not execute. Check for missing reference in the renderer resources.", GetType().Name, profilerTag);
                     return;
@@ -267,8 +302,12 @@ namespace UnityEngine.Rendering.Universal
                     RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
                     RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurFinal);
 
+                    // if we are downsampling, do an extra upsample pass
+                    if (blurFinalUpsample)
+                        RenderingUtils.Blit(cmd, m_SSAOTexture2Target, m_SSAOTexture4Target, blitMaterial);
+
                     // Set the global SSAO texture and AO Params
-                    cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTexture2Target);
+                    cmd.SetGlobalTexture(k_SSAOTextureName, blurFinalUpsample ? m_SSAOTexture4Target: m_SSAOTexture2Target);
                     cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
                 }
 
@@ -307,6 +346,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.ReleaseTemporaryRT(s_SSAOTexture1ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture2ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture3ID);
+
+                if (blurFinalUpsample)
+                    cmd.ReleaseTemporaryRT(s_SSAOTexture4ID);
             }
         }
     }
