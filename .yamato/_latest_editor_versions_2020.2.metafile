@@ -2,12 +2,12 @@
 # To add new Unity Editor tracks, the script needs to be updated.
 
 editor_version_names:
-- 2020.2_latest_internal
-- 2020.2_latest_public
-- 2020.2_staging
+- 2020_2_latest_internal
+- 2020_2_latest_public
+- 2020_2_staging
 
 editor_versions:
-  2020.2_latest_internal:
+  2020_2_latest_internal:
     android:
       revision: 19f63eee530c
       version: 2020.2.0b10
@@ -23,7 +23,7 @@ editor_versions:
     windows:
       revision: 19f63eee530c
       version: 2020.2.0b10
-  2020.2_latest_public:
+  2020_2_latest_public:
     android:
       revision: ef2968fa77ae
       version: 2020.2.0b9
@@ -39,7 +39,7 @@ editor_versions:
     windows:
       revision: ef2968fa77ae
       version: 2020.2.0b9
-  2020.2_staging:
+  2020_2_staging:
     android:
       revision: 19f63eee530cf75bf6b9e470d2b27eedda41a780
       version: ''
