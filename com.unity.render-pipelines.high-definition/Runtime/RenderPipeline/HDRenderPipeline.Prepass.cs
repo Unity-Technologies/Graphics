@@ -220,6 +220,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     probeVolumeListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_ProbeVolumeClusterData, m_ProbeVolumeCount, ref m_ShaderVariablesProbeVolumeLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
                 }
 
+                BuildGPULightListOutput decalListOutput = new BuildGPULightListOutput();
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1)
+                {
+                    decalListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_DecalClusterData, DecalSystem.m_DecalDatasCount, ref m_ShaderVariablesDecalLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
+                }
+
                 bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(renderGraph, cullingResults, hdCamera, ref result, out var decalBuffer);
 
                 if (!shouldRenderMotionVectorAfterGBuffer)
@@ -244,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDBuffer(renderGraph, hdCamera, decalBuffer, ref result, cullingResults);
 
-                RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, cullingResults, hdCamera);
+                RenderGBuffer(renderGraph, sssBuffer, vtFeedbackBuffer, ref result, probeVolumeListOutput, decalListOutput, cullingResults, hdCamera);
 
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
@@ -439,6 +445,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle  probeVolumeBigTile;
             public ComputeBufferHandle  probeVolumePerVoxelOffset;
             public ComputeBufferHandle  probeVolumePerVoxelLightList;
+            public bool                 needDecalLightLists;
+            public ComputeBufferHandle  decalBigTile;
+            public ComputeBufferHandle  decalPerVoxelOffset;
+            public ComputeBufferHandle  decalPerVoxelLightList;
         }
 
         struct GBufferOutput
@@ -529,9 +539,30 @@ namespace UnityEngine.Rendering.HighDefinition
             // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
         }
 
+        static void BindDecalGlobalData(in FrameSettings frameSettings, GBufferPassData data, in RenderGraphContext ctx)
+        {
+            if (!data.needDecalLightLists)
+                return;
+
+            if (frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, data.decalBigTile);
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vDecalLayeredOffsetsBuffer, data.decalPerVoxelOffset);
+            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vDecalLightListGlobal, data.decalPerVoxelLightList);
+            // int useDepthBuffer = 0;
+            // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
+        }
+
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
-        void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, in BuildGPULightListOutput probeVolumeLightList, CullingResults cull, HDCamera hdCamera)
+        void RenderGBuffer(
+            RenderGraph renderGraph,
+            TextureHandle sssBuffer,
+            TextureHandle vtFeedbackBuffer,
+            ref PrepassOutput prepassOutput,
+            in BuildGPULightListOutput probeVolumeLightList,
+            in BuildGPULightListOutput decalLightList,
+            CullingResults cull,
+            HDCamera hdCamera)
         {
             if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
             {
@@ -559,10 +590,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.probeVolumePerVoxelOffset = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelOffset);
                 }
 
+                passData.needDecalLightLists = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1;
+                if (passData.needDecalLightLists)
+                {
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                        passData.decalBigTile = builder.ReadComputeBuffer(decalLightList.bigTileLightList);
+                    passData.decalPerVoxelLightList = builder.ReadComputeBuffer(decalLightList.perVoxelLightLists);
+                    passData.decalPerVoxelOffset = builder.ReadComputeBuffer(decalLightList.perVoxelOffset);
+                }
+
                 builder.SetRenderFunc(
                 (GBufferPassData data, RenderGraphContext context) =>
                 {
                     BindProbeVolumeGlobalData(data.frameSettings, data, context);
+                    BindDecalGlobalData(data.frameSettings, data, context);
                     BindDBufferGlobalData(data.dBuffer, context);
                     DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                 });

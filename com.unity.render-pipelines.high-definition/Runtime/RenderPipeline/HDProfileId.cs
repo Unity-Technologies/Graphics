@@ -235,6 +235,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
+        BuildGPULightListDecals,
+        PushDecalLightListGlobalParameters,
 
         AOVExecute,
         // Enum AOVBuffers

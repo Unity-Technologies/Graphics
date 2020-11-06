@@ -588,7 +588,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
 
-            if (enableNonRenderGraphTests)
+            //if (enableNonRenderGraphTests) // FIXME: Temporary
                 EnableRenderGraph(false);
         }
 
@@ -2553,6 +2553,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The probe volume light lists do not depend on any of the framebuffer RTs being cleared - do they depend on anything in PushGlobalParams()?
             // Do they depend on hdCamera.xr.StartSinglePass()?
             var buildProbeVolumeLightListTask = new HDGPUAsyncTask("Build probe volume light list", ComputeQueueType.Background);
+            var buildDecalLightListTask = new HDGPUAsyncTask("Build decal light list", ComputeQueueType.Background);
 
             // Avoid garbage by explicitely passing parameters to the lambdas
             var asyncParams = new HDGPUAsyncTaskParams
@@ -2577,6 +2578,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
                         => BuildGPULightListProbeVolumesCommon(a.hdCamera, c);
+                }
+            }
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1)
+            {
+                // TODO: Should we only build decal light lists async of we build standard light lists async? Or should we always build decal light lists async?
+                if (hdCamera.frameSettings.BuildLightListRunsAsync())
+                {
+                    buildDecalLightListTask.Start(cmd, asyncParams, Callback, !haveAsyncTaskWithDepthPrepass);
+
+                    haveAsyncTaskWithDepthPrepass = true;
+
+                    void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
+                        => BuildGPULightListDecalCommon(a.hdCamera, c);
                 }
             }
             // This is always false in forward and if it is true, is equivalent of saying we have a partial depth prepass.
@@ -2627,7 +2641,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1)
+            {
+                if (hdCamera.frameSettings.BuildLightListRunsAsync())
+                {
+                    buildDecalLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
+
+                    void Callback(CommandBuffer c, HDCamera cam)
+                    {
+                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_DecalClusterData);
+                        PushDecalLightListGlobalParams(globalParams, c);
+                    }
+                }
+                else
+                {
+                    BuildGPULightListDecalCommon(hdCamera, cmd);
+                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                    var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_DecalClusterData);
+                    PushDecalLightListGlobalParams(globalParams, cmd);
+                }
+            }
+
+
+                RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
             DecalNormalPatch(hdCamera, cmd);
 

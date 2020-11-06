@@ -2,7 +2,7 @@
 
 #pragma multi_compile _ USE_OR
 
-// #pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderBase.hlsl"

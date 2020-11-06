@@ -1,5 +1,12 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.cs.hlsl"
 
+#if SHADEROPTIONS_PREPASSLESS_DECALS == 1
+    // Evaluating decals in the material pass requires a custom decals only light list.
+    // Cannot reuse LightLoop g_vLightListGlobal and g_vLayeredOffsetsBuffer buffers, as they are in active use in forward rendered shader passes.
+    StructuredBuffer<uint> g_vDecalLightListGlobal;
+    StructuredBuffer<uint> g_vDecalLayeredOffsetsBuffer;
+#endif
+
 StructuredBuffer<DecalData> _DecalDatas;
 
 TEXTURE2D(_DecalAtlas2D);

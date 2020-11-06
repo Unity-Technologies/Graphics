@@ -10,7 +10,7 @@
 #pragma kernel TileLightListGen_DepthRT_SrcBigTile_Oblique          LIGHTLISTGEN=TileLightListGen_DepthRT_SrcBigTile_Oblique            ENABLE_DEPTH_TEXTURE_BACKPLANE          USE_TWO_PASS_TILED_LIGHTING				USE_OBLIQUE_MODE
 #pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique     LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique       ENABLE_DEPTH_TEXTURE_BACKPLANE			MSAA_ENABLED        USE_TWO_PASS_TILED_LIGHTING			USE_OBLIQUE_MODE
 
-// #pragma enable_d3d11_debug_symbols
+#pragma enable_d3d11_debug_symbols
 
 #define REQUEST_DISABLE_OPTIMISTIC_SCALAR_ALLOCATION
 

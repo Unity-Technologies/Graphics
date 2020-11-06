@@ -554,6 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
         TileAndClusterData m_ProbeVolumeClusterData;
+        TileAndClusterData m_DecalClusterData;
 
         // HDRenderPipeline needs to cache m_ProbeVolumeList as a member variable, as it cannot be passed in directly into BuildGPULightListProbeVolumesCommon() async compute
         // due to the HDGPUAsyncTask API. We could have extended HDGPUAsyncTaskParams definition to contain a ProbeVolumeList, but this seems worse, as all other async compute
@@ -611,6 +612,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 public List<LightVolumeData> lightVolumes;
                 public List<SFiniteLightBound> probeVolumesBounds;
                 public List<LightVolumeData> probeVolumesLightVolumes;
+                public List<SFiniteLightBound> decalBounds;
+                public List<LightVolumeData> decalLightVolumes;
             }
 
             public List<LightsPerView> lightsPerView;
@@ -629,6 +632,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     lightsPerView[i].lightVolumes.Clear();
                     lightsPerView[i].probeVolumesBounds.Clear();
                     lightsPerView[i].probeVolumesLightVolumes.Clear();
+                    lightsPerView[i].decalBounds.Clear();
+                    lightsPerView[i].decalLightVolumes.Clear();
                 }
             }
 
@@ -641,7 +646,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightsPerView = new List<LightsPerView>();
                 for (int i = 0; i < TextureXR.slices; ++i)
                 {
-                    lightsPerView.Add(new LightsPerView { bounds = new List<SFiniteLightBound>(), lightVolumes = new List<LightVolumeData>(), probeVolumesBounds = new List<SFiniteLightBound>(), probeVolumesLightVolumes = new List<LightVolumeData>() });
+                    lightsPerView.Add(new LightsPerView {
+                        bounds = new List<SFiniteLightBound>(),
+                        lightVolumes = new List<LightVolumeData>(),
+                        probeVolumesBounds = new List<SFiniteLightBound>(),
+                        probeVolumesLightVolumes = new List<LightVolumeData>(),
+                        decalBounds = new List<SFiniteLightBound>(),
+                        decalLightVolumes = new List<LightVolumeData>()
+                    });
                 }
             }
         }
@@ -668,6 +680,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         ShaderVariablesLightList m_ShaderVariablesLightListCB = new ShaderVariablesLightList();
         ShaderVariablesLightList m_ShaderVariablesProbeVolumeLightListCB = new ShaderVariablesLightList();
+        ShaderVariablesLightList m_ShaderVariablesDecalLightListCB = new ShaderVariablesLightList();
 
 
         enum ClusterPrepassSource : int
@@ -923,6 +936,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ProbeVolumeClusterData = new TileAndClusterData();
                 m_ProbeVolumeClusterData.Initialize(allocateTileBuffers: false, clusterNeedsDepth: false, maxLightCount: k_MaxVisibleProbeVolumeCount);
             }
+            if (ShaderConfig.s_PrepasslessDecals == 1)
+            {
+                m_DecalClusterData = new TileAndClusterData();
+                m_DecalClusterData.Initialize(allocateTileBuffers: false, clusterNeedsDepth: false, maxLightCount: k_MaxDecalsOnScreen);
+            }
 
             // OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
             m_deferredLightingMaterial = new Material[8];
@@ -1034,6 +1052,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TileAndClusterData.Cleanup();
             if (m_ProbeVolumeClusterData != null)
                 m_ProbeVolumeClusterData.Cleanup();
+            if (m_DecalClusterData != null)
+                m_DecalClusterData.Cleanup();
 
             LightLoopReleaseResolutionDependentBuffers();
 
@@ -1101,6 +1121,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TileAndClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, m_MaxLightsOnScreen, m_EnableRenderGraph);
             if (m_ProbeVolumeClusterData != null)
                 m_ProbeVolumeClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, k_MaxVisibleProbeVolumeCount, m_EnableRenderGraph);
+            if (m_DecalClusterData != null)
+                m_DecalClusterData.AllocateResolutionDependentBuffers(hdCamera, width, height, m_MaxViewCount, k_MaxDecalsOnScreen, m_EnableRenderGraph);
         }
 
         void LightLoopReleaseResolutionDependentBuffers()
@@ -1108,6 +1130,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TileAndClusterData.ReleaseResolutionDependentBuffers();
             if (m_ProbeVolumeClusterData != null)
                 m_ProbeVolumeClusterData.ReleaseResolutionDependentBuffers();
+            if (m_DecalClusterData != null)
+                m_DecalClusterData.ReleaseResolutionDependentBuffers();
         }
 
         void LightLoopCleanupNonRenderGraphResources()
@@ -1115,6 +1139,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TileAndClusterData.ReleaseNonRenderGraphResolutionDependentBuffers();
             if (m_ProbeVolumeClusterData != null)
                 m_ProbeVolumeClusterData.ReleaseNonRenderGraphResolutionDependentBuffers();
+            if (m_DecalClusterData != null)
+                m_DecalClusterData.ReleaseNonRenderGraphResolutionDependentBuffers();
         }
 
         internal static Matrix4x4 WorldToCamera(Camera camera)
@@ -2774,8 +2800,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                         {
-                            m_lightList.lightsPerView[viewIndex].bounds.Add(DecalSystem.m_Bounds[i]);
-                            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+                            if (ShaderConfig.s_PrepasslessDecals == 1)
+                            {
+                                m_lightList.lightsPerView[viewIndex].decalBounds.Add(DecalSystem.m_Bounds[i]);
+                                m_lightList.lightsPerView[viewIndex].decalLightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+                            }
+                            else
+                            {
+                                m_lightList.lightsPerView[viewIndex].bounds.Add(DecalSystem.m_Bounds[i]);
+                                m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+                            }
                         }
                     }
                 }
@@ -2832,10 +2866,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount;
+                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + m_DensityVolumeCount;
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
                 {
                     m_TotalLightCount += m_ProbeVolumeCount;
+                }
+                if (ShaderConfig.s_PrepasslessDecals != 1)
+                {
+                    m_TotalLightCount += decalDatasCount;
                 }
 
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
@@ -2861,6 +2899,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         Debug.Assert(m_lightList.lightsPerView[viewIndex].probeVolumesLightVolumes.Count == m_ProbeVolumeCount);
                         m_lightList.lightsPerView[0].probeVolumesLightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].probeVolumesLightVolumes);
+                    }
+                }
+
+                if (ShaderConfig.s_PrepasslessDecals == 1)
+                {
+                    // Aggregate the remaining probe volume views into the first entry of the list (view 0)
+                    for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
+                    {
+                        Debug.Assert(m_lightList.lightsPerView[viewIndex].decalBounds.Count == decalDatasCount);
+                        m_lightList.lightsPerView[0].decalBounds.AddRange(m_lightList.lightsPerView[viewIndex].decalBounds);
+
+                        Debug.Assert(m_lightList.lightsPerView[viewIndex].decalLightVolumes.Count == decalDatasCount);
+                        m_lightList.lightsPerView[0].decalLightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].decalLightVolumes);
                     }
                 }
 
@@ -3525,6 +3576,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static void PushDecalLightListGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
+        {
+            Debug.Assert(ShaderConfig.s_PrepasslessDecals == 1);
+
+            if (!param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                return;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushDecalLightListGlobalParameters)))
+            {
+                Camera camera = param.hdCamera.camera;
+
+                //if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                //    cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
+
+                // int useDepthBuffer = 0;
+                // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vDecalLayeredOffsetsBuffer, param.tileAndClusterData.perVoxelOffset);
+                cmd.SetGlobalBuffer(HDShaderIDs.g_vDecalLightListGlobal, param.tileAndClusterData.perVoxelLightLists);
+            }
+        }
+
         void BuildGPULightListProbeVolumesCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
             // Custom probe volume only light list is only needed if we are evaluating probe volumes early, in the GBuffer phase.
@@ -3540,6 +3612,35 @@ namespace UnityEngine.Rendering.HighDefinition
                 var parameters = PrepareBuildGPULightListParameters(hdCamera, m_ProbeVolumeClusterData, ref m_ShaderVariablesProbeVolumeLightListCB, m_ProbeVolumeCount);
                 var resources = PrepareBuildGPULightListResources(
                     m_ProbeVolumeClusterData,
+                    m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
+                    m_SharedRTManager.GetStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
+                    isGBufferNeeded: false
+                );
+
+                ClearLightLists(parameters, resources, cmd);
+                GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
+                BigTilePrepass(parameters, resources, cmd);
+                VoxelLightListGeneration(parameters, resources, cmd);
+            }
+        }
+        void BuildGPULightListDecalCommon(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            // Custom decal-only light list is only needed if we are evaluating decals early, in the GBuffer phase.
+            // If decals are evaluated in the Light Loop, they are folded into the standard light lists.
+            if (ShaderConfig.s_PrepasslessDecals != 1)
+                return;
+
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+                return;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildGPULightListDecals)))
+            {
+                var parameters = PrepareBuildGPULightListParameters(hdCamera, m_DecalClusterData, ref m_ShaderVariablesDecalLightListCB, DecalSystem.m_DecalDatasCount);
+                // FIXME: Comment this
+                parameters.lightListCB._DecalIndexShift = 0;
+                // !!!
+                var resources = PrepareBuildGPULightListResources(
+                    m_DecalClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
                     m_SharedRTManager.GetStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
                     isGBufferNeeded: false
@@ -3684,6 +3785,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_ProbeVolumeClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].probeVolumesBounds);
                 m_ProbeVolumeClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].probeVolumesLightVolumes);
+            }
+            if (ShaderConfig.s_PrepasslessDecals == 1)
+            {
+                m_DecalClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].decalBounds);
+                m_DecalClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].decalLightVolumes);
             }
 
             cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
