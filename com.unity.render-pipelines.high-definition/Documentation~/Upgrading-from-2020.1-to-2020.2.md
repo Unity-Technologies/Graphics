@@ -51,6 +51,8 @@ From 10.x, the debug lens attenuation has been removed, however the lens attenua
 
 From 10.x, the [Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always uses the color pyramid HDRP generates after the Before Refraction transparent pass. This means the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). Previously the content depended on whether the Distortion effect was active.
 
+From 10.x, when using the Lit with a Specular Color workflow, when the specular color goes below 2% of full white, it will slowly transition to completely kill the specular highlight, leading to no specular highlights at all when the specular color is fully black.
+
 ## Shadows
 
 From 10.x, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#FilteringQualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#FilteringQualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
