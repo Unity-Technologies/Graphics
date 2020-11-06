@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reorgnized the settings in 2D Renderer Data Inspector.
 - Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
 - FallOff Lookup Texture is now part of 2D RenderData.
+- Creating a Shadow Caster 2D will use try and use sprite and physics boundss as the default shape
+- Deleting all points in a Shadow Caster will cause the shape to use the bounds.
 - Improved Geometry for Smooth Falloff of 2D Shape Lights.
 
 ### Fixed
