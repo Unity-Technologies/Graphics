@@ -1121,7 +1121,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Handle IBL + area light + multiscattering.
     // Note: use the not modified by anisotropy iblPerceptualRoughness here.
     float specularReflectivity;
-    GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+    // This F90 term can be used as a way to suppress completely specular when using the specular workflow.
+    float F90 = saturate(50.0f * dot(bsdfData.fresnel0, 0.333f));
+    GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, F90, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.diffuseFGD = 1.0;
 #endif
@@ -1294,7 +1296,9 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     float LdotV, NdotH, LdotH, invLenLV;
     GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
-    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+    // This F90 term can be used as a way to suppress completely specular when using the specular workflow.
+    float F90 = saturate(50.0f * dot(bsdfData.fresnel0, 0.333f));
+    float3 F = F_Schlick(bsdfData.fresnel0, F90, LdotH);
     // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
     // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
     // The Fresnel with iridescence and NDotV angle is precomputed ahead and here we jsut reuse the result.
