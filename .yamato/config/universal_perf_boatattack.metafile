@@ -74,6 +74,20 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+      performance_editmode_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
 all:
   dependencies:
     - platform: Win
