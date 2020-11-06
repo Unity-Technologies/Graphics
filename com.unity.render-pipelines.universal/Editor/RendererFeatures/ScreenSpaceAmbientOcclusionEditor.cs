@@ -79,17 +79,15 @@ namespace UnityEditor.Rendering.Universal
             if (ssaoFeature == null || pipelineAsset == null)
                 return false;
 
-            var rendererDataList = pipelineAsset.m_RendererDataList;
-
             // We have to find the renderer related to the SSAO feature, then test if it is in deferred mode.
+            var rendererDataList = pipelineAsset.m_RendererDataList;
             for (int rendererIndex = 0; rendererIndex < rendererDataList.Length; ++rendererIndex)
             {
-                if (!(rendererDataList[rendererIndex] is ForwardRendererData))
+                ScriptableRendererData rendererData = (ScriptableRendererData)rendererDataList[rendererIndex];
+                if (rendererData == null)
                     continue;
 
-                ScriptableRendererData rendererData = (ScriptableRendererData)rendererDataList[rendererIndex];
                 var rendererFeatures = rendererData.rendererFeatures;
-
                 foreach (var feature in rendererFeatures)
                 {
                     if (feature is ScreenSpaceAmbientOcclusion && (ScreenSpaceAmbientOcclusion)feature == ssaoFeature)
