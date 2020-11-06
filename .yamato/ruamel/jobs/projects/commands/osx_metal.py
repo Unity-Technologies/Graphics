@@ -1,7 +1,7 @@
 
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, VAR_UPM_REGISTRY, UNITY_DOWNLOADER_CLI_URL, UTR_INSTALL_URL,get_unity_downloader_cli_cmd, get_timeout
-from ...shared.utr_utils import utr_editmode_flags, utr_playmode_flags, utr_standalone_not_split_flags
+from ...shared.utr_utils import extract_flags
 
 def _cmd_base(project_folder, platform, utr_flags, editor):
     return [ 
@@ -21,16 +21,7 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
 
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_editmode_flags(
-        testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
-        editor_location=f'/Users/bokken/.Editor',
-        artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}',
-        scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}'
-    )
-    utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"],build_config, color_space, project_folder)
 
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
@@ -38,25 +29,12 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
-        #base.extend(unity_config)
+        base = extra_cmds + base
     
     return base
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-    utr_args = utr_playmode_flags(
-        testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
-        editor_location=f'/Users/bokken/.Editor',
-        artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}',
-        scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}'
-    )
-    utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
@@ -64,39 +42,23 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
+        base = extra_cmds + base
     
     return base
 
-
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
+    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
     scripting_backend = build_config["scripting_backend"]
     api_level = build_config["api_level"]
-    utr_args = utr_standalone_not_split_flags(
-        platform='Standalone',
-        platform_spec='OSX',
-        testproject=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}',
-        editor_location=f'/Users/bokken/.Editor',
-        artifacts_path=f'/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}',
-        scripting_backend=f'{scripting_backend}', api_level=f'{api_level}', color_space=f'{color_space}'
-    )
-    utr_args.extend(test_platform["extra_utr_flags"])
-    utr_args.extend(platform["extra_utr_flags"])
-    utr_args.append(f'--timeout={get_timeout(test_platform, "OSX_Metal")}')
+
     base = _cmd_base(project_folder, platform, utr_args, editor)
     
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
     extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        x=0
-        for y in extra_cmds:
-            base.insert(x, y)
-            x += 1
-    
+        base = extra_cmds + base
+
     return base
 
 
@@ -121,20 +83,20 @@ def install_unity_config(project_folder):
 
 
 		#f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project remove dependency com.unity.render-pipelines.universal',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.addressables@1.14.2 --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.3.1-preview --project-path .',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .',
         
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.metadata-manager@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.test.metadata-manager.git\" --project-path .',        
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.metadata-manager@0.1.2-preview\" --project-path .',        
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"  --project-path .',        
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\" --project-path .',	
 		
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.cli-project-setup  --project-path .',		
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .',
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable test.metadata-manager  --project-path .',
+		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.test.metadata-manager  --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.testing.graphics-performance --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable com.unity.render-pipelines.core  --project-path .',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add testable unity.graphictests.performance.universal  --project-path .',
