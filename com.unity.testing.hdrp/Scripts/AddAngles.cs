@@ -10,6 +10,7 @@ public class AddAngles : MonoBehaviour
 	
 	Vector3 startAngles = Vector3.zero;
     int localFrameCount = 0;
+	int animationLength = 100;
 	
 	// Use this for initialization
     void Start()
@@ -21,12 +22,14 @@ public class AddAngles : MonoBehaviour
     void Update()
     {
         
-		if(localFrameCount == waitFrames){
-			transform.eulerAngles = startAngles + anglesToAdd;
-			Destroy(this);
-		}
-		
+		transform.eulerAngles += anglesToAdd/animationLength;
+
 		localFrameCount++;
-       
+		if(localFrameCount >= animationLength)
+		{
+			localFrameCount = 0;
+			anglesToAdd = -anglesToAdd;
+		}			
     }
+
 }

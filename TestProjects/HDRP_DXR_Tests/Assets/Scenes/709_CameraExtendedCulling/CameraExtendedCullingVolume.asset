@@ -20,6 +20,9 @@ MonoBehaviour:
   enabled:
     m_OverrideState: 1
     m_Value: 1
+  usedAlgorithm:
+    m_OverrideState: 0
+    m_Value: 0
   rayTracing:
     m_OverrideState: 1
     m_Value: 1
@@ -34,6 +37,11 @@ MonoBehaviour:
   screenFadeDistance:
     m_OverrideState: 0
     m_Value: 0.1
+    min: 0
+    max: 1
+  accumulationFactor:
+    m_OverrideState: 0
+    m_Value: 0.75
     min: 0
     max: 1
   layerMask:
@@ -56,12 +64,12 @@ MonoBehaviour:
     max: 31
   m_MinSmoothness:
     m_OverrideState: 0
-    m_Value: 0.9
+    m_Value: 0.4
     min: 0
     max: 1
   m_SmoothnessFadeStart:
     m_OverrideState: 0
-    m_Value: 0.9
+    m_Value: 0.5
     min: 0
     max: 1
   m_RayMaxIterations:
@@ -71,7 +79,6 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 50
     min: 0
-    max: 50
   m_ClampValue:
     m_OverrideState: 0
     m_Value: 1
@@ -79,7 +86,7 @@ MonoBehaviour:
     max: 10
   m_UpscaleRadius:
     m_OverrideState: 0
-    m_Value: 2
+    m_Value: 4
     min: 2
     max: 6
   m_FullResolution:
@@ -90,7 +97,7 @@ MonoBehaviour:
     m_Value: 1
   m_DenoiserRadius:
     m_OverrideState: 0
-    m_Value: 8
+    m_Value: 12
     min: 1
     max: 32
 --- !u!114 &-5965176281060342084
@@ -107,16 +114,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
-  maxNumLightsPercell:
-    m_OverrideState: 0
-    m_Value: 10
-    min: 0
-    max: 24
   cameraClusterRange:
     m_OverrideState: 1
     m_Value: 50
     min: 0.001
     max: 50
+--- !u!114 &-4945562893403210316
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31394aa05878563408489d5c1688f3a0, type: 3}
+  m_Name: PathTracing
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  enable:
+    m_OverrideState: 1
+    m_Value: 0
+  layerMask:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Bits: 4294967295
+  maximumSamples:
+    m_OverrideState: 0
+    m_Value: 256
+    min: 1
+    max: 4096
+  minimumDepth:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 1
+    max: 10
+  maximumDepth:
+    m_OverrideState: 0
+    m_Value: 4
+    min: 1
+    max: 10
+  maximumIntensity:
+    m_OverrideState: 0
+    m_Value: 10
+    min: 0
+    max: 100
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,6 +177,7 @@ MonoBehaviour:
   - {fileID: -8750546916358331156}
   - {fileID: 9082010790483802202}
   - {fileID: -5965176281060342084}
+  - {fileID: -4945562893403210316}
 --- !u!114 &9082010790483802202
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -158,3 +203,7 @@ MonoBehaviour:
   extendCameraCulling:
     m_OverrideState: 1
     m_Value: 1
+  directionalShadowRayLength:
+    m_OverrideState: 0
+    m_Value: 1000
+    min: 0.01
