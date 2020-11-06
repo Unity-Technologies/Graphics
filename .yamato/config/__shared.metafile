@@ -245,6 +245,7 @@ platforms:
     components:
       - editor
       - iOS
+      - il2cpp
     agents_project:
       default:
         type: Unity::mobile::iPhone
