@@ -193,7 +193,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
             m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
-            m_ShapeLightFalloffOffset = serializedObject.FindProperty("m_ShapeLightFalloffOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
             m_AnyBlendStyleEnabled = false;
@@ -297,14 +296,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     m_ShapeLightFalloffSize.floatValue = 0;
 
                 EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
-
-                if (lightType == Light2D.LightType.Parametric || lightType == Light2D.LightType.Freeform)
-                {
-                    bool oldWideMode = EditorGUIUtility.wideMode;
-                    EditorGUIUtility.wideMode = true;
-                    EditorGUILayout.PropertyField(m_ShapeLightFalloffOffset, Styles.shapeLightFalloffOffset);
-                    EditorGUIUtility.wideMode = oldWideMode;
-                }
             }
         }
 
@@ -501,7 +492,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         Vector3 startPoint = radius * direction;
                         Vector3 featherStartPoint = startPoint + light.shapeLightFalloffSize * direction;
                         float radiansPerSide = 2 * Mathf.PI / sides;
-                        Vector3 falloffOffset = light.shapeLightFalloffOffset;
 
                         for (int i = 0; i < sides; ++i)
                         {
@@ -512,7 +502,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                             Vector3 featherEndPoint = endPoint + light.shapeLightFalloffSize * direction;
 
                             Handles.DrawLine(t.TransformPoint(startPoint), t.TransformPoint(endPoint));
-                            Handles.DrawLine(t.TransformPoint(featherStartPoint + falloffOffset), t.TransformPoint(featherEndPoint + falloffOffset));
+                            Handles.DrawLine(t.TransformPoint(featherStartPoint), t.TransformPoint(featherEndPoint));
 
                             startPoint = endPoint;
                             featherStartPoint = featherEndPoint;
@@ -525,17 +515,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         List<Vector2> falloffShape = light.GetFalloffShape();
                         Handles.color = Color.white;
 
-
-                        Vector3 falloffOffset = m_ShapeLightFalloffOffset.vector2Value;
-
                         for (int i = 0; i < falloffShape.Count - 1; ++i)
                         {
-                            Handles.DrawLine(t.TransformPoint(falloffShape[i]) + falloffOffset, t.TransformPoint(falloffShape[i + 1]) + falloffOffset);
-                            Handles.DrawLine(t.TransformPoint(light.shapePath[i]), t.TransformPoint(light.shapePath[i + 1]));
+                            Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                         }
 
-                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]) + falloffOffset, t.TransformPoint(falloffShape[0]) + falloffOffset);
-                        Handles.DrawLine(t.TransformPoint(light.shapePath[falloffShape.Count - 1]), t.TransformPoint(light.shapePath[0]));
+                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+
+                        for (int i = 0; i < light.shapePath.Length - 1; ++i)
+                        {
+                            Handles.DrawLine(t.TransformPoint(light.shapePath[i]),
+                                t.TransformPoint(light.shapePath[i + 1]));
+                        }
+
+                        Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
                     }
                     break;
             }
