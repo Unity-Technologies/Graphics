@@ -437,11 +437,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    if (this.actualRenderingMode == RenderingMode.Deferred)
-                    {
-                        // Nothing to do: we never get here.
-                    }
-                    else
+                    // Deferred renderer does not require a depth-prepass to generate samplable depth texture.
+                    if (this.actualRenderingMode != RenderingMode.Deferred)
                     {
                         m_DepthPrepass.Setup(cameraTargetDescriptor, m_DepthTexture);
                         EnqueuePass(m_DepthPrepass);
