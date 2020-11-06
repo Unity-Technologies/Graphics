@@ -26,7 +26,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Light Explorer was grabbing the URP asset in Graphics Settings rather than the currently active.
 - Fixed an issue causing materials to be upgraded multiple times.
 
-
 ## [10.2.0] - 2020-10-19
 
 ### Changed
