@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Removed the material pass probe volumes evaluation mode. 
+- Specular color values below 2% will gradually kill specular highlights completely. 
 
 ### Fixed
 - Fixed probe volumes debug views.
