@@ -15,7 +15,7 @@ Shader "Hidden/Shadow2DShadowSprite"
 
         Pass
         {
-            //Bit 0: Group Bit, Bit 1: Shadow Bit
+            //Bit 0: Composite Shadow Bit, Bit 1: Global Shadow Bit
             Stencil
             {
                 Ref  0

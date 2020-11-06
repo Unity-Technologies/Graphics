@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         if (shadowCasters != null)
                         {
-                            // Draw the projected shadows
+                            // Draw the projected shadows and write a composite shadow bit into the stencil buffer
                             for(int shadowCasterIndex=0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
                             {
                                 var shadowCaster = shadowCasters[shadowCasterIndex];
@@ -110,9 +110,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     // If we cast shadows draw the projected shadows
                                     cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, projectedShadowMaterial, 0, 0);
                                 }
-
                             }
-
 
                             for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
                             {
@@ -140,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 }
                             }
 
-                            // Update the stencil buffer
+                            // Update the stencil buffer. If a composite shadow value was written convert it into global shadow bit
                             for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
                             {
                                 var shadowCaster = shadowCasters[shadowCasterIndex];

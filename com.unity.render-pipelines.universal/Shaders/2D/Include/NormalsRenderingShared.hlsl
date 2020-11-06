@@ -1,5 +1,5 @@
-#if !defined(NORMALS_RENDERING_PASS)
-#define NORMALS_RENDERING_PASS
+#if !defined(NORMALS_RENDERING_SHARED)
+#define NORMALS_RENDERING_SHARED
 
 half4 NormalsRenderingShared(half4 color, half3 normalTS, half3 tangent, half3 bitangent, half3 normal)
 {

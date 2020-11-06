@@ -1,3 +1,6 @@
+#if !defined(LIGHTING_UTILITY)
+#define LIGHTING_UTILITY
+
 #if USE_NORMAL_MAP
     #if LIGHT_QUALITY_FAST
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
@@ -80,3 +83,4 @@
     half4 _ShapeLightMaskFilter##index;\
     half4 _ShapeLightInvertedFilter##index;
 
+#endif

@@ -1,5 +1,5 @@
-#if !defined(COMBINED_SHAPE_LIGHT_PASS)
-#define COMBINED_SHAPE_LIGHT_PASS
+#if !defined(COMBINED_SHAPE_LIGHT_SHARED)
+#define COMBINED_SHAPE_LIGHT_SHARED
 
 half _HDREmulationScale;
 half _UseSceneLighting;
