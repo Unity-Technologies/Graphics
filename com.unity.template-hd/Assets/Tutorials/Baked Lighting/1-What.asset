@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
+  m_Name: 1-What
+  m_EditorClassIdentifier: 
+  m_Paragraphs:
+    m_Items:
+    - m_Type: 6
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+      m_Tutorial: {fileID: 0}
+      m_Icons:
+        m_Items: []
+      m_Image: {fileID: 2800000, guid: 1f5f29c8af8aba44b949c032409694ec, type: 3}
+      m_Video: {fileID: 32900000, guid: 99f677dcf1744aa4d9ff3b0f37bf3888, type: 3}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+    - m_Type: 0
+      m_Summary: What is baked lighting?
+      m_Description: "Lights have to be baked in order to simulate indirect lighting,
+        this is especially important for indoor environments. \n\nIn reality most
+        of the objects we see are lit by indirect light that bounced from walls,
+        floors and etc. Thus the absence of it is instantly noticeable.\n\nThe image
+        above shows the scene when baked data is cleared. As you can see bounced
+        light is missing, but there are also a few other key things to take note
+        of. When baked data does not exist:\n\n* The sky is used for reflections 
+        (set in Lighting->Volumes->Volume Global->Visual Environment)\n\n* All objects
+        receive ambient lighting from the sky, light is not occluded (set in Window->Rendering->Environment->Static
+        lighting sky)\n\n"
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+      m_Tutorial: {fileID: 0}
+      m_Icons:
+        m_Items: []
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+  m_CameraSettings:
+    m_CameraMode: 1
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 5.4257765
+    m_Pivot: {x: 38.815468, y: 2.9713151, z: 7.265776}
+    m_Rotation: {x: -0.022312965, y: 0.47645387, z: 0.012136909, w: 0.8788605}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 1
+  m_NextButton: Next
+  m_DoneButton: Done
+  m_CompletedSound: {fileID: 0}
+  m_autoAdvance: 0
+  m_OnBeforePageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []

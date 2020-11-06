@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
+  m_Name: 3-BakeSettings
+  m_EditorClassIdentifier: 
+  m_Paragraphs:
+    m_Items:
+    - m_Type: 6
+      m_Summary: 
+      m_Description: 
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+      m_Tutorial: {fileID: 0}
+      m_Icons:
+        m_Items: []
+      m_Image: {fileID: 2800000, guid: f4dda8247624aec428e207baa1664bf6, type: 3}
+      m_Video: {fileID: 32900000, guid: 99f677dcf1744aa4d9ff3b0f37bf3888, type: 3}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+    - m_Type: 0
+      m_Summary: Baking settings
+      m_Description: "In the Lighting window you can see all of the baking settings,
+        they can be stored into a <b>Lighting Settings</b> asset.\n\nWe offer 4 different
+        assets in this template, with different levels of quality, which will have
+        a direct impact on how long the bake will take: the higher the quality, the
+        longer the bake. \n\nThese presets can be found in the project under <b>Assets->Scenes->SampleScene</b>.
+        Easy way to locate them is to simply click on Lighting Settings field in
+        Lighting tab.\n\nInspect each preset starting with <b>Lighting Settings Draft</b>
+        up to <b>Lighting Settings Ultra</b>. Important settings to take note of:\n\n*
+        <b>Lightmap Resolution</b> - controls how precise the lightmap is. Higher
+        number means larger file size, slower bake, increased maximum quality.\n\n* 
+        <b>Indirect and Environment samples</b> - controls how grainy or smooth the
+        lighting will be. While resolution limits the max quality, samples count
+        is used to reach that maximum. Meaning if if lightmap resolution is low and
+        we keep increasing sample count, the quality will not get any better. No
+        effect on file size.\n\n* <b>Direct samples</b> - controls the quality of
+        direct shadows. Not used in this demo, since all shadows are realtime. We
+        have set different values for convenience if users want to switch to fully
+        baked lighting and shadows.\n\n*<b>Max bounces and Min bounces</b> - controls
+        how many times the light ray can bounce. Higher number brings more realism
+        but increases baked time. \n\n* <b>Filtering</b> - is a complex subject,
+        but the key takeway is that most of the time using Filtering is a good idea.
+        It will allow you to have faster bake times without a major impact to quality.
+        Which method to use can depend on case by case scenario, but often Optix
+        can work better with lower sample counts and Open Image for higher."
+      m_InstructionBoxTitle: 
+      m_InstructionText: 
+      m_TutorialButtonText: 
+      m_Tutorial: {fileID: 0}
+      m_Icons:
+        m_Items: []
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
+      m_CriteriaCompletion: 0
+      m_Criteria:
+        m_Items: []
+      m_MaskingSettings:
+        m_MaskingEnabled: 0
+        m_UnmaskedViews: []
+  m_CameraSettings:
+    m_CameraMode: 1
+    m_FocusMode: 0
+    m_Orthographic: 0
+    m_Size: 5.4257765
+    m_Pivot: {x: 44.59745, y: 2.8116028, z: 8.813792}
+    m_Rotation: {x: -0.023293141, y: 0.49869338, z: 0.013454924, w: 0.86639863}
+    m_FrameObject:
+      m_SceneGuid: 
+      m_GameObjectGuid: 
+      m_SerializedComponentType:
+        m_TypeName: 
+      m_ComponentIndex: 0
+      m_AssetObject: {fileID: 0}
+      m_Prefab: {fileID: 0}
+    m_Enabled: 1
+  m_NextButton: Next
+  m_DoneButton: Done
+  m_CompletedSound: {fileID: 0}
+  m_autoAdvance: 0
+  m_OnBeforePageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []

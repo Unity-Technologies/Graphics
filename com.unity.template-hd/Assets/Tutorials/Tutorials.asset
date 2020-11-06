@@ -101,3 +101,33 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 0}
     Tutorial: {fileID: 11400000, guid: 5fc2e27d531af7b43bf1195d1213e7b5, type: 2}
+  - OrderInView: 16
+    Heading:
+      m_Untranslated: Baked Lighting
+    Text:
+      m_Untranslated: 
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: b4e4869767e279b4aa35c5b0d2f9872b, type: 2}
+  - OrderInView: 18
+    Heading:
+      m_Untranslated: Sky
+    Text:
+      m_Untranslated: 
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: 5b56243ad5e5e5a4c96029c7772fe66d, type: 2}
+  - OrderInView: 20
+    Heading:
+      m_Untranslated: White Balance
+    Text:
+      m_Untranslated: 
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: 5dccaf730723e85469a2245856ee3d8b, type: 2}
