@@ -93,6 +93,41 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
     }
 
+
+    [DebuggerDisplay("ComputeBufferResource ({desc.name})")]
+    class ComputeBufferResource : RenderGraphResource<ComputeBufferDesc, ComputeBuffer>
+    {
+        public override string GetName()
+        {
+            if (imported)
+                return "ImportedComputeBuffer"; // No getter for compute buffer name.
+            else
+                return desc.name;
+        }
+
+        public override void CreateGraphicsResource(string name = "")
+        {
+            graphicsResource = new ComputeBuffer(desc.count, desc.stride, desc.type);
+            graphicsResource.name = name == "" ? $"RenderGraphComputeBuffer_{desc.count}_{desc.stride}_{desc.type}" : name;
+        }
+
+        public override void ReleaseGraphicsResource()
+        {
+            graphicsResource.Release();
+            base.ReleaseGraphicsResource();
+        }
+
+        public override void LogCreation(RenderGraphLogger logger)
+        {
+            logger.LogLine($"Created ComputeBuffer: {desc.name}");
+        }
+
+        public override void LogRelease(RenderGraphLogger logger)
+        {
+            logger.LogLine($"Released ComputeBuffer: {desc.name}");
+        }
+    }
+
     class ComputeBufferPool : RenderGraphResourcePool<ComputeBuffer>
     {
         protected override void ReleaseInternalResource(ComputeBuffer res)

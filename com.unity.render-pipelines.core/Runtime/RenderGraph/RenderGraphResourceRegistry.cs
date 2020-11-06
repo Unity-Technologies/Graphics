@@ -7,6 +7,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
     class RenderGraphResourceRegistry
     {
+        const int kSharedResourceLifetime = 30;
+
         static RenderGraphResourceRegistry m_CurrentRegistry;
         internal static RenderGraphResourceRegistry current
         {
@@ -24,106 +26,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             set
             {
                 m_CurrentRegistry = value;
-            }
-        }
-
-        [DebuggerDisplay("TextureResource ({desc.name})")]
-        class TextureResource : RenderGraphResource<TextureDesc, RTHandle>
-        {
-            static int m_TextureCreationIndex;
-
-            public override string GetName()
-            {
-                if (imported)
-                    return graphicsResource != null ? graphicsResource.name : "null resource";
-                else
-                    return desc.name;
-            }
-
-            public override void CreateGraphicsResource(string name = "")
-            {
-                // Textures are going to be reused under different aliases along the frame so we can't provide a specific name upon creation.
-                // The name in the desc is going to be used for debugging purpose and render graph visualization.
-                if (name == "")
-                    name = $"RenderGraphTexture_{m_TextureCreationIndex++}";
-
-                switch (desc.sizeMode)
-                {
-                    case TextureSizeMode.Explicit:
-                        graphicsResource = RTHandles.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
-                        break;
-                    case TextureSizeMode.Scale:
-                        graphicsResource = RTHandles.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
-                        break;
-                    case TextureSizeMode.Functor:
-                        graphicsResource = RTHandles.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                        desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
-                        break;
-                }
-            }
-
-            public override void ReleaseGraphicsResource()
-            {
-                graphicsResource.Release();
-                base.ReleaseGraphicsResource();
-            }
-
-            public override void LogCreation(RenderGraphLogger logger)
-            {
-                logger.LogLine($"Created Texture: {desc.name} (Cleared: {desc.clearBuffer})");
-            }
-
-            public override void LogRelease(RenderGraphLogger logger)
-            {
-                logger.LogLine($"Released Texture: {desc.name}");
-            }
-        }
-
-        [DebuggerDisplay("ComputeBufferResource ({desc.name})")]
-        class ComputeBufferResource : RenderGraphResource<ComputeBufferDesc, ComputeBuffer>
-        {
-            public override string GetName()
-            {
-                if (imported)
-                    return "ImportedComputeBuffer"; // No getter for compute buffer name.
-                else
-                    return desc.name;
-            }
-
-            public override void CreateGraphicsResource(string name = "")
-            {
-                graphicsResource = new ComputeBuffer(desc.count, desc.stride, desc.type);
-                graphicsResource.name = name == "" ? $"RenderGraphComputeBuffer_{desc.count}_{desc.stride}_{desc.type}" : name;
-            }
-
-            public override void ReleaseGraphicsResource()
-            {
-                graphicsResource.Release();
-                base.ReleaseGraphicsResource();
-            }
-
-            public override void LogCreation(RenderGraphLogger logger)
-            {
-                logger.LogLine($"Created ComputeBuffer: {desc.name}");
-            }
-
-            public override void LogRelease(RenderGraphLogger logger)
-            {
-                logger.LogLine($"Released ComputeBuffer: {desc.name}");
-            }
-        }
-
-        internal struct RendererListResource
-        {
-            public RendererListDesc desc;
-            public RendererList     rendererList;
-
-            internal RendererListResource(in RendererListDesc desc)
-            {
-                this.desc = desc;
-                this.rendererList = new RendererList(); // Invalid by default
             }
         }
 
@@ -279,6 +181,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckHandleValidity(res);
             return m_RenderGraphResources[res.iType].resourceArray[res.index].imported;
+        }
+
+        internal bool IsRenderGraphResourceShared(RenderGraphResourceType type, int index)
+        {
+            CheckHandleValidity(type, index);
+            return index < m_RenderGraphResources[(int)type].sharedResourcesCount;
         }
 
         internal bool IsGraphicsResourceCreated(in ResourceHandle res)
@@ -438,6 +346,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_RenderGraphResources[(int)RenderGraphResourceType.ComputeBuffer].resourceArray[handle] as ComputeBufferResource;
         }
 
+        internal void UpdateSharedResourceLastFrameIndex(int type, int index)
+        {
+            m_RenderGraphResources[type].resourceArray[index].sharedResourceLastFrameUsed = m_CurrentFrameIndex;
+        }
+
         void ManageSharedRenderGraphResources()
         {
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
@@ -446,15 +359,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 for (int i = 0; i < resources.sharedResourcesCount; ++i)
                 {
                     var resource = m_RenderGraphResources[type].resourceArray[i];
+                    bool isCreated = resource.IsCreated();
                     // Alloc if needed.
-                    if (resource.sharedResourceLastFrameUsed == m_CurrentFrameIndex && !resource.IsCreated())
+                    if (resource.sharedResourceLastFrameUsed == m_CurrentFrameIndex && !isCreated)
                     {
                         // Here we want the resource to have the name given by users because we know that it won't be reused at all.
                         // So no need for an automatic generic name.
                         resource.CreateGraphicsResource(resource.GetName());
                     }
                     // Release if not used anymore.
-                    else
+                    else if (isCreated && ((resource.sharedResourceLastFrameUsed + kSharedResourceLifetime) < m_CurrentFrameIndex))
                     {
                         resource.ReleaseGraphicsResource();
                     }

@@ -33,4 +33,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => m_IsValid;
     }
+
+    internal struct RendererListResource
+    {
+        public RendererListDesc desc;
+        public RendererList rendererList;
+
+        internal RendererListResource(in RendererListDesc desc)
+        {
+            this.desc = desc;
+            this.rendererList = new RendererList(); // Invalid by default
+        }
+    }
 }

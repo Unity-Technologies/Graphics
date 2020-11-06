@@ -157,7 +157,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             public List<int>    producers;
             public List<int>    consumers;
-            public bool         resourceCreated;
             public int          refCount;
 
             public void Reset()
@@ -169,7 +168,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 producers.Clear();
                 consumers.Clear();
-                resourceCreated = false;
                 refCount = 0;
             }
         }
@@ -1004,6 +1002,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     // Texture release
                     // Sometimes, a texture can be written by a pass after the last pass that reads it.
                     // In this case, we need to extend its lifetime to this pass otherwise the pass would get an invalid texture.
+                    // TODO RENDERGRAPH: See if we can make this an error instead. It seems that it should be.
                     int lastReadPassIndex = Math.Max(GetLatestValidReadIndex(resourceInfo), GetLatestValidWriteIndex(resourceInfo));
 
                     if (lastReadPassIndex != -1)
@@ -1038,6 +1037,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                             ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[lastReadPassIndex];
                             passInfo.resourceReleaseList[type].Add(i);
                         }
+                    }
+
+                    if (m_Resources.IsRenderGraphResourceShared((RenderGraphResourceType)type, i)
+                        && (firstWriteIndex != -1 || lastReadPassIndex != -1)) // A shared resource is considered used if it's either read or written at any pass.
+                    {
+                        m_Resources.UpdateSharedResourceLastFrameIndex(type, i);
                     }
                 }
             }
@@ -1219,7 +1224,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
-                foreach (var resource in passInfo.resourceCreateList[type])
+                foreach (int resource in passInfo.resourceCreateList[type])
                 {
                     m_Resources.CreatePooledResource(rgContext, type, resource);
                 }

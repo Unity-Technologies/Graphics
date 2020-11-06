@@ -273,6 +273,59 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
     }
 
+    [DebuggerDisplay("TextureResource ({desc.name})")]
+    class TextureResource : RenderGraphResource<TextureDesc, RTHandle>
+    {
+        static int m_TextureCreationIndex;
+
+        public override string GetName()
+        {
+            if (imported)
+                return graphicsResource != null ? graphicsResource.name : "null resource";
+            else
+                return desc.name;
+        }
+
+        public override void CreateGraphicsResource(string name = "")
+        {
+            // Textures are going to be reused under different aliases along the frame so we can't provide a specific name upon creation.
+            // The name in the desc is going to be used for debugging purpose and render graph visualization.
+            if (name == "")
+                name = $"RenderGraphTexture_{m_TextureCreationIndex++}";
+
+            switch (desc.sizeMode)
+            {
+                case TextureSizeMode.Explicit:
+                    graphicsResource = RTHandles.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                    desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                    break;
+                case TextureSizeMode.Scale:
+                    graphicsResource = RTHandles.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                    desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                    break;
+                case TextureSizeMode.Functor:
+                    graphicsResource = RTHandles.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
+                    desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                    break;
+            }
+        }
+
+        public override void ReleaseGraphicsResource()
+        {
+            graphicsResource.Release();
+            base.ReleaseGraphicsResource();
+        }
+
+        public override void LogCreation(RenderGraphLogger logger)
+        {
+            logger.LogLine($"Created Texture: {desc.name} (Cleared: {desc.clearBuffer})");
+        }
+
+        public override void LogRelease(RenderGraphLogger logger)
+        {
+            logger.LogLine($"Released Texture: {desc.name}");
+        }
+    }
 
     class TexturePool : RenderGraphResourcePool<RTHandle>
     {
