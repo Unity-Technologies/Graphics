@@ -74,9 +74,11 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(m_Settings);
+            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer);
             if (shouldAdd)
+            {
                 renderer.EnqueuePass(m_SSAOPass);
+            }
         }
 
         /// <inheritdoc/>
@@ -109,11 +111,15 @@ namespace UnityEngine.Rendering.Universal
         // The SSAO Pass
         private class ScreenSpaceAmbientOcclusionPass : ScriptableRenderPass
         {
+            // Properties
+            internal bool isRendererDeferred { get { return m_Renderer != null && m_Renderer is ForwardRenderer && ((ForwardRenderer)m_Renderer).renderingMode == RenderingMode.Deferred; } }
+
             // Public Variables
             internal string profilerTag;
             internal Material material;
 
             // Private Variables
+            private ScriptableRenderer m_Renderer = null;
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
             private Matrix4x4[] m_CameraViewProjections = new Matrix4x4[2];
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
@@ -156,10 +162,16 @@ namespace UnityEngine.Rendering.Universal
                 m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
             }
 
-            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings)
+            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer)
             {
+                m_Renderer = renderer;
                 m_CurrentSettings = featureSettings;
-                switch (m_CurrentSettings.Source)
+
+                ScreenSpaceAmbientOcclusionSettings.DepthSource source = this.isRendererDeferred
+                    ? ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals
+                    : m_CurrentSettings.Source;
+
+                switch (source)
                 {
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth:
                         ConfigureInput(ScriptableRenderPassInput.Depth);
@@ -228,7 +240,11 @@ namespace UnityEngine.Rendering.Universal
                 // Update keywords
                 CoreUtils.SetKeyword(material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
 
-                if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
+                ScreenSpaceAmbientOcclusionSettings.DepthSource source = this.isRendererDeferred
+                    ? ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals
+                    : m_CurrentSettings.Source;
+
+                if (source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
                 {
                     switch (m_CurrentSettings.NormalSamples)
                     {
@@ -252,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                switch (m_CurrentSettings.Source)
+                switch (source)
                 {
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
                         CoreUtils.SetKeyword(material, k_SourceDepthKeyword, false);
