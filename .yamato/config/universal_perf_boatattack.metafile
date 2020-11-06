@@ -23,7 +23,7 @@ test_platforms:
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
-    extra_utr_flags:
+    utr_flags:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
@@ -36,7 +36,7 @@ test_platforms:
   - type: editmode
     name: performance_editmode_build
     is_performance: True
-    extra_utr_flags:
+    utr_flags:
       - [all]: --testfilter=Build
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
