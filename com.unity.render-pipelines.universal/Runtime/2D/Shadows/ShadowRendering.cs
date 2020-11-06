@@ -113,12 +113,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                             }
 
-                            // Draw the sprites
+
                             for (int shadowCasterIndex = 0; shadowCasterIndex < shadowCasters.Count; shadowCasterIndex++)
                             {
                                 var shadowCaster = shadowCasters[shadowCasterIndex];
                                 if (shadowCaster.useRendererSilhouette)
                                 {
+                                    // Draw the sprites
                                     var renderer = shadowCaster.GetComponent<Renderer>();
                                     if (renderer != null)
                                     {
@@ -131,6 +132,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 }
                                 else
                                 {
+                                    // Draw the caster shape
                                     if (shadowCaster.selfShadows)
                                         cmdBuffer.DrawMesh(shadowCaster.mesh, shadowCaster.transform.localToWorldMatrix, spriteSelfShadowMaterial);
                                     else
