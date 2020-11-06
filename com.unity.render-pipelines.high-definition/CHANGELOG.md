@@ -89,6 +89,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed exceptions when unchecking "Big Tile Prepass" on the frame settings with render-graph.
 - Fixed an issue causing errors in GenerateMaxZ when opaque objects or decals are disabled. 
 - Fixed an issue with Bake button of Reflection Probe when in custom mode
+- HLSL codegen will work with C# file using both the `GenerateHLSL` and C# 7 features.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
