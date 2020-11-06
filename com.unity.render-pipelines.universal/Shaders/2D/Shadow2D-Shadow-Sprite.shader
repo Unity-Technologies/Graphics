@@ -15,14 +15,14 @@ Shader "Hidden/Shadow2DShadowSprite"
 
         Pass
         {
-            // Bit 0: Group Bit, Bit 1: Shadow Bit
-            //Stencil
-            //{
-            //    Ref  2
-            //    Comp LEqual
-            //    Pass Keep
-            //    Fail Keep
-            //}
+            //Bit 0: Group Bit, Bit 1: Shadow Bit
+            Stencil
+            {
+                Ref  0
+                Comp Equal
+                Pass Keep
+                Fail Keep
+            }
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -56,8 +56,7 @@ Shader "Hidden/Shadow2DShadowSprite"
             half4 frag(Varyings i) : SV_Target
             {
                 half4 main = tex2D(_MainTex, i.uv);
-                //return half4(1, 1, 1, main.a);
-                return half4(1, 1, 1, 1);
+                return half4(1, 1, 1, main.a);
             }
             ENDHLSL
         }
