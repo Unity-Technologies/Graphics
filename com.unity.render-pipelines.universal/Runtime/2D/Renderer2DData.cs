@@ -63,8 +63,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/2D/Shadow2DProjected.shader")]
         Shader m_ProjectedShadowShader = null;
 
-        [SerializeField, Reload("Shaders/2D/Shadow2DSprite.shader")]
+        [SerializeField, Reload("Shaders/2D/Shadow2DShadowSprite.shader")]
         Shader m_SpriteShadowShader = null;
+
+        [SerializeField, Reload("Shaders/2D/Shadow2DUnshadowSprite.shader")]
+        Shader m_SpriteUnshadowShader = null;
+
 
         [SerializeField, Reload("Shaders/Utils/FallbackError.shader")]
         Shader m_FallbackErrorShader;
@@ -87,6 +91,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
         internal Shader spriteShadowShader => m_SpriteShadowShader;
+        internal Shader spriteUnshadowShader => m_SpriteUnshadowShader;
         internal Shader projectedShadowShader => m_ProjectedShadowShader;
         internal PostProcessData postProcessData => m_PostProcessData;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;

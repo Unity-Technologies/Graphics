@@ -1,9 +1,8 @@
-Shader "Hidden/Shadow2DRemoveSelf"
+Shader "Hidden/Shadow2DUnshadowSprite"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        [PerRendererData][HideInInspector] _SelfShadowing("__SelfShadowing", Float) = 0.0
     }
     SubShader
     {
@@ -20,7 +19,7 @@ Shader "Hidden/Shadow2DRemoveSelf"
             Stencil
             {
                 Ref  1
-                Comp LEqual
+                Comp Equal
                 Pass Keep
                 Fail Keep
             }
@@ -45,7 +44,6 @@ Shader "Hidden/Shadow2DRemoveSelf"
 
             sampler2D _MainTex;
             float4    _MainTex_ST;
-            float     _SelfShadowing;   // This should be either 0 or 1
 
             Varyings vert (Attributes v)
             {
@@ -58,13 +56,7 @@ Shader "Hidden/Shadow2DRemoveSelf"
             half4 frag(Varyings i) : SV_Target
             {
                 half4 main = tex2D(_MainTex, i.uv);
-
-                half4 col;
-                col.r = _SelfShadowing;
-                col.g = _SelfShadowing;
-                col.b = _SelfShadowing;
-                col.a = main.a;
-                return col;
+                return half4(0, 0, 0, main.a);
             }
             ENDHLSL
         }

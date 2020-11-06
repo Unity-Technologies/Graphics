@@ -37,7 +37,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (rendererData.spriteSelfShadowMaterial == null)
             {
                 Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteShadowShader);
-                material.SetFloat(k_SelfShadowingID, 1.0f);
                 rendererData.spriteSelfShadowMaterial = material;
             }
                 
@@ -48,8 +47,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (rendererData.spriteUnshadowMaterial == null)
             {
-                Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteShadowShader);
-                material.SetFloat(k_SelfShadowingID, 0.0f);
+                Material material = CoreUtils.CreateEngineMaterial(rendererData.spriteUnshadowShader);
                 rendererData.spriteUnshadowMaterial = material;
             }
 
