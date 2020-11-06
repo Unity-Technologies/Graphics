@@ -31,6 +31,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
+  quality:
+    m_OverrideState: 0
+    m_Value: 1
   rayTracing:
     m_OverrideState: 0
     m_Value: 0
@@ -44,24 +47,16 @@ MonoBehaviour:
     m_Value: 0
     min: 0
     max: 1
-  stepCount:
-    m_OverrideState: 0
-    m_Value: 6
-    min: 2
-    max: 32
   radius:
     m_OverrideState: 1
     m_Value: 1
     min: 0.25
     max: 5
-  fullResolution:
+  spatialBilateralAggressiveness:
     m_OverrideState: 0
-    m_Value: 0
-  maximumRadiusInPixels:
-    m_OverrideState: 0
-    m_Value: 40
-    min: 16
-    max: 256
+    m_Value: 0.15
+    min: 0
+    max: 1
   temporalAccumulation:
     m_OverrideState: 0
     m_Value: 1
@@ -70,14 +65,6 @@ MonoBehaviour:
     m_Value: 0.5
     min: 0
     max: 1
-  bilateralUpsample:
-    m_OverrideState: 0
-    m_Value: 1
-  directionCount:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 1
-    max: 6
   blurSharpness:
     m_OverrideState: 0
     m_Value: 0.1
@@ -88,21 +75,41 @@ MonoBehaviour:
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
-  rayLength:
-    m_OverrideState: 0
-    m_Value: 0.5
+  m_StepCount:
+    m_OverrideState: 1
+    m_Value: 6
+    min: 2
+    max: 32
+  m_FullResolution:
+    m_OverrideState: 1
+    m_Value: 0
+  m_MaximumRadiusInPixels:
+    m_OverrideState: 1
+    m_Value: 40
+    min: 16
+    max: 256
+  m_BilateralUpsample:
+    m_OverrideState: 1
+    m_Value: 1
+  m_DirectionCount:
+    m_OverrideState: 1
+    m_Value: 2
+    min: 1
+    max: 6
+  m_RayLength:
+    m_OverrideState: 1
+    m_Value: 3
     min: 0
-    max: 50
-  sampleCount:
-    m_OverrideState: 0
-    m_Value: 4
+  m_SampleCount:
+    m_OverrideState: 1
+    m_Value: 2
     min: 1
     max: 64
-  denoise:
-    m_OverrideState: 0
-    m_Value: 0
-  denoiserRadius:
-    m_OverrideState: 0
+  m_Denoise:
+    m_OverrideState: 1
+    m_Value: 1
+  m_DenoiserRadius:
+    m_OverrideState: 1
     m_Value: 0.5
     min: 0.001
     max: 1
@@ -172,6 +179,10 @@ MonoBehaviour:
   quality:
     m_OverrideState: 0
     m_Value: 3
+  threshold:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
   intensity:
     m_OverrideState: 1
     m_Value: 0.1
@@ -195,15 +206,15 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0
     min: 0
-  prefilter:
-    m_OverrideState: 0
-    m_Value: 0
   anamorphic:
     m_OverrideState: 0
     m_Value: 1
   m_Resolution:
     m_OverrideState: 0
     m_Value: 2
+  m_HighQualityPrefiltering:
+    m_OverrideState: 0
+    m_Value: 0
   m_HighQualityFiltering:
     m_OverrideState: 0
     m_Value: 1

@@ -405,7 +405,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_BlackAmbientProbe;
             }
 
-            if (hdCamera.skyAmbientMode == SkyAmbientMode.Static)
+            if (hdCamera.skyAmbientMode == SkyAmbientMode.Static
+                || (hdCamera.camera.cameraType == CameraType.Reflection && HDRenderPipeline.currentPipeline.reflectionProbeBaking))
             {
                 return GetAmbientProbe(m_StaticLightingSky);
             }
@@ -862,6 +863,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.debugSettings = debugSettings;
             m_BuiltinParameters.frameIndex = frameIndex;
             m_BuiltinParameters.skySettings = skyContext.skySettings;
+        }
+
+        public bool RequiresPreRenderSky(HDCamera hdCamera)
+        {
+            var skyContext = hdCamera.visualSky;
+            return skyContext.IsValid() && skyContext.skyRenderer.RequiresPreRenderSky(m_BuiltinParameters);
         }
 
         public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
