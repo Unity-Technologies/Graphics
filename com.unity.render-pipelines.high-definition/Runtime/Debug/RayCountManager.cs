@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// The different ray count values that can be asked for.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(@"Runtime\Debug\RayCountManager.cs.hlsl")]
     public enum RayCountValues
     {
         /// <summary>Ray count for the ray traced ambient occlusion effect.</summary>

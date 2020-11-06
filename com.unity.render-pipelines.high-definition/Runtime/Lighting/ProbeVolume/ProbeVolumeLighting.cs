@@ -5,10 +5,15 @@ using System.Runtime.InteropServices;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    static class ProbeVolumeLightingHLSLGen
+    {
+        public const string Path = @"Runtime\Lighting\ProbeVolume\ProbeVolumeLighting.cs.hlsl";
+    }
+
     // Optimized version of 'ProbeVolumeArtistParameters'.
     // Currently 128-bytes.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
-    [GenerateHLSL]
+    [GenerateHLSL(ProbeVolumeLightingHLSLGen.Path)]
     internal struct ProbeVolumeEngineData
     {
         public Vector3 debugColor;
@@ -51,7 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    [GenerateHLSL]
+    [GenerateHLSL(ProbeVolumeLightingHLSLGen.Path)]
     internal enum LeakMitigationMode
     {
         NormalBias = 0,

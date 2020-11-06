@@ -2,7 +2,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [GenerateHLSL]
+    [GenerateHLSL(@"Runtime\Lighting\ScreenSpaceLighting\ScreenSpaceGlobalIllumination.cs.hlsl")]
     // Define if we use SSGI, RTGI or none
     enum IndirectDiffuseMode
     {

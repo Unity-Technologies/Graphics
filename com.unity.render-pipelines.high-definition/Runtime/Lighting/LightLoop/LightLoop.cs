@@ -50,7 +50,12 @@ namespace UnityEngine.Rendering.HighDefinition
     // structure definition
     //-----------------------------------------------------------------------------
 
-    [GenerateHLSL]
+    static class LightLoopHLSLGen
+    {
+        public const string Path = @"Runtime\Lighting\LightLoop\LightLoop.cs.hlsl";
+    }
+
+    [GenerateHLSL(LightLoopHLSLGen.Path)]
     internal enum LightVolumeType
     {
         Cone,
@@ -59,7 +64,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Count
     }
 
-    [GenerateHLSL]
+    [GenerateHLSL(LightLoopHLSLGen.Path)]
     internal enum LightCategory
     {
         Punctual,
@@ -71,7 +76,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Count
     }
 
-    [GenerateHLSL]
+    [GenerateHLSL(LightLoopHLSLGen.Path)]
     internal enum LightFeatureFlags
     {
         // Light bit mask must match LightDefinitions.s_LightFeatureMaskFlags value
@@ -86,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If adding more light be sure to not overflow LightDefinitions.s_LightFeatureMaskFlags
     }
 
-    [GenerateHLSL]
+    [GenerateHLSL(LightLoopHLSLGen.Path)]
     class LightDefinitions
     {
         public static int s_MaxNrBigTileLightsPlusOne = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
@@ -123,7 +128,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
     }
 
-    [GenerateHLSL]
+    [GenerateHLSL(LightLoopHLSLGen.Path)]
     struct SFiniteLightBound
     {
         public Vector3 boxAxisX; // Scaled by the extents (half-size)
@@ -134,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   radius;     // Circumscribed sphere for the bounds (box)
     };
 
-    [GenerateHLSL]
+    [GenerateHLSL(LightLoopHLSLGen.Path)]
     struct LightVolumeData
     {
         public Vector3 lightPos;     // Of light's "origin"
@@ -174,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Cluster visualization mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightLoopHLSLGen.Path)]
     public enum ClusterDebugMode : int
     {
         /// <summary>Visualize Cluster on opaque objects.</summary>
@@ -221,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DensityVolumes = 32
     };
 
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    [GenerateHLSL(LightLoopHLSLGen.Path, needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesLightList
     {
         [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
@@ -3081,7 +3086,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int i = 0;
             while(totalNumberOfGroupsNeeded > 0)
             {
-                countAndOffset.y = maxAllowedGroups * i;                
+                countAndOffset.y = maxAllowedGroups * i;
                 cmd.SetComputeVectorParam(parameters.clearLightListCS, HDShaderIDs._LightListEntriesAndOffset, countAndOffset);
 
                 int currGroupCount = Math.Min(maxAllowedGroups, totalNumberOfGroupsNeeded);

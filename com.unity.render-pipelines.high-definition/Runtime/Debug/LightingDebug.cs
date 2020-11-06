@@ -2,10 +2,15 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    static class LightingDebugHLSLGen
+    {
+        public const string Path = @"Runtime\Debug\LightingDebug.cs.hlsl";
+    }
+
     /// <summary>
     /// Full Screen Lighting Debug Mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightingDebugHLSLGen.Path)]
     public enum DebugLightingMode
     {
         /// <summary>No lighting debug mode.</summary>
@@ -49,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Debug Light Filtering.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightingDebugHLSLGen.Path)]
     [Flags]
     public enum DebugLightFilterMode
     {
@@ -78,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Debug Light Layers Filtering.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightingDebugHLSLGen.Path)]
     [Flags]
     public enum DebugLightLayersMask
     {
@@ -151,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Shadow Maps Debug Mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightingDebugHLSLGen.Path)]
     public enum ShadowMapDebugMode
     {
         /// <summary>No Shadow Maps debug.</summary>
@@ -175,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Exposure debug mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightingDebugHLSLGen.Path)]
     public enum ExposureDebugMode
     {
         /// <summary>No exposure debug.</summary>
@@ -195,7 +200,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Probe Volume Debug Modes.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightingDebugHLSLGen.Path)]
     internal enum ProbeVolumeDebugMode
     {
         None,
@@ -207,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
 	/// <summary>
     /// Probe Volume Atlas Slicing Modes.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightingDebugHLSLGen.Path)]
     internal enum ProbeVolumeAtlasSliceMode
     {
         IrradianceSH00,

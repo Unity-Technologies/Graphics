@@ -102,6 +102,10 @@ namespace UnityEngine.Rendering
         /// If specified, when generating a constant buffer, use this explicit register.
         /// </summary>
         public int constantRegister;
+        /// <summary>
+        /// Path of the generated file
+        /// </summary>
+        public string targetPath;
 
         /// <summary>
         /// GenerateHLSL attribute constructor.
@@ -115,9 +119,10 @@ namespace UnityEngine.Rendering
         /// <param name="containsPackedFields">Contains packed fields.</param>
         /// <param name="generateCBuffer">Generate a constant buffer.</param>
         /// <param name="constantRegister">When generating a constant buffer, specify the optional constant register.</param>
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1,
+        public GenerateHLSL(string targetPath, PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1,
                                 bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false, int constantRegister = -1)
         {
+            this.targetPath = targetPath;
             packingRules = rules;
             this.needAccessors = needAccessors;
             this.needSetters = needSetters;

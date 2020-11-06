@@ -7,9 +7,11 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     // Optimized version of 'DensityVolumeArtistParameters'.
     // TODO: pack better. This data structure contains a bunch of UNORMs.
-    [GenerateHLSL]
+    [GenerateHLSL(HLSLGenPath)]
     struct DensityVolumeEngineData
     {
+        internal const string HLSLGenPath = @"Runtime\Lighting\VolumetricLighting\VolumetricLighting.cs.hlsl";
+
         public Vector3 scattering;    // [0, 1]
         public float   extinction;    // [0, 1]
         public Vector3 textureTiling;
@@ -40,7 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // struct VolumeProperties
 
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    [GenerateHLSL(DensityVolumeEngineData.HLSLGenPath, needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesVolumetric
     {
         [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
@@ -590,10 +592,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                                dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "VBufferLighting");
 
 
-            m_MaxZMask8x = RTHandles.Alloc(Vector2.one * 0.125f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
+            m_MaxZMask8x = RTHandles.Alloc(Vector2.one * 0.125f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
                                     enableRandomWrite: true, name: "MaxZ mask 8x");
 
-            m_MaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, 
+            m_MaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
                                                 enableRandomWrite: true, name: "MaxZ mask");
 
             m_DilatedMaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,

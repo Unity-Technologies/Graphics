@@ -1,6 +1,7 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    [GenerateHLSL(@"Runtime\Lighting\ScreenSpaceLighting\ShaderVariablesScreenSpaceReflection.cs.hlsl",
+        needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesScreenSpaceReflection
     {
         public float   _SsrThicknessScale;

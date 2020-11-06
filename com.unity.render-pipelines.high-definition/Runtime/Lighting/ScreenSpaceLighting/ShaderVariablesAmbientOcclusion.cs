@@ -1,7 +1,8 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
-    unsafe struct ShaderVariablesAmbientOcclusion
+    [GenerateHLSL(@"Runtime\Lighting\ScreenSpaceLighting\ShaderVariablesAmbientOcclusion.cs.hlsl",
+        needAccessors = false, generateCBuffer = true)]
+    internal struct ShaderVariablesAmbientOcclusion
     {
         public Vector4 _AOBufferSize;
         public Vector4 _AOParams0;

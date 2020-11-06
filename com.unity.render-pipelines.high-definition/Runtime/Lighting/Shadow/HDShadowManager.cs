@@ -37,13 +37,15 @@ namespace UnityEngine.Rendering.HighDefinition
         Dynamic = 0,
         // Fully cached shadow maps (nothing is rendered unless requested)
         Cached,
-        // Mixed, static shadow caster are cached and updated as indicated, dynamic are drawn on top. 
+        // Mixed, static shadow caster are cached and updated as indicated, dynamic are drawn on top.
         Mixed
     }
 
-    [GenerateHLSL(needAccessors = false)]
+    [GenerateHLSL(HLSLGenPath, needAccessors = false)]
     struct HDShadowData
     {
+        internal const string HLSLGenPath = @"Runtime\Lighting\Shadow\HDShadowManager.cs.hlsl";
+
         public Vector3      rot0;
         public Vector3      rot1;
         public Vector3      rot2;
@@ -69,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // We use a different structure for directional light because these is a lot of data there
     // and it will add too much useless stuff for other lights
     // Note: In order to support HLSL array generation, we need to use fixed arrays and so a unsafe context for this struct
-    [GenerateHLSL(needAccessors = false)]
+    [GenerateHLSL(HDShadowData.HLSLGenPath, needAccessors = false)]
     unsafe struct HDDirectionalShadowData
     {
         // We can't use Vector4 here because the vector4[] makes this struct non blittable
@@ -284,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer               m_DirectionalShadowDataBuffer;
 
         // The two shadowmaps atlases we uses, one for directional cascade (without resize) and the second for the rest of the shadows
-        HDDynamicShadowAtlas               m_CascadeAtlas;      
+        HDDynamicShadowAtlas               m_CascadeAtlas;
         HDDynamicShadowAtlas               m_Atlas;
         HDDynamicShadowAtlas               m_AreaLightShadowAtlas;
 
@@ -793,7 +795,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas.Clear();
 
-            cachedShadowManager.ClearShadowRequests(); 
+            cachedShadowManager.ClearShadowRequests();
 
             m_ShadowResolutionRequestCounter = 0;
 

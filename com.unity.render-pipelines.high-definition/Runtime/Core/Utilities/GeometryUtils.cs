@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // struct Frustum
 
-    [GenerateHLSL]
+    [GenerateHLSL(@"Runtime\Core\Utitlies\GeometryUtils.cs.hlsl")]
     struct OrientedBBox
     {
         // 3 x float4 = 48 bytes.

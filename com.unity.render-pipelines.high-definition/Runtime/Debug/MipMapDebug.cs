@@ -2,10 +2,15 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    static class MipMapDebugHLDLGen
+    {
+        public const string Path = @"Runtime\Debug\MipMapDebug.cs.hlsl";
+    }
+
     /// <summary>
     /// Mip Map Debug Mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(MipMapDebugHLDLGen.Path)]
     public enum DebugMipMapMode
     {
         /// <summary>No Mip Map debug mode.</summary>
@@ -25,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Terrain mip map debug mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(MipMapDebugHLDLGen.Path)]
     public enum DebugMipMapModeTerrainTexture
     {
         /// <summary>Control debug.</summary>

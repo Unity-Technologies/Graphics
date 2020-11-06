@@ -5,7 +5,12 @@ using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
+    static class DebugDisplayHLSLGen
+    {
+        public const string Path = @"Runtime\Debug\DebugDisplay.cs.hlsl";
+    }
+
+    [GenerateHLSL(DebugDisplayHLSLGen.Path, needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesDebugDisplay
     {
         [HLSLArray(32, typeof(Vector4))]
@@ -46,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Full Screen Debug Mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(DebugDisplayHLSLGen.Path)]
     public enum FullScreenDebugMode
     {
         /// <summary>No Full Screen debug mode.</summary>
@@ -1410,7 +1415,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var container = new DebugUI.Container
                 {
-                    children = 
+                    children =
                     {
                         new DebugUI.EnumField { displayName = "Light Volume Debug Type", getter = () => (int)data.lightingDebugSettings.lightVolumeDebugByCategory, setter = value => data.lightingDebugSettings.lightVolumeDebugByCategory = (LightVolumeDebug)value, autoEnum = typeof(LightVolumeDebug), getIndex = () => data.lightVolumeDebugTypeEnumIndex, setIndex = value => data.lightVolumeDebugTypeEnumIndex = value, onValueChanged = RefreshLightingDebug }
                     }

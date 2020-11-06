@@ -4,12 +4,19 @@ using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    static class MaterialDebugHLSLGen
+    {
+        public const string Path = @"Runtime\Debug\MaterialDebug.cs.hlsl";
+    }
+
     namespace Attributes
     {
+
+
         /// <summary>
         /// Debug View for attributes interpolated from vertex to pixel shader.
         /// </summary>
-        [GenerateHLSL]
+        [GenerateHLSL(MaterialDebugHLSLGen.Path)]
         public enum DebugViewVarying
         {
             /// <summary>No interpolator debug.</summary>
@@ -39,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Debug view for GBuffers.
         /// </summary>
-        [GenerateHLSL]
+        [GenerateHLSL(MaterialDebugHLSLGen.Path)]
         public enum DebugViewGbuffer
         {
             /// <summary>No GBuffer debug.</summary>
@@ -63,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Debug view for material properties.
         /// </summary>
-        [GenerateHLSL]
+        [GenerateHLSL(MaterialDebugHLSLGen.Path)]
         public enum DebugViewProperties
         {
             /// <summary>No property debug.</summary>
@@ -156,7 +163,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var attributes = type.GetCustomAttributes(true);
             // Get attribute to get the start number of the value for the enum
-            var attr = attributes[0] as GenerateHLSL;
+            var attr = attributes[0] as GenerateHLSL(MaterialDebugHLSLGen.Path);
 
             if (!attr.needParamDebug)
             {
@@ -360,8 +367,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // builtins parameters
                 Type builtin = typeof(Builtin.BuiltinData);
                 var attributes = builtin.GetCustomAttributes(true);
-                var generateHLSLAttribute = attributes[0] as GenerateHLSL;
-                int materialStartIndex = generateHLSLAttribute.paramDefinesStart;
+                var GenerateHLSL(MaterialDebugHLSLGen.Path)Attribute = attributes[0] as GenerateHLSL(MaterialDebugHLSLGen.Path);
+                int materialStartIndex = GenerateHLSL(MaterialDebugHLSLGen.Path)Attribute.paramDefinesStart;
 
                 int localIndex = 0;
                 foreach (var field in typeof(Builtin.BuiltinData).GetFields())
@@ -380,10 +387,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (MaterialItem materialItem in materialItems)
                 {
                     attributes = materialItem.surfaceDataType.GetCustomAttributes(true);
-                    generateHLSLAttribute = attributes[0] as GenerateHLSL;
-                    materialStartIndex = generateHLSLAttribute.paramDefinesStart;
+                    GenerateHLSL(MaterialDebugHLSLGen.Path)Attribute = attributes[0] as GenerateHLSL(MaterialDebugHLSLGen.Path);
+                    materialStartIndex = GenerateHLSL(MaterialDebugHLSLGen.Path)Attribute.paramDefinesStart;
 
-                    if (!generateHLSLAttribute.needParamDebug)
+                    if (!GenerateHLSL(MaterialDebugHLSLGen.Path)Attribute.needParamDebug)
                         continue;
 
                     var fields = materialItem.surfaceDataType.GetFields();
@@ -405,10 +412,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 
                     attributes = materialItem.bsdfDataType.GetCustomAttributes(true);
-                    generateHLSLAttribute = attributes[0] as GenerateHLSL;
-                    materialStartIndex = generateHLSLAttribute.paramDefinesStart;
+                    GenerateHLSL(MaterialDebugHLSLGen.Path)Attribute = attributes[0] as GenerateHLSL(MaterialDebugHLSLGen.Path);
+                    materialStartIndex = GenerateHLSL(MaterialDebugHLSLGen.Path)Attribute.paramDefinesStart;
 
-                    if (!generateHLSLAttribute.needParamDebug)
+                    if (!GenerateHLSL(MaterialDebugHLSLGen.Path)Attribute.needParamDebug)
                         continue;
 
                     fields = materialItem.bsdfDataType.GetFields();

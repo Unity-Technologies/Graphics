@@ -4,8 +4,13 @@ namespace UnityEngine.Rendering.HighDefinition
     // structure definition
     //-----------------------------------------------------------------------------
 
+    static class LightDefinitionHLSLGen
+    {
+        public const string Path = @"Runtime\Lighting\LightDefinition.cs.hlsl";
+    }
+
     // Caution: Order is important and is use for optimization in light loop
-    [GenerateHLSL]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path)]
     enum GPULightType
     {
         Directional,
@@ -36,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // This is use to distinguish between reflection and refraction probe in LightLoop
-    [GenerateHLSL]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path)]
     enum GPUImageBasedLightingType
     {
         Reflection,
@@ -46,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Cookie Mode
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path)]
     public enum CookieMode
     {
         /// <summary>No cookie at all.</summary>
@@ -58,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
-    [GenerateHLSL(PackingRules.Exact, false)]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path, PackingRules.Exact, false)]
     struct DirectionalLightData
     {
         // Packing order depends on chronological access to avoid cache misses
@@ -113,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 surfaceTextureScaleOffset;     // -1 if unused (TODO: 16 bit)
     };
 
-    [GenerateHLSL(PackingRules.Exact, false)]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path, PackingRules.Exact, false)]
     struct LightData
     {
         // Packing order depends on chronological access to avoid cache misses
@@ -176,7 +181,7 @@ namespace UnityEngine.Rendering.HighDefinition
     };
 
 
-    [GenerateHLSL]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path)]
     enum EnvShapeType
     {
         None,
@@ -185,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Sky
     };
 
-    [GenerateHLSL]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path)]
     enum EnvConstants
     {
         ConvolutionMipCount = 7,
@@ -197,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // It allow to have more coherence for the dynamic if in shader code.
     // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
     // that simulate effect of no shape projection
-    [GenerateHLSL(PackingRules.Exact, false)]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path, PackingRules.Exact, false)]
     struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses
@@ -245,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int envIndex;
     };
 
-    [GenerateHLSL]
+    [GenerateHLSL(LightDefinitionHLSLGen.Path)]
     enum EnvCacheType
     {
         Texture2D,

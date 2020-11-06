@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Color Picker Debug Mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(@"Runtime\Debug\ColorPickerDebug.cs.hlsl")]
     public enum ColorPickerDebugMode
     {
         /// <summary>No color picking debug.</summary>

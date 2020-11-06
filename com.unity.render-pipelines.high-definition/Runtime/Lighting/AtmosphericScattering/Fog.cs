@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Number of slices of the volumetric buffer (3D texture) along the camera's focal axis.</summary>
         [Tooltip("Number of slices of the volumetric buffer (3D texture) along the camera's focal axis.")]
         public ClampedIntParameter volumeSliceCount = new ClampedIntParameter(64, 1, maxFogSliceCount);
-        
+
         /// <summary>Defines the performance to quality ratio of the volumetric fog. A value of 0 being the least resource-intensive and a value of 1 being the highest quality.</summary>
         /// <remarks>Try to minimize this value to find a compromise between quality and performance. </remarks>
         public float volumetricFogBudget
@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Fog Color Mode.
     /// </summary>
-    [GenerateHLSL]
+    [GenerateHLSL(@"Runtime\Lighting\AtmosphericScattering\Fog.cs.hlsl")]
     public enum FogColorMode
     {
         /// <summary>Fog is a constant color.</summary>

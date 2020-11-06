@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Resolution
     };
 
-    [GenerateHLSL]
+    [GenerateHLSL(@"Runtime\Lighting\ProbeVolume\ProbeVolume.cs.hlsl")]
     internal enum VolumeBlendMode
     {
         Normal = 0,

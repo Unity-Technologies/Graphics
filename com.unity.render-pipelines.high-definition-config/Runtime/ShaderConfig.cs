@@ -2,13 +2,21 @@
 // Configuration
 //-----------------------------------------------------------------------------
 
+using System.IO;
+using System.Runtime.CompilerServices;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
+    static class ShaderConfigsHLSLGen
+    {
+        public const string Path = @"Runtime\ShaderConfig.cs.hlsl";
+    }
+
     /// <summary>
     /// Options for the mode HDRP uses to evaluate probe volumes.
     /// </summary>
     ///<seealso cref="ShaderOptions"/>
-    [GenerateHLSL(PackingRules.Exact)]
+    [GenerateHLSL(ShaderConfigsHLSLGen.Path, PackingRules.Exact)]
     public enum ProbeVolumesEvaluationModes
     {
         /// <summary>Disables probe volumes.</summary>
@@ -23,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Options for the method HDRP uses to encode probe volumes.
     /// </summary>
     ///<seealso cref="ShaderOptions"/>
-    [GenerateHLSL(PackingRules.Exact)]
+    [GenerateHLSL(ShaderConfigsHLSLGen.Path, PackingRules.Exact)]
     public enum ProbeVolumesEncodingModes
     {
         /// <summary>Uses L0 spherical harmonics to encode probe volumes.</summary>
@@ -38,7 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Options for the mode HDRP uses for probe volume bilateral filtering.
     /// </summary>
     ///<seealso cref="ShaderOptions"/>
-    [GenerateHLSL(PackingRules.Exact)]
+    [GenerateHLSL(ShaderConfigsHLSLGen.Path, PackingRules.Exact)]
     public enum ProbeVolumesBilateralFilteringModes
     {
         /// <summary>Disables bilateral filtering.</summary>
@@ -54,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     /// <remarks>This enum will generate the proper shader defines.</remarks>
     ///<seealso cref="ShaderConfig"/>
-    [GenerateHLSL(PackingRules.Exact)]
+    [GenerateHLSL(ShaderConfigsHLSLGen.Path, PackingRules.Exact)]
     public enum ShaderOptions
     {
         /// <summary>Supports colored shadows in shaders.</summary>
