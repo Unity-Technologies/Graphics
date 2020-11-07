@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+
+- Removed the material pass probe volumes evaluation mode. 
+
+### Fixed
+- Fixed probe volumes debug views.
 
 ## [10.2.0] - 2020-10-19
 
@@ -26,6 +30,7 @@ The version number for this package has increased due to a version update of a r
 - Added quality preset of the new volumetric fog parameters.
 - Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
 - Added documentation for LODs not being supported by ray tracing.
+- Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
