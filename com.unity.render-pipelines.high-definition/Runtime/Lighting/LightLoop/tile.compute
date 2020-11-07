@@ -357,8 +357,6 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // Avoid generating (w = 0).
         rbpVertVS.z = (abs(rbpVertVS.z) > FLT_MIN) ? rbpVertVS.z : FLT_MIN;
 
-        float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
-
         // For the orthographic projection, the resulting (w = 1).
         float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
 
@@ -631,9 +629,13 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMin
     // Bounding sphere.
     const float radius = cullData.radius;
 
-    bool trivialAccept, trivialReject;
-    TryCullBoundingSphere(rbpC, radius, tileAaBbMinPtCS, tileAaBbMaxPtCS, projMat, invProjMat,
-                          trivialAccept, trivialReject);
+    bool trivialAccept = false, trivialReject = false;
+
+    if (radius > 0)
+    {
+        TryCullBoundingSphere(rbpC, radius, tileAaBbMinPtCS, tileAaBbMaxPtCS, projMat, invProjMat,
+                              trivialAccept, trivialReject);
+    }
 
     if (!(trivialAccept || trivialReject))
     {
