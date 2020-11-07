@@ -2,7 +2,7 @@ Shader "Hidden/ShadowProjected2D"
 {
     Properties
     {
-        [PerRendererData][HideInInspector] _ColorMask("__ColorMask", Int) = 0
+        [HideInInspector] _ShadowColorMask("__ShadowColorMask", Float) = 0
     }
 
     SubShader
@@ -27,8 +27,7 @@ Shader "Hidden/ShadowProjected2D"
                 Fail        Keep
             }
 
-            //ColorMask [_ColorMask]
-            ColorMask R
+            ColorMask [_ShadowColorMask]
 
             HLSLPROGRAM
             #pragma vertex vert

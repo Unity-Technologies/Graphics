@@ -67,7 +67,7 @@
     if(intensity < 1)\
     {\
         half4 shadow = saturate(SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, input.shadowUV)); \
-        half  shadowIntensity = 1-shadow.r; \
+        half  shadowIntensity = 1-dot(_ShadowColorMask, shadow); \
         color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
     }
 

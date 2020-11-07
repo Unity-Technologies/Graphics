@@ -3,6 +3,7 @@ Shader "Hidden/Shadow2DShadowSprite"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        [HideInInspector] _ShadowColorMask("__ShadowColorMask", Int) = 1
     }
     SubShader
     {
@@ -23,6 +24,8 @@ Shader "Hidden/Shadow2DShadowSprite"
                 Pass Keep
                 Fail Keep
             }
+
+            ColorMask [_ShadowColorMask]
 
             HLSLPROGRAM
             #pragma vertex vert
