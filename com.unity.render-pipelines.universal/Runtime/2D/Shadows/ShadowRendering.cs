@@ -62,6 +62,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return rendererData.spriteUnshadowMaterial;
         }
 
+        private static Color GetGlobalColorMask(int colorMask)
+        {
+            Color color = new Color(0, 0, 0, 0);
+
+            if(colorMask == 1)
+                color = new Color(0, 0, 0, 1);
+            else if (colorMask == 2)
+                color = new Color(0, 0, 1, 0);
+            else if(colorMask == 4)
+                color = new Color(0, 1, 0, 0);
+            else if (colorMask == 8)
+                color = new Color(1, 0, 0, 0);
+
+            return color;
+        }
+
 
         private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd)
         {
@@ -96,13 +112,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
                 cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
-                cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, new Color(0,0,1,0));
 
-                int colorMask = 2;
+                int colorMaskBit = 3;
+                int colorMask = 1 << colorMaskBit;
                 var spriteSelfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorMask);
                 var spriteUnshadowMaterial = pass.rendererData.GetSpriteUnshadowMaterial(colorMask);
                 var projectedShadowMaterial = pass.rendererData.GetProjectedShadowMaterial(colorMask);
                 var stencilOnlyShadowMaterial = pass.rendererData.GetStencilOnlyShadowMaterial(colorMask);
+                cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, GetGlobalColorMask(colorMask));
 
                 var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
                 if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
