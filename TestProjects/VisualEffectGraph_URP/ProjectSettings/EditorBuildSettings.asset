@@ -65,4 +65,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicsTests/102_RenderDepth.unity
     guid: bbb228de8c5a7dd4ba58363e4b3c8669
+  - enabled: 1
+    path: Assets/015_FixedTime.unity
+    guid: 30c9fe15b8e87e04f9a524d5c01aa810
   m_configObjects: {}
