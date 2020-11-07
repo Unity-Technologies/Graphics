@@ -274,7 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 sliceCount = (int)Mathf.Lerp(1.0f, maxSliceCount, controller.volumetricFogBudget);
 
                 // Evaluate the voxel size
-                voxelSize = 1.0f / screenFraction;
+                voxelSize = (uint)1.0f / screenFraction;
             }
             else
             {
