@@ -179,7 +179,7 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  captureFrameRate: 2
+  captureFrameRate: 5
   simulateTime: 5
   xrCompatible: 1
 --- !u!1 &1143506103
@@ -220,6 +220,9 @@ VFXRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
