@@ -224,23 +224,20 @@ groupshared uint gs_TrivialAcceptFlags[TILES_PER_GROUP];  // Just a boolean
 
 // We do not clip the sphere against the near and the far plane (same as in 'scrbound.compute').
 void TryCullBoundingSphere(float3 C, float r,
-                           float2 aaBbMinPtNDC, float2 aaBbMaxPtNDC, float4x4 projMat, float4x4 invProjMat,
+                           float2 aaBbMinPtCS, float2 aaBbMaxPtCS, float4x4 projMat, float4x4 invProjMat,
                            out bool trivialAccept, out bool trivialReject)
 {
     trivialAccept = trivialReject = false;
 
     if ((C.z + r) > 0) // Is the sphere at least *partially* in front of the origin?
     {
-        // Transform to clip-space coordinates.
-        float2 aaBbMinPtCS = aaBbMinPtNDC * 2 - 1;
-        float2 aaBbMaxPtCS = aaBbMaxPtNDC * 2 - 1;
-
         if (g_isOrthographic)
         {
             float4x4 orthoProj = OptimizeOrthographicMatrix(projMat);
 
             // Project the center of the bounding sphere (ellipse).
             float3 projC  = mul(orthoProj, float4(C.xyz,   1)).xyz;
+            // Test whether the light's center is inside the view volume.
             trivialAccept = all(aaBbMinPtCS <= projC.xy && projC.xy <= aaBbMaxPtCS.xy) && (0 <= projC.z <= 1);
 
             if (!trivialAccept)
@@ -267,6 +264,7 @@ void TryCullBoundingSphere(float3 C, float r,
 
             // Project the center of the bounding sphere (ellipse).
             float3 projC  = mul(perspProj, float4(C.xyz, 1)).xyz * rcp(C.z); // Assume M[3] = (0,0,1,0)
+            // Test whether the light's center is inside the view volume.
             trivialAccept = all(aaBbMinPtCS <= projC.xy && projC.xy <= aaBbMaxPtCS.xy) && (0 <= projC.z <= 1);
 
             if (!trivialAccept && (dot(C, C) - r * r) > 0)
@@ -312,7 +310,7 @@ void TryCullBoundingSphere(float3 C, float r,
 }
 
 void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, float scale, float radius, uint tile, uint t /* thread */,
-                            float3 cubeMin, float3 cubeMax, float4x4 projMat,
+                            float3 cubeMinCS, float3 cubeMaxCS, float4x4 projMat, float4x4 invProjMat,
                             out bool trivialAccept, out bool trivialReject)
 {
     trivialAccept = trivialReject = false;
@@ -334,7 +332,6 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
     // we can trivially accept that face. If all vertices of a face are behind
     // any single plane, we can trivially reject (cull) that face.
     uint cullClipFaceMask = 0; // Initially inside
-    uint culledFaceMask   = 0; // Initially none
 
     uint i; // Avoid the multiply-declared variable warning
 
@@ -360,16 +357,13 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // Avoid generating (w = 0).
         rbpVertVS.z = (abs(rbpVertVS.z) > FLT_MIN) ? rbpVertVS.z : FLT_MIN;
 
-        float4 hapVert = mul(projMat, float4(rbpVertVS, 1));
+        float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
 
         // Warning: the W component may be negative.
         // Flipping the -W pyramid by negating all coordinates is incorrect
         // and will break both classification and clipping.
         // We are allowed to change the magnitude of the vector, but not its direction!
         // For the orthographic projection, (w = 1).
-
-        // Transform the X and Y components: [-w, w] -> [0, w].
-        hapVert.xy = 0.5 * hapVert.xy + (0.5 * hapVert.w);
 
         // For each vertex, we must determine whether it is within the bounds.
         // For culling and clipping, we must know, per culling plane, whether the vertex
@@ -381,16 +375,14 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // min_y <= y <= max_y   <-- include boundary points to avoid clipping them later
         // min_z <= z <= max_z
         // w is always valid
-        const float3 hapAaBbMinPT = cubeMin * abs(hapVert.w);
-        const float3 hapAaBbMaxPT = cubeMax * abs(hapVert.w);
+        const float3 hapAaBbMinPt = cubeMinCS * abs(hapVertCS.w);
+        const float3 hapAaBbMaxPt = cubeMaxCS * abs(hapVertCS.w);
         // TODO: add epsilon for numerical robustness?
 
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
         {
-            float w = hapVert.w;
-
-            behindMask |= (hapVert[j] < hapAaBbMinPT[j] ? 1 : 0) << (2 * j + 0);
-            behindMask |= (hapVert[j] > hapAaBbMaxPT[j] ? 1 : 0) << (2 * j + 1);
+            behindMask |= ((hapVertCS[j] < hapAaBbMinPt[j]) ? 1 : 0) << (2 * j + 0);
+            behindMask |= ((hapVertCS[j] > hapAaBbMaxPt[j]) ? 1 : 0) << (2 * j + 1);
         }
 
         if (behindMask == 0) // Inside?
@@ -405,10 +397,10 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
             cullClipFaceMask |= GetFaceMaskOfVertex(v);
         }
 
-        gs_HapVertsX[baseVertexOffset + v]          = hapVert.x;
-        gs_HapVertsY[baseVertexOffset + v]          = hapVert.y;
-        gs_HapVertsZ[baseVertexOffset + v]          = hapVert.z;
-        gs_HapVertsW[baseVertexOffset + v]          = hapVert.w;
+        gs_HapVertsX[baseVertexOffset + v]          = hapVertCS.x;
+        gs_HapVertsY[baseVertexOffset + v]          = hapVertCS.y;
+        gs_HapVertsZ[baseVertexOffset + v]          = hapVertCS.z;
+        gs_HapVertsW[baseVertexOffset + v]          = hapVertCS.w;
         gs_BehindMasksOfVerts[baseVertexOffset + v] = behindMask;
     }
 
@@ -437,9 +429,85 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
     if (trivialAccept || trivialReject) return;
 
     // (2) Test the corners of the view volume.
-    // Skipped - pointless in this case.
+    if (cullClipFaceMask != 0)
+    {
+        // The entity is partially outside the view volume.
+        // Therefore, some of the corners of the view volume may be inside the entity's bounding frustum.
+        // We perform aggressive culling, so we must make sure they are accounted for.
+        // We can exploit the properties of the frustum by building an entity-space projection matrix.
+        // P_v = T * (R * S) * P_l
+        // P_l = (R * S)^{-1} * T^{-1} * P_v
+        float4x4 invTranslateToEntitySpace      = Translation4x4(-rbpC);
+        float4x4 invRotateAndScaleInEntitySpace = Homogenize3x3(Invert3x3(ScaledRotation3x3(rbpX, rbpY, rbpZ)));
+
+        // This (orthographic) projection matrix maps a view-space point to a entity-space [-1, 1]^3 cube.
+        float4x4 entitySpaceMatrix = mul(invRotateAndScaleInEntitySpace, invTranslateToEntitySpace);
+
+        if (scale != 1) // Perspective entity space?
+        {
+            // Compute the parameters of the perspective projection.
+            float s = scale;
+            float n = 2 * (s * rcp(1 - s)); // Distance from the eye to the near plane
+            float f = 2 + n;                // Distance from the eye to the far plane
+            float g = f;                    // Distance from the eye to the projection plane
+            float e = -1 - n;               // Signed distance from the origin to the eye
+
+            float4x4 invTranslateEye = Translation4x4(float3(0, 0, -e));
+            float4x4 perspProjMatrix = PerspectiveProjection4x4(1, g, n, f);
+
+            entitySpaceMatrix = mul(mul(perspProjMatrix, invTranslateEye), entitySpaceMatrix);
+        }
+
+        for (i = 0; i < VERTS_PER_THREAD; i++)
+        {
+            uint v = t + i * THREADS_PER_TILE;
+
+            float3 rapVertCS = GenerateVertexOfCustomCube(v, cubeMinCS, cubeMaxCS);
+            float4 hbpVertVS = mul(invProjMat, float4(rapVertCS, 1)); // Clip to view space
+            float4 hapVertLS = mul(entitySpaceMatrix, hbpVertVS);     // View to entity space
+
+            // Consider the vertex to be inside the entity's bounding frustum if:
+            // -w < x < w
+            // -w < y < w   <-- exclude boundary points, as we will not clip using these vertices
+            // -w < z < w   <-- assume that Z-precision is not very important here
+            // 0  < w
+            // TODO: add epsilon for numerical robustness?
+
+            bool inside = Max3(abs(hapVertLS.x), abs(hapVertLS.y), abs(hapVertLS.z)) < hapVertLS.w;
+
+            if (inside)
+            {
+                float3 rbpVertRVS = hbpVertVS.xyz * rcp(hbpVertVS.w) - rbpC;
+                // The vertex of the viewing frustum is inside the bounding frustum.
+                // But is it also inside the bounding sphere?
+                trivialAccept = trivialAccept || (dot(rbpVertRVS, rbpVertRVS) <= (radius * radius));
+            }
+        }
+    }
+
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    for (i = 0; i < FastLog2(THREADS_PER_TILE); i++)
+    {
+        uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
+        uint orMask  = 0;                       // Plays no role
+        uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
+
+        trivialAccept = trivialAccept || LaneSwizzle(trivialAccept, andMask, orMask, xorMask);
+    }
+#else
+    InterlockedOr(gs_TrivialAcceptFlags[tile], (uint)trivialAccept);
+
+    GroupMemoryBarrier(); // Wait for writes to gs_TrivialAcceptFlags
+
+    trivialAccept = (bool)gs_TrivialAcceptFlags[tile];
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+    if (trivialAccept || trivialReject) return;
 
     // (3) Cull the faces.
+    uint culledFaceMask = 0; // Initially none
+
+    if (cullClipFaceMask != 0)
     {
         const uint cullFaceMask   = cullClipFaceMask;
         const uint numFacesToCull = countbits(cullFaceMask); // [0, 6]
@@ -483,18 +551,22 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // 1. The bounding frustum is entirely outside the view frustum.
         // -> We can safely reject this entity.
         // 2. The bounding frustum is entirely inside  the view frustum.
+        // 3. The view frustum is entirely inside the bounding frustum.
         // -> We can safely accept this entity.
-        // Case 2 can only occur if the center of the bounding frustum is inside the view frustum.
-        // But, we already trivially accept using this condition inside TryCullBoundingSphere.
+        // Case 2 has been handled inside TryCullBoundingFrustum.
+        // Case 3 has been handled in this function, above.
         // So the only remaining possibility is Case 1.
         trivialReject = true;
     }
 
     if (trivialAccept || trivialReject) return;
 
+    cullClipFaceMask &= ~culledFaceMask;
+
     // (4) Clip the faces.
+    if (cullClipFaceMask != 0)
     {
-        const uint clipFaceMask   = cullClipFaceMask & ~culledFaceMask;
+        const uint clipFaceMask   = cullClipFaceMask;
         const uint numFacesToClip = countbits(clipFaceMask); // [0, 6]
 
         for (i = 0; i < FACES_PER_THREAD; i++)
@@ -507,13 +579,14 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
 
                 uint   srcBegin, srcSize;
                 float4 vertRingBuffer[MAX_CLIP_VERTS];
-                if (ClipFaceAgainstCube(f, cubeMin, cubeMax, baseVertexOffset,
+                if (ClipFaceAgainstCube(f, cubeMinCS, cubeMaxCS, baseVertexOffset,
                                         srcBegin, srcSize, vertRingBuffer))
                 {
                     culledFaceMask |= 1 << f;
                 }
                 else
                 {
+                    // Early out no longer serves a purpose, so the code has been commented out.
                     // trivialAccept = true;
                 }
             }
@@ -527,17 +600,17 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         uint orMask  = 0;                       // Plays no role
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
 
-        culledFaceMask                |= LaneSwizzle(culledFaceMask, andMask, orMask, xorMask);
+        culledFaceMask |= LaneSwizzle(culledFaceMask, andMask, orMask, xorMask);
         // trivialAccept = trivialAccept || LaneSwizzle(trivialAccept,   andMask, orMask, xorMask);
     }
 #else
-    InterlockedOr(gs_CulledFaceMasks[tile],    culledFaceMask);
+    InterlockedOr(gs_CulledFaceMasks[tile], culledFaceMask);
     // InterlockedOr(gs_TrivialAcceptFlags[tile], (uint)trivialAccept);
 
     GroupMemoryBarrier(); // Wait for writes to gs_TrivialAcceptFlags, gs_CulledFaceMasks
 
     culledFaceMask = gs_CulledFaceMasks[tile];
-    // trivialAccept  = (bool)gs_TrivialAcceptFlags[tile];
+    // trivialAccept = (bool)gs_TrivialAcceptFlags[tile];
 #endif
 
     if (culledFaceMask == FACE_MASK)
@@ -546,14 +619,16 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         // 1. The bounding frustum is entirely outside the view frustum.
         // -> We can safely reject this entity.
         // 2. The bounding frustum is entirely inside  the view frustum.
+        // 3. The view frustum is entirely inside the bounding frustum.
         // -> We can safely accept this entity.
-        // Case 2 can only occur if the center of the bounding frustum is inside the view frustum.
-        // But, we already trivially accept using this condition inside TryCullBoundingSphere.
+        // Case 2 has been handled inside TryCullBoundingFrustum.
+        // Case 3 has been handled in this function, above.
         // So the only remaining possibility is Case 1.
         trivialReject = true;
     }
 }
-bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMinPtNDC, float2 tileAaBbMaxPtNDC, uint tile, uint t /* thread */)
+
+bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMinPtCS, float2 tileAaBbMaxPtCS, uint tile, uint t /* thread */)
 {
     const float4x4 projMat    = g_mProjectionArr[eye];    // For the entire view frustum
     const float4x4 invProjMat = g_mInvProjectionArr[eye]; // For the entire view frustum
@@ -571,14 +646,15 @@ bool TryCullEntity(uint entityIndex, uint category, uint eye, float2 tileAaBbMin
     const float radius = cullData.radius;
 
     bool trivialAccept, trivialReject;
-    TryCullBoundingSphere(rbpC, radius, tileAaBbMinPtNDC, tileAaBbMaxPtNDC, projMat, invProjMat,
+    TryCullBoundingSphere(rbpC, radius, tileAaBbMinPtCS, tileAaBbMaxPtCS, projMat, invProjMat,
                           trivialAccept, trivialReject);
 
     if (!(trivialAccept || trivialReject))
     {
-        const float3 cubeMin = float3(tileAaBbMinPtNDC, 0);
-        const float3 cubeMax = float3(tileAaBbMaxPtNDC, 1);
-        TryCullBoundingFrustum(rbpC, rbpX, rbpY, rbpZ, scale, radius, tile, t, cubeMin, cubeMax, projMat,
+        const float3 cubeMinCS = float3(tileAaBbMinPtCS, 0);
+        const float3 cubeMaxCS = float3(tileAaBbMaxPtCS, 1);
+        TryCullBoundingFrustum(rbpC, rbpX, rbpY, rbpZ, scale, radius, tile, t,
+                               cubeMinCS, cubeMaxCS, projMat, invProjMat,
                                trivialAccept, trivialReject);
     }
 
@@ -619,6 +695,8 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
     const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                // (tileCoord + 1) * TILE_SIZE
     const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
     const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
+    const float2 tileAaBbMinPtCS  = tileAaBbMinPtNDC * 2 - 1;
+    const float2 tileAaBbMaxPtCS  = tileAaBbMaxPtNDC * 2 - 1;
 
     const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(clampedTileIndex, cat, eye);
           uint tileRangeData         = _SrcCoarseTileBuffer[tileBufferHeaderIndex]; // {last << 16 | first}
@@ -644,7 +722,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
                 break; // Reached the terminator
             }
 
-            if (!TryCullEntity(entityIndex, cat, eye, tileAaBbMinPtNDC, tileAaBbMaxPtNDC, tile, t))
+            if (!TryCullEntity(entityIndex, cat, eye, tileAaBbMinPtCS, tileAaBbMaxPtCS, tile, t))
             {
                 // The entity was not culled, so transfer it over.
                 first = min(entityIndex, first);

@@ -205,6 +205,10 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     // Bounding sphere.
     const float radius = cullData.radius;
 
+    // This cube defines the view frustum.
+    const float3 cubeMinCS = float3(-1, -1, 0);
+    const float3 cubeMaxCS = float3( 1,  1, 1);
+
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     // (0) Initialize the TGSM.
     if (t == 0) // Avoid bank conflicts
@@ -253,16 +257,13 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         // Avoid generating (w = 0).
         rbpVertVS.z = (abs(rbpVertVS.z) > FLT_MIN) ? rbpVertVS.z : FLT_MIN;
 
-        float4 hapVert = mul(projMat, float4(rbpVertVS, 1));
+        float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
 
         // Warning: the W component may be negative.
         // Flipping the -W pyramid by negating all coordinates is incorrect
         // and will break both classification and clipping.
         // We are allowed to change the magnitude of the vector, but not its direction!
         // For the orthographic projection, (w = 1).
-
-        // Transform the X and Y components: [-w, w] -> [0, w].
-        hapVert.xy = 0.5 * hapVert.xy + (0.5 * hapVert.w);
 
         // For each vertex, we must determine whether it is within the bounds.
         // For culling and clipping, we must know, per culling plane, whether the vertex
@@ -278,16 +279,16 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
         {
-            float w = hapVert.w;
+            float w = hapVertCS.w;
 
-            behindMask |= (hapVert[j] < 0 ? 1 : 0) << (2 * j + 0); // Planes crossing '0'
-            behindMask |= (hapVert[j] > w ? 1 : 0) << (2 * j + 1); // Planes crossing 'w'
+            behindMask |= ((hapVertCS[j] < -w) ? 1 : 0) << (2 * j + 0); // Planes crossing -w
+            behindMask |= ((hapVertCS[j] >  w) ? 1 : 0) << (2 * j + 1); // Planes crossing +w
         }
 
         if (behindMask == 0) // Inside?
         {
-            // Clamp to the bounds in case of numerical errors (may still generate -0).
-            float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w));
+            float3 rapVertCS  = hapVertCS.xyz * rcp(hapVertCS.w);
+            float3 rapVertNDC = float3(rapVertCS.xy * 0.5 + 0.5, rapVertCS.z);
 
             ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVS.z));
             ndcAaBbMaxPt = max(ndcAaBbMaxPt, float4(rapVertNDC, rbpVertVS.z));
@@ -298,10 +299,10 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
             cullClipFaceMask |= GetFaceMaskOfVertex(v);
         }
 
-        gs_HapVertsX[baseVertexOffset + v]          = hapVert.x;
-        gs_HapVertsY[baseVertexOffset + v]          = hapVert.y;
-        gs_HapVertsZ[baseVertexOffset + v]          = hapVert.z;
-        gs_HapVertsW[baseVertexOffset + v]          = hapVert.w;
+        gs_HapVertsX[baseVertexOffset + v]          = hapVertCS.x;
+        gs_HapVertsY[baseVertexOffset + v]          = hapVertCS.y;
+        gs_HapVertsZ[baseVertexOffset + v]          = hapVertCS.z;
+        gs_HapVertsW[baseVertexOffset + v]          = hapVertCS.w;
         gs_BehindMasksOfVerts[baseVertexOffset + v] = behindMask;
     }
 
@@ -343,10 +344,10 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         {
             // Compute the parameters of the perspective projection.
             float s = scale;
-            float e = -1 - 2 * (s * rcp(1 - s)); // Signed distance from the origin to the eye
-            float n = -e - 1;                    // Distance from the eye to the near plane
-            float f = -e + 1;                    // Distance from the eye to the far plane
-            float g = f;                         // Distance from the eye to the projection plane
+            float n = 2 * (s * rcp(1 - s)); // Distance from the eye to the near plane
+            float f = 2 + n;                // Distance from the eye to the far plane
+            float g = f;                    // Distance from the eye to the projection plane
+            float e = -1 - n;               // Signed distance from the origin to the eye
 
             float4x4 invTranslateEye = Translation4x4(float3(0, 0, -e));
             float4x4 perspProjMatrix = PerspectiveProjection4x4(1, g, n, f);
@@ -358,9 +359,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
         {
             uint v = t + i * THREADS_PER_ENTITY;
 
-            float3 rapVertCS = GenerateVertexOfStandardCube(v);
-            rapVertCS.z = rapVertCS.z * 0.5 + 0.5; // View's projection matrix MUST map Z to [0, 1]
-
+            float3 rapVertCS = GenerateVertexOfCustomCube(v, cubeMinCS, cubeMaxCS);
             float4 hbpVertVS = mul(invProjMat, float4(rapVertCS, 1)); // Clip to view space
             float4 hapVertLS = mul(entitySpaceMatrix, hbpVertVS);     // View to entity space
 
@@ -385,6 +384,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     }
 
     // (3) Cull the faces.
+    if (cullClipFaceMask != 0)
     {
         const uint cullFaceMask   = cullClipFaceMask;
         const uint numFacesToCull = countbits(cullFaceMask); // [0, 6]
@@ -423,6 +423,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 #endif
 
     // (4) Clip the faces.
+    if (cullClipFaceMask != 0)
     {
         const uint clipFaceMask   = cullClipFaceMask;
         const uint numFacesToClip = countbits(clipFaceMask); // [0, 6]
@@ -437,7 +438,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 
                 uint   srcBegin, srcSize;
                 float4 vertRingBuffer[MAX_CLIP_VERTS];
-                ClipFaceAgainstCube(f, 0, 1, baseVertexOffset,
+                ClipFaceAgainstCube(f, cubeMinCS, cubeMaxCS, baseVertexOffset,
                                     srcBegin, srcSize, vertRingBuffer);
                 UpdateAaBb(srcBegin, srcSize, vertRingBuffer, g_isOrthographic != 0, invProjMat,
                            ndcAaBbMinPt, ndcAaBbMaxPt);

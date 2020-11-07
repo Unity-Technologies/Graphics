@@ -100,6 +100,17 @@ float3 GenerateVertexOfStandardCube(uint v)
     return p;
 }
 
+float3 GenerateVertexOfCustomCube(uint v, float3 cubeMin, float3 cubeMax)
+{
+    float3 p;
+
+    p.x = ((v & 1) == 0) ? cubeMin.x : cubeMax.x; // FACE_LEFT   : FACE_RIGHT
+    p.y = ((v & 2) == 0) ? cubeMin.y : cubeMax.y; // FACE_BOTTOM : FACE_TOP
+    p.z = ((v & 4) == 0) ? cubeMin.z : cubeMax.z; // FACE_FRONT  : FACE_BACK
+
+    return p;
+}
+
 // All vertices are always in the standard order (see below).
 uint GetFaceMaskOfVertex(uint v)
 {
@@ -283,14 +294,14 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
     #ifndef OBTUSE_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
-        float4 hapVert = vertRingBuffer[modSrcIdx];
-        // Clamp to the bounds in case of numerical errors (may still generate -0).
-        float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w));
-        float  rbpVertVSz = hapVert.w;
+        float4 hapVertCS  = vertRingBuffer[modSrcIdx];
+        float3 rapVertCS  = hapVertCS.xyz * rcp(hapVertCS.w);
+        float3 rapVertNDC = float3(rapVertCS.xy * 0.5 + 0.5, rapVertCS.z);
+        float  rbpVertVSz = hapVertCS.w;
 
         if (isOrthoProj) // Must replace (w = 1)
         {
-            rbpVertVSz = dot(invProjMat[2], hapVert);
+            rbpVertVSz = dot(invProjMat[2], hapVertCS);
         }
 
         ndcAaBbMinPt = min(ndcAaBbMinPt, float4(rapVertNDC, rbpVertVSz));
