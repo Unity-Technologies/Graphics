@@ -359,26 +359,18 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
 
         float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
 
-        // Warning: the W component may be negative.
-        // Flipping the -W pyramid by negating all coordinates is incorrect
-        // and will break both classification and clipping.
-        // We are allowed to change the magnitude of the vector, but not its direction!
-        // For the orthographic projection, (w = 1).
+        // For the orthographic projection, the resulting (w = 1).
+        float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
+
+        const float3 hapAaBbMinPt = cubeMinCS * abs(hapVertCS.w);
+        const float3 hapAaBbMaxPt = cubeMaxCS * abs(hapVertCS.w);
 
         // For each vertex, we must determine whether it is within the bounds.
         // For culling and clipping, we must know, per culling plane, whether the vertex
         // is in the positive or the negative half-space.
         uint behindMask = 0; // Initially in front
 
-        // Consider the vertex to be inside the view volume if:
-        // min_x <= x <= max_x
-        // min_y <= y <= max_y   <-- include boundary points to avoid clipping them later
-        // min_z <= z <= max_z
-        // w is always valid
-        const float3 hapAaBbMinPt = cubeMinCS * abs(hapVertCS.w);
-        const float3 hapAaBbMaxPt = cubeMaxCS * abs(hapVertCS.w);
         // TODO: add epsilon for numerical robustness?
-
         for (uint j = 0; j < (NUM_PLANES / 2); j++)
         {
             behindMask |= ((hapVertCS[j] < hapAaBbMinPt[j]) ? 1 : 0) << (2 * j + 0);
@@ -466,13 +458,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
             float4 hbpVertVS = mul(invProjMat, float4(rapVertCS, 1)); // Clip to view space
             float4 hapVertLS = mul(entitySpaceMatrix, hbpVertVS);     // View to entity space
 
-            // Consider the vertex to be inside the entity's bounding frustum if:
-            // -w < x < w
-            // -w < y < w   <-- exclude boundary points, as we will not clip using these vertices
-            // -w < z < w   <-- assume that Z-precision is not very important here
-            // 0  < w
             // TODO: add epsilon for numerical robustness?
-
             bool inside = Max3(abs(hapVertLS.x), abs(hapVertLS.y), abs(hapVertLS.z)) < hapVertLS.w;
 
             if (inside)
@@ -692,7 +678,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
     if (isHelperThread) return; // Avoid adding too many checks or branches below
 
     const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
-    const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                // (tileCoord + 1) * TILE_SIZE
+    const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;               // (tileCoord + 1) * TILE_SIZE
     const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
     const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
     const float2 tileAaBbMinPtCS  = tileAaBbMinPtNDC * 2 - 1;
