@@ -105,12 +105,17 @@ Shader "Hidden/Light2D-Point"
                 mappedUV.y = _FalloffIntensity;
                 attenuation = SAMPLE_TEXTURE2D(_FalloffLookup, sampler_FalloffLookup, mappedUV).r;
 
+#if USE_POINT_LIGHT_COOKIES
+                half4 cookieColor = SAMPLE_TEXTURE2D(_PointLightCookieTex, sampler_PointLightCookieTex, input.lookupUV);
+                half4 lightColor = cookieColor * _LightColor;
+#else
                 half4 lightColor = _LightColor;
+#endif
 
 #if USE_ADDITIVE_BLENDING
                 lightColor *= attenuation;
 #else
-                lightColor.a = lightColor.a * attenuation;
+                lightColor.a = attenuation;
 #endif
 
                 APPLY_NORMALS_LIGHTING(input, lightColor);
