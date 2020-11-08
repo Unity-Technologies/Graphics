@@ -23,10 +23,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 depthState = new DepthState(false, CompareFunction.LessEqual),
                 mask = RenderStateMask.Depth
             };
-            m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
         }
 
-        public TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
+        internal TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
@@ -36,11 +35,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 useMipMap = true,
                 name = "FlagMaskTexture"
             });
-        }
-
-        void ReleaseRecursiveRenderer()
-        {
-            RTHandles.Release(m_FlagMaskTextureRT);
         }
 
         struct RecursiveRendererParameters
@@ -210,6 +204,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     rrResources.outputBuffer = data.outputBuffer;
                     ExecuteRecursiveRendering(ctx.cmd, data.parameters, rrResources);
                 });
+
+                PushFullScreenDebugTexture(m_RenderGraph, passData.debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
 
                 return passData.outputBuffer;
             }

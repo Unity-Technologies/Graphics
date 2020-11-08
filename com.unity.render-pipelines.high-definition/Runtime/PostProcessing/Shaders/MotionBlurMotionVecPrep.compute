@@ -75,15 +75,17 @@ void MotionVecPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 motionVec;
     DecodeMotionVector(motionVecBufferSample, motionVec);
+
     float depth = LoadCameraDepth(dispatchThreadId.xy);
+
 
     if ( !forceNoMotion
 #if SKIP_PREPPING_IF_NOT_NEEDED
-        || WaveActiveAnyTrue(dot(motionVec, motionVec) * _ScreenMagnitudeSq > _MinMotionVecThresholdSq)
+        && WaveActiveAnyTrue(dot(motionVec, motionVec) * _ScreenMagnitudeSq > _MinMotionVecThresholdSq)
 #endif
         )
     {
-        
+
         PositionInputs posInput = GetPositionInput(dispatchThreadId.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
         float2 finalMotionVec = ComputeMotionVec(posInput, motionVec);
@@ -95,6 +97,5 @@ void MotionVecPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
         motionVecAndDepth.z = LinearEyeDepth(depth, _ZBufferParams);
     }
 
-    // Compute linear depth
     _MotionVecAndDepth[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = motionVecAndDepth;
 }

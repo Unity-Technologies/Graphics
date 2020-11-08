@@ -43,9 +43,12 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
+        ShaderKeyword m_DeferredAdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
         ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
+        ShaderKeyword m_LightmapShadowMixing = new ShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
+        ShaderKeyword m_ShadowsShadowMask = new ShaderKeyword(ShaderKeywordStrings.ShadowsShadowMask);
         ShaderKeyword m_Lightmap = new ShaderKeyword(ShaderKeywordStrings.LIGHTMAP_ON);
         ShaderKeyword m_DirectionalLightmap = new ShaderKeyword(ShaderKeywordStrings.DIRLIGHTMAP_COMBINED);
         ShaderKeyword m_AlphaTestOn = new ShaderKeyword(ShaderKeywordStrings._ALPHATEST_ON);
@@ -106,7 +109,15 @@ namespace UnityEditor.Rendering.Universal
                 compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
+            // Left for backward compatibility
             if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
+                !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
+                return true;
+
+            // Strip here only if mixed lighting is disabled
+            // No need to check here if actually used by scenes as this taken care by builtin stripper
+            if ((compilerData.shaderKeywordSet.IsEnabled(m_LightmapShadowMixing) ||
+                    compilerData.shaderKeywordSet.IsEnabled(m_ShadowsShadowMask)) &&
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
 
@@ -115,6 +126,9 @@ namespace UnityEditor.Rendering.Universal
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
                 return true;
 
+            bool isDeferredAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredAdditionalLightShadows);
+            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isDeferredAdditionalShadow)
+                return true;
 
             // Additional light are shaded per-vertex or per-pixel.
             bool isFeaturePerPixelLightingEnabled = IsFeatureEnabled(features, ShaderFeatures.AdditionalLights);
@@ -182,7 +196,11 @@ namespace UnityEditor.Rendering.Universal
             if (isAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel))
                 return true;
 
-            bool isShadowVariant = isMainShadow || isAdditionalShadow;
+            bool isDeferredAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredAdditionalLightShadows);
+            if (isDeferredAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel))
+                return true;
+
+            bool isShadowVariant = isMainShadow || isAdditionalShadow || isDeferredAdditionalShadow;
             if (!isShadowVariant && compilerData.shaderKeywordSet.IsEnabled(m_SoftShadows))
                 return true;
 
@@ -385,12 +403,15 @@ namespace UnityEditor.Rendering.Universal
             for (int rendererIndex = 0; rendererIndex < rendererCount; ++rendererIndex)
             {
                 ScriptableRenderer renderer = pipelineAsset.GetRenderer(rendererIndex);
-                if (renderer is DeferredRenderer)
+                if (renderer is ForwardRenderer)
                 {
-                    hasDeferredRenderer |= true;
-                    DeferredRenderer deferredRenderer = (DeferredRenderer)renderer;
-                    withAccurateGbufferNormals |= deferredRenderer.AccurateGbufferNormals;
-                    withoutAccurateGbufferNormals |= !deferredRenderer.AccurateGbufferNormals;
+                    ForwardRenderer forwardRenderer = (ForwardRenderer)renderer;
+                    if (forwardRenderer.renderingMode == RenderingMode.Deferred)
+                    {
+                        hasDeferredRenderer |= true;
+                        withAccurateGbufferNormals |= forwardRenderer.accurateGbufferNormals;
+                        withoutAccurateGbufferNormals |= !forwardRenderer.accurateGbufferNormals;
+                    }
                 }
 
                 // Check for Screen Space Ambient Occlusion Renderer Feature

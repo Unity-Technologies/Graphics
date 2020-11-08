@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnEnable()
         {
             var o = new PropertyFetcher<LiftGammaGain>(serializedObject);
-            
+
             m_Lift  = Unpack(o.Find(x => x.lift));
             m_Gamma = Unpack(o.Find(x => x.gamma));
             m_Gain  = Unpack(o.Find(x => x.gain));
