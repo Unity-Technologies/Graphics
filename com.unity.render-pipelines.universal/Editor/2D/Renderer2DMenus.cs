@@ -116,12 +116,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return Light2DEditorUtility.IsUsing2DRenderer();
         }
 
-        [MenuItem("GameObject/Light/Deprecated Parametric Light", false, k_MenuPriority)]
-        static void CreateDeprecatedParametricLight2D(MenuCommand menuCommand)
-        {
-            CreateLight(menuCommand, (Light2D.LightType)0, FreeformPathPresets.CreateSquare());
-        }
-
         [MenuItem("GameObject/Light/Freeform Light 2D/Square", false, k_MenuPriority)]
         static void CreateSquareFreeformLight2D(MenuCommand menuCommand)
         {
@@ -183,7 +177,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             return CreateLightValidation();
         }
 
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
         internal class CreateUniversalPipelineAsset : EndNameEditAction
         {
@@ -194,14 +187,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-
         [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (2D Renderer)", priority = CoreUtils.assetCreateMenuPriority1 + 1)]
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, UniversalRenderPipelineAsset.CreateInstance<CreateUniversalPipelineAsset>(),
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
-
 
         [MenuItem("Assets/Create/Rendering/Universal Render Pipeline", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
         static void Create2DRendererData()
