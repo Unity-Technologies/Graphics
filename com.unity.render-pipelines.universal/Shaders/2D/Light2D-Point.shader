@@ -115,7 +115,7 @@ Shader "Hidden/Light2D-Point"
 #if USE_ADDITIVE_BLENDING
                 lightColor *= attenuation;
 #else
-                lightColor.a = attenuation;
+                lightColor.a = _LightColor.a * attenuation;
 #endif
 
                 APPLY_NORMALS_LIGHTING(input, lightColor);

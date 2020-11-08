@@ -172,13 +172,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-                    float intensity = light.intensity * light.color.a;
-                    Color color = intensity * light.color;
-                    color.a = 1.0f;
 
-                    cmd.SetGlobalColor(k_LightColorID, intensity * color);
-                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalColor(k_VolumeColorID, light.volumeIntensity * light.color);
+                    SetGeneralLightShaderGlobals(pass, cmd, light);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(pass, cmd, light);
@@ -219,9 +214,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalColor(k_VolumeColorID, light.volumeIntensity * light.color);
+                    SetGeneralLightShaderGlobals(pass, cmd, light);
 
                     // Is this needed
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
@@ -276,6 +269,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             var scaledLightMat = Matrix4x4.TRS(transform.position, transform.rotation, outerRadiusScale);
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
+        }
+
+        private static void SetGeneralLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
+        {
+            float intensity = light.intensity * light.color.a;
+            Color color = intensity * light.color;
+            color.a = 1.0f;
+
+            float volumeIntensity = light.volumeIntensity * light.color.a;
+            Color volumeColor = volumeIntensity * light.color;
+            color.a = 1.0f;
+
+            cmd.SetGlobalColor(k_LightColorID, color);
+            cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+            cmd.SetGlobalColor(k_VolumeColorID, volumeColor);
         }
 
         private static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)

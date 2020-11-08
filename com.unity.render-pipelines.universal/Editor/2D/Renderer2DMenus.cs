@@ -152,7 +152,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             CreateLight(menuCommand, Light2D.LightType.Sprite);
         }
 
-        [MenuItem("GameObject/Light/Point Light 2D", false, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Spot Light 2D", false, k_MenuPriority)]
         static void CreatePointLight2D(MenuCommand menuCommand)
         {
             CreateLight(menuCommand, Light2D.LightType.Point);
@@ -170,7 +170,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Flat Top", true, k_MenuPriority)]
         [MenuItem("GameObject/Light/Freeform Light 2D/Hexagon Pointed Top", true, k_MenuPriority)]
         [MenuItem("GameObject/Light/Sprite Light 2D", true, k_MenuPriority)]
-        [MenuItem("GameObject/Light/Point Light 2D", true, k_MenuPriority)]
+        [MenuItem("GameObject/Light/Spot Light 2D", true, k_MenuPriority)]
         [MenuItem("GameObject/Light/Global Light 2D", true, k_MenuPriority)]
         static bool CreateLight2DValidation()
         {
