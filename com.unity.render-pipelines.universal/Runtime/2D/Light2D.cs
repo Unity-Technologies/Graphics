@@ -66,8 +66,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] bool m_LightVolumeIntensityEnabled = false;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
 
-        [SerializeField, Reload("Textures/2D/Sparkle.png")]
-        Sprite m_LightCookieSprite;
+        [Reload("Textures/2D/Sparkle.png")]
+        [SerializeField] Sprite m_LightCookieSprite;
+
+        [FormerlySerializedAs("m_LightCookieSprite")]
+        [SerializeField] Sprite m_DeprecatedPointLightCookieSprite;
 
         [SerializeField] bool m_UseNormalMap = false;
 
@@ -110,13 +113,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                if ( null == m_Mesh )
+                if (null == m_Mesh)
                     m_Mesh = new Mesh();
                 return m_Mesh;
             }
         }
 
-        internal bool hasCachedMesh => ( lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0 );
+        internal bool hasCachedMesh => (lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0);
 
         /// <summary>
         /// The lights current type
@@ -126,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             get => m_LightType;
             set
             {
-                if(m_LightType != value)
+                if (m_LightType != value)
                     UpdateMesh(true);
 
                 m_LightType = value;
@@ -177,8 +180,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float volumeOpacity => m_LightVolumeIntensity;
         public float volumeIntensity => m_LightVolumeIntensity;
 
-        public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value;}
-        public Sprite lightCookieSprite => m_LightCookieSprite;
+        public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
+        public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } } 
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
 

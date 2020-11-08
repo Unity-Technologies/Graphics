@@ -100,6 +100,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent pointLightRadius = EditorGUIUtility.TrTextContent("Radius", "For adjusting the falloff of a light");
             public static GUIContent pointLightInner = EditorGUIUtility.TrTextContent("Inner", "Specify the inner radius of the light");
             public static GUIContent pointLightOuter = EditorGUIUtility.TrTextContent("Outer", "Specify the outer radius of the light");
+            public static GUIContent pointLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite (deprecated)");
 
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
             public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
@@ -151,6 +152,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_PointOuterAngle;
         SerializedProperty m_PointInnerRadius;
         SerializedProperty m_PointOuterRadius;
+        SerializedProperty m_DeprecatedPointLightSprite;
 
         // Shape Light Properties
         SerializedProperty m_ShapeLightParametricRadius;
@@ -222,7 +224,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_PointOuterAngle = serializedObject.FindProperty("m_PointLightOuterAngle");
             m_PointInnerRadius = serializedObject.FindProperty("m_PointLightInnerRadius");
             m_PointOuterRadius = serializedObject.FindProperty("m_PointLightOuterRadius");
-            
+            m_DeprecatedPointLightSprite = serializedObject.FindProperty("m_DeprecatedPointLightCookieSprite");
 
             // Shape Light
             m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
@@ -525,6 +527,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             DrawRadiusProperties(Styles.pointLightRadius, m_PointInnerRadius, Styles.pointLightInner, m_PointOuterRadius, Styles.pointLightOuter);
             DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
             EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
+
+            if(m_DeprecatedPointLightSprite.objectReferenceValue != null)
+                EditorGUILayout.PropertyField(m_DeprecatedPointLightSprite, Styles.pointLightSprite);
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
 
