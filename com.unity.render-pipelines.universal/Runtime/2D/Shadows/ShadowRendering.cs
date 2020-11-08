@@ -7,10 +7,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
     {
         private static readonly int k_LightPosID = Shader.PropertyToID("_LightPos");
         private static readonly int k_ShadowStencilGroupID = Shader.PropertyToID("_ShadowStencilGroup");
+        private static readonly int k_ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
+        private static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
         private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
-        public  static readonly int k_ShadowIntensityID = Shader.PropertyToID("_ShadowIntensity");
-        public  static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
-
 
         private static Material GetShadowMaterial(this Renderer2DData rendererData, int index)
         {
@@ -53,9 +52,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.GetTemporaryRT(pass.rendererData.shadowsRenderTarget.id, descriptor, FilterMode.Bilinear);
         }
 
-        public static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shaderShadowValueID, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
+        public static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
         {
-            cmdBuffer.SetGlobalFloat(shaderShadowValueID, 1 - shadowIntensity);
+            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1 - light.shadowIntensity);
+            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
 
             if (shadowIntensity > 0)
             {

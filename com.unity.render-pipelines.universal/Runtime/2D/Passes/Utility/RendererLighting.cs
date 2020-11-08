@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (lightMesh == null)
                         continue;
 
-                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, ShadowRendering.k_ShadowIntensityID, light.shadowsEnabled ? light.shadowIntensity : 0, renderTexture, renderTexture);
+                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowsEnabled ? light.shadowIntensity : 0, renderTexture, renderTexture);
 
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
@@ -220,7 +220,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
+                    cmd.SetGlobalColor(k_VolumeColorID, light.volumeIntensity * light.color);
 
                     // Is this needed
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)

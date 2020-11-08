@@ -228,7 +228,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
-            m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
             m_AnyBlendStyleEnabled = false;
@@ -815,7 +814,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     if (serializedObject.ApplyModifiedProperties())
                     {
                         if (meshChanged)
-                            lightObject.UpdateMesh();
+                            lightObject.UpdateMesh(true);
                     }
                 }
             }
