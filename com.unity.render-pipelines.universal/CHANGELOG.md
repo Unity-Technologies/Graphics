@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved Geometry for Smooth Falloff of 2D Shape Lights.
 
 ### Fixed
+- Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
 - Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
 - Fixed an issue where null reference exception was thrown when creating a 2D Renderer Data asset while scripts are compiling. [case 1263040](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-error-is-thrown-on-creating-2d-renderer-asset)
 - Fixed an issue where no preview would show for the lit sprite master node in shadergraph
@@ -69,7 +70,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth of field to work with dynamic resolution. [case 1225467](https://issuetracker.unity3d.com/issues/dynamic-resolution-rendering-error-when-using-depth-of-field-in-urp)
 - Fixed FXAA, SSAO, Motion Blur to work with dynamic resolution.
 - Fixed an issue where Pixel lighting variants were stripped in builds if another URP asset had Additional Lights set to Per Vertex [case 1263514](https://issuetracker.unity3d.com/issues/urp-all-pixel-lighting-variants-are-stripped-in-build-if-at-least-one-urp-asset-has-additional-lights-set-to-per-vertex)
-- Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
 - Fixed an issue where transparent meshes were rendered opaque when using custom render passes [case 1262887](https://issuetracker.unity3d.com/issues/urp-transparent-meshes-are-rendered-as-opaques-when-using-lit-shader-with-custom-render-pass)
 - Fixed regression from 8.x.x that increased launch times on Android with GLES3. [case 1269119](https://issuetracker.unity3d.com/issues/android-launch-times-increased-x4-from-urp-8-dot-1-0-to-urp-10-dot-0-0-preview-dot-26)
 - Fixed an issue with a render texture failing assertion when chosing an invalid format. [case 1222676](https://issuetracker.unity3d.com/issues/the-error-occurs-when-a-render-texture-which-has-a-certain-color-format-is-applied-to-the-cameras-output-target)
