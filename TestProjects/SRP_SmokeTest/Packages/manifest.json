@@ -8,7 +8,7 @@
         "com.unity.test-framework": "1.1.14",
         "com.unity.test-framework.build": "0.0.1-preview.12",
         "com.unity.test-framework.utp-reporter": "1.0.2-preview",
-        "com.unity.testframework.graphics": "7.2.2-preview",
+        "com.unity.testframework.graphics": "7.5.0-preview",
         "com.unity.ugui": "1.0.0",
         "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
         "com.unity.modules.ai": "1.0.0",

@@ -112,6 +112,8 @@ float _DistortionVectorBias;
 float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
+float _BlendMode;
+float _EnableBlendModePreserveSpecularLighting;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;
@@ -163,6 +165,8 @@ float4 _BaseColorMap_TexelSize;
 float4 _BaseColorMap_MipInfo;
 
 float _Metallic;
+float _MetallicRemapMin;
+float _MetallicRemapMax;
 float _Smoothness;
 float _SmoothnessRemapMin;
 float _SmoothnessRemapMax;
@@ -217,6 +221,8 @@ float4 _BaseColorMap0_TexelSize;
 float4 _BaseColorMap0_MipInfo;
 
 PROP_DECL(float, _Metallic);
+PROP_DECL(float, _MetallicRemapMin);
+PROP_DECL(float, _MetallicRemapMax);
 PROP_DECL(float, _Smoothness);
 PROP_DECL(float, _SmoothnessRemapMin);
 PROP_DECL(float, _SmoothnessRemapMax);
@@ -285,14 +291,166 @@ float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
 
-// Following two variables are feeded by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
+float4 _SelectionID;
 
 CBUFFER_END
 
-// DOTS instancing not enabled for LayeredLit for now
-#if defined(UNITY_DOTS_INSTANCING_ENABLED) && !defined(LAYERED_LIT_SHADER)
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#if defined(LAYERED_LIT_SHADER)
+// TODO: Do we want to expose all of this?
+UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+    UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor0)
+    UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor1)
+    UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor2)
+    UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor3)
+    UNITY_DOTS_INSTANCED_PROP(float , _Metallic0)
+    UNITY_DOTS_INSTANCED_PROP(float , _Metallic1)
+    UNITY_DOTS_INSTANCED_PROP(float , _Metallic2)
+    UNITY_DOTS_INSTANCED_PROP(float , _Metallic3)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin0)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin1)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin2)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin3)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax0)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax1)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax2)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax3)
+    UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor0)
+    UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor1)
+    UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor2)
+    UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor3)
+    UNITY_DOTS_INSTANCED_PROP(float4, _SpecularColor0)
+    UNITY_DOTS_INSTANCED_PROP(float4, _SpecularColor1)
+    UNITY_DOTS_INSTANCED_PROP(float4, _SpecularColor2)
+    UNITY_DOTS_INSTANCED_PROP(float4, _SpecularColor3)
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff0);
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff1);
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff2);
+    UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff3);
+    UNITY_DOTS_INSTANCED_PROP(float , _Smoothness0)
+    UNITY_DOTS_INSTANCED_PROP(float , _Smoothness1)
+    UNITY_DOTS_INSTANCED_PROP(float , _Smoothness2)
+    UNITY_DOTS_INSTANCED_PROP(float , _Smoothness3)
+    UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMin0)
+    UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMin1)
+    UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMin2)
+    UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMin3)
+    UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMax0)
+    UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMax1)
+    UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMax2)
+    UNITY_DOTS_INSTANCED_PROP(float , _SmoothnessRemapMax3)
+    UNITY_DOTS_INSTANCED_PROP(float , _AORemapMin0)
+    UNITY_DOTS_INSTANCED_PROP(float , _AORemapMin1)
+    UNITY_DOTS_INSTANCED_PROP(float , _AORemapMin2)
+    UNITY_DOTS_INSTANCED_PROP(float , _AORemapMin3)
+    UNITY_DOTS_INSTANCED_PROP(float , _AORemapMax0)
+    UNITY_DOTS_INSTANCED_PROP(float , _AORemapMax1)
+    UNITY_DOTS_INSTANCED_PROP(float , _AORemapMax2)
+    UNITY_DOTS_INSTANCED_PROP(float , _AORemapMax3)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailAlbedoScale0)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailAlbedoScale1)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailAlbedoScale2)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailAlbedoScale3)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailNormalScale0)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailNormalScale1)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailNormalScale2)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailNormalScale3)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailSmoothnessScale0)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailSmoothnessScale1)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailSmoothnessScale2)
+    UNITY_DOTS_INSTANCED_PROP(float , _DetailSmoothnessScale3)
+    UNITY_DOTS_INSTANCED_PROP(float , _DiffusionProfileHash0)
+    UNITY_DOTS_INSTANCED_PROP(float , _DiffusionProfileHash1)
+    UNITY_DOTS_INSTANCED_PROP(float , _DiffusionProfileHash2)
+    UNITY_DOTS_INSTANCED_PROP(float , _DiffusionProfileHash3)
+    UNITY_DOTS_INSTANCED_PROP(float , _Thickness0)
+    UNITY_DOTS_INSTANCED_PROP(float , _Thickness1)
+    UNITY_DOTS_INSTANCED_PROP(float , _Thickness2)
+    UNITY_DOTS_INSTANCED_PROP(float , _Thickness3)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap0)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap1)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap2)
+    UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap3)
+UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
+
+#define _BaseColor0              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor0)
+#define _BaseColor1              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor1)
+#define _BaseColor2              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor2)
+#define _BaseColor3              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor3)
+#define _Metallic0               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic0)
+#define _Metallic1               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic1)
+#define _Metallic2               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic2)
+#define _Metallic3               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic3)
+#define _MetallicRemapMin0       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin0)
+#define _MetallicRemapMin1       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin1)
+#define _MetallicRemapMin2       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin2)
+#define _MetallicRemapMin3       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin3)
+#define _MetallicRemapMax0       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax0)
+#define _MetallicRemapMax1       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax1)
+#define _MetallicRemapMax2       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax2)
+#define _MetallicRemapMax3       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax3)
+#define _EmissiveColor0          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor0)
+#define _EmissiveColor1          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor1)
+#define _EmissiveColor2          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor2)
+#define _EmissiveColor3          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor3)
+#define _SpecularColor0          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__SpecularColor0)
+#define _SpecularColor1          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__SpecularColor1)
+#define _SpecularColor2          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__SpecularColor2)
+#define _SpecularColor3          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__SpecularColor3)
+#define _AlphaCutoff0            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AlphaCutoff0)
+#define _AlphaCutoff1            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AlphaCutoff1)
+#define _AlphaCutoff2            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AlphaCutoff2)
+#define _AlphaCutoff3            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AlphaCutoff3)
+#define _Smoothness0             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness0)
+#define _Smoothness1             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness1)
+#define _Smoothness2             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness2)
+#define _Smoothness3             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness3)
+#define _SmoothnessRemapMin0     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SmoothnessRemapMin0)
+#define _SmoothnessRemapMin1     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SmoothnessRemapMin1)
+#define _SmoothnessRemapMin2     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SmoothnessRemapMin2)
+#define _SmoothnessRemapMin3     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SmoothnessRemapMin3)
+#define _SmoothnessRemapMax0     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SmoothnessRemapMax0)
+#define _SmoothnessRemapMax1     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SmoothnessRemapMax1)
+#define _SmoothnessRemapMax2     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SmoothnessRemapMax2)
+#define _SmoothnessRemapMax3     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__SmoothnessRemapMax3)
+#define _AORemapMin0             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AORemapMin0)
+#define _AORemapMin1             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AORemapMin1)
+#define _AORemapMin2             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AORemapMin2)
+#define _AORemapMin3             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AORemapMin3)
+#define _AORemapMax0             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AORemapMax0)
+#define _AORemapMax1             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AORemapMax1)
+#define _AORemapMax2             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AORemapMax2)
+#define _AORemapMax3             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__AORemapMax3)
+#define _DetailAlbedoScale0      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailAlbedoScale0)
+#define _DetailAlbedoScale1      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailAlbedoScale1)
+#define _DetailAlbedoScale2      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailAlbedoScale2)
+#define _DetailAlbedoScale3      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailAlbedoScale3)
+#define _DetailNormalScale0      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailNormalScale0)
+#define _DetailNormalScale1      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailNormalScale1)
+#define _DetailNormalScale2      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailNormalScale2)
+#define _DetailNormalScale3      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailNormalScale3)
+#define _DetailSmoothnessScale0  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailSmoothnessScale0)
+#define _DetailSmoothnessScale1  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailSmoothnessScale1)
+#define _DetailSmoothnessScale2  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailSmoothnessScale2)
+#define _DetailSmoothnessScale3  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DetailSmoothnessScale3)
+#define _DiffusionProfileHash0   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DiffusionProfileHash0)
+#define _DiffusionProfileHash1   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DiffusionProfileHash1)
+#define _DiffusionProfileHash2   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DiffusionProfileHash2)
+#define _DiffusionProfileHash3   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DiffusionProfileHash3)
+#define _Thickness0              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Thickness0)
+#define _Thickness1              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Thickness1)
+#define _Thickness2              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Thickness2)
+#define _Thickness3              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Thickness3)
+#define _ThicknessRemap0         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap0)
+#define _ThicknessRemap1         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap1)
+#define _ThicknessRemap2         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap2)
+#define _ThicknessRemap3         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap3)
+
+#else
+
 UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic)
@@ -314,6 +472,8 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor)
 #define _Metallic               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Metallic)
+#define _MetallicRemapMin       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMin)
+#define _MetallicRemapMax       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__MetallicRemapMax)
 #define _Smoothness             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Smoothness)
 #define _EmissiveColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float3, Metadata__EmissiveColor)
 #define _SpecularColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__SpecularColor)
@@ -330,5 +490,6 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _Thickness              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Thickness)
 #define _ThicknessRemap         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap)
 
+#endif
 #endif
 

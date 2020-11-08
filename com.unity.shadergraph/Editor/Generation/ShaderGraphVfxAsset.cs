@@ -1,4 +1,3 @@
-#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +35,9 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool lit;
 
         [SerializeField]
+        public bool alphaClipping;
+
+        [SerializeField]
         internal GraphCompilationResult compilationResult;
 
         [SerializeField]
@@ -51,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Internal
         string m_OutputStructName;
 
         [SerializeField]
-        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
+        ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         ShaderGraphVfxAssetData m_Data = new ShaderGraphVfxAssetData();
 
@@ -149,7 +151,10 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        void ISerializationCallbackReceiver.OnAfterDeserialize() { }
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            m_Data = null;
+        }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
 
@@ -180,7 +185,6 @@ namespace UnityEditor.ShaderGraph.Internal
                     propertyIndexSet.Add(propertyIndex);
                 }
             }
-            EnsureProperties();
             var propertyIndices = propertyIndexSet.ToArray();
             Array.Sort(propertyIndices);
             var filteredProperties = propertyIndices.Select(i => properties[i]).ToArray();
@@ -190,4 +194,3 @@ namespace UnityEditor.ShaderGraph.Internal
         }
     }
 }
-#endif

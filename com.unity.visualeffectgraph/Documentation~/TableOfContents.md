@@ -1,4 +1,5 @@
 * [Visual Effect Graph](index.md)
+* [Requirements](System-Requirements.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)
@@ -20,6 +21,7 @@
   * [Using Visual Effects with Timeline](Timeline.md)
   * [Property Binders](PropertyBinders.md)
   * [Event Binders](EventBinders.md)
+  * [Output Event Handlers](OutputEventHandlers.md)
 * Pipeline Tools
   * [ExposedProperty Helper](ExposedPropertyHelper.md)
   * [Vector Fields](VectorFields.md)
@@ -30,10 +32,14 @@
 * Node Library
   * Context
   * Operator
+    * Camera
+      * [Viewport to World Point](Operator-ViewportToWorldPoint.md)
+      * [World to Viewport Point](Operator-WorldToViewportPoint.md)
     * Math
       * Geometry
         * [Transform (Vector4)](Operator-Transform(Vector4).md)
     * Sampling
       * [Get Texture Dimensions](Operator-GetTextureDimensions.md)
+      * [Sample Signed Distance Field](Operator-SampleSDF.md)
 * Reference
   * [Standard Attributes](Reference-Attributes.md)

@@ -11,7 +11,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
             Cull Off
 
             HLSLPROGRAM
-            #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local USE_POINT_LIGHT_COOKIES __
@@ -32,7 +31,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 half2   uv              : TEXCOORD0;
                 half2	screenUV        : TEXCOORD1;
                 half2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
-                half2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
 
 #if LIGHT_QUALITY_FAST
                 half4	lightDirection	: TEXCOORD4;
@@ -55,10 +53,8 @@ Shader "Hidden/Light2d-Point-Volumetric"
             SAMPLER(sampler_LightLookup);
             half4 _LightLookup_TexelSize;
 
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
-
             half4   _VolumeColor;
+
             float4   _LightPosition;
             float4x4 _LightInvMatrix;
             float4x4 _LightNoRotInvMatrix;
@@ -85,7 +81,6 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 float4 lightSpaceNoRotPos = mul(_LightNoRotInvMatrix, worldSpacePos);
                 float halfTexelOffset = 0.5 * _LightLookup_TexelSize.x;
                 output.lookupUV = 0.5 * (lightSpacePos.xy + 1) + halfTexelOffset;
-                output.lookupNoRotUV = 0.5 * (lightSpaceNoRotPos.xy + 1) + halfTexelOffset;
 
 #if LIGHT_QUALITY_FAST
                 output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
@@ -106,12 +101,10 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
             half4 frag(Varyings input) : SV_Target
             {
-                half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);
-                half4 lookupValueNoRot = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupNoRotUV);  // r = distance, g = angle, b = x direction, a = y direction
                 half4 lookupValue = SAMPLE_TEXTURE2D(_LightLookup, sampler_LightLookup, input.lookupUV);  // r = distance, g = angle, b = x direction, a = y direction
 
                 // Inner Radius
-                half attenuation = saturate(_InnerRadiusMult * lookupValueNoRot.r);   // This is the code to take care of our inner radius
+                half attenuation = saturate(_InnerRadiusMult * lookupValue.r);   // This is the code to take care of our inner radius
 
                 // Spotlight
                 half  spotAttenuation = saturate((_OuterAngle - lookupValue.g + _IsFullSpotlight) * _InnerAngleMult);

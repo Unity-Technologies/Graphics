@@ -30,7 +30,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         {
             Tags { "LightMode" = "Universal2D" }
             HLSLPROGRAM
-            #pragma prefer_hlslcc gles
             #pragma vertex CombinedShapeLightVertex
             #pragma fragment CombinedShapeLightFragment
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
@@ -61,10 +60,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_MainTex);
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
             half4 _MainTex_ST;
-            half4 _NormalMap_ST;
 
             #if USE_SHAPE_LIGHT_TYPE_0
             SHAPE_LIGHT(0)
@@ -112,7 +108,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         {
             Tags { "LightMode" = "NormalsRendering"}
             HLSLPROGRAM
-            #pragma prefer_hlslcc gles
             #pragma vertex NormalsRenderingVertex
             #pragma fragment NormalsRenderingFragment
 
@@ -150,7 +145,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
-                o.uv = attributes.uv;
                 o.color = attributes.color;
                 o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
                 o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
@@ -173,7 +167,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             Tags { "LightMode" = "UniversalForward" "Queue"="Transparent" "RenderType"="Transparent"}
 
             HLSLPROGRAM
-            #pragma prefer_hlslcc gles
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
 
@@ -205,7 +198,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.uv = attributes.uv;
                 o.color = attributes.color;
                 return o;
             }

@@ -9,13 +9,13 @@ namespace UnityEngine.Rendering.Universal.Internal
     /// </summary>
     public class FinalBlitPass : ScriptableRenderPass
     {
-        const string m_ProfilerTag = "Final Blit Pass";
-        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
 
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(FinalBlitPass));
+
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
         }
@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,

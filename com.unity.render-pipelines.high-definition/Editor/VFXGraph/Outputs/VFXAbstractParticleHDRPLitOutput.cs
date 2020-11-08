@@ -428,18 +428,7 @@ namespace UnityEditor.VFX
                 var forwardDefines = new VFXShaderWriter();
                 forwardDefines.WriteLine("#define _ENABLE_FOG_ON_TRANSPARENT");
                 forwardDefines.WriteLine("#define _DISABLE_DECALS");
-                switch (blendMode)
-                {
-                    case BlendMode.Alpha:
-                        forwardDefines.WriteLine("#define _BLENDMODE_ALPHA");
-                        break;
-                    case BlendMode.Additive:
-                        forwardDefines.WriteLine("#define _BLENDMODE_ADD");
-                        break;
-                    case BlendMode.AlphaPremultiplied:
-                        forwardDefines.WriteLine("#define _BLENDMODE_PRE_MULTIPLY");
-                        break;
-                }
+
                 if (!isBlendModeOpaque)
                 {
                     if (preserveSpecularLighting)

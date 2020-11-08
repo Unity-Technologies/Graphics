@@ -66,6 +66,25 @@ namespace UnityEngine.Rendering.HighDefinition
             Unknown
         }
 
+        internal static RenderQueueType MigrateRenderQueueToHDRP10(RenderQueueType renderQueue)
+        {
+            switch((int)renderQueue)
+            {
+                case 0: return RenderQueueType.Background; // Background
+                case 1: return RenderQueueType.Opaque; // Opaque
+                case 2: return RenderQueueType.AfterPostProcessOpaque; // AfterPostProcessOpaque
+                case 3: return RenderQueueType.Opaque; // RaytracingOpaque
+                case 4: return RenderQueueType.PreRefraction; // PreRefraction
+                case 5: return RenderQueueType.Transparent; // Transparent
+                case 6: return RenderQueueType.LowTransparent; // LowTransparent
+                case 7: return RenderQueueType.AfterPostprocessTransparent; // AfterPostprocessTransparent
+                case 8: return RenderQueueType.Transparent; // RaytracingTransparent
+                case 9: return RenderQueueType.Overlay; // Overlay
+                default:
+                case 10: return RenderQueueType.Unknown; // Unknown
+            }
+        }
+
         public static readonly RenderQueueRange k_RenderQueue_OpaqueNoAlphaTest = new RenderQueueRange { lowerBound = (int)Priority.Background, upperBound = (int)Priority.OpaqueAlphaTest - 1 };
         public static readonly RenderQueueRange k_RenderQueue_OpaqueAlphaTest = new RenderQueueRange { lowerBound = (int)Priority.OpaqueAlphaTest, upperBound = (int)Priority.OpaqueLast };
         public static readonly RenderQueueRange k_RenderQueue_OpaqueDecalAndAlphaTest = new RenderQueueRange { lowerBound = (int)Priority.OpaqueDecal, upperBound = (int)Priority.OpaqueLast };

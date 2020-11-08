@@ -77,6 +77,13 @@ float4 _ZBufferParams;
 // w = 1.0 if camera is ortho, 0.0 if perspective
 float4 unity_OrthoParams;
 
+// scaleBias.x = flipSign
+// scaleBias.y = scale
+// scaleBias.z = bias
+// scaleBias.w = unused
+uniform float4 _ScaleBias;
+uniform float4 _ScaleBiasRt;
+
 float4 unity_CameraWorldClipPlanes[6];
 
 #if !defined(USING_STEREO_MATRICES)
@@ -112,6 +119,7 @@ real4 unity_SpecCube0_HDR;
 
 // Lightmap block feature
 float4 unity_LightmapST;
+float4 unity_LightmapIndex;
 float4 unity_DynamicLightmapST;
 
 // SH block feature
@@ -201,11 +209,17 @@ SAMPLER(samplerunity_SpecCube0);
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
+TEXTURE2D_ARRAY(unity_Lightmaps);
+SAMPLER(samplerunity_Lightmaps);
+
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
+TEXTURE2D_ARRAY(unity_LightmapsInd);
 
-// We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
+SAMPLER(samplerunity_ShadowMask);
+TEXTURE2D_ARRAY(unity_ShadowMasks);
+SAMPLER(samplerunity_ShadowMasks);
 
 // ----------------------------------------------------------------------------
 

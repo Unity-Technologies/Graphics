@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 for (var i = 0; i < shapeEditor.pointCount; ++i)
                     pointsProperty.GetArrayElementAtIndex(i).vector3Value = shapeEditor.GetPoint(i).position;
 
-                ((Light2D)(serializedObject.targetObject)).UpdateMesh();
+                ((Light2D)(serializedObject.targetObject)).UpdateMesh(true);
 
                 // This is untracked right now...
                 serializedObject.ApplyModifiedProperties();
@@ -228,6 +228,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_ShapeLightParametricRadius = serializedObject.FindProperty("m_ShapeLightParametricRadius");
             m_ShapeLightFalloffSize = serializedObject.FindProperty("m_ShapeLightFalloffSize");
             m_ShapeLightParametricSides = serializedObject.FindProperty("m_ShapeLightParametricSides");
+            m_ShapeLightParametricAngleOffset = serializedObject.FindProperty("m_ShapeLightParametricAngleOffset");
             m_ShapeLightSprite = serializedObject.FindProperty("m_LightCookieSprite");
 
             m_AnyBlendStyleEnabled = false;
@@ -742,15 +743,20 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         List<Vector2> falloffShape = light.GetFalloffShape();
                         Handles.color = Color.white;
 
-
                         for (int i = 0; i < falloffShape.Count - 1; ++i)
                         {
                             Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
-                            Handles.DrawLine(t.TransformPoint(light.shapePath[i]), t.TransformPoint(light.shapePath[i + 1]));
                         }
 
                         Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
-                        Handles.DrawLine(t.TransformPoint(light.shapePath[falloffShape.Count - 1]), t.TransformPoint(light.shapePath[0]));
+
+                        for (int i = 0; i < light.shapePath.Length - 1; ++i)
+                        {
+                            Handles.DrawLine(t.TransformPoint(light.shapePath[i]),
+                                t.TransformPoint(light.shapePath[i + 1]));
+                        }
+
+                        Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
                     }
                     break;
             }
@@ -816,6 +822,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             else
             {
                 EditorGUILayout.HelpBox(Styles.renderPipelineUnassignedWarning);
+
+                if(meshChanged)
+                    lightObject.UpdateMesh(true);
             }
         }
 

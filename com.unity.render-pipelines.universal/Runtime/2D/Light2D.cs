@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.PlayerLoop;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -96,10 +94,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
-        // Transients
-        int m_PreviousLightCookieSprite;
+        [SerializeField]
         Mesh m_Mesh;
 
+        // Transients
+        int m_PreviousLightCookieSprite;
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
@@ -107,7 +106,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
-        internal Mesh lightMesh => m_Mesh;
+        internal Mesh lightMesh
+        {
+            get
+            {
+                if ( null == m_Mesh )
+                    m_Mesh = new Mesh();
+                return m_Mesh;
+            }
+        }
+
+        internal bool hasCachedMesh => ( lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0 );
 
         /// <summary>
         /// The lights current type
@@ -117,8 +126,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             get => m_LightType;
             set
             {
-                if (m_LightType != value)
-                    UpdateMesh();
+                if(m_LightType != value)
+                    UpdateMesh(true);
 
                 m_LightType = value;
                 Light2DManager.ErrorIfDuplicateGlobalLight(this);
@@ -186,7 +195,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal int GetTopMostLitLayer()
         {
-            var largestIndex = -1;
+            var largestIndex = Int32.MinValue;
             var largestLayer = 0;
 
             var layers = Light2DManager.GetCachedSortingLayer();
@@ -196,35 +205,43 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     if (layers[layer].id == m_ApplyToSortingLayers[i])
                     {
-                        largestIndex = i;
+                        largestIndex = layers[layer].value;
                         largestLayer = layer;
                     }
                 }
             }
 
-            if (largestIndex >= 0)
-                return m_ApplyToSortingLayers[largestIndex];
-            else
-                return -1;
+            return largestIndex;
         }
 
-        internal void UpdateMesh()
+        internal void UpdateMesh(bool forceUpdate)
         {
-            if (m_Mesh != null)
+            var shapePathHash = LightUtility.GetShapePathHash(shapePath);
+            var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
+            var parametricRadiusChanged = LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
+            var parametricSidesChanged = LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
+            var parametricAngleOffsetChanged = LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
+            var spriteInstanceChanged = LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite);
+            var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
+            var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
+            var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
+                             parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
+            // Mesh Rebuilding
+            if (hashChanged && forceUpdate)
             {
                 switch (m_LightType)
                 {
                     case LightType.Freeform:
-                        m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, m_ShapePath, m_ShapeLightFalloffSize);
+                        m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, m_ShapePath, m_ShapeLightFalloffSize);
                         break;
-                    case (LightType)DeprecatedLightType.Parametric:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                    case LightType.Parametric:
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                         break;
                     case LightType.Sprite:
-                        m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, m_LightCookieSprite);
+                        m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, m_LightCookieSprite);
                         break;
                     case LightType.Point:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, 1.412135f, 0, 0, 4);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, 1.412135f, 0, 0, 4);
                         break;
                 }
             }
@@ -248,27 +265,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool IsLitLayer(int layer)
         {
-            return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
+            if (m_ApplyToSortingLayers == null)
+                return false;
+
+            for(var i = 0; i < m_ApplyToSortingLayers.Length; i++)
+                if (m_ApplyToSortingLayers[i] == layer)
+                    return true;
+
+            return false;
         }
 
         private void Awake()
         {
-            m_Mesh = new Mesh();
-            UpdateMesh();
-
-            #if UNITY_EDITOR
-            if(lightType == LightType.Point && lightCookieSprite != null)
-                Debug.LogWarning("Cookies for sprite lights have been deprecated");
-
-            // Convert from alpha blend on overlap to overlap operation
-            if(m_AlphaBlendOnOverlap)
-            {
-                m_OverlapOperation = OverlapOperation.AlphaBlend;
-                m_AlphaBlendOnOverlap = false;
-            }
-
-            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            #endif
+            UpdateMesh(!hasCachedMesh);
         }
 
         void OnEnable()
@@ -287,16 +296,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (m_LightType == LightType.Global)
                 return;
 
-            // Mesh Rebuilding
-            if (LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset) ||
-                LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite))
-            {
-                UpdateMesh();
-            }
-
+            UpdateMesh(true);
             UpdateBoundingSphere();
         }
     }

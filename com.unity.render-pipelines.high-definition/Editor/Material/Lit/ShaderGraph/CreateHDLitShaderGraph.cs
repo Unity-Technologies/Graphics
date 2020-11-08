@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -19,7 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.NormalTS,
                 HDBlockFields.SurfaceDescription.BentNormal,
-                HDBlockFields.SurfaceDescription.CoatMask,
                 BlockFields.SurfaceDescription.Metallic,
                 BlockFields.SurfaceDescription.Emission,
                 BlockFields.SurfaceDescription.Smoothness,

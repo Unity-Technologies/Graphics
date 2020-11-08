@@ -18,10 +18,10 @@ def create_package_ymls(metafile):
         job = Package_PackJob(package, metafile["agent_pack"])
         yml[job.job_id] = job.yml
 
-        job = Package_PublishJob(package, metafile["agent_publish"], metafile["platforms"], metafile["target_editor"])
+        job = Package_PublishJob(package, metafile["agent_publish"], metafile["platforms"], metafile["publish_all_tracks"])
         yml[job.job_id] = job.yml
 
-        job = Package_PublishDryJob(package, metafile["agent_publish"], metafile["platforms"], metafile["target_editor"])
+        job = Package_PublishDryJob(package, metafile["agent_publish"], metafile["platforms"], metafile["publish_all_tracks"])
         yml[job.job_id] = job.yml
 
     for editor in metafile["editors"]:
@@ -34,7 +34,7 @@ def create_package_ymls(metafile):
                 yml[job.job_id] = job.yml
 
     for editor in metafile['editors']:
-        job = Package_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], metafile["target_editor"], metafile["target_branch"], editor)
+        job = Package_AllPackageCiJob(metafile["packages"], metafile["agent_publish"], metafile["platforms"], metafile["target_branch"], editor)
         yml[job.job_id] = job.yml
     
     job = Package_PublishAllJob(metafile["packages"], metafile["target_branch"], metafile["agent_publish_all"])

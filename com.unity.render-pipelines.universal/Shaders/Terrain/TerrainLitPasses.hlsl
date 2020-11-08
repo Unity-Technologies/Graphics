@@ -109,7 +109,8 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
-    input.normalizedScreenSpaceUV = IN.clipPos.xy;
+    input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
+    input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -387,16 +388,21 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
 
-    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
-
+    // Baked lighting.
     half4 color;
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-
-    color.rgb += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
     color.a = alpha;
-
     SplatmapFinalColor(color, inputData.fogCoord);
+
+    // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
+    // as forward renderer because we apply blending pre-lighting instead of post-lighting.
+    // Blending of smoothness and normals is also not correct but close enough?
+    brdfData.diffuse.rgb *= alpha;
+    brdfData.specular.rgb *= alpha;
+    inputData.normalWS = inputData.normalWS * alpha;
+    smoothness *= alpha;
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb);
 

@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
         {
             switch(precision)
             {
-                case ConcretePrecision.Float:
+                case ConcretePrecision.Single:
                     return "float";
                 case ConcretePrecision.Half:
                     return "half";
@@ -23,12 +23,12 @@ namespace UnityEditor.ShaderGraph
         {
             switch(precision)
             {
-                case Precision.Float:
-                    return ConcretePrecision.Float;
+                case Precision.Single:
+                    return ConcretePrecision.Single;
                 case Precision.Half:
                     return ConcretePrecision.Half;
                 default:
-                    return ConcretePrecision.Float;
+                    return ConcretePrecision.Single;
             }
         }
     }

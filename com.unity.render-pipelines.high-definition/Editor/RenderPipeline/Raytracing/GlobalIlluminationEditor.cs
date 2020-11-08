@@ -16,8 +16,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_FullResolutionSS;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
-        SerializedDataParameter m_MaximalRadius;
-        SerializedDataParameter m_ClampValueSS;
         SerializedDataParameter m_FilterRadius;
 
         // Ray tracing generic attributes
@@ -40,14 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HalfResolutionDenoiser;
         SerializedDataParameter m_DenoiserRadius;
         SerializedDataParameter m_SecondDenoiserPass;
-        SerializedDataParameter m_SecondDenoiserRadius;
-
-        public override bool hasAdvancedMode => true;
 
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
 
             m_Enable = Unpack(o.Find(x => x.enable));
@@ -56,8 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.raySteps));
-            m_MaximalRadius = Unpack(o.Find(x => x.maximalRadius));
-            m_ClampValueSS = Unpack(o.Find(x => x.clampValueSS));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
 
             // Ray Tracing shared parameters
@@ -80,19 +71,22 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HalfResolutionDenoiser = Unpack(o.Find(x => x.halfResolutionDenoiser));
             m_DenoiserRadius = Unpack(o.Find(x => x.denoiserRadius));
             m_SecondDenoiserPass = Unpack(o.Find(x => x.secondDenoiserPass));
-            m_SecondDenoiserRadius = Unpack(o.Find(x => x.secondDenoiserRadius));
+
+            base.OnEnable();
         }
+
+        static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of global illumination rays. The higher this value is, the more expensive ray traced global illumination is.");
+        static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the global illumination rays may pass behind.");
 
         public void DenoiserGUI()
         {
             PropertyField(m_Denoise);
+
+            using (new HDEditorUtils.IndentScope())
             {
-                EditorGUI.indentLevel++;
                 PropertyField(m_HalfResolutionDenoiser);
                 PropertyField(m_DenoiserRadius);
                 PropertyField(m_SecondDenoiserPass);
-                PropertyField(m_SecondDenoiserRadius);
-                EditorGUI.indentLevel--;
             }
         }
 
@@ -108,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             PropertyField(m_Enable);
-            
+
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.pipelineSupportsRayTracing)
             {
@@ -118,88 +112,152 @@ namespace UnityEditor.Rendering.HighDefinition
             // Flag to track if the ray tracing parameters were displayed
             bool rayTracingSettingsDisplayed = false;
 
-            EditorGUI.indentLevel++;
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
+            using (new HDEditorUtils.IndentScope())
             {
-                if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
+                if (HDRenderPipeline.pipelineSupportsRayTracing)
                 {
-                    rayTracingSettingsDisplayed = true;
-                    PropertyField(m_LayerMask);
-                    if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
+                    if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                     {
-                        PropertyField(m_Mode);
-                        EditorGUI.indentLevel++;
-                        switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                        rayTracingSettingsDisplayed = true;
+                        PropertyField(m_LayerMask);
+                        if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                            RenderPipelineSettings.SupportedRayTracingMode.Both)
                         {
-                            case RayTracingMode.Performance:
+                            PropertyField(m_Mode);
+
+                            using (new HDEditorUtils.IndentScope())
                             {
-                                base.OnInspectorGUI(); // Quality Setting
-                                EditorGUI.indentLevel++;
-                                GUI.enabled = useCustomValue;
-                                PropertyField(m_RayLength);
+                                switch (m_Mode.value.GetEnumValue<RayTracingMode>())
+                                {
+                                    case RayTracingMode.Performance:
+                                    {
+                                        base.OnInspectorGUI(); // Quality Setting
+
+                                        using (new HDEditorUtils.IndentScope())
+                                        using (new QualityScope(this))
+                                        {
+                                            PropertyField(m_RayLength, k_RayLengthText);
+                                            PropertyField(m_ClampValue);
+                                            PropertyField(m_FullResolution);
+                                            PropertyField(m_UpscaleRadius);
+                                            DenoiserGUI();
+                                        }
+                                    }
+                                        break;
+                                    case RayTracingMode.Quality:
+                                    {
+                                        PropertyField(m_RayLength, k_RayLengthText);
+                                        PropertyField(m_ClampValue);
+                                        PropertyField(m_SampleCount);
+                                        PropertyField(m_BounceCount);
+                                        DenoiserGUI();
+                                    }
+                                        break;
+                                }
+                            }
+                        }
+                        else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                                 RenderPipelineSettings.SupportedRayTracingMode.Quality)
+                        {
+                            PropertyField(m_RayLength, k_RayLengthText);
+                            PropertyField(m_ClampValue);
+                            PropertyField(m_SampleCount);
+                            PropertyField(m_BounceCount);
+                            DenoiserGUI();
+                        }
+                        else
+                        {
+                            base.OnInspectorGUI(); // Quality Setting
+                            EditorGUI.indentLevel++;
+                            using (new QualityScope(this))
+                            {
+                                PropertyField(m_RayLength, k_RayLengthText);
                                 PropertyField(m_ClampValue);
                                 PropertyField(m_FullResolution);
                                 PropertyField(m_UpscaleRadius);
                                 DenoiserGUI();
-                                GUI.enabled = true;
-                                EditorGUI.indentLevel--;
+                            }
 
-                            }
-                            break;
-                            case RayTracingMode.Quality:
-                            {
-                                PropertyField(m_RayLength);
-                                PropertyField(m_ClampValue);
-                                PropertyField(m_SampleCount);
-                                PropertyField(m_BounceCount);
-                                DenoiserGUI();
-                            }
-                            break;
+                            EditorGUI.indentLevel--;
                         }
-                        EditorGUI.indentLevel--;
+
                     }
-                    else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
+                }
+
+                // If we dit not display the ray tracing parameter, we display the ssgi ones
+                if (!rayTracingSettingsDisplayed)
+                {
+                    base.OnInspectorGUI(); // Quality Setting
+
+                    using (new HDEditorUtils.IndentScope())
+                    using (new QualityScope(this))
                     {
-                        PropertyField(m_RayLength);
-                        PropertyField(m_ClampValue);
-                        PropertyField(m_SampleCount);
-                        PropertyField(m_BounceCount);
-                        DenoiserGUI();
-                    }
-                    else
-                    {
-                        base.OnInspectorGUI(); // Quality Setting
-                        EditorGUI.indentLevel++;
-                        GUI.enabled = useCustomValue;
-                        PropertyField(m_RayLength);
-                        PropertyField(m_ClampValue);
-                        PropertyField(m_FullResolution);
-                        PropertyField(m_UpscaleRadius);
-                        DenoiserGUI();
-                        GUI.enabled = true;
-                        EditorGUI.indentLevel--;
+                        PropertyField(m_FullResolutionSS,EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                        PropertyField(m_RaySteps);
+                        PropertyField(m_FilterRadius);
                     }
 
+                    PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
                 }
             }
+        }
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
+        {
+            if (settings == null)
+                settings = new QualitySettingsBlob();
 
-            // If we dit not display the ray tracing parameter, we display the ssgi ones
-            if (!rayTracingSettingsDisplayed)
-            {
-                base.OnInspectorGUI(); // Quality Setting
-                EditorGUI.indentLevel++;
-                GUI.enabled = useCustomValue;
-                PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
-                PropertyField(m_RaySteps);
-                PropertyField(m_MaximalRadius);
-                PropertyField(m_ClampValueSS, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
-                PropertyField(m_FilterRadius);
-                GUI.enabled = true;
-                EditorGUI.indentLevel--;
-                PropertyField(m_DepthBufferThickness);
-            }
+            // RTGI
+            settings.Save<float>(m_RayLength);
+            settings.Save<float>(m_ClampValue);
+            settings.Save<bool>(m_FullResolution);
+            settings.Save<int>(m_UpscaleRadius);
+            settings.Save<bool>(m_Denoise);
+            settings.Save<bool>(m_HalfResolutionDenoiser);
+            settings.Save<float>(m_DenoiserRadius);
+            settings.Save<bool>(m_SecondDenoiserPass);
 
-            EditorGUI.indentLevel--;
+            // SSGI
+            settings.Save<bool>(m_FullResolutionSS);
+            settings.Save<int>(m_RaySteps);
+            settings.Save<int>(m_FilterRadius);
+
+            return settings;
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            // RTGI
+            settings.TryLoad<float>(ref m_RayLength);
+            settings.TryLoad<float>(ref m_ClampValue);
+            settings.TryLoad<bool>(ref m_FullResolution);
+            settings.TryLoad<int>(ref m_UpscaleRadius);
+            settings.TryLoad<bool>(ref m_Denoise);
+            settings.TryLoad<bool>(ref m_HalfResolutionDenoiser);
+            settings.TryLoad<float>(ref m_DenoiserRadius);
+            settings.TryLoad<bool>(ref m_SecondDenoiserPass);
+
+            // SSGI
+            settings.TryLoad<bool>(ref m_FullResolutionSS);
+            settings.TryLoad<int>(ref m_RaySteps);
+            settings.TryLoad<int>(ref m_FilterRadius);
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            // RTGI
+            CopySetting(ref m_RayLength, settings.lightingQualitySettings.RTGIRayLength[level]);
+            CopySetting(ref m_ClampValue, settings.lightingQualitySettings.RTGIClampValue[level]);
+            CopySetting(ref m_FullResolution, settings.lightingQualitySettings.RTGIFullResolution[level]);
+            CopySetting(ref m_UpscaleRadius, settings.lightingQualitySettings.RTGIUpScaleRadius[level]);
+            CopySetting(ref m_Denoise, settings.lightingQualitySettings.RTGIDenoise[level]);
+            CopySetting(ref m_HalfResolutionDenoiser, settings.lightingQualitySettings.RTGIHalfResDenoise[level]);
+            CopySetting(ref m_DenoiserRadius, settings.lightingQualitySettings.RTGIDenoiserRadius[level]);
+            CopySetting(ref m_SecondDenoiserPass, settings.lightingQualitySettings.RTGISecondDenoise[level]);
+
+            // SSGI
+            CopySetting(ref m_FullResolutionSS, settings.lightingQualitySettings.SSGIFullResolution[level]);
+            CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
+            CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
         }
     }
 }

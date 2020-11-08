@@ -17,7 +17,6 @@ Shader "Hidden/Light2D-Shape"
             Cull Off
 
             HLSLPROGRAM
-            #pragma prefer_hlslcc gles
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local SPRITE_LIGHT __
@@ -49,8 +48,6 @@ Shader "Hidden/Light2D-Shape"
 
             half    _InverseHDREmulationScale;
             half4   _LightColor;
-            half    _FalloffDistance;
-            half4   _FalloffOffset;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
@@ -68,9 +65,6 @@ Shader "Hidden/Light2D-Shape"
                 Varyings o = (Varyings)0;
 
                 float3 positionOS = attributes.positionOS;
-                positionOS.x = positionOS.x + _FalloffDistance * attributes.color.r + (1-attributes.color.a) * _FalloffOffset.x;
-                positionOS.y = positionOS.y + _FalloffDistance * attributes.color.g + (1-attributes.color.a) * _FalloffOffset.y;
-
                 o.positionCS = TransformObjectToHClip(positionOS);
                 o.color = _LightColor * _InverseHDREmulationScale;
                 o.color.a = attributes.color.a;
