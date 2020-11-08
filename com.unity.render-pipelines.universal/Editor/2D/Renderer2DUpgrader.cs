@@ -205,13 +205,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         // Set priority to get these to the bottom. Add test for pipeline enabled
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Parametric Lights to Freeform", false, priority = -10)]
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Parametric Lights to Freeform", false)]
         public static void UpgradeParametricLightsInProject()
         {
             UpgradeParametricLightsInProject(true);
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Parametric Lights to Freeform", false, priority = -10)]
+        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Parametric Lights to Freeform", false)]
         public static void UpgradeParametricLightsInScene()
         {
             UpgradeParametricLightsInScene(true);
