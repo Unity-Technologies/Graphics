@@ -570,8 +570,7 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
                 }
                 else
                 {
-                    // Early out no longer serves a purpose, so the code has been commented out.
-                    // trivialAccept = true;
+                    // May not trivially accept here unless it also lies within the bounding sphere.
                 }
             }
         }
@@ -585,16 +584,13 @@ void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, 
         uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
 
         culledFaceMask |= LaneSwizzle(culledFaceMask, andMask, orMask, xorMask);
-        // trivialAccept = trivialAccept || LaneSwizzle(trivialAccept,   andMask, orMask, xorMask);
     }
 #else
     InterlockedOr(gs_CulledFaceMasks[tile], culledFaceMask);
-    // InterlockedOr(gs_TrivialAcceptFlags[tile], (uint)trivialAccept);
 
     GroupMemoryBarrier(); // Wait for writes to gs_TrivialAcceptFlags, gs_CulledFaceMasks
 
     culledFaceMask = gs_CulledFaceMasks[tile];
-    // trivialAccept = (bool)gs_TrivialAcceptFlags[tile];
 #endif
 
     if (culledFaceMask == FACE_MASK)
