@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed exceptions related to the debug display settings when changing the default frame settings.
 - Fixed probe volumes debug views.
 - Fixed picking for materials with depth offset.
+- Fixed issue with exposure history being uninitialized on second frame.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
