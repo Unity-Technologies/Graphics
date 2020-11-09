@@ -25,6 +25,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Use Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
             public static readonly GUIContent postProcessData = EditorGUIUtility.TrTextContent("Post-processing Data", "Resources (textures, shaders, etc.) required by post-processing effects.");
+            public static readonly GUIContent enableBatching = EditorGUIUtility.TrTextContent("Enable Batching", "Enable Batching for Shape / Parametric Lights.");
         }
 
         struct LightBlendStyleProps
@@ -47,6 +48,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_DefaultMaterialType;
         SerializedProperty m_DefaultCustomMaterial;
         SerializedProperty m_MaxLightRenderTextureCount;
+        SerializedProperty m_EnableBatchingProp;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -76,7 +78,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
             m_MaxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
-
+            m_EnableBatchingProp = serializedObject.FindProperty("m_EnableBatching");
+            
             int numBlendStyles = m_LightBlendStyles.arraySize;
             m_LightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
 
@@ -180,7 +183,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUI.indentLevel--;
             EditorGUILayout.PropertyField(m_UseDepthStencilBuffer, Styles.useDepthStencilBuffer);
             EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-
+            EditorGUILayout.PropertyField(m_EnableBatchingProp, Styles.enableBatching);
+            
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
             if(m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
                 EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);

@@ -59,12 +59,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal struct LightMeshVertex
         {
             public float3 position;
+            public float3 nor;
             public Color color;
             public float2 uv;
+            
 
             public static readonly VertexAttributeDescriptor[] VertexLayout = new[]
             {
                 new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+                new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3),
                 new VertexAttributeDescriptor(VertexAttribute.Color, VertexAttributeFormat.Float32, 4),
                 new VertexAttributeDescriptor(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2),
             };
@@ -78,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var prevCount = VCount;
             var tessIndices = tess.Elements.Select(i => i);
             var tessVertices = tess.Vertices.Select(v =>
-                new LightMeshVertex() { position =  new float3(v.Position.X, v.Position.Y, 0), color = c, uv = uvData });
+                new LightMeshVertex() { position =  new float3(v.Position.X, v.Position.Y, 0), color = c, uv = uvData, nor = float3.zero });
 
             foreach(var v in tessVertices)
                 vertices[VCount++] = v;
@@ -303,7 +306,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         position = new float3(inner[i].Position.X, inner[i].Position.Y, 0),
                         color = meshInteriorColor,
-                        uv = uvData
+                        uv = uvData,
+                        nor = float3.zero
                     };
                     innerIndices[i] = (ushort)(vcount - 1);
                 }
@@ -322,7 +326,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         position = new float3(currPoint.x, currPoint.y, 0),
                         color = meshExteriorColor,
-                        uv = uvData
+                        uv = uvData,
+                        nor = float3.zero
                     };
 
                     if (prevIndex != currIndex)
@@ -383,7 +388,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 position = float3.zero,
                 color = color,
-                uv = uvData
+                uv = uvData,
+                nor = new float3(0, 0, falloffDistance)
             };
 
             var radiansPerSide = 2 * Mathf.PI / sides;
@@ -401,13 +407,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     position = endPoint,
                     color = new Color(lightColor.r, lightColor.g, lightColor.b, 0),
-                    uv = uvData
+                    uv = uvData,
+                    nor = new float3(extrudeDir.x, extrudeDir.y, falloffDistance)
                 };
                 vertices[vertexIndex + 1] = new LightMeshVertex
                 {
                     position = endPoint,
                     color = color,
-                    uv = uvData
+                    uv = uvData,
+                    nor = new float3(extrudeDir.x, extrudeDir.y, falloffDistance)
                 };
 
                 // Triangle 1 (Tip)
@@ -467,7 +475,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     position = new Vector3(srcVertices[i].x, srcVertices[i].y, 0) - center,
                     color = color,
-                    uv = srcUVs[i]
+                    uv = srcUVs[i],
+                    nor = float3.zero
                 };
             }
             mesh.SetVertexBufferParams(vertices.Length, LightMeshVertex.VertexLayout);

@@ -50,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_SrcBlendID = Shader.PropertyToID("_SrcBlend");
         private static readonly int k_DstBlendID = Shader.PropertyToID("_DstBlend");
         private static readonly int k_FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
+        private static readonly int k_FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
         private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
         private static readonly int k_VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
         private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
@@ -163,6 +164,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
 
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
                     cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
@@ -257,6 +259,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
                     cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
                     cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
@@ -476,7 +479,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 if (anyLights)
                 {
-                    var enableBatching = pass.rendererData.lightBlendStyles[i].blendMode == Light2DBlendStyle.BlendMode.Additive;
+                    var enableBatching = pass.rendererData.enableBatching && pass.rendererData.lightBlendStyles[i].blendMode == Light2DBlendStyle.BlendMode.Additive;
                     RenderLightSet(
                         pass, renderingData,
                         i,

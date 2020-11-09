@@ -76,6 +76,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [HideInInspector]
         private Texture2D m_FallOffLookup = null;
 
+        [SerializeField] private bool m_EnableBatching = false;
+        
         public float hdrEmulationScale => m_HDREmulationScale;
         internal float lightRenderTextureScale => m_LightRenderTextureScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
@@ -93,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
         internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;
 
+        internal bool enableBatching => m_EnableBatching;
         protected override ScriptableRenderer Create()
         {
 #if UNITY_EDITOR

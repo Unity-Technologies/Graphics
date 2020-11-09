@@ -172,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);
 
-                            var enableBatching = m_Renderer2DData.lightBlendStyles[i].blendMode == Light2DBlendStyle.BlendMode.Additive;
+                            var enableBatching = m_Renderer2DData.enableBatching && m_Renderer2DData.lightBlendStyles[i].blendMode == Light2DBlendStyle.BlendMode.Additive;
                             this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights, enableBatching);
 
                             cmd.EndSample(sampleName);
