@@ -59,10 +59,12 @@ float GetBucketWeight(float sampleCoC, float centerCoC, float noise, int bucket)
 
     float w0 = saturate((sampleCoC - bucketLimit[0] - bucketTransition[0] * noise) / bucketTransition[0]);
     float w1 = saturate((bucketTransition[1] * noise - sampleCoC) / bucketTransition[1]);
+
+    bool depthTest = (centerCoC >= 0) ? (sampleCoC <= 2 * centerCoC) : true;
     if (bucket == 0)
     {
         //return w0;
-        return 1.0;
+        return depthTest ? 1.0 : 0.0;
     }
     else if (bucket == 2)
     {
