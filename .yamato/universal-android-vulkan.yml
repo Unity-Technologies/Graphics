@@ -31,9 +31,9 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Player_il2cpp_Linear_trunk
+      -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Android_Vulkan_Player_il2cpp_Linear_trunk:
+Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     name: Build Universal on Android_Vulkan_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -88,9 +88,9 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION:
+Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build Universal on Android_Vulkan_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM

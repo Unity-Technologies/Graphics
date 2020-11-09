@@ -124,9 +124,9 @@ HDRP_Win_DX11_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#Build_HDRP_Win_DX11_Player_mono_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#Build_HDRP_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_HDRP_Win_DX11_Player_mono_Linear_trunk:
+Build_HDRP_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build HDRP on Win_DX11_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -289,9 +289,9 @@ HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#Build_HDRP_Win_DX11_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#Build_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
+Build_HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
