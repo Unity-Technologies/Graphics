@@ -224,6 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 var sliderRect = lineRect;
                 sliderRect.y -= EditorGUIUtility.singleLineHeight;
+                k_LightUnitSlider.SetSerializedObject(serializedObject);
                 k_LightUnitSlider.DrawExposureSlider(m_FixedExposure.value, sliderRect);
 
                 // GUIContent.none disables horizontal scrolling, ur TrTextContent and adjust the rect to make it work

@@ -47,6 +47,10 @@ namespace UnityEditor.VFX.UI
                 Add(labeledField);
                 labeledField.AddToClassList("fieldContainer");
             }
+
+            m_VectorField.onValueDragFinished = ValueDragFinished;
+            m_VectorField.onValueDragStarted = ValueDragStarted;
+
         }
 
         public override void UpdateGUI(bool force)
@@ -71,6 +75,18 @@ namespace UnityEditor.VFX.UI
             m_Value = m_VectorField.value;
 
             NotifyValueChanged();
+        }
+
+        protected void ValueDragFinished()
+        {
+            m_Provider.EndLiveModification();
+            hasChangeDelayed = false;
+            NotifyValueChanged();
+        }
+
+        protected void ValueDragStarted()
+        {
+            m_Provider.StartLiveModification();
         }
 
         protected override void UpdateEnabled()

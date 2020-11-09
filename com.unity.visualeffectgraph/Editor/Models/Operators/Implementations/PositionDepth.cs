@@ -88,6 +88,12 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        protected override sealed void GenerateErrors(VFXInvalidateErrorReporter manager)
+        {
+            if (camera == CameraMode.Main && (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null || !UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString().Contains("HDRenderPipeline")))
+                manager.RegisterError("PositionDepthOperatorUnavailableWithoutHDRP", VFXErrorType.Warning, "Position (Depth) is currently only supported in the High Definition Render Pipeline (HDRP).");
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -214,14 +220,14 @@ namespace UnityEditor.VFX.Operator
 
                     VFXExpression depthRange = inputExpression[inputSlots.IndexOf(inputSlots.LastOrDefault(o => o.name == "DepthRange")) + _customCameraOffset];
 
-                    VFXExpression nearRangeCheck = new VFXExpressionCondition(VFXCondition.Less, depth, depthRange.x);
-                    VFXExpression farRangeCheck = new VFXExpressionCondition(VFXCondition.Greater, depth, depthRange.y);
+                    VFXExpression nearRangeCheck = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, depth, depthRange.x);
+                    VFXExpression farRangeCheck = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Greater, depth, depthRange.y);
                     VFXExpression logicOr = new VFXExpressionLogicalOr(nearRangeCheck, farRangeCheck);
                     isAlive = new VFXExpressionBranch(logicOr, VFXValue.Constant(false), VFXValue.Constant(true));
                     break;
 
                 case CullMode.FarPlane:
-                    VFXExpression farPlaneCheck = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, depth, VFXValue.Constant(1f) - VFXValue.Constant(Mathf.Epsilon));
+                    VFXExpression farPlaneCheck = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.GreaterOrEqual, depth, VFXValue.Constant(1f) - VFXValue.Constant(Mathf.Epsilon));
                     isAlive = new VFXExpressionBranch(farPlaneCheck, VFXValue.Constant(false), VFXValue.Constant(true));
                     break;
             }

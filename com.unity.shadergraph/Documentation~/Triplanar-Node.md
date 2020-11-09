@@ -16,8 +16,8 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** shader stage.
 | Sampler      | Input | Sampler State | None | Sampler for input **Texture** |
 | Position      | Input | Vector 3 | World Space Position | Fragment position |
 | Normal      | Input | Vector 3 | World Space Normal | Fragment normal |
-| Tile      | Input | Vector 1 | None | Tiling amount for generated UVs |
-| Blend      | Input | Vector 1 | None | Blend factor between different samples |
+| Tile      | Input | Float    | None | Tiling amount for generated UVs |
+| Blend      | Input | Float    | None | Blend factor between different samples |
 | Out | Output      |    Vector 4 | None | Output value |
 
 ## Controls

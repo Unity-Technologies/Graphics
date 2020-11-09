@@ -124,15 +124,6 @@ MonoBehaviour:
     Reason: OSX Standalone won't work with back buffer capture
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 716466bc92f8e4eeeb3c138524b04021, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android OpenGL: shader error in trunk (scene 130)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
@@ -442,24 +433,6 @@ MonoBehaviour:
     Reason: Android Vulkan 143 regressed test scene
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: fe73f67a2bc4933468c714f164c6596d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android GLES3 max additional lights regression. '
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 169aede566e462449812f4bfb3f8d20d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 11
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android GLES3 max additional lights regression. '
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -467,3 +440,21 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: 'iOS crashes (scene 035; Bug ID: 1280307)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: ac4701d765fa26b4f83d2fb9ed6b3c08, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS failure on scene 131 (fogbugz: 1283292)'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 381306730e4f1b141bf8e0e1c35f16e9, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS failure on scene

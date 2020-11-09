@@ -4,7 +4,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Mesh Deformation", "Linear Blend Skinning")]
+    [Title("Input", "Mesh Deformation", "Linear Blend Skinning")]
     class LinearBlendSkinningNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireVertexSkinning, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const int kPositionSlotId = 0;
@@ -74,7 +74,8 @@ namespace UnityEditor.ShaderGraph
             {
                 displayName = "Skin Matrix Index Offset",
                 overrideReferenceName = "_SkinMatrixIndex",
-                gpuInstanced = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
 #if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
 #endif
@@ -85,7 +86,8 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 overrideReferenceName = "_SkinMatricesOffset",
-                gpuInstanced = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.HybridPerInstance,
 #if ENABLE_HYBRID_RENDERER_V2
                 hidden = true,
 #endif

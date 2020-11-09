@@ -222,7 +222,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var info = Attribute.GetCustomAttribute(t, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 string name = info?.name ?? ObjectNames.NicifyVariableName(t.Name.Replace("ShaderProperty", ""));
-                gm.AddItem(new GUIContent(name), false, () => AddInputRow(Activator.CreateInstance(t, true) as ShaderInput, true));
+                ShaderInput si = Activator.CreateInstance(t, true) as ShaderInput;
+                gm.AddItem(new GUIContent(name), false, () => AddInputRow(si, true));
+                //QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
+                if(ShaderGraphPreferences.allowDeprecatedBehaviors && si is ColorShaderProperty csp)
+                {
+                    gm.AddItem(new GUIContent($"Color (Deprecated)"), false, () => AddInputRow(new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), true));
+                }
             }
             gm.AddSeparator($"/");
         }
@@ -355,8 +361,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.GetPropertyTypeString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
+                    property.onBeforeVersionChange += (_) => m_Graph.owner.RegisterCompleteObjectUndo($"Change {property.displayName} Version");
+                    void UpdateField()
+                    {
+                        field.typeText = property.GetPropertyTypeString();
+                        field.InspectorUpdateTrigger();
+                    }
+                    property.onAfterVersionChange += UpdateField;
                     row = new BlackboardRow(field, null);
 
                     if (index < 0 || index > m_InputRows.Count)

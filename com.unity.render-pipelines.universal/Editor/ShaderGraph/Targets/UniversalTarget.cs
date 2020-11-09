@@ -153,8 +153,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
-            return srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
+            bool worksWithThisSrp = srpFilter == null || srpFilter.srpTypes.Contains(typeof(UniversalRenderPipeline));
+            return worksWithThisSrp && base.IsNodeAllowedByTarget(nodeType);
         }
+
         public override void Setup(ref TargetSetupContext context)
         {
             // Setup the Target
@@ -170,6 +172,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 context.SetDefaultShaderGUI(m_CustomEditorGUI);
             }
+        }
+
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            m_ActiveSubTarget.value.target = this;
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -372,7 +380,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             fieldDependencies = CoreFieldDependencies.Default,
 
             // Conditional State
-            renderStates = CoreRenderStates.ShadowCasterMeta,
+            renderStates = CoreRenderStates.ShadowCaster,
             pragmas = CorePragmas.Instanced,
             includes = CoreIncludes.ShadowCaster,
         };
@@ -452,16 +460,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
             { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
             { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
 
-        public static readonly RenderStateCollection ShadowCasterMeta = new RenderStateCollection
+        public static readonly RenderStateCollection Meta = new RenderStateCollection
+        {
+            { RenderState.Cull(Cull.Off) },
+        };
+
+        public static readonly RenderStateCollection ShadowCaster = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+            { RenderState.ColorMask("ColorMask 0") },
             { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
             { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
             { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },

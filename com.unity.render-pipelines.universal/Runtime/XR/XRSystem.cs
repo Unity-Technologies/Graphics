@@ -86,6 +86,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void UpdateMSAALevel(int level)
         {
+            if (msaaLevel == level)
+                return;
+
+            level = Mathf.NextPowerOfTwo(level);
+            level = Mathf.Clamp(level, (int)MsaaQuality.Disabled, (int)MsaaQuality._8x);
+
             GetDisplaySubsystem();
 
 #if UNITY_2020_2_OR_NEWER
@@ -195,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderTexture.ReleaseTemporary(testRenderTexture);
         }
 
-        bool RefreshXrSdk()
+        internal bool RefreshXrSdk()
         {
             GetDisplaySubsystem();
 
@@ -267,6 +273,9 @@ namespace UnityEngine.Rendering.Universal
 
                 // Update culling params for this xr pass using camera's culling params
                 cameraData.camera.TryGetCullingParameters(false, out var cullingParams);
+                cullingParams.stereoProjectionMatrix = cameraData.camera.projectionMatrix;
+                cullingParams.stereoViewMatrix = cameraData.camera.worldToCameraMatrix;
+
                 //// Disable legacy stereo culling path
                 cullingParams.cullingOptions &= ~CullingOptions.Stereo;
                 xrPass.UpdateCullingParams(0, cullingParams);
@@ -403,13 +412,13 @@ namespace UnityEngine.Rendering.Universal
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
                             // Eye texture is always gamma corrected, use explicit sRGB read in shader if srcTex formats is not sRGB format. sRGB format will have implicit sRGB read so it is already handled.
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0 : 1);
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0.0f : 1.0f);
                             // Perform explicit sRGB write in shader if color space is gamma
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0 : 1);
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0.0f : 1.0f);
                             mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, blitParam.srcTex);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, blitParam.srcTexArraySlice);
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SourceTexArraySlice, (float)blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
                             cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
@@ -445,7 +454,7 @@ namespace UnityEngine.Rendering.Universal
             testMirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
 
             // Copy result from the second slice
-            testMirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, 1);
+            testMirrorViewMaterialProperty.SetFloat(XRShaderIDs._SourceTexArraySlice, 1.0f);
 
             cmd.DrawProcedural(Matrix4x4.identity, testMirrorViewMaterial, 1, MeshTopology.Quads, 4, 1, testMirrorViewMaterialProperty);
         }
@@ -487,8 +496,8 @@ namespace UnityEngine.Rendering.Universal
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
 
                     testMirrorViewMaterial = mirrorViewMaterial;
-                    testMirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0 : 1);
-                    testMirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0 : 1);
+                    testMirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0.0f : 1.0f);
+                    testMirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0.0f : 1.0f);
                     testMirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
                 }
 

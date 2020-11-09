@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -47,7 +47,6 @@ namespace UnityEditor.ShaderGraph
                 notifyValueChanged.RegisterValueChangedCallback(evt);
             }
 
-
             var propertyRow = new PropertyRow(new Label(label));
             ApplyPadding(propertyRow, indentLevel);
             propertyRow.Add(field);
@@ -59,6 +58,13 @@ namespace UnityEditor.ShaderGraph
             var propertyRow = new PropertyRow(new Label(label));
             ApplyPadding(propertyRow, indentLevel);
             this.hierarchy.Add(propertyRow);
+        }
+
+        public void AddHelpBox(MessageType messageType, string messageText)
+        {
+            var helpBox = new HelpBoxRow(messageType);
+            helpBox.Add(new Label(messageText));
+            this.hierarchy.Add(helpBox);
         }
 
         void ApplyPadding(PropertyRow row, int indentLevel)
