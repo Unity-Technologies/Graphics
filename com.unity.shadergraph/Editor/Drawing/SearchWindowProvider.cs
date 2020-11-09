@@ -152,6 +152,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var property in m_Graph.properties)
             {
+                if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
+                    continue;
+
                 var node = new PropertyNode();
                 node.property = property;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
@@ -313,6 +316,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return true;
 
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
+
+            if (nodeEntry.node is PropertyNode propNode)
+                if (propNode.property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
+                    return true;
+
             var node = CopyNodeForGraph(nodeEntry.node);
 
             var windowRoot = m_EditorWindow.rootVisualElement;
