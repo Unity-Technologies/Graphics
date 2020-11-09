@@ -72,10 +72,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f)
                 mask2 |= ColorWriteMask.Blue | ColorWriteMask.Alpha;
 
-            material.SetFloat(HDShaderIDs._DecalColorMask0, (float)mask0);
-            material.SetFloat(HDShaderIDs._DecalColorMask1, (float)mask1);
-            material.SetFloat(HDShaderIDs._DecalColorMask2, (float)mask2);
-            material.SetFloat(HDShaderIDs._DecalColorMask3, (float)mask3);
+            material.SetInt(HDShaderIDs._DecalColorMask0, (int)mask0);
+            material.SetInt(HDShaderIDs._DecalColorMask1, (int)mask1);
+            material.SetInt(HDShaderIDs._DecalColorMask2, (int)mask2);
+            material.SetInt(HDShaderIDs._DecalColorMask3, (int)mask3);
 
             // First reset the pass (in case new shader graph add or remove a pass)
             material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferProjectorStr, true);
@@ -94,8 +94,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_DecalMeshForwardEmissiveStr, material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f);
 
             // Set stencil state
-            material.SetFloat(kDecalStencilWriteMask, (float)StencilUsage.Decals);
-            material.SetFloat(kDecalStencilRef, (float)StencilUsage.Decals);
+            material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);
+            material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
         }
 
         protected const string kBaseColorMap = "_BaseColorMap";

@@ -949,30 +949,30 @@ namespace UnityEngine.Rendering.HighDefinition
                             stencilRef |= (int)StencilUsage.SubsurfaceScattering;
                         }
 
-                        m_deferredLightingMaterial[index].SetFloat(HDShaderIDs._StencilMask, (float)stencilMask);
-                        m_deferredLightingMaterial[index].SetFloat(HDShaderIDs._StencilRef, (float)stencilRef);
-                        m_deferredLightingMaterial[index].SetFloat(HDShaderIDs._StencilCmp, (float)CompareFunction.Equal);
+                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilMask, stencilMask);
+                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilRef, stencilRef);
+                        m_deferredLightingMaterial[index].SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                     }
                 }
             }
 
             // Stencil set to only touch "regular lighting" pixels.
             s_DeferredTileRegularLightingMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileRegularLightingMat.SetFloat(HDShaderIDs._StencilMask, (float)((int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering));
-            s_DeferredTileRegularLightingMat.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.RequiresDeferredLighting);
-            s_DeferredTileRegularLightingMat.SetFloat(HDShaderIDs._StencilCmp, (float)CompareFunction.Equal);
+            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering);
+            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.RequiresDeferredLighting);
+            s_DeferredTileRegularLightingMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
 
             // Stencil set to only touch "split-lighting" pixels.
             s_DeferredTileSplitLightingMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileSplitLightingMat.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.SubsurfaceScattering);
-            s_DeferredTileSplitLightingMat.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.SubsurfaceScattering);
-            s_DeferredTileSplitLightingMat.SetFloat(HDShaderIDs._StencilCmp, (float)CompareFunction.Equal);
+            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
+            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
+            s_DeferredTileSplitLightingMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
 
             // Stencil set to touch all pixels excepted background/sky.
             s_DeferredTileMat = CoreUtils.CreateEngineMaterial(deferredTilePixelShader);
-            s_DeferredTileMat.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.RequiresDeferredLighting);
-            s_DeferredTileMat.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.Clear);
-            s_DeferredTileMat.SetFloat(HDShaderIDs._StencilCmp, (float)CompareFunction.NotEqual);
+            s_DeferredTileMat.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting);
+            s_DeferredTileMat.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.Clear);
+            s_DeferredTileMat.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
 
             for (int i = 0; i < LightDefinitions.s_NumFeatureVariants; ++i)
                 s_variantNames[i] = "VARIANT" + i;
@@ -4143,15 +4143,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This is for debug purpose, so fine to use immediate material mode here to modify render state
                 if (!parameters.outputSplitLighting)
                 {
-                    currentLightingMaterial.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.Clear);
-                    currentLightingMaterial.SetFloat(HDShaderIDs._StencilMask, (float)((int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering));
-                    currentLightingMaterial.SetFloat(HDShaderIDs._StencilCmp, (float)CompareFunction.NotEqual);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.Clear);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.NotEqual);
                 }
                 else
                 {
-                    currentLightingMaterial.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.RequiresDeferredLighting);
-                    currentLightingMaterial.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.RequiresDeferredLighting);
-                    currentLightingMaterial.SetFloat(HDShaderIDs._StencilCmp, (float)CompareFunction.Equal);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.RequiresDeferredLighting);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.RequiresDeferredLighting);
+                    currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                 }
 
                 CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, resources.colorBuffers[0], resources.depthStencilBuffer);
@@ -4214,8 +4214,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (GetFeatureVariantsEnabled(hdCamera.frameSettings))
                         {
                             // featureVariants
-                            parameters.debugViewTilesMaterial.SetFloat(HDShaderIDs._NumTiles, (float)numTiles);
-                            parameters.debugViewTilesMaterial.SetFloat(HDShaderIDs._ViewTilesFlags, (float)lightingDebug.tileClusterDebugByCategory);
+                            parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
+                            parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
                             parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
                             parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
                             parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, tileBuffer);
@@ -4236,8 +4236,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         bool bUseClustered = lightingDebug.tileClusterDebug == TileClusterDebug.Cluster;
 
                         // lightCategories
-                        parameters.debugViewTilesMaterial.SetFloat(HDShaderIDs._ViewTilesFlags, (float)lightingDebug.tileClusterDebugByCategory);
-                        parameters.debugViewTilesMaterial.SetFloat(HDShaderIDs._ClusterDebugMode, bUseClustered ? (float)lightingDebug.clusterDebugMode : (float)ClusterDebugMode.VisualizeOpaque);
+                        parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
+                        parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ClusterDebugMode, bUseClustered ? (int)lightingDebug.clusterDebugMode : (int)ClusterDebugMode.VisualizeOpaque);
                         parameters.debugViewTilesMaterial.SetFloat(HDShaderIDs._ClusterDebugDistance, lightingDebug.clusterDebugDistance);
                         parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
                         parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));

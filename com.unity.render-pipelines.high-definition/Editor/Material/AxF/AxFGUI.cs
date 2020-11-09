@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kAddPrecomputedVelocity))
             {
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", (int)material.GetFloat(kAddPrecomputedVelocity) != 0);
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
 
         }

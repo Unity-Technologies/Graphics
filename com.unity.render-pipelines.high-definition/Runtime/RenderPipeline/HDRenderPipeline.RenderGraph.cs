@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             var mpb = ctx.renderGraphPool.GetTempMaterialPropertyBlock();
                             mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
                             // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
-                            mpb.SetFloat("_FlipY", data.flipY ? 1.0f : 0.0f);
+                            mpb.SetInt("_FlipY", data.flipY ? 1 : 0);
                             mpb.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
                             CoreUtils.DrawFullScreen(ctx.cmd, data.copyDepthMaterial, mpb);
                         }
@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         mpb.SetTexture(HDShaderIDs._InputDepth, data.depthBuffer);
                         mpb.SetVector(HDShaderIDs._BlitScaleBias, depthRT.rtHandleProperties.rtHandleScale / DynamicResolutionHandler.instance.GetCurrentScale());
-                        mpb.SetFloat("_FlipY", 1.0f);
+                        mpb.SetInt("_FlipY", 1);
 
                         ctx.cmd.SetRenderTarget(data.output, 0, CubemapFace.Unknown, -1);
                         ctx.cmd.SetViewport(data.viewport);
@@ -1026,7 +1026,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (ClearStencilPassData data, RenderGraphContext ctx) =>
                 {
-                    data.clearStencilMaterial.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.HDRPReservedBits);
+                    data.clearStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.HDRPReservedBits);
                     HDUtils.DrawFullScreen(ctx.cmd, data.clearStencilMaterial, data.colorBuffer, data.depthBuffer);
                 });
             }
@@ -1239,8 +1239,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.applyDistortionMaterial.SetTexture(HDShaderIDs._DistortionTexture, data.distortionBuffer);
                     data.applyDistortionMaterial.SetTexture(HDShaderIDs._ColorPyramidTexture, data.colorPyramidBuffer);
                     data.applyDistortionMaterial.SetVector(HDShaderIDs._Size, data.size);
-                    data.applyDistortionMaterial.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.DistortionVectors);
-                    data.applyDistortionMaterial.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.DistortionVectors);
+                    data.applyDistortionMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.DistortionVectors);
+                    data.applyDistortionMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.DistortionVectors);
 
                     HDUtils.DrawFullScreen(context.cmd, data.applyDistortionMaterial, data.colorBuffer, data.depthStencilBuffer, null, 0);
                 });

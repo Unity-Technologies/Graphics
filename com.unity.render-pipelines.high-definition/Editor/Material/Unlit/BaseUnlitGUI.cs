@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool enableBlendModePreserveSpecularLighting = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kEnableBlendModePreserveSpecularLighting) && material.GetFloat(kEnableBlendModePreserveSpecularLighting) > 0.0f;
             CoreUtils.SetKeyword(material, "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING", enableBlendModePreserveSpecularLighting);
 
-            bool transparentWritesMotionVec = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kTransparentWritingMotionVec) && (int)material.GetFloat(kTransparentWritingMotionVec) > 0;
+            bool transparentWritesMotionVec = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kTransparentWritingMotionVec) && material.GetInt(kTransparentWritingMotionVec) > 0;
             CoreUtils.SetKeyword(material, "_TRANSPARENT_WRITES_MOTION_VEC", transparentWritesMotionVec);
 
             HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
@@ -45,11 +45,11 @@ namespace UnityEditor.Rendering.HighDefinition
             // Then during Gbuffer pass we don't perform the clip test, so we need to use depth equal in this case.
             if (alphaTestEnable)
             {
-                material.SetFloat(kZTestGBuffer, (float)UnityEngine.Rendering.CompareFunction.Equal);
+                material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.Equal);
             }
             else
             {
-                material.SetFloat(kZTestGBuffer, (float)UnityEngine.Rendering.CompareFunction.LessEqual);
+                material.SetInt(kZTestGBuffer, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
             }
 
             // If the material use the kZTestDepthEqualForOpaque it mean it require depth equal test for opaque but transparent are not affected
@@ -59,30 +59,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     // When the material is after post process, we need to use LEssEqual because there is no depth prepass for unlit opaque
                     if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(material.renderQueue))
-                        material.SetFloat(kZTestDepthEqualForOpaque, (float)UnityEngine.Rendering.CompareFunction.LessEqual);
+                        material.SetInt(kZTestDepthEqualForOpaque, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
                     else
-                        material.SetFloat(kZTestDepthEqualForOpaque, (float)UnityEngine.Rendering.CompareFunction.Equal);
+                        material.SetInt(kZTestDepthEqualForOpaque, (int)UnityEngine.Rendering.CompareFunction.Equal);
                 }
                 else
-                    material.SetFloat(kZTestDepthEqualForOpaque, (float)material.GetTransparentZTest());
+                    material.SetInt(kZTestDepthEqualForOpaque, (int)material.GetTransparentZTest());
             }
 
             if (surfaceType == SurfaceType.Opaque)
             {
                 material.SetOverrideTag("RenderType", alphaTestEnable ? "TransparentCutout" : "");
-                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 // Caution:  we need to setup One for src and Zero for Dst for all element as users could switch from transparent to Opaque and keep remaining value.
                 // Unity will disable Blending based on these default value.
                 // Note that for after postprocess we setup 0 in opacity inside the shaders, so we correctly end with 0 in opacity for the compositing pass
-                material.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                material.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
-                material.SetFloat(kZWrite, 1.0f);
+                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                material.SetInt(kZWrite, 1);
             }
             else
             {
                 material.SetOverrideTag("RenderType", "Transparent");
-                material.SetFloat(kZWrite, material.GetTransparentZWrite() ? 1.0f : 0.0f);
+                material.SetInt(kZWrite, material.GetTransparentZWrite() ? 1 : 0);
 
                 if (material.HasProperty(kBlendMode))
                 {
@@ -95,17 +95,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         // color: src * src_a + dst * (1 - src_a)
                         // src * src_a is done in the shader as it allow to reduce precision issue when using _BLENDMODE_PRESERVE_SPECULAR_LIGHTING (See Material.hlsl)
                         case BlendMode.Alpha:
-                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             if (needOffScreenBlendFactor)
                             {
-                                material.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
-                                material.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             }
                             else
                             {
-                                material.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                                material.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             }
                             break;
 
@@ -113,17 +113,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         // color: src * src_a + dst
                         // src * src_a is done in the shader
                         case BlendMode.Additive:
-                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             if (needOffScreenBlendFactor)
                             {
-                                material.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
-                                material.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             }
                             else
                             {
-                                material.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                                material.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
                             }
                             break;
 
@@ -131,17 +131,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         // color: src * src_a + dst * (1 - src_a)
                         // src is supposed to have been multiplied by alpha in the texture on artists side.
                         case BlendMode.Premultiply:
-                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                            material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             if (needOffScreenBlendFactor)
                             {
-                                material.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
-                                material.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             }
                             else
                             {
-                                material.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                                material.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                                material.SetInt("_AlphaSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                                material.SetInt("_AlphaDstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             }
                             break;
                     }
@@ -158,43 +158,43 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (distortionDepthTest)
                     {
-                        material.SetFloat(kZTestModeDistortion, (float)UnityEngine.Rendering.CompareFunction.LessEqual);
+                        material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
                     }
                     else
                     {
-                        material.SetFloat(kZTestModeDistortion, (float)UnityEngine.Rendering.CompareFunction.Always);
+                        material.SetInt(kZTestModeDistortion, (int)UnityEngine.Rendering.CompareFunction.Always);
                     }
                 }
 
-                var distortionBlendMode = (int)material.GetFloat(kDistortionBlendMode);
+                var distortionBlendMode = material.GetInt(kDistortionBlendMode);
                 switch (distortionBlendMode)
                 {
                     default:
                     case 0: // Add
-                        material.SetFloat("_DistortionSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                        material.SetFloat("_DistortionDstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
 
-                        material.SetFloat("_DistortionBlurSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                        material.SetFloat("_DistortionBlurDstBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                        material.SetFloat("_DistortionBlurBlendOp", (float)UnityEngine.Rendering.BlendOp.Add);
+                        material.SetInt("_DistortionBlurSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionBlurDstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
                         break;
 
                     case 1: // Multiply
-                        material.SetFloat("_DistortionSrcBlend", (float)UnityEngine.Rendering.BlendMode.DstColor);
-                        material.SetFloat("_DistortionDstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                        material.SetInt("_DistortionSrcBlend", (int)UnityEngine.Rendering.BlendMode.DstColor);
+                        material.SetInt("_DistortionDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 
-                        material.SetFloat("_DistortionBlurSrcBlend", (float)UnityEngine.Rendering.BlendMode.DstAlpha);
-                        material.SetFloat("_DistortionBlurDstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
-                        material.SetFloat("_DistortionBlurBlendOp", (float)UnityEngine.Rendering.BlendOp.Add);
+                        material.SetInt("_DistortionBlurSrcBlend", (int)UnityEngine.Rendering.BlendMode.DstAlpha);
+                        material.SetInt("_DistortionBlurDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                        material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
                         break;
 
                     case 2: // Replace
-                        material.SetFloat("_DistortionSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                        material.SetFloat("_DistortionDstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                        material.SetInt("_DistortionSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 
-                        material.SetFloat("_DistortionBlurSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                        material.SetFloat("_DistortionBlurDstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
-                        material.SetFloat("_DistortionBlurBlendOp", (float)UnityEngine.Rendering.BlendOp.Add);
+                        material.SetInt("_DistortionBlurSrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DistortionBlurDstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                        material.SetInt("_DistortionBlurBlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
                         break;
                 }
             }
@@ -205,16 +205,16 @@ namespace UnityEditor.Rendering.HighDefinition
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
 
             // Disable culling if double sided
-            material.SetFloat("_CullMode", doubleSidedEnable ? (float)UnityEngine.Rendering.CullMode.Off : (float)doubleSidedOffMode);
+            material.SetInt("_CullMode", doubleSidedEnable ? (int)UnityEngine.Rendering.CullMode.Off : (int)doubleSidedOffMode);
 
             // We have a separate cullmode (_CullModeForward) for Forward in case we use backface then frontface rendering, need to configure it
             if (isBackFaceEnable)
             {
-                material.SetFloat("_CullModeForward", (float)UnityEngine.Rendering.CullMode.Back);
+                material.SetInt("_CullModeForward", (int)UnityEngine.Rendering.CullMode.Back);
             }
             else
             {
-                material.SetFloat("_CullModeForward", (float)(doubleSidedEnable ? UnityEngine.Rendering.CullMode.Off : doubleSidedOffMode));
+                material.SetInt("_CullModeForward", (int)(doubleSidedEnable ? UnityEngine.Rendering.CullMode.Off : doubleSidedOffMode));
             }
 
             CoreUtils.SetKeyword(material, "_DOUBLESIDED_ON", doubleSidedEnable);
@@ -336,7 +336,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool addPrecomputedVelocity = false;
                 if (material.HasProperty(kAddPrecomputedVelocity))
                 {
-                    addPrecomputedVelocity = (int)material.GetFloat(kAddPrecomputedVelocity) != 0;
+                    addPrecomputedVelocity = material.GetInt(kAddPrecomputedVelocity) != 0;
                 }
 
                 // We don't have any vertex animation for lit/unlit vector, so we

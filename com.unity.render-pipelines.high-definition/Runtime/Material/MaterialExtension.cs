@@ -128,22 +128,22 @@ namespace UnityEditor.Rendering.HighDefinition
             => material.HasProperty(kBlendMode) ? (BlendMode)material.GetFloat(kBlendMode) : BlendMode.Additive;
 
         public static int           GetLayerCount(this Material material)
-            => material.HasProperty(kLayerCount) ? (int)material.GetFloat(kLayerCount) : 1;
+            => material.HasProperty(kLayerCount) ? material.GetInt(kLayerCount) : 1;
 
         public static bool          GetZWrite(this Material material)
-            => material.HasProperty(kZWrite) ? (int)material.GetFloat(kZWrite) == 1 : false;
+            => material.HasProperty(kZWrite) ? material.GetInt(kZWrite) == 1 : false;
 
         public static bool          GetTransparentZWrite(this Material material)
-            => material.HasProperty(kTransparentZWrite) ? (int)material.GetFloat(kTransparentZWrite) == 1 : false;
+            => material.HasProperty(kTransparentZWrite) ? material.GetInt(kTransparentZWrite) == 1 : false;
 
         public static CullMode      GetTransparentCullMode(this Material material)
-            => material.HasProperty(kTransparentCullMode) ? (CullMode)material.GetFloat(kTransparentCullMode) : CullMode.Back;
+            => material.HasProperty(kTransparentCullMode) ? (CullMode)material.GetInt(kTransparentCullMode) : CullMode.Back;
 
         public static CullMode      GetOpaqueCullMode(this Material material)
-            => material.HasProperty(kOpaqueCullMode) ? (CullMode)material.GetFloat(kOpaqueCullMode) : CullMode.Back;
+            => material.HasProperty(kOpaqueCullMode) ? (CullMode)material.GetInt(kOpaqueCullMode) : CullMode.Back;
 
         public static CompareFunction   GetTransparentZTest(this Material material)
-            => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetFloat(kZTestTransparent) : CompareFunction.LessEqual;
+            => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;
 
         public static void ResetMaterialCustomRenderQueue(this Material material)
         {

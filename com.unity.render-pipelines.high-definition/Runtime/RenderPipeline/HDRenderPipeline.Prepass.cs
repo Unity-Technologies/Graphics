@@ -992,8 +992,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                m_CameraMotionVectorsMaterial.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.ObjectMotionVector);
-                m_CameraMotionVectorsMaterial.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.ObjectMotionVector);
+                m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ObjectMotionVector);
+                m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ObjectMotionVector);
                 passData.cameraMotionVectorsMaterial = m_CameraMotionVectorsMaterial;
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.motionVectorsBuffer = builder.WriteTexture(motionVectorsBuffer);

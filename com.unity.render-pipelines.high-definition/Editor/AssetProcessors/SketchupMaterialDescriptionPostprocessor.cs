@@ -63,9 +63,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             if (description.TryGetProperty("IsTransparent", out floatProperty) && floatProperty == 1.0f)
             {
-                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                material.SetFloat("_ZWrite", 0.0f);
+                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                material.SetInt("_ZWrite", 0);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
@@ -75,9 +75,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
-                material.SetFloat("_ZWrite", 1.0f);
+                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                material.SetInt("_ZWrite", 1);
                 material.renderQueue = -1;
             }
         }

@@ -136,10 +136,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // or if it already have been upgraded
-            int index = (int)mat.GetFloat(diffusionProfile) - 1; // the index in the material is stored with +1 because 0 is none
+            int index = mat.GetInt(diffusionProfile) - 1; // the index in the material is stored with +1 because 0 is none
             if (index < 0)
                 return;
-            mat.SetFloat(diffusionProfile, -1.0f);
+            mat.SetInt(diffusionProfile, -1);
 
             var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(mainProfile));
             SerializableGUIDs profiles = JsonUtility.FromJson<SerializableGUIDs>(importer.userData);
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     stencilGBufferRef |= (int)StencilUsage.SubsurfaceScattering;
                 }
 
-                if(mat.HasProperty("_ReceivesSSR") && (int)mat.GetFloat("_ReceivesSSR") == 1)
+                if(mat.HasProperty("_ReceivesSSR") && mat.GetInt("_ReceivesSSR") == 1)
                 {
                     stencilWriteMask |= (int)StencilUsage.TraceReflectionRay;
                     stencilRef |= (int)StencilUsage.TraceReflectionRay;
@@ -181,12 +181,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
-                mat.SetFloat("_StencilRef", (float)stencilRef);
-                mat.SetFloat("_StencilWriteMask", (float)stencilWriteMask);
-                mat.SetFloat("_StencilRefGBuffer", (float)stencilGBufferRef);
-                mat.SetFloat("_StencilWriteMaskGBuffer", (float)stencilGBufferMask);
-                mat.SetFloat("_StencilRefMV", (float)StencilUsage.ObjectMotionVector);
-                mat.SetFloat("_StencilWriteMaskMV", (float)StencilUsage.ObjectMotionVector);
+                mat.SetInt("_StencilRef", stencilRef);
+                mat.SetInt("_StencilWriteMask", stencilWriteMask);
+                mat.SetInt("_StencilRefGBuffer", stencilGBufferRef);
+                mat.SetInt("_StencilWriteMaskGBuffer", stencilGBufferMask);
+                mat.SetInt("_StencilRefMV", (int)StencilUsage.ObjectMotionVector);
+                mat.SetInt("_StencilWriteMaskMV", (int)StencilUsage.ObjectMotionVector);
             }
         }
 

@@ -473,36 +473,36 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_PrecomputedData.BindBuffers(cmd, s_PbrSkyMaterialProperties);
 
-            float hasGroundAlbedoTexture = 0.0f;
+            int hasGroundAlbedoTexture = 0;
 
             if (pbrSky.groundColorTexture.value != null && !simpleEarthMode)
             {
-                hasGroundAlbedoTexture = 1.0f;
+                hasGroundAlbedoTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundAlbedoTexture, pbrSky.groundColorTexture.value);
             }
-            s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._HasGroundAlbedoTexture, hasGroundAlbedoTexture);
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundAlbedoTexture, hasGroundAlbedoTexture);
 
-            float hasGroundEmissionTexture = 0.0f;
+            int hasGroundEmissionTexture = 0;
 
             if (pbrSky.groundEmissionTexture.value != null && !simpleEarthMode)
             {
-                hasGroundEmissionTexture = 1.0f;
+                hasGroundEmissionTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundEmissionTexture,    pbrSky.groundEmissionTexture.value);
                 s_PbrSkyMaterialProperties.SetFloat(  HDShaderIDs._GroundEmissionMultiplier, pbrSky.groundEmissionMultiplier.value);
             }
-            s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._HasGroundEmissionTexture, (float)hasGroundEmissionTexture);
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasGroundEmissionTexture, hasGroundEmissionTexture);
 
-            float hasSpaceEmissionTexture = 0.0f;
+            int hasSpaceEmissionTexture = 0;
 
             if (pbrSky.spaceEmissionTexture.value != null && !simpleEarthMode)
             {
-                hasSpaceEmissionTexture = 1.0f;
+                hasSpaceEmissionTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture,    pbrSky.spaceEmissionTexture.value);
                 s_PbrSkyMaterialProperties.SetFloat(  HDShaderIDs._SpaceEmissionMultiplier, pbrSky.spaceEmissionMultiplier.value);
             }
-            s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._HasSpaceEmissionTexture, hasSpaceEmissionTexture);
 
-            s_PbrSkyMaterialProperties.SetFloat(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1.0f : 0.0f);
+            s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
             int pass = (renderForCubemap ? 0 : 2);
 

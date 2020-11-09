@@ -52,11 +52,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 receiveSSR = material.HasProperty(kReceivesSSRTransparent) ? material.GetFloat(kReceivesSSRTransparent) != 0 : false;
             else
                 receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetFloat(kReceivesSSR) != 0 : false;
-            bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? (int)material.GetFloat(kUseSplitLighting) != 0: false;
+            bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
 
             if (material.HasProperty(kAddPrecomputedVelocity))
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", (int)material.GetFloat(kAddPrecomputedVelocity) != 0);
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);

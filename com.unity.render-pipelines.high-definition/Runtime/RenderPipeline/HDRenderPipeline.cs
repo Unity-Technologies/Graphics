@@ -3029,7 +3029,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, depthBuffer);
                     m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, rtScale);
-                    m_CopyDepthPropertyBlock.SetFloat("_FlipY", 1.0f);
+                    m_CopyDepthPropertyBlock.SetInt("_FlipY", 1);
 
                     cmd.SetRenderTarget(target.id, 0, CubemapFace.Unknown, -1);
                     cmd.SetViewport(hdCamera.finalViewport);
@@ -3089,7 +3089,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetViewport(hdCamera.finalViewport);
                     m_CopyDepthPropertyBlock.SetTexture(HDShaderIDs._InputDepth, m_SharedRTManager.GetDepthStencilBuffer());
                     // When we are Main Game View we need to flip the depth buffer ourselves as we are after postprocess / blit that have already flipped the screen
-                    m_CopyDepthPropertyBlock.SetFloat("_FlipY", hdCamera.isMainGameView ? 1.0f : 0.0f);
+                    m_CopyDepthPropertyBlock.SetInt("_FlipY", hdCamera.isMainGameView ? 1 : 0);
                     m_CopyDepthPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
                     CoreUtils.DrawFullScreen(cmd, m_CopyDepth, m_CopyDepthPropertyBlock);
                 }
@@ -3178,8 +3178,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             propertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             propertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
-            propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0.0f);
-            propertyBlock.SetFloat(HDShaderIDs._BlitTexArraySlice, (float)parameters.srcTexArraySlice);
+            propertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+            propertyBlock.SetInt(HDShaderIDs._BlitTexArraySlice, parameters.srcTexArraySlice);
             HDUtils.DrawFullScreen(cmd, parameters.viewport, parameters.blitMaterial, destination, propertyBlock, 0, parameters.dstTexArraySlice);
         }
 
@@ -3646,8 +3646,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var size = new Vector4(hdCamera.actualWidth, hdCamera.actualHeight, 1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight);
                 m_ApplyDistortionMaterial.SetVector(HDShaderIDs._Size, size);
-                m_ApplyDistortionMaterial.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.DistortionVectors);
-                m_ApplyDistortionMaterial.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.DistortionVectors);
+                m_ApplyDistortionMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.DistortionVectors);
+                m_ApplyDistortionMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.DistortionVectors);
 
                 HDUtils.DrawFullScreen(cmd, m_ApplyDistortionMaterial, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), null, 0);
             }
@@ -3947,8 +3947,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DBufferNormal)))
             {
-                parameters.decalNormalBufferMaterial.SetFloat(HDShaderIDs._DecalNormalBufferStencilReadMask, (float)parameters.stencilMask);
-                parameters.decalNormalBufferMaterial.SetFloat(HDShaderIDs._DecalNormalBufferStencilRef, (float)parameters.stencilRef);
+                parameters.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, parameters.stencilMask);
+                parameters.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, parameters.stencilRef);
                 for (int i = 0; i < parameters.dBufferCount; ++i)
                     parameters.decalNormalBufferMaterial.SetTexture(HDShaderIDs._DBufferTexture[i], dBuffer[i]);
 
@@ -4695,8 +4695,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
-                m_CameraMotionVectorsMaterial.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.ObjectMotionVector);
-                m_CameraMotionVectorsMaterial.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.ObjectMotionVector);
+                m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ObjectMotionVector);
+                m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ObjectMotionVector);
 
                 HDUtils.DrawFullScreen(cmd, m_CameraMotionVectorsMaterial, m_SharedRTManager.GetMotionVectorsBuffer(msaa), m_SharedRTManager.GetDepthStencilBuffer(msaa), null, 0);
 
@@ -5277,9 +5277,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(parameters.debugDisplaySettings.data.fullScreenDebugDepthRemap.x, parameters.debugDisplaySettings.data.fullScreenDebugDepthRemap.y, parameters.hdCamera.camera.nearClipPlane, parameters.hdCamera.camera.farClipPlane));
             else // Setup neutral value
                 mpb.SetVector(HDShaderIDs._FullScreenDebugDepthRemap, new Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-            mpb.SetFloat(HDShaderIDs._DebugDepthPyramidMip, (float)parameters.depthPyramidMip);
+            mpb.SetInt(HDShaderIDs._DebugDepthPyramidMip, parameters.depthPyramidMip);
             mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, parameters.depthPyramidOffsets);
-            mpb.SetFloat(HDShaderIDs._DebugContactShadowLightIndex, (float)parameters.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
+            mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, parameters.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
             mpb.SetFloat(HDShaderIDs._TransparencyOverdrawMaxPixelCost, (float)parameters.debugDisplaySettings.data.transparencyDebugSettings.maxPixelCost);
             mpb.SetFloat(HDShaderIDs._QuadOverdrawMaxQuadCost, (float)parameters.debugDisplaySettings.data.maxQuadCost);
             mpb.SetFloat(HDShaderIDs._VertexDensityMaxPixelCost, (float)parameters.debugDisplaySettings.data.maxVertexDensity);
@@ -5308,7 +5308,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // - If fullscreen debug is enabled we always use it
             parameters.colorPickerMaterial.SetTexture(HDShaderIDs._DebugColorPickerTexture, debugColorPickerBuffer);
             parameters.colorPickerMaterial.SetColor(HDShaderIDs._ColorPickerFontColor, colorPickerDebugSettings.fontColor);
-            parameters.colorPickerMaterial.SetFloat(HDShaderIDs._FalseColorEnabled, falseColorDebugSettings.falseColor ? 1.0f : 0.0f);
+            parameters.colorPickerMaterial.SetInt(HDShaderIDs._FalseColorEnabled, falseColorDebugSettings.falseColor ? 1 : 0);
             parameters.colorPickerMaterial.SetVector(HDShaderIDs._FalseColorThresholds, falseColorThresholds);
             parameters.colorPickerMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(parameters.hdCamera));
             parameters.colorPickerMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(parameters.hdCamera));
@@ -5503,7 +5503,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearStencil)))
             {
-                m_ClearStencilBufferMaterial.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.HDRPReservedBits);
+                m_ClearStencilBufferMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.HDRPReservedBits);
                 HDUtils.DrawFullScreen(cmd, m_ClearStencilBufferMaterial, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
             }
         }

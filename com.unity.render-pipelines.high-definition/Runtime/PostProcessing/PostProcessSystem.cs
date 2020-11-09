@@ -1702,8 +1702,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), nextHistory, taaParams.taaHistoryPropertyBlock, 0);
             }
 
-            taaParams.taaPropertyBlock.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.ExcludeFromTAA);
-            taaParams.taaPropertyBlock.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.ExcludeFromTAA);
+            taaParams.taaPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
+            taaParams.taaPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._CameraMotionVectorsTexture, motionVecTexture);
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
@@ -3765,8 +3765,8 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.smaaMaterial.SetVector(HDShaderIDs._SMAARTMetrics, parameters.smaaRTMetrics);
             parameters.smaaMaterial.SetTexture(HDShaderIDs._SMAAAreaTex, parameters.smaaAreaTex);
             parameters.smaaMaterial.SetTexture(HDShaderIDs._SMAASearchTex, parameters.smaaSearchTex);
-            parameters.smaaMaterial.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.SMAA);
-            parameters.smaaMaterial.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.SMAA);
+            parameters.smaaMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SMAA);
+            parameters.smaaMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SMAA);
 
             // -----------------------------------------------------------------------------
             // Clear

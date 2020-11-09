@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
-            s_PropertyBlock.SetFloat(HDShaderIDs._BlitPaddingSize, (float)paddingInPixels);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
             if (source.wrapMode == TextureWrapMode.Repeat)
                 cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
             else
@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
-            s_PropertyBlock.SetFloat(HDShaderIDs._BlitPaddingSize, (float)paddingInPixels);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
             if (source.wrapMode == TextureWrapMode.Repeat)
                 cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 12 : 11, MeshTopology.Quads, 4, 1, s_PropertyBlock);
             else
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
-            s_PropertyBlock.SetFloat(HDShaderIDs._BlitPaddingSize, (float)paddingInPixels);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 8, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
-            s_PropertyBlock.SetFloat(HDShaderIDs._BlitPaddingSize, (float)paddingInPixels);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 13, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 

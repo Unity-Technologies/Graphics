@@ -93,12 +93,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SubsurfaceScatteringCS = defaultResources.shaders.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
             m_CombineLightingPass = CoreUtils.CreateEngineMaterial(defaultResources.shaders.combineLightingPS);
-            m_CombineLightingPass.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.SubsurfaceScattering);
-            m_CombineLightingPass.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.SubsurfaceScattering);
+            m_CombineLightingPass.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
+            m_CombineLightingPass.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
 
             m_SSSCopyStencilForSplitLighting = CoreUtils.CreateEngineMaterial(defaultResources.shaders.copyStencilBufferPS);
-            m_SSSCopyStencilForSplitLighting.SetFloat(HDShaderIDs._StencilRef, (float)StencilUsage.SubsurfaceScattering);
-            m_SSSCopyStencilForSplitLighting.SetFloat(HDShaderIDs._StencilMask, (float)StencilUsage.SubsurfaceScattering);
+            m_SSSCopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SubsurfaceScattering);
+            m_SSSCopyStencilForSplitLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SubsurfaceScattering);
 
             m_SSSDefaultDiffusionProfile = defaultResources.assets.defaultDiffusionProfile;
 

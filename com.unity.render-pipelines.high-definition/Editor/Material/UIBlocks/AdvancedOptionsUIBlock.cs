@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool addPrecomputedVelocity = false;
             if (materials[0].HasProperty(kAddPrecomputedVelocity))
             {
-                addPrecomputedVelocity = (int)materials[0].GetFloat(kAddPrecomputedVelocity) != 0;
+                addPrecomputedVelocity = materials[0].GetInt(kAddPrecomputedVelocity) != 0;
             }
 
             bool currentMotionVectorState = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);

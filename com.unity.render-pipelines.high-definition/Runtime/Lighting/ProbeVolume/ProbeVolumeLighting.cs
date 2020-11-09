@@ -1020,7 +1020,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             propertyBlock.SetVector(HDShaderIDs._ValidRange, parameters.validRange);
-            propertyBlock.SetFloat(HDShaderIDs._ProbeVolumeAtlasSliceMode, (float)parameters.sliceMode);
+            propertyBlock.SetInt(HDShaderIDs._ProbeVolumeAtlasSliceMode, parameters.sliceMode);
 
             debugOverlay.SetViewport(cmd);
             cmd.DrawProcedural(Matrix4x4.identity, parameters.material, parameters.material.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);

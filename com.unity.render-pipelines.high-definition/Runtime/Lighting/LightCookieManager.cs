@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (source.dimension == TextureDimension.Cube)
                 {
-                    m_MPBFilterAreaLights.SetFloat(s_sourceMipLevel, 0.0f);
+                    m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, 0);
                     m_MPBFilterAreaLights.SetTexture(s_texCubeSource, source);
 
                     cmd.SetRenderTarget(m_TempRenderTexture0, 0);
@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     // Start by copying the source texture to the array slice's mip 0
-                    m_MPBFilterAreaLights.SetFloat(s_sourceMipLevel, 0.0f);
+                    m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, 0);
                     m_MPBFilterAreaLights.SetTexture(s_texSource, source);
 
                     cmd.SetRenderTarget(m_TempRenderTexture0, 0);
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         targetWidth = Mathf.Max(1, targetWidth >> 1);
 
                         m_MPBFilterAreaLights.SetTexture(s_texSource, m_TempRenderTexture0);
-                        m_MPBFilterAreaLights.SetFloat(s_sourceMipLevel, (float)(mipIndex - 1));
+                        m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, mipIndex - 1);
                         m_MPBFilterAreaLights.SetVector(s_sourceSize, sourceSize);
                         m_MPBFilterAreaLights.SetVector(s_uvLimits, uvLimits);
 
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         targetHeight = Mathf.Max(1, targetHeight >> 1);
 
                         m_MPBFilterAreaLights.SetTexture(s_texSource, m_TempRenderTexture1);
-                        m_MPBFilterAreaLights.SetFloat(s_sourceMipLevel, (float)(mipIndex - 1));
+                        m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, mipIndex - 1);
                         m_MPBFilterAreaLights.SetVector(s_sourceSize, sourceSize);
                         m_MPBFilterAreaLights.SetVector(s_uvLimits, uvLimits);
 

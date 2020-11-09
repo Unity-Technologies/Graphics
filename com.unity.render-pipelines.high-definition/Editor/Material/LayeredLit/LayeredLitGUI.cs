@@ -161,13 +161,13 @@ namespace UnityEditor.Rendering.HighDefinition
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             SetupLayersMappingKeywords(material);
-            bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? (int)material.GetFloat(kReceivesSSR) != 0 : false)
-                                    : (material.HasProperty(kReceivesSSRTransparent) ? (int)material.GetFloat(kReceivesSSRTransparent) != 0 : false);
+            bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
+                                    : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
             if (material.HasProperty(kAddPrecomputedVelocity))
             {
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", (int)material.GetFloat(kAddPrecomputedVelocity) != 0);
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
 
 
@@ -209,7 +209,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // _ENABLESPECULAROCCLUSION is deprecated
             CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", false);
 
-            int specOcclusionMode = (int)material.GetFloat(kSpecularOcclusionMode);
+            int specOcclusionMode = material.GetInt(kSpecularOcclusionMode);
             CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", specOcclusionMode == 0);
             CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP", specOcclusionMode == 2);
             CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
@@ -235,8 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
 
             bool useDensityModeEnable = false;
-            int count = (int)material.GetFloat(kLayerCount);
-            for (int i = 0; i < count; ++i)
+            for (int i = 0; i < material.GetInt(kLayerCount); ++i)
             {
                 useDensityModeEnable |= material.GetFloat(kOpacityAsDensity + i) != 0.0f;
             }

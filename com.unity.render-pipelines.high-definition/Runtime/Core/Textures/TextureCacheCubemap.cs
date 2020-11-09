@@ -201,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CubeBlitMaterial.SetTexture(m_cubeSrcTexPropName, textureArray[texIdx]);
                 for (int m = 0; m < m_NumPanoMipLevels; m++)
                 {
-                    m_CubeBlitMaterial.SetFloat(m_CubeMipLevelPropName, (float)Mathf.Min(m_NumMipLevels - 1, m));
+                    m_CubeBlitMaterial.SetInt(m_CubeMipLevelPropName, Mathf.Min(m_NumMipLevels - 1, m));
                     cmd.Blit(null, m_StagingRTs[m], m_CubeBlitMaterial, 0);
                 }
 

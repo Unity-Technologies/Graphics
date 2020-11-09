@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_FullscreenPassMaterial.SetTexture(ShaderIDs.k_BlitTexture, layerData.clearColorTexture);
                 m_FullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBiasRt, scaleBiasRt);
                 m_FullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                m_FullscreenPassMaterial.SetFloat(ShaderIDs.k_ClearAlpha, layerData.clearAlpha ? 1.0f : 0.0f);
+                m_FullscreenPassMaterial.SetInt(ShaderIDs.k_ClearAlpha, layerData.clearAlpha ? 1 : 0);
 
                 // draw a quad (not Triangle), to support letter boxing and stretching 
                 ctx.cmd.DrawProcedural(Matrix4x4.identity, m_FullscreenPassMaterial, (int)PassType.DrawTextureAndClearStencil, MeshTopology.Quads, 4, 1);

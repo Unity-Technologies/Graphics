@@ -105,28 +105,28 @@ namespace UnityEditor.Rendering.HighDefinition
             // As we tag both during motion vector pass and Gbuffer pass we need a separate state and we need to use the write mask
             if (material.HasProperty(kStencilRef))
             {
-                material.SetFloat(kStencilRef, (float)stencilRef);
-                material.SetFloat(kStencilWriteMask, (float)stencilWriteMask);
+                material.SetInt(kStencilRef, stencilRef);
+                material.SetInt(kStencilWriteMask, stencilWriteMask);
             }
             if (material.HasProperty(kStencilRefDepth))
             {
-                material.SetFloat(kStencilRefDepth, (float)stencilRefDepth);
-                material.SetFloat(kStencilWriteMaskDepth, (float)stencilWriteMaskDepth);
+                material.SetInt(kStencilRefDepth, stencilRefDepth);
+                material.SetInt(kStencilWriteMaskDepth, stencilWriteMaskDepth);
             }
             if (material.HasProperty(kStencilRefGBuffer))
             {
-                material.SetFloat(kStencilRefGBuffer, (float)stencilRefGBuffer);
-                material.SetFloat(kStencilWriteMaskGBuffer, (float)stencilWriteMaskGBuffer);
+                material.SetInt(kStencilRefGBuffer, stencilRefGBuffer);
+                material.SetInt(kStencilWriteMaskGBuffer, stencilWriteMaskGBuffer);
             }
             if (material.HasProperty(kStencilRefDistortionVec))
             {
-                material.SetFloat(kStencilRefDistortionVec, (float)StencilUsage.DistortionVectors);
-                material.SetFloat(kStencilWriteMaskDistortionVec, (float)StencilUsage.DistortionVectors);
+                material.SetInt(kStencilRefDistortionVec, (int)StencilUsage.DistortionVectors);
+                material.SetInt(kStencilWriteMaskDistortionVec, (int)StencilUsage.DistortionVectors);
             }
             if (material.HasProperty(kStencilRefMV))
             {
-                material.SetFloat(kStencilRefMV, (float)stencilRefMV);
-                material.SetFloat(kStencilWriteMaskMV, (float)stencilWriteMaskMV);
+                material.SetInt(kStencilRefMV, stencilRefMV);
+                material.SetInt(kStencilWriteMaskMV, stencilWriteMaskMV);
             }
         }
 

@@ -208,8 +208,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     material.SetFloat("_TRANSPARENCY", floatProperty);
                 }
 
-                material.SetFloat("_SrcBlend", 1.0f);
-                material.SetFloat("_DstBlend", 10.0f);
+                material.SetInt("_SrcBlend", 1);
+                material.SetInt("_DstBlend", 10);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
@@ -220,8 +220,8 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 material.EnableKeyword("_DOUBLESIDED_ON");
-                material.SetFloat("_CullMode", 0.0f);
-                material.SetFloat("_CullModeForward", 0.0f);
+                material.SetInt("_CullMode", 0);
+                material.SetInt("_CullModeForward", 0);
                 material.doubleSidedGI = true;
             }
 
