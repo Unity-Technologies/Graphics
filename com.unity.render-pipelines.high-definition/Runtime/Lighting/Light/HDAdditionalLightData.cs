@@ -288,7 +288,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Not used for directional lights.
         [SerializeField, FormerlySerializedAs("fadeDistance")]
-        float m_FadeDistance = 10000.0f;
+        // custom-begin:
+        // float m_FadeDistance = 10000.0f;
+        float m_FadeDistance = 50.0f;
+        // custom-end
         /// <summary>
         /// Get/Set the light fade distance.
         /// </summary>
@@ -306,7 +309,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Not used for directional lights.
         [SerializeField]
-        float m_VolumetricFadeDistance = 10000.0f;
+        // custom-begin:
+        // float m_VolumetricFadeDistance = 10000.0f;
+        float m_VolumetricFadeDistance = 50.0f;
+        // custom-end
         /// <summary>
         /// Get/Set the light fade distance for volumetrics.
         /// </summary>
@@ -1316,7 +1322,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         // custom-begin:
         // float m_ShadowFadeDistance = 10000.0f;
-        float m_ShadowFadeDistance = 100.0f;
+        float m_ShadowFadeDistance = 50.0f;
         // custom-end
         /// <summary>
         /// Get/Set the shadow fade distance.
