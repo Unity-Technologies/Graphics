@@ -406,8 +406,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
     bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
     bsdfData.fresnel0     = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor :
-                                                                                                             // Clamping to 0.02 in case of metallic to avoid killing specular.
-                                                                                                             min(ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE), 0.02f);
+                                                                                                             // Clamping in case of metallic to avoid killing specular.
+                                                                                                             max(ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE), 0.02f);
 
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
     // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
@@ -652,7 +652,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
             // Convert from the metallic parametrization.
             diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, surfaceData.metallic);
             // Clamping in case of metallic to avoid killing specular.
-            fresnel0     = min(ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE), 0.02f);
+            fresnel0     = max(ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE), 0.02f);
         }
 
         outGBuffer0.rgb = diffuseColor;               // sRGB RT
@@ -853,7 +853,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
         bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
         // Clamping in case of metallic to avoid killing specular.
-        bsdfData.fresnel0     = min(ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE), 0.02);
+        bsdfData.fresnel0     = max(ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE), 0.02);
     }
     else
     {
