@@ -7,7 +7,7 @@ from ..shared.yml_job import YMLJob
 class Editor_PinningMergeRevisionsJob():
     
     def __init__(self, editor, agent, target_branch, target_branch_editor_ci, abv):
-        self.job_id = editor_job_id_merge_revisions(editor["track"], abv)
+        self.job_id = editor_job_id_merge_revisions(editor["name"], abv)
         self.yml_job = self.get_job_definition(editor, agent, target_branch, target_branch_editor_ci, abv)
         self.yml = self.yml_job.get_yml()
 
@@ -38,7 +38,7 @@ class Editor_PinningMergeRevisionsJob():
         if abv: 
             job.set_name(f'Merge [{editor["track"]}] revisions to {target_branch} [ABV]')
             job.allow_failure()
-            job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["track"])}'])
+            job.add_dependencies([f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["name"])}'])
         else:
             job.set_name(f'Merge [{editor["track"]}] revisions to {target_branch} [no ABV]')
         

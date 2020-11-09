@@ -5,13 +5,13 @@ from .commands._cmd_mapper import get_cmd
 from ..shared.namer import *
 from ..shared.yml_job import YMLJob
 
-def _job(project, test_platform_name, editor, platform, api, cmd):
+def _job(project, test_platform_name, editor, platform, api, cmd, build_config, color_space):
 
     # define name
     if test_platform_name.lower() == 'standalone_build':
-        job_name = f'Build {project["name"]} on {platform["name"]}_{api["name"]}_Player on version {editor["track"]}'
+        job_name = f'Build {project["name"]} on {platform["name"]}_{api["name"]}_{build_config["name"]}_{color_space}_Player on version {editor["name"]}'
     else:
-        job_name = f'{project["name"]} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["track"]}'
+        job_name = f'{project["name"]} on {platform["name"]}_{api["name"]}_{test_platform_name}_{build_config["name"]}_{color_space} on version {editor["name"]}'
 
     # define agent
     platform_agents_project = platform.get(f'agents_project_{api["name"]}', platform.get('agents_project'))
@@ -33,11 +33,9 @@ def _job(project, test_platform_name, editor, platform, api, cmd):
         
 
 
-    dependencies = [{
-                'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["track"], platform["os"])}',
-                'rerun' : editor["rerun_strategy"]}]
-
-    if str(editor['track']).lower() == 'custom-revision':
-        job.add_dependencies(dependencies)
+    if not editor['editor_pinning']:
+        job.add_dependencies([{
+                'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["name"], platform["os"])}',
+                'rerun' : editor["rerun_strategy"]}])
 
     return job

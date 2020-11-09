@@ -20,7 +20,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
@@ -99,8 +99,8 @@ void RayGenIntegration()
     // Compute the actual roughness
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
 
-    // Clamp the sample count if the surface is a completely smooth
-    int realSampleCount = normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples;
+    // If we only have one bounce, we don't need more than one ray to evaluate the exact signal. However, if we are going for multiple bounces, we may need more, so we cannot clamp the sample count to 1.
+    int realSampleCount = _RaytracingMaxRecursion == 1 ? (normalData.perceptualRoughness < 0.01 ? 1 : _RaytracingNumSamples) : _RaytracingNumSamples;
 
     // Variable that accumulate the radiance
     float3 finalColor = float3(0.0, 0.0, 0.0);
@@ -220,7 +220,7 @@ void RayGenIntegrationTransparent()
 
     // Compute the reflected direction
     float3 reflectionDir = reflect(-viewWS, normalData.normalWS);
-       
+
     // Make sure the new ray is taken into account in the ray counters
     if (_RayCountEnabled > 0)
     {
