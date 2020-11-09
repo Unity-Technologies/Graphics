@@ -15,9 +15,9 @@ SAMPLER(sampler_BaseMap);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
-float4 _BlurOffset;
-float4 _SSAOParams;
-float4 _SourceSize;
+half4 _BlurOffset;
+half4 _SSAOParams;
+half4 _SourceSize;
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
@@ -52,17 +52,17 @@ static const float kGeometryCoeff = 0.8;
 static const float kBeta = 0.002;
 #define EPSILON         1.0e-4
 
-float4 PackAONormal(float ao, float3 n)
+half4 PackAONormal(half ao, half3 n)
 {
-    return float4(ao, n * 0.5 + 0.5);
+    return half4(ao, n * 0.5 + 0.5);
 }
 
-float3 GetPackedNormal(float4 p)
+half3 GetPackedNormal(half4 p)
 {
     return p.gba * 2.0 - 1.0;
 }
 
-float GetPackedAO(float4 p)
+half GetPackedAO(half4 p)
 {
     return p.r;
 }
@@ -76,7 +76,7 @@ float EncodeAO(float x)
     #endif
 }
 
-float CompareNormal(float3 d1, float3 d2)
+half CompareNormal(half3 d1, half3 d2)
 {
     return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
 }
@@ -301,17 +301,17 @@ float4 SSAO(Varyings input) : SV_Target
 }
 
 // Geometry-aware separable bilateral filter
-half4 Blur(float2 uv, float2 delta) : SV_Target
+half4 Blur(half2 uv, half2 delta) : SV_Target
 {
-    float4 p0 = SAMPLE_BASEMAP(uv                 );
-    float4 p1a = SAMPLE_BASEMAP(uv - delta * 1.3846153846);
-    float4 p1b = SAMPLE_BASEMAP(uv + delta * 1.3846153846);
-    float4 p2a = SAMPLE_BASEMAP(uv - delta * 3.2307692308);
-    float4 p2b = SAMPLE_BASEMAP(uv + delta * 3.2307692308);
+    half4 p0 = SAMPLE_BASEMAP(uv                 );
+    half4 p1a = SAMPLE_BASEMAP(uv - delta * 1.3846153846);
+    half4 p1b = SAMPLE_BASEMAP(uv + delta * 1.3846153846);
+    half4 p2a = SAMPLE_BASEMAP(uv - delta * 3.2307692308);
+    half4 p2b = SAMPLE_BASEMAP(uv + delta * 3.2307692308);
 
     #if defined(BLUR_SAMPLE_CENTER_NORMAL)
         #if defined(_SOURCE_DEPTH_NORMALS)
-            float3 n0 = SampleSceneNormals(uv);
+            half3 n0 = SampleSceneNormals(uv);
         #else
             float2 p11_22, p13_31;
             float3x3 camProj = GetCoordinateConversionParameters(p11_22, p13_31);
@@ -323,16 +323,16 @@ half4 Blur(float2 uv, float2 delta) : SV_Target
             SampleDepthNormalView(uv, p11_22, p13_31, depth_o, n0, vpos_o);
         #endif
     #else
-        float3 n0 = GetPackedNormal(p0);
+        half3 n0 = GetPackedNormal(p0);
     #endif
 
-    float w0  =                                           0.2270270270;
-    float w1a = CompareNormal(n0, GetPackedNormal(p1a)) * 0.3162162162;
-    float w1b = CompareNormal(n0, GetPackedNormal(p1b)) * 0.3162162162;
-    float w2a = CompareNormal(n0, GetPackedNormal(p2a)) * 0.0702702703;
-    float w2b = CompareNormal(n0, GetPackedNormal(p2b)) * 0.0702702703;
+    half w0  =                                           0.2270270270;
+    half w1a = CompareNormal(n0, GetPackedNormal(p1a)) * 0.3162162162;
+    half w1b = CompareNormal(n0, GetPackedNormal(p1b)) * 0.3162162162;
+    half w2a = CompareNormal(n0, GetPackedNormal(p2a)) * 0.0702702703;
+    half w2b = CompareNormal(n0, GetPackedNormal(p2b)) * 0.0702702703;
 
-    float s;
+    half s;
     s  = GetPackedAO(p0)  * w0;
     s += GetPackedAO(p1a) * w1a;
     s += GetPackedAO(p1b) * w1b;
@@ -396,6 +396,23 @@ half4 FinalBlur(Varyings input) : SV_Target
     float2 uv = input.uv;
     float2 delta = _SourceSize.zw * rcp(DOWNSAMPLE);
     return 1.0 - BlurSmall(uv, delta );
+}
+
+half4 HorizontalVerticalBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    half2 uv = input.uv;
+    half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+
+    half4 blurH = Blur(uv, delta);
+
+    delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+    half4 blurV = Blur(uv, delta);
+
+
+
+    return 1-lerp(blurH.r, blurV.r, 0.5); //Blur(uv, delta);
 }
 
 #endif //UNIVERSAL_SSAO_INCLUDED

@@ -79,7 +79,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             HLSLPROGRAM
                 #pragma vertex VertDefault
                 #pragma fragment HorizontalBlur
-                #define BLUR_SAMPLE_CENTER_NORMAL
+                #define BLUR_SAMPLE_CENTER_NORMAL  // TODO: this is causing extra fp32 operations on mobile. In general makes blur more expensive. Remove it?
                 #pragma multi_compile_local _ _ORTHOGRAPHIC
                 #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS _SOURCE_GBUFFER
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
@@ -106,6 +106,20 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             HLSLPROGRAM
                 #pragma vertex VertDefault
                 #pragma fragment FinalBlur
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
+        // 4 - Horizontal + Vertical Blur
+        Pass
+        {
+            Name "SSAO_HorizontalVerticalBlur"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment HorizontalVerticalBlur
+                #pragma multi_compile_local _ _ORTHOGRAPHIC
+                #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS _SOURCE_GBUFFER
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }

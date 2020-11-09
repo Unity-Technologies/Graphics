@@ -164,7 +164,8 @@ namespace UnityEngine.Rendering.Universal
                 AO = 0,
                 BlurHorizontal = 1,
                 BlurVertical = 2,
-                BlurFinal = 3
+                BlurFinal = 3,
+                BlurHorizontalVertical = 4
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -297,10 +298,22 @@ namespace UnityEngine.Rendering.Universal
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
+                    bool testHorizontalVertical = false;
+
+                    if (testHorizontalVertical)
+                    {
+                        RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontalVertical);
+                        //RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurFinal);
+                    }
+                    else
+                    {
+                        RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontal);
+                        RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
+                        RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurFinal);
+                    }
+
                     // Execute the Blur Passes
-                    RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontal);
-                    RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
-                    RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurFinal);
+
 
                     // if we are downsampling, do an extra upsample pass
                     if (blurFinalUpsample)
