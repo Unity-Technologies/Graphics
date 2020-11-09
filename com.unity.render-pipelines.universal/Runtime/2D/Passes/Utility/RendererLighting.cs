@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     {
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Draw Normals");
         private static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
-        private static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 1.0f, 1.0f);
+        private static readonly Color k_NormalClearColor = new Color(0.5f, 0.5f, 0.5f, 1.0f);
         private static readonly string k_SpriteLightKeyword = "SPRITE_LIGHT";
         private static readonly string k_UsePointLightCookiesKeyword = "USE_POINT_LIGHT_COOKIES";
         private static readonly string k_LightQualityFastKeyword = "LIGHT_QUALITY_FAST";
@@ -57,7 +57,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
         private static readonly int k_LightPositionID = Shader.PropertyToID("_LightPosition");
         private static readonly int k_LightInvMatrixID = Shader.PropertyToID("_LightInvMatrix");
-        private static readonly int k_LightNoRotInvMatrixID = Shader.PropertyToID("_LightNoRotInvMatrix");
         private static readonly int k_InnerRadiusMultID = Shader.PropertyToID("_InnerRadiusMult");
         private static readonly int k_OuterAngleID = Shader.PropertyToID("_OuterAngle");
         private static readonly int k_InnerAngleMultID = Shader.PropertyToID("_InnerAngleMult");
@@ -143,6 +142,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
         }
 
+        public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)
+        {
+            var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
+            var matrix = Matrix4x4.TRS(light.transform.position, light.transform.rotation, scale);
+            cmd.DrawMesh(lightMesh, matrix, material);
+        }
+
+
         private static void RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             foreach (var light in lights)
@@ -181,9 +188,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                     else if (light.lightType == Light2D.LightType.Point)
                     {
-                        var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
-                        var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                        cmd.DrawMesh(lightMesh, matrix, lightMaterial);
+                        DrawPointLight(cmd, light, lightMesh, lightMaterial);
                     }
                 }
             }
@@ -228,9 +233,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                     else if (light.lightType == Light2D.LightType.Point)
                     {
-                        var scale = new Vector3(light.pointLightOuterRadius, light.pointLightOuterRadius, light.pointLightOuterRadius);
-                        var matrix = Matrix4x4.TRS(light.transform.position, Quaternion.identity, scale);
-                        cmd.DrawMesh(lightMesh, matrix, lightVolumeMaterial);
+                        DrawPointLight(cmd, light, lightMesh, lightVolumeMaterial);
                     }
                 }
             }
@@ -262,24 +265,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return (angle / 360.0f);
         }
 
-        private static void GetScaledLightInvMatrix(Light2D light, out Matrix4x4 retMatrix, bool includeRotation)
+        private static void GetScaledLightInvMatrix(Light2D light, out Matrix4x4 retMatrix)
         {
             var outerRadius = light.pointLightOuterRadius;
             var lightScale = Vector3.one;
             var outerRadiusScale = new Vector3(lightScale.x * outerRadius, lightScale.y * outerRadius, lightScale.z * outerRadius);
 
             var transform = light.transform;
-            var rotation = includeRotation ? transform.rotation : Quaternion.identity;
 
-            var scaledLightMat = Matrix4x4.TRS(transform.position, rotation, outerRadiusScale);
+            var scaledLightMat = Matrix4x4.TRS(transform.position, transform.rotation, outerRadiusScale);
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
         }
 
         private static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
         {
             // This is used for the lookup texture
-            GetScaledLightInvMatrix(light, out var lightInverseMatrix, true);
-            GetScaledLightInvMatrix(light, out var lightNoRotInverseMatrix, false);
+            GetScaledLightInvMatrix(light, out var lightInverseMatrix);
 
             var innerRadius = GetNormalizedInnerRadius(light);
             var innerAngle = GetNormalizedAngle(light.pointLightInnerAngle);
@@ -288,7 +289,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             cmd.SetGlobalVector(k_LightPositionID, light.transform.position);
             cmd.SetGlobalMatrix(k_LightInvMatrixID, lightInverseMatrix);
-            cmd.SetGlobalMatrix(k_LightNoRotInvMatrixID, lightNoRotInverseMatrix);
             cmd.SetGlobalFloat(k_InnerRadiusMultID, innerRadiusMult);
             cmd.SetGlobalFloat(k_OuterAngleID, outerAngle);
             cmd.SetGlobalFloat(k_InnerAngleMultID, 1 / (outerAngle - innerAngle));
