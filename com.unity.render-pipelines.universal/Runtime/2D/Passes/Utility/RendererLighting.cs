@@ -163,10 +163,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
 
-                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+                    // Still used by non-Batched code.
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
@@ -253,10 +251,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+                    // Still used by non-Batched code.
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
                     // Is this needed
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)

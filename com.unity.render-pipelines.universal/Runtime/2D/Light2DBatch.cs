@@ -32,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static ShapeMeshBatch s_ActiveShapeMeshBatch = new ShapeMeshBatch();
 
         static Material s_ActiveMaterial = null;
+        
+        static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
 
         static int s_Batches = 0;
         
@@ -104,6 +106,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
             
             s_ActiveBatchHashes.Add(s_ActiveShapeMeshBatch);
+            cmd.SetGlobalColor(k_LightColorID, new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
             cmd.DrawMesh(mesh, Matrix4x4.identity, material);
             s_Batches++;
         }

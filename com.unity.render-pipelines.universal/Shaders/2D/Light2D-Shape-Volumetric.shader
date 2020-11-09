@@ -23,7 +23,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             {
                 float3 positionOS   : POSITION;
                 // extrusionDir & _FalloffDistance;
-                float3 nor          : NORMAL;                
+                float3 nor          : NORMAL;
                 float4 color        : COLOR;
                 // Used as data for Shape Lights : x FallOffIntensity, y : _VolumeOpacity
                 half2  uv           : TEXCOORD0;
@@ -55,7 +55,6 @@ Shader "Hidden/Light2D-Shape-Volumetric"
                 Varyings o = (Varyings)0;
 
                 float3 positionOS = attributes.positionOS;
-
                 positionOS.x = positionOS.x + attributes.nor.z * attributes.nor.x;
                 positionOS.y = positionOS.y + attributes.nor.z * attributes.nor.y; 
                 

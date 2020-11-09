@@ -449,7 +449,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             };
         }
 
-        public static Bounds GenerateSpriteMesh(Mesh mesh, Sprite sprite)
+        public static Bounds GenerateSpriteMesh(Mesh mesh, Color lightColor, Sprite sprite)
         {
             if(sprite == null)
             {
@@ -467,7 +467,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             var center = 0.5f * (sprite.bounds.min + sprite.bounds.max);
             var vertices = new NativeArray<LightMeshVertex>(srcIndices.Length, Allocator.Temp);
-            var color = new Color(0,0,0, 1);
+            var color = new Color(lightColor.r,lightColor.g,lightColor.b, 1);
 
             for (var i = 0; i < srcVertices.Length; i++)
             {

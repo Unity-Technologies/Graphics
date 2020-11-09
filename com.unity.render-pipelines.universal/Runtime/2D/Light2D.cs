@@ -155,39 +155,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void UpdateMesh(bool forceUpdate)
         {
-            UpdateHash();
-
-            // Mesh Rebuilding
-            var shapePathHash = LightUtility.GetShapePathHash(shapePath);
-            var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
-            var parametricRadiusChanged = LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
-            var parametricSidesChanged = LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
-            var parametricAngleOffsetChanged = LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
-            var spriteInstanceChanged = LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite);
-            var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
-            var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
-            var lightColorChanged = LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
-            var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged || lightColorChanged ||
-                             parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
-
-            if (hashChanged && forceUpdate)
+            int hashCode = CalculateHash(this);
+            if (forceUpdate && hashCode != m_LightMeshHash)
             {
 				switch(m_LightType)
 				{
                 	case LightType.Freeform:
-	                    m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, color, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeOpacity);
+	                    m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, color * intensity, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeOpacity);
     	                break;
         	        case LightType.Parametric:
-            	        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeOpacity);
+            	        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeOpacity);
                 	    break;
                 	case LightType.Sprite:
-                    	m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, m_LightCookieSprite);
+                    	m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, color, m_LightCookieSprite);
                     	break;
                 	case LightType.Point:
-	                    m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color,1.412135f, 0, 0, 4, falloffIntensity, volumeOpacity);
+	                    m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, volumeOpacity);
     	                break;
 				}
             }
+            m_LightMeshHash = hashCode;
         }
 
         internal void UpdateBoundingSphere()
@@ -234,24 +221,25 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Light2DManager.DeregisterLight(this);
         }
 
-        internal void UpdateHash()
+        internal static int CalculateHash(Light2D light)
         {
+            var hashCode = 0;
             unchecked
             {
                 // Spline.
-                m_LightMeshHash = (int) 2166136261 ^ LightUtility.GetShapePathHash(shapePath);
-
-                // Local Stuff.
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_FalloffIntensity.GetHashCode();
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_LightVolumeOpacity.GetHashCode();
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightFalloffSize.GetHashCode();
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightParametricRadius.GetHashCode();
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightParametricSides.GetHashCode();
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightParametricAngleOffset.GetHashCode();
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_Color.GetHashCode();
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_LightType.GetHashCode();
-                m_LightMeshHash = m_LightMeshHash * 16777619 ^ lightCookieSpriteInstanceID.GetHashCode();
+                hashCode = (int) 2166136261 ^ LightUtility.GetShapePathHash(light.shapePath);
+                hashCode = hashCode * 16777619 ^ light.m_FalloffIntensity.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.m_LightVolumeOpacity.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.m_ShapeLightFalloffSize.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.m_ShapeLightParametricRadius.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.m_ShapeLightParametricSides.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.m_ShapeLightParametricAngleOffset.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.m_Color.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.m_LightType.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.lightCookieSpriteInstanceID.GetHashCode();
+                hashCode = hashCode * 16777619 ^ light.m_Intensity.GetHashCode();
             }
+            return hashCode;
         }
 
         private void LateUpdate()
