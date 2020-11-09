@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        // Used for updating URP cameraData data struct with XRPass data. 
+        // Used for updating URP cameraData data struct with XRPass data.
         internal void UpdateCameraData(ref CameraData baseCameraData, in XRPass xr)
         {
             // Update cameraData viewport for XR
@@ -391,13 +391,13 @@ namespace UnityEngine.Rendering.Universal
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
                             // Eye texture is always gamma corrected, use explicit sRGB read in shader if srcTex formats is not sRGB format. sRGB format will have implicit sRGB read so it is already handled.
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0 : 1);
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0.0f : 1.0f);
                             // Perform explicit sRGB write in shader if color space is gamma
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0 : 1);
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0.0f : 1.0f);
                             mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, blitParam.srcTex);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, blitParam.srcTexArraySlice);
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SourceTexArraySlice, (float)blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
                             cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
@@ -438,7 +438,7 @@ namespace UnityEngine.Rendering.Universal
                             // Alter the first view in order to detect more issues
                             bool isFirstViewMultiPass = framePasses.Count == 2 && passId == 0;
                             bool isFirstViewSinglePass = framePasses.Count == 1 && viewId == 0;
-                            
+
                             if (isFirstViewMultiPass || isFirstViewSinglePass)
                             {
                                 var planes = projMatrix.decomposeProjection;

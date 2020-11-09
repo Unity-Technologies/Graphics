@@ -25,9 +25,9 @@ Universal_Win_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_mono_Linear_trunk
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Win_Vulkan_Player_mono_Linear_trunk:
+Build_Universal_Win_Vulkan_Standalone_mono_Linear_trunk:
     name: Build Universal on Win_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -45,7 +45,7 @@ Build_Universal_Win_Vulkan_Player_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=2000
     artifacts:
         logs:
             paths:
@@ -144,8 +144,35 @@ Universal_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_mono_Linear_trunk
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Standalone_XR_mono_Linear_trunk
          rerun: on-new-revision
+Build_Universal_Win_Vulkan_Standalone_XR_mono_Linear_trunk:
+    name: Build Universal on Win_Vulkan_mono_Linear_Player on version trunk
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=18000
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
 Universal_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Universal on Win_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -167,9 +194,9 @@ Universal_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+Build_Universal_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Universal on Win_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
@@ -188,7 +215,7 @@ Build_Universal_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=1200
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=2000
     artifacts:
         logs:
             paths:
@@ -305,5 +332,36 @@ Universal_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION
+         rerun: always
+Build_Universal_Win_Vulkan_Standalone_XR_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal on Win_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/UniversalGraphicsTest/utr.bat
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  |5-
+
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                  cd TestProjects/UniversalGraphicsTest && utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneWindows64 --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testproject=. --timeout=18000
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always

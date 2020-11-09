@@ -18,7 +18,9 @@ test_platforms:
   - type: Standalone
     name: Standalone_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-reuse-tests" 
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
+    utr_flags_build:
+      - [all]: --timeout=18000 
 platforms:
   - name: Win
     apis:
@@ -46,7 +48,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
