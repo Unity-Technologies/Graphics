@@ -48,7 +48,6 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
       - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
-      - [iPhone_Metal]: --platform=iOS
       - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
 platforms:
@@ -74,6 +73,8 @@ platforms:
   - name: iPhone
     apis: 
       - name: Metal
+        exclude_test_platforms:
+          - name: performance_playmode_editor
     build_configs:
       - name: il2cpp
     color_spaces:
