@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed issue when changing FoV with the physical camera fold-out closed.
 
 ## [10.2.0] - 2020-10-19
 
