@@ -14,13 +14,13 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-reuse-tests" 
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
   - type: Standalone
     name: Standalone_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
     utr_flags_build:
-      - [all]: --timeout=18000 
+      - [all]: --extra-editor-arg="-xr-reuse-tests" --timeout=18000
 platforms:
   - name: Win
     apis:
