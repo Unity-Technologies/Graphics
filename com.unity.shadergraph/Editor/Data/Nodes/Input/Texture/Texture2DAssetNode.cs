@@ -42,11 +42,30 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        string GetTexturePropertyName()
+        {
+            return string.Format("_{0}_texture", GetVariableNameForNode());
+        }
+
+        string GetTextureVariableName()
+        {
+            return string.Format("_{0}_texture_struct", GetVariableNameForNode());
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            if (slotId == OutputSlotId)
+                return GetTextureVariableName();
+            else
+                return base.GetVariableNameForSlot(slotId);
+        }
+
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(new Texture2DShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
+                // NOTE : this changes (hidden) shader property names... which could cause Material changes
+                overrideReferenceName = GetTexturePropertyName(),
                 generatePropertyBlock = true,
                 value = m_Texture,
                 modifiable = false
@@ -57,7 +76,7 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty(PropertyType.Texture2D)
             {
-                name = GetVariableNameForSlot(OutputSlotId),
+                name = GetTexturePropertyName(),
                 textureValue = texture,
                 texture2DDefaultType = Texture2DShaderProperty.DefaultType.White
             });

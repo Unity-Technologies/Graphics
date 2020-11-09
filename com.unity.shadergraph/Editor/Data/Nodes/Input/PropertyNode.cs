@@ -141,26 +141,26 @@ namespace UnityEditor.ShaderGraph
             switch (property.propertyType)
             {
                 case PropertyType.Boolean:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.Float:
-                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.Vector2:
-                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision2 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.Vector3:
-                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision3 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.Vector4:
-                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.Color:
                     switch (property.sgVersion)
                     {
                         case 0:
                         case 2:
-                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                             break;
                         case 1:
                         case 3:
@@ -168,11 +168,11 @@ namespace UnityEditor.ShaderGraph
                             //for consistency with other places in the editor, we assume HDR colors are in linear space, and correct for gamma space here
                             if ((property as ColorShaderProperty).colorMode == ColorMode.HDR)
                             {
-                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({property.referenceName}) : {property.referenceName};");
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({property.GetHLSLVariableName()}) : {property.GetHLSLVariableName()};");
                             }
                             else
                             {
-                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                             }
                             break;
                         default:
@@ -180,29 +180,28 @@ namespace UnityEditor.ShaderGraph
                     }
                     break;
                 case PropertyType.Matrix2:
-                    sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.Matrix3:
-                    sb.AppendLine($"$precision3x3 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision3x3 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.Matrix4:
-                    sb.AppendLine($"$precision4x4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"$precision4x4 {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.SamplerState:
-                    sb.AppendLine($"SamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    sb.AppendLine($"SamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
                 case PropertyType.Gradient:
                 if(generationMode == GenerationMode.Preview)
-                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.referenceName)};");
+                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.GetHLSLVariableName())};");
                 else
-                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                        sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName()};");
                     break;
             }
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            
             // TODO: I don't like this exception list being buried in PropertyNode.cs, should be something on the ShaderProperty themselves...
             if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
@@ -211,7 +210,7 @@ namespace UnityEditor.ShaderGraph
                 !(property is VirtualTextureShaderProperty))
                 return base.GetVariableNameForSlot(slotId);
 
-            return property.referenceName;
+            return property.GetHLSLVariableName();
         }
 
         protected override void CalculateNodeHasError()

@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Matrix2:
                     return precisionToken + "2x2";
                 case ConcreteSlotValueType.Texture2D:
-                    return "Texture2D";
+                    return "UnityTexture2D";
                 case ConcreteSlotValueType.Texture2DArray:
                     return "Texture2DArray";
                 case ConcreteSlotValueType.Texture3D:
