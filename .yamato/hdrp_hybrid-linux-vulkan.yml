@@ -45,9 +45,9 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_Linear_2020.2
+      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.2
          rerun: on-new-revision
-Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_Linear_2020.2:
+Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.2:
     name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Player on version 2020.2
     agent:
         type: Unity::VM
@@ -115,9 +115,9 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Hybrid_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM

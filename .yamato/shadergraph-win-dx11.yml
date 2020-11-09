@@ -24,9 +24,9 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Player_mono_Linear_2020.2
+      -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_2020.2
          rerun: on-new-revision
-Build_ShaderGraph_Win_DX11_Player_mono_Linear_2020.2:
+Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_2020.2:
     name: Build ShaderGraph on Win_DX11_mono_Linear_Player on version 2020.2
     agent:
         type: Unity::VM
@@ -121,9 +121,9 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_ShaderGraph_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
+Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM

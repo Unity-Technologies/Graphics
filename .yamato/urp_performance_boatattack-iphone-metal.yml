@@ -25,9 +25,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_2020.2
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2020.2
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_2020.2:
+Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_2020.2:
     name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_Player on version 2020.2
     agent:
         type: Unity::VM::osx
@@ -174,9 +174,9 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION:
+Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx

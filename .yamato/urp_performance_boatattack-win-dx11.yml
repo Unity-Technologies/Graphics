@@ -24,9 +24,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_202
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_Linear_2020.2
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_2020.2
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_Linear_2020.2:
+Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_2020.2:
     name: Build URP_Performance_BoatAttack on Win_DX11_mono_Linear_Player on version 2020.2
     agent:
         type: Unity::VM
@@ -190,9 +190,9 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUS
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
+Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM

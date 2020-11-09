@@ -25,9 +25,9 @@ VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
     dependencies:
-      -  path: .yamato/vfx_hdrp-linux-vulkan.yml#Build_VFX_HDRP_Linux_Vulkan_Player_mono_Linear_2020.2
+      -  path: .yamato/vfx_hdrp-linux-vulkan.yml#Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_2020.2
          rerun: on-new-revision
-Build_VFX_HDRP_Linux_Vulkan_Player_mono_Linear_2020.2:
+Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_2020.2:
     name: Build VFX_HDRP on Linux_Vulkan_mono_Linear_Player on version 2020.2
     agent:
         type: Unity::VM
@@ -111,9 +111,9 @@ VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/vfx_hdrp-linux-vulkan.yml#Build_VFX_HDRP_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-linux-vulkan.yml#Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_VFX_HDRP_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build VFX_HDRP on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
