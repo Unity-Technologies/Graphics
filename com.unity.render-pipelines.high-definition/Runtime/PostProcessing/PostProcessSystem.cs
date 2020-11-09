@@ -46,7 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_DebugImageHistogramBuffer;
         readonly int[] m_EmptyHistogram = new int[k_HistogramBins];
         readonly int[] m_EmptyDebugImageHistogram = new int[k_DebugImageHistogramBins * 4];
-        bool m_ExposureHistoryCleared = false;
 
         // Depth of field data
         ComputeBuffer m_BokehNearKernel;
@@ -149,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_IsDoFHisotoryValid = false;
 
-        void SetExposureTextureToEmpty(RTHandle exposureTexture)
+        static void SetExposureTextureToEmpty(RTHandle exposureTexture)
         {
             var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
             tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
@@ -216,7 +215,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Debug Exposure Info"
             );
 
-            m_ExposureHistoryCleared = false;
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
         }
 
@@ -1289,11 +1287,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // See GetExposureTexture
             var rt = camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Exposure);
-            if (rt != null && !m_ExposureHistoryCleared)
-            {
-                SetExposureTextureToEmpty(rt);
-                m_ExposureHistoryCleared = true;
-            }
             return rt ?? m_EmptyExposureTexture;
         }
 
@@ -1376,9 +1369,11 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
                 // r: multiplier, g: EV100
-                return rtHandleSystem.Alloc(1, 1, colorFormat: k_ExposureFormat,
+                var rt = rtHandleSystem.Alloc(1, 1, colorFormat: k_ExposureFormat,
                     enableRandomWrite: true, name: $"{id} Exposure Texture {frameIndex}"
                 );
+                SetExposureTextureToEmpty(rt);
+                return rt;
             }
 
             // We rely on the RT history system that comes with HDCamera, but because it is swapped
