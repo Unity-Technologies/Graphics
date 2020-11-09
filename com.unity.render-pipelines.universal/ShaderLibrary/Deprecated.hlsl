@@ -16,4 +16,10 @@
 #define unity_StereoMatrixIVP unity_StereoMatrixInvVP
 #endif
 
+// Previously used when rendering with DrawObjectsPass.
+// Global object render pass data containing various settings.
+// x,y,z are currently unused
+// w is used for knowing whether the object is opaque(1) or alpha blended(0)
+half4 _DrawObjectPassData;
+
 #endif // UNIVERSAL_DEPRECATED_INCLUDED

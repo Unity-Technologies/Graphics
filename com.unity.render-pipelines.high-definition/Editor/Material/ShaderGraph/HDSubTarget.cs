@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract ShaderID shaderID { get; }
         protected abstract string customInspector { get; }
-        protected abstract string subTargetAssetGuid { get; }
+        protected abstract GUID subTargetAssetGuid { get; }
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
         protected abstract string templatePath { get; }
@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected virtual string postDecalsInclude => null;
         protected virtual string raytracingInclude => null;
+        protected virtual string pathtracingInclude => null;
         protected virtual bool supportPathtracing => false;
         protected virtual bool supportRaytracing => false;
 
@@ -84,10 +85,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
         }
 
+        static readonly GUID kSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs
+
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("c09e6e9062cbd5a48900c48a0c2ed1c2")); // HDSubTarget.cs
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(subTargetAssetGuid));
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            context.AddAssetDependency(subTargetAssetGuid, AssetCollection.Flags.SourceDependency);
             context.SetDefaultShaderGUI(customInspector);
 
             if (migrationSteps.Migrate(this))
@@ -146,6 +149,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         include.descriptor.value = postDecalsInclude;
                     if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
                         include.descriptor.value = raytracingInclude;
+                    if (include.descriptor.value == CoreIncludes.kPathtracingPlaceholder)
+                        include.descriptor.value = pathtracingInclude;
 
                     if (!String.IsNullOrEmpty(include.descriptor.value))
                         finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);

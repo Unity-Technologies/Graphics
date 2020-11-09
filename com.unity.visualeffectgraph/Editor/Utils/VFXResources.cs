@@ -19,14 +19,34 @@ namespace UnityEditor.VFX
                 return s_Values;
             }
         }
+        private static bool m_Searched; // the instance has been searched and it is null
         private static VFXResources s_Instance;
         private static Values s_Values;
 
+        static void LoadUserResourcesIfNeeded()
+        {
+            if (s_Instance == null && (!m_Searched || !object.ReferenceEquals(s_Instance,null)))
+            // if instance is null and either it has never been searched or it was found but it has been destroyed since last time
+            {
+                foreach (var guid in AssetDatabase.FindAssets("t:VFXResources"))
+                {
+                    s_Instance = AssetDatabase.LoadAssetAtPath<VFXResources>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (s_Instance != null)
+                    {
+                        return;
+                    }
+                }
+                s_Instance = null;
+                m_Searched = true;
+            }
+        }
+
         void OnEnable()
         {
-            if (Resources.FindObjectsOfTypeAll<VFXResources>().Length > 1)
-                Debug.LogError("Having more than on VFXResources in you project is unsupported");
+            if (AssetDatabase.FindAssets("t:VFXResources").Length > 1)
+                Debug.LogError("Having more than one VFXResources in your project is unsupported");
             s_Instance = this;
+            m_Searched = false;
         }
 
         public class Values
@@ -35,8 +55,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null)
                         return s_Instance.animationCurve;
 
@@ -47,8 +66,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null)
                         return s_Instance.gradient;
                     return defaultGradient;
@@ -58,8 +76,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null)
                         return s_Instance.gradientMapRamp;
                     return defaultGradientMapRamp;
@@ -70,8 +87,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null && s_Instance.shader != null)
                         return s_Instance.shader;
 
@@ -84,8 +100,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null && s_Instance.particleTexture != null)
                         return s_Instance.particleTexture;
                     return defaultParticleTexture;
@@ -96,8 +111,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null && s_Instance.noiseTexture != null)
                         return s_Instance.noiseTexture;
                     return defaultNoiseTexture;
@@ -107,8 +121,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null && s_Instance.vectorField != null)
                         return s_Instance.vectorField;
                     return defaultVectorField;
@@ -118,8 +131,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null && s_Instance.signedDistanceField != null)
                         return s_Instance.signedDistanceField;
                     return defaultSignedDistanceField;
@@ -130,12 +142,31 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if (s_Instance == null)
-                        s_Instance = FindObjectOfType<VFXResources>();
+                    LoadUserResourcesIfNeeded();
                     if (s_Instance != null && s_Instance.mesh != null)
                         return s_Instance.mesh;
 
                     return defaultMesh;
+                }
+            }
+
+            public string userTemplateDirectory
+            {
+                get
+                {
+                    LoadUserResourcesIfNeeded();
+                    if (s_Instance != null)
+                        return s_Instance.userTemplateDirectory;
+
+                    return "";
+                }
+
+                set
+                {
+                    if (s_Instance == null)
+                        s_Instance = FindObjectOfType<VFXResources>();
+                    if (s_Instance != null)
+                        s_Instance.userTemplateDirectory = value;
                 }
             }
         }
@@ -271,6 +302,9 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         Mesh mesh = null;
+
+        [SerializeField]
+        string userTemplateDirectory = "";
 
         static AnimationCurve defaultAnimationCurve;
         static Gradient defaultGradient;

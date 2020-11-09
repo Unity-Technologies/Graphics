@@ -40,7 +40,8 @@ When you create an HDRP Asset, open it in the Inspector to edit its properties.
 | **Lit Shader Mode**                     | Use the drop-down to choose which mode HDRP uses for the [Lit Shader](Lit-Shader.md).<br />&#8226; **Forward Only**: forces HDRP to only use forward rendering for Lit Shaders.<br />&#8226; **Deferred Only**: forces HDRP to use deferred rendering for Lit Shaders (HDRP still renders advanced Materials using forward rendering).<br />&#8226; **Both**: allows the Camera to use deferred and forward rendering.<br /><br />Select **Both** to allow you to switch between forward and deferred rendering for Lit Shaders at runtime per Camera. Selecting a specific mode reduces build time and Shader memory because HDRP requires less Shader variants, but it is not possible to switch from one mode to the other at runtime. |
 | **- Multisample Anti-aliasing Quality** | Use the drop-down to set the number of samples HDRP uses for multisample anti-aliasing (MSAA). The larger the sample count, the better the quality. Select **None** to disable MSAA.<br />This property is only visible when **Lit Shader Mode** is set to **Forward Only** or **Both**. |
 | **Motion Vectors**                      | Enable the checkbox to make HDRP support motion vectors. HDRP uses motion vectors for effects like screen space reflection (SSR) and motion blur. When disabled, motion blur has no effect and HDRP calculates SSR with lower quality. |
-| **Runtime Debug Display**               | Enable the checkbox to make HDRP display Material and Lighting properties at runtime to help debugging.Disable this checkbox to reduce build time and Shader memory. This disables the following debug modes: All Material debug modes except GBuffer debug. The Lux meter, diffuse lighting only, and specular lighting only debug modes. The overriding option for overriding albedo. |
+| **Runtime Debug Display**               | Enable the checkbox to make HDRP able to use debug modes from the Render Pipeline Debug window at runtime. Disable the checkbox to reduce build time and shader memory. This disables the following debug modes: All material property debug modes except GBuffer debug, the various property override options, and all the lighting debug modes.  |
+| **Runtime AOV API**                     | Enable the checkbox to make HDRP able to use the AOV API (rendering of material properties and lighting modes) at runtime. Disable this checkbox to reduce build time and shader memory. This disables the following AOV modes: All material properties and lighting modes. |
 | **Dithering Cross-fade**                | Enable the checkbox to make HDRP support dithering cross fade. This allows HDRP to implement smooth transitions between a GameObject’s LOD levels. When disabled, this reduces build time if you are not using LOD fade. |
 | **Terrain Hole**                        | Enable the checkbox to make HDRP support [Terrain Holes](https://docs.unity3d.com/2019.3/Documentation/Manual/terrain-PaintHoles.html). If you do not enable this, Terrain Holes are not visible in your Scene. |
 | **Transparent Backface**                | Enable the checkbox to make HDRP support transparent back-face render passes. If your Unity Project does not need to make a transparent back-face pass, disable this checkbox to reduce build time. |
@@ -106,15 +107,21 @@ Use the Cookie settings to configure the maximum resolution of the atlas and it'
 
 Use the Reflection settings to configure the max number and resolution of the probes and whether Unity should compress the Reflection Probe caches or not. The Reflection Probe cache refers to runtime memory that HDRP reserves for Reflection Probes. The cache is a first in, first out list that stores the currently visible Reflection Probes.
 
-| **Property**                               | **Description**                                              |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| **Screen Space Reflection**                | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html). SSR is a technique for calculating reflections by reusing screen space data. |
-| **Compress Reflection Probe Cache**        | Enable the checkbox to compress the [Reflection Probe](Reflection-Probe.md) cache in order to save space on disk. |
-| **Reflection Cubemap Size**                | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
-| **Probe Cache Size**                       | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
-| **Planar Reflection Atlas Size**           | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution.  |
-| **Max Planar Reflection On Screen**        | The maximum number of planar reflections on screen at once. |
-| **Maximum Environment Lights on Screen**   | The maximum number of environment Lights HDRP can manage on screen at once. |
+| **Property**                             | **Description**                                              |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| **Screen Space Reflection**              | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html). SSR is a technique for calculating reflections by reusing screen space data. |
+| **- Transparent**                        | Enable the checkbox to make HDRP support [screen space reflection](https://docs.unity3d.com/Manual/PostProcessing-ScreenSpaceReflection.html) on transparent materials.|
+| **Reflection and Planar Probes Format**  | Color format used for reflection and planar probes. |
+| **Compress Reflection Probe Cache**      | Enable the checkbox to compress the [Reflection Probe](Reflection-Probe.md) cache in order to save space on disk. |
+| **Reflection Cubemap Size**              | Use the drop-down to select the maximum resolution of individual Reflection Probe[ ](https://docs.unity3d.com/Manual/class-Cubemap.html)[cubemaps](https://docs.unity3d.com/Manual/class-Cubemap.html). |
+| **Probe Cache Size**                     | The maximum size of the Probe Cache. Defines how many Probe cube maps HDRP can save in cache. |
+| **Planar Reflection Atlas Size**         | Use the drop-down to select the resolution of the planar probe atlas. It defines how many reflection probe you'll be able to render at once and at which resolution. |
+| ****Planar Resolution Tiers**** |                                                              |
+| **- L**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Low** use this resolution for their planar reflection. |
+| **- M**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **Medium** use this resolution for their planar reflection. |
+| **- H**                         | Set the resolution of planar reflection set to this quality. Planar Reflection Probe's with their **Resolution** set to **High** use this resolution for their planar reflection. |
+| **Max Planar Reflection On Screen**      | The maximum number of planar reflections on screen at once.  |
+| **Maximum Environment Lights on Screen** | The maximum number of environment Lights HDRP can manage on screen at once. |
 
 <a name="SkyLighting"></a>
 

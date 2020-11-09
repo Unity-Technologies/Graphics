@@ -53,6 +53,12 @@ namespace UnityEngine.Rendering
         /// </summary>
         public DynamicResUpscaleFilter filter { get; set; }
 
+        /// <summary>
+        /// The viewport of the final buffer. This is likely the resolution the dynamic resolution starts from before any scaling. Note this is NOT the target resolution the rendering will happen in
+        /// but the resolution the scaled rendered result will be upscaled to. 
+        /// </summary>
+        public Vector2Int finalViewport { get; set; }
+
 
         private DynamicResolutionType type;
 

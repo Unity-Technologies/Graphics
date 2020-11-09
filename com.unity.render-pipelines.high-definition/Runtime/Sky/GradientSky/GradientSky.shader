@@ -8,15 +8,11 @@ Shader "Hidden/HDRP/Sky/GradientSky"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-    #pragma multi_compile_local _ USE_CLOUD_MAP
-    #pragma multi_compile_local _ USE_CLOUD_MOTION
-
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
 
 	float4 _GradientBottom;
     float4 _GradientMiddle;
@@ -53,7 +49,6 @@ Shader "Hidden/HDRP/Sky/GradientSky"
         float bottomLerpFactor = saturate(verticalGradient);
         float3 color = lerp(_GradientMiddle.xyz, _GradientBottom.xyz, bottomLerpFactor);
         color = lerp(color, _GradientTop.xyz, topLerpFactor);
-        color = ApplyCloudLayer(-viewDirWS, color);
         return float4(color * _SkyIntensity, 1.0);
     }
 

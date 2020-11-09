@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xr.enabled)
                 return xr.GetProjMatrix(viewIndex);
-#endif      
+#endif
             return m_ProjectionMatrix;
         }
 
@@ -148,7 +148,12 @@ namespace UnityEngine.Rendering.Universal
 
             if (renderer != null)
             {
-                bool renderingToTexture = renderer.cameraColorTarget != BuiltinRenderTextureType.CameraTarget || targetTexture != null;
+                bool renderingToBackBufferTarget = renderer.cameraColorTarget == BuiltinRenderTextureType.CameraTarget;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (xr.enabled)
+                    renderingToBackBufferTarget |= renderer.cameraColorTarget == xr.renderTarget && !xr.renderTargetIsRenderTexture;
+#endif
+                bool renderingToTexture = !renderingToBackBufferTarget || targetTexture != null;
                 return SystemInfo.graphicsUVStartsAtTop && renderingToTexture;
             }
 
@@ -174,7 +179,12 @@ namespace UnityEngine.Rendering.Universal
         public bool isDitheringEnabled;
         public AntialiasingMode antialiasing;
         public AntialiasingQuality antialiasingQuality;
-        internal ScriptableRenderer renderer;
+
+        /// <summary>
+        /// Returns the current renderer used by this camera.
+        /// <see cref="ScriptableRenderer"/>
+        /// </summary>
+        public ScriptableRenderer renderer;
 
         /// <summary>
         /// True if this camera is resolving rendering to the final camera render target.
@@ -228,13 +238,14 @@ namespace UnityEngine.Rendering.Universal
         public Vector4 attenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
         public Vector3 spotDirection;   // for spotLights
         public int lightIndex;
-    }    
+        public Vector4 occlusionProbeInfo;
+    }
 
     internal static class ShaderPropertyId
     {
         public static readonly int glossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
         public static readonly int subtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
-        
+
         public static readonly int ambientSkyColor = Shader.PropertyToID("unity_AmbientSky");
         public static readonly int ambientEquatorColor = Shader.PropertyToID("unity_AmbientEquator");
         public static readonly int ambientGroundColor = Shader.PropertyToID("unity_AmbientGround");
@@ -244,7 +255,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cosTime = Shader.PropertyToID("_CosTime");
         public static readonly int deltaTime = Shader.PropertyToID("unity_DeltaTime");
         public static readonly int timeParameters = Shader.PropertyToID("_TimeParameters");
-        
+
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int screenParams = Shader.PropertyToID("_ScreenParams");
@@ -268,6 +279,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
+
+        // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
+        public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
     public struct PostProcessingData
@@ -284,7 +298,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
-        public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE";
+        public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
+        public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
+        public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
@@ -324,6 +340,14 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
+        public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
+        public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
+        public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
+        public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
+        public static readonly string _DETAIL_MULX2 = "_DETAIL_MULX2";
+        public static readonly string _DETAIL_SCALED = "_DETAIL_SCALED";
+        public static readonly string _CLEARCOAT = "_CLEARCOAT";
+        public static readonly string _CLEARCOATMAP = "_CLEARCOATMAP";
 
         // XR
         public static readonly string UseDrawProcedural = "_USE_DRAW_PROCEDURAL";
@@ -340,7 +364,7 @@ namespace UnityEngine.Rendering.Universal
         // directional lights to return 1.0 for both distance and angle attenuation
         static Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         static Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-        static Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
+        static Vector4 k_DefaultLightsProbeChannel = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
@@ -395,11 +419,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
+#if UNITY_2021_1_OR_NEWER
+        void SortCameras(List<Camera> cameras)
+        {
+            if (cameras.Count > 1)
+                cameras.Sort(cameraComparison);
+        }
+#else
         void SortCameras(Camera[] cameras)
         {
             if (cameras.Length > 1)
                 Array.Sort(cameras, cameraComparison);
         }
+#endif
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, int msaaSamples, bool needsAlpha)
@@ -412,21 +444,8 @@ namespace UnityEngine.Rendering.Universal
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = (int)((float)desc.width * renderScale);
                 desc.height = (int)((float)desc.height * renderScale);
-            }
-            else
-            {
-                desc = camera.targetTexture.descriptor;
-            }
 
-            if (camera.targetTexture != null)
-            {
-                desc.colorFormat = camera.targetTexture.descriptor.colorFormat;
-                desc.depthBufferBits = camera.targetTexture.descriptor.depthBufferBits;
-                desc.msaaSamples = camera.targetTexture.descriptor.msaaSamples;
-                desc.sRGB = camera.targetTexture.descriptor.sRGB;
-            }
-            else
-            {
+
                 GraphicsFormat hdrFormat;
                 if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
@@ -439,6 +458,17 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            }
+            else
+            {
+                desc = camera.targetTexture.descriptor;
+                desc.width = camera.pixelWidth;
+                desc.height = camera.pixelHeight;
+                // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
+                // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
+                // If this is fixed then we can implement debug statement to the user explaining why some
+                // RenderTextureFormats available resolves in a black render texture when no warning or error
+                // is given.
             }
 
             desc.enableRandomWrite = false;
@@ -608,20 +638,42 @@ namespace UnityEngine.Rendering.Universal
 
             Light light = lightData.light;
 
-            // Set the occlusion probe channel.
-            int occlusionProbeChannel = light != null ? light.bakingOutput.occlusionMaskChannel : -1;
-
-            // If we have baked the light, the occlusion channel is the index we need to sample in 'unity_ProbesOcclusion'
-            // If we have not baked the light, the occlusion channel is -1.
-            // In case there is no occlusion channel is -1, we set it to zero, and then set the second value in the
-            // input to one. We then, in the shader max with the second value for non-occluded lights.
-            lightOcclusionProbeChannel.x = occlusionProbeChannel == -1 ? 0f : occlusionProbeChannel;
-            lightOcclusionProbeChannel.y = occlusionProbeChannel == -1 ? 1f : 0f;
+            if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
+                0 <= light.bakingOutput.occlusionMaskChannel &&
+                light.bakingOutput.occlusionMaskChannel < 4)
+            {
+                lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
+            }
         }
     }
 
     internal enum URPProfileId
     {
+        // CPU
+        UniversalRenderTotal,
+        UpdateVolumeFramework,
+        RenderCameraStack,
+
+        // GPU
+        AdditionalLightsShadow,
+        ColorGradingLUT,
+        CopyColor,
+        CopyDepth,
+        DepthNormalPrepass,
+        DepthPrepass,
+
+        // DrawObjectsPass
+        DrawOpaqueObjects,
+        DrawTransparentObjects,
+
+        // RenderObjectsPass
+        //RenderObjects,
+
+        MainLightShadow,
+        ResolveShadows,
+        SSAO,
+
+        // PostProcessPass
         StopNaNs,
         SMAA,
         GaussianDepthOfField,
@@ -630,5 +682,7 @@ namespace UnityEngine.Rendering.Universal
         PaniniProjection,
         UberPostProcess,
         Bloom,
+
+        FinalBlit
     }
 }

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
+--- !u!114 &1
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -28,6 +28,21 @@ MonoBehaviour:
     defaultParticleMat: {fileID: 2100000, guid: b739a3f02ff77bf48b7636e64c3e3b4c, type: 2}
     defaultTerrainMat: {fileID: 2100000, guid: 22ff8771d87ef27429e670136399094b, type: 2}
     GUITextureBlit2SRGB: {fileID: 2100000, guid: 6e95c04e4e686554e8bed96ee69f690c, type: 2}
+  textures:
+    iconAreaExterior: {fileID: 2800000, guid: af0290ec651c2ac40946e684ef9e3903, type: 3}
+    iconBrightSky: {fileID: 2800000, guid: 3f30abb2b4c154149a4d474352b6d387, type: 3}
+    iconCandle: {fileID: 2800000, guid: af0a18587f6704e4ebdb2c93347b8c8f, type: 3}
+    iconClearSky: {fileID: 2800000, guid: 79508b04975aaed4dbc9a80f116d9ef7, type: 3}
+    iconDecorative: {fileID: 2800000, guid: 57d5b8c41faabe64c92767bdc4ac0cc1, type: 3}
+    iconDecorativeArea: {fileID: 2800000, guid: 2608906764a0b6041a874e620772dab1, type: 3}
+    iconDirectSunlight: {fileID: 2800000, guid: 8b7d447b931dba74a97349f93baac3d2, type: 3}
+    iconExterior: {fileID: 2800000, guid: ebd0bd92a8b812548b6eb9e9f4e48894, type: 3}
+    iconInterior: {fileID: 2800000, guid: c4edc86cf15152d4a905d604688a32b0, type: 3}
+    iconInteriorArea: {fileID: 2800000, guid: d1dbd84acc95d5241a0ee7c204a18282, type: 3}
+    iconMoonlessNight: {fileID: 2800000, guid: 52347516c9f7e3546a2ddeffc4c3b3aa, type: 3}
+    iconMoonlitSky: {fileID: 2800000, guid: 175f173cd52d6054ba07129ddd941528, type: 3}
+    iconOvercastSky: {fileID: 2800000, guid: 9139f8ddbeceb49488e844176896253e, type: 3}
+    iconSunriseSunset: {fileID: 2800000, guid: 92481b8bf036748428bff0b52790545f, type: 3}
   shaderGraphs:
     autodeskInteractive: {fileID: 4800000, guid: 7252379db4c18b641b517f2c91bb57e1, type: 3}
     autodeskInteractiveMasked: {fileID: 4800000, guid: 29c4adff654862b40a2e9fb2015a42c3, type: 3}

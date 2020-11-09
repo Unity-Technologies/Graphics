@@ -48,17 +48,9 @@ namespace UnityEngine.Rendering.HighDefinition
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 32;
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Low] = 1.5f;
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5.0f;
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.High] = 20.0f;
-
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
-
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 0.8f;
-            SSGIClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
 
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 2;
             SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5;
@@ -106,17 +98,13 @@ namespace UnityEngine.Rendering.HighDefinition
             RTGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTGIHalfResDenoise[(int)ScalableSettingLevelParameter.Level.High] = false;
 
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.66f;
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.66f;
-            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.75f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.5f;
+            RTGIDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.25f;
 
             RTGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             RTGISecondDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             RTGISecondDenoise[(int)ScalableSettingLevelParameter.Level.High] = true;
-
-            RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.33f;
-            RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.33f;
-            RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.5f;
 
             // RTR
             RTRMinSmoothness[(int)ScalableSettingLevelParameter.Level.Low] = 0.6f;
@@ -150,6 +138,19 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 8;
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 12;
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 16;
+
+            // Fog
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.Low] = FogControl.Balance;
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.Medium] = FogControl.Balance;
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.High] = FogControl.Balance;
+
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.Low] = 0.166f;
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.Medium] = 0.33f;
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.High] = 0.666f;
+
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.Low] = 0.666f;
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.Medium] = 0.666f;
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.High] = 0.50f;
         }
 
         internal static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
@@ -175,20 +176,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public int[] SSRMaxRaySteps = new int[s_QualitySettingCount];
 
         // Screen Space Global Illumination
-        [System.NonSerialized]
         /// <summary>Screen space global illumination step count for the ray marching.</summary>
+        [NonSerialized]
         public int[] SSGIRaySteps = new int[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination's world space maximal radius.</summary>
+        [NonSerialized]
         public float[] SSGIRadius = new float[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination flag to define if the effect is computed at full resolution.</summary>
+        [NonSerialized]
         public bool[] SSGIFullResolution = new bool[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination signal clamping value.</summary>
+        [NonSerialized]
         public float[] SSGIClampValue = new float[s_QualitySettingCount];
-        [System.NonSerialized]
         /// <summary>Screen space global illumination's filter size.</summary>
+        [NonSerialized]
         public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
 
         // Ray Traced Ambient Occlusion
@@ -240,7 +241,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public int[] RTRDenoiserRadius = new int[s_QualitySettingCount];
 
         // TODO: Volumetric fog quality
-
+        /// <summary>Controls which control mode should be used to define the volumetric fog parameters.</summary>
+        public FogControl[] Fog_ControlMode = new FogControl[s_QualitySettingCount];
+        /// <summary>Controls the budget of the volumetric fog effect.</summary>
+        public float[] Fog_Budget = new float[s_QualitySettingCount];
+        /// <summary>Controls how the budget is shared between screen resolution and depth.</summary>
+        public float[] Fog_DepthRatio = new float[s_QualitySettingCount];
         // TODO: Shadows. This needs to be discussed further as there is an idiosyncracy here as we have different level of quality settings,
         //some for resolution per light (4 levels) some per volume (which are 3 levels everywhere). This needs to be discussed more.
 

@@ -82,12 +82,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (s_MeshPool.Count > 0)
                 {
                     mesh = s_MeshPool[s_MeshPool.Count - 1];
+                    mesh.Clear();
                     s_MeshPool.RemoveAt(s_MeshPool.Count - 1);
                 }
+
                 if (mesh == null)
                 {
                     mesh = new Mesh();
                 }
+
                 mesh.CombineMeshes(s_ActiveBatchMeshInstances.ToArray());
                 s_BatchMeshes.Add(s_ActiveShapeMeshBatch, mesh);
             }

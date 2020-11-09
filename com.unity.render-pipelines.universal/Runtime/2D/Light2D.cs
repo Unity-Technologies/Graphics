@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.PlayerLoop;
 using UnityEngine.Serialization;
-using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -56,10 +53,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [Range(0,1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
 
+        [SerializeField]
+        Mesh m_Mesh;
+
         // Transients
         int m_PreviousLightCookieSprite;
         int m_LightMeshHash = 0;
-        Mesh m_Mesh;
 
         internal int lightMeshHash => m_LightMeshHash;
 
@@ -70,7 +69,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
-        internal Mesh lightMesh => m_Mesh;
+        internal Mesh lightMesh
+        {
+            get
+            {
+                if ( null == m_Mesh )
+                    m_Mesh = new Mesh();
+                return m_Mesh;
+            }
+        }
+
+        internal bool hasCachedMesh => ( lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0 );
 
         /// <summary>
         /// The lights current type
@@ -81,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             set
             {
                 if(m_LightType != value)
-                    UpdateMesh();
+                    UpdateMesh(true);
 
                 m_LightType = value;
                 Light2DManager.ErrorIfDuplicateGlobalLight(this);
@@ -125,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal int GetTopMostLitLayer()
         {
-            var largestIndex = -1;
+            var largestIndex = Int32.MinValue;
             var largestLayer = 0;
 
             var layers = Light2DManager.GetCachedSortingLayer();
@@ -135,36 +144,49 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     if (layers[layer].id == m_ApplyToSortingLayers[i])
                     {
-                        largestIndex = i;
+                        largestIndex = layers[layer].value;
                         largestLayer = layer;
                     }
                 }
             }
 
-            if (largestIndex >= 0)
-                return m_ApplyToSortingLayers[largestIndex];
-            else
-                return -1;
+            return largestIndex;
         }
 
-        internal void UpdateMesh()
+        internal void UpdateMesh(bool forceUpdate)
         {
             UpdateHash();
 
-            switch (m_LightType)
+            // Mesh Rebuilding
+            var shapePathHash = LightUtility.GetShapePathHash(shapePath);
+            var fallOffSizeChanged = LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize);
+            var parametricRadiusChanged = LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius);
+            var parametricSidesChanged = LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides);
+            var parametricAngleOffsetChanged = LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset);
+            var spriteInstanceChanged = LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite);
+            var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
+            var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
+            var lightColorChanged = LightUtility.CheckForChange(m_Color, ref m_PreviousColor);
+            var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged || lightColorChanged ||
+                             parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
+
+            if (hashChanged && forceUpdate)
             {
-                case LightType.Freeform:
-                    m_LocalBounds = LightUtility.GenerateShapeMesh(m_Mesh, color, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeOpacity);
-                    break;
-                case LightType.Parametric:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, color, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeOpacity);
-                    break;
-                case LightType.Sprite:
-                    m_LocalBounds = LightUtility.GenerateSpriteMesh(m_Mesh, m_LightCookieSprite);
-                    break;
-                case LightType.Point:
-                    m_LocalBounds = LightUtility.GenerateParametricMesh(m_Mesh, color,1.412135f, 0, 0, 4, falloffIntensity, volumeOpacity);
-                    break;
+				switch(m_LightType)
+				{
+                	case LightType.Freeform:
+	                    m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, color, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeOpacity);
+    	                break;
+        	        case LightType.Parametric:
+            	        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeOpacity);
+                	    break;
+                	case LightType.Sprite:
+                    	m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, m_LightCookieSprite);
+                    	break;
+                	case LightType.Point:
+	                    m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color,1.412135f, 0, 0, 4, falloffIntensity, volumeOpacity);
+    	                break;
+				}
             }
         }
 
@@ -186,13 +208,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool IsLitLayer(int layer)
         {
-            return m_ApplyToSortingLayers != null ? Array.IndexOf(m_ApplyToSortingLayers, layer) >= 0 : false;
+            if (m_ApplyToSortingLayers == null)
+                return false;
+
+            for(var i = 0; i < m_ApplyToSortingLayers.Length; i++)
+                if (m_ApplyToSortingLayers[i] == layer)
+                    return true;
+
+            return false;
         }
 
         private void Awake()
         {
-            m_Mesh = new Mesh();
-            UpdateMesh();
+            UpdateMesh(!hasCachedMesh);
         }
 
         void OnEnable()
@@ -221,6 +249,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightParametricSides.GetHashCode();
                 m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_ShapeLightParametricAngleOffset.GetHashCode();
                 m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_Color.GetHashCode();
+                m_LightMeshHash = m_LightMeshHash * 16777619 ^ m_LightType.GetHashCode();
                 m_LightMeshHash = m_LightMeshHash * 16777619 ^ lightCookieSpriteInstanceID.GetHashCode();
             }
         }
@@ -230,19 +259,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (m_LightType == LightType.Global)
                 return;
 
-            // Mesh Rebuilding
-            if (LightUtility.CheckForChange(m_ShapeLightFalloffSize, ref m_PreviousShapeLightFalloffSize) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricRadius, ref m_PreviousShapeLightParametricRadius) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricSides, ref m_PreviousShapeLightParametricSides) ||
-                LightUtility.CheckForChange(m_ShapeLightParametricAngleOffset, ref m_PreviousShapeLightParametricAngleOffset) ||
-                LightUtility.CheckForChange(m_FalloffIntensity, ref m_PreviousFallOffIntensity) ||
-                LightUtility.CheckForChange(m_LightVolumeOpacity, ref m_PreviousVolumeOpacity) ||
-                LightUtility.CheckForChange(m_Color, ref m_PreviousColor) ||
-                LightUtility.CheckForChange(lightCookieSpriteInstanceID, ref m_PreviousLightCookieSprite))
-            {
-                UpdateMesh();
-            }
-
+            UpdateMesh(true);
             UpdateBoundingSphere();
         }
     }

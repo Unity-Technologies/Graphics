@@ -12,13 +12,12 @@ half4 _BaseColor;
 half4 _EmissionColor;
 half4 _BaseColorAddSubDiff;
 half _Cutoff;
-
 half _Metallic;
 half _Smoothness;
 half _BumpScale;
-
 half _DistortionStrengthScaled;
 half _DistortionBlend;
+half _Surface;
 CBUFFER_END
 
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);

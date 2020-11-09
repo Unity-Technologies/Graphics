@@ -13,9 +13,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         int     m_PreviousShapeLightParametricSides         = -1;
         float   m_PreviousShapeLightParametricAngleOffset   = -1;
         float   m_PreviousShapeLightParametricRadius        = -1;
+        int       m_PreviousShapePathHash                  = -1;
+        LightType m_PreviousLightType                       = LightType.Parametric;
         Color   m_PreviousColor                             = Color.black;
-        float   m_PreviousFallOffIntensity                  = -1;
-        float   m_PreviousVolumeOpacity                     = -1;
 
         public int              shapeLightParametricSides       => m_ShapeLightParametricSides;
         public float            shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;

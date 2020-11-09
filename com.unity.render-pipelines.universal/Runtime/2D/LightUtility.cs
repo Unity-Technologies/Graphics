@@ -11,6 +11,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class LightUtility
     {
+
+        public static bool CheckForChange(Light2D.LightType a, ref Light2D.LightType b)
+        {
+            var changed = a != b;
+            b = a;
+            return changed;
+        }
         public static bool CheckForChange(int a, ref int b)
         {
             var changed = a != b;
@@ -48,7 +55,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             PivotClip
         };
 
-        private struct LightMeshVertex
+        [Serializable]
+        internal struct LightMeshVertex
         {
             public float3 position;
             public Color color;
@@ -348,7 +356,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return mesh.GetSubMesh(0).bounds;
         }
 
-
         public static Bounds GenerateParametricMesh(Mesh mesh, Color lightColor, float radius, float falloffDistance, float angle, int sides, float fallOffIntensity, float volumeOpacity)
         {
             var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
@@ -470,7 +477,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
-#if UNITY_EDITOR
         public static int GetShapePathHash(Vector3[] path)
         {
             unchecked
@@ -490,7 +496,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return hashCode;
             }
         }
-#endif
 
     }
 }

@@ -3,43 +3,84 @@ using System.IO;
 using UnityEditor.ShaderGraph.Serialization;
 using Debug = UnityEngine.Debug;
 using UnityEditor.VersionControl;
+using System.Text;
 
 namespace UnityEditor.ShaderGraph
 {
     static class FileUtilities
     {
-        public static bool WriteShaderGraphToDisk(string path, GraphData data)
+        // if successfully written to disk, returns the serialized file contents as a string
+        // on failure, returns null
+        public static string WriteShaderGraphToDisk(string path, GraphData data)
         {
             if (data == null)
             {
+                // Returning false may be better than throwing this exception, in terms of preserving data.
+                // But if GraphData is null, it's likely we don't have any data to preserve anyways.
+                // So this exception seems fine for now.
                 throw new ArgumentNullException(nameof(data));
             }
 
-            return WriteToDisk(path, MultiJson.Serialize(data));
+            var text = MultiJson.Serialize(data);
+            if (WriteToDisk(path, text))
+                return text;
+            else
+                return null;
         }
 
+        // returns true if successfully written to disk
         public static bool WriteToDisk(string path, string text)
         {
             CheckoutIfValid(path);
 
+            while (true)
+            {
+                try
+                {
+                    File.WriteAllText(path, text);
+                }
+                catch (Exception e)
+                {
+                    if (e.GetBaseException() is UnauthorizedAccessException &&
+                        (File.GetAttributes(path) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                    {
+                        if (EditorUtility.DisplayDialog("File is Read-Only", path, "Make Writeable", "Cancel Save"))
+                        {
+                            // make writeable
+                            FileInfo fileInfo = new FileInfo(path);
+                            fileInfo.IsReadOnly = false;
+                            continue; // retry save
+                        }
+                        else
+                            return false;
+                    }
+
+                    Debug.LogException(e);
+
+                    if (EditorUtility.DisplayDialog("Exception While Saving", e.ToString(), "Retry", "Cancel"))
+                        continue; // retry save
+                    else
+                        return false;
+                }
+                break; // no exception, file save success!
+            }
+
+            return true;
+        }
+
+        // returns contents of the asset file as a string, or null if any error or exception occurred
+        public static string SafeReadAllText(string assetPath)
+        {
+            string result = null;
             try
             {
-                File.WriteAllText(path, text);
+                result = File.ReadAllText(assetPath, Encoding.UTF8);
             }
-            catch (Exception e)
+            catch
             {
-                if (e.GetBaseException() is UnauthorizedAccessException &&
-                    (File.GetAttributes(path) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-                {
-                        FileInfo fileInfo = new FileInfo(path);
-                        fileInfo.IsReadOnly = false;
-                        File.WriteAllText(path, text);
-                        return true;
-                }
-                Debug.LogException(e);
-                return false;
+                result = null;
             }
-            return true;
+            return result;
         }
 
         static void CheckoutIfValid(string path)
