@@ -87,11 +87,12 @@ namespace UnityEngine.Rendering.HighDefinition
             Texture target = null;
             var hd = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
             var settings = probe.settings;
-            var format = (GraphicsFormat)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
             switch (targetMode)
             {
                 case ProbeSettings.Mode.Realtime:
                     {
+                        var format = (GraphicsFormat)hd.currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionProbeFormat;
+
                         switch (settings.type)
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:
@@ -111,6 +112,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ProbeSettings.Mode.Baked:
                 case ProbeSettings.Mode.Custom:
                     {
+                        // Custom and Baked texture only support float16 for now
+                        var format = GraphicsFormat.R16G16B16A16_SFloat;             
+
                         switch (settings.type)
                         {
                             case ProbeSettings.ProbeType.PlanarProbe:

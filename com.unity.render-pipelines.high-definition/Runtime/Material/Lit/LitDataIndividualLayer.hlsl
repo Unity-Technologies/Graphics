@@ -245,13 +245,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     // MaskMap is RGBA: Metallic, Ambient Occlusion (Optional), detail Mask (Optional), Smoothness
 #ifdef _MASKMAP_IDX
     surfaceData.metallic = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).r;
+    surfaceData.metallic = lerp(ADD_IDX(_MetallicRemapMin), ADD_IDX(_MetallicRemapMax), surfaceData.metallic);
     surfaceData.ambientOcclusion = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).g;
     surfaceData.ambientOcclusion = lerp(ADD_IDX(_AORemapMin), ADD_IDX(_AORemapMax), surfaceData.ambientOcclusion);
 #else
-    surfaceData.metallic = 1.0;
+    surfaceData.metallic = ADD_IDX(_Metallic);
     surfaceData.ambientOcclusion = 1.0;
 #endif
-    surfaceData.metallic *= ADD_IDX(_Metallic);
 
     surfaceData.diffusionProfileHash = asuint(ADD_IDX(_DiffusionProfileHash));
     surfaceData.subsurfaceMask = ADD_IDX(_SubsurfaceMask);

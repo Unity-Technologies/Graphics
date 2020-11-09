@@ -435,7 +435,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 #endif
 
-        // Implement IVirtualTexturingEnabledRenderPipeline
+        /// <summary>
+        /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
+        /// </summary>
         public bool virtualTexturingEnabled { get { return true; } }
     }
 }
