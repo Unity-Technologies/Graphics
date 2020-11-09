@@ -2,6 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
@@ -32,7 +33,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define RING_DENSITY 8.0
 #define ADAPTIVE_RADIUS
 //#define OCTAWEB_SORTING
-//#define UNIFORM_WEIGHTS
+#define UNIFORM_WEIGHTS
 
 // Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
 #ifndef OCTAWEB_SORTING
@@ -59,15 +60,18 @@ float GetBucketWeight(float sampleCoC, float noise, int bucket)
     float w1 = saturate((bucketTransition[1] * noise - sampleCoC) / bucketTransition[1]);
     if (bucket == 0)
     {
-        return w0;
+        //return w0;
+        return 1.0;
     }
     else if (bucket == 2)
     {
-        return w1;
+        //return w1;
+        return 0.0;
     }
     else
     {
-        return 1.0 - w0 - w1;
+        //return 1.0 - w0 - w1;
+        return 0.0;
     }
 }
 
@@ -131,7 +135,6 @@ float GetNumSamples(float radius, float maxRadius)
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
-    int bucketIndex = 0;
 
     // Bucket 0 : far focus region
     // Bucket 1 : in focus region
@@ -156,31 +159,22 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     float maxRadius = GetCoCMaxRadius(posInputs.positionSS);
-
     float dR = rcp(NumRings);
+    int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
+    int totalRings = maxRadius > 0 ? NumRings : 0;
 
-    int sampleOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
-    // Note: adjusting pseudo-randomly the sampleOffset for each pixel seems to considerably improve the sampling
-    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, sampleOffset);
-    float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 3 * posInputs.positionSS.x + posInputs.positionSS.y + sampleOffset);
+    // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
+    // Note: We have generated only 4 additional mip levels, so don't go any deeper than that
+    float lod = min(4, log2(2 * PI * maxRadius * rcp(totalRings)));
 
-    // Note: For zero radius we still go through the loop (for one iteration). We can avoid the cost of computing weigths if we early exit (at the cost of extra code complexity).
-    float totalRings = maxRadius > 0 ? NumRings : 0;
+    CTYPE originalColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;
 
-#ifdef ENABLE_ALPHA
-    CTYPE originalColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;;
-#endif
-
-    // Iterate over the octaweb pattern and gather the DoF samples
-    for (float ring = totalRings; ring >= 0; ring -= 1.0)
+    // Gather the DoF samples
+    for (int ring = 0; ring < totalRings; ring += 1)
     {
-        float numSamples = (ring > 0) ? RING_DENSITY : 1;
-        float dAng = 2.0f * PI / numSamples;
-
-        float stratum = max((ring - 1) * dR, 0);
-        float normalizedRadius = (ring > 0) ? stratum + noise2 * dR : 0;
-
-        float ringOffset = noise * dAng;
+        float numSamples = totalRings;
+        float dAng = 2.0f * PI * rcp(numSamples);
+        float stratum = ring * dR;
 
 #ifdef OCTAWEB_SORTING
         float4 ringColor[NUM_BUCKETS];
@@ -200,16 +194,15 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
         }
 #endif
-
-        for (float ang = ringOffset; ang < 2 * PI; ang += dAng)
+        for (int i = 0; i < numSamples; i += 1)
         {
-            float sampleRadius = sqrt(normalizedRadius) * maxRadius;
-            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(ang);
-            sampleTC = clamp(sampleTC, float2(0, 0), _ScreenSize.xy - float2(1, 1));
+            float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * totalRings + i + blueNoiseOffset, 1);
+            float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * totalRings + i + blueNoiseOffset, 0);
+            float normalizedRadius = stratum + r2 * dR;
 
-            // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
-            // Note: We have generated only 4 additional mip levels, so don't go any deeper than that
-            float lod = min(4, log2(2 * PI * sampleRadius * rcp(numSamples)));
+            float sampleRadius = sqrt(normalizedRadius) * maxRadius;
+            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle( (i + r1) * dAng);
+
             CTYPE sampleColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinear(sampleTC * _ScreenSize.zw), lod).CTYPE_SWIZZLE;
             float sampleCoC = GetCoCRadius(sampleTC);
 
@@ -218,10 +211,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 for (int j = 0; j < NUM_BUCKETS; ++j)
                 {
                     float weight = GetSampleWeight(abs(sampleCoC));
-                    float bucketWeight = GetBucketWeight(sampleCoC, noise2, j);
-                    weight *= bucketWeight;
+                    weight *= GetBucketWeight(sampleCoC, r2, j);
                     RING_COLOR[j] += float4(sampleColor.xyz * weight, weight);
-                    RING_MAXCOC[j] = max(RING_MAXCOC[j] * bucketWeight, abs(sampleCoC));
 #ifdef OCTAWEB_SORTING
                     ringHits[j] += bucketWeight;
 #endif
@@ -229,6 +220,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                     RING_ALPHA[j] += sampleColor.w * weight;
 #endif
                 }
+
             }
         }
 
@@ -266,7 +258,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[j];
 #endif
     }
-    outColor.xyz = outColor.xyz * rcp(outColor.w);
+
+    outColor.xyz = outColor.w > 0 ? outColor.xyz * rcp(outColor.w) : originalColor.xyz;
 
 #ifdef ENABLE_ALPHA
     // Preserve the original value of the pixels with zero alpha.

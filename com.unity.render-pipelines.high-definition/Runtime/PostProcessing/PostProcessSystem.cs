@@ -1829,6 +1829,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader pbDoFGatherCS;
             public int pbDoFGatherKernel;
 
+            public BlueNoise.DitheredTextureSet ditheredTextureSet;
+
             public HDCamera camera;
 
             public bool nearLayerActive;
@@ -2019,6 +2021,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DepthOfField.physicallyBased)
             {
                 parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
+                BlueNoise blueNoise = m_HDInstance.GetBlueNoiseManager();
+                parameters.ditheredTextureSet = blueNoise.DitheredTextureSet256SPP();
             }
 
             parameters.useMipSafePath = m_UseSafePath;
@@ -2701,6 +2705,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);
             }
         }
