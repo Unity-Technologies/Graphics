@@ -183,8 +183,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         {
                             if (light.shadowIntensity == 0)
                             {
-                                if (Light2DBatch.sActiveMaterial == null)
+                                if (Light2DBatch.sActiveMaterial == null || lightMaterial != Light2DBatch.sActiveMaterial)
                                 {
+                                    if (Light2DBatch.sActiveMaterial)
+                                        Light2DBatch.EndBatch(cmd);
                                     Light2DBatch.StartBatch(lightMaterial);
                                 }
 
@@ -200,12 +202,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         if (Light2DBatch.sActiveMaterial != null)
                         {
-                            bool isBatched = false;
-                            Material batchedMaterial = null;
-                            Matrix4x4 batchedMatrix = Matrix4x4.identity;
-
-                            Mesh mesh = Light2DBatch.EndBatch(ref isBatched, ref batchedMatrix, ref batchedMaterial);
-                            cmd.DrawMesh(mesh, batchedMatrix, batchedMaterial);
+                            Light2DBatch.EndBatch(cmd);
                         }
                     }
 
@@ -226,12 +223,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Left over Batching
             if (Light2DBatch.sActiveMaterial != null)
             {
-                bool isBatched = false;
-                Material batchedMaterial = null;
-                Matrix4x4 batchedMatrix = Matrix4x4.identity;
-
-                Mesh mesh = Light2DBatch.EndBatch(ref isBatched, ref batchedMatrix, ref batchedMaterial);
-                cmd.DrawMesh(mesh, batchedMatrix, batchedMaterial);
+                Light2DBatch.EndBatch(cmd);
             }
         }
 
@@ -276,8 +268,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         {
                             if (light.shadowIntensity == 0)
                             {
-                                if (Light2DBatch.sActiveMaterial == null)
+                                if (Light2DBatch.sActiveMaterial == null || Light2DBatch.sActiveMaterial != lightVolumeMaterial)
                                 {
+                                    if (Light2DBatch.sActiveMaterial)
+                                        Light2DBatch.EndBatch(cmd);
                                     Light2DBatch.StartBatch(lightVolumeMaterial);
                                 }
 
@@ -293,12 +287,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         if (Light2DBatch.sActiveMaterial != null)
                         {
-                            bool isBatched = false;
-                            Material batchedMaterial = null;
-                            Matrix4x4 batchedMatrix = Matrix4x4.identity;
-
-                            Mesh mesh = Light2DBatch.EndBatch(ref isBatched, ref batchedMatrix, ref batchedMaterial);
-                            cmd.DrawMesh(mesh, batchedMatrix, batchedMaterial);
+                            Light2DBatch.EndBatch(cmd);
                         }
                     }
 
@@ -314,18 +303,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
                     }
                 }
-
-                // Left over Batching
-                if (Light2DBatch.sActiveMaterial != null)
-                {
-                    bool isBatched = false;
-                    Material batchedMaterial = null;
-                    Matrix4x4 batchedMatrix = Matrix4x4.identity;
-
-                    Mesh mesh = Light2DBatch.EndBatch(ref isBatched, ref batchedMatrix, ref batchedMaterial);
-                    cmd.DrawMesh(mesh, batchedMatrix, batchedMaterial);
-                }
             }
+            
+            // Left over Batching
+            if (Light2DBatch.sActiveMaterial != null)
+            {
+                Light2DBatch.EndBatch(cmd);
+            }            
         }
 
         public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)

@@ -64,18 +64,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             s_ActiveShapeMeshBatch.hashCode = s_ActiveShapeMeshBatch.hashCode * 16777619 ^ hashCode;
         }
 
-        internal static Mesh EndBatch(ref bool isBatched, ref Matrix4x4 matrix,  ref Material material)
+        internal static void EndBatch(CommandBuffer cmd)
         {
-            material = s_ActiveMaterial;
+            var material = s_ActiveMaterial;
             s_ActiveMaterial = null;
             if (s_ActiveBatchMeshInstances.Count == 1)
             {
-                isBatched = false;
-                matrix = s_ActiveBatchMeshInstances[0].transform;
-                return s_ActiveBatchMeshInstances[0].mesh;
+                cmd.DrawMesh(s_ActiveBatchMeshInstances[0].mesh, s_ActiveBatchMeshInstances[0].transform, material);
+                return;
             }
-
-            isBatched = true;
+            
             Mesh mesh = null;
             if (!s_BatchMeshes.TryGetValue(s_ActiveShapeMeshBatch, out mesh))
             {
@@ -94,9 +92,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 mesh.CombineMeshes(s_ActiveBatchMeshInstances.ToArray());
                 s_BatchMeshes.Add(s_ActiveShapeMeshBatch, mesh);
             }
-            matrix = Matrix4x4.identity;
+            
             s_ActiveBatchHashes.Add(s_ActiveShapeMeshBatch);
-            return mesh;
+            cmd.DrawMesh(mesh, Matrix4x4.identity, material);
         }
 
         internal static void EndScope()
