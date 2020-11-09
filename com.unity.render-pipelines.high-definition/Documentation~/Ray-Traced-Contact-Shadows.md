@@ -18,7 +18,7 @@ For information about ray tracing in HDRP, and how to set up your HDRP Project t
 
 ## Using Ray-Traced Contact Shadows
 
-Because this feature is an alternative to the [Contact Shadows](Override-Contact-Shadows.md) Volume override, the initial setup is very similar. To setup ray-traced contact shadows, first follow the [Enabling Contact Shadows](Override-Contact-Shadows.md#enabling-contact-shadows) and [Using Contact Shadows](Override-Contact-Shadows.md#using-contact-shadows) steps. After you setup the Contact Shadows override, to use ray tracing:
+Because this feature is an alternative to the [Contact Shadows](Override-Contact-Shadows.md) Volume override, the initial setup is very similar. To setup ray-traced contact shadows, first follow the [Enabling Contact Shadows](Override-Contact-Shadows.md#enabling-contact-shadows) and [Using Contact Shadows](Override-Contact-Shadows.md#using-contact-shadows) steps. After you setup the Contact Shadows override, to make it use ray tracing:
 
 1. In the Frame Settings for your Cameras, enable **Ray Tracing**.
 2. HDRP calculates ray-traced contact shadows on a per-light basis. This means you need to enable it for each light.
