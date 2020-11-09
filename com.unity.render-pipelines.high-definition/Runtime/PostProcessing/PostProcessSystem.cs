@@ -2701,7 +2701,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float mipLevel = 1 + Mathf.Ceil(Mathf.Log(cocLimit, 2));
                 GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, 0.0f, 0.0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
