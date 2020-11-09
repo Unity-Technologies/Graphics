@@ -174,7 +174,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         float numSamples = totalRings;
         float dAng = 2.0f * PI * rcp(numSamples);
-        float stratum = ring * dR;
 
 #ifdef OCTAWEB_SORTING
         float4 ringColor[NUM_BUCKETS];
@@ -198,7 +197,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         {
             float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * totalRings + i + blueNoiseOffset, 1);
             float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * totalRings + i + blueNoiseOffset, 0);
-            float normalizedRadius = stratum + r2 * dR;
+            float normalizedRadius = (ring + r2) * dR;
 
             float sampleRadius = sqrt(normalizedRadius) * maxRadius;
             float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle( (i + r1) * dAng);
@@ -220,7 +219,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                     RING_ALPHA[j] += sampleColor.w * weight;
 #endif
                 }
-
             }
         }
 
@@ -258,7 +256,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[j];
 #endif
     }
-
     outColor.xyz = outColor.w > 0 ? outColor.xyz * rcp(outColor.w) : originalColor.xyz;
 
 #ifdef ENABLE_ALPHA
