@@ -423,6 +423,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
+
             var defaultLensAttenuation = m_DefaultAsset.lensAttenuationMode;
             if (defaultLensAttenuation == LensAttenuationMode.ImperfectLens)
             {
@@ -592,8 +594,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
-
-            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
         }
 
 #if UNITY_EDITOR
@@ -955,7 +955,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
-            }            
+            }
 
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
@@ -1041,7 +1041,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void CleanupNonRenderGraphResources()
         {
             DestroyRenderTextures();
-            m_ShadowManager.CleanupNonRenderGraphResources();
+            m_ShadowManager.CleanupNonRenderGraphResources(m_RenderGraph);
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
             s_lightVolumes.CleanupNonRenderGraphResources();

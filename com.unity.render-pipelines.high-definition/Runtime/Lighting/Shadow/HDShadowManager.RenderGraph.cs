@@ -147,6 +147,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class HDShadowAtlas
     {
+        protected TextureHandle m_Output;
+
+        protected void InitializeRenderGraphOutput(RenderGraph renderGraph)
+        {
+
+        }
+
+        protected void CleanupRenderGraphOutput(RenderGraph renderGraph)
+        {
+
+        }
+
 
         public TextureDesc GetTextureDesc(bool clearBuffer = false)
         {

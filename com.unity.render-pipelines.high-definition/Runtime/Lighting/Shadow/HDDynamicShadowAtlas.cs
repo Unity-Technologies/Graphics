@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -12,12 +12,18 @@ namespace UnityEngine.Rendering.HighDefinition
         float m_RcpScaleFactor = 1;
         HDShadowResolutionRequest[] m_SortedRequestsCache;
 
-        public HDDynamicShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
-            : base(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name)
+        public HDDynamicShadowAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+            : base(renderPipelineResources, renderGraph, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name)
         {
             m_SortedRequestsCache = new HDShadowResolutionRequest[Mathf.CeilToInt(maxShadowRequests)];
+
+            InitializeRenderGraphOutput(renderGraph);
         }
 
+        public void Cleanup(RenderGraph renderGraph)
+        {
+            CleanupRenderGraphOutput(renderGraph);
+        }
 
         internal void ReserveResolution(HDShadowResolutionRequest shadowRequest)
         {

@@ -823,10 +823,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitShadowSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
             m_ShadowInitParameters = hdAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            m_ShadowManager = HDShadowManager.instance;
+            m_ShadowManager = new HDShadowManager();
             m_ShadowManager.InitShadowManager(
                 defaultResources,
                 m_ShadowInitParameters,
+                m_RenderGraph,
                 defaultResources.shaders.shadowClearPS
             );
         }
@@ -835,7 +836,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if(m_ShadowManager != null)
             {
-                m_ShadowManager.Dispose();
+                m_ShadowManager.Cleanup(m_RenderGraph);
                 m_ShadowManager = null;
             }
         }
@@ -3081,7 +3082,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int i = 0;
             while(totalNumberOfGroupsNeeded > 0)
             {
-                countAndOffset.y = maxAllowedGroups * i;                
+                countAndOffset.y = maxAllowedGroups * i;
                 cmd.SetComputeVectorParam(parameters.clearLightListCS, HDShaderIDs._LightListEntriesAndOffset, countAndOffset);
 
                 int currGroupCount = Math.Min(maxAllowedGroups, totalNumberOfGroupsNeeded);
