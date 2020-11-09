@@ -14,7 +14,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests"
 platforms:
   - name: Win
     apis:
@@ -39,7 +39,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
