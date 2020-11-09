@@ -25,7 +25,7 @@ editor_tracks: # specifies tracks which go in _latest_editor_versions: this must
 
 
 # Paths relative to the root. Use forward slashes as directory separators.
-editor_versions_file: .yamato/config/_latest_editor_versions_TRACK.metafile
+editor_versions_file: .yamato/_latest_editor_versions_TRACK.metafile
 ruamel_build_file: .yamato/ruamel/build.py
 yml_files_path: .yamato/*.yml
 
