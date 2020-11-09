@@ -284,7 +284,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         ? s_FovLastValue
                         : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
                 }
-                else if (s_FovChanged && (isPhysicalCamera && !p.projectionMatrixMode.hasMultipleDifferentValues))
+                else if (s_FovChanged && isPhysicalCamera && !p.projectionMatrixMode.hasMultipleDifferentValues)
                 {
                     // If we have a physical camera, we should also update the focal length here, because the
                     // Drawer_PhysicalCamera will not be executed if the physical camera fold-out is closed
