@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             	        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeOpacity);
                 	    break;
                 	case LightType.Sprite:
-                    	m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, color, m_LightCookieSprite);
+                    	m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, color * intensity, m_LightCookieSprite);
                     	break;
                 	case LightType.Point:
 	                    m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, volumeOpacity);
