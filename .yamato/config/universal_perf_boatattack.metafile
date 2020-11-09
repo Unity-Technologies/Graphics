@@ -19,6 +19,8 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
       - [all]: --category=URP
+      - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+      - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -47,6 +49,8 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       - [iPhone_Metal]: --platform=iOS
+      - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+      - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
 platforms:
   - name: Win
     apis:
