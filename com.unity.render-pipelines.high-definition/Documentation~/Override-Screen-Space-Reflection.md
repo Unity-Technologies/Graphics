@@ -24,8 +24,6 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
-
-
 The properties visible in the Inspector change depending on whether or not you enable ray tracing for this effect:
 
 * To not use ray tracing and instead use the screen-space reflection solution, disable **Ray Tracing** in the Inspector and see [Screen-space](#screen-space) for the list of properties.
@@ -37,7 +35,7 @@ The properties visible in the Inspector change depending on whether or not you e
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Enable**                    | Indicates whether HDRP processes SSR for Cameras in the influence of this effect's Volume . |
+| **Enable**                    | Indicates whether HDRP processes SSR for Cameras in the influence of this effect's Volume. |
 | **Ray Tracing**               | Indicates whether HDRP uses ray tracing to calculate reflections. If you enable this property, it completely changes the implementation for this Volume override and exposes a new set of properties to control the ray-traced reflections.<br/>For information on ray-traced reflections, see [ray-traced reflection](Ray-Traced-Reflections.md).<br/>For information on the properties that control the ray-traced reflections, see the [Ray-traced](#ray-traced) properties section below. |
 | **Algorithm**                 | Specifies the algorithm to use for the screen-space reflection effect. The options are:<br/>&#8226; **Approximation**: Approximates screen-space reflection to quickly calculate a result. This solution is less precise than **PBR Accumulation**, particularly for rough surfaces, but is less resource intensive.<br/>&#8226; **PBR Accumulation**: Accumulates multiple frames to calculate a more accurate result. You can control the amount of accumulation using **Accumulation Factor**. This solution might produce more ghosting than **Approximation**, due to the accumulation, and is also more resources intensive. HDRP does not apply this algorithm to transparent material and instead always uses **Approximation**. |
 | **Minimum Smoothness**        | Use the slider to set the minimum amount of surface smoothness at which HDRP performs SSR tracing. Lower values result in HDRP performing SSR tracing for less smooth GameObjects. If the smoothness value of the pixel is lower than this value, HDRP falls back to the next available reflection method in the [reflection hierarchy](Reflection-in-HDRP.md#ReflectionHierarchy). |
