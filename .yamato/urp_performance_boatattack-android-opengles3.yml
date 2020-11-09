@@ -31,9 +31,9 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_trunk:
+Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk:
     name: Build URP_Performance_BoatAttack on Android_OpenGLES3_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -157,9 +157,9 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-REVISION:
+Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on Android_OpenGLES3_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
