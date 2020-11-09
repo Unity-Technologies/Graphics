@@ -53,11 +53,6 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
-    // Init in debug display mode to quiet warning
-#ifdef OUTPUT_SPLIT_LIGHTING
-    outDiffuseLighting = 0;
-    ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
-#endif
 
     // Same code in ShaderPassForwardUnlit.shader
     // Reminder: _DebugViewMaterialArray[i]
@@ -101,6 +96,19 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
         outColor = float4(result, 1.0);
     }
 
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_DIFFUSE_COLOR || _DebugFullScreenMode == FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR)
+    {
+        float3 result = float3(0.0, 0.0, 0.0);
+
+        GetPBRValidatorDebug(surfaceData, result);
+
+        outColor = float4(result, 1.0f);
+    }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    {
+        float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
+        outColor = result;
+    }
 
 #ifdef PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER
     if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
