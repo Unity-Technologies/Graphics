@@ -13,25 +13,46 @@ namespace UnityEngine.Rendering.Universal.Tests
         GameObject m_TestObject3;
         GameObject m_TestObject4;
         GameObject m_TestObjectCached;
+        GameObject m_TestObjectBatched1;
+        GameObject m_TestObjectBatched2;
+        GameObject m_Camera;
 
+        Renderer2DData m_Data;
+        RenderPipelineAsset currentAsset;
+            
         [SetUp]
         public void Setup()
         {
+            currentAsset = GraphicsSettings.renderPipelineAsset;
+            
+            m_Data = ScriptableObject.CreateInstance<Renderer2DData>();
+            GraphicsSettings.renderPipelineAsset = UniversalRenderPipelineAsset.Create(m_Data);
+
             m_TestObject1 = new GameObject("Test Object 1");
             m_TestObject2 = new GameObject("Test Object 2");
             m_TestObject3 = new GameObject("Test Object 3");
             m_TestObject4 = new GameObject("Test Object 4");
             m_TestObjectCached = new GameObject("Test Object Cached");
+            m_TestObjectBatched1 = new GameObject("Test Object Batched 1");
+            m_TestObjectBatched2 = new GameObject("Test Object Batched 2");
+
+            m_Camera = new GameObject("Main Camera");
+            m_Camera.AddComponent<Camera>();
         }
 
         [TearDown]
         public void Cleanup()
         {
+            Object.DestroyImmediate(m_Camera);
+            Object.DestroyImmediate(m_TestObjectBatched2);
+            Object.DestroyImmediate(m_TestObjectBatched1);
             Object.DestroyImmediate(m_TestObjectCached);
             Object.DestroyImmediate(m_TestObject4);
             Object.DestroyImmediate(m_TestObject3);
             Object.DestroyImmediate(m_TestObject2);
             Object.DestroyImmediate(m_TestObject1);
+            
+            GraphicsSettings.renderPipelineAsset = currentAsset;
         }
 
         [Test]
@@ -140,5 +161,247 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.AreNotEqual(vertexCount, light.lightMesh.triangles.Length);
             Assert.AreNotEqual(triangleCount, light.lightMesh.vertices.Length);
         }
+        
+        [UnityTest]
+        public IEnumerator OnDisableRendererDataBatching_DisablesBatching()
+        {
+            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rendererData = asset.scriptableRendererData as Renderer2DData;
+            
+            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
+            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
+            
+            rendererData.enableBatching = false;
+            light1.lightType = Light2D.LightType.Freeform;
+            light1.SetShapePath(shapePath);
+            light1.UpdateMesh(true);
+            light2.lightType = Light2D.LightType.Freeform;
+            light2.SetShapePath(shapePath);
+            light2.UpdateMesh(true);
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;            
+
+            Assert.AreEqual(0, Light2DBatch.sBatchCount);
+        }
+        
+        [UnityTest]
+        public IEnumerator OnEnableRendererDataBatching_EnablesBatching_AdditiveStyle()
+        {
+            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rendererData = asset.scriptableRendererData as Renderer2DData;
+            
+            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
+            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
+            
+            rendererData.enableBatching = true;
+            light1.lightType = Light2D.LightType.Freeform;
+            light1.SetShapePath(shapePath);
+            light1.UpdateMesh(true);
+            light2.lightType = Light2D.LightType.Freeform;
+            light2.SetShapePath(shapePath);
+            light2.UpdateMesh(true);
+            
+            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
+            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
+            m_Data.SetLightBlendStyle(style, 0);            
+
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;            
+            
+            Assert.AreEqual(1, Light2DBatch.sBatchCount);
+        }     
+        
+        [UnityTest]
+        public IEnumerator OnEnableRendererDataBatching_DisablesBatching_MultiplicativeStyle()
+        {
+            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rendererData = asset.scriptableRendererData as Renderer2DData;
+            
+            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
+            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
+            
+            rendererData.enableBatching = true;
+            light1.lightType = Light2D.LightType.Freeform;
+            light1.SetShapePath(shapePath);
+            light1.UpdateMesh(true);
+            light2.lightType = Light2D.LightType.Freeform;
+            light2.SetShapePath(shapePath);
+            light2.UpdateMesh(true);
+            
+            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
+            style.blendMode = Light2DBlendStyle.BlendMode.Multiply;
+            m_Data.SetLightBlendStyle(style, 0);            
+
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;            
+            
+            Assert.AreEqual(0, Light2DBatch.sBatchCount);
+        }             
+     
+        [UnityTest]
+        public IEnumerator BatchingCachesMesh_IfThereAreNoChanges()
+        {
+            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rendererData = asset.scriptableRendererData as Renderer2DData;
+            
+            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
+            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
+            int meshCount = 0;
+            
+            rendererData.enableBatching = true;
+            light1.lightType = Light2D.LightType.Freeform;
+            light1.SetShapePath(shapePath);
+            light1.UpdateMesh(true);
+            light2.lightType = Light2D.LightType.Freeform;
+            light2.SetShapePath(shapePath);
+            light2.UpdateMesh(true);
+            
+            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
+            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
+            m_Data.SetLightBlendStyle(style, 0);
+
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+
+            meshCount = Light2DBatch.sMeshCount;
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+            
+            Assert.AreEqual(meshCount, Light2DBatch.sMeshCount);
+        }           
+        
+        [UnityTest]
+        public IEnumerator BatchingRegeneratesMesh_IfThereAreChangesInTransform()
+        {
+            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rendererData = asset.scriptableRendererData as Renderer2DData;
+            
+            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
+            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
+            int meshCount = 0;
+            
+            rendererData.enableBatching = true;
+            light1.lightType = Light2D.LightType.Freeform;
+            light1.SetShapePath(shapePath);
+            light1.UpdateMesh(true);
+            light2.lightType = Light2D.LightType.Freeform;
+            light2.SetShapePath(shapePath);
+            light2.UpdateMesh(true);
+            
+            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
+            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
+            m_Data.SetLightBlendStyle(style, 0);
+
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+
+            light2.transform.position = new Vector3(0, 0, 100.0f);
+            meshCount = Light2DBatch.sMeshCount;
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+            
+            Assert.AreNotEqual(meshCount, Light2DBatch.sMeshCount);
+            meshCount = Light2DBatch.sMeshCount;
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+            
+            Assert.AreEqual(meshCount, Light2DBatch.sMeshCount);            
+        }              
+        
+        [UnityTest]
+        public IEnumerator BatchingRegeneratesMesh_IfThereAreChangesOnPath()
+        {
+            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rendererData = asset.scriptableRendererData as Renderer2DData;
+            
+            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
+            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
+            int meshCount = 0;
+            
+            rendererData.enableBatching = true;
+            light1.lightType = Light2D.LightType.Freeform;
+            light1.SetShapePath(shapePath);
+            light1.UpdateMesh(true);
+            light2.lightType = Light2D.LightType.Freeform;
+            light2.SetShapePath(shapePath);
+            light2.UpdateMesh(true);
+            
+            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
+            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
+            m_Data.SetLightBlendStyle(style, 0);
+
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+
+            var shapePath2 = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 2, 0) };
+            light2.SetShapePath(shapePath2);
+            light2.UpdateMesh(true);
+            meshCount = Light2DBatch.sMeshCount;
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+            
+            Assert.AreNotEqual(meshCount, Light2DBatch.sMeshCount);
+            meshCount = Light2DBatch.sMeshCount;
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+            
+            Assert.AreEqual(meshCount, Light2DBatch.sMeshCount);            
+        }           
+        
+        [UnityTest]
+        public IEnumerator BatchingRegeneratesMesh_IfThereAreChangesInParameters()
+        {
+            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+            var rendererData = asset.scriptableRendererData as Renderer2DData;
+            
+            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
+            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
+            int meshCount = 0;
+            
+            rendererData.enableBatching = true;
+            light1.lightType = Light2D.LightType.Freeform;
+            light1.SetShapePath(shapePath);
+            light1.UpdateMesh(true);
+            light2.lightType = Light2D.LightType.Freeform;
+            light2.SetShapePath(shapePath);
+            light2.UpdateMesh(true);
+            
+            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
+            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
+            m_Data.SetLightBlendStyle(style, 0);
+
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+
+            light2.color = Color.grey;
+            meshCount = Light2DBatch.sMeshCount;
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+            
+            Assert.AreNotEqual(meshCount, Light2DBatch.sMeshCount);
+            meshCount = Light2DBatch.sMeshCount;
+            
+            m_Camera.GetComponent<Camera>().Render();
+            yield return null;
+            
+            Assert.AreEqual(meshCount, Light2DBatch.sMeshCount);            
+        }                   
+        
     }
+
 }

@@ -185,6 +185,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             {
                                 if (Light2DBatch.sActiveMaterial == null || lightMaterial != Light2DBatch.sActiveMaterial)
                                 {
+                                    // If this is not the same material, end any previous valid batch.
                                     if (Light2DBatch.sActiveMaterial)
                                         Light2DBatch.EndBatch(cmd);
                                     Light2DBatch.StartBatch(lightMaterial);
@@ -202,6 +203,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         if (Light2DBatch.sActiveMaterial != null)
                         {
+                            // Did not batch for this iteration, end if needed.
                             Light2DBatch.EndBatch(cmd);
                         }
                     }
@@ -223,6 +225,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Left over Batching
             if (Light2DBatch.sActiveMaterial != null)
             {
+                // End of loop. Render if a batch was active during end of loop.
                 Light2DBatch.EndBatch(cmd);
             }
         }
@@ -270,6 +273,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             {
                                 if (Light2DBatch.sActiveMaterial == null || Light2DBatch.sActiveMaterial != lightVolumeMaterial)
                                 {
+                                    // If this is not the same material, end any previous valid batch.
                                     if (Light2DBatch.sActiveMaterial)
                                         Light2DBatch.EndBatch(cmd);
                                     Light2DBatch.StartBatch(lightVolumeMaterial);
@@ -287,6 +291,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         if (Light2DBatch.sActiveMaterial != null)
                         {
+                            // Did not batch for this iteration, end if needed.
                             Light2DBatch.EndBatch(cmd);
                         }
                     }
@@ -308,6 +313,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Left over Batching
             if (Light2DBatch.sActiveMaterial != null)
             {
+                // End of loop. Render if a batch was active during end of loop.
                 Light2DBatch.EndBatch(cmd);
             }            
         }

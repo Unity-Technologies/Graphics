@@ -33,10 +33,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static Material s_ActiveMaterial = null;
 
+        static int s_Batches = 0;
+        
+        static int s_MeshCombined = 0;
         internal static Material sActiveMaterial => s_ActiveMaterial;
+        
+        internal static int sBatchCount => s_Batches;
+        
+        internal static int sMeshCount => s_MeshCombined;
 
         internal static void StartScope()
         {
+            s_Batches = 0;
             s_ActiveBatchHashes.Clear();
         }
 
@@ -62,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             s_ActiveShapeMeshBatch.endHash = hashCode;
             s_ActiveShapeMeshBatch.meshCount = s_ActiveShapeMeshBatch.meshCount + 1;
             s_ActiveShapeMeshBatch.hashCode = s_ActiveShapeMeshBatch.hashCode * 16777619 ^ hashCode;
+            s_ActiveShapeMeshBatch.hashCode = s_ActiveShapeMeshBatch.hashCode * 16777619 ^ transform.localToWorldMatrix.GetHashCode();
         }
 
         internal static void EndBatch(CommandBuffer cmd)
@@ -89,12 +98,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     mesh = new Mesh();
                 }
 
+                s_MeshCombined++;
                 mesh.CombineMeshes(s_ActiveBatchMeshInstances.ToArray());
                 s_BatchMeshes.Add(s_ActiveShapeMeshBatch, mesh);
             }
             
             s_ActiveBatchHashes.Add(s_ActiveShapeMeshBatch);
             cmd.DrawMesh(mesh, Matrix4x4.identity, material);
+            s_Batches++;
         }
 
         internal static void EndScope()
