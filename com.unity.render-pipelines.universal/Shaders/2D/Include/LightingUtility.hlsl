@@ -17,7 +17,7 @@
             
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
-            half3 normalUnpacked = UnpackNormal(normal);\
+            half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
             lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
     #else
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
@@ -31,7 +31,7 @@
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
-            half3 normalUnpacked = UnpackNormal(normal);\
+            half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
             half3 dirToLight;\
             dirToLight.xy = _LightPosition.xy - input.positionWS.xy;\
             dirToLight.z =  _LightZDistance;\
