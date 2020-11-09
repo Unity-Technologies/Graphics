@@ -1,16 +1,13 @@
+using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
-using UnityEngine.XR;
-using UnityEngine.XR.Management;
-using UnityEngine.TestTools.Graphics;
-using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using UnityEngine.TestTools.Graphics;
+using UnityEngine.XR;
 
 public class UniversalGraphicsTests
 {
@@ -87,7 +84,7 @@ public class UniversalGraphicsTests
 
     int ConfigureXR(bool xrCompatible, ImageComparisonSettings settings)
     {
-#if ENABLE_VR
+#if ENABLE_VR && USE_XR_MOCK_HMD
         if (xrCompatible)
         {
             Debug.Log("Testing XR code path with MockHMD.");
@@ -123,6 +120,8 @@ public class UniversalGraphicsTests
 
         // XR plugin MockHMD requires a few frames to resize eye textures
         return 4;
+#else
+        return 0;
 #endif
     }
 

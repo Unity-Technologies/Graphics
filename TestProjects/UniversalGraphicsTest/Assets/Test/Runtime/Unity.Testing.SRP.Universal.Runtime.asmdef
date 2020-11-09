@@ -1,5 +1,6 @@
 {
     "name": "UniversalGraphicsTests",
+    "rootNamespace": "",
     "references": [
         "GUID:c081bc530f560634bb5c21d4b323a7f1",
         "GUID:e18141520846dcc44b725b2f74e91229",
@@ -22,5 +23,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": []
+    "versionDefines": [
+        {
+            "name": "com.unity.xr.mock-hmd",
+            "expression": "1.2.0-preview.1",
+            "define": "USE_XR_MOCK_HMD"
+        }
+    ],
+    "noEngineReferences": false
 }
