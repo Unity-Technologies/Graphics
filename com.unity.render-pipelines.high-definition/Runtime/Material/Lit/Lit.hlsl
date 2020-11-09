@@ -405,7 +405,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     float metallic = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
 
     bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
-    bsdfData.fresnel0     = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
+    bsdfData.fresnel0     = HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor :
+                                                                                                             // Clamping to 0.02 in case of metallic to avoid killing specular.
+                                                                                                             min(ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE), 0.02f);
 
     // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
     // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
@@ -649,7 +651,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         {
             // Convert from the metallic parametrization.
             diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, surfaceData.metallic);
-            fresnel0     = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
+            // Clamping in case of metallic to avoid killing specular.
+            fresnel0     = min(ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE), 0.02f);
         }
 
         outGBuffer0.rgb = diffuseColor;               // sRGB RT
@@ -849,7 +852,8 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
         UnpackFloatInt8bit(inGBuffer2.b, 8, metallic, unused);
 
         bsdfData.diffuseColor = ComputeDiffuseColor(baseColor, metallic);
-        bsdfData.fresnel0     = ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE);
+        // Clamping in case of metallic to avoid killing specular.
+        bsdfData.fresnel0     = min(ComputeFresnel0(baseColor, metallic, DEFAULT_SPECULAR_VALUE), 0.02);
     }
     else
     {
@@ -1121,8 +1125,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Handle IBL + area light + multiscattering.
     // Note: use the not modified by anisotropy iblPerceptualRoughness here.
     float specularReflectivity;
+#if HAS_REFRACTION
+    // With refraction fresnel0 is computed from IOR hence it might reach below 2%, but in that case is not necessarily to kill specular, hence we use a neutral F90
+    float F90 = 1.0f;
+#else
     // This F90 term can be used as a way to suppress completely specular when using the specular workflow.
     float F90 = saturate(50.0f * dot(bsdfData.fresnel0, 0.333f));
+#endif
     GetPreIntegratedFGDGGXAndDisneyDiffuse(clampedNdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, F90, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.diffuseFGD = 1.0;
@@ -1297,7 +1306,13 @@ CBSDF EvaluateBSDF(float3 V, float3 L, PreLightData preLightData, BSDFData bsdfD
     GetBSDFAngle(V, L, NdotL, NdotV, LdotV, NdotH, LdotH, invLenLV);
 
     // This F90 term can be used as a way to suppress completely specular when using the specular workflow.
+#if HAS_REFRACTION
+    // With refraction fresnel0 is computed from IOR hence it might reach below 2%, but in that case is not necessarily to kill specular, hence we use a neutral F90
+    float F90 = 1.0f;
+#else
+    // This F90 term can be used as a way to suppress completely specular when using the specular workflow.
     float F90 = saturate(50.0f * dot(bsdfData.fresnel0, 0.333f));
+#endif
     float3 F = F_Schlick(bsdfData.fresnel0, F90, LdotH);
     // Remark: Fresnel must be use with LdotH angle. But Fresnel for iridescence is expensive to compute at each light.
     // Instead we use the incorrect angle NdotV as an approximation for LdotH for Fresnel evaluation.
