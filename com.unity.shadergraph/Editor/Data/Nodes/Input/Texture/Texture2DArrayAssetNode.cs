@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
     class Minimal2dArrayTextureAssetNode : IHasDependencies
     {
         [SerializeField]
-        private SerializableTextureArray m_Texture;
+        private SerializableTextureArray m_Texture = null;
 
         public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {

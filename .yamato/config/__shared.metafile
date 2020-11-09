@@ -139,6 +139,7 @@ test_platforms:
       - [all]: --platform=editmode
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [iPhone_Metal]: --platform=iOS
       
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
@@ -156,6 +157,12 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+
+      - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
+      - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
+      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
       
 platforms:
   Win:
