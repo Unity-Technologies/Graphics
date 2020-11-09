@@ -2,6 +2,8 @@
 
 The **Screen Space Illumination** (SSGI) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate diffuse light bounces.
 
+HDRP implements [ray-traced global illumination](Ray-Traced-Global-Illumination.md) on top of this override. This means that the properties visible in the Inspector change depending on whether or not you enable ray tracing. 
+
 ![](Images/HDRPFeatures-SSGI.png)
 
 ## Enabling Screen Space Global Illumination
