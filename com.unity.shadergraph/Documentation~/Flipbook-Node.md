@@ -13,9 +13,9 @@ UV data is typically in the range of 0 to 1 starting from the bottom left of UV 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
-| Width      | Input | Vector 1 | None | Amount of horizontal tiles |
-| Height      | Input | Vector 1 | None | Amount of vertical tiles |
-| Tile      | Input | Vector 1 | None | Current tile index |
+| Width      | Input | Float    | None | Amount of horizontal tiles |
+| Height      | Input | Float    | None | Amount of vertical tiles |
+| Tile      | Input | Float    | None | Current tile index |
 | Out | Output      |    Vector 2 | None | Output UV value |
 
 ## Controls

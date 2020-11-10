@@ -289,10 +289,10 @@ MonoBehaviour:
       m_Root: 5
       m_Leaf: C:/Users/pydon/Desktop/Image Sequence
       m_ForceAssetFolder: 0
+      m_AbsolutePath: 
     m_FileName: image_<Frame>
   outputFormat: 1
   captureAlpha: 0
-  captureHDR: 0
   m_ImageInputSelector:
     m_Selected: gameViewInputSettings
     gameViewInputSettings:
@@ -348,6 +348,7 @@ MonoBehaviour:
       cameraTag: 
       colorSpace: 0
       flipFinalOutput: 0
+  m_ColorSpace: 1
 --- !u!114 &-7173846661789697959
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -782,10 +783,19 @@ MonoBehaviour:
       m_Root: 0
       m_Leaf: Recordings
       m_ForceAssetFolder: 0
+      m_AbsolutePath: 
     m_FileName: movie
   outputFormat: 0
   videoBitRateMode: 2
   captureAlpha: 0
+  containerFormatSelected: 0
+  encoderSelected: 0
+  encoderPresetSelected: 0
+  encoderPresetSelectedName: 
+  encoderPresetSelectedOptions: 
+  encoderPresetSelectedSuffixes: 
+  encoderColorDefinitionSelected: 0
+  encoderCustomOptions: 
   m_ImageInputSelector:
     m_Selected: gameViewInputSettings
     gameViewInputSettings:
@@ -886,10 +896,10 @@ MonoBehaviour:
       m_Root: 5
       m_Leaf: C:/Users/pydon/Desktop/Image Sequence
       m_ForceAssetFolder: 0
+      m_AbsolutePath: 
     m_FileName: image_<Frame>
   outputFormat: 1
   captureAlpha: 0
-  captureHDR: 0
   m_ImageInputSelector:
     m_Selected: gameViewInputSettings
     gameViewInputSettings:
@@ -945,6 +955,7 @@ MonoBehaviour:
       cameraTag: 
       colorSpace: 0
       flipFinalOutput: 0
+  m_ColorSpace: 1
 --- !u!114 &-4487142523796156789
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3273,10 +3284,19 @@ MonoBehaviour:
       m_Root: 5
       m_Leaf: C:/Users/pydon/Videos/HDRP Template
       m_ForceAssetFolder: 0
+      m_AbsolutePath: 
     m_FileName: movie
   outputFormat: 0
   videoBitRateMode: 2
   captureAlpha: 0
+  containerFormatSelected: 0
+  encoderSelected: 0
+  encoderPresetSelected: 0
+  encoderPresetSelectedName: 
+  encoderPresetSelectedOptions: 
+  encoderPresetSelectedSuffixes: 
+  encoderColorDefinitionSelected: 0
+  encoderCustomOptions: 
   m_ImageInputSelector:
     m_Selected: gameViewInputSettings
     gameViewInputSettings:

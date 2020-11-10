@@ -18,22 +18,30 @@
     #define COMPARE_DEPTH(a, b) step(a, b)
 #endif
 
+float2 ClampAndScaleForBilinearWithCustomScale(float2 uv, float2 scale)
+{
+    float2 maxCoord = 1.0f - _ScreenSize.zw;
+    return min(uv, maxCoord) * scale;
+}
 
 float3 Fetch(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0).xyz;
 }
 
 float4 Fetch4(TEXTURE2D_X(tex), float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_X_LOD(tex, s_linear_clamp_sampler, uv, 0);
 }
 
 float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, float2 scale)
 {
-    float2 uv = (coords + offset * _ScreenSize.zw) * scale;
+    float2 uv = (coords + offset * _ScreenSize.zw);
+    uv = ClampAndScaleForBilinearWithCustomScale(uv, scale);
     return SAMPLE_TEXTURE2D_ARRAY_LOD(tex, s_linear_clamp_sampler, uv, slot, 0);
 }
 
@@ -306,7 +314,7 @@ float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture)
     // TODO: This needs some refinement, it can lead to some annoying flickering coming back on strong camera movement.
 #if VELOCITY_REJECTION
 
-    float prevMVLen = Fetch(VelocityMagnitudeTexture, prevUV, 0, _RTHandleScaleHistory.xy).x;
+    float prevMVLen = Fetch(VelocityMagnitudeTexture, prevUV, 0, _RTHandleScaleHistory.zw).x;
     float diff = abs(mvLen - prevMVLen);
 
     // We don't start rejecting until we have the equivalent of around 40 texels in 1080p
@@ -325,7 +333,7 @@ float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture)
 
 CTYPE HistoryBilinear(TEXTURE2D_X(HistoryTexture), float2 UV)
 {
-    CTYPE color = Fetch4(HistoryTexture, UV, 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
+    CTYPE color = Fetch4(HistoryTexture, UV, 0.0, _RTHandleScaleHistory.zw).CTYPE_SWIZZLE;
     return color;
 }
 
@@ -351,11 +359,11 @@ CTYPE HistoryBicubic5Tap(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
     float2 tc3 = historyBufferInfo.zw   * (tc1 + 2.0);
     float2 tc12 = historyBufferInfo.zw  * (tc1 + w2 / w12);
 
-    CTYPE s0 = Fetch4(HistoryTexture, float2(tc12.x, tc0.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
-    CTYPE s1 = Fetch4(HistoryTexture, float2(tc0.x, tc12.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
-    CTYPE s2 = Fetch4(HistoryTexture, float2(tc12.x, tc12.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
-    CTYPE s3 = Fetch4(HistoryTexture, float2(tc3.x, tc0.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
-    CTYPE s4 = Fetch4(HistoryTexture, float2(tc12.x, tc3.y), 0.0, _RTHandleScaleHistory.xy).CTYPE_SWIZZLE;
+    CTYPE s0 = Fetch4(HistoryTexture, float2(tc12.x, tc0.y), 0.0, _RTHandleScaleHistory.zw).CTYPE_SWIZZLE;
+    CTYPE s1 = Fetch4(HistoryTexture, float2(tc0.x, tc12.y), 0.0, _RTHandleScaleHistory.zw).CTYPE_SWIZZLE;
+    CTYPE s2 = Fetch4(HistoryTexture, float2(tc12.x, tc12.y), 0.0, _RTHandleScaleHistory.zw).CTYPE_SWIZZLE;
+    CTYPE s3 = Fetch4(HistoryTexture, float2(tc3.x, tc0.y), 0.0, _RTHandleScaleHistory.zw).CTYPE_SWIZZLE;
+    CTYPE s4 = Fetch4(HistoryTexture, float2(tc12.x, tc3.y), 0.0, _RTHandleScaleHistory.zw).CTYPE_SWIZZLE;
 
     float cw0 = (w12.x * w0.y);
     float cw1 = (w0.x * w12.y);

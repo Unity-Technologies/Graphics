@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
-            return true;
+            return base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

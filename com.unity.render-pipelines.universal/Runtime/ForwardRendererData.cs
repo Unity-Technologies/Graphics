@@ -46,17 +46,14 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
-            [Reload("Shaders/Utils/TileDepthInfo.shader")]
-            public Shader tileDepthInfoPS;
-
-            [Reload("Shaders/Utils/TileDeferred.shader")]
-            public Shader tileDeferredPS;
-
             [Reload("Shaders/Utils/StencilDeferred.shader")]
             public Shader stencilDeferredPS;
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            [Reload("Shaders/Utils/MaterialError.shader")]
+            public Shader materialErrorPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]
