@@ -32,8 +32,8 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 // A set of Defines to fine-tune the algorithm
 #define NUM_BUCKETS 3
-#define RING_DENSITY 8.0
 #define ADAPTIVE_RADIUS
+#define STRATIFY
 //#define OCTAWEB_SORTING
 //#define UNIFORM_WEIGHTS
 
@@ -126,14 +126,6 @@ float2 PointInCircle(float angle)
     return float2(cos(angle), sin(angle)) * float2 (1 - Anamorphism, 1 + Anamorphism);
 }
 
-float GetNumSamples(float radius, float maxRadius)
-{
-    float dR = maxRadius / NumRings;
-    float rings = (dR == 0) ? 0 : floor(radius / dR);
-    float seriesSum = 0.5 * rings * (rings + 1);
-    return 1.0 + seriesSum * RING_DENSITY;
-}
-
 [numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -170,16 +162,15 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     
     float dR = rcp(NumRings);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
-    int totalRings = maxRadius > 0 ? NumRings : 0;
+    int numSamples = maxRadius > 0 ? NumRings : 0;
 
     // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
     // Note: We have generated only 4 additional mip levels, so don't go any deeper than that
-    float lod = min(MaxColorMip, log2(2 * PI * maxRadius * rcp(totalRings)));
+    float lod = min(MaxColorMip, log2(2 * PI * maxRadius * rcp(numSamples)));
 
     // Gather the DoF samples
-    for (int ring = 0; ring < totalRings; ring += 1)
+    for (int ring = 0; ring < numSamples; ring += 1)
     {
-        float numSamples = totalRings;
         float dAng = 2.0f * PI * rcp(numSamples);
 
 #ifdef OCTAWEB_SORTING
@@ -202,13 +193,15 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 #endif
         for (int i = 0; i < numSamples; i += 1)
         {
-            float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * totalRings + i + blueNoiseOffset, 1);
-            float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * totalRings + i + blueNoiseOffset, 0);
-            float normalizedRadius = (ring + r2) * dR;
-
-            float sampleRadius = sqrt(normalizedRadius) * maxRadius;
-            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle( (i + r1) * dAng);
-
+            float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 1);
+            float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 0);
+#ifdef STRATIFY
+            float sampleRadius = sqrt((ring + r2) * dR) * maxRadius;
+            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle((i + r1) * dAng);
+#else
+            float sampleRadius = sqrt(r2) * maxRadius;
+            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(r1 * 2.0f * PI);
+#endif
             CTYPE sampleColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinear(sampleTC * _ScreenSize.zw), lod).CTYPE_SWIZZLE;
             float sampleCoC = GetCoCRadius(sampleTC);
 
