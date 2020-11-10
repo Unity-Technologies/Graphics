@@ -34,7 +34,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define NUM_BUCKETS 3
 #define ADAPTIVE_RADIUS
 #define STRATIFY
-//#define UNIFORM_WEIGHTS
+#define PHYSICAL_WEIGHTS
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
@@ -46,9 +46,9 @@ float GetBucketWeight(float sampleCoC, float centerCoC, float noise, int bucket)
     const float bucketLimit[NUM_BUCKETS - 1] = { 5.0f, 0.0f };
     const float bucketTransition[NUM_BUCKETS - 1] = { 7.0f, 1.0f };
 
-    bool depthTest = (sampleCoC <= 2 * centerCoC);
     float w0 = saturate((sampleCoC - bucketLimit[0] - bucketTransition[0] * noise) / bucketTransition[0]);
     float w1 = saturate((bucketTransition[1] * noise - sampleCoC) / bucketTransition[1]);
+    bool depthTest = (sampleCoC <= 2 * centerCoC);
     w0 = depthTest ? w0 : 0.0;
     float w2 = depthTest ? 1.0 - w0 - w1 : 0.0;
 
@@ -72,41 +72,15 @@ float GetCoCRadius(int2 positionSS)
     return CoCRadius;
 }
 
-float GetCoCMaxRadius(int2 positionSS)
-{
-#ifndef ADAPTIVE_RADIUS
-    return MaxCoCRadius;
-#else
-
-    int lod = MaxCoCMipLevel;
-    uint2 size = float2(MaxCoCMipWidth, MaxCoCMipHeight);
-
-    // Take RTHandleScale into account and odd texture dimension sizes (it's not enough to do a positionSS >> lod)
-    uint2 coords = positionSS * _ScreenSize.zw * size.xy * _RTHandleScale.xy;
-
-    // Find the max CoC that is overlapping this pixel by sampling the max neighborhood
-    float maxOverlapingCoC = abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords, lod).x);
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, 0), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (0, 1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, 1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, 0), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (0, -1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, -1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, 1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, -1), lod).x));
-    return maxOverlapingCoC;
-#endif
-}
-
 float GetSampleWeight(float cocRadius)
 {
-#ifdef UNIFORM_WEIGHTS
-    return 1.0f;
-#endif
-
+#ifdef PHYSICAL_WEIGHTS
     float pixelRadius = 0.7071f;
     float radius = max(pixelRadius, cocRadius);
     return rcp(PI * radius * radius);
+#else
+    return 1.0f;
+#endif
 }
 
 float2 PointInCircle(float angle)

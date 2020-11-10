@@ -2621,58 +2621,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
             {
-                // To have an adaptive gather radius, we need estimates for the the min and max CoC that intersect a pixel.
-                cs = dofParameters.dofCoCPyramidCS;
-                kernel = dofParameters.dofCoCPyramidKernel;
-
-                float numMips = Mathf.Floor(Mathf.Log(Mathf.Max(dofParameters.camera.actualWidth, dofParameters.camera.actualHeight), 2));
-
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, fullresCoC, 1);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, fullresCoC, 2);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, fullresCoC, 3);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, fullresCoC, 4);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip5, fullresCoC, 5);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip6, fullresCoC, 6);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(numMips, 0, 0, 0));
-                cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 31) / 32, (dofParameters.camera.actualHeight + 31) / 32, dofParameters.camera.viewCount);
-
-                // do we need a second pass for the rest?
-                if (numMips > 6.0f && cocLimit > 32)
-                {
-                    GetMipMapDimensions(fullresCoC, 6, out var mipMapWidth, out var mipMapHeight);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC, 6);
-                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, fullresCoC, 7);
-
-                    if (numMips > 7)
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, fullresCoC, 8);
-                    else
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, fullresCoC, 1); // we will never write on this, but still need to bind something
-
-                    if (numMips > 8)
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, fullresCoC, 9);
-                    else
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, fullresCoC, 2); // we will never write on this, but still need to bind something
-
-                    if (numMips > 9)
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, fullresCoC, 10);
-                    else
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, fullresCoC, 3); // we will never write on this, but still need to bind something
-
-                    if (numMips > 10)
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip5, fullresCoC, 11);
-                    else
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip5, fullresCoC, 4); // we will never write on this, but still need to bind something
-
-                    if (numMips > 11)
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip6, fullresCoC, 12);
-                    else
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip6, fullresCoC, 5); // we will never write on this, but still need to bind something
-
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(numMips - 6.0f, 0, 0, 0));
-                    cmd.DispatchCompute(cs, kernel, (mipMapWidth + 31) / 32, (mipMapHeight + 31) / 32, dofParameters.camera.viewCount);
-                }
-
                 // DoF color pyramid
                 if (sourcePyramid != null)
                 {
