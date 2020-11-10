@@ -395,45 +395,99 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     int mainLightIndex = renderingData.lightData.mainLightIndex;
-                    VisibleLight mainLight = renderingData.lightData.visibleLights[mainLightIndex];
-
-                    // Shadow caster bounds
-                    Bounds bounds;
-                    bool boundsFound = renderingData.cullResults.GetShadowCasterBounds(mainLightIndex, out bounds);
-                    if (boundsFound && m_Feature.drawShadowCasterBounds)
+                    if (mainLightIndex >= 0)
                     {
-                        DebugCullingHelpers.DrawBox(bounds.center, bounds.size,  Color.gray );
-                    }
+                        VisibleLight mainLight = renderingData.lightData.visibleLights[mainLightIndex];
 
-
-                    Matrix4x4[] view = new Matrix4x4[shadowCascadesCount];
-                    Matrix4x4[] proj = new Matrix4x4[shadowCascadesCount];
-                    ShadowSplitData[] shadowSplitData = new ShadowSplitData[shadowCascadesCount];
-
-                    {
-                        int shadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(renderingData.shadowData.mainLightShadowmapWidth,
-                            renderingData.shadowData.mainLightShadowmapHeight, shadowCascadesCount);
-                        for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
+                        // Shadow caster bounds
+                        Bounds bounds;
+                        bool boundsFound = renderingData.cullResults.GetShadowCasterBounds(mainLightIndex, out bounds);
+                        if (boundsFound && m_Feature.drawShadowCasterBounds)
                         {
-                            bool success = renderingData.cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(mainLightIndex,
-                                cascadeIndex, renderingData.shadowData.mainLightShadowCascadesCount, renderingData.shadowData.mainLightShadowCascadesSplit, shadowResolution, mainLight.light.shadowNearPlane,
-                                out view[cascadeIndex], out proj[cascadeIndex], out shadowSplitData[cascadeIndex]);
+                            DebugCullingHelpers.DrawBox(bounds.center, bounds.size, Color.gray);
                         }
-                    }
 
-                    // Direct light frustum
-                    if (m_Feature.drawDirectLightFrustum)
-                    {
-                        for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
+                        Matrix4x4[] view = new Matrix4x4[shadowCascadesCount];
+                        Matrix4x4[] proj = new Matrix4x4[shadowCascadesCount];
+                        ShadowSplitData[] shadowSplitData = new ShadowSplitData[shadowCascadesCount];
+
                         {
-                            var shadowTransform = proj[cascadeIndex] * view[cascadeIndex];
-                            DebugCullingHelpers.DrawFrustum( shadowTransform, Color.white, Color.yellow, Color.black);
-                            DebugCullingHelpers.DrawAxes(shadowTransform.inverse, 0.25f);
+                            int shadowResolution = ShadowUtils.GetMaxTileResolutionInAtlas(renderingData.shadowData.mainLightShadowmapWidth,
+                                renderingData.shadowData.mainLightShadowmapHeight, shadowCascadesCount);
+                            for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
+                            {
+                                bool success = renderingData.cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(mainLightIndex,
+                                    cascadeIndex, renderingData.shadowData.mainLightShadowCascadesCount, renderingData.shadowData.mainLightShadowCascadesSplit, shadowResolution, mainLight.light.shadowNearPlane,
+                                    out view[cascadeIndex], out proj[cascadeIndex], out shadowSplitData[cascadeIndex]);
+                            }
+                        }
+
+                        // Direct light frustum
+                        if (m_Feature.drawDirectLightFrustum)
+                        {
+                            for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
+                            {
+                                var shadowTransform = proj[cascadeIndex] * view[cascadeIndex];
+                                DebugCullingHelpers.DrawFrustum( shadowTransform, Color.white, Color.yellow, Color.black);
+                                DebugCullingHelpers.DrawAxes(shadowTransform.inverse, 0.25f);
+                            }
+                        }
+
+                        // Culling spheres
+                        if (m_Feature.drawCullingSpheres)
+                        {
+                            for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
+                            {
+                                Vector4 s = shadowSplitData[cascadeIndex].cullingSphere;
+                                Vector3 c = s;
+                                float radius = s.w;
+                                DebugCullingHelpers.DrawSphere( c, radius, Color.white);
+                                DebugCullingHelpers.DrawPoint( c, 0.5f, Color.white);
+                            }
+                        }
+
+                        // Culling planes
+                        if (m_Feature.drawCullingPlanes || m_Feature.drawSingleCullingPlane)
+                        {
+                            Color planeColor = Color.cyan;
+                            Color normalColor = Color.blue;
+
+                            m_Feature.drawSingleCullingPlaneCascadeIndex = math.clamp(m_Feature.drawSingleCullingPlaneCascadeIndex, 0, shadowCascadesCount - 1);
+                            m_Feature.drawSingleCullingPlaneIndex = math.clamp(m_Feature.drawSingleCullingPlaneIndex, 0, shadowSplitData[m_Feature.drawSingleCullingPlaneCascadeIndex].cullingPlaneCount - 1);
+
+                            if (m_Feature.drawSingleCullingPlane)
+                            {
+                                var cascadeIndex = m_Feature.drawSingleCullingPlaneCascadeIndex;
+
+                                var pc = Color.Lerp(planeColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
+                                var nc = Color.Lerp(normalColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
+                                var ssd = shadowSplitData[cascadeIndex];
+
+                                var pi = m_Feature.drawSingleCullingPlaneIndex;
+                                {
+                                    var p = ssd.GetCullingPlane(pi);
+                                    DebugCullingHelpers.DrawPlane(p,100.0f, pc, 5.0f, nc);
+                                }
+                            }
+                            else
+                            {
+                                for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
+                                {
+                                    var pc = Color.Lerp(planeColor,  Color.black, cascadeIndex / (float) shadowCascadesCount);
+                                    var nc = Color.Lerp(normalColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
+                                    var ssd = shadowSplitData[cascadeIndex];
+
+                                    for (int pi = 0; pi < ssd.cullingPlaneCount; pi++)
+                                    {
+                                        var p = ssd.GetCullingPlane(pi);
+                                        DebugCullingHelpers.DrawPlane(p,100.0f, pc, 5.0f, nc);
+                                    }
+                                }
+                            }
                         }
                     }
 
                     // Spot light frustum
-
                     if (m_Feature.drawSpotLightFrustum)
                     {
                         var lightCount = renderingData.lightData.visibleLights.Length;
@@ -469,60 +523,6 @@ namespace UnityEngine.Rendering.Universal
                                 DebugCullingHelpers.DrawPoint(c, 0.25f, Color.yellow);
                             }
                         }
-                    }
-
-                    // Culling spheres
-                    if (m_Feature.drawCullingSpheres)
-                    {
-                        for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
-                        {
-                            Vector4 s = shadowSplitData[cascadeIndex].cullingSphere;
-                            Vector3 c = s;
-                            float radius = s.w;
-                            DebugCullingHelpers.DrawSphere( c, radius, Color.white);
-                            DebugCullingHelpers.DrawPoint( c, 0.5f, Color.white);
-                        }
-                    }
-
-                    // Culling planes
-                    if (m_Feature.drawCullingPlanes || m_Feature.drawSingleCullingPlane)
-                    {
-                        Color planeColor = Color.cyan;
-                        Color normalColor = Color.blue;
-
-                        m_Feature.drawSingleCullingPlaneCascadeIndex = math.clamp(m_Feature.drawSingleCullingPlaneCascadeIndex, 0, shadowCascadesCount - 1);
-                        m_Feature.drawSingleCullingPlaneIndex = math.clamp(m_Feature.drawSingleCullingPlaneIndex, 0, shadowSplitData[m_Feature.drawSingleCullingPlaneCascadeIndex].cullingPlaneCount - 1);
-
-                        if (m_Feature.drawSingleCullingPlane)
-                        {
-                            var cascadeIndex = m_Feature.drawSingleCullingPlaneCascadeIndex;
-
-                            var pc = Color.Lerp(planeColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
-                            var nc = Color.Lerp(normalColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
-                            var ssd = shadowSplitData[cascadeIndex];
-
-                            var pi = m_Feature.drawSingleCullingPlaneIndex;
-                            {
-                                var p = ssd.GetCullingPlane(pi);
-                                DebugCullingHelpers.DrawPlane(p,100.0f, pc, 5.0f, nc);
-                            }
-                        }
-                        else
-                        {
-                            for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
-                            {
-                                var pc = Color.Lerp(planeColor,  Color.black, cascadeIndex / (float) shadowCascadesCount);
-                                var nc = Color.Lerp(normalColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
-                                var ssd = shadowSplitData[cascadeIndex];
-
-                                for (int pi = 0; pi < ssd.cullingPlaneCount; pi++)
-                                {
-                                    var p = ssd.GetCullingPlane(pi);
-                                    DebugCullingHelpers.DrawPlane(p,100.0f, pc, 5.0f, nc);
-                                }
-                            }
-                        }
-
                     }
                 }
             }
