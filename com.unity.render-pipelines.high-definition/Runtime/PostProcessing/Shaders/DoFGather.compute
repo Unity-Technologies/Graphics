@@ -125,7 +125,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     int numSamples = maxRadius > 0 ? NumRings : 0;
 
     // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
-    // Note: We have generated only 4 additional mip levels, so don't go any deeper than that
     float lod = min(MaxColorMip, log2(2 * PI * maxRadius * rcp(numSamples)));
 
     // Gather the DoF samples
