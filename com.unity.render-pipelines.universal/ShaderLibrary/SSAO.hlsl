@@ -404,22 +404,20 @@ half4 HorizontalVerticalBlur(Varyings input) : SV_Target
 
    half2 uv = input.uv;
 
-   // using also H + V passes doesn't seem to make a massive difference compared to doing only the final bur bass. Commented it out for now
+   half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
 
-   //half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+   half4 blurH = Blur(uv, delta);
 
-   //half4 blurH = Blur(uv, delta);
-
-   //delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
-   //half4 blurV = Blur(uv, delta);
+   delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+   half4 blurV = Blur(uv, delta);
 
 
 
-    half2 delta = _SourceSize.zw * rcp(DOWNSAMPLE);
+    delta = _SourceSize.zw * rcp(DOWNSAMPLE);
 
 
 
-    return 1.0 - BlurSmall(uv, delta ); //lerp(1.0 - BlurSmall(uv, delta ), 1-lerp(blurH.r, blurV.r, 0.5), 0.5); //Blur(uv, delta);
+    return lerp(1.0 - BlurSmall(uv, delta ), 1-lerp(blurH.r, blurV.r, 0.5), 0.5);
 }
 
 #endif //UNIVERSAL_SSAO_INCLUDED
