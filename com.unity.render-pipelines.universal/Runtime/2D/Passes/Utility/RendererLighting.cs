@@ -189,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     Light2DBatch.StartBatch(lightMaterial);
                                 }
 
-                                Light2DBatch.AddMesh(lightMesh, light.transform, light.lightMeshHash);
+                                Light2DBatch.AddMesh(lightMesh, light.transform, light.hashCode);
                                 skipDraw = true;
                             }
                         }
@@ -275,7 +275,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                     Light2DBatch.StartBatch(lightVolumeMaterial);
                                 }
 
-                                Light2DBatch.AddMesh(lightMesh, light.transform, light.lightMeshHash);
+                                Light2DBatch.AddMesh(lightMesh, light.transform, light.hashCode);
                                 skipDraw = true;
                             }
                         }
@@ -305,13 +305,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
             }
-            
+
             // Left over Batching
             if (Light2DBatch.sActiveMaterial != null)
             {
                 // End of loop. Render if a batch was active during end of loop.
                 Light2DBatch.EndBatch(cmd);
-            }            
+            }
         }
 
         public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)

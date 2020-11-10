@@ -58,9 +58,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         // Transients
         int m_PreviousLightCookieSprite;
-        int m_LightMeshHash = 0;
+        int m_HashCode = 0;
 
-        internal int lightMeshHash => m_LightMeshHash;
+        internal int hashCode => m_HashCode;
 
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
 
@@ -155,8 +155,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void UpdateMesh(bool forceUpdate)
         {
-            int hashCode = CalculateHash(this);
-            if (forceUpdate && hashCode != m_LightMeshHash)
+            int hashCode = GetHashCode();
+            if (forceUpdate && hashCode != m_HashCode)
             {
 				switch(m_LightType)
 				{
@@ -174,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     	                break;
 				}
             }
-            m_LightMeshHash = hashCode;
+            m_HashCode = hashCode;
         }
 
         internal void UpdateBoundingSphere()
@@ -221,23 +221,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Light2DManager.DeregisterLight(this);
         }
 
-        internal static int CalculateHash(Light2D light)
+        public override int GetHashCode()
         {
             var hashCode = 0;
             unchecked
             {
                 // Spline.
-                hashCode = (int) 2166136261 ^ LightUtility.GetShapePathHash(light.shapePath);
-                hashCode = hashCode * 16777619 ^ light.m_FalloffIntensity.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.m_LightVolumeOpacity.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.m_ShapeLightFalloffSize.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.m_ShapeLightParametricRadius.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.m_ShapeLightParametricSides.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.m_ShapeLightParametricAngleOffset.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.m_Color.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.m_LightType.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.lightCookieSpriteInstanceID.GetHashCode();
-                hashCode = hashCode * 16777619 ^ light.m_Intensity.GetHashCode();
+                hashCode = (int) 2166136261 ^ LightUtility.GetShapePathHash(shapePath);
+                hashCode = hashCode * 16777619 ^ m_FalloffIntensity.GetHashCode();
+                hashCode = hashCode * 16777619 ^ m_LightVolumeOpacity.GetHashCode();
+                hashCode = hashCode * 16777619 ^ m_ShapeLightFalloffSize.GetHashCode();
+                hashCode = hashCode * 16777619 ^ m_ShapeLightParametricRadius.GetHashCode();
+                hashCode = hashCode * 16777619 ^ m_ShapeLightParametricSides.GetHashCode();
+                hashCode = hashCode * 16777619 ^ m_ShapeLightParametricAngleOffset.GetHashCode();
+                hashCode = hashCode * 16777619 ^ m_Color.GetHashCode();
+                hashCode = hashCode * 16777619 ^ m_LightType.GetHashCode();
+                hashCode = hashCode * 16777619 ^ lightCookieSpriteInstanceID.GetHashCode();
+                hashCode = hashCode * 16777619 ^ m_Intensity.GetHashCode();
             }
             return hashCode;
         }
