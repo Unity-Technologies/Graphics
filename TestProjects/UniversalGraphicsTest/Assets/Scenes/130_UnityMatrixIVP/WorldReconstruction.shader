@@ -58,7 +58,7 @@
 					UNITY_SETUP_INSTANCE_ID(i);
 					UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
-				    float2 uv = i.scrPos.xy;
+				    float2 uv = i.scrPos.xy / i.scrPos.w;
 				    float depth = SampleSceneDepth(uv);
 #if !UNITY_REVERSED_Z
                     // On OpenGL, we need to transform depth from the [0, 1] range used in the depth buffer to the

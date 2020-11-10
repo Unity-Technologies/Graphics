@@ -23,10 +23,8 @@
 half4 _DrawObjectPassData;
 
 // Deprecated: A confusingly named and duplicate function that scales clipspace to unity NDC range. (-w < x(-y) < w --> 0 < xy < w)
-// Use GetVertexPositionInputs().inputNDC.xyz instead for vertex shader
+// Use GetVertexPositionInputs().positionNDC instead for vertex shader
 // Or a similar function in Common.hlsl, ComputeNormalizedDeviceCoordinatesWithZ()
-//
-// TODO: A similar function should be already available in SRP lib on master. Use that instead
 float4 ComputeScreenPos(float4 positionCS)
 {
     float4 o = positionCS * 0.5f;
