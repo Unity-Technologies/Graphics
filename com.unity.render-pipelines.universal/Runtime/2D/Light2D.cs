@@ -76,8 +76,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField] int m_LightOrder = 0;
 
-        [SerializeField] bool m_AlphaBlendOnOverlap = false;
-
         [SerializeField] OverlapOperation m_OverlapOperation = OverlapOperation.Additive;
 
         [FormerlySerializedAs("m_PointLightDistance")]

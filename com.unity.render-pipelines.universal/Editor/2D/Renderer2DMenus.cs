@@ -1,22 +1,19 @@
 using System;
+using System.IO;
+using System.ComponentModel;
+using System.Linq;
+
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
+
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.ProjectWindowCallback;
-using UnityEngine.Rendering;
-
-using System;
-using UnityEngine.Scripting.APIUpdating;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.ProjectWindowCallback;
-using System.IO;
 using UnityEditorInternal;
-#endif
-using System.ComponentModel;
-using System.Linq;
+
 
 
 
