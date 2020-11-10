@@ -21,21 +21,32 @@ namespace UnityEngine.Rendering.HighDefinition
         public Texture3DAtlas volumeAtlas = null;
 
         List<DensityVolume> m_Volumes = null;
+        int m_MaxDensityVolumeSize;
+        int m_MaxDensityVolumeOnScreen;
 
         DensityVolumeManager()
         {
             var settings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
+            m_MaxDensityVolumeSize = (int)settings.maxDensityVolumeSize;
+            m_MaxDensityVolumeOnScreen = settings.maxDensityVolumesOnScreen;
             m_Volumes = new List<DensityVolume>();
-            volumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, settings.maxDensityVolumesOnScreen);
+            Debug.Log(m_MaxDensityVolumeSize);
+            Debug.Log(m_MaxDensityVolumeOnScreen);
+            volumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, m_MaxDensityVolumeSize, m_MaxDensityVolumeOnScreen);
         }
-
 
         public void RegisterVolume(DensityVolume volume)
         {
             m_Volumes.Add(volume);
 
             if (volume.parameters.volumeMask != null)
-                volumeAtlas.AddTexture(volume.parameters.volumeMask);
+            {
+                if (volumeAtlas.IsTextureValid(volume.parameters.volumeMask))
+                {
+                    if (!volumeAtlas.AddTexture(volume.parameters.volumeMask))
+                        Debug.LogError($"No more space in the density volume atlas, consider increasing the max density volume on screen in the HDRP asset.");
+                }
+            }
         }
 
         public void DeRegisterVolume(DensityVolume volume)
@@ -56,7 +67,10 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (DensityVolume volume in m_Volumes)
                 volume.PrepareParameters(animate, time);
 
-            volumeAtlas.Update(cmd);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateDensityVolumeAtlas)))
+            {
+                volumeAtlas.Update(cmd);
+            }
 
             return m_Volumes;
         }

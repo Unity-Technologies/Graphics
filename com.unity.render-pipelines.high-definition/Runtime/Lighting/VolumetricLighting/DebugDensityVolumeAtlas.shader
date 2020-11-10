@@ -16,16 +16,16 @@ Shader "Hidden/HDRP/DebugDensityVolumeAtlas"
 
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
             // TODO: texture 3D debug code
-            TEXTURE2D(_InputTexture);
+            TEXTURE3D(_InputTexture);
             SAMPLER(sampler_InputTexture);
-            float _Mipmap;
-            float _ApplyExposure;
+            float _Slice;
 
             struct Attributes
             {
@@ -49,8 +49,7 @@ Shader "Hidden/HDRP/DebugDensityVolumeAtlas"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float3 color = SAMPLE_TEXTURE2D_LOD(_InputTexture, sampler_InputTexture, input.texcoord.xy, _Mipmap).rgb;
-                return float4(color * (_ApplyExposure > 0.0 ? GetCurrentExposureMultiplier() : 1.0), 1.0);
+                return SAMPLE_TEXTURE3D_LOD(_InputTexture, sampler_InputTexture, float3(input.texcoord.xy, _Slice), 0).rgba;
             }
 
             ENDHLSL

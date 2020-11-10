@@ -101,8 +101,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/Lighting/VolumetricLighting/DebugDensityVolumeAtlas.shader")]
             public Shader debugDensityVolumeAtlasPS;
-            [Reload("Runtime/Lighting/VolumetricLighting/DensityVolumeAtlasCopy.compute")]
-            public ComputeShader densityVolumeAtlasCopy;
 
             // General
             [Reload("Runtime/RenderPipeline/RenderPass/MotionVectors/CameraMotionVectors.shader")]
@@ -182,6 +180,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader customPassUtils;
             [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersUtils.shader")]
             public Shader customPassRenderersUtils;
+            [Reload("Runtime/RenderPipeline/Utility/Texture3DAtlas.compute")]
+            public ComputeShader texture3DAtlasCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
