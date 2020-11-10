@@ -50,8 +50,10 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSShadowsPass.Setup(m_Settings) && renderingData.shadowData.supportsMainLightShadows;
-            if (shouldAdd)
+            bool allowMainLightShadows = renderingData.shadowData.supportsMainLightShadows && renderingData.lightData.mainLightIndex != -1;
+            bool shouldEnqueue = m_SSShadowsPass.Setup(m_Settings) && allowMainLightShadows;
+
+            if (shouldEnqueue)
             {
                 renderer.EnqueuePass(m_SSShadowsPass);
                 renderer.EnqueuePass(m_RestoreShadowKeywordsPass);
@@ -140,14 +142,23 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
 
-                CameraData cameraData = renderingData.cameraData;
+                Camera camera = renderingData.cameraData.camera;
 
                 CommandBuffer cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.ResolveShadows)))
                 {
-                    cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                    cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
-                    RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.GetViewMatrix(), cameraData.GetGPUProjectionMatrix(), false);
+                    if (!renderingData.cameraData.xr.enabled)
+                    {
+                        cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material);
+                        cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
+                    }
+                    else
+                    {
+                        // Avoid setting and restoring camera view and projection matrices when in stereo.
+                        RenderTargetIdentifier screenSpaceShadowTexture = m_RenderTarget.Identifier();
+                        Blit(cmd, screenSpaceShadowTexture, screenSpaceShadowTexture, material);
+                    }
 
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadowCascades, false);
