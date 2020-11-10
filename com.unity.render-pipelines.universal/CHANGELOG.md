@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Light Explorer was grabbing the URP asset in Graphics Settings rather than the currently active.
 - Fixed an issue causing materials to be upgraded multiple times.
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
+- Fixed an issue in where all the entries in the Renderer List wasn't selectable and couldn't be deleted.
 
 ## [10.2.0] - 2020-10-19
 
