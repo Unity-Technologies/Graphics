@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(PostProcessPass));
             renderPassEvent = evt;
             m_Data = data;
             m_Materials = new MaterialLibrary(data);
@@ -130,6 +131,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
+            m_Descriptor.useMipMap = false;
+            m_Descriptor.autoGenerateMips = false;
             m_Source = source;
             m_Destination = destination;
             m_Depth = depth;
@@ -213,7 +216,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     RenderFinalPass(cmd, ref renderingData);
                 }
-                
+
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
@@ -525,8 +528,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             material.SetVector(ShaderConstants._Metrics, new Vector4(1f / m_Descriptor.width, 1f / m_Descriptor.height, m_Descriptor.width, m_Descriptor.height));
             material.SetTexture(ShaderConstants._AreaTexture, m_Data.textures.smaaAreaTex);
             material.SetTexture(ShaderConstants._SearchTexture, m_Data.textures.smaaSearchTex);
-            material.SetInt(ShaderConstants._StencilRef, kStencilBit);
-            material.SetInt(ShaderConstants._StencilMask, kStencilBit);
+            material.SetFloat(ShaderConstants._StencilRef, (float)kStencilBit);
+            material.SetFloat(ShaderConstants._StencilMask, (float)kStencilBit);
 
             // Quality presets
             material.shaderKeywords = null;

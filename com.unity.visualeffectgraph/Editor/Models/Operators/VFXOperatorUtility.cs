@@ -266,6 +266,13 @@ namespace UnityEditor.VFX
             return (v * invLengthVector);
         }
 
+        static public VFXExpression SafeNormalize(VFXExpression v)
+        {
+            var sqrDist = Dot(v,v);
+            var condition = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Equal, VFXOperatorUtility.ZeroExpression[VFXValueType.Float], sqrDist);
+            return new VFXExpressionBranch(condition, VFXOperatorUtility.ZeroExpression[v.valueType], Normalize(v));
+        }
+
         static public VFXExpression Modulo(VFXExpression x, VFXExpression y)
         {
             if (VFXExpression.IsFloatValueType(x.valueType))
@@ -563,19 +570,25 @@ namespace UnityEditor.VFX
         static public VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
             VFXExpression r = null;
+
             if (mode == SequentialAddressingMode.Wrap)
             {
-                r = VFXOperatorUtility.Modulo(index, count);
+                r = Modulo(index, count);
             }
             else if (mode == SequentialAddressingMode.Clamp)
             {
-                r = VFXOperatorUtility.Clamp(index, ZeroExpression[VFXValueType.Uint32], count, false);
+                var countMinusOne = count - OneExpression[VFXValueType.Uint32];
+                r = new VFXExpressionMin(index, countMinusOne);
             }
             else if (mode == SequentialAddressingMode.Mirror)
             {
-                var direction = VFXOperatorUtility.Modulo(index / count, VFXOperatorUtility.TwoExpression[VFXValueType.Uint32]);
-                var modulo = VFXOperatorUtility.Modulo(index, count);
-                r = VFXOperatorUtility.Lerp(modulo, count - modulo, direction);
+                var two = TwoExpression[VFXValueType.Uint32];
+                var cycle = count * two - two;
+                cycle = new VFXExpressionMax(cycle, OneExpression[VFXValueType.Uint32]);
+                var modulo = Modulo(index, cycle);
+                //var compare = new VFXExpressionCondition(VFXCondition.Less, new VFXExpressionCastUintToFloat(modulo), new VFXExpressionCastUintToFloat(count)); <= Use this line for 7.x.x/8.x.x/9.x.x backport
+                var compare = new VFXExpressionCondition(VFXValueType.Uint32, VFXCondition.Less, modulo, count);
+                r = new VFXExpressionBranch(compare, modulo, cycle - modulo);
             }
             return r;
         }
@@ -593,7 +606,13 @@ namespace UnityEditor.VFX
 
         static public VFXExpression SequentialCircle(VFXExpression center, VFXExpression radius, VFXExpression normal, VFXExpression up, VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
-            VFXExpression dt = ApplyAddressingMode(index, count, mode);
+            VFXExpression countForAddressing = count;
+            if (mode == SequentialAddressingMode.Clamp || mode == SequentialAddressingMode.Mirror)
+            {
+                //Explicitly close the circle loop, if `index` equals to `count`, adds an extra step.
+                countForAddressing = count + OneExpression[VFXValueType.Uint32];
+            }
+            VFXExpression dt = ApplyAddressingMode(index, countForAddressing, mode);
             dt = new VFXExpressionCastUintToFloat(dt);
             dt = dt / new VFXExpressionCastUintToFloat(count);
 
@@ -663,6 +682,19 @@ namespace UnityEditor.VFX
             var y = new VFXExpressionExtractComponent(vector3, 1);
             var z = new VFXExpressionExtractComponent(vector3, 2);
             return Max3(x, y, z);
+        }
+
+        static public VFXExpression Min3(VFXExpression x, VFXExpression y, VFXExpression z)
+        {
+            return new VFXExpressionMin(new VFXExpressionMin(x, y), z);
+        }
+
+        static public VFXExpression Min3(VFXExpression vector3)
+        {
+            var x = new VFXExpressionExtractComponent(vector3, 0);
+            var y = new VFXExpressionExtractComponent(vector3, 1);
+            var z = new VFXExpressionExtractComponent(vector3, 2);
+            return Min3(x, y, z);
         }
     }
 

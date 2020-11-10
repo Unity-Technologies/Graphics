@@ -7,6 +7,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine.Rendering;
+using UnityEngine.Assertions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -62,11 +63,12 @@ namespace UnityEditor.ShaderGraph
             var activeFields = new ActiveFields();
             if(outputNode == null)
             {
-                // HDRP needs to know if there are any Dots properties active
-                // Ideally we can determine this in the Target without exposing the PropertyCollector
-                var shaderProperties = new PropertyCollector();
-                m_GraphData.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
-                bool hasDotsProperties = shaderProperties.DotsInstancingProperties(GenerationMode.ForReals).Any();
+                bool hasDotsProperties = false;
+                m_GraphData.ForeachHLSLProperty(h =>
+                    {
+                        if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                            hasDotsProperties = true;
+                    });
 
                 var context = new TargetFieldContext(pass, blocks, connectedBlocks, hasDotsProperties);
                 target.GetFields(ref context);
@@ -654,10 +656,16 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            bool hasDotsInstancedProps = propertyCollector.DotsInstancingProperties(m_Mode).Any();
+            bool hasDotsProperties = false;
+            m_GraphData.ForeachHLSLProperty(h =>
+            {
+                if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                    hasDotsProperties = true;
+            });
+
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
-                if (hasDotsInstancedProps)
+                if (hasDotsProperties)
                     dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(m_Mode));
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
@@ -673,7 +681,7 @@ namespace UnityEditor.ShaderGraph
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
                 #if !ENABLE_HYBRID_RENDERER_V2
-                if (hasDotsInstancedProps)
+                if (hasDotsProperties)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");

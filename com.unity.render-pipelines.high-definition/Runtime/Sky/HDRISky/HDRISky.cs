@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/HDRI Sky")]
     [SkyUniqueID((int)SkyType.HDRI)]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-HDRI-Sky" + Documentation.endURL)]
     public class HDRISky : SkySettings
     {
         /// <summary>Cubemap used to render the HDRI sky.</summary>

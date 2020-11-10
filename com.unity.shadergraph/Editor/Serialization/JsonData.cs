@@ -33,7 +33,9 @@ namespace UnityEditor.ShaderGraph.Serialization
                     if (MultiJsonInternal.valueMap.TryGetValue(m_Id, out var value))
                     {
                         m_Value = value.CastTo<T>();
-                        m_Id = m_Value.objectId;
+
+                        // cast may fail for unknown types, but we can still grab the id from the original UnknownType
+                        m_Id = value.objectId;
                     }
                     else
                     {

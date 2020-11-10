@@ -58,7 +58,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4      zBufferParam;
         public Vector4      shadowMapSize;
 
-        [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4      shadowFilterParams0;
 
         public Vector3      cacheTranslationDelta;
