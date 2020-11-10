@@ -345,23 +345,23 @@ half4 Blur(half2 uv, half2 delta) : SV_Target
 }
 
 // Geometry-aware bilateral filter (single pass/small kernel)
-float BlurSmall(float2 uv, float2 delta)
+half BlurSmall(half2 uv, half2 delta)
 {
-    float4 p0 = SAMPLE_BASEMAP(uv                             );
-    float4 p1 = SAMPLE_BASEMAP(uv + float2(-delta.x, -delta.y));
-    float4 p2 = SAMPLE_BASEMAP(uv + float2( delta.x, -delta.y));
-    float4 p3 = SAMPLE_BASEMAP(uv + float2(-delta.x,  delta.y));
-    float4 p4 = SAMPLE_BASEMAP(uv + float2( delta.x,  delta.y));
+    half4 p0 = SAMPLE_BASEMAP(uv                             );
+    half4 p1 = SAMPLE_BASEMAP(uv + float2(-delta.x, -delta.y));
+    half4 p2 = SAMPLE_BASEMAP(uv + float2( delta.x, -delta.y));
+    half4 p3 = SAMPLE_BASEMAP(uv + float2(-delta.x,  delta.y));
+    half4 p4 = SAMPLE_BASEMAP(uv + float2( delta.x,  delta.y));
 
-    float3 n0 = GetPackedNormal(p0);
+    half3 n0 = GetPackedNormal(p0);
 
-    float w0 = 1.0;
-    float w1 = CompareNormal(n0, GetPackedNormal(p1));
-    float w2 = CompareNormal(n0, GetPackedNormal(p2));
-    float w3 = CompareNormal(n0, GetPackedNormal(p3));
-    float w4 = CompareNormal(n0, GetPackedNormal(p4));
+    half w0 = 1.0;
+    half w1 = CompareNormal(n0, GetPackedNormal(p1));
+    half w2 = CompareNormal(n0, GetPackedNormal(p2));
+    half w3 = CompareNormal(n0, GetPackedNormal(p3));
+    half w4 = CompareNormal(n0, GetPackedNormal(p4));
 
-    float s;
+    half s;
     s  = GetPackedAO(p0) * w0;
     s += GetPackedAO(p1) * w1;
     s += GetPackedAO(p2) * w2;
@@ -402,17 +402,24 @@ half4 HorizontalVerticalBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    half2 uv = input.uv;
-    half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+   half2 uv = input.uv;
 
-    half4 blurH = Blur(uv, delta);
+   // using also H + V passes doesn't seem to make a massive difference compared to doing only the final bur bass. Commented it out for now
 
-    delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
-    half4 blurV = Blur(uv, delta);
+   //half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+
+   //half4 blurH = Blur(uv, delta);
+
+   //delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+   //half4 blurV = Blur(uv, delta);
 
 
 
-    return 1-lerp(blurH.r, blurV.r, 0.5); //Blur(uv, delta);
+    half2 delta = _SourceSize.zw * rcp(DOWNSAMPLE);
+
+
+
+    return 1.0 - BlurSmall(uv, delta ); //lerp(1.0 - BlurSmall(uv, delta ), 1-lerp(blurH.r, blurV.r, 0.5), 0.5); //Blur(uv, delta);
 }
 
 #endif //UNIVERSAL_SSAO_INCLUDED
