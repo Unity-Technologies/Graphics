@@ -59,6 +59,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed Set Strip Progress Attribute utility block in Additional Samples
 - Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
 - Remove temporarily "Exact Fixed Time Step" option on VisualEffectAsset to avoid unexpected behavior
+- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
 - Fix unexpected Spawn context execution ordering
 
 ## [10.1.0] - 2020-10-12
