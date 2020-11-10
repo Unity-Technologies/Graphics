@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -16,16 +16,19 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             out VisualElement propertyVisualElement)
         {
             var propertySheet = new PropertySheet(PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold));
-            var inputListView = new ReorderableSlotListView(node, SlotType.Input);
+
+            var inputListView = new ReorderableSlotListView(node, SlotType.Input, true);
             inputListView.OnAddCallback += list => inspectorUpdateDelegate();
             inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
             inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
             propertySheet.Add(inputListView);
-            var outputListView = new ReorderableSlotListView(node, SlotType.Output);
+
+            var outputListView = new ReorderableSlotListView(node, SlotType.Output, true);
             outputListView.OnAddCallback += list => inspectorUpdateDelegate();
             outputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
             outputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
             propertySheet.Add(outputListView);
+
             propertySheet.Add(new HlslFunctionView(node));
             propertyVisualElement = propertySheet;
             return propertySheet;

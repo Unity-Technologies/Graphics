@@ -76,7 +76,10 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = foundSlot as Texture2DArrayInputMaterialSlot;
             if (slot != null)
+            {
                 m_TextureArray = slot.m_TextureArray;
+                m_BareTexture = slot.m_BareTexture;
+            }
         }
     }
 }

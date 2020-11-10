@@ -291,6 +291,11 @@ namespace UnityEditor.ShaderGraph
             properties.Add(default(PreviewProperty));
         }
 
+        public virtual string GetHLSLVariableType()
+        {
+            return concreteValueType.ToShaderString();
+        }
+
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
 
         public bool Equals(MaterialSlot other)
@@ -313,6 +318,8 @@ namespace UnityEditor.ShaderGraph
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
             }
         }
+
+        internal virtual bool bareTexture { get { return false; } set { } }
 
         public virtual void CopyDefaultValue(MaterialSlot other)
         {

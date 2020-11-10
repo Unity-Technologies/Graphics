@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         IMGUIContainer m_Container;
         AbstractMaterialNode m_Node;
         ReorderableList m_ReorderableList;
+        bool m_AllowBareTextures;
 
         internal delegate void ListRecreatedDelegate();
         ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => { });
@@ -40,10 +41,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             set => m_OnListRecreatedCallback = value;
         }
 
-        public Func<ConcreteSlotValueType, bool> AllowedTypeCallback;
+        public Func<ConcreteSlotValueTypePopupName, bool> AllowedTypeCallback;
 
-        internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType)
+        internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType, bool allowBareTextures)
         {
+            m_AllowBareTextures = allowBareTextures;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
             m_Node = node;
             m_SlotType = slotType;
@@ -104,13 +106,24 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
 
-                var concreteValueType = (ConcreteSlotValueType) EditorGUI.EnumPopup(
+                ConcreteSlotValueTypePopupName concreteValueTypePopupOrig =
+                    oldSlot.concreteValueType.ToConcreteSlotValueTypePopupName(oldSlot.bareTexture);
+
+                ConcreteSlotValueTypePopupName concreteValueTypePopupNew = (ConcreteSlotValueTypePopupName)EditorGUI.EnumPopup(
                     new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight),
                     GUIContent.none,
-                    (ConcreteSlotValueTypePopupName)oldSlot.concreteValueType, // Force ConcreteSlotValueTypePopupName enum which match ConcreteSlotValueType to provide a friendly named in Popup
-                    e => (AllowedTypeCallback == null) ? true : AllowedTypeCallback((ConcreteSlotValueType) e));
+                    concreteValueTypePopupOrig,
+                    e =>
+                    {
+                        ConcreteSlotValueTypePopupName csvtpn = (ConcreteSlotValueTypePopupName) e;
+                        csvtpn.ToConcreteSlotValueType(out bool isBareTexture);
+                        if (isBareTexture && !m_AllowBareTextures)
+                            return false;
+                        return AllowedTypeCallback?.Invoke(csvtpn) ?? true;
+                    }
+                );
 
-                if(EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck())
                 {
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Modify Port");
 
@@ -127,37 +140,34 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
+                    bool isBareTexture;
+                    ConcreteSlotValueType concreteValueType = concreteValueTypePopupNew.ToConcreteSlotValueType(out isBareTexture);
+
                     // Because the type may have changed, we can't (always) just modify the existing slot.  So create a new one and replace it.
                     var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, displayName, m_SlotType, Vector4.zero);
                     newSlot.CopyValuesFrom(oldSlot);
                     m_Node.AddSlot(newSlot, false);
+                    newSlot.bareTexture = isBareTexture;
 
-                    // Need to get all current slots as everything after the edited slot in the list must be added again
-                    List<MaterialSlot> slots = new List<MaterialSlot>();
-                    if(m_SlotType == SlotType.Input)
-                        m_Node.GetInputSlots<MaterialSlot>(slots);
-                    else
-                        m_Node.GetOutputSlots<MaterialSlot>(slots);
-
-                    // Iterate all the slots
-                    foreach (MaterialSlot slot in slots)
+                    List<int> orderedSlotIds = new List<int>();
+                    if (m_SlotType == SlotType.Input)
                     {
-                        // Because the list doesnt match the slot IDs (reordering)
-                        // Need to get the index in the list of every slot
-                        int listIndex = 0;
-                        for(int i = 0; i < m_ReorderableList.list.Count; i++)
-                        {
-                            if((int)m_ReorderableList.list[i] == slot.id)
-                                listIndex = i;
-                        }
+                        orderedSlotIds.AddRange(m_ReorderableList.list.OfType<int>());
 
-                        // Then for everything after the edited slot
-                        if(listIndex <= index)
-                            continue;
-
-                        // Remove and re-add
-                        m_Node.AddSlot(slot, false);
+                        List<MaterialSlot> slots = new List<MaterialSlot>();
+                        m_Node.GetOutputSlots(slots);
+                        orderedSlotIds.AddRange(slots.Select(s => s.id));
                     }
+                    else
+                    {
+                        List<MaterialSlot> slots = new List<MaterialSlot>();
+                        m_Node.GetInputSlots(slots);
+                        orderedSlotIds.AddRange(slots.Select(s => s.id));
+
+                        orderedSlotIds.AddRange(m_ReorderableList.list.OfType<int>());
+                    }
+
+                    m_Node.SetSlotOrder(orderedSlotIds);
 
                     RecreateList();
                     m_Node.ValidateNode();

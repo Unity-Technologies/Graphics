@@ -63,14 +63,67 @@ namespace UnityEditor.ShaderGraph
         Vector2 = ConcreteSlotValueType.Vector2,
         Float = ConcreteSlotValueType.Vector1, // This is currently the only renaming we need - rename Vector1 to Float
         Boolean = ConcreteSlotValueType.Boolean,
-        VirtualTexture = ConcreteSlotValueType.VirtualTexture
+        VirtualTexture = ConcreteSlotValueType.VirtualTexture,
+
+        BareTexture2D = 1000 + ConcreteSlotValueType.Texture2D,
+        BareTexture2DArray = 1000 + ConcreteSlotValueType.Texture2DArray,
+        BareTexture3D = 1000 + ConcreteSlotValueType.Texture3D,
+        BareCubemap = 1000 + ConcreteSlotValueType.Cubemap,
     }
 
     static class SlotValueHelper
     {
-        public static bool AllowedAsSubgraphOutput(this ConcreteSlotValueType type)
+        public static ConcreteSlotValueTypePopupName ToConcreteSlotValueTypePopupName(this ConcreteSlotValueType slotType, bool isBareTexture)
         {
-            return type != ConcreteSlotValueType.VirtualTexture;
+            ConcreteSlotValueTypePopupName result = (ConcreteSlotValueTypePopupName)slotType;
+            switch (slotType)
+            {
+                case ConcreteSlotValueType.Texture2D:
+                    if (isBareTexture)
+                        result = ConcreteSlotValueTypePopupName.BareTexture2D;
+                    break;
+                case ConcreteSlotValueType.Texture2DArray:
+                    if (isBareTexture)
+                        result = ConcreteSlotValueTypePopupName.BareTexture2DArray;
+                    break;
+                case ConcreteSlotValueType.Texture3D:
+                    if (isBareTexture)
+                        result = ConcreteSlotValueTypePopupName.BareTexture3D;
+                    break;
+                case ConcreteSlotValueType.Cubemap:
+                    if (isBareTexture)
+                        result = ConcreteSlotValueTypePopupName.BareCubemap;
+                    break;
+            }
+            return result;
+        }
+
+        public static ConcreteSlotValueType ToConcreteSlotValueType(this ConcreteSlotValueTypePopupName popup, out bool isBareTexture)
+        {
+            switch (popup)
+            {
+                case ConcreteSlotValueTypePopupName.BareTexture2D:
+                    isBareTexture = true;
+                    return ConcreteSlotValueType.Texture2D;
+                case ConcreteSlotValueTypePopupName.BareTexture2DArray:
+                    isBareTexture = true;
+                    return ConcreteSlotValueType.Texture2DArray;
+                case ConcreteSlotValueTypePopupName.BareTexture3D:
+                    isBareTexture = true;
+                    return ConcreteSlotValueType.Texture3D;
+                case ConcreteSlotValueTypePopupName.BareCubemap:
+                    isBareTexture = true;
+                    return ConcreteSlotValueType.Cubemap;
+            };
+
+            isBareTexture = false;
+            return (ConcreteSlotValueType) popup;
+        }
+
+        public static bool AllowedAsSubgraphOutput(this ConcreteSlotValueTypePopupName type)
+        {
+            // virtual textures and bare types disallowed
+            return (type < ConcreteSlotValueTypePopupName.VirtualTexture);
         }
 
         public static int GetChannelCount(this ConcreteSlotValueType type)
