@@ -123,7 +123,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Bucket 1 : in focus region
     // Bucket 2 : near focus region
     float4 totalColor[NUM_BUCKETS];
-    float maxCoC[NUM_BUCKETS];
     float prevRingWeight[NUM_BUCKETS];
     float totalHits[NUM_BUCKETS];
 #ifdef ENABLE_ALPHA
@@ -134,7 +133,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     for (int i = 0; i < NUM_BUCKETS; ++i)
     {
         totalColor[i] = 0.0f;
-        maxCoC[i] = 0.0f;
         prevRingWeight[i] = 0.0f;
 #ifdef ENABLE_ALPHA
         totalAlpha[i] = 0.0f;
@@ -205,6 +203,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[j];
 #endif
     }
+
+    // In case we did not gather any samples, return the original color
     outColor.xyz = outColor.w > 0 ? outColor.xyz * rcp(outColor.w) : originalColor.xyz;
 
 #ifdef ENABLE_ALPHA
