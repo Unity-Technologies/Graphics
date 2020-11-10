@@ -16,13 +16,6 @@ namespace UnityEngine.Rendering.HighDefinition
             : base(renderPipelineResources, renderGraph, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name)
         {
             m_SortedRequestsCache = new HDShadowResolutionRequest[Mathf.CeilToInt(maxShadowRequests)];
-
-            InitializeRenderGraphOutput(renderGraph);
-        }
-
-        public void Cleanup(RenderGraph renderGraph)
-        {
-            CleanupRenderGraphOutput(renderGraph);
         }
 
         internal void ReserveResolution(HDShadowResolutionRequest shadowRequest)
