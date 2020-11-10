@@ -5,9 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [11.0.0] - 2020-10-21
+### Added
+- Provide explicit access to spawnCount in graph
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
+- Fix unexpected Spawn context execution ordering
 
 ## [10.2.0] - 2020-10-19
 ### Added
@@ -20,7 +23,6 @@ The version number for this package has increased due to a version update of a r
 - New particle strip attribute in Initialize: spawnIndexInStrip
 - Added Get Strip Index subgraph utility operator in Additional Samples
 - Added Encompass (Point) subgraph utility operator in Additional Samples
-- Provide explicit access to spawnCount in graph
 
 ### Fixed
 - "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
@@ -59,8 +61,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed Set Strip Progress Attribute utility block in Additional Samples
 - Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
 - Remove temporarily "Exact Fixed Time Step" option on VisualEffectAsset to avoid unexpected behavior
-- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
-- Fix unexpected Spawn context execution ordering
 
 ## [10.1.0] - 2020-10-12
 ### Added
