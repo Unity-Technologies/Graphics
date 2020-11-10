@@ -26,15 +26,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         uint m_Value;
 
         static uint s_CurrentValidBit = 1 << 16;
+        static uint s_SharedResourceValidBit = 0x7FFF << 16;
 
         public int index { get { return (int)(m_Value & kIndexMask); } }
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
 
-        internal ResourceHandle(int value, RenderGraphResourceType type)
+        internal ResourceHandle(int value, RenderGraphResourceType type, bool shared)
         {
             Debug.Assert(value <= 0xFFFF);
-            m_Value = ((uint)value & kIndexMask) | s_CurrentValidBit;
+            m_Value = ((uint)value & kIndexMask) | (shared ? s_SharedResourceValidBit : s_CurrentValidBit);
             this.type = type;
         }
 
@@ -42,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool IsValid()
         {
             var validity = m_Value & kValidityMask;
-            return validity != 0 && validity == s_CurrentValidBit;
+            return validity != 0 && (validity == s_CurrentValidBit || validity == s_SharedResourceValidBit);
         }
 
         static public void NewFrame(int executionIndex)
@@ -62,6 +63,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     class IRenderGraphResource
     {
         public bool imported;
+        public bool shared;
         public int cachedHash;
         public int transientPassIndex;
         public int sharedResourceLastFrameUsed;
@@ -71,6 +73,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public virtual void Reset(IRenderGraphResourcePool pool)
         {
             imported = false;
+            shared = false;
             cachedHash = -1;
             transientPassIndex = -1;
             sharedResourceLastFrameUsed = -1;

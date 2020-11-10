@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal TextureHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture); }
+        internal TextureHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, shared); }
 
         /// <summary>
         /// Cast to RTHandle
@@ -280,7 +280,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public override string GetName()
         {
-            if (imported)
+            if (imported && !shared)
                 return graphicsResource != null ? graphicsResource.name : "null resource";
             else
                 return desc.name;
@@ -312,7 +312,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public override void ReleaseGraphicsResource()
         {
-            graphicsResource.Release();
+            if (graphicsResource != null)
+                graphicsResource.Release();
             base.ReleaseGraphicsResource();
         }
 

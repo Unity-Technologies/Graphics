@@ -236,7 +236,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < sharedTextureCount; ++i)
             {
                 var resource = textureResources.resourceArray[i];
-                if (resource.sharedResourceLastFrameUsed == -1) // unused
+                if (resource.shared == false) // unused
                 {
                     texResource = (TextureResource)textureResources.resourceArray[i];
                     textureIndex = i;
@@ -248,11 +248,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (texResource == null)
             {
                 textureIndex = m_RenderGraphResources[(int)RenderGraphResourceType.Texture].AddNewRenderGraphResource(out texResource, pooledResource: false);
+                textureResources.sharedResourcesCount++;
             }
 
             texResource.imported = true;
+            texResource.shared = true;
+            texResource.desc = desc;
 
-            return new TextureHandle(textureIndex);
+            return new TextureHandle(textureIndex, shared: true);
         }
 
         internal void ReleaseSharedTexture(TextureHandle texture)
@@ -261,7 +264,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (texture.handle >= texResources.sharedResourcesCount)
                 throw new InvalidOperationException("Tried to release a non shared texture.");
 
-            GetTextureResource(texture.handle).ReleaseGraphicsResource();
+            // Decrement if we release the last one.
+            if (texture.handle == (texResources.sharedResourcesCount - 1))
+                texResources.sharedResourcesCount--;
+
+            var texResource = GetTextureResource(texture.handle);
+            texResource.ReleaseGraphicsResource();
+            texResource.Reset(null);
         }
 
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)

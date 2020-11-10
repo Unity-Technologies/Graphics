@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal ComputeBufferHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer); }
+        internal ComputeBufferHandle(int handle, bool shared = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer, shared); }
 
         /// <summary>
         /// Cast to ComputeBuffer
