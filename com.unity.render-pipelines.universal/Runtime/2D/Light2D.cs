@@ -106,7 +106,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private int lightCookieSpriteInstanceID => m_LightCookieSprite?.GetInstanceID() ?? 0;
 
-        private Bounds m_LocalBounds;
+        [SerializeField]
+        Bounds m_LocalBounds;
         internal BoundingSphere boundingSphere { get; private set; }
 
         internal Mesh lightMesh

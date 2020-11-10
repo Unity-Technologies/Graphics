@@ -50,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_SrcBlendID = Shader.PropertyToID("_SrcBlend");
         private static readonly int k_DstBlendID = Shader.PropertyToID("_DstBlend");
         private static readonly int k_FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
+        private static readonly int k_FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
         private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
         private static readonly int k_VolumeColorID = Shader.PropertyToID("_VolumeColor");
         private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
@@ -172,7 +173,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-
                     SetGeneralLightShaderGlobals(pass, cmd, light);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
@@ -281,8 +281,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Color volumeColor = volumeIntensity * light.color;
             color.a = 1.0f;
 
-            cmd.SetGlobalColor(k_LightColorID, color);
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+            cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+            cmd.SetGlobalColor(k_LightColorID, color);
             cmd.SetGlobalColor(k_VolumeColorID, volumeColor);
         }
 
