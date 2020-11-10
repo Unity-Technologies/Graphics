@@ -3651,7 +3651,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static void FillCoarseTiles(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
             // If (boundedEntityCount == 0), we still perform a dispatch that will initialize bins as empty.
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FillCoarseTiles)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FillScreenTiles)))
             {
                 var shader = parameters.tileShader;
 
