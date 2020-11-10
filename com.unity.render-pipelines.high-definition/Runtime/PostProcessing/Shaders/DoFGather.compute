@@ -34,19 +34,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define NUM_BUCKETS 3
 #define ADAPTIVE_RADIUS
 #define STRATIFY
-//#define OCTAWEB_SORTING
 //#define UNIFORM_WEIGHTS
-
-// Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
-#ifndef OCTAWEB_SORTING
-    #define RING_COLOR totalColor
-    #define RING_MAXCOC maxCoC
-    #define RING_ALPHA totalAlpha
-#else
-    #define RING_COLOR ringColor
-    #define RING_MAXCOC ringMaxCoC
-    #define RING_ALPHA ringAlpha
-#endif
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
@@ -172,25 +160,6 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     for (int ring = 0; ring < numSamples; ring += 1)
     {
         float dAng = 2.0f * PI * rcp(numSamples);
-
-#ifdef OCTAWEB_SORTING
-        float4 ringColor[NUM_BUCKETS];
-        float ringMaxCoC[NUM_BUCKETS];
-        float ringHits[NUM_BUCKETS];
-#ifdef ENABLE_ALPHA
-        float ringAlpha[NUM_BUCKETS];
-#endif
-
-        for (int i = 0; i < NUM_BUCKETS; ++i)
-        {
-            ringColor[i] = 0.0f;
-            ringMaxCoC[i] = 0.0f;
-            ringHits[i] = 0.0f;
-#ifdef ENABLE_ALPHA
-            ringAlpha[i] = 0.0f;
-#endif
-        }
-#endif
         for (int i = 0; i < numSamples; i += 1)
         {
             float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 1);
@@ -211,33 +180,13 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 {
                     float weight = GetSampleWeight(abs(sampleCoC));
                     weight *= GetBucketWeight(sampleCoC, centerCoC, r2, j);
-                    RING_COLOR[j] += float4(sampleColor.xyz * weight, weight);
-#ifdef OCTAWEB_SORTING
-                    ringHits[j] += bucketWeight;
-#endif
+                    totalColor[j] += float4(sampleColor.xyz * weight, weight);
 #ifdef ENABLE_ALPHA
-                    RING_ALPHA[j] += sampleColor.w * weight;
+                    totalAlpha[j] += sampleColor.w * weight;
 #endif
                 }
             }
         }
-
-#ifdef OCTAWEB_SORTING
-        for (int j = 0; j < NUM_BUCKETS; ++j)
-        {
-            float currentAvg = RING_COLOR[j].w * numSamples;
-            float prevAvg = (ring < numRings) ? prevRingWeight[j] : currentAvg;
-            float occlusion = saturate(prevAvg - currentAvg);
-            float alpha = ringHits[j] * numSamples;
-
-            float blendFactor = 1.0 - alpha * occlusion;
-            totalColor[j] = blendFactor * totalColor[j] + RING_COLOR[j];
-            prevRingWeight[j] = currentAvg;
-#ifdef ENABLE_ALPHA
-            totalAlpha[j] += blendFactor * totalAlpha[j] + RING_ALPHA[j];
-#endif
-        }
-#endif
     }
 
     float4 outColor = 0;
