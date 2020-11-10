@@ -41,16 +41,16 @@ editor_versions:
       version: 2020.2.0b10
   2020_2_staging:
     android:
-      revision: 458ad00b17eb17826a98b16cebf967031b0016a3
+      revision: 8f9bb2c34778a938a68d66ba9d97185338d28fd8
       version: ''
     ios:
-      revision: 458ad00b17eb17826a98b16cebf967031b0016a3
+      revision: 8f9bb2c34778a938a68d66ba9d97185338d28fd8
       version: ''
     linux:
-      revision: 458ad00b17eb17826a98b16cebf967031b0016a3
+      revision: 8f9bb2c34778a938a68d66ba9d97185338d28fd8
       version: ''
     macos:
-      revision: 458ad00b17eb17826a98b16cebf967031b0016a3
+      revision: 8f9bb2c34778a938a68d66ba9d97185338d28fd8
       version: ''
     windows:
       revision: 8f9bb2c34778a938a68d66ba9d97185338d28fd8
