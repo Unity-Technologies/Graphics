@@ -2800,15 +2800,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                         {
+                            // Add decals to the standard light list, which is used to shade forward-rendered geometry
+                            m_lightList.lightsPerView[viewIndex].bounds.Add(DecalSystem.m_Bounds[i]);
+                            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
+
                             if (ShaderConfig.s_PrepasslessDecals == 1)
                             {
+                                // If in prepassless mode, also add decals to the decal-only light list, which is used to shade
+                                // deferred-rendered geometry
                                 m_lightList.lightsPerView[viewIndex].decalBounds.Add(DecalSystem.m_Bounds[i]);
                                 m_lightList.lightsPerView[viewIndex].decalLightVolumes.Add(DecalSystem.m_LightVolumes[i]);
-                            }
-                            else
-                            {
-                                m_lightList.lightsPerView[viewIndex].bounds.Add(DecalSystem.m_Bounds[i]);
-                                m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
                             }
                         }
                     }
@@ -2866,14 +2867,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + m_DensityVolumeCount;
+                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount;
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.LightLoop)
                 {
                     m_TotalLightCount += m_ProbeVolumeCount;
-                }
-                if (ShaderConfig.s_PrepasslessDecals != 1)
-                {
-                    m_TotalLightCount += decalDatasCount;
                 }
 
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
@@ -3587,11 +3584,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Camera camera = param.hdCamera.camera;
 
-                //if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-                //    cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
-
-                // int useDepthBuffer = 0;
-                // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vDecalLayeredOffsetsBuffer, param.tileAndClusterData.perVoxelOffset);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_vDecalLightListGlobal, param.tileAndClusterData.perVoxelLightLists);
             }
@@ -3623,6 +3615,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 VoxelLightListGeneration(parameters, resources, cmd);
             }
         }
+
         void BuildGPULightListDecalCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
             // Custom decal-only light list is only needed if we are evaluating decals early, in the GBuffer phase.
@@ -3636,9 +3629,14 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildGPULightListDecals)))
             {
                 var parameters = PrepareBuildGPULightListParameters(hdCamera, m_DecalClusterData, ref m_ShaderVariablesDecalLightListCB, DecalSystem.m_DecalDatasCount);
-                // FIXME: Comment this
+                // In the standard path, all lights, decals and volume indices are added to the same
+                // light list. The decal shift index contains the index of the first decal in this
+                // list.
+                // Here, we aren't in the standard path. The light list only contains decals. If we
+                // use the decal index shift value, then we get wrong underflowed values. So we zero
+                // out the shift index before proceeding.
                 parameters.lightListCB._DecalIndexShift = 0;
-                // !!!
+
                 var resources = PrepareBuildGPULightListResources(
                     m_DecalClusterData,
                     m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),

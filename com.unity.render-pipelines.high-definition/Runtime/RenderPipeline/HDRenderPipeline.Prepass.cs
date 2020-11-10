@@ -548,8 +548,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, data.decalBigTile);
             ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vDecalLayeredOffsetsBuffer, data.decalPerVoxelOffset);
             ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vDecalLightListGlobal, data.decalPerVoxelLightList);
-            // int useDepthBuffer = 0;
-            // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
         }
 
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore

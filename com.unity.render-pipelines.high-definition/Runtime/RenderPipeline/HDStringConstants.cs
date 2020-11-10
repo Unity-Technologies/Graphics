@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
         public static readonly int _DecalPrepassTexture = Shader.PropertyToID("_DecalPrepassTexture");
         public static readonly int _DecalPrepassTextureMS = Shader.PropertyToID("_DecalPrepassTextureMS");
-        public static readonly int g_prepasslessDecals = Shader.PropertyToID("g_prepasslessDecals"); // TODO: Delete and replace shader usage with #if SHADEROPTIONS_PREPASSLESS_DECALS == 1
+        public static readonly int g_prepasslessDecals = Shader.PropertyToID("g_prepasslessDecals");
         public static readonly int g_vDecalLayeredOffsetsBuffer = Shader.PropertyToID("g_vDecalLayeredOffsetsBuffer");
         public static readonly int g_vDecalLightListGlobal = Shader.PropertyToID("g_vDecalLightListGlobal");
 

@@ -588,7 +588,9 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
 
-            //if (enableNonRenderGraphTests) // FIXME: Temporary
+            // TODO: Prepassless decals don't work with rendergraph enabled. This is okay for the
+            // target of this branch, but needs to be fixed before merging into master.
+            //if (enableNonRenderGraphTests)
                 EnableRenderGraph(false);
         }
 
@@ -2582,7 +2584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1)
             {
-                // TODO: Should we only build decal light lists async of we build standard light lists async? Or should we always build decal light lists async?
+                // TODO: (Nick): Should we only build decal light lists async of we build standard light lists async? Or should we always build decal light lists async?
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
                 {
                     buildDecalLightListTask.Start(cmd, asyncParams, Callback, !haveAsyncTaskWithDepthPrepass);
@@ -2663,8 +2665,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-
-                RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
+            RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
             DecalNormalPatch(hdCamera, cmd);
 
