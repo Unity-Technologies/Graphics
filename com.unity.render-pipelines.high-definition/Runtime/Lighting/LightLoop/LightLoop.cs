@@ -1081,10 +1081,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static Vector2Int GetFineTileBufferDimensions(HDCamera hdCamera)
         {
-            int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_FineTileSize);
-            int h = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_FineTileSize);
+            Vector2Int coarseBufferDims = GetCoarseTileBufferDimensions(hdCamera);
 
-            return new Vector2Int(w, h);
+            // For each coarse tile, we have several fine tiles.
+            return coarseBufferDims * (TiledLightingConstants.s_CoarseTileSize / TiledLightingConstants.s_FineTileSize);
         }
 
         static int GetNumTileBigTileX(HDCamera hdCamera)
@@ -3485,6 +3485,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader zBinShader;
             public ComputeShader tileShader;
             public Vector2Int    coarseTileBufferDimensions;
+            public Vector2Int    fineTileBufferDimensions;
 
             // Big Tile
             public ComputeShader bigTilePrepassShader;
@@ -3656,6 +3657,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 ConstantBuffer.Push(cmd, parameters.lightListCB, shader, HDShaderIDs._ShaderVariablesLightList);
 
+                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP
+                const int tilesPerGroup   = 16; // Shader: TILES_PER_GROUP
+
+                int coarseBufferSize = parameters.coarseTileBufferDimensions.x * parameters.coarseTileBufferDimensions.y;
+                int fineBufferSize   = parameters.fineTileBufferDimensions.x   * parameters.fineTileBufferDimensions.y;
+
                 int kernel, groupCount;
 
                 kernel = 0; // FillCoarseTiles
@@ -3664,9 +3671,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This is not an accident. We alias the fine tile buffer memory.
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer, resources.fineTileBuffer);
 
-                const int threadsPerGroup = 64; // Shader: THREADS_PER_GROUP
-
-                int coarseBufferSize = parameters.coarseTileBufferDimensions.x * parameters.coarseTileBufferDimensions.y;
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize, threadsPerGroup);
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
@@ -3678,15 +3682,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._SrcCoarseTileBuffer, resources.fineTileBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._DstCoarseTileBuffer, resources.coarseTileBuffer);
 
-                const int tilesPerGroup = 16; // Shader: TILES_PER_GROUP
-
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize, tilesPerGroup);
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
 
                 kernel = 2; // FillFineTiles
 
-                // ...
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer, resources.convexBoundsBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer,   resources.coarseTileBuffer);
+                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
+
+                groupCount = HDUtils.DivRoundUp(fineBufferSize, tilesPerGroup);
+
+                cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
             }
         }
 
@@ -4013,6 +4021,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.zBinShader                 = zBinShader;
             parameters.tileShader                 = tileShader;
             parameters.coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
+            parameters.fineTileBufferDimensions   = GetFineTileBufferDimensions(hdCamera);
 
             // Big tile prepass
             parameters.bigTilePrepassShader = buildPerBigTileLightListShader;
