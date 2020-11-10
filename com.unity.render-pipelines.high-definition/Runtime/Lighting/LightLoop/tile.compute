@@ -1,4 +1,4 @@
-#pragma enable_d3d11_debug_symbols
+// #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #define FILL_COARSE_TILES  0
@@ -183,6 +183,7 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             float2 entityBoundsX = _xyBoundsBuffer[inputStart + i].xy;
             float2 entityBoundsY = _xyBoundsBuffer[inputStart + i].zw;
 
+            [branch] // This hint is required to avoid an internal compiler error.
             if (IntervalsOverlap(entityBoundsX, tileBoundsX) &&
                 IntervalsOverlap(entityBoundsY, tileBoundsY))
             {
