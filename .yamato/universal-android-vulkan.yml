@@ -23,6 +23,10 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
                  utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
@@ -31,9 +35,9 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Player_il2cpp_Linear_trunk
+      -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Android_Vulkan_Player_il2cpp_Linear_trunk:
+Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     name: Build Universal on Android_Vulkan_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -52,7 +56,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest --timeout=2700
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest --timeout=2700
     artifacts:
         logs:
             paths:
@@ -78,6 +82,10 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
                  utr --architecture=ARM64 --artifacts_path=test-results --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
@@ -88,9 +96,9 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION:
+Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build Universal on Android_Vulkan_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
@@ -110,7 +118,7 @@ Build_Universal_Android_Vulkan_Player_il2cpp_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest --timeout=2700
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest --timeout=2700
     artifacts:
         logs:
             paths:

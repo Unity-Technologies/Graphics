@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public static void FadingOptions(Material material, MaterialEditor materialEditor, ParticleProperties properties)
         {
             // Z write doesn't work with fading
-            bool hasZWrite = (material.GetInt("_ZWrite") != 0);
+            bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
             if(!hasZWrite)
             {
                 // Soft Particles
@@ -379,7 +379,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Is the material transparent, this is set in BaseShaderGUI
             bool isTransparent = material.GetTag("RenderType", false) == "Transparent";
             // Z write doesn't work with distortion/fading
-            bool hasZWrite = (material.GetInt("_ZWrite") != 0);
+            bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
 
             // Flipbook blending
             if (material.HasProperty("_FlipbookBlending"))

@@ -57,7 +57,7 @@ test_platforms:
         
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
-      - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND> 
+      - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
      
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
@@ -66,8 +66,8 @@ test_platforms:
     utr_flags_build:
       - [all]: --suite=playmode
       - [all]: --build-only
-      - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [all]: --scripting-backend=<SCRIPTING_BACKEND>
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>" 
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_]: --platform=StandaloneWindows64
       - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
@@ -93,11 +93,11 @@ test_platforms:
       - [iPhone]: --timeout=1800
 
       ### The method and values live in /com.unity.testframework.graphics/.../Editor/SetupProject.cs
-      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11"
-      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12"
-      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan"
-      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3"
-      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal"
+      - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+      - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+      - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
       
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
@@ -111,8 +111,8 @@ test_platforms:
     utr_flags:
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       - [all]: --reruncount=2
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
@@ -136,8 +136,10 @@ test_platforms:
       - [all]: --suite=editor
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
-      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       - [all]: --platform=editmode
+      - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
+      - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
+      - [iPhone_Metal]: --platform=iOS
       
       - [all]: --testproject=.
       - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
@@ -155,6 +157,12 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-force-d3d12"
       - [Win_Vulkan, Linux_Vulkan]: --extra-editor-arg="-force-vulkan"
       - [Linux_OpenGlCore]: --extra-editor-arg="-force-glcore"
+
+      - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
+      - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
+      - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
+      - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
+      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
       
 platforms:
   Win:
@@ -245,6 +253,7 @@ platforms:
     components:
       - editor
       - iOS
+      - il2cpp
     agents_project:
       default:
         type: Unity::mobile::iPhone
