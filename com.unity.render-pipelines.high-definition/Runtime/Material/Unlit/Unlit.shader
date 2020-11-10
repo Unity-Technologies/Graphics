@@ -456,7 +456,7 @@ Shader "HDRP/Unlit"
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #define SHADERPASS SHADERPASS_FULLSCREEN_DEBUG
+            #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/ShaderPass/UnlitSharePass.hlsl"
@@ -606,6 +606,9 @@ Shader "HDRP/Unlit"
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
+            #define SHADER_UNLIT
+            #define HAS_LIGHTLOOP // Used when computing volumetric scattering
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -616,7 +619,6 @@ Shader "HDRP/Unlit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.hlsl"
-
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl"
 

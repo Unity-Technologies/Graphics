@@ -97,6 +97,24 @@ MonoBehaviour:
     Reason: Memory allocation test failed, 2 allocations detected.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Cause a black screen on first frame
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Cause a black screen on first frame
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: cf78ea2211e5e6c45b8a85261bb291dd, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -109,7 +127,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -118,7 +136,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato

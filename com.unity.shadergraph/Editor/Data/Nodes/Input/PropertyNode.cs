@@ -64,6 +64,11 @@ namespace UnityEditor.ShaderGraph
 
         void AddOutputSlot()
         {
+            if (property is MultiJsonInternal.UnknownShaderPropertyType uspt)
+            {
+                // keep existing slots, don't modify them
+                return;
+            }
             switch(property.concreteShaderValueType)
             {
                 case ConcreteSlotValueType.Boolean:
@@ -154,9 +159,11 @@ namespace UnityEditor.ShaderGraph
                     switch (property.sgVersion)
                     {
                         case 0:
+                        case 2:
                             sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                             break;
                         case 1:
+                        case 3:
                             //Exposed color properties get put into the correct space automagikally by Unity UNLESS tagged as HDR, then they just get passed in as is.
                             //for consistency with other places in the editor, we assume HDR colors are in linear space, and correct for gamma space here
                             if ((property as ColorShaderProperty).colorMode == ColorMode.HDR)
@@ -212,6 +219,10 @@ namespace UnityEditor.ShaderGraph
             if (property == null || !owner.properties.Any(x => x == property))
             {
                 owner.AddConcretizationError(objectId, "Property Node has no associated Blackboard property.");
+            }
+            else if (property is MultiJsonInternal.UnknownShaderPropertyType)
+            {
+                owner.AddValidationError(objectId, "Property is of unknown type, a package may be missing.", Rendering.ShaderCompilerMessageSeverity.Warning);
             }
         }
 
