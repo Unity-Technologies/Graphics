@@ -1,10 +1,11 @@
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     [CustomEditor(typeof(Renderer2DData), true)]
-    internal class Renderer2DDataEditor : Editor
+    internal class Renderer2DDataEditor : ScriptableRendererDataEditor
     {
         class Styles
         {
@@ -184,6 +185,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUILayout.PropertyField(m_DefaultMaterialType, Styles.defaultMaterialType);
             if(m_DefaultMaterialType.intValue == (int)Renderer2DData.Renderer2DDefaultMaterialType.Custom)
                 EditorGUILayout.PropertyField(m_DefaultCustomMaterial, Styles.defaultCustomMaterial);
+
+            EditorGUILayout.Space();
+            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
