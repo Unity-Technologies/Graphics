@@ -208,7 +208,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             shaderInputTypes.Sort((s1, s2) => {
                 var info1 = Attribute.GetCustomAttribute(s1, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 var info2 = Attribute.GetCustomAttribute(s2, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
-
                 if (info1.priority == info2.priority)
                     return (info1.name ?? s1.Name).CompareTo(info2.name ?? s2.Name);
                 else

@@ -14,10 +14,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
 {
     static class ShaderGraphUITestHelpers
     {
-        private static EventBase CreateEvent(Event evt)
+        private static readonly MethodInfo CreateEventMethodInfo = null;
+        static ShaderGraphUITestHelpers()
         {
+            // Get reference to UIElements assembly
             Assembly uiElementAssembly = null;
-
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 var assemblyName = assembly.GetName().ToString();
@@ -26,15 +27,21 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     uiElementAssembly = assembly;
                 }
             }
+
+            // Get specific class that is used for UI event generation, as it is currently marked as internal and is inaccessible directly
             Type uiElementsUtilityType = uiElementAssembly?.GetType("UnityEngine.UIElements.UIElementsUtility");
 
-            MethodInfo createEventMethodInfo = uiElementsUtilityType?.GetMethod("CreateEvent",
+            // Cache the method info for this function to be used through application lifetime
+            CreateEventMethodInfo = uiElementsUtilityType?.GetMethod("CreateEvent",
                 BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.NonPublic,
                 null,
                 new Type[] {typeof(Event), typeof(EventType)},
                 null);
+        }
 
-            return (EventBase)createEventMethodInfo?.Invoke(null,  new object[]{evt, evt.rawType});
+        private static EventBase CreateEvent(Event evt)
+        {
+            return (EventBase)CreateEventMethodInfo?.Invoke(null,  new object[]{evt, evt.rawType});
         }
 
         public static EventBase MakeEvent(EventType type)
@@ -99,7 +106,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             VisualElement elementToNotify,
             EventType eventType,
             MouseButton mouseButton = MouseButton.LeftMouse,
-            Vector2 eventPositionOffset = new Vector2())
+            Vector2 eventPositionOffset = default)
         {
             var screenButtonPosition = GetScreenPosition(elementToNotify);
             // Apply offset if any was specified
