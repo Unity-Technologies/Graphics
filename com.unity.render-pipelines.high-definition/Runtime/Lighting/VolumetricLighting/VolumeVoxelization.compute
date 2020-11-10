@@ -317,6 +317,7 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize) / TILE_SIZE_BIG_TILE;
 #endif
     uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
+    // This clamp is important as _VBufferVoxelSize can have float value which can cause en overflow (Crash on Vulkan and Metal)
     tileIndex = min(tileIndex, _NumTileBigTileX * _NumTileBigTileY);
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
