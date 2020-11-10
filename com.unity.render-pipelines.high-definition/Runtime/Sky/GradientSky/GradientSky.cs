@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/Gradient Sky")]
     [SkyUniqueID((int)SkyType.Gradient)]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Gradient-Sky" + Documentation.endURL)]
     public class GradientSky : SkySettings
     {
         /// <summary>Top color of the gradient sky.</summary>
