@@ -314,7 +314,7 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE_BIG_TILE, a voxel may straddle
     // a tile boundary. This means different voxel subsamples may belong to different tiles.
     // We accept this error, and simply use the coordinates of the center of the voxel.
-    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize / TILE_SIZE_BIG_TILE);
+    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize) / TILE_SIZE_BIG_TILE;
 #endif
     uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
     tileIndex = min(tileIndex, _NumTileBigTileX * _NumTileBigTileY);
