@@ -94,9 +94,12 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
     # update revisions for each project
     is_updated = False 
     for project in projects:
-        job = [node for node in dependency_tree["nodes"] if node["name"].lower()==f"all {project} ci - {track}"]
-        
-        if job["status"] == 'success':
+        jobs = [node for node in dependency_tree["nodes"] if node["name"].lower()==f"all {project} ci - {track}"] 
+        if len(jobs) == 0:
+            continue
+
+        job = jobs[0]
+        if job["status"] == 'success': 
             print(f'Updating for {project}')
             if not last_green_projects.get(project):
                 last_green_projects[project] = {}
