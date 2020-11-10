@@ -769,6 +769,10 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
 
 #if (PASS == FILL_FINE_TILES)
 
+#if (REMAINDER(COARSE_TILE_SIZE, FINE_TILE_SIZE) != 0)
+    #error "COARSE_TILE_SIZE must be an integer multiple of FINE_TILE_SIZE."
+#endif
+
 [numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
 void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
