@@ -9,14 +9,16 @@ import sys
 import requests
 import datetime
 import ruamel.yaml
-
-
+from collections import OrderedDict
 from update_revisions import load_config, DEFAULT_CONFIG_FILE, EXPECTATIONS_PATH
 from util.subprocess_helpers import git_cmd, run_cmd
 
+yaml = ruamel.yaml.YAML()
+
 
 def load_yml(filepath):
-    return yaml.load(filepath)
+    with open(filepath) as f:
+        return yaml.load(f)
 
 def ordereddict_to_dict(d):
     return {k: ordereddict_to_dict(v) for k, v in d.items()} if isinstance(d, OrderedDict) else d
@@ -26,7 +28,7 @@ def checkout_and_pull_branch(branch, working_dir):
     git_cmd(f'checkout {branch}', working_dir)
     git_cmd('pull', working_dir)
 
-def commit_and_push(commit_msg, working_dir, track, development_mode=False):
+def commit_and_push(commit_msg, working_dir, development_mode=False):
     if not development_mode:
         git_cmd(['commit', '-m', commit_msg], working_dir)
         git_cmd('pull', working_dir)
@@ -63,7 +65,7 @@ def apply_target_revision_changes(editor_versions_file, yml_files_path, commit, 
         return True
     return False
 
-def get_yamato_dependency_tree(job_id, api_key)
+def get_yamato_dependency_tree(job_id, api_key):
     """Calls Yamato API (GET/jobid/tree)for given job id. Returns JSON dependency tree if success, and None if fails."""
     try:
         url = f'http://yamato-api.cds.internal.unity3d.com/jobs/{job_id}/tree'
@@ -77,7 +79,7 @@ def get_yamato_dependency_tree(job_id, api_key)
         print(f"Failed to call Yamato API. Got {response.json()}")
         return None
     
-def update_green_project_revisions(editor_versions_file, project_versions_file, track, projects, job_id, api_key working_dir):
+def update_green_project_revisions(editor_versions_file, project_versions_file, track, projects, job_id, api_key, working_dir):
     """Updates green project revisions file for given track. If any updates present, adds to git and returns True. If not, returns False."""
     
     # get the revisions used for the job, the last green project revisions, and Yamato dependency tree  
@@ -95,7 +97,7 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
         job = [node for node in dependency_tree["nodes"] if node["name"].lower()==f"all {project} ci - {track}"]
         
         if job["status"] == 'success':
-            print(f'Updating green revision for {project}')
+            print(f'Updating for {project}')
             if not last_green_projects.get(project):
                 last_green_projects[project] = {}
             last_green_projects[project]["updated_at"] = updated_at
@@ -107,7 +109,7 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
         with open(project_versions_file, 'w') as f:
             yaml.dump(last_green_projects, f)
         
-        git_cmd(f'add {last_green_projects}', working_dir)
+        git_cmd(f'add {project_versions_file}', working_dir)
         return True
     
     return False
@@ -137,7 +139,6 @@ def parse_args(flags):
 
 
 def main(argv):
-    yaml = ruamel.yaml.YAML()
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     args = parse_args(argv)
     config = load_config(args.config)
@@ -146,7 +147,7 @@ def main(argv):
 
     try:
         working_dir = args.working_dir or os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
-        logging.info(f'Working directory: {working_dir}')
+        print(f'Working directory: {working_dir}')
         
         verify_changed_files(editor_versions_file, args.revision, working_dir)
 
@@ -155,7 +156,7 @@ def main(argv):
         else:
             checkout_and_pull_branch(args.target_branch, working_dir)
             if git_cmd('rev-parse HEAD').strip() == args.revision:
-                logging.info('No changes compared to current revision. Exiting...')
+                print('No changes compared to current revision. Exiting...')
                 return 0
            
         # Update, commit and push editor versions file
@@ -165,10 +166,10 @@ def main(argv):
             # Update, commit and push green project versions file
             if args.jobid and args.apikey:
                 print(f'Updating green project revisions according to job {args.jobid}.')
-                if update_green_project_revisions(editor_versions_file, project_versions_file, track, projects, args.jobid, args.apikey, working_dir):
+                if update_green_project_revisions(editor_versions_file, project_versions_file, str(args.track), config['projects'], args.jobid, args.apikey, working_dir):
                     commit_and_push(f'[CI] [{str(args.track)}] Updated green project revisions', working_dir, args.local)
         else:
-            logging.info('No revision changes to merge. Exiting successfully without any '
+            print('No revision changes to merge. Exiting successfully without any '
                          'commit/push.')
         return 0
     except subprocess.CalledProcessError as err:
