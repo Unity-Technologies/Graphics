@@ -17,6 +17,7 @@ CBUFFER_END
 
 #define NumRings            _Params.x
 #define MaxCoCRadius        _Params.y
+#define Anamorphism         _Params.z
 #define MaxCoCMipLevel      _Params2.x
 #define MaxCoCMipWidth      _Params2.y
 #define MaxCoCMipHeight     _Params2.z
@@ -122,7 +123,7 @@ float GetSampleWeight(float cocRadius)
 
 float2 PointInCircle(float angle)
 {
-    return float2(cos(angle), sin(angle));
+    return float2(cos(angle), sin(angle)) * float2 (1 - Anamorphism, 1 + Anamorphism);
 }
 
 float GetNumSamples(float radius, float maxRadius)
