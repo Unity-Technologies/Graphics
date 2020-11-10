@@ -113,6 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLighting,
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
+        UpdateDensityVolumeAtlas,
 
         // RT Cluster
         RaytracingBuildCluster,

@@ -215,7 +215,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.tileClusterDebug == TileClusterDebug.None
                 && !lightingDebug.displayCookieAtlas
-                && !lightingDebug.displayPlanarReflectionProbeAtlas)
+                && !lightingDebug.displayPlanarReflectionProbeAtlas
+                && !lightingDebug.displayDensityVolumeAtlas)
                 return;
 
             using (var builder = renderGraph.AddRenderPass<DebugLightLoopOverlayPassData>("RenderLightLoopDebugOverlay", out var passData))

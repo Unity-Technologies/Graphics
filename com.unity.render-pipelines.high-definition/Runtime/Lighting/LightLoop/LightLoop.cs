@@ -4297,9 +4297,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayDensityVolumeAtlas)))
                 {
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 0.0f);
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, 0);
                     m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, DensityVolumeManager.manager.volumeAtlas.GetAtlas());
+                    m_LightLoopDebugMaterialProperties.SetFloat("_Slice", (float)lightingDebug.densityVolumeAtlasSlice / DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth);
                     debugParameters.debugOverlay.SetViewport(cmd);
                     cmd.DrawProcedural(Matrix4x4.identity, parameters.debugDensityVolumeMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
                     debugParameters.debugOverlay.Next();
