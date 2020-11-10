@@ -14,6 +14,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal float Radius = 0.035f;
         [SerializeField] internal int SampleCount = 6;
 
+        [SerializeField] internal bool SinglePassBlur = false;
+
         // Enums
         internal enum DepthSource
         {
@@ -298,12 +300,9 @@ namespace UnityEngine.Rendering.Universal
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
-                    bool testHorizontalVertical = false;
-
-                    if (testHorizontalVertical)
+                    if (m_CurrentSettings.SinglePassBlur)
                     {
                         RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontalVertical);
-                        //RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurFinal);
                     }
                     else
                     {
