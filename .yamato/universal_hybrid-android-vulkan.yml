@@ -3,8 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-Universal_Hybrid_Android_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
-    name: Universal_Hybrid on Android_Vulkan_Standalone_mono_apiNet2_Linear on version trunk
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
+Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_trunk:
+    name: Universal_Hybrid on Android_Vulkan_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -19,7 +23,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -27,10 +31,10 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_apiNet2_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Hybrid_Android_Vulkan_Player_mono_apiNet2_Linear_trunk:
-    name: Build Universal_Hybrid on Android_Vulkan_mono_apiNet2_Linear_Player on version trunk
+Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_trunk:
+    name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -40,7 +44,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_apiNet2_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
@@ -48,7 +52,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalHybridTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --compilation-errors-as-warnings --timeout=1800
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/UniversalHybridTest --timeout=2700
     artifacts:
         logs:
             paths:
@@ -57,8 +61,8 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_apiNet2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Hybrid_Android_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Android_Vulkan_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Android_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -74,7 +78,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --suite=playmode --platform=Android --artifacts_path=test-results --player-load-path=players --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --compilation-errors-as-warnings --architecture=ARM64 --editor-location=WindowsEditor --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -84,10 +88,10 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Hybrid_Android_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Android_Vulkan_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -106,7 +110,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_mono_apiNet2_Linear_CUSTOM-REVISION
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --suite=playmode --platform=Android --testproject=./TestProjects/UniversalHybridTest --extra-editor-arg="-playergraphicsapi=Vulkan" --editor-location=./WindowsEditor --artifacts_path=test-results --player-save-path=players --build-only --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --architecture=ARM64 --compilation-errors-as-warnings --timeout=1800
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/UniversalHybridTest --timeout=2700
     artifacts:
         logs:
             paths:

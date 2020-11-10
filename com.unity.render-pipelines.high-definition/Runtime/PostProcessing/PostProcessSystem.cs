@@ -749,7 +749,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         out preppedMotionVec, out minMaxTileVel,
                                         out maxTileNeigbourhood, out tileToScatterMax,
                                         out tileToScatterMin);
-                            DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, motionVecTexture, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
+                            DoMotionBlur(PrepareMotionBlurParameters(camera), cmd, source, destination, depthMipChain, motionVecTexture, preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
                             RecycleMotionBlurRenderTargets(preppedMotionVec, minMaxTileVel, maxTileNeigbourhood, tileToScatterMax, tileToScatterMin);
 
                             PoolSource(ref source, destination);
@@ -1038,6 +1038,13 @@ namespace UnityEngine.Rendering.HighDefinition
             stopNanParams.width = camera.actualWidth;
             stopNanParams.height = camera.actualHeight;
             stopNanParams.viewCount = camera.viewCount;
+
+            stopNanParams.nanKillerCS.shaderKeywords = null;
+            if (m_EnableAlpha)
+            {
+                stopNanParams.nanKillerCS.EnableKeyword("ENABLE_ALPHA");
+            }
+
             return stopNanParams;
         }
 
@@ -2719,6 +2726,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 motionBlurParams0;
             public Vector4 motionBlurParams1;
             public Vector4 motionBlurParams2;
+            public Vector4 motionBlurParams3;
 
             public bool motionblurSupportScattering;
         }
@@ -2765,6 +2773,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.motionVecPrepCS = m_Resources.shaders.motionBlurMotionVecPrepCS;
             parameters.motionVecPrepKernel = parameters.motionVecPrepCS.FindKernel("MotionVecPreppingCS");
+            parameters.motionVecPrepCS.shaderKeywords = null;
+
+            if (!m_MotionBlur.cameraMotionBlur.value)
+            {
+                parameters.motionVecPrepCS.EnableKeyword("CAMERA_DISABLE_CAMERA");
+            }
+            else
+            {
+                var clampMode = m_MotionBlur.specialCameraClampMode.value;
+                if (clampMode == CameraClampMode.None)
+                    parameters.motionVecPrepCS.EnableKeyword("NO_SPECIAL_CLAMP");
+                else if (clampMode == CameraClampMode.Rotation)
+                    parameters.motionVecPrepCS.EnableKeyword("CAMERA_ROT_CLAMP");
+                else if (clampMode == CameraClampMode.Translation)
+                    parameters.motionVecPrepCS.EnableKeyword("CAMERA_TRANS_CLAMP");
+                else if (clampMode == CameraClampMode.SeparateTranslationAndRotation)
+                    parameters.motionVecPrepCS.EnableKeyword("CAMERA_SEPARATE_CLAMP");
+                else if (clampMode == CameraClampMode.FullCameraMotionVector)
+                    parameters.motionVecPrepCS.EnableKeyword("CAMERA_FULL_CLAMP");
+            }
+
+            parameters.motionBlurParams3 = new Vector4(
+                m_MotionBlur.cameraTranslationVelocityClamp.value,
+                m_MotionBlur.cameraVelocityClamp.value,
+                0, 0);
+
+
             parameters.tileGenCS = m_Resources.shaders.motionBlurGenTileCS;
             parameters.tileGenCS.shaderKeywords = null;
             if (m_MotionBlurSupportsScattering)
@@ -2783,7 +2818,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.tileMergeCS = m_Resources.shaders.motionBlurMergeTileCS;
             parameters.tileMergeKernel = parameters.tileMergeCS.FindKernel("TileMerge");
-
 
             parameters.motionBlurCS = m_Resources.shaders.motionBlurCS;
             parameters.motionBlurCS.shaderKeywords = null;
@@ -2829,7 +2863,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DoMotionBlur(in MotionBlurParameters motionBlurParams, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle motionVectorTexture,
+        static void DoMotionBlur(in MotionBlurParameters motionBlurParams, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle depthTexture, RTHandle motionVectorTexture,
                           RTHandle preppedMotionVec, RTHandle minMaxTileVel,
                           RTHandle maxTileNeigbourhood, RTHandle tileToScatterMax,
                           RTHandle tileToScatterMin)
@@ -2857,13 +2891,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 cs = motionBlurParams.motionVecPrepCS;
                 kernel = motionBlurParams.motionVecPrepKernel;
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, motionBlurParams.motionBlurParams0);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, motionBlurParams.motionBlurParams1);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, motionBlurParams.motionBlurParams2);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams3, motionBlurParams.motionBlurParams3);
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraMotionVectorsTexture, motionVectorTexture);
 
                 cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, motionBlurParams.camera.mainViewConstants.prevViewProjMatrixNoCameraTrans);
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._CurrVPMatrixNoTranslation, motionBlurParams.camera.mainViewConstants.viewProjectionNoCameraTrans);
 
                 threadGroupX = (motionBlurParams.camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
                 threadGroupY = (motionBlurParams.camera.actualHeight + (groupSizeY - 1)) / groupSizeY;

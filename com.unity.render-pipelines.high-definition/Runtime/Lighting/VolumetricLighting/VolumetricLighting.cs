@@ -430,7 +430,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void GenerateMaxZ(in GenerateMaxZParameters parameters, RTHandle maxZ8x, RTHandle maxZ, RTHandle dilatedMaxZ, CommandBuffer cmd)
+        static void GenerateMaxZ(in GenerateMaxZParameters parameters, RTHandle depthTexture, RTHandle maxZ8x, RTHandle maxZ, RTHandle dilatedMaxZ, CommandBuffer cmd)
         {
             // --------------------------------------------------------------
             // Downsample 8x8 with max operator
@@ -445,6 +445,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int dispatchY = maskH;
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, maxZ8x);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
             cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
 
@@ -455,6 +456,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, maxZ8x);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, maxZ);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
             Vector4 srcLimitAndDepthOffset = new Vector4(
                 maskW,
@@ -479,6 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, maxZ);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, dilatedMaxZ);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
             srcLimitAndDepthOffset.x = finalMaskW;
             srcLimitAndDepthOffset.y = finalMaskH;
@@ -488,9 +491,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
+        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, RTHandle depthTexture,  HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
         {
-            GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo, frameIndex), m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
+            if (Fog.IsVolumetricFogEnabled(camera))
+                GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo, frameIndex), depthTexture, m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
         }
 
         static internal void CreateVolumetricHistoryBuffers(HDCamera hdCamera, int bufferCount)

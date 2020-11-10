@@ -190,9 +190,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             bool clearMotionVectors = hdCamera.camera.cameraType == CameraType.SceneView && !hdCamera.animateMaterials;
+            bool motionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
 
             // TODO: See how to clean this. Some buffers are created outside, some inside functions...
-            result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
+            result.motionVectorsBuffer = motionVectors ? CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors) : renderGraph.defaultResources.blackTextureXR;
             result.depthBuffer = CreateDepthBuffer(renderGraph, hdCamera.clearDepth, msaa);
             result.stencilBuffer = result.depthBuffer;
             result.flagMaskBuffer = CreateFlagMaskTexture(renderGraph);
@@ -319,7 +320,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
             {
                 decalBuffer = renderGraph.defaultResources.blackTextureXR;
-                output.depthAsColor = renderGraph.defaultResources.blackTextureXR;
+                output.depthAsColor = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" });
                 output.normalBuffer = CreateNormalBuffer(renderGraph, msaa);
                 return false;
             }
@@ -804,6 +806,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Return all black textures for default values.
                 var blackTexture = renderGraph.defaultResources.blackTextureXR;
+                output.depthPyramidTexture = blackTexture;
                 output.dbuffer.dBufferCount = use4RTs ? 4 : 3;
                 for (int i = 0; i < output.dbuffer.dBufferCount; ++i)
                     output.dbuffer.mrt[i] = blackTexture;
@@ -1019,7 +1022,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ObjectMotionVector);
                 m_CameraMotionVectorsMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ObjectMotionVector);
                 passData.cameraMotionVectorsMaterial = m_CameraMotionVectorsMaterial;
-                passData.depthBuffer = builder.ReadTexture(depthBuffer);
+                passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
                 passData.motionVectorsBuffer = builder.WriteTexture(motionVectorsBuffer);
 
                 builder.SetRenderFunc(

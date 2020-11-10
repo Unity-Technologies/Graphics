@@ -24,6 +24,9 @@ The version number for this package has increased due to a version update of a r
 - Added fog volumetric scattering support for path tracing.
 - Added new algorithm for SSR with temporal accumulation
 - Added quality preset of the new volumetric fog parameters.
+- Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
+- Added documentation for LODs not being supported by ray tracing.
+- Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
@@ -52,10 +55,43 @@ The version number for this package has increased due to a version update of a r
 - Fixed issues with physically-based DoF, improved speed and robustness 
 - Fixed a warning happening when putting the range of lights to 0.
 - Fixed issue when null parameters in a volume component would spam null reference errors. Produce a warning instead.
-- Fix volument component creation via script.
+- Fixed volument component creation via script.
 - Fixed GC allocs in render graph.
 - Fixed scene picking passes.
 - Fixed broken ray tracing light cluster full screen debug.
+- Fixed dead code causing error.
+- Fixed issue when dragging slider in inspector for ProjectionDepth.
+- Fixed issue when resizing Inspector window that make the DecalProjector editor flickers.
+- Fixed issue in DecalProjector editor when the Inspector window have a too small width: the size appears on 2 lines but the editor not let place for the second one.
+- Fixed issue (null reference in console) when selecting a DensityVolume with rectangle selection.
+- Fixed issue when linking the field of view with the focal length in physical camera
+- Fixed supported platform build and error message.
+- Fixed exceptions occuring when selecting mulitple decal projectors without materials assigned (case 1283659).
+- Fixed LookDev error message when pipeline is not loaded.
+- Properly reject history when enabling seond denoiser for RTGI.
+- Fixed an issue that could cause objects to not be rendered when using Vulkan API.
+- Fixed issue with lookdev shadows looking wrong upon exiting playmode. 
+- Fixed temporary Editor freeze when selecting AOV output in graphics compositor (case 1288744).
+- Fixed normal flip with double sided materials.
+- Fixed shadow resolution settings level in the light explorer.
+- Fixed the ShaderGraph being dirty after the first save.
+- Fixed XR shadows culling
+- Fixed stylesheet reloading for LookDev window and Wizard window.
+- Fixed Nans happening when upscaling the RTGI.
+- Fixed the adjust weight operation not being done for the non-rendergraph pipeline.
+- Fixed overlap with SSR Transparent default frame settings message on DXR Wizard.
+- Fixed alpha channel in the stop NaNs and motion blur shaders.
+- Fixed undo of duplicate environments in the look dev environment library.
+- Fixed a ghosting issue with RTShadows (Sun, Point and Spot), RTAO and RTGI when the camera is moving fast.
+- Fixed a SSGI denoiser bug for large scenes.
+- Fixed a Nan issue with SSGI.
+- Fixed an issue with IsFrontFace node in Shader Graph not working properly
+- Fixed CustomPassUtils.RenderFrom* functions and CustomPassUtils.DisableSinglePassRendering struct in VR.
+- Fixed custom pass markers not recorded when render graph was enabled.
+- Fixed exceptions when unchecking "Big Tile Prepass" on the frame settings with render-graph.
+- Fixed an issue causing errors in GenerateMaxZ when opaque objects or decals are disabled. 
+- Fixed an issue with Bake button of Reflection Probe when in custom mode
+- Fixed exceptions related to the debug display settings when changing the default frame settings.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
@@ -64,9 +100,17 @@ The version number for this package has increased due to a version update of a r
 - Use draggable fields for float scalable settings
 - Migrated the fabric & hair shadergraph samples directly into the renderpipeline resources.
 - Removed green coloration of the UV on the DecalProjector gizmo.
+- Removed _BLENDMODE_PRESERVE_SPECULAR_LIGHTING keyword from shaders.
 - Now the DXR wizard displays the name of the target asset that needs to be changed.
 - Standardized naming for the option regarding Transparent objects being able to receive Screen Space Reflections.
 - Making the reflection and refractions of cubemaps distance based.
+- Changed Receive SSR to also controls Receive SSGI on opaque objects.
+- Improved the punctual light shadow rescale algorithm.
+- Changed the names of some of the parameters for the Eye Utils SG Nodes.
+- Restored frame setting for async compute of contact shadows.
+- Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
+- Range handles for decal projector angle fading.
+- Smoother angle fading for decal projector.
 
 ## [10.1.0] - 2020-10-12
 
@@ -2333,3 +2377,5 @@ The version number for this package has increased due to a version update of a r
 - Fix the near plane of the V-Buffer causing out-of-bounds look-ups in the clustered data structure.
 - Depth and color pyramid are properly computed and sampled when the camera renders inside a viewport of a RTHandle.
 - Fix decal atlas debug view to work correctly when shadow atlas view is also enabled
+- Fix TransparentSSR with non-rendergraph.
+- Fix shader compilation warning on SSR compute shader.

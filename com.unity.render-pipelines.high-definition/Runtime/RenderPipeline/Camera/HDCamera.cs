@@ -417,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
             if (!transparent)
-                return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
+                return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value && frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects);
             else
                 return frameSettings.IsEnabled(FrameSettingsField.TransparentSSR) && ssr.enabled.value;
         }
@@ -740,6 +740,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._XRNonJitteredViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].nonJitteredViewProjMatrix[j];
                     cb._XRPrevViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrix[j];
                     cb._XRPrevInvViewProjMatrix[i * 16 + j] = m_XRViewConstants[i].prevInvViewProjMatrix[j];
+                    cb._XRViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].viewProjectionNoCameraTrans[j];
                     cb._XRPrevViewProjMatrixNoCameraTrans[i * 16 + j] = m_XRViewConstants[i].prevViewProjMatrixNoCameraTrans[j];
                     cb._XRPixelCoordToViewDirWS[i * 16 + j] = m_XRViewConstants[i].pixelCoordToViewDirWS[j];
                 }

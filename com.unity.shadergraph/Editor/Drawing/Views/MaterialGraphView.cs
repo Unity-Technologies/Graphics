@@ -1222,18 +1222,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case AbstractShaderProperty property:
                         var copiedProperty = (AbstractShaderProperty) DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
-                        graphView.graph.SanitizeGraphInputReferenceName(copiedProperty, input.referenceName);
-
-                        // Increment for next within the same section
-                        if (indicies[BlackboardProvider.k_PropertySectionIndex] >= 0)
-                            indicies[BlackboardProvider.k_PropertySectionIndex]++;
-
-                        // Update the property nodes that depends on the copied node
-                        var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
-                        foreach (var node in dependentPropertyNodes)
+                        if (copiedProperty != null) // some property types cannot be duplicated (unknown types)
                         {
-                            node.owner = graphView.graph;
-                            node.property = copiedProperty;
+                            graphView.graph.SanitizeGraphInputReferenceName(copiedProperty, input.referenceName);
+
+                            // Increment for next within the same section
+                            if (indicies[BlackboardProvider.k_PropertySectionIndex] >= 0)
+                                indicies[BlackboardProvider.k_PropertySectionIndex]++;
+
+                            // Update the property nodes that depends on the copied node
+                            var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
+                            foreach (var node in dependentPropertyNodes)
+                            {
+                                node.owner = graphView.graph;
+                                node.property = copiedProperty;
+                            }
                         }
                         break;
 
@@ -1311,9 +1314,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         static ShaderInput DuplicateShaderInputs(ShaderInput original, GraphData graph, int index)
         {
             ShaderInput copy = original.Copy();
-            graph.SanitizeGraphInputName(copy);
-            graph.AddGraphInput(copy, index);
-            copy.generatePropertyBlock = original.generatePropertyBlock;
+            if (copy != null) // some ShaderInputs cannot be copied
+            {
+                graph.SanitizeGraphInputName(copy);
+                graph.AddGraphInput(copy, index);
+                copy.generatePropertyBlock = original.generatePropertyBlock;
+            }
             return copy;
         }
 
