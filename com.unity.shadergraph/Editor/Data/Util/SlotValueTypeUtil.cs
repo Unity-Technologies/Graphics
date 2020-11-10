@@ -144,11 +144,11 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.Texture2D:
                     return "UnityTexture2D";
                 case ConcreteSlotValueType.Texture2DArray:
-                    return "Texture2DArray";
+                    return "UnityTexture2DArray";
                 case ConcreteSlotValueType.Texture3D:
-                    return "Texture3D";
+                    return "UnityTexture3D";
                 case ConcreteSlotValueType.Cubemap:
-                    return "TextureCube";
+                    return "UnityTextureCube";
                 case ConcreteSlotValueType.Gradient:
                     return "Gradient";
                 case ConcreteSlotValueType.Vector4:

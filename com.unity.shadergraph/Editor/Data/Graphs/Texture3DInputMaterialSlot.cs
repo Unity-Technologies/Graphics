@@ -41,21 +41,21 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetDefaultValue(GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
+            var nodeOwner = owner as AbstractMaterialNode;
+            if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return matOwner.GetVariableNameForSlot(id);
+            return nodeOwner.GetVariableNameForSlot(id) + "_struct";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
+            var nodeOwner = owner as AbstractMaterialNode;
+            if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
             var prop = new Texture3DShaderProperty();
-            prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
+            prop.overrideReferenceName = nodeOwner.GetVariableNameForSlot(id);
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
             prop.value.texture = texture;
