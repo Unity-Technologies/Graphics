@@ -669,7 +669,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
         // then remove bakeDiffuseLighting part.
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
         {
-    #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
             if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
     #endif
             {
@@ -686,7 +686,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     // RT3 - 11f:11f:10f
     // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
     // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
 
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
     {
@@ -746,7 +746,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // BuiltinData
     builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
     if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
 #endif
     {

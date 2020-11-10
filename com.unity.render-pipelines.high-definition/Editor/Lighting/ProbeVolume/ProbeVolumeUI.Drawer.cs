@@ -61,12 +61,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static bool IsFeatureEnabled(SerializedProbeVolume serialized, Editor owner)
         {
-            return (int)ShaderOptions.EnableProbeVolumes == 1;
+            return ShaderOptions.ProbeVolumesEvaluationMode != (int)ProbeVolumesEvaluationModes.Disabled;
         }
 
         static bool IsFeatureDisabled(SerializedProbeVolume serialized, Editor owner)
         {
-            return (int)ShaderOptions.EnableProbeVolumes == 0;
+            return ShaderOptions.ProbeVolumesEvaluationMode == (int)ProbeVolumesEvaluationModes.Disabled;
         }
 
         static void Drawer_FeatureWarningMessage(SerializedProbeVolume serialized, Editor owner)

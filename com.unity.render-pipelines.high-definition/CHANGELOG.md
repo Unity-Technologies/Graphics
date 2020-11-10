@@ -86,7 +86,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing errors in GenerateMaxZ when opaque objects or decals are disabled. 
 - Fixed an issue with Bake button of Reflection Probe when in custom mode
 - Fixed exceptions related to the debug display settings when changing the default frame settings.
-- Fixed probe volumes debug views.
 - Fixed picking for materials with depth offset.
 - Fixed issue with exposure history being uninitialized on second frame.
 
@@ -108,7 +107,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
 - Range handles for decal projector angle fading.
 - Smoother angle fading for decal projector.
-- Removed the material pass probe volumes evaluation mode. 
 
 ## [10.1.0] - 2020-10-12
 

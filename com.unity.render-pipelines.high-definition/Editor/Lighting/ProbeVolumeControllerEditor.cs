@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnInspectorGUI();
 
-            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
             {
                 if (!(GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset)
                         ?.currentPlatformRenderPipelineSettings.supportProbeVolume ?? false)

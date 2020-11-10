@@ -742,7 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnValidate()
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 0)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return;
 
             ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
@@ -973,7 +973,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static bool ShouldDrawGizmos(ProbeVolume probeVolume)
         {
-            if (ShaderConfig.s_EnableProbeVolumes == 0)
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
                 return false;
 
             UnityEditor.SceneView sceneView = UnityEditor.SceneView.currentDrawingSceneView;

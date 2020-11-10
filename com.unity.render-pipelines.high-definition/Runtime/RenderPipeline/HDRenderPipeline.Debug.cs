@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportProbeVolume || debugParameters.debugDisplaySettings.data.lightingDebugSettings.probeVolumeDebugMode == ProbeVolumeDebugMode.None)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<DebugLightLoopOverlayPassData>("RenderProbeVolumeDebugOverlay", out var passData))
+            using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("RenderProbeVolumeDebugOverlay", out var passData))
             {
                 passData.debugParameters = debugParameters;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
