@@ -333,7 +333,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (slot.bareTexture)
                     {
-                        owner.AddValidationError(objectId, "This node uses Bare Texture outputs, which may not work when fed to other nodes. Please convert the node to use full Texture2D struct-based outputs (see UnityTexture2D in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl)", ShaderCompilerMessageSeverity.Warning);
+                        owner.AddValidationError(objectId, "This node uses Bare Texture outputs, which may not work when fed to other nodes. Please convert the node to use full struct-based outputs (see UnityTexture structs in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl)", ShaderCompilerMessageSeverity.Warning);
                         break;
                     }
                 }

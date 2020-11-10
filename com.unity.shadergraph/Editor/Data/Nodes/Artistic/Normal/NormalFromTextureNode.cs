@@ -61,18 +61,19 @@ namespace UnityEditor.ShaderGraph
             if (edgesSampler.Any())
                 samplerValue = GetSlotValue(SamplerInputId, generationMode);
             else
-                samplerValue = string.Format("sampler{0}", GetSlotValue(TextureInputId, generationMode));
+                samplerValue = string.Format("{0}.texSampler", textureValue);
 
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
-            sb.AppendLine("{0}({1}, {2}, {3}, {4}, {5}, {6});", GetFunctionName(), textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue);
+            sb.AppendLine("{0}({1}.tex, {2}, {3}, {4}, {5}, {6});", GetFunctionName(), textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
                 {
-                    s.AppendLine("void {0}({1} Texture, {2} Sampler, {3} UV, {4} Offset, {5} Strength, out {6} Out)", GetFunctionName(),
-                        FindInputSlot<MaterialSlot>(TextureInputId).concreteValueType.ToShaderString(),
+                    s.AppendLine("void {0}({1} Texture, {2} Sampler, {3} UV, {4} Offset, {5} Strength, out {6} Out)",
+                        GetFunctionName(),
+                        "Texture2D",
                         FindInputSlot<MaterialSlot>(SamplerInputId).concreteValueType.ToShaderString(),
                         FindInputSlot<MaterialSlot>(UVInputId).concreteValueType.ToShaderString(),
                         FindInputSlot<MaterialSlot>(OffsetInputId).concreteValueType.ToShaderString(),
