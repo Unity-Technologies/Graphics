@@ -83,7 +83,7 @@ editor-pinning-merge-revisions-trunk:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk --jobid $YAMATO_JOB_ID --apikey $API_KEY
 editor-pinning-merge-revisions-trunk-abv:
     name: Merge [trunk] revisions to master [ABV]
     allow_failure: true
@@ -110,7 +110,7 @@ editor-pinning-merge-revisions-trunk-abv:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk --jobid $YAMATO_JOB_ID --apikey $API_KEY
 editor-pinning-merge-all:
     name: Merge all [no ABV] [no CI]
     variables:

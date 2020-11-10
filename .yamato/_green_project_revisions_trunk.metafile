@@ -1,0 +1,90 @@
+universal:
+  updated_at: '2020-11-09 15:22:45.379649'
+  last_green_revisions:
+    android:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    ios:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    linux:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    macos:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    windows:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+hdrp:
+  updated_at: '2020-11-09 15:22:45.379649'
+  last_green_revisions:
+    android:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    ios:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    linux:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    macos:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    windows:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+shadergraph:
+  updated_at: '2020-11-09 15:22:45.379649'
+  last_green_revisions:
+    android:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    ios:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    linux:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    macos:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    windows:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+vfx_urp:
+  updated_at: '2020-11-09 15:22:45.379649'
+  last_green_revisions:
+    android:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    ios:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    linux:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    macos:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    windows:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+vfx_hdrp:
+  updated_at: '2020-11-09 15:22:45.379649'
+  last_green_revisions:
+    android:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    ios:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    linux:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    macos:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
+    windows:
+      revision: 37c5ec4c3cb13853f9074c74cbac49a232178bd8
+      version: ''
