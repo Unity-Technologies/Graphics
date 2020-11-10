@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
-- Fixed issue when changing FoV with the physical camera fold-out closed.
 
 ## [10.2.0] - 2020-10-19
 
@@ -97,6 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing errors in GenerateMaxZ when opaque objects or decals are disabled. 
 - Fixed an issue with Bake button of Reflection Probe when in custom mode
 - Fixed exceptions related to the debug display settings when changing the default frame settings.
+- Fixed issue when changing FoV with the physical camera fold-out closed.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
