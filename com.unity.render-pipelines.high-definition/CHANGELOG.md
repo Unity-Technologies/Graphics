@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed XR shadows culling
 - Fixed volument component creation via script.
 - Fixed shadow resolution settings level in the light explorer.
+- Fixed issue when changing FoV with the physical camera fold-out closed.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
