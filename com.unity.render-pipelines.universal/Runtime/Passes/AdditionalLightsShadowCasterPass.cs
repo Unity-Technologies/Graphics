@@ -77,6 +77,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
                 const int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
                 int maxShadowSlices = Math.Min(6*maxVisibleAdditionalLights, MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO);
+
+                if(Application.platform == RuntimePlatform.Android && Graphics.minOpenGLESVersion==OpenGLESVersion.OpenGLES30)
+                    // Make sure that array _AdditionalLightsWorldToShadow is not too big for older Android devices (whose float4 limit GL_MAX_FRAGMENT_UNIFORM_VECTORS is 224)
+                    maxShadowSlices = 224 / 4;
+
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[maxShadowSlices];
             }
         }

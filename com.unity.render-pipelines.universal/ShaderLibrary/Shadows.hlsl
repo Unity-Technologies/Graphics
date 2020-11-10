@@ -92,8 +92,13 @@ float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width an
 #else
 
 #if defined(SHADER_API_MOBILE) && (SHADER_TARGET < 45)
+#if defined(SHADER_API_GLES30)
+// Make sure that array _AdditionalLightsWorldToShadow is not too big for older Android devices (whose float4 limit GL_MAX_FRAGMENT_UNIFORM_VECTORS is 224)
+#define MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO (224/4)
+#else
 // Point lights can use 6 shadow slices
 #define MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO (MAX_VISIBLE_LIGHTS*6)
+#endif
 #elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround for bug on Nintendo Switch where SHADER_API_GLCORE is mistakenly defined
 // Point lights can use 6 shadow slices
 #define MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO (MAX_VISIBLE_LIGHTS*6)
