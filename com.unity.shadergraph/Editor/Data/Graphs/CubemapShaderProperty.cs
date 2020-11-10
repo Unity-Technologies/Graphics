@@ -34,11 +34,36 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             action(new HLSLProperty(HLSLType._TextureCube, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
+
+            // add struct macro
+            Action<ShaderStringBuilder> structDecl = (builder) =>
+            {
+                builder.AppendIndentation();
+                builder.Append("#define ");
+                builder.Append(referenceName);
+                builder.Append("_struct UnityBuildTextureCubeStruct(TEXTURECUBE_ARGS(");
+                builder.Append(referenceName);
+                builder.Append(", sampler"); builder.Append(referenceName);
+                builder.Append("))");
+                //                 builder.Append(referenceName); builder.Append("_TexelSize, ");
+                //                 builder.Append(referenceName); builder.Append("_ST)");
+                builder.AppendNewLine();
+            };
+
+            action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_struct", HLSLDeclaration.Global, concretePrecision)
+            {
+                customDeclaration = structDecl
+            });
         }
 
         internal override string GetPropertyAsArgumentString()
         {
-            return $"TEXTURECUBE_PARAM({referenceName}, sampler{referenceName})";
+            return "UnityTextureCube " + referenceName + "_struct";
+        }
+
+        internal override string GetHLSLVariableName()
+        {
+            return referenceName + "_struct";
         }
 
         [SerializeField]
