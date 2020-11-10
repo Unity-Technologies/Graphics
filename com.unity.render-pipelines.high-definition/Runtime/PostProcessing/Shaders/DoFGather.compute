@@ -34,7 +34,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define RING_DENSITY 8.0
 #define ADAPTIVE_RADIUS
 //#define OCTAWEB_SORTING
-#define UNIFORM_WEIGHTS
+//#define UNIFORM_WEIGHTS
 
 // Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
 #ifndef OCTAWEB_SORTING
@@ -57,24 +57,23 @@ float GetBucketWeight(float sampleCoC, float centerCoC, float noise, int bucket)
     const float bucketLimit[NUM_BUCKETS - 1] = { 5.0f, 0.0f };
     const float bucketTransition[NUM_BUCKETS - 1] = { 7.0f, 1.0f };
 
+    bool depthTest = (sampleCoC <= 2 * centerCoC);
     float w0 = saturate((sampleCoC - bucketLimit[0] - bucketTransition[0] * noise) / bucketTransition[0]);
     float w1 = saturate((bucketTransition[1] * noise - sampleCoC) / bucketTransition[1]);
+    w0 = depthTest ? w0 : 0.0;
+    float w2 = depthTest ? 1.0 - w0 - w1 : 0.0;
 
-    bool depthTest = (centerCoC >= 0) ? (sampleCoC <= 2 * centerCoC) : true;
     if (bucket == 0)
     {
-        //return w0;
-        return depthTest ? 1.0 : 0.0;
+        return w0;
     }
     else if (bucket == 2)
     {
-        //return w1;
-        return 0.0;
+        return w1;
     }
     else
     {
-        //return 1.0 - w0 - w1;
-        return 0.0;
+        return w2;
     }
 }
 
