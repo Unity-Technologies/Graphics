@@ -25,9 +25,9 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_il2cpp_Linear_trunk
+      -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_Universal_iPhone_Metal_Player_il2cpp_Linear_trunk:
+Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     name: Build Universal on iPhone_Metal_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM::osx
@@ -70,9 +70,9 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
-      -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION:
+Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build Universal on iPhone_Metal_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx

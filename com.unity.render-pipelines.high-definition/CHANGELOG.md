@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [11.0.0] - 2020-10-21
 
 ### Changed
-
 - Removed the material pass probe volumes evaluation mode. 
 
 ### Fixed
@@ -96,6 +95,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing errors in GenerateMaxZ when opaque objects or decals are disabled. 
 - Fixed an issue with Bake button of Reflection Probe when in custom mode
 - Fixed exceptions related to the debug display settings when changing the default frame settings.
+- Fixed picking for materials with depth offset.
+- Fixed issue with exposure history being uninitialized on second frame.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
 
 ### Changed
