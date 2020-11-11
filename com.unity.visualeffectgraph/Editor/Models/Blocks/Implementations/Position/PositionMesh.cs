@@ -93,18 +93,6 @@ namespace UnityEditor.VFX.Block
             public Vector2 square;
         }
 
-        public class CustomPropertiesBlendPosition
-        {
-            [Range(0.0f, 1.0f), Tooltip("Set the blending value for position attribute.")]
-            public float blendPosition;
-        }
-
-        public class CustomPropertiesBlendDirection
-        {
-            [Range(0.0f, 1.0f), Tooltip("Set the blending value for direction attribute.")]
-            public float blendDirection;
-        }
-
         protected override bool needDirectionWrite { get { return true; } }
         protected override bool supportsVolumeSpawning { get { return false; } }
 
