@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_FalloffIntensityID = Shader.PropertyToID("_FalloffIntensity");
         private static readonly int k_FalloffDistanceID = Shader.PropertyToID("_FalloffDistance");
         private static readonly int k_LightColorID = Shader.PropertyToID("_LightColor");
-        private static readonly int k_VolumeColorID = Shader.PropertyToID("_VolumeColor");
+        private static readonly int k_VolumeOpacityID = Shader.PropertyToID("_VolumeOpacity");
         private static readonly int k_CookieTexID = Shader.PropertyToID("_CookieTex");
         private static readonly int k_FalloffLookupID = Shader.PropertyToID("_FalloffLookup");
         private static readonly int k_LightPositionID = Shader.PropertyToID("_LightPosition");
@@ -277,14 +277,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Color color = intensity * light.color;
             color.a = 1.0f;
 
-            float volumeIntensity = light.volumeIntensity * light.color.a;
-            Color volumeColor = volumeIntensity * light.color;
-            color.a = 1.0f;
+            float volumeIntensity = light.volumeIntensity;
 
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
             cmd.SetGlobalColor(k_LightColorID, color);
-            cmd.SetGlobalColor(k_VolumeColorID, volumeColor);
+            cmd.SetGlobalFloat(k_VolumeOpacityID, volumeIntensity);
         }
 
         private static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
