@@ -228,16 +228,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 				switch(m_LightType)
 				{
                 	case LightType.Freeform:
-	                    m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, color * intensity, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, 0);
+	                    m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, color * intensity, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeIntensity);
     	                break;
         	        case LightType.Parametric:
-            	        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, 0);
+            	        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeIntensity);
                 	    break;
                 	case LightType.Sprite:
                     	m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, color * intensity, m_LightCookieSprite);
                     	break;
                 	case LightType.Point:
-	                    m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, 0);
+	                    m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, volumeIntensity);
     	                break;
 				}
             }

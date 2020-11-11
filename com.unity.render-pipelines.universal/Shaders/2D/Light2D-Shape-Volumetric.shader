@@ -60,7 +60,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
                 
                 o.positionCS = TransformObjectToHClip(positionOS);
                 o.color = attributes.color * _InverseHDREmulationScale;
-                o.color.a = attributes.uv.y;
+                o.color.a = attributes.color.a * attributes.uv.y;
 
 #ifdef SPRITE_LIGHT
                 o.uv = attributes.uv;
