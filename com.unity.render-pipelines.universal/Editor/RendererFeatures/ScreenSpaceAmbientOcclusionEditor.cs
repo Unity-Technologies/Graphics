@@ -16,6 +16,8 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_SampleCount;
 
         private SerializedProperty m_SinglePassBlur;
+        private SerializedProperty m_FinalUpsample;
+        private SerializedProperty m_BlurType;
 
 		#endregion
 
@@ -33,6 +35,8 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent SampleCount = EditorGUIUtility.TrTextContent("Sample Count", "The number of samples that Unity takes when calculating the obscurance value. Higher values have high performance impact.");
 
             public static GUIContent SinglePassBlur = EditorGUIUtility.TrTextContent("Single Pass Blur", "Single pass blur approximation");
+            public static GUIContent FinalUpsample = EditorGUIUtility.TrTextContent("Final Upsample", "Final upsample step to perform after blurring downsampled targets.");
+            public static GUIContent BlurType = EditorGUIUtility.TrTextContent("Blur Type", "Blur Algorithm to Use");
         }
 
         private void Init()
@@ -47,6 +51,8 @@ namespace UnityEditor.Rendering.Universal
             m_SampleCount = settings.FindPropertyRelative("SampleCount");
 
             m_SinglePassBlur = settings.FindPropertyRelative("SinglePassBlur");
+            m_FinalUpsample = settings.FindPropertyRelative("FinalUpsample");
+            m_BlurType = settings.FindPropertyRelative("BlurType");
 
             m_IsInitialized = true;
         }
@@ -62,6 +68,8 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_Source, Styles.Source);
 
             EditorGUILayout.PropertyField(m_SinglePassBlur, Styles.SinglePassBlur);
+            EditorGUILayout.PropertyField(m_FinalUpsample, Styles.FinalUpsample);
+            EditorGUILayout.PropertyField(m_BlurType, Styles.BlurType);
 
             // We only enable this field when depth source is selected
             GUI.enabled = m_Source.enumValueIndex == (int) ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;

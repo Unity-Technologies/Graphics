@@ -15,6 +15,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal int SampleCount = 6;
 
         [SerializeField] internal bool SinglePassBlur = false;
+        [SerializeField] internal bool FinalUpsample = true;
+        [SerializeField] internal BlurTypes BlurType = BlurTypes.Bilateral;
 
         // Enums
         internal enum DepthSource
@@ -29,6 +31,12 @@ namespace UnityEngine.Rendering.Universal
             Low,
             Medium,
             High
+        }
+
+        internal enum BlurTypes
+        {
+            Bilateral,
+            Gaussian
         }
     }
 
@@ -203,7 +211,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 int downsampleDivider = m_CurrentSettings.Downsample ? 2 : 1;
-                blurFinalUpsample = m_CurrentSettings.Downsample;
+                blurFinalUpsample = m_CurrentSettings.Downsample && m_CurrentSettings.FinalUpsample;
 
                 // Update SSAO parameters in the material
                 Vector4 ssaoParams = new Vector4(
@@ -303,9 +311,7 @@ namespace UnityEngine.Rendering.Universal
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
-                    bool gaussianTest = false;
-
-                    if (gaussianTest)
+                    if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Gaussian)
                     {
                         if (m_CurrentSettings.SinglePassBlur)
                         {
@@ -317,7 +323,7 @@ namespace UnityEngine.Rendering.Universal
                             RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurVerticalGaussian);
                         }
                     }
-                    else
+                    else if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Bilateral)
                     {
                         if (m_CurrentSettings.SinglePassBlur)
                         {
