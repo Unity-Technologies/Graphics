@@ -884,11 +884,8 @@ namespace UnityEngine.Rendering.Universal
                     finalClearColor = renderPass.clearColor;
                 }
 
-                // Hack to fix depthSlice being set to 0 (default value) instead of -1 (xr-compatible value).
-                RenderTargetIdentifier xrFriendlyCameraDepthTarget = new RenderTargetIdentifier(m_CameraDepthTarget, 0, CubemapFace.Unknown, -1);
-
                 // Condition (m_CameraDepthTarget!=BuiltinRenderTextureType.CameraTarget) below prevents m_FirstTimeCameraDepthTargetIsBound flag from being reset during non-camera passes (such as Color Grading LUT). This ensures that in those cases, cameraDepth will actually be cleared during the later camera pass.
-                if ((m_CameraDepthTarget != BuiltinRenderTextureType.CameraTarget) && (passDepthAttachment == m_CameraDepthTarget || passColorAttachment == m_CameraDepthTarget || passColorAttachment == xrFriendlyCameraDepthTarget || passDepthAttachment == xrFriendlyCameraDepthTarget) && m_FirstTimeCameraDepthTargetIsBound)
+                if ((m_CameraDepthTarget != BuiltinRenderTextureType.CameraTarget) && (passDepthAttachment == m_CameraDepthTarget || passColorAttachment == m_CameraDepthTarget) && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
 
