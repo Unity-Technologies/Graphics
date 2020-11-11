@@ -33,13 +33,13 @@ The Sample Mesh or Skinned Mesh Operator allows you to fetch vertex data of a st
 
 | **Output**       | **Type** | **Description**                                              |
 | ---------------- | -------- | ------------------------------------------------------------ |
-| **Position**     | Vector3  | Return vertex attribute [Position](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.Position.html) |
-| **Normal**       | Vector3  | Return vertex attribute [Normal](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.Normal.html) |
-| **Tangent**      | Vector3  | Return vertex attribute [Tangent](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.Tangent.html) |
-| **Color**        | Vector4  | Return vertex attribute [Color](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.Color.html) |
-| **TexCoord0-7**  | Vector4  | Return vertex attribute [TexCoord0 to 7](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.TexCoord0.html), return the zero value in unspecified dimensions. |
-| **BlendWeight**  | Vector4  | Return vertex attribute [BlendWeight](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.BlendWeight.html) |
-| **BlendIndices** | Vector4  | Return vertex attribute [BlendIndices](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.BlendIndices.html) |
+| **Position**     | Vector3  | Return vertex attribute [Position](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.Position.html)<br/>This property only appears if you select **Position** in **Output** |
+| **Normal**       | Vector3  | Return vertex attribute [Normal](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.Normal.html)<br/>This property only appears if you select **Normal** in **Output** |
+| **Tangent**      | Vector3  | Return vertex attribute [Tangent](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.Tangent.html)<br/>This property only appears if you select **Tangent** in **Output** |
+| **Color**        | Vector4  | Return vertex attribute [Color](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.Color.html)<br/>This property only appears if you select **Color** in **Output** |
+| **TexCoord0-7**  | Vector4  | Return vertex attribute [TexCoord0 to 7](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.TexCoord0.html), return the zero value in unspecified dimensions.<br/>This property only appears if you select **TexCoord0-7** in **Output** |
+| **BlendWeight**  | Vector4  | Return vertex attribute [BlendWeight](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.BlendWeight.html)<br/>This property only appears if you select **BlendWeight** in **Output** |
+| **BlendIndices** | Vector4  | Return vertex attribute [BlendIndices](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.BlendIndices.html)<br/>This property only appears if you select **BlendIndices** in **Output** |
 
 ### Additional notes
 
