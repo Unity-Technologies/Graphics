@@ -35,8 +35,10 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 [!include[](snippets/shader-properties/surface-options/preserve-specular-lighting.md)]
 [!include[](snippets/shader-properties/surface-options/sorting-priority.md)]
 [!include[](snippets/shader-properties/surface-options/receive-fog.md)]
-[!include[](snippets/shader-properties/surface-options/transparent-depth-prepass.md)][!include[](snippets/shader-properties/surface-options/transparent-writes-motion-vectors.md)]
-[!include[](snippets/shader-properties/surface-options/depth-write.md)][!include[](snippets/shader-properties/surface-options/depth-test.md)]
+[!include[](snippets/shader-properties/surface-options/transparent-depth-prepass.md)]
+[!include[](snippets/shader-properties/surface-options/transparent-writes-motion-vectors.md)]
+[!include[](snippets/shader-properties/surface-options/depth-write.md)]
+[!include[](snippets/shader-properties/surface-options/depth-test.md)]
 [!include[](snippets/shader-properties/surface-options/cull-mode.md)]
 [!include[](snippets/shader-properties/surface-options/double-sided.md)]
 [!include[](snippets/shader-properties/surface-options/normal-mode.md)]
@@ -52,11 +54,11 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 <th>Property</th>
 <th>Description</th>
 </tr>
-[!include[](snippets/shader-properties/arnold/.md)]
 [!include[](snippets/shader-properties/arnold/base-color.md)]
 [!include[](snippets/shader-properties/arnold/base-color-map.md)]
 [!include[](snippets/shader-properties/arnold/metalness.md)]
 [!include[](snippets/shader-properties/arnold/metalness-map.md)]
+[!include[](snippets/shader-properties/arnold/specular-weight.md)]
 [!include[](snippets/shader-properties/arnold/specular-color.md)]
 [!include[](snippets/shader-properties/arnold/specular-color-map.md)]
 [!include[](snippets/shader-properties/arnold/specular-roughness.md)]

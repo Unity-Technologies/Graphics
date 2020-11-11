@@ -65,12 +65,13 @@ When Unity imports an FBX with a compatible 3DS Physical Material shader, it aut
 [!include[](snippets/shader-properties/arnold/bump-map-strength.md)]
 [!include[](snippets/shader-properties/arnold/bump-map.md)]
 [!include[](snippets/shader-properties/arnold/anisotropy.md)]
-[!include[](snippets/shader-properties/arnold/coat-weight.md)]
-[!include[](snippets/shader-properties/arnold/coat-color.md)]
+[!include[](snippets/shader-properties/arnold/anisotropy-map.md)]
+[!include[](snippets/shader-properties/arnold/coat-normal.md)]
 [!include[](snippets/shader-properties/arnold/coat-roughness.md)]
 [!include[](snippets/shader-properties/arnold/coat-thickness.md)]
+[!include[](snippets/shader-properties/arnold/coat-weight.md)]
+[!include[](snippets/shader-properties/arnold/coat-color.md)]
 [!include[](snippets/shader-properties/arnold/coat-ior.md)]
-[!include[](snippets/shader-properties/arnold/coat-normal.md)]
 </table>
 
 ### Advanced Options
