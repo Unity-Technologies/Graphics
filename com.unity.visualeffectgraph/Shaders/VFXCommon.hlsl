@@ -453,67 +453,6 @@ float4 SampleMeshColor(ByteAddressBuffer vertices, uint offset, uint channelForm
     return r;
 }
 
-//Deprecated function for compatibility 2020.1, can be removed with 2021.1
-float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = SampleMeshFloat4(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (4 << 8));
-    }
-    return r;
-}
-
-float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float3 r = float3(0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = SampleMeshFloat3(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (3 << 8));
-    }
-    return r;
-}
-
-float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float2 r = float2(0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = SampleMeshFloat2(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (2 << 8));
-    }
-    return r;
-}
-
-float SampleMeshFloat(ByteAddressBuffer vertices, int vertexIndex, int channelOffset, int vertexStride)
-{
-    float r = 0.0f;
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = SampleMeshFloat(vertices, offset, VERTEXATTRIBUTEFORMAT_FLOAT32 | (1 << 8));
-    }
-    return r;
-}
-
-float4 SampleMeshColor(ByteAddressBuffer vertices, int vertexIndex, int channelOffset, int vertexStride)
-{
-    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = SampleMeshColor(vertices, offset, VERTEXATTRIBUTEFORMAT_UNORM8 | (4 << 8));
-    }
-    return r;
-}
-//End of deprecated function for 2020.1 compatibility
 ///////////////////////////
 // Color transformations //
 ///////////////////////////
