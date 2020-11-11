@@ -83,12 +83,13 @@ namespace UnityEngine.Rendering.Universal
         RenderingMode m_RenderingMode;
         StencilState m_DefaultStencilState;
 
-        Material m_BlitMaterial;
-        Material m_CopyDepthMaterial;
-        Material m_SamplingMaterial;
-        Material m_TileDepthInfoMaterial;
-        Material m_TileDeferredMaterial;
-        Material m_StencilDeferredMaterial;
+        // Materials used in URP Scriptable Render Passes
+        Material m_BlitMaterial = null;
+        Material m_CopyDepthMaterial = null;
+        Material m_SamplingMaterial = null;
+        Material m_TileDepthInfoMaterial = null;
+        Material m_TileDeferredMaterial = null;
+        Material m_StencilDeferredMaterial = null;
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {

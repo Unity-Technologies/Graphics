@@ -217,6 +217,7 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not support VFX and Terrain.
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
 - Does not support MSAA.
+- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 
 ## Unsupported features of path tracing
 
@@ -233,6 +234,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 - Does not support several of HDRP's Materials. This includes Fabric, Eye, StackLit, Hair, Decal.
 - Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support MSAA.
+- For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
 
 ## Unsupported shader graph nodes for ray tracing
 
