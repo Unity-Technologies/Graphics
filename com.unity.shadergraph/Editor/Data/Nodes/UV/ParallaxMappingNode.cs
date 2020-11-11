@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLines(String.Format(@"$precision2 {5} = {4} + ParallaxMapping({0}.tex, {1}, IN.{2}, {3} * 0.01, {4});",
                 heightmap,
-                edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : heightmap + ".texSampler",
+                edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : heightmap + ".samplerstate",
                 CoordinateSpace.Tangent.ToVariableName(InterpolatorType.ViewDirection),
                 amplitude, // cm in the interface so we multiply by 0.01 in the shader to convert in meter
                 uvs,

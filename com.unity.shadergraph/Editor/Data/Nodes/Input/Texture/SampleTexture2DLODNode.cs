@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
                 var result = string.Format("  $precision4 {0} = SAMPLE_TEXTURE2D_LOD({1}.tex, {2}, {3}, {4});"
                         , GetVariableNameForSlot(OutputSlotRGBAId)
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".texSampler"
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".samplerstate"
                         , uvName
                         , lodSlot);
 

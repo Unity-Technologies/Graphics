@@ -44,12 +44,12 @@ namespace UnityEditor.ShaderGraph
 
         string GetTexturePropertyName()
         {
-            return string.Format("_{0}_texture", GetVariableNameForNode());
+            return base.GetVariableNameForSlot(OutputSlotId);
         }
 
         string GetTextureVariableName()
         {
-            return string.Format("_{0}_texture_struct", GetVariableNameForNode());
+            return GetTexturePropertyName() + "_struct";
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -64,7 +64,6 @@ namespace UnityEditor.ShaderGraph
         {
             properties.AddShaderProperty(new Texture2DShaderProperty()
             {
-                // NOTE : this changes (hidden) shader property names... which could cause Material changes
                 overrideReferenceName = GetTexturePropertyName(),
                 generatePropertyBlock = true,
                 value = m_Texture,

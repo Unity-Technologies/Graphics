@@ -64,7 +64,6 @@ namespace UnityEditor.ShaderGraph
         {
             properties.AddShaderProperty(new CubemapShaderProperty()
             {
-                // NOTE : this changes (hidden) shader property names... which could cause Material changes
                 overrideReferenceName = GetTexturePropertyName(),
                 generatePropertyBlock = true,
                 value = m_Cubemap,

@@ -101,17 +101,17 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("$precision3 {0}_X = UnpackNormal(SAMPLE_TEXTURE2D({1}.tex, {2}, {0}_UV.zy));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".texSampler" + id);
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".samplerstate" + id);
 
                     sb.AppendLine("$precision3 {0}_Y = UnpackNormal(SAMPLE_TEXTURE2D({1}.tex, {2}, {0}_UV.xz));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".texSampler");
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".samplerstate");
 
                     sb.AppendLine("$precision3 {0}_Z = UnpackNormal(SAMPLE_TEXTURE2D({1}.tex, {2}, {0}_UV.xy));"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".texSampler");
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".samplerstate");
 
                     sb.AppendLine("{0}_X = $precision3({0}_X.xy + {1}.zy, abs({0}_X.z) * {1}.x);"
                         , GetVariableNameForNode()
@@ -151,17 +151,17 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("$precision4 {0}_X = SAMPLE_TEXTURE2D({1}.tex, {2}, {0}_UV.zy);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".texSampler");
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".samplerstate");
 
                     sb.AppendLine("$precision4 {0}_Y = SAMPLE_TEXTURE2D({1}.tex, {2}, {0}_UV.xz);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".texSampler");
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".samplerstate");
 
                     sb.AppendLine("$precision4 {0}_Z = SAMPLE_TEXTURE2D({1}.tex, {2}, {0}_UV.xy);"
                         , GetVariableNameForNode()
                         , id
-                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".texSampler");
+                        , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".samplerstate");
 
                     sb.AppendLine("$precision4 {0} = {1}_X * {1}_Blend.x + {1}_Y * {1}_Blend.y + {1}_Z * {1}_Blend.z;"
                         , GetVariableNameForSlot(OutputSlotId)

@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}.tex, {2}, reflect(-{3}, {4}), {5});"
                     , GetVariableNameForSlot(OutputSlotId)
                     , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".texSampler"
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : id + ".samplerstate"
                     , GetSlotValue(ViewDirInputId, generationMode)
                     , GetSlotValue(NormalInputId, generationMode)
                     , GetSlotValue(LODInputId, generationMode));

@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
             var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE3D({1}.tex, {2}, {3});"
                     , GetVariableNameForSlot(OutputSlotId)
                     , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id + ".texSampler"
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id + ".samplerstate"
                     , uvName);
 
             sb.AppendLine(result);
