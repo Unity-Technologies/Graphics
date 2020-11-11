@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             public float3 nor;
             public Color color;
             public float2 uv;
-            
+
 
             public static readonly VertexAttributeDescriptor[] VertexLayout = new[]
             {
@@ -415,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     position = endPoint,
                     color = color,
                     uv = uvData,
-                    nor = new float3(extrudeDir.x, extrudeDir.y, falloffDistance)
+                    nor = new float3(0, 0, falloffDistance)
                 };
 
                 // Triangle 1 (Tip)
