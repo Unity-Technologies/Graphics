@@ -139,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform)
             {
-                if (light.shadowIntensity == 0)
+                if (!light.shadowsEnabled)
                 {
                     if (Light2DBatch.sActiveMaterial == null || Light2DBatch.sActiveMaterial != material)
                     {
