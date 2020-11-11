@@ -23,6 +23,10 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
                  utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
@@ -31,9 +35,9 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_trunk
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_trunk:
+Build_Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_trunk:
     name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -78,6 +82,10 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
                  utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
@@ -88,9 +96,9 @@ Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Hybrid_Android_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+Build_Universal_Hybrid_Android_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM

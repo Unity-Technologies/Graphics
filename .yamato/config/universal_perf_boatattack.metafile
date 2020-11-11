@@ -8,7 +8,7 @@ test_platforms:
     utr_flags:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
-      - [iPhone_Metal]: --testfilter=RuntimeProfilerMetrics
+      - [iPhone_Metal]: --timeout=2400
     utr_flags_build:
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
       - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
@@ -20,6 +20,8 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
       - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-" 
       - [all]: --category=URP
+      - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+      - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -47,7 +49,8 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
       - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
-      - [iPhone_Metal]: --platform=iOS
+      - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
+      - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
 platforms:
   - name: Win
     apis:
@@ -71,10 +74,26 @@ platforms:
   - name: iPhone
     apis: 
       - name: Metal
+        exclude_test_platforms:
+          - name: performance_playmode_editor
     build_configs:
       - name: il2cpp
     color_spaces:
       - Linear
+    agents_project:
+      # default: package_ci_mac
+      default:
+        type: Unity::mobile::iPhone
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.medium
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
+      performance_editmode_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
 all:
   dependencies:
     - platform: Win
@@ -94,6 +113,13 @@ all:
         - performance_editmode_build
     - platform: Android
       api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_editmode_build
+    - platform: iPhone
+      api: Metal
       build_config: il2cpp
       color_space: Linear
       test_platforms:

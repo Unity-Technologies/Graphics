@@ -24,9 +24,9 @@ Universal_Stereo_Win_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_mono_Linear_trunk
+      -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Stereo_Win_Player_mono_Linear_trunk:
+Build_Universal_Stereo_Win_Standalone_mono_Linear_trunk:
     name: Build Universal_Stereo on Win__mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -97,9 +97,9 @@ Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Stereo_Win_Player_mono_Linear_CUSTOM-REVISION:
+Build_Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Universal_Stereo on Win__mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM

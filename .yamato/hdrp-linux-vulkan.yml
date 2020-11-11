@@ -61,7 +61,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -85,9 +85,9 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_Linear_trunk
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_HDRP_Linux_Vulkan_Player_mono_Linear_trunk:
+Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -173,7 +173,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/HDRP_Tests/utr
       -  chmod +x TestProjects/HDRP_Tests/utr
       -  cd TestProjects/HDRP_Tests && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -203,9 +203,9 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
