@@ -1,10 +1,16 @@
 #ifndef UNITY_TEXTURE_INCLUDED
 #define UNITY_TEXTURE_INCLUDED
 
+#ifdef SHADER_API_GLES
+    #define SAMPLERDECL(n)
+#else
+    #define SAMPLERDECL(n) SAMPLER(n);
+#endif
+
 struct UnityTexture2D
 {
     TEXTURE2D(tex);
-    SAMPLER(texSampler);
+    SAMPLERDECL(texSampler)
     float4 texelSize;
     float4 scaleTranslate;
 };
@@ -22,7 +28,7 @@ UnityTexture2D UnityBuildTexture2DStruct(TEXTURE2D_PARAM(tex, texSampler), float
 struct UnityTexture2DArray
 {
     TEXTURE2D_ARRAY(tex);
-    SAMPLER(texSampler);
+    SAMPLERDECL(texSampler)
 //    float4 texelSize;           // ??  are these valid for Texture2DArrays?
 //    float4 scaleTranslate;      // ??
 };
@@ -41,7 +47,7 @@ UnityTexture2DArray UnityBuildTexture2DArrayStruct(TEXTURE2D_ARRAY_PARAM(tex, te
 struct UnityTextureCube
 {
     TEXTURECUBE(tex);
-    SAMPLER(texSampler);
+    SAMPLERDECL(texSampler)
     //    float4 texelSize;           // ??  are these valid for Texture2DArrays?
     //    float4 scaleTranslate;      // ??
 };
@@ -60,7 +66,7 @@ UnityTextureCube UnityBuildTextureCubeStruct(TEXTURECUBE_PARAM(tex, texSampler))
 struct UnityTexture3D
 {
     TEXTURE3D(tex);
-    SAMPLER(texSampler);
+    SAMPLERDECL(texSampler)
     //    float4 texelSize;           // ??  are these valid for Texture2DArrays?
     //    float4 scaleTranslate;      // ??
 };
@@ -74,5 +80,7 @@ UnityTexture3D UnityBuildTexture3DStruct(TEXTURE3D_PARAM(tex, texSampler)) //, f
     //    result.scaleTranslate = scaleTranslate;
     return result;
 }
+
+#undef SAMPLERDECL
 
 #endif // UNITY_TEXTURE_INCLUDED
