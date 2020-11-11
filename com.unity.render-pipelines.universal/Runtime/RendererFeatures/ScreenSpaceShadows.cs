@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // Avoid setting and restoring camera view and projection matrices when in stereo.
                         RenderTargetIdentifier screenSpaceShadowTexture = m_RenderTarget.Identifier();
-                        Blit(cmd, screenSpaceShadowTexture, screenSpaceShadowTexture, material);
+                        cmd.Blit(null, screenSpaceShadowTexture, material);
                     }
 
                     CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightShadows, false);
