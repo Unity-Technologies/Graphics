@@ -44,7 +44,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
         BOAT_ATTACK_REVISION: head
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-      -  git checkout $BOAT_ATTACK_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -93,7 +93,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear
         BOAT_ATTACK_REVISION: head
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-      -  git checkout $BOAT_ATTACK_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -168,7 +168,7 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cp
         BOAT_ATTACK_REVISION: head
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-      -  git checkout $BOAT_ATTACK_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -221,7 +221,7 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear
         BOAT_ATTACK_REVISION: head
     commands:
       -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
-      -  git checkout $BOAT_ATTACK_REVISION
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
