@@ -47,9 +47,34 @@ When Unity imports an FBX with a compatible Arnold shader, it automatically crea
 
 ### Exposed Properties
 
-
-
-
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/arnold/.md)]
+[!include[](snippets/shader-properties/arnold/base-color.md)]
+[!include[](snippets/shader-properties/arnold/base-color-map.md)]
+[!include[](snippets/shader-properties/arnold/metalness.md)]
+[!include[](snippets/shader-properties/arnold/metalness-map.md)]
+[!include[](snippets/shader-properties/arnold/specular-color.md)]
+[!include[](snippets/shader-properties/arnold/specular-color-map.md)]
+[!include[](snippets/shader-properties/arnold/specular-roughness.md)]
+[!include[](snippets/shader-properties/arnold/specular-roughness-map.md)]
+[!include[](snippets/shader-properties/arnold/specular-ior.md)]
+[!include[](snippets/shader-properties/arnold/specular-ior-map.md)]
+[!include[](snippets/shader-properties/arnold/emission-color.md)]
+[!include[](snippets/shader-properties/arnold/emission-color-map.md)]
+[!include[](snippets/shader-properties/arnold/coat-weight.md)]
+[!include[](snippets/shader-properties/arnold/coat-color.md)]
+[!include[](snippets/shader-properties/arnold/coat-roughness.md)]
+[!include[](snippets/shader-properties/arnold/coat-thickness.md)]
+[!include[](snippets/shader-properties/arnold/coat-ior.md)]
+[!include[](snippets/shader-properties/arnold/coat-normal.md)]
+[!include[](snippets/shader-properties/arnold/normal-map.md)]
+[!include[](snippets/shader-properties/arnold/opacity-map.md)]
+[!include[](snippets/shader-properties/arnold/opacity.md)]
+</table>
 
 ### Advanced Options
 
