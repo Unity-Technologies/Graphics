@@ -41,10 +41,6 @@ The Sample Mesh or Skinned Mesh Operator allows you to fetch vertex data of a st
 | **BlendWeight**  | Vector4  | Return vertex attribute [BlendWeight](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.BlendWeight.html)<br/>This property only appears if you select **BlendWeight** in **Output** |
 | **BlendIndices** | Vector4  | Return vertex attribute [BlendIndices](https://docs.unity3d.com/ScriptReference/Rendering.VertexAttribute.BlendIndices.html)<br/>This property only appears if you select **BlendIndices** in **Output** |
 
-### Additional notes
-
-TODO
-
 #### Limitations
 
 The Mesh sampling feature has the following limitations:
