@@ -420,4 +420,84 @@ half4 HorizontalVerticalBlur(Varyings input) : SV_Target
     return lerp(1.0 - BlurSmall(uv, delta ), 1-lerp(blurH.r, blurV.r, 0.5), 0.5);
 }
 
+// Gaussian Blur
+// https://software.intel.com/content/www/us/en/develop/blogs/an-investigation-of-fast-real-time-gpu-based-image-blur-algorithms.html
+half GaussianBlur( half2 uv, half2 pixelOffset)
+{
+    half colOut = 0;
+
+    // Kernel width 7 x 7
+    const int stepCount = 2;
+
+    const float gWeights[stepCount] ={
+       0.44908,
+       0.05092
+    };
+    const float gOffsets[stepCount] ={
+       0.53805,
+       2.06278
+    };
+
+    for( int i = 0; i < stepCount; i++ )
+    {
+        half2 texCoordOffset = gOffsets[i] * pixelOffset;
+        half4 p1 = SAMPLE_BASEMAP(uv + texCoordOffset);
+        half4 p2 = SAMPLE_BASEMAP(uv - texCoordOffset);
+        half col = p1.r + p2.r;
+        colOut += gWeights[i] * col;
+    }
+
+    return colOut;
+}
+
+half4 HorizontalGaussianBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    float2 uv = input.uv;
+    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 1.0, 0.0);
+
+    half4 col = half4(0,0,0,0);
+
+    col.r = GaussianBlur(uv, delta);
+
+    return col;
+}
+
+half4 VerticalGaussianBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    float2 uv = input.uv;
+    float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 1.0);
+
+    half4 col = half4(0,0,0,0);
+
+    col.r = 1.0h - GaussianBlur(uv, delta);
+
+    return col;
+}
+
+half4 HorizontalVerticalGaussianBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    float2 uv = input.uv;
+    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 1.0, 0.0);
+
+    half4 colH = half4(0,0,0,0);
+
+    colH.r = 1.0h - GaussianBlur(uv, delta);
+
+    delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 1.0);
+
+    half4 colV = half4(0,0,0,0);
+
+    colV.r = 1.0h - GaussianBlur(uv, delta);
+
+    return lerp(colH, colV, 0.5);
+}
+
+
+
 #endif //UNIVERSAL_SSAO_INCLUDED

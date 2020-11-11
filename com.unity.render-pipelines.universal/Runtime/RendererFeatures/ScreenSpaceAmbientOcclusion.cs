@@ -167,7 +167,10 @@ namespace UnityEngine.Rendering.Universal
                 BlurHorizontal = 1,
                 BlurVertical = 2,
                 BlurFinal = 3,
-                BlurHorizontalVertical = 4
+                BlurHorizontalVertical = 4,
+                BlurHorizontalGaussian = 5,
+                BlurVerticalGaussian = 6,
+                BlurHorizontalVerticalGaussian = 7,
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -300,15 +303,32 @@ namespace UnityEngine.Rendering.Universal
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
-                    if (m_CurrentSettings.SinglePassBlur)
+                    bool gaussianTest = false;
+
+                    if (gaussianTest)
                     {
-                        RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontalVertical);
+                        if (m_CurrentSettings.SinglePassBlur)
+                        {
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontalVerticalGaussian);
+                        }
+                        else
+                        {
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture3Target, ShaderPasses.BlurHorizontalGaussian);
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurVerticalGaussian);
+                        }
                     }
                     else
                     {
-                        RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontal);
-                        RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
-                        RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurFinal);
+                        if (m_CurrentSettings.SinglePassBlur)
+                        {
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontalVertical);
+                        }
+                        else
+                        {
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.BlurHorizontal);
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture3Target, ShaderPasses.BlurVertical);
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.BlurFinal);
+                        }
                     }
 
                     // Execute the Blur Passes

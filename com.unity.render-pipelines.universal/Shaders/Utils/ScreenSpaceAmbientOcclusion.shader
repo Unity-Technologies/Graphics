@@ -118,10 +118,47 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             HLSLPROGRAM
                 #pragma vertex VertDefault
                 #pragma fragment HorizontalVerticalBlur
-                #pragma multi_compile_local _ _ORTHOGRAPHIC
-                #pragma multi_compile_local _SOURCE_DEPTH _SOURCE_DEPTH_NORMALS _SOURCE_GBUFFER
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
+
+        // GAUSSIAN BLUR
+
+        // 5 - Horizontal  Gaussian Blur
+        Pass
+        {
+            Name "SSAO_HorizontalBlurGaussian"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment HorizontalGaussianBlur
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
+        // 6 - Vertical Gaussian Blur
+        Pass
+        {
+            Name "SSAO_VerticalBlurGaussian"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment VerticalGaussianBlur
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
+        // 7 - Horizontal + Vertical Gaussian Blur
+        Pass
+        {
+            Name "SSAO_HorizontalVerticalBlurGaussian"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment HorizontalVerticalGaussianBlur
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
     }
 }
