@@ -48,37 +48,41 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     }
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
-    uint featureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
+    uint featureFlags = 0;
 
-#ifdef LIGHT_CLASSIFICATION
-    float          depth    = LoadCameraDepth(clampedPixelCoord);
-    PositionInputs posInput = GetPositionInput(clampedPixelCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    uint           zBin     = ComputeZBinIndex(posInput.linearDepth);
-
-    if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, eye))
-    {
-        featureFlags |= LIGHTFEATUREFLAGS_PUNCTUAL;
-    }
-
-    if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, eye))
-    {
-        featureFlags |= LIGHTFEATUREFLAGS_AREA;
-    }
-
-    if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, eye))
-    {
-        featureFlags |= LIGHTFEATUREFLAGS_ENV;
-    }
-#endif // LIGHT_CLASSIFICATION
-
-#ifdef MATERIAL_CLASSIFICATION
     // Unlit object, sky/background and forward opaque tag don't tag the StencilUsage.RequiresDeferredLighting bit
     uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, clampedPixelCoord));
+
     if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) != 0)
     {
+        featureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
+
+    #ifdef LIGHT_CLASSIFICATION
+        // TODO: optimize using LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam).
+        float          depth    = LoadCameraDepth(clampedPixelCoord);
+        PositionInputs posInput = GetPositionInput(clampedPixelCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        uint           zBin     = ComputeZBinIndex(posInput.linearDepth);
+
+        if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, eye))
+        {
+            featureFlags |= LIGHTFEATUREFLAGS_PUNCTUAL;
+        }
+
+        if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, eye))
+        {
+            featureFlags |= LIGHTFEATUREFLAGS_AREA;
+        }
+
+        if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, eye))
+        {
+            featureFlags |= LIGHTFEATUREFLAGS_ENV;
+        }
+    #endif // LIGHT_CLASSIFICATION
+
+    #ifdef MATERIAL_CLASSIFICATION
         featureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(clampedPixelCoord);
+    #endif // MATERIAL_CLASSIFICATION
     }
-#endif // MATERIAL_CLASSIFICATION
 
 #if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && (PLATFORM_LANE_COUNT >= (TILE_SIZE * TILE_SIZE)))
     featureFlags = WaveActiveBitOr(featureFlags);
