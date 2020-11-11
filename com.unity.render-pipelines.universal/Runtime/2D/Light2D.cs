@@ -1,5 +1,7 @@
 using System;
 using UnityEngine.Serialization;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
@@ -11,10 +13,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// </summary>
     ///
     [ExecuteAlways, DisallowMultipleComponent]
-    [AddComponentMenu("Rendering/2D/Light 2D (Experimental)")]
+    [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : MonoBehaviour
     {
+
+        public enum DeprecatedLightType
+        {
+            Parametric = 0,
+        }
+
         /// <summary>
         /// an enumeration of the types of light
         /// </summary>
@@ -27,31 +35,65 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Global = 4
         }
 
+        public enum NormalMapQuality
+        {
+            Disabled = 2,
+            Fast = 0,
+            Accurate = 1
+        }
+
+        public enum OverlapOperation
+        {
+            Additive,
+            AlphaBlend
+        }
+
 #if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
 #endif
-        [SerializeField] LightType m_LightType = LightType.Parametric;
+        [SerializeField] LightType m_LightType = LightType.Point;
         [SerializeField, FormerlySerializedAs("m_LightOperationIndex")]
         int m_BlendStyleIndex = 0;
 
         [SerializeField] float m_FalloffIntensity = 0.5f;
 
-        [ColorUsage(false)]
+        [ColorUsage(true)]
         [SerializeField] Color m_Color = Color.white;
         [SerializeField] float m_Intensity = 1;
 
-        [SerializeField] float m_LightVolumeOpacity = 0.0f;
+        [FormerlySerializedAs("m_LightVolumeOpacity")]
+        [SerializeField] float m_LightVolumeIntensity = 1.0f;
+        [SerializeField] bool m_LightVolumeIntensityEnabled = false;
         [SerializeField] int[] m_ApplyToSortingLayers = new int[1];     // These are sorting layer IDs. If we need to update this at runtime make sure we add code to update global lights
-        [SerializeField] Sprite m_LightCookieSprite = null;
+
+        [Reload("Textures/2D/Sparkle.png")]
+        [SerializeField] Sprite m_LightCookieSprite;
+
+        [FormerlySerializedAs("m_LightCookieSprite")]
+        [SerializeField] Sprite m_DeprecatedPointLightCookieSprite;
+
         [SerializeField] bool m_UseNormalMap = false;
 
         [SerializeField] int m_LightOrder = 0;
-        [SerializeField] bool m_AlphaBlendOnOverlap = false;
 
-        [Range(0,1)]
-        [SerializeField] float m_ShadowIntensity    = 0.0f;
-        [Range(0,1)]
-        [SerializeField] float m_ShadowVolumeIntensity = 0.0f;
+        [SerializeField] OverlapOperation m_OverlapOperation = OverlapOperation.Additive;
+
+        [FormerlySerializedAs("m_PointLightDistance")]
+        [SerializeField] float m_NormalMapDistance = 3.0f;
+
+#if USING_ANIMATION_MODULE        
+        [UnityEngine.Animations.NotKeyable]
+#endif
+        [FormerlySerializedAs("m_PointLightQuality")]
+        [SerializeField] NormalMapQuality m_NormalMapQuality = NormalMapQuality.Disabled;
+
+        [SerializeField] bool m_ShadowIntensityEnabled = false;
+        [Range(0, 1)]
+        [SerializeField] float m_ShadowIntensity = 0.75f;
+
+        [SerializeField] bool m_ShadowVolumeIntensityEnabled = false;
+        [Range(0, 1)]
+        [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
         [SerializeField]
         Mesh m_Mesh;
@@ -70,13 +112,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                if ( null == m_Mesh )
+                if (null == m_Mesh)
                     m_Mesh = new Mesh();
                 return m_Mesh;
             }
         }
 
-        internal bool hasCachedMesh => ( lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0 );
+        internal bool hasCachedMesh => (lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0);
 
         /// <summary>
         /// The lights current type
@@ -86,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             get => m_LightType;
             set
             {
-                if(m_LightType != value)
+                if (m_LightType != value)
                     UpdateMesh(true);
 
                 m_LightType = value;
@@ -105,9 +147,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float shadowIntensity { get => m_ShadowIntensity; set => m_ShadowIntensity = Mathf.Clamp01(value); }
 
         /// <summary>
+        /// Specifies that the shadows are enabled
+        /// </summary>
+        public bool shadowsEnabled { get => m_ShadowIntensityEnabled; set => m_ShadowIntensityEnabled = value; }
+
+        /// <summary>
         /// Specifies the darkness of the shadow
         /// </summary>
         public float shadowVolumeIntensity { get => m_ShadowVolumeIntensity; set => m_ShadowVolumeIntensity = Mathf.Clamp01(value); }
+
+        /// <summary>
+        /// Specifies that the volumetric shadows are enabled
+        /// </summary>
+        public bool volumetricShadowsEnabled { get => m_ShadowVolumeIntensityEnabled; set => m_ShadowVolumeIntensityEnabled = value; }
 
         /// <summary>
         /// The lights current color
@@ -122,12 +174,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// <summary>
         /// The lights current intensity
         /// </summary>
-        public float volumeOpacity => m_LightVolumeOpacity;
-        public Sprite lightCookieSprite => m_LightCookieSprite;
+        ///
+        [Obsolete]
+        public float volumeOpacity => m_LightVolumeIntensity;
+        public float volumeIntensity => m_LightVolumeIntensity;
+
+        public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
+        public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } } 
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
-        public bool alphaBlendOnOverlap => m_AlphaBlendOnOverlap;
+
+        [Obsolete]
+        public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}
+        public OverlapOperation overlapOperation => m_OverlapOperation;
+
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
+
+        public float normalMapDistance => m_NormalMapDistance;
+        public NormalMapQuality normalMapQuality => m_NormalMapQuality;
+
+
 
         internal int GetTopMostLitLayer()
         {

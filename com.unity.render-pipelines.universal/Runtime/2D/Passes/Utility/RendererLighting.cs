@@ -168,21 +168,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (lightMesh == null)
                         continue;
 
-                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
+                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowsEnabled ? light.shadowIntensity : 0, renderTexture, renderTexture);
 
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
-                    cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
+                    SetGeneralLightShaderGlobals(pass, cmd, light);
 
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(pass, cmd, light);
 
                     // Light code could be combined...
-                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
                     {
                         cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
                     }
@@ -203,7 +200,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (light.lightType == Light2D.LightType.Global)
                     continue;
 
-                if (light.volumeOpacity <= 0.0f)
+                if (light.volumeIntensity <= 0.0f || !light.volumeIntensityEnabled)
                     continue;
 
                 var topMostLayerValue = light.GetTopMostLitLayer();
@@ -217,10 +214,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                         cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
 
-                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
-                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
-                    cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
-                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
+                    SetGeneralLightShaderGlobals(pass, cmd, light);
 
                     // Is this needed
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
@@ -277,6 +271,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
             retMatrix = Matrix4x4.Inverse(scaledLightMat);
         }
 
+        private static void SetGeneralLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
+        {
+            float intensity = light.intensity * light.color.a;
+            Color color = intensity * light.color;
+            color.a = 1.0f;
+
+            float volumeIntensity = light.volumeIntensity;
+
+            cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+            cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+            cmd.SetGlobalColor(k_LightColorID, color);
+            cmd.SetGlobalFloat(k_VolumeOpacityID, volumeIntensity);
+        }
+
         private static void SetPointLightShaderGlobals(IRenderPass2D pass, CommandBuffer cmd, Light2D light)
         {
             // This is used for the lookup texture
@@ -297,7 +305,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
             cmd.SetGlobalFloat(k_IsFullSpotlightID, innerAngle == 1 ? 1.0f : 0.0f);
 
-            cmd.SetGlobalFloat(k_LightZDistanceID, light.pointLightDistance);
+            cmd.SetGlobalFloat(k_LightZDistanceID, light.normalMapDistance);
 
             if (light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 cmd.SetGlobalTexture(k_PointLightCookieTexID, light.lightCookieSprite.texture);
@@ -415,13 +423,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bitIndex++;
             var shapeBit = !isPoint ? 1u << bitIndex : 0u;
             bitIndex++;
-            var additiveBit = light.alphaBlendOnOverlap ? 0u : 1u << bitIndex;
+            var additiveBit = light.overlapOperation == Light2D.OverlapOperation.AlphaBlend ? 0u : 1u << bitIndex;
             bitIndex++;
             var spriteBit = light.lightType == Light2D.LightType.Sprite ? 1u << bitIndex : 0u;
             bitIndex++;
             var pointCookieBit = (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null) ? 1u << bitIndex : 0u;
             bitIndex++;
-            var pointFastQualityBit = (isPoint && light.pointLightQuality == Light2D.PointLightQuality.Fast) ? 1u << bitIndex : 0u;
+            var pointFastQualityBit = (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
             var useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
 
@@ -439,7 +447,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 material = CoreUtils.CreateEngineMaterial(isPoint ? rendererData.pointLightShader : rendererData.shapeLightShader);
 
-                if (!light.alphaBlendOnOverlap)
+                if (light.overlapOperation == Light2D.OverlapOperation.Additive)
                 {
                     SetBlendModes(material, BlendMode.One, BlendMode.One);
                     material.EnableKeyword(k_UseAdditiveBlendingKeyword);
@@ -454,7 +462,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (isPoint && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                 material.EnableKeyword(k_UsePointLightCookiesKeyword);
 
-            if (isPoint && light.pointLightQuality == Light2D.PointLightQuality.Fast)
+            if (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
 
             if (light.useNormalMap)
