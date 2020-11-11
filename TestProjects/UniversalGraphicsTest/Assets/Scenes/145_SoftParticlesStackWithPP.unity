@@ -5125,7 +5125,6 @@ GameObject:
   m_Component:
   - component: {fileID: 787570592}
   - component: {fileID: 787570591}
-  - component: {fileID: 787570590}
   - component: {fileID: 787570589}
   m_Layer: 0
   m_Name: VFX Camera
@@ -5166,14 +5165,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &787570590
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 787570588}
-  m_Enabled: 1
 --- !u!20 &787570591
 Camera:
   m_ObjectHideFlags: 0
@@ -19787,5 +19778,5 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 0
+  WaitFrames: 100
   XRCompatible: 0
