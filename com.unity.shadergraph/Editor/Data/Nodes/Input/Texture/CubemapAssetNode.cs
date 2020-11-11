@@ -42,11 +42,30 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        string GetTexturePropertyName()
+        {
+            return base.GetVariableNameForSlot(OutputSlotId);
+        }
+
+        string GetTextureVariableName()
+        {
+            return GetTexturePropertyName() + "_struct";
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            if (slotId == OutputSlotId)
+                return GetTextureVariableName();
+            else
+                return base.GetVariableNameForSlot(slotId);
+        }
+
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(new CubemapShaderProperty()
             {
-                overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
+                // NOTE : this changes (hidden) shader property names... which could cause Material changes
+                overrideReferenceName = GetTexturePropertyName(),
                 generatePropertyBlock = true,
                 value = m_Cubemap,
                 modifiable = false
@@ -57,7 +76,7 @@ namespace UnityEditor.ShaderGraph
         {
             properties.Add(new PreviewProperty(PropertyType.Cubemap)
             {
-                name = GetVariableNameForSlot(OutputSlotId),
+                name = GetTexturePropertyName(),
                 cubemapValue = cubemap
             });
         }

@@ -214,21 +214,7 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
-                switch (prop)
-                {
-                    case Texture2DArrayShaderProperty texture2DArrayProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture3DShaderProperty texture3DProp:
-                        arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case CubemapShaderProperty cubemapProp:
-                        arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    default:
-                        arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
-                        break;
-                }
+                arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
             }
 
             // pass surface inputs through
