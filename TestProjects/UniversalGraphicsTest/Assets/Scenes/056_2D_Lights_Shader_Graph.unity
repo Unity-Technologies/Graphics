@@ -165,7 +165,7 @@ MonoBehaviour:
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
   m_LightOrder: 1
-  m_OverlapOperation: 0
+  m_OverlapOperation: 1
   m_NormalMapDistance: 3
   m_NormalMapQuality: 1
   m_ShadowIntensityEnabled: 0
@@ -542,7 +542,7 @@ MonoBehaviour:
   m_Color: {r: 0.25162834, g: 0, b: 0.2735849, a: 1}
   m_Intensity: 1
   m_LightVolumeIntensity: 0.5
-  m_LightVolumeIntensityEnabled: 0
+  m_LightVolumeIntensityEnabled: 1
   m_ApplyToSortingLayers: eb0feddfe980ef06
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
@@ -1038,7 +1038,7 @@ MonoBehaviour:
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_UseNormalMap: 0
   m_LightOrder: 0
-  m_OverlapOperation: 0
+  m_OverlapOperation: 1
   m_NormalMapDistance: 3
   m_NormalMapQuality: 1
   m_ShadowIntensityEnabled: 0
