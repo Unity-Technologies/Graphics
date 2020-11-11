@@ -9,13 +9,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
 - Optimized 2D Renderer performance by rendering the normal buffer at the same lower resolution as the light buffers.
+- Improved Light2D UI/UX
+- Improved 2D Menu layout
+- Deprecated Light2D Parametric Light
+- Deprecated Light2D point light cookie
+- Renamed Light2D point light to spot light
+- Added preset shapes for creating a freeform light
+- Added 2D Renderer Asset Preset for creating a Universal Renderer Asset
 - 2D Renderer: The per Blend Style render texture scale setting was replaced by a global scale setting for all Blend Styles.
 - Optimized 2D Renderer performance by using a tiny light texture for layer/blend style pairs for which no light is rendered.
+- Reorgnized the settings in 2D Renderer Data Inspector.
 - Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
 - FallOff Lookup Texture is now part of 2D RenderData.
+- Creating a Shadow Caster 2D will use try and use sprite and physics boundss as the default shape
+- Deleting all points in a Shadow Caster will cause the shape to use the bounds.
 - Improved Geometry for Smooth Falloff of 2D Shape Lights.
 
 ### Fixed
+- Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
 - Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
 - Fixed an issue where null reference exception was thrown when creating a 2D Renderer Data asset while scripts are compiling. [case 1263040](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-error-is-thrown-on-creating-2d-renderer-asset)
 - Fixed an issue where no preview would show for the lit sprite master node in shadergraph

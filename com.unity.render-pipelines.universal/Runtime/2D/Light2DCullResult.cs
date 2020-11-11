@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 returnStats.totalLights++;
                 if (light.useNormalMap)
                     returnStats.totalNormalMapUsage++;
-                if (light.volumeOpacity > 0)
+                if (light.volumeIntensity > 0)
                     returnStats.totalVolumetricUsage++;
 
                 returnStats.blendStylesUsed |= (uint)(1 << light.blendStyleIndex);
