@@ -47,7 +47,8 @@
 // deferred opaque always use FPTL
 #define USE_FPTL_LIGHTLIST 1
 
-#define FINE_BINNING // Comment out the line to loop over all lights (for debugging purposes)
+// Comment out the line to loop over all lights (for debugging purposes)
+#define FINE_BINNING // Keep in sync with 'classification.compute'
 
 //-------------------------------------------------------------------------------------
 // Include

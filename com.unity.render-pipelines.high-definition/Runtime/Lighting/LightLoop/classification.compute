@@ -1,0 +1,98 @@
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma kernel main
+
+#pragma multi_compile_local _ LIGHT_CLASSIFICATION
+#pragma multi_compile_local _ MATERIAL_CLASSIFICATION
+
+#define FINE_BINNING // Keep in sync with 'deferred.compute'
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderBase.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+
+RWStructuredBuffer<uint> g_TileFeatureFlags;
+
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    groupshared uint gs_TileFeatureFlags;
+#endif
+
+TEXTURE2D_X_UINT2(_StencilTexture);
+
+[numthreads(TILE_SIZE * TILE_SIZE, 1, 1)]
+void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    const uint t    = threadID.x;
+    const uint tile = groupID.x;
+    const uint eye  = groupID.z;
+
+    const uint2 tileCoord         = CoordinateFromIndex(tile, TILE_BUFFER_DIMS.x);
+    const uint2 localPixelCoord   = DecodeMorton2D(t & (TILE_SIZE * TILE_SIZE - 1)); // Use AND to inform the compiler
+    const uint2 globalPixelCoord  = tileCoord * TILE_SIZE + localPixelCoord;
+    const uint2 clampedPixelCoord = min(globalPixelCoord, uint2(_ScreenSize.xy) - 1);
+
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    if (t == 0) // Avoid bank conflicts
+    {
+        gs_TileFeatureFlags = 0;
+    }
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+    uint featureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
+
+#ifdef LIGHT_CLASSIFICATION
+    float          depth    = LoadCameraDepth(clampedPixelCoord);
+    PositionInputs posInput = GetPositionInput(clampedPixelCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+    uint           zBin     = ComputeZBinIndex(posInput.linearDepth);
+
+    if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, eye))
+    {
+        featureFlags |= LIGHTFEATUREFLAGS_PUNCTUAL;
+    }
+
+    if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, eye))
+    {
+        featureFlags |= LIGHTFEATUREFLAGS_AREA;
+    }
+
+    if (!IsBinEmpty(tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, eye))
+    {
+        featureFlags |= LIGHTFEATUREFLAGS_ENV;
+    }
+#endif // LIGHT_CLASSIFICATION
+
+#ifdef MATERIAL_CLASSIFICATION
+    // Unlit object, sky/background and forward opaque tag don't tag the StencilUsage.RequiresDeferredLighting bit
+    uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, clampedPixelCoord));
+    if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) != 0)
+    {
+        featureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(clampedPixelCoord);
+    }
+#endif // MATERIAL_CLASSIFICATION
+
+#if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && (PLATFORM_LANE_COUNT >= (TILE_SIZE * TILE_SIZE)))
+    featureFlags = WaveActiveBitOr(featureFlags);
+#else
+    InterlockedOr(gs_TileFeatureFlags, featureFlags);
+
+    GroupMemoryBarrierWithGroupSync(); // Wait for writes to gs_TileFeatureFlags
+
+    featureFlags = gs_TileFeatureFlags;
+#endif
+
+    if (t == 0) // Avoid bank conflicts
+    {
+        uint bufferIndex = tile + IndexFromCoordinate(uint2(0, 0, eye), TILE_BUFFER_DIMS);
+        g_TileFeatureFlags[bufferIndex] = featureFlags;
+    }
+}

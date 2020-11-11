@@ -927,7 +927,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader buildPerBigTileLightListShader { get { return defaultResources.shaders.buildPerBigTileLightListCS; } }
         ComputeShader buildPerVoxelLightListShader { get { return defaultResources.shaders.buildPerVoxelLightListCS; } }
         ComputeShader clearClusterAtomicIndexShader { get { return defaultResources.shaders.lightListClusterClearAtomicIndexCS; } }
-        ComputeShader buildMaterialFlagsShader { get { return defaultResources.shaders.buildMaterialFlagsCS; } }
+        ComputeShader classificationShader { get { return defaultResources.shaders.classificationCS; } }
         ComputeShader buildDispatchIndirectShader { get { return defaultResources.shaders.buildDispatchIndirectCS; } }
         ComputeShader clearDispatchIndirectShader { get { return defaultResources.shaders.clearDispatchIndirectCS; } }
         ComputeShader deferredComputeShader { get { return defaultResources.shaders.deferredCS; } }
@@ -3509,7 +3509,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool clusterNeedsDepth;
 
             // Build dispatch indirect
-            public ComputeShader buildMaterialFlagsShader;
+            public ComputeShader classificationShader;
             public ComputeShader clearDispatchIndirectShader;
             public ComputeShader buildDispatchIndirectShader;
             public bool useComputeAsPixel;
@@ -3810,11 +3810,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (needModifyingTileFeatures)
                 {
                     int buildMaterialFlagsKernel = s_BuildMaterialFlagsWriteKernel;
-                    parameters.buildMaterialFlagsShader.shaderKeywords = null;
+                    parameters.classificationShader.shaderKeywords = null;
 
                     if (tileFlagsWritten && parameters_computeLightVariants)
                     {
-                        parameters.buildMaterialFlagsShader.EnableKeyword("USE_OR");
+                        parameters.classificationShader.EnableKeyword("USE_OR");
                     }
 
                     uint baseFeatureFlags = 0;
@@ -3848,23 +3848,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     var localLightListCB = parameters.lightListCB;
                     localLightListCB.g_BaseFeatureFlags = baseFeatureFlags;
 
-                    cmd.SetComputeBufferParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
+                    cmd.SetComputeBufferParam(parameters.classificationShader, buildMaterialFlagsKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
 
                     for (int i = 0; i < resources.gBuffer.Length; ++i)
-                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], resources.gBuffer[i]);
+                        cmd.SetComputeTextureParam(parameters.classificationShader, buildMaterialFlagsKernel, HDShaderIDs._GBufferTexture[i], resources.gBuffer[i]);
 
                     if (resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
                     {
-                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
+                        cmd.SetComputeTextureParam(parameters.classificationShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture);
                     }
                     else
                     {
-                        cmd.SetComputeTextureParam(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture, 0, RenderTextureSubElement.Stencil);
+                        cmd.SetComputeTextureParam(parameters.classificationShader, buildMaterialFlagsKernel, HDShaderIDs._StencilTexture, resources.stencilTexture, 0, RenderTextureSubElement.Stencil);
                     }
 
-                    ConstantBuffer.Push(cmd, localLightListCB, parameters.buildMaterialFlagsShader, HDShaderIDs._ShaderVariablesLightList);
+                    ConstantBuffer.Push(cmd, localLightListCB, parameters.classificationShader, HDShaderIDs._ShaderVariablesLightList);
 
-                    cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
+                    cmd.DispatchCompute(parameters.classificationShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
                 }
 
                 // clear dispatch indirect buffer
@@ -4067,7 +4067,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.clusterNeedsDepth = tileAndClusterData.clusterNeedsDepth;
 
             // Build dispatch indirect
-            parameters.buildMaterialFlagsShader = buildMaterialFlagsShader;
+            parameters.classificationShader = classificationShader;
             parameters.clearDispatchIndirectShader = clearDispatchIndirectShader;
             parameters.buildDispatchIndirectShader = buildDispatchIndirectShader;
             parameters.buildDispatchIndirectShader.shaderKeywords = null;
