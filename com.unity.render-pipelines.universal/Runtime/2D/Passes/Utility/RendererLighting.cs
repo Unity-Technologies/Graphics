@@ -163,7 +163,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
 
-                    // Still used by non-Batched code.
+                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
 
                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
@@ -173,37 +175,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         SetPointLightShaderGlobals(pass, cmd, light);
 
                     // Batch if possible.
-                    bool skipDraw = false;
                     if (batchable)
                     {
-                        if (light.lightType == Light2D.LightType.Parametric ||
-                            light.lightType == Light2D.LightType.Freeform)
-                        {
-                            if (light.shadowIntensity == 0)
-                            {
-                                if (Light2DBatch.sActiveMaterial == null || lightMaterial != Light2DBatch.sActiveMaterial)
-                                {
-                                    // If this is not the same material, end any previous valid batch.
-                                    if (Light2DBatch.sActiveMaterial)
-                                        Light2DBatch.EndBatch(cmd);
-                                    Light2DBatch.StartBatch(lightMaterial);
-                                }
-
-                                Light2DBatch.AddMesh(lightMesh, light.transform, light.hashCode);
-                                skipDraw = true;
-                            }
-                        }
-                    }
-
-                    if (skipDraw)
-                        continue;
-                    else
-                    {
-                        if (Light2DBatch.sActiveMaterial != null)
-                        {
-                            // Did not batch for this iteration, end if needed.
-                            Light2DBatch.EndBatch(cmd);
-                        }
+                        if (Light2DBatch.Batch(cmd, light, lightMaterial))
+                            continue;
                     }
 
                     // Non Batched.
@@ -221,11 +196,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             // Left over Batching
-            if (Light2DBatch.sActiveMaterial != null)
-            {
-                // End of loop. Render if a batch was active during end of loop.
-                Light2DBatch.EndBatch(cmd);
-            }
+            Light2DBatch.EndBatch(cmd);
         }
 
         public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights, bool batchable)
@@ -253,43 +224,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     // Still used by non-Batched code.
                     cmd.SetGlobalColor(k_LightColorID, light.intensity * light.color);
+                    cmd.SetGlobalFloat(k_FalloffIntensityID, light.falloffIntensity);
+                    cmd.SetGlobalFloat(k_FalloffDistanceID, light.shapeLightFalloffSize);
+                    cmd.SetGlobalFloat(k_VolumeOpacityID, light.volumeOpacity);
 
                     // Is this needed
                     if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(pass, cmd, light);
 
                     // Batch if possible.
-                    bool skipDraw = false;
                     if (batchable)
                     {
-                        if (light.lightType == Light2D.LightType.Parametric ||
-                            light.lightType == Light2D.LightType.Freeform)
-                        {
-                            if (light.shadowIntensity == 0)
-                            {
-                                if (Light2DBatch.sActiveMaterial == null || Light2DBatch.sActiveMaterial != lightVolumeMaterial)
-                                {
-                                    // If this is not the same material, end any previous valid batch.
-                                    if (Light2DBatch.sActiveMaterial)
-                                        Light2DBatch.EndBatch(cmd);
-                                    Light2DBatch.StartBatch(lightVolumeMaterial);
-                                }
-
-                                Light2DBatch.AddMesh(lightMesh, light.transform, light.hashCode);
-                                skipDraw = true;
-                            }
-                        }
-                    }
-
-                    if (skipDraw)
-                        continue;
-                    else
-                    {
-                        if (Light2DBatch.sActiveMaterial != null)
-                        {
-                            // Did not batch for this iteration, end if needed.
-                            Light2DBatch.EndBatch(cmd);
-                        }
+                        if (Light2DBatch.Batch(cmd, light, lightVolumeMaterial))
+                            continue;
                     }
 
                     // Non-Batched.
@@ -307,11 +254,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             // Left over Batching
-            if (Light2DBatch.sActiveMaterial != null)
-            {
-                // End of loop. Render if a batch was active during end of loop.
-                Light2DBatch.EndBatch(cmd);
-            }
+            Light2DBatch.EndBatch(cmd);
         }
 
         public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)

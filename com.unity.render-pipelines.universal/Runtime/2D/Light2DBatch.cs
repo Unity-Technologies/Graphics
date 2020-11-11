@@ -43,13 +43,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal static int sMeshCount => s_MeshCombined;
 
-        internal static void StartScope()
+        static void StartScope()
         {
             s_Batches = 0;
             s_ActiveBatchHashes.Clear();
         }
 
-        internal static void StartBatch(Material mat)
+        static void EndScope()
+        {
+            List<ShapeMeshBatch> unusedMeshes = new List<ShapeMeshBatch>();
+            foreach (var batchMesh in s_BatchMeshes)
+            {
+                if (!s_ActiveBatchHashes.Contains(batchMesh.Key))
+                {
+                    s_MeshPool.Add(batchMesh.Value);
+                    unusedMeshes.Add(batchMesh.Key);
+                }
+            }
+            foreach (var unusedMesh in unusedMeshes)
+            {
+                s_BatchMeshes.Remove(unusedMesh);
+            }
+        }
+
+        static void StartBatch(Material mat)
         {
             s_ActiveShapeMeshBatch.hashCode = 16777619;
             s_ActiveShapeMeshBatch.meshCount = 0;
@@ -59,7 +76,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             s_ActiveBatchMeshInstances.Clear();
         }
 
-        internal static void AddMesh(Mesh mesh, Transform transform, int hashCode)
+        static void AddMesh(Mesh mesh, Transform transform, int hashCode)
         {
             CombineInstance ci = new CombineInstance();
             ci.mesh = mesh;
@@ -76,6 +93,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal static void EndBatch(CommandBuffer cmd)
         {
+            if (null == s_ActiveMaterial)
+                return;
+
             var material = s_ActiveMaterial;
             s_ActiveMaterial = null;
             if (s_ActiveBatchMeshInstances.Count == 1)
@@ -109,22 +129,34 @@ namespace UnityEngine.Experimental.Rendering.Universal
             s_Batches++;
         }
 
-        internal static void EndScope()
+        internal static void Reset()
         {
-            List<ShapeMeshBatch> unusedMeshes = new List<ShapeMeshBatch>();
-            foreach (var batchMesh in s_BatchMeshes)
+            EndScope();
+            StartScope();
+        }
+
+        internal static bool Batch(CommandBuffer cmd, Light2D light, Material material)
+        {
+            if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform)
             {
-                if (!s_ActiveBatchHashes.Contains(batchMesh.Key))
+                if (light.shadowIntensity == 0)
                 {
-                    s_MeshPool.Add(batchMesh.Value);
-                    unusedMeshes.Add(batchMesh.Key);
+                    if (Light2DBatch.sActiveMaterial == null || Light2DBatch.sActiveMaterial != material)
+                    {
+                        // If this is not the same material, end any previous valid batch.
+                        if (Light2DBatch.sActiveMaterial)
+                            Light2DBatch.EndBatch(cmd);
+                        Light2DBatch.StartBatch(material);
+                    }
+
+                    Light2DBatch.AddMesh(light.lightMesh, light.transform, light.hashCode);
+                    return true;
                 }
             }
-            foreach (var unusedMesh in unusedMeshes)
-            {
-                s_BatchMeshes.Remove(unusedMesh);
-            }
+
+            return false;
         }
+
     }
 
 }
