@@ -82,7 +82,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
 
 def extra_perf_cmd(project_folder):   
     perf_list = [
-        f'git clone git@github.com:Unity-Technologies/BoatAttack.git#$BOAT_ATTACK_REVISION TestProjects/{project_folder}'
+        f'git clone github.com:Unity-Technologies/BoatAttack.git#$BOAT_ATTACK_REVISION TestProjects/{project_folder}'
         ]
     return perf_list
 

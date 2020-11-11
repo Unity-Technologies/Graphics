@@ -37,7 +37,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -87,7 +87,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_trun
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -134,7 +134,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_Linear_trunk
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -205,7 +205,7 @@ Build_URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Line
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -259,7 +259,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUST
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
@@ -310,7 +310,7 @@ URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_Linear_CUSTO
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  NetSh Advfirewall set allprofiles state off
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
