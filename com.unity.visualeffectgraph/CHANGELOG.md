@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] - 2020-10-21
+### Added
+- Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
+- Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
+
+### Fixed
+- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
+- Sample Mesh Color when value is stored as float.
+
 ## [10.2.0] - 2020-10-19
 ### Added
 - Warning using Depth Collision on unsupported scriptable render pipeline.
@@ -11,10 +20,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New operator : Sample Signed distance field
 - New Position on Signed Distance Field block
 - Added command to delete unuser parameters.
-- Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
-- Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
+- Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
+- New particle strip attribute in Initialize: spawnIndexInStrip
+- Added Get Strip Index subgraph utility operator in Additional Samples
+- Added Encompass (Point) subgraph utility operator in Additional Samples
 
-## Fixed
+### Fixed
 - "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
 - Fix [Case 1268977](https://issuetracker.unity3d.com/product/unity/issues/guid/1268977/)
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
@@ -33,7 +44,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fallback to builtIn rendering layer if srpAsset.renderingLayerMaskNames returns null.
 - Fix missing prepass in URP [Case 1169487](https://issuetracker.unity3d.com/product/unity/issues/guid/1169487/)
 - Fix SubPixelAA block while rendering directly in backbuffer.
-- Sample Mesh Color when value is stored as float.
+- Property Binder : Incorrect Destroy called from edit mode. [Case 1274790](https://issuetracker.unity3d.com/product/unity/issues/guid/1274790/)
+- Property Binder : Unexpected null reference exception while using terrain binder. [Case 1247230](https://issuetracker.unity3d.com/product/unity/issues/guid/1247230/)
+- Property Binder : HierarchyRoot null reference exception while using Hierarchy to Attribute Map. [Case 1274788](https://issuetracker.unity3d.com/product/unity/issues/guid/1274788/)
+- Property Binder : Properties window isn't always up to date. [Case 1248711](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Property Binder : Avoid Warning while building on Mobile "Presence of such handlers might impact performance on handheld devices." when building for Android" [Case 1279471](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Fixed [case 1283315](https://issuetracker.unity3d.com/product/unity/issues/guid/1283315/)
+- Addressing for mirror and clamp modes in sequential operators and blocks
+- Incorrect volume spawning for Sphere & Circle with thickness absolute
+- Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fixed rare bug causing the vfx compilation to do nothing silently.
+- Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph  
+- SpawnOverDistance spawner block now behaves correctly
+- Quad strip outputs take into account orientation block
+- Fixed Random Vector subgraph utility operator in Additional Samples
+- Fixed Set Strip Progress Attribute utility block in Additional Samples
+- Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
+- Remove temporarily "Exact Fixed Time Step" option on VisualEffectAsset to avoid unexpected behavior
 
 ## [10.1.0] - 2020-10-12
 ### Added

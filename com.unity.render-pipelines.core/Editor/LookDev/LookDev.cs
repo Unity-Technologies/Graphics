@@ -46,6 +46,14 @@ namespace UnityEditor.Rendering.LookDev
         internal static IViewDisplayer currentViewDisplayer => s_ViewDisplayer;
         internal static IEnvironmentDisplayer currentEnvironmentDisplayer => s_EnvironmentDisplayer;
 
+        [MenuItem("Window/Render Pipeline/Look Dev", false, 10200)]
+        static void OpenLookDev() => Open();
+
+        [MenuItem("Window/Render Pipeline/Look Dev", true, 10200)]
+        static bool LookDevAvailable() => supported;
+
+        internal static bool waitingConfigure { get; private set; } = true;
+
         /// <summary>State of the LookDev window</summary>
         public static bool open { get; private set; }
 
@@ -127,6 +135,7 @@ namespace UnityEditor.Rendering.LookDev
         static void ConfigureLookDev(bool reloadWithTemporaryID)
         {
             open = true;
+            waitingConfigure = true;
             if (s_CurrentContext == null || s_CurrentContext.Equals(null))
                 LoadConfig();
             WaitingSRPReloadForConfiguringRenderer(5, reloadWithTemporaryID: reloadWithTemporaryID);
@@ -136,6 +145,7 @@ namespace UnityEditor.Rendering.LookDev
         {
             if (supported)
             {
+                waitingConfigure = false;
                 ConfigureRenderer(reloadWithTemporaryID);
                 LinkViewDisplayer();
                 LinkEnvironmentDisplayer();
@@ -145,12 +155,7 @@ namespace UnityEditor.Rendering.LookDev
                 EditorApplication.delayCall +=
                     () => WaitingSRPReloadForConfiguringRenderer(maxAttempt, reloadWithTemporaryID, ++attemptNumber);
             else
-            {
-                Close();
-
-                throw new System.Exception("LookDev is not supported by this Scriptable Render Pipeline: "
-                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
-            }
+                waitingConfigure = false;
         }
 
         static void ConfigureRenderer(bool reloadWithTemporaryID)

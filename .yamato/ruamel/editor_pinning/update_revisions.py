@@ -111,7 +111,7 @@ def get_versions_from_unity_downloader(tracks, trunk_track, unity_downloader_com
     for track in tracks: # pylint: disable=too-many-nested-blocks
         for version_type in SUPPORTED_VERSION_TYPES:
 
-            key = f'{track}_{version_type}'
+            key = f'{str(track).replace(".","_")}_{version_type}'
 
             if not versions.get(key):
                 versions[key] = {}
@@ -279,7 +279,7 @@ def main(argv):
     try:
         
         editor_version_files = create_version_files(config, ROOT)
-        subprocess.call(['python', config['ruamel_build_file']])
+        #subprocess.call(['python', config['ruamel_build_file']])
         if not args.local:
             checkout_and_push(editor_version_files, config['yml_files_path'], args.target_branch, ROOT, args.force_push,
                                   'Updating pinned editor revisions')

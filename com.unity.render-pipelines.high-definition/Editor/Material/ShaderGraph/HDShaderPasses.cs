@@ -74,6 +74,42 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #endregion
 
+#region Scene Picking Pass
+
+        public static PassDescriptor GenerateScenePicking()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "ScenePickingPass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "Picking",
+                useInPreview = false,
+
+                // Collections
+                renderStates = CoreRenderStates.ScenePicking,
+                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+                defines = CoreDefines.ScenePicking,
+                includes = GenerateIncludes(),
+            };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                return includes;
+            }
+        }
+
+#endregion
+
 #region Scene Selection Pass
 
         public static PassDescriptor GenerateSceneSelection(bool supportLighting)
@@ -1115,8 +1151,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
-                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include path tracing support for the material
+                includes.Add(CoreIncludes.kPathtracingPlaceholder, IncludeLocation.Pregraph);
 
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
@@ -1203,7 +1239,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 // Definition
                 displayName = "FullScreenDebug",
-                referenceName = "SHADERPASS_FULLSCREEN_DEBUG",
+                referenceName = "SHADERPASS_FULL_SCREEN_DEBUG",
                 lightMode = "FullScreenDebug",
                 useInPreview = false,
 

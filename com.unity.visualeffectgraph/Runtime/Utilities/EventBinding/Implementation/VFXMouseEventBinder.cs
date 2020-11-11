@@ -59,9 +59,9 @@ namespace UnityEngine.VFX.Utility
             var map = new InputActionMap("VFX Mouse Event Binder");
 
             mouseDown = map.AddAction("Mouse Down", binding: "<Mouse>/leftButton", interactions: "press(behavior=0)");
-            mouseDown.performed += ctx => RayCastAndTriggerEvent(OnMouseDown);
+            mouseDown.performed += ctx => RayCastAndTriggerEvent(DoOnMouseDown);
             mouseUp = map.AddAction("Mouse Up", binding: "<Mouse>/leftButton", interactions: "press(behavior=1)");
-            mouseUp.performed += ctx => RayCastAndTriggerEvent(OnMouseUp);
+            mouseUp.performed += ctx => RayCastAndTriggerEvent(DoOnMouseUp);
             mouseDragStart = map.AddAction("Mouse Drag Start", binding: "<Mouse>/leftButton", interactions: "press(behavior=0)");
             mouseDragStop = map.AddAction("Mouse Drag Stop", binding: "<Mouse>/leftButton", interactions: "press(behavior=1)");
 #if UNITY_EDITOR
@@ -80,13 +80,13 @@ namespace UnityEngine.VFX.Utility
             {
                 mouseOver = newMouseOver;
                 if (newMouseOver)
-                    OnMouseOver(); 
+                    DoOnMouseOver(); 
                 else
-                    OnMouseExit(); 
+                    DoOnMouseExit(); 
             }
         }
 
-        void RayCastDrag() => RayCastAndTriggerEvent(OnMouseDrag);
+        void RayCastDrag() => RayCastAndTriggerEvent(DoOnMouseDrag);
 
         void RayCastAndTriggerEvent(System.Action trigger)
         {
@@ -130,35 +130,67 @@ namespace UnityEngine.VFX.Utility
 #endif
         }
 
-        private void OnMouseDown()
+        private void DoOnMouseDown()
         {
             if (activation == Activation.OnMouseDown) SendEventToVisualEffect();
         }
 
-        private void OnMouseUp()
+        private void DoOnMouseUp()
         {
             if (activation == Activation.OnMouseUp) SendEventToVisualEffect();
         }
 
-        private void OnMouseDrag()
+        private void DoOnMouseDrag()
         {
             if (activation == Activation.OnMouseDrag) SendEventToVisualEffect();
         }
 
-        private void OnMouseOver()
+        private void DoOnMouseOver()
         {
             if (activation == Activation.OnMouseOver) SendEventToVisualEffect();
         }
 
-        private void OnMouseEnter()
+        private void DoOnMouseEnter()
         {
             if (activation == Activation.OnMouseEnter) SendEventToVisualEffect();
         }
 
-        private void OnMouseExit()
+        private void DoOnMouseExit()
         {
             if (activation == Activation.OnMouseExit) SendEventToVisualEffect();
         }
+
+#if !PLATFORM_ANDROID && !PLATFORM_IOS
+        private void OnMouseDown()
+        {
+            DoOnMouseDown();
+        }
+
+        private void OnMouseUp()
+        {
+            DoOnMouseUp();
+        }
+
+        private void OnMouseDrag()
+        {
+            DoOnMouseDrag();
+        }
+
+        private void OnMouseOver()
+        {
+            DoOnMouseOver();
+        }
+
+        private void OnMouseEnter()
+        {
+            DoOnMouseEnter();
+        }
+
+        private void OnMouseExit()
+        {
+            DoOnMouseExit();
+        }
+#endif
     }
 }
 #endif
