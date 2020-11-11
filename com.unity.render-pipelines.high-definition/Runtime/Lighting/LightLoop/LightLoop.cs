@@ -1081,10 +1081,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static Vector2Int GetFineTileBufferDimensions(HDCamera hdCamera)
         {
-            Vector2Int coarseBufferDims = GetCoarseTileBufferDimensions(hdCamera);
+            int w = HDUtils.DivRoundUp((int)hdCamera.screenSize.x, TiledLightingConstants.s_FineTileSize);
+            int h = HDUtils.DivRoundUp((int)hdCamera.screenSize.y, TiledLightingConstants.s_FineTileSize);
 
-            // For each coarse tile, we have several fine tiles.
-            return coarseBufferDims * (TiledLightingConstants.s_CoarseTileSize / TiledLightingConstants.s_FineTileSize);
+            return new Vector2Int(w, h);
         }
 
         static int GetNumTileBigTileX(HDCamera hdCamera)
@@ -3661,7 +3661,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 const int tilesPerGroup   = 16; // Shader: TILES_PER_GROUP
 
                 int coarseBufferSize = parameters.coarseTileBufferDimensions.x * parameters.coarseTileBufferDimensions.y;
-                int fineBufferSize   = parameters.fineTileBufferDimensions.x   * parameters.fineTileBufferDimensions.y;
+                int fineTilesPerCoarseTile = (TiledLightingConstants.s_CoarseTileSize / TiledLightingConstants.s_FineTileSize)
+                                           * (TiledLightingConstants.s_CoarseTileSize / TiledLightingConstants.s_FineTileSize);
 
                 int kernel, groupCount;
 
@@ -3692,7 +3693,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer,   resources.coarseTileBuffer);
                 cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
 
-                groupCount = HDUtils.DivRoundUp(fineBufferSize, tilesPerGroup);
+                groupCount = HDUtils.DivRoundUp(coarseBufferSize * fineTilesPerCoarseTile, tilesPerGroup);
 
                 cmd.DispatchCompute(shader, kernel, groupCount, (int)BoundedEntityCategory.Count, parameters.viewCount);
             }
