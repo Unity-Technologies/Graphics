@@ -10,7 +10,7 @@ The mesh index count operator allows you to retrieve the number of indices in a 
 
 | **Property** | **Type** | **Description**                                              |
 | ------------ | -------- | ------------------------------------------------------------ |
-| **Source**   | Enum     | Choose the kind of geometry to sample, either a **Mesh** or a **Skinned Mesh Renderer** |
+| **Source**   | Enum     | Choose the kind of source geometry, either a **Mesh** or a **Skinned Mesh Renderer** |
 
 ### Operator Properties
 
