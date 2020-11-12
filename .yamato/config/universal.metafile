@@ -20,7 +20,9 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-reuse-tests"
     utr_flags_build:
-      - [all]: --extra-editor-arg="-xr-reuse-tests" --timeout=18000
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=18000
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=18000
 platforms:
   - name: Win
     apis:
