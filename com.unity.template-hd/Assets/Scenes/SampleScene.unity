@@ -819,7 +819,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
-  m_RootOrder: 3
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &109120892
 MonoBehaviour:
@@ -1920,7 +1920,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 701791699}
-  m_RootOrder: 5
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &222006314
 MonoBehaviour:
@@ -2690,7 +2690,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 701791699}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &303614830
 MonoBehaviour:
@@ -3170,7 +3170,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &326594298
 MonoBehaviour:
@@ -3667,7 +3667,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &361274625
 MonoBehaviour:
@@ -7373,12 +7373,12 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 222006313}
   - {fileID: 8285608693600406297}
   - {fileID: 303614829}
   - {fileID: 1009039357}
   - {fileID: 1061273501}
   - {fileID: 1634791762}
-  - {fileID: 222006313}
   m_Father: {fileID: 594250630}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -10871,7 +10871,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 701791699}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1027290277
 PrefabInstance:
@@ -11074,7 +11074,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 701791699}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1061273502
 MonoBehaviour:
@@ -12812,7 +12812,7 @@ MonoBehaviour:
     m_ObsoleteSphereInfiniteProjection: 0
     m_ObsoleteBoxInfiniteProjection: 0
     m_Shape: 0
-    m_BoxSize: {x: 31.49638, y: 9.418809, z: 15.614786}
+    m_BoxSize: {x: 31.791061, y: 9.468645, z: 16.735737}
     m_SphereRadius: 1
 --- !u!4 &1177610900
 Transform:
@@ -12822,11 +12822,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1177610898}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 29.74967, y: 4.674009, z: 2.0055304}
+  m_LocalPosition: {x: 29.804874, y: 4.649091, z: 1.6294832}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 8
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1189696389
 GameObject:
@@ -13604,7 +13604,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1273660992
 MonoBehaviour:
@@ -15254,6 +15254,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 1177610900}
   - {fileID: 2827997797069011893}
   - {fileID: 1973713853}
   - {fileID: 1587207274}
@@ -15262,7 +15263,6 @@ Transform:
   - {fileID: 1273660991}
   - {fileID: 361274624}
   - {fileID: 1909621620}
-  - {fileID: 1177610900}
   m_Father: {fileID: 594250630}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -16187,7 +16187,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -0, z: 0}
+    textureOffset: {x: -0, y: -254.86174, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16996,11 +16996,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1587207273}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 42.02901, y: 4.6271276, z: 1.5081205}
+  m_LocalPosition: {x: 42.338097, y: 4.6271276, z: 0.46876335}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1587207275
 MonoBehaviour:
@@ -17125,8 +17125,8 @@ MonoBehaviour:
       fadeDistance: 80
       rangeCompressionFactor: 1
     influence:
-      m_EditorAdvancedModeBlendDistancePositive: {x: 1.4047661, y: 0, z: 3.4127774}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 0.44869232, y: 0, z: 0}
+      m_EditorAdvancedModeBlendDistancePositive: {x: 2.1617756, y: 0, z: 1.3672471}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 0.44869232, y: 0, z: 0.00000047683716}
       m_EditorSimplifiedModeBlendDistance: 0
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -17138,9 +17138,9 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 6.9204025, y: 9.365744, z: 8.090614}
-      m_BoxBlendDistancePositive: {x: 1.4047661, y: 0, z: 3.4127774}
-      m_BoxBlendDistanceNegative: {x: 0.44869232, y: 0, z: 0}
+      m_BoxSize: {x: 7.5385704, y: 9.365744, z: 6.011903}
+      m_BoxBlendDistancePositive: {x: 2.1617756, y: 0, z: 1.3672471}
+      m_BoxBlendDistanceNegative: {x: 0.44869232, y: 0, z: 0.00000047683716}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
@@ -17157,7 +17157,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 11.640589, y: -3.1603966, z: -1.593122}
+      capturePositionProxySpace: {x: 11.5443, y: -3.651671, z: -2.2034938}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
@@ -17387,7 +17387,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 6.9204025, y: 9.365744, z: 8.090614}
+  m_BoxSize: {x: 7.5385704, y: 9.365744, z: 6.011903}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -18108,7 +18108,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 701791699}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1634791763
 MonoBehaviour:
@@ -18543,7 +18543,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1638447527
 MonoBehaviour:
@@ -19297,12 +19297,13 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 2019943082}
+  - {fileID: 1748380296}
   - {fileID: 1827581735}
   - {fileID: 7099360530125308786}
   - {fileID: 1696653816}
   - {fileID: 109120891}
   - {fileID: 1669868155}
-  - {fileID: 2019943082}
   m_Father: {fileID: 594250630}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -19336,7 +19337,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
-  m_RootOrder: 4
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1669868156
 MonoBehaviour:
@@ -19925,7 +19926,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
-  m_RootOrder: 2
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1696653817
 MonoBehaviour:
@@ -20644,6 +20645,56 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6987188838134842600, guid: 8e1c9195acf59394aaf785cdb5fe8c84, type: 3}
   m_PrefabInstance: {fileID: 1354225906}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1748380295
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1748380296}
+  - component: {fileID: 1748380297}
+  m_Layer: 0
+  m_Name: Reflection Proxy Volume Room 3 Ramp
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1748380296
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1748380295}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 52.009766, y: 2.5913894, z: -0.7551531}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1663721606}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1748380297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1748380295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5c61b7a04f29ad49a0985f4fb6c436d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ProxyVolume:
+    m_CSVersion: 1
+    m_ObsoleteSphereInfiniteProjection: 0
+    m_ObsoleteBoxInfiniteProjection: 0
+    m_Shape: 0
+    m_BoxSize: {x: 26.010788, y: 5.2949815, z: 5.4849353}
+    m_SphereRadius: 1
 --- !u!1 &1754039346
 GameObject:
   m_ObjectHideFlags: 0
@@ -21881,8 +21932,8 @@ MonoBehaviour:
       fadeDistance: 100
       rangeCompressionFactor: 1
     influence:
-      m_EditorAdvancedModeBlendDistancePositive: {x: 0.7041569, y: 0.099999905, z: 0.19999981}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 1.1300001, y: 0.099999905, z: 0.19999981}
+      m_EditorAdvancedModeBlendDistancePositive: {x: 1.1471868, y: 0.099999905, z: 0.1696949}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 1.5706663, y: 0.099999905, z: 0.12016106}
       m_EditorSimplifiedModeBlendDistance: 1
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -21894,9 +21945,9 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 11.639824, y: 4.5386963, z: 4.5}
-      m_BoxBlendDistancePositive: {x: 0.7041569, y: 0.099999905, z: 0.19999981}
-      m_BoxBlendDistanceNegative: {x: 1.1300001, y: 0.099999905, z: 0.19999981}
+      m_BoxSize: {x: 10.511906, y: 4.227064, z: 4.339425}
+      m_BoxBlendDistancePositive: {x: 1.1471868, y: 0.099999905, z: 0.1696949}
+      m_BoxBlendDistanceNegative: {x: 1.5706663, y: 0.099999905, z: 0.12016106}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
@@ -21913,7 +21964,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 1.0599806, y: -0.3174176, z: 0.008180656}
+      capturePositionProxySpace: {x: -3.4194565, y: -0.6085136, z: 0.9835205}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
@@ -22037,7 +22088,7 @@ MonoBehaviour:
     probe: 0
     camera:
       camera: 0
-  m_ProxyVolume: {fileID: 0}
+  m_ProxyVolume: {fileID: 1748380297}
   m_BakedTexture: {fileID: 8900000, guid: db58c93c38fdd1c4cb45888d582f7a18, type: 3}
   m_CustomTexture: {fileID: 0}
   m_BakedRenderData:
@@ -22143,7 +22194,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 11.639824, y: 4.5386963, z: 4.5}
+  m_BoxSize: {x: 10.511906, y: 4.227064, z: 4.339425}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -22168,13 +22219,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1827581732}
-  m_LocalRotation: {x: -0, y: -0, z: 0.11011166, w: 0.99391925}
-  m_LocalPosition: {x: 48.687515, y: 2.5490556, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0.11320323, w: 0.9935719}
+  m_LocalPosition: {x: 48.702026, y: 2.7701435, z: 0.028436184}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 12.644}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 13}
 --- !u!1001 &1836760609
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23164,7 +23215,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1909621621
 MonoBehaviour:
@@ -25318,8 +25369,8 @@ MonoBehaviour:
       fadeDistance: 80
       rangeCompressionFactor: 1
     influence:
-      m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0, z: 0.0000014305115}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 2.8215714, y: 0, z: 0.96114683}
+      m_EditorAdvancedModeBlendDistancePositive: {x: 0.14351273, y: 0, z: 0.000000834465}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 2.8215714, y: 0, z: 2.8512669}
       m_EditorSimplifiedModeBlendDistance: 1
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -25331,9 +25382,9 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 12.37841, y: 9.683645, z: 9.103324}
-      m_BoxBlendDistancePositive: {x: 0, y: 0, z: 0.0000014305115}
-      m_BoxBlendDistanceNegative: {x: 2.8215714, y: 0, z: 0.96114683}
+      m_BoxSize: {x: 12.37841, y: 9.683645, z: 10.859621}
+      m_BoxBlendDistancePositive: {x: 0.14351273, y: 0, z: 0.000000834465}
+      m_BoxBlendDistanceNegative: {x: 2.8215714, y: 0, z: 2.8512669}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
@@ -25350,7 +25401,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 10.053431, y: -2.8734868, z: 1.477684}
+      capturePositionProxySpace: {x: 11.475307, y: -3.2269454, z: 1.8575392}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
@@ -25580,7 +25631,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 12.37841, y: 9.683645, z: 9.103324}
+  m_BoxSize: {x: 12.37841, y: 9.683645, z: 10.859621}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -25606,11 +25657,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1973713850}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 37.984707, y: 4.7781773, z: 5.2345824}
+  m_LocalPosition: {x: 37.984707, y: 4.7781773, z: 4.356434}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1981861126
 GameObject:
@@ -25866,11 +25917,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2019943081}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 54.51268, y: 3.5881345, z: -0.27789378}
+  m_LocalPosition: {x: 54.51268, y: 3.6264765, z: -0.27789378}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
-  m_RootOrder: 5
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2019943083
 MonoBehaviour:
@@ -25889,7 +25940,7 @@ MonoBehaviour:
     m_ObsoleteSphereInfiniteProjection: 0
     m_ObsoleteBoxInfiniteProjection: 0
     m_Shape: 0
-    m_BoxSize: {x: 21.004963, y: 3.3014913, z: 6.655029}
+    m_BoxSize: {x: 21.070374, y: 3.3781772, z: 6.7204466}
     m_SphereRadius: 1
 --- !u!1001 &2029157704
 PrefabInstance:
@@ -28069,7 +28120,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1425786420}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2849562995253912511
 MonoBehaviour:
@@ -28234,7 +28285,7 @@ ReflectionProbe:
   m_TimeSlicingMode: 0
   m_Resolution: 128
   m_UpdateFrequency: 0
-  m_BoxSize: {x: 12.011215, y: 4.3, z: 6.5330276}
+  m_BoxSize: {x: 12.972881, y: 4.3, z: 6.5330276}
   m_BoxOffset: {x: 0, y: 0, z: 0}
   m_NearClip: 0.3
   m_FarClip: 1000
@@ -28746,7 +28797,7 @@ MonoBehaviour:
       rangeCompressionFactor: 1
     influence:
       m_EditorAdvancedModeBlendDistancePositive: {x: 0, y: 0.099999905, z: 0}
-      m_EditorAdvancedModeBlendDistanceNegative: {x: 0.8668747, y: 0.19999981, z: 0}
+      m_EditorAdvancedModeBlendDistanceNegative: {x: 1.1074848, y: 0.43921137, z: 0}
       m_EditorSimplifiedModeBlendDistance: 0
       m_EditorAdvancedModeBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_EditorAdvancedModeBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
@@ -28758,9 +28809,9 @@ MonoBehaviour:
       m_ObsoleteSphereBaseOffset: {x: 0, y: 0, z: 0}
       m_ObsoleteOffset: {x: 0, y: 0, z: 0}
       m_Shape: 0
-      m_BoxSize: {x: 12.011215, y: 4.3, z: 6.5330276}
+      m_BoxSize: {x: 12.972881, y: 4.3, z: 6.5330276}
       m_BoxBlendDistancePositive: {x: 0, y: 0.099999905, z: 0}
-      m_BoxBlendDistanceNegative: {x: 0.8668747, y: 0.19999981, z: 0}
+      m_BoxBlendDistanceNegative: {x: 1.1074848, y: 0.43921137, z: 0}
       m_BoxBlendNormalDistancePositive: {x: 0, y: 0, z: 0}
       m_BoxBlendNormalDistanceNegative: {x: 0, y: 0, z: 0}
       m_BoxSideFadePositive: {x: 1, y: 1, z: 1}
@@ -29103,11 +29154,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6829005784479174355}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 59.081398, y: 3.69, z: -0.24048615}
+  m_LocalPosition: {x: 58.600563, y: 3.69, z: -0.24048615}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
-  m_RootOrder: 1
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!220 &7258386062516984218
 LightProbeGroup:
@@ -29822,7 +29873,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 701791699}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8772885058350565593
 GameObject:
