@@ -19,7 +19,7 @@ float4 _SSAOParams;
 float4 _SourceSize;
 float4 _ProjectionParams2;
 float4x4 _CameraViewProjections[2]; // This is different from UNITY_MATRIX_VP (platform-agnostic projection matrix is used). Handle both non-XR and XR modes.
-float4 _CameraViewTopLeftCorner[2];
+float4 _CameraViewTopLeftCorner[2]; // TODO: check if we can use half type
 float4 _CameraViewXExtent[2];
 float4 _CameraViewYExtent[2];
 float4 _CameraViewZExtent[2];
