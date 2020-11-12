@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+
+### Changed
+
+### Fixed
+- Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 
 ## [10.3.0] - 2020-11-06
 
