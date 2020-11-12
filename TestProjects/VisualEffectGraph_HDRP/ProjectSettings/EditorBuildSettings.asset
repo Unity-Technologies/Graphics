@@ -233,6 +233,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/30_PositionOnSDF.unity
     guid: 04855e9751809c7488746e5e54ae0cfa
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/26_NonUnifomScale.unity
     guid: 6500f9adfe104274fb2b90091786a2d4
   m_configObjects: {}
