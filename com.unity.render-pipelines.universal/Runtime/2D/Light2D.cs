@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -81,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [FormerlySerializedAs("m_PointLightDistance")]
         [SerializeField] float m_NormalMapDistance = 3.0f;
 
-#if USING_ANIMATION_MODULE        
+#if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
 #endif
         [FormerlySerializedAs("m_PointLightQuality")]
@@ -95,8 +96,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
-        [SerializeField]
         Mesh m_Mesh;
+
+        [SerializeField]
+        private LightUtility.LightMeshVertex[] m_Vertices = new LightUtility.LightMeshVertex[1];
+
+        [SerializeField]
+        private ushort[] m_Triangles = new ushort[1];
+
+        internal LightUtility.LightMeshVertex[] vertices { get { return m_Vertices; } set { m_Vertices = value; } }
+
+        internal ushort[] indices { get { return m_Triangles; } set { m_Triangles = value; } }
 
         // Transients
         int m_PreviousLightCookieSprite;
@@ -118,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        internal bool hasCachedMesh => (lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0);
+        internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
 
         /// <summary>
         /// The lights current type
@@ -180,7 +190,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float volumeIntensity => m_LightVolumeIntensity;
 
         public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
-        public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } } 
+        public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } }
         public float falloffIntensity => m_FalloffIntensity;
         public bool useNormalMap => m_UseNormalMap;
 
@@ -234,16 +244,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 switch (m_LightType)
                 {
                     case LightType.Freeform:
-                        m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, m_ShapePath, m_ShapeLightFalloffSize);
+                        m_LocalBounds = LightUtility.GenerateShapeMesh(this, m_ShapePath, m_ShapeLightFalloffSize);
                         break;
                     case LightType.Parametric:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides);
                         break;
                     case LightType.Sprite:
-                        m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, m_LightCookieSprite);
+                        m_LocalBounds = LightUtility.GenerateSpriteMesh(this, m_LightCookieSprite);
                         break;
                     case LightType.Point:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, 1.412135f, 0, 0, 4);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, 1.412135f, 0, 0, 4);
                         break;
                 }
             }
@@ -280,6 +290,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void Awake()
         {
             UpdateMesh(!hasCachedMesh);
+            if (hasCachedMesh)
+            {
+                lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
+                lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
+                lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+            }
         }
 
         void OnEnable()
