@@ -843,19 +843,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             return null;
         }
 
-        static public Camera AddNewCamera(string cameraName)
-        {
-            var newCameraGameObject = new GameObject(cameraName)
-            {
-                hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave
-            };
-
-            var camera = newCameraGameObject.AddComponent<Camera>();
-            newCameraGameObject.AddComponent<HDAdditionalCameraData>();
-
-            return camera;
-        }
-
         static public CompositionManager GetInstance() =>
             s_CompositorInstance ?? (s_CompositorInstance = GameObject.FindObjectOfType(typeof(CompositionManager), true) as CompositionManager);
 

@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
-- Fixed issues with image layers in graphics compositor (empty layers don't render black, improve internal camera management - case 1289936)
 
 ## [10.2.0] - 2020-10-19
 
