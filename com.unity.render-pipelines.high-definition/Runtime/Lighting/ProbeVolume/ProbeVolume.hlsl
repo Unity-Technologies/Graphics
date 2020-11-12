@@ -86,9 +86,9 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
 
     // check bounds
 #ifdef APV_USE_BASE_OFFSET
-    if( any( abs( posRS.xz ) > (apvConst.indexDim.xz / 2) ) )
+    if( any( abs( posRS.xz ) > float2(apvConst.indexDim.xz / 2) ) )
 #else
-    if( any( abs( posRS ) > (apvConst.indexDim / 2) ) )
+    if( any( abs( posRS ) > float3(apvConst.indexDim / 2) ) )
 #endif
     {
         return EvaluateAmbientProbe( normalWS );
@@ -100,7 +100,7 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
 #ifdef APV_USE_BASE_OFFSET
     // get the y-offset
     int  yoffset = apvRes.index[kAPVConstantsSize + index.z * apvConst.indexDim.x + index.x];
-    if( yoffset == -1 || posRS.y < yoffset || posRS.y >= apvConst.indexDim.y )
+    if( yoffset == -1 || posRS.y < yoffset || posRS.y >= float(apvConst.indexDim.y) )
         return EvaluateAmbientProbe( normalWS );
     index.y = posRS.y - yoffset;
 #endif
