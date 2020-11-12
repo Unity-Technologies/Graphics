@@ -204,12 +204,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
                         else
                         {
+                            filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
                             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
                             if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                                 CopyCameraSortingLayerRenderTexture(context, renderingData);
                         }
-
-
 
                         // Draw light volumes
                         if (layerBatch.lightStats.totalVolumetricUsage > 0)
