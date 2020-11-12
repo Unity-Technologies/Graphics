@@ -72,8 +72,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [FormerlySerializedAs("m_LightCookieSprite")]
         [SerializeField] Sprite m_DeprecatedPointLightCookieSprite;
 
-        [SerializeField] bool m_UseNormalMap = false;
-
         [SerializeField] int m_LightOrder = 0;
 
         [SerializeField] OverlapOperation m_OverlapOperation = OverlapOperation.Additive;
@@ -182,7 +180,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
         public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } } 
         public float falloffIntensity => m_FalloffIntensity;
-        public bool useNormalMap => m_UseNormalMap;
 
         [Obsolete]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}

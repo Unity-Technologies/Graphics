@@ -198,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     SetGeneralLightShaderGlobals(pass, cmd, light);
 
-                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
+                    if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(pass, cmd, light);
 
                     // Light code could be combined...
@@ -240,7 +240,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     SetGeneralLightShaderGlobals(pass, cmd, light);
 
                     // Is this needed
-                    if (light.useNormalMap || light.lightType == Light2D.LightType.Point)
+                    if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
                         SetPointLightShaderGlobals(pass, cmd, light);
 
                     // Could be combined...
@@ -454,7 +454,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bitIndex++;
             var pointFastQualityBit = (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast) ? 1u << bitIndex : 0u;
             bitIndex++;
-            var useNormalMap = light.useNormalMap ? 1u << bitIndex : 0u;
+            var useNormalMap = light.normalMapQuality != Light2D.NormalMapQuality.Disabled ? 1u << bitIndex : 0u;
 
             return pointFastQualityBit | pointCookieBit | spriteBit | additiveBit | shapeBit | volumeBit | useNormalMap;
         }
@@ -488,7 +488,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (isPoint && light.normalMapQuality == Light2D.NormalMapQuality.Fast)
                 material.EnableKeyword(k_LightQualityFastKeyword);
 
-            if (light.useNormalMap)
+            if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled)
                 material.EnableKeyword(k_UseNormalMap);
 
             return material;

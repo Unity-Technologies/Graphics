@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     continue;
 
                 returnStats.totalLights++;
-                if (light.useNormalMap)
+                if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled)
                     returnStats.totalNormalMapUsage++;
                 if (light.volumeIntensity > 0)
                     returnStats.totalVolumetricUsage++;
