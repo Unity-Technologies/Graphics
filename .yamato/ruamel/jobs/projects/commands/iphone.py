@@ -14,7 +14,9 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr',
-        f'./utr {" ".join(utr_args)}'
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}''')
      ]
 
     extra_cmds = extra_perf_cmd(project_folder)
@@ -32,7 +34,9 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr',
-        f'./utr {" ".join(utr_args)}'
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}''')
      ]
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
@@ -49,7 +53,9 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     base = [
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr',
-        f'./utr {" ".join(utr_args)}'
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}''')
      ]
      
     return base
@@ -63,7 +69,9 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr',
-        f'./utr {" ".join(utr_args)}'
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}''')
      ]
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
@@ -74,7 +82,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
 
 def extra_perf_cmd(project_folder):   
     perf_list = [
-        f'git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/{project_folder}'
+        f'git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/{project_folder}'
         ]
     return perf_list
 
@@ -95,8 +103,7 @@ def install_unity_config(project_folder):
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .',
-        
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.metadata-manager@0.1.2-preview\" --project-path .',        
+              
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"  --project-path .',        
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\" --project-path .',	
 		

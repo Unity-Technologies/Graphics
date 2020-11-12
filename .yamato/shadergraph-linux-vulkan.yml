@@ -25,9 +25,9 @@ ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
-      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_trunk
+      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_trunk:
+Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build ShaderGraph on Linux_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -84,7 +84,7 @@ ShaderGraph_Linux_Vulkan_editmode_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -111,9 +111,9 @@ ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always
-      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-linux-vulkan.yml#Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_ShaderGraph_Linux_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
+Build_ShaderGraph_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
@@ -179,7 +179,7 @@ ShaderGraph_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
       -  cd TestProjects/ShaderGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+      -  cd TestProjects/ShaderGraph && DISPLAY=:0.0 ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
