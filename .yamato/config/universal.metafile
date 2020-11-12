@@ -104,19 +104,19 @@ all:
         - editmode
     - platform: Android
       api: OpenGLES3
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - Standalone
     - platform: Android
       api: Vulkan
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - Standalone
     - platform: iPhone
       api: Metal
-      build_config: il2cpp_apiNet4
+      build_config: il2cpp
       color_space: Linear
       test_platforms:
         - Standalone
