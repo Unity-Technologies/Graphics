@@ -109,6 +109,14 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return output;
     }
 
+    float3 GetWorldSpaceCameraPos()
+    {
+        //return UNITY_MATRIX_I_V._14_24_34;
+        //return UNITY_MATRIX_I_V._m03_m13_m23;
+        return _WorldSpaceCameraPos;
+        //return GetPrimaryCameraPosition();
+    }
+
     float3 RotationUp(float3 p, float2 cos_sin)
     {
         float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
@@ -120,9 +128,10 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     // TODO: cf. dir.y == 0
     float3 GetPositionOnInfinitePlane(float3 dir)
     {
-        const float alpha = (_GroundLevel - _WorldSpaceCameraPos.y)/dir.y;
+        const float3 cameraPosWS = GetWorldSpaceCameraPos();
+        const float alpha = (_GroundLevel - cameraPosWS.y)/dir.y;
 
-        return _WorldSpaceCameraPos + alpha*dir;
+        return cameraPosWS + alpha*dir;
     }
 
     float GetSDF(out float scale, float2 position)
@@ -159,7 +168,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     bool IsHit(float sdf, float dirY)
     {
-        return sdf < 0.0f && dirY < 0.0f && _WorldSpaceCameraPos.y > _GroundLevel;
+        return sdf < 0.0f && dirY < 0.0f && GetWorldSpaceCameraPos().y > _GroundLevel;
     }
 
     bool IsBackplateHit(out float3 positionOnBackplatePlane, float3 dir)
@@ -287,9 +296,10 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float3 finalPos;
         float depth;
         float blend;
+
         if (IsBackplateHitWithBlend(finalPos, blend, viewDirWS))
         {
-            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - _WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
+            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - GetWorldSpaceCameraPos(), UNITY_MATRIX_VP).z;
         }
         else
         {
@@ -328,7 +338,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float depth;
         if (IsBackplateHit(finalPos, viewDirWS))
         {
-            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - _WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
+            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - GetWorldSpaceCameraPos(), UNITY_MATRIX_VP).z;
         }
         else
         {
