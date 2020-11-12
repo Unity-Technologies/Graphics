@@ -412,10 +412,6 @@ namespace UnityEditor.Rendering.HighDefinition
             base.Draw(rect, value);
 
             value.floatValue = LumenToUnit(value.floatValue);
-
-            // Must apply properties here to ensure proper undo/redo functionality.
-            // The reason this is likely necessary is due to how we handle the internal unit conversion into lumen.
-            m_Light.Apply();
         }
 
         protected override GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
