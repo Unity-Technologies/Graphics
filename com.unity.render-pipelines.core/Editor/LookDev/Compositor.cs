@@ -200,25 +200,22 @@ namespace UnityEditor.Rendering.LookDev
             if (UnityEditorInternal.RenderDoc.IsLoaded() && UnityEditorInternal.RenderDoc.IsSupported() && m_RenderDocAcquisitionRequested)
                 UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(m_Displayer as EditorWindow);
 
-            using (new UnityEngine.Rendering.VolumeIsolationScope(true))
+            switch (m_Contexts.layout.viewLayout)
             {
-                switch (m_Contexts.layout.viewLayout)
-                {
-                    case Layout.FullFirstView:
-                        RenderSingleAndOutput(ViewIndex.First);
-                        break;
-                    case Layout.FullSecondView:
-                        RenderSingleAndOutput(ViewIndex.Second);
-                        break;
-                    case Layout.HorizontalSplit:
-                    case Layout.VerticalSplit:
-                        RenderSingleAndOutput(ViewIndex.First);
-                        RenderSingleAndOutput(ViewIndex.Second);
-                        break;
-                    case Layout.CustomSplit:
-                        RenderCompositeAndOutput();
-                        break;
-                }
+                case Layout.FullFirstView:
+                    RenderSingleAndOutput(ViewIndex.First);
+                    break;
+                case Layout.FullSecondView:
+                    RenderSingleAndOutput(ViewIndex.Second);
+                    break;
+                case Layout.HorizontalSplit:
+                case Layout.VerticalSplit:
+                    RenderSingleAndOutput(ViewIndex.First);
+                    RenderSingleAndOutput(ViewIndex.Second);
+                    break;
+                case Layout.CustomSplit:
+                    RenderCompositeAndOutput();
+                    break;
             }
 
             //TODO: make integration EditorWindow agnostic!
