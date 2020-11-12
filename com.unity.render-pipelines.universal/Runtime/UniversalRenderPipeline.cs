@@ -302,6 +302,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 cullingParams = cameraData.xr.cullingParams;
+
+                // Sync the FOV on the camera to match the projection from the XR device
+                if (!cameraData.camera.usePhysicalProperties)
+                    cameraData.camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
+
                 return true;
             }
 #endif
@@ -687,7 +692,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = baseAdditionalCameraData.antialiasing;
                 cameraData.antialiasingQuality = baseAdditionalCameraData.antialiasingQuality;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering;
+                cameraData.xrRendering = baseAdditionalCameraData.allowXRRendering && m_XRSystem.RefreshXrSdk();
 #endif
             }
             else
@@ -699,7 +704,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
                 cameraData.antialiasingQuality = AntialiasingQuality.High;
 #if ENABLE_VR && ENABLE_XR_MODULE
-                cameraData.xrRendering = true;
+                cameraData.xrRendering = m_XRSystem.RefreshXrSdk();
 #endif
             }
 

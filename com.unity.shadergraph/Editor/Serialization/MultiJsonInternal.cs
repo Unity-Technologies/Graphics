@@ -5,6 +5,8 @@ using System.Text;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
@@ -84,11 +86,27 @@ namespace UnityEditor.ShaderGraph.Serialization
                 }
                 else if(t == typeof(SubTarget) || t.IsSubclassOf(typeof(SubTarget)))
                 {
-                    UnknownSubTargetType ustt = new UnknownSubTargetType(typeInfo,jsonData);
+                    UnknownSubTargetType ustt = new UnknownSubTargetType(typeInfo, jsonData);
                     valueMap[objectId] = ustt;
                     s_ObjectIdField.SetValue(ustt, objectId);
                     castedObject = ustt;
                     return ustt.CastTo<T>();
+                }
+                else if (t == typeof(ShaderInput) || t.IsSubclassOf(typeof(ShaderInput)))
+                {
+                    UnknownShaderPropertyType usp = new UnknownShaderPropertyType(typeInfo, jsonData);
+                    valueMap[objectId] = usp;
+                    s_ObjectIdField.SetValue(usp, objectId);
+                    castedObject = usp;
+                    return usp.CastTo<T>();
+                }
+                else if (t == typeof(MaterialSlot) || t.IsSubclassOf(typeof(MaterialSlot)))
+                {
+                    UnknownMaterialSlotType umst = new UnknownMaterialSlotType(typeInfo, jsonData);
+                    valueMap[objectId] = umst;
+                    s_ObjectIdField.SetValue(umst, objectId);
+                    castedObject = umst;
+                    return umst.CastTo<T>();
                 }
                 else
                 {
@@ -212,8 +230,129 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
         }
 
+        internal class UnknownShaderPropertyType : AbstractShaderProperty
+        {
+            public string jsonData;
+
+            public UnknownShaderPropertyType(string displayName, string jsonData) : base()
+            {
+                this.displayName = displayName;
+                this.jsonData = jsonData;
+            }
+
+            public override void Deserailize(string typeInfo, string jsonData)
+            {
+                this.jsonData = jsonData;
+                base.Deserailize(typeInfo, jsonData);
+            }
+
+            public override string Serialize()
+            {
+                return jsonData.Trim();
+            }
+
+            internal override ConcreteSlotValueType concreteShaderValueType => ConcreteSlotValueType.Vector1;
+            internal override bool isExposable => false;
+            internal override bool isRenamable => false;
+            internal override ShaderInput Copy()
+            {
+                // we CANNOT copy ourselves, as the serialized GUID in the jsonData would not match the json GUID
+                return null;
+            }
+
+            public override PropertyType propertyType => PropertyType.Float;
+            internal override void GetPropertyReferenceNames(List<string> result) { }
+            internal override void GetPropertyDisplayNames(List<string> result) { }
+            internal override string GetPropertyBlockString() { return ""; }
+            internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
+            {
+                builder.AppendLine("/* UNKNOWN PROPERTY: " + referenceName + " */");
+            }
+            internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false;
+            internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+            {
+                action(new HLSLProperty(HLSLType._float, referenceName, HLSLDeclaration.Global, concretePrecision));
+            }
+            internal override string GetPropertyAsArgumentString() { return ""; }
+            internal override AbstractMaterialNode ToConcreteNode() { return null; }
+
+            internal override PreviewProperty GetPreviewMaterialProperty()
+            {
+                return new PreviewProperty(propertyType)
+                {
+                    name = referenceName,
+                    floatValue = 0.0f
+                };
+            }
+
+            public override string GetPropertyTypeString() { return ""; }
+        }
+
+        internal class UnknownMaterialSlotType : MaterialSlot
+        {
+            // used to deserialize some data out of an unknown MaterialSlot
+            class SerializerHelper
+            {
+                [SerializeField]
+                public string m_DisplayName = null;
+
+                [SerializeField]
+                public SlotType m_SlotType = SlotType.Input;
+
+                [SerializeField]
+                public bool m_Hidden = false;
+
+                [SerializeField]
+                public string m_ShaderOutputName = null;
+
+                [SerializeField]
+                public ShaderStageCapability m_StageCapability = ShaderStageCapability.All;
+            }
+
+            public string jsonData;
+
+            public UnknownMaterialSlotType(string displayName, string jsonData) : base()
+            {
+                // copy some minimal information to try to keep the UI as similar as possible
+                var helper = new SerializerHelper();
+                JsonUtility.FromJsonOverwrite(jsonData, helper);
+                this.displayName = helper.m_DisplayName;
+                this.hidden = helper.m_Hidden;
+                this.stageCapability = helper.m_StageCapability;
+                this.SetInternalData(helper.m_SlotType, helper.m_ShaderOutputName);
+
+                // save the original json for saving
+                this.jsonData = jsonData;
+            }
+
+            public override void Deserailize(string typeInfo, string jsonData)
+            {
+                this.jsonData = jsonData;
+                base.Deserailize(typeInfo, jsonData);
+            }
+
+            public override string Serialize()
+            {
+                return jsonData.Trim();
+            }
+
+            public override bool isDefaultValue => true;
+
+            public override SlotValueType valueType => SlotValueType.Vector1;
+
+            public override ConcreteSlotValueType concreteValueType => ConcreteSlotValueType.Vector1;
+
+            public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode) {}
+
+            public override void CopyValuesFrom(MaterialSlot foundSlot)
+            {
+                // we CANNOT copy data from another slot, as the GUID in the serialized jsonData would not match our real GUID
+                throw new NotSupportedException();
+            }
+        }
+
         [NeverAllowedByTarget]
-        class UnknownNodeType : AbstractMaterialNode
+        internal class UnknownNodeType : AbstractMaterialNode
         {
             public string jsonData;
 
@@ -249,6 +388,10 @@ namespace UnityEditor.ShaderGraph.Serialization
                 base.ValidateNode();
                 owner.AddValidationError(objectId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
             }
+
+            // unknown node types cannot be copied, or else their GUID would not match the GUID in the serialized jsonDAta
+            public override bool canCutNode => false;
+            public override bool canCopyNode => false;
         }
         #endregion //Unknown Data Handling
 

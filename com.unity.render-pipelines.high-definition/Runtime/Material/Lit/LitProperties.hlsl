@@ -113,6 +113,7 @@ float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
 float _BlendMode;
+float _EnableBlendModePreserveSpecularLighting;
 
 float _PPDMaxSamples;
 float _PPDMinSamples;
@@ -290,9 +291,10 @@ float _TessellationObjectScale;
 float _TessellationTilingScale;
 #endif
 
-// Following two variables are feeded by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
+float4 _SelectionID;
 
 CBUFFER_END
 
@@ -452,6 +454,8 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMin)
+    UNITY_DOTS_INSTANCED_PROP(float , _MetallicRemapMax)
     UNITY_DOTS_INSTANCED_PROP(float3, _EmissiveColor)
     UNITY_DOTS_INSTANCED_PROP(float4, _SpecularColor)
     UNITY_DOTS_INSTANCED_PROP(float , _AlphaCutoff);

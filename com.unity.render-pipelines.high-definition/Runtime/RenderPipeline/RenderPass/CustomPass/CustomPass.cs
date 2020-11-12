@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.currentRenderTarget = targets;
             this.currentHDCamera = hdCamera;
 
-            using (var builder = renderGraph.AddRenderPass<ExecutePassData>(name, out ExecutePassData passData, m_ProfilingSampler))
+            using (var builder = renderGraph.AddRenderPass<ExecutePassData>(name, out ExecutePassData passData, profilingSampler))
             {
                 passData.customPass = this;
                 passData.cullingResult = cullingResult;
@@ -267,10 +267,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     var customPass = data.customPass;
 
                     ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
-                    if (customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                    if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
-                    if (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                    if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess))
                         ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
                     if (!customPass.isSetup)
