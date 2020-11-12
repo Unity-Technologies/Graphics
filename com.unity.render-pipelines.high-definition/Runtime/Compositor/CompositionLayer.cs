@@ -552,7 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 var compositorData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                 if (compositorData)
-                    compositorData.clearColorTexture = (m_Show && m_InputTexture != null) ? m_InputTexture : null;
+                    compositorData.clearColorTexture = (m_Show && m_InputTexture != null) ? m_InputTexture : (m_LayerPositionInStack == 0) ? Texture2D.blackTexture : null;
             }
 
             if (m_LayerCamera.enabled)
