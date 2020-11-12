@@ -243,13 +243,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return output;
         }
 
-        public static Bounds GenerateShapeMesh(Mesh mesh, Color lightColor, Vector3[] shapePath, float falloffDistance, float fallOffIntensity, float volumeOpacity)
+        public static Bounds GenerateShapeMesh(Light2D light, Color lightColor, Vector3[] shapePath, float falloffDistance, float fallOffIntensity, float volumeOpacity)
         {
 
             var ix = 0;
             var vcount = 0;
             var icount = 0;
             const float kClipperScale = 10000.0f;
+            Mesh mesh = light.lightMesh;
 
             // todo Revisit this while we do Batching.
             var meshInteriorColor = new Color(lightColor.r, lightColor.g, lightColor.b,1.0f);
@@ -358,10 +359,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetVertexBufferParams(vcount, LightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vcount);
             mesh.SetIndices(indices, 0, icount, MeshTopology.Triangles, 0, true);
+
+            light.vertices = new LightMeshVertex[vcount];
+            NativeArray<LightMeshVertex>.Copy(vertices, light.vertices, vcount);
+            light.indices = new ushort[icount];
+            NativeArray<ushort>.Copy(indices, light.indices, icount);
+
             return mesh.GetSubMesh(0).bounds;
         }
 
-        public static Bounds GenerateParametricMesh(Mesh mesh, Color lightColor, float radius, float falloffDistance, float angle, int sides, float fallOffIntensity, float volumeOpacity)
+        public static Bounds GenerateParametricMesh(Light2D light, Color lightColor, float radius, float falloffDistance, float angle, int sides, float fallOffIntensity, float volumeOpacity)
         {
             var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
             if (sides < 3)
@@ -381,6 +388,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var triangles = new NativeArray<ushort>(indexCount, Allocator.Temp);
             var centerIndex = (ushort)(2 * sides);
             var uvData = new float2(fallOffIntensity, volumeOpacity);
+            Mesh mesh = light.lightMesh;
 
             // Only Alpha value in Color channel is ever used. May remove it or keep it for batching params in the future.
             var color = new Color( lightColor.r, lightColor.g, lightColor.b, 1);
@@ -442,6 +450,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetVertexBufferData(vertices, 0, 0, vertexCount);
             mesh.SetIndices(triangles, MeshTopology.Triangles, 0, false);
 
+            light.vertices = new LightMeshVertex[vertexCount];
+            NativeArray<LightMeshVertex>.Copy(vertices, light.vertices, vertexCount);
+            light.indices = new ushort[indexCount];
+            NativeArray<ushort>.Copy(triangles, light.indices, indexCount);
+
             return new Bounds
             {
                 min = min,
@@ -449,17 +462,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
             };
         }
 
-        public static Bounds GenerateSpriteMesh(Mesh mesh, Color lightColor, Sprite sprite)
+        public static Bounds GenerateSpriteMesh(Light2D light, Color lightColor, Sprite sprite)
         {
+            // this needs to be called before getting UV at the line below.
+            // Venky fixed it, enroute to trunk
+            var uvs = sprite.uv;
+            Mesh mesh = light.lightMesh;
+
             if(sprite == null)
             {
                 mesh.Clear();
                 return new Bounds(Vector3.zero, Vector3.zero);
             }
-
-            // this needs to be called before getting UV at the line below.
-            // Venky fixed it, enroute to trunk
-            var uvs = sprite.uv;
 
             var srcVertices = sprite.GetVertexAttribute<Vector3>(VertexAttribute.Position);
             var srcUVs = sprite.GetVertexAttribute<Vector2>(VertexAttribute.TexCoord0);
@@ -482,6 +496,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             mesh.SetVertexBufferParams(vertices.Length, LightMeshVertex.VertexLayout);
             mesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
             mesh.SetIndices(srcIndices, MeshTopology.Triangles, 0, true);
+
+            light.vertices = new LightMeshVertex[vertices.Length];
+            NativeArray<LightMeshVertex>.Copy(vertices, light.vertices, vertices.Length);
+            light.indices = new ushort[srcIndices.Length];
+            NativeArray<ushort>.Copy(srcIndices, light.indices, srcIndices.Length);
+
             return mesh.GetSubMesh(0).bounds;
         }
 

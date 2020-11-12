@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -95,12 +96,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [Range(0, 1)]
         [SerializeField] float m_ShadowVolumeIntensity = 0.75f;
 
-        [SerializeField]
         Mesh m_Mesh;
+
+        [SerializeField]
+        private LightUtility.LightMeshVertex[] m_Vertices = new LightUtility.LightMeshVertex[1];
+
+        [SerializeField]
+        private ushort[] m_Triangles = new ushort[1];
 
         // Transients
         int m_PreviousLightCookieSprite;
         int m_HashCode = 0;
+
+        internal LightUtility.LightMeshVertex[] vertices { get { return m_Vertices; } set { m_Vertices = value; } }
+
+        internal ushort[] indices { get { return m_Triangles; } set { m_Triangles = value; } }
 
         internal int hashCode => m_HashCode;
 
@@ -122,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        internal bool hasCachedMesh => (lightMesh.vertices.Length != 0 && lightMesh.triangles.Length != 0);
+        internal bool hasCachedMesh => (vertices.Length > 1 && indices.Length > 1);
 
         /// <summary>
         /// The lights current type
@@ -228,16 +238,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
 				switch(m_LightType)
 				{
                 	case LightType.Freeform:
-	                    m_LocalBounds = LightUtility.GenerateShapeMesh(lightMesh, color * intensity, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeIntensity);
+	                    m_LocalBounds = LightUtility.GenerateShapeMesh(this, color * intensity, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeIntensity);
     	                break;
         	        case LightType.Parametric:
-            	        m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeIntensity);
+            	        m_LocalBounds = LightUtility.GenerateParametricMesh(this, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeIntensity);
                 	    break;
                 	case LightType.Sprite:
-                    	m_LocalBounds = LightUtility.GenerateSpriteMesh(lightMesh, color * intensity, m_LightCookieSprite);
+                    	m_LocalBounds = LightUtility.GenerateSpriteMesh(this, color * intensity, m_LightCookieSprite);
                     	break;
                 	case LightType.Point:
-	                    m_LocalBounds = LightUtility.GenerateParametricMesh(lightMesh, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, volumeIntensity);
+	                    m_LocalBounds = LightUtility.GenerateParametricMesh(this, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, volumeIntensity);
     	                break;
 				}
             }
@@ -275,6 +285,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void Awake()
         {
             UpdateMesh(!hasCachedMesh);
+            if (hasCachedMesh)
+            {
+                lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);
+                lightMesh.SetVertexBufferData(vertices, 0, 0, vertices.Length);
+                lightMesh.SetIndices(indices, MeshTopology.Triangles, 0, false);
+            }
         }
 
         void OnEnable()
