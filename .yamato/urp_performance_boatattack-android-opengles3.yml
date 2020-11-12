@@ -23,6 +23,10 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
                  utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
@@ -31,9 +35,9 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_trunk:
+Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk:
     name: Build URP_Performance_BoatAttack on Android_OpenGLES3_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -42,7 +46,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_trunk:
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -54,7 +58,6 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
@@ -74,7 +77,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=2700
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=2700
     artifacts:
         logs:
             paths:
@@ -92,7 +95,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -104,7 +107,6 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
@@ -123,7 +125,11 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --artifacts_path=test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/BoatAttack
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                 utr --artifacts_path=test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/BoatAttack
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -147,6 +153,10 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
                  utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
@@ -157,9 +167,9 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-REVISION:
+Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on Android_OpenGLES3_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
@@ -169,7 +179,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-R
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -181,7 +191,6 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-R
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
@@ -201,7 +210,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_Player_il2cpp_Linear_CUSTOM-R
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=2700
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=2700
     artifacts:
         logs:
             paths:
@@ -223,7 +232,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -235,7 +244,6 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
@@ -254,7 +262,11 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --artifacts_path=test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/BoatAttack
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                 utr --artifacts_path=test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter=Build --testproject=./TestProjects/BoatAttack
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

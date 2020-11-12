@@ -24,9 +24,9 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_Linear_trunk
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_ShaderGraph_Stereo_Win_Player_mono_Linear_trunk:
+Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
     name: Build ShaderGraph_Stereo on Win__mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -97,9 +97,9 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_ShaderGraph_Stereo_Win_Player_mono_Linear_CUSTOM-REVISION:
+Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build ShaderGraph_Stereo on Win__mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM

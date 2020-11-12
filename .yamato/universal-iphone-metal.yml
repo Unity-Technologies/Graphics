@@ -18,16 +18,19 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_il2cpp_Linear_trunk
+      -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_Universal_iPhone_Metal_Player_il2cpp_Linear_trunk:
+Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
     name: Build Universal on iPhone_Metal_il2cpp_Linear_Player on version trunk
     agent:
         type: Unity::VM::osx
@@ -37,10 +40,13 @@ Build_Universal_iPhone_Metal_Player_il2cpp_Linear_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS -c il2cpp   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
     artifacts:
         logs:
             paths:
@@ -61,7 +67,10 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --platform=iOS --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -70,9 +79,9 @@ Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
-      -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal-iphone-metal.yml#Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION:
+Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build Universal on iPhone_Metal_il2cpp_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
@@ -83,10 +92,13 @@ Build_Universal_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
     commands:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
     artifacts:
         logs:
             paths:
