@@ -137,6 +137,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         // Returns true if this layer is using a camera that was cloned internally for drawing
         internal bool isUsingACameraClone => !m_LayerCamera.Equals(m_Camera);
+        internal bool isImageOrVideoLayer => (m_Type == LayerType.Image || m_Type == LayerType.Video);
 
         // The input alpha will be mapped between the min and max range when blending between the post-processed and plain image regions. This way the user can controls how steep is the transition.
         [SerializeField] float m_AlphaMin = 0.0f;   
@@ -151,12 +152,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             var newLayer = new CompositorLayer();
             newLayer.m_LayerName = layerName;
             newLayer.m_Type = type;
-            newLayer.m_Camera = CompositionManager.GetSceneCamera();
+            newLayer.m_Camera = newLayer.isImageOrVideoLayer ? null : CompositionManager.GetSceneCamera();
             newLayer.m_CullingMask = newLayer.m_Camera? newLayer.m_Camera.cullingMask : 0; //LayerMask.GetMask("None");
             newLayer.m_OutputTarget = CompositorLayer.OutputTarget.CameraStack;
             newLayer.m_ClearDepth = true;
 
-            if (newLayer.m_Type == LayerType.Image || newLayer.m_Type == LayerType.Video)
+            if (newLayer.isImageOrVideoLayer)
             {
                 // Image and movie layers do not render any 3D objects 
                 newLayer.m_OverrideCullingMask = true;
@@ -229,6 +230,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // Compositor output layers (that allocate the render targets) also need a reference camera, just to get the reference pixel width/height 
             // Note: Movie & image layers are rendered at the output resolution (and not the movie/image resolution). This is required to have post-processing effects like film grain at full res.
+            if (m_Camera == null && isImageOrVideoLayer)
+            {
+                // For image and video layers, we use a brand-new camera (to avoid sharing the same camera with other layers)
+                m_Camera = CompositionManager.AddNewCamera(m_LayerName);
+            }
             if (m_Camera == null)
             {
                 m_Camera = CompositionManager.GetSceneCamera();
@@ -242,11 +248,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 // We do not clone the camera if :
                 // - it has no layer overrides
                 // - is not shared between layers
-                // - is not used in an mage/video layer (in this case the camera is not exposed at all, so it makes sense to let the compositor manage it)
+                // - it is an mage/video layer (in this case we use a brand-new camera that is not exposed at all and is managed by the compositor)
                 // - it does not force-clear the RT (the first layer of a stack, even if disabled by the user), still clears the RT   
                 bool shouldClear = !enabled && m_LayerPositionInStack == 0;
-                bool isImageOrVideo = (m_Type == LayerType.Image || m_Type == LayerType.Video);
-                if (!isImageOrVideo && !hasLayerOverrides && !shouldClear && !compositor.IsThisCameraShared(m_Camera))
+                
+                if (isImageOrVideoLayer || (!hasLayerOverrides && !shouldClear && !compositor.IsThisCameraShared(m_Camera)))
                 {
                     m_LayerCamera = m_Camera;
                 }
@@ -414,7 +420,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // We should destroy the layer camera only if it was cloned
             if (m_LayerCamera != null)
             {
-                if (isUsingACameraClone)
+                if (isUsingACameraClone || isImageOrVideoLayer)
                 {
                     var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
                     if (cameraData)
