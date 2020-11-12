@@ -107,13 +107,16 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
     // Adaptive Probe Volume code
     APVResources apvRes;
     apvRes.index = _APVResIndex;
-    apvRes.L0    = _APVResL0;
-    apvRes.L1_R  = _APVResL1_R;
-    apvRes.L1_G  = _APVResL1_G;
-    apvRes.L1_B  = _APVResL1_B;
-    return EvaluateAdaptiveProbeVolume( GetAbsolutePositionWS( positionRWS ), normalWS, apvRes );
+    apvRes.L0 = _APVResL0;
+    apvRes.L1_R = _APVResL1_R;
+    apvRes.L1_G = _APVResL1_G;
+    apvRes.L1_B = _APVResL1_B;
+    bakeDiffuseLighting = EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(positionRWS), normalWS, apvRes);
+    backBakeDiffuseLighting = EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(positionRWS), backNormalWS, apvRes);
+    return;
     //-----------------------------------------------------------------------------------------------------
 #endif
+
     if (unity_ProbeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
@@ -174,7 +177,7 @@ void SampleBakedGI(
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
     bakeDiffuseLighting = UNINITIALIZED_GI;
-    return;
+    EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
 #endif
 
 #elif SAMPLE_PROBEVOLUME_BUILTIN // SAMPLE_PROBEVOLUME_BUILTIN && SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 0
