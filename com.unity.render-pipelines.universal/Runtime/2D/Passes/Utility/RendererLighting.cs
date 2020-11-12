@@ -124,6 +124,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return descriptor;
         }
 
+        public static void CreateCameraSortingLayerRenderTexture(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, Downsampling downsamplingMethod)
+        {
+            var renderTextureScale = 1.0f;
+            if (downsamplingMethod == Downsampling._2xBilinear)
+                renderTextureScale = 0.5f;
+            else if (downsamplingMethod == Downsampling._4xBox || downsamplingMethod == Downsampling._4xBilinear)
+                renderTextureScale = 0.25f;
+
+            var width = (int)(renderingData.cameraData.cameraTargetDescriptor.width * renderTextureScale);
+            var height = (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
+
+            var descriptor = new RenderTextureDescriptor(width, height);
+            descriptor.graphicsFormat = GetRenderTextureFormat();
+            descriptor.useMipMap = false;
+            descriptor.autoGenerateMips = false;
+            descriptor.depthBufferBits = 0;
+            descriptor.msaaSamples = 1;
+            descriptor.dimension = TextureDimension.Tex2D;
+
+            cmd.GetTemporaryRT(pass.rendererData.cameraSortingLayerRenderTarget.id, descriptor, FilterMode.Bilinear);
+        }
+
         public static void EnableBlendStyle(CommandBuffer cmd, int blendStyleIndex, bool enabled)
         {
             var keyword = k_UseBlendStyleKeywords[blendStyleIndex];
@@ -140,6 +162,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             pass.rendererData.normalsRenderTargetScale = 0.0f;
             cmd.ReleaseTemporaryRT(pass.rendererData.normalsRenderTarget.id);
             cmd.ReleaseTemporaryRT(pass.rendererData.shadowsRenderTarget.id);
+            cmd.ReleaseTemporaryRT(pass.rendererData.cameraSortingLayerRenderTarget.id);
         }
 
         public static void DrawPointLight(CommandBuffer cmd, Light2D light, Mesh lightMesh, Material material)

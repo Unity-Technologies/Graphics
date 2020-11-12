@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
+### Added
+- Added _CameraSortingLayerTexture global shader variable and related parameters
+- Added preset shapes for creating a freeform light
+- Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
+- Added 2D Renderer Asset Preset for creating a Universal Renderer Asset
+  
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
 - Optimized 2D Renderer performance by rendering the normal buffer at the same lower resolution as the light buffers.
@@ -14,14 +20,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Deprecated Light2D Parametric Light
 - Deprecated Light2D point light cookie
 - Renamed Light2D point light to spot light
-- Added preset shapes for creating a freeform light
-- Added 2D Renderer Asset Preset for creating a Universal Renderer Asset
 - 2D Renderer: The per Blend Style render texture scale setting was replaced by a global scale setting for all Blend Styles.
 - Optimized 2D Renderer performance by using a tiny light texture for layer/blend style pairs for which no light is rendered.
 - Reorgnized the settings in 2D Renderer Data Inspector.
-- Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
 - FallOff Lookup Texture is now part of 2D RenderData.
-- Creating a Shadow Caster 2D will use try and use sprite and physics boundss as the default shape
+- Creating a Shadow Caster 2D will use try and use sprite and physics bounds as the default shape
 - Deleting all points in a Shadow Caster will cause the shape to use the bounds.
 - Improved Geometry for Smooth Falloff of 2D Shape Lights.
 
