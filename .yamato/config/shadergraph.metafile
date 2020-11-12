@@ -50,11 +50,11 @@ all:
         - playmode
     - project: ShaderGraph_Stereo
       all: true  
-#    - platform: OSX
-#      api: OpenGLCore
-#      build_config: mono
-#      color_space: Linear
-#      test_platforms:
-#        - editmode 
+    - platform: OSX
+      api: OpenGLCore
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode 
 
 

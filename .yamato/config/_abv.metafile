@@ -15,13 +15,13 @@ weekly:
     []
 nightly:
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
-    - project: ShaderGraph
+    - project: Universal
       platform: OSX
-      api: OpenGLCore
+      api: Metal
       build_config: mono
       color_space: Linear
       test_platforms:
-        - editmode 
+        - playmode
     - project: Smoke_Test
       platform: Win
       api: DX11
