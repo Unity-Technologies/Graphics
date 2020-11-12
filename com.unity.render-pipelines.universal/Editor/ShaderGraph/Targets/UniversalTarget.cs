@@ -475,6 +475,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.ZWrite(ZWrite.On) },
             { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
             { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+            { RenderState.ZClip(ZClip.On) }, //, new FieldCondition(UniversalFields.ZClip, false) },
             { RenderState.ColorMask("ColorMask 0") },
             { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
             { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },

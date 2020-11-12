@@ -57,6 +57,7 @@ Shader "Universal Render Pipeline/Complex Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
+        _ZClip("Depth Clipping", Float) = 1.0
 
         _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
@@ -148,6 +149,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             ZTest LEqual
             ColorMask 0
             Cull[_Cull]
+            ZClip[_ZClip]
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -363,6 +365,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             ZTest LEqual
             ColorMask 0
             Cull[_Cull]
+            ZClip[_ZClip]
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore

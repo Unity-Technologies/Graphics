@@ -83,6 +83,9 @@ namespace UnityEditor
 
             public static readonly GUIContent queueSlider = new GUIContent("Priority",
                 "Determines the chronological rendering order for a Material. High values are rendered first.");
+
+            public static readonly GUIContent depthClipText = new GUIContent("Depth Clipping",
+                "Restricts the range for depth to increase precision but can create artificats if large triangles clip the near and far planes.");
         }
 
         #endregion
@@ -96,6 +99,8 @@ namespace UnityEditor
         protected MaterialProperty blendModeProp { get; set; }
 
         protected MaterialProperty cullingProp { get; set; }
+
+        protected MaterialProperty zClipProp { get; set; }
 
         protected MaterialProperty alphaClipProp { get; set; }
 
@@ -154,6 +159,7 @@ namespace UnityEditor
             emissionMapProp = FindProperty("_EmissionMap", properties, false);
             emissionColorProp = FindProperty("_EmissionColor", properties, false);
             queueOffsetProp = FindProperty("_QueueOffset", properties, false);
+            zClipProp = FindProperty("_ZClip", properties);
         }
 
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
@@ -272,6 +278,13 @@ namespace UnityEditor
                     receiveShadowsProp.floatValue = receiveShadows ? 1.0f : 0.0f;
                 EditorGUI.showMixedValue = false;
             }
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = zClipProp.hasMixedValue;
+            var zClipEnabled = EditorGUILayout.Toggle(Styles.depthClipText, zClipProp.floatValue == 1);
+            if (EditorGUI.EndChangeCheck())
+                zClipProp.floatValue = zClipEnabled ? 1 : 0;
+            EditorGUI.showMixedValue = false;
         }
 
         public virtual void DrawSurfaceInputs(Material material)

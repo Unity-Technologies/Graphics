@@ -144,6 +144,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     material.SetTexture("_MetallicSpecGlossMap", texture);
             }
 
+            if (material.HasProperty("_ZClip"))
+            {
+                if (SystemInfo.supportsDepthClip)
+                {
+                    material.SetFloat("_ZClip", 1);
+                    //material.EnableKeyword("_ZClipEnable");
+                }
+                else
+                {
+                    material.SetFloat("_ZClip", 0);
+                    //material.DisableKeyword("_ZClipEnable");
+                }
+            }
+
             MaterialChanged(material);
         }
     }

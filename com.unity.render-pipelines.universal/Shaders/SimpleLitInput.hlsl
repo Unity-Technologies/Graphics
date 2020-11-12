@@ -11,6 +11,7 @@ CBUFFER_START(UnityPerMaterial)
     half4 _EmissionColor;
     half _Cutoff;
     half _Surface;
+    float _ZClip;
 CBUFFER_END
 
 #ifdef UNITY_DOTS_INSTANCING_ENABLED

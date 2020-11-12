@@ -28,6 +28,7 @@ Shader "Universal Render Pipeline/Simple Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
+        _ZClip("Depth Clipping", Float) = 1.0
 
         [ToggleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
 
@@ -116,6 +117,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             ZTest LEqual
             ColorMask 0
             Cull[_Cull]
+            ZClip[_ZClip]
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
@@ -364,6 +366,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             ZTest LEqual
             ColorMask 0
             Cull[_Cull]
+            ZClip[_ZClip]
 
             HLSLPROGRAM
             #pragma only_renderers gles gles3 glcore
