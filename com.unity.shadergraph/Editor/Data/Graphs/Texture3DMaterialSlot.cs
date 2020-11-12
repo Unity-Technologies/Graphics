@@ -21,11 +21,11 @@ namespace UnityEditor.ShaderGraph
         {}
 
         [SerializeField]
-        internal bool m_BareTexture = false;
-        internal override bool bareTexture
+        internal bool m_BareResource = false;
+        internal override bool bareResource
         {
-            get { return m_BareTexture; }
-            set { m_BareTexture = value; }
+            get { return m_BareResource; }
+            set { m_BareResource = value; }
         }
 
         public override SlotValueType valueType { get { return SlotValueType.Texture3D; } }
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph
             var slot = foundSlot as Texture3DMaterialSlot;
             if (slot != null)
             {
-                m_BareTexture = slot.m_BareTexture;
+                m_BareResource = slot.m_BareResource;
             }
         }
     }

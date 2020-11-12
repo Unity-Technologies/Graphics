@@ -21,16 +21,16 @@ namespace UnityEditor.ShaderGraph
         {}
 
         [SerializeField]
-        internal bool m_BareTexture = false;
-        internal override bool bareTexture
+        internal bool m_BareResource = false;
+        internal override bool bareResource
         {
-            get { return m_BareTexture; }
-            set { m_BareTexture = value; }
+            get { return m_BareResource; }
+            set { m_BareResource = value; }
         }
 
         public override string GetHLSLVariableType()
         {
-            if (m_BareTexture)
+            if (m_BareResource)
                 return "TextureCube";
             else
                 return concreteValueType.ToShaderString();

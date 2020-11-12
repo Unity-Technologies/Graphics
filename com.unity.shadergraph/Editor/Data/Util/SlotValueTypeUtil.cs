@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph
             switch (type)
             {
                 case ConcreteSlotValueType.SamplerState:
-                    return "SamplerState";
+                    return "UnitySamplerState";
                 case ConcreteSlotValueType.Matrix4:
                     return precisionToken + "4x4";
                 case ConcreteSlotValueType.Matrix3:

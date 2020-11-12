@@ -32,36 +32,19 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             action(new HLSLProperty(HLSLType._Texture3D, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
-
-            // add struct macro
-            Action<ShaderStringBuilder> structDecl = (builder) =>
-            {
-                builder.AppendIndentation();
-                builder.Append("#define ");
-                builder.Append(referenceName);
-                builder.Append("_struct UnityBuildTexture3DStruct(TEXTURE3D_ARGS(");
-                builder.Append(referenceName);
-                builder.Append(", sampler"); builder.Append(referenceName);
-                builder.Append("))");
-//                 builder.Append(referenceName); builder.Append("_TexelSize, ");
-//                 builder.Append(referenceName); builder.Append("_ST)");
-                builder.AppendNewLine();
-            };
-
-            action(new HLSLProperty(HLSLType._CUSTOM, referenceName + "_struct", HLSLDeclaration.Global, concretePrecision)
-            {
-                customDeclaration = structDecl
-            });
         }
 
         internal override string GetPropertyAsArgumentString()
         {
-            return "UnityTexture3D " + referenceName + "_struct";
+            return "UnityTexture3D " + referenceName;
         }
 
-        internal override string GetHLSLVariableName()
+        internal override string GetHLSLVariableName(bool isSubgraphProperty)
         {
-            return referenceName + "_struct";
+            if (isSubgraphProperty)
+                return referenceName;
+            else
+                return $"UnityBuildTexture3DStruct({referenceName})";
         }
 
         [SerializeField]

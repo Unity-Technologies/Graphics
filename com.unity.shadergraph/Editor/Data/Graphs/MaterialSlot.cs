@@ -319,7 +319,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        internal virtual bool bareTexture { get { return false; } set { } }
+        // this tracks old CustomFunctionNode slots that are expecting the old bare resource inputs
+        // rather than the new structure-based inputs
+        internal virtual bool bareResource { get { return false; } set { } }
 
         public virtual void CopyDefaultValue(MaterialSlot other)
         {

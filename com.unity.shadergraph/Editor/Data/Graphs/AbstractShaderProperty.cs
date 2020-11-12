@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Internal
             set { }
         }
 
-        internal virtual string GetHLSLVariableName()
+        internal virtual string GetHLSLVariableName(bool isSubgraphProperty)
         {
             return referenceName;
         }

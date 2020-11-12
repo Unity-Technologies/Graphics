@@ -151,8 +151,11 @@ namespace UnityEditor.ShaderGraph
                     sb.Append(SlotInputValue(argument, generationMode));    // TODO: need to differentiate Texture2D from UnityTexture2D
 
                     // fixup input for Bare texture types
-                    if (argument.bareTexture)
-                        sb.Append(".tex");
+                    if (argument.bareResource)
+                        if (argument is SamplerStateMaterialSlot)
+                            sb.Append(".samplerstate");
+                        else
+                            sb.Append(".tex");
                 }
 
                 foreach (var argument in outputSlots)
@@ -162,15 +165,18 @@ namespace UnityEditor.ShaderGraph
                     first = false;
                     sb.Append(GetVariableNameForSlot(argument.id));
 
-                    if (argument.bareTexture)
-                        sb.Append(".tex");
+                    if (argument.bareResource)
+                        if (argument is SamplerStateMaterialSlot)
+                            sb.Append(".samplerstate");
+                        else
+                            sb.Append(".tex");
                 }
                 sb.Append(");");
                 sb.AppendNewLine();
 
                 foreach (var output in outputSlots)
                 {
-                    if (output.bareTexture)
+                    if (output.bareResource)
                     {
                         // fill in other values - sampler state, etc ??
                     }
@@ -331,9 +337,9 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(outputSlots);
                 foreach (var slot in outputSlots)
                 {
-                    if (slot.bareTexture)
+                    if (slot.bareResource)
                     {
-                        owner.AddValidationError(objectId, "This node uses Bare Texture outputs, which may not work when fed to other nodes. Please convert the node to use full struct-based outputs (see UnityTexture structs in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl)", ShaderCompilerMessageSeverity.Warning);
+                        owner.AddValidationError(objectId, "This node uses Bare Texture or SamplerState outputs, which may not work when fed to other nodes. Please convert the node to use full struct-based outputs (see the structs defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl)", ShaderCompilerMessageSeverity.Warning);
                         break;
                     }
                 }
@@ -421,7 +427,7 @@ namespace UnityEditor.ShaderGraph
                 GetSlots(slots);
                 foreach (var slot in slots)
                 {
-                    slot.bareTexture = true;
+                    slot.bareResource = true;
                 }
                 ChangeVersion(1);
             }

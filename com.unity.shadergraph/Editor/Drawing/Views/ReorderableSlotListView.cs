@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         IMGUIContainer m_Container;
         AbstractMaterialNode m_Node;
         ReorderableList m_ReorderableList;
-        bool m_AllowBareTextures;
+        bool m_AllowBareResources;
 
         internal delegate void ListRecreatedDelegate();
         ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => { });
@@ -43,9 +43,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Func<ConcreteSlotValueTypePopupName, bool> AllowedTypeCallback;
 
-        internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType, bool allowBareTextures)
+        internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType, bool allowBareResources)
         {
-            m_AllowBareTextures = allowBareTextures;
+            m_AllowBareResources = allowBareResources;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
             m_Node = node;
             m_SlotType = slotType;
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
 
                 ConcreteSlotValueTypePopupName concreteValueTypePopupOrig =
-                    oldSlot.concreteValueType.ToConcreteSlotValueTypePopupName(oldSlot.bareTexture);
+                    oldSlot.concreteValueType.ToConcreteSlotValueTypePopupName(oldSlot.bareResource);
 
                 ConcreteSlotValueTypePopupName concreteValueTypePopupNew = (ConcreteSlotValueTypePopupName)EditorGUI.EnumPopup(
                     new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight),
@@ -116,8 +116,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     e =>
                     {
                         ConcreteSlotValueTypePopupName csvtpn = (ConcreteSlotValueTypePopupName) e;
-                        csvtpn.ToConcreteSlotValueType(out bool isBareTexture);
-                        if (isBareTexture && !m_AllowBareTextures)
+                        csvtpn.ToConcreteSlotValueType(out bool isBareResource);
+                        if (isBareResource && !m_AllowBareResources)
                             return false;
                         return AllowedTypeCallback?.Invoke(csvtpn) ?? true;
                     }
@@ -140,14 +140,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    bool isBareTexture;
-                    ConcreteSlotValueType concreteValueType = concreteValueTypePopupNew.ToConcreteSlotValueType(out isBareTexture);
+                    ConcreteSlotValueType concreteValueType = concreteValueTypePopupNew.ToConcreteSlotValueType(out bool isBareResource);
 
                     // Because the type may have changed, we can't (always) just modify the existing slot.  So create a new one and replace it.
                     var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, displayName, m_SlotType, Vector4.zero);
                     newSlot.CopyValuesFrom(oldSlot);
                     m_Node.AddSlot(newSlot, false);
-                    newSlot.bareTexture = isBareTexture;
+                    newSlot.bareResource = isBareResource;
 
                     List<int> orderedSlotIds = new List<int>();
                     if (m_SlotType == SlotType.Input)

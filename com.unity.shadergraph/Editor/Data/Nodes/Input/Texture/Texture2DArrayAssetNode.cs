@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetTextureVariableName()
         {
-            return GetTexturePropertyName() + "_struct";
+            return $"UnityBuildTexture2DArrayStruct({GetTexturePropertyName()})";
         }
 
         public override string GetVariableNameForSlot(int slotId)

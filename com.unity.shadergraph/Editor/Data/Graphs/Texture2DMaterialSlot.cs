@@ -21,16 +21,16 @@ namespace UnityEditor.ShaderGraph
         {}
 
         [SerializeField]
-        internal bool m_BareTexture = false;
-        internal override bool bareTexture
+        internal bool m_BareResource = false;
+        internal override bool bareResource
         {
-            get { return m_BareTexture; }
-            set { m_BareTexture = value; }
+            get { return m_BareResource; }
+            set { m_BareResource = value; }
         }
 
         public override string GetHLSLVariableType()
         {
-            if (m_BareTexture)
+            if (m_BareResource)
                 return "Texture2D";
             else
                 return concreteValueType.ToShaderString();
@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             var slot = foundSlot as Texture2DMaterialSlot;
             if (slot != null)
             {
-                m_BareTexture = slot.m_BareTexture;
+                m_BareResource = slot.m_BareResource;
             }
         }
     }

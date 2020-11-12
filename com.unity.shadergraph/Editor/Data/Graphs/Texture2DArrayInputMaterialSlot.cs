@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             if (nodeOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            return nodeOwner.GetVariableNameForSlot(id) + "_struct";
+            return $"UnityBuildTexture2DArrayStruct({nodeOwner.GetVariableNameForSlot(id)})";
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             if (slot != null)
             {
                 m_TextureArray = slot.m_TextureArray;
-                m_BareTexture = slot.m_BareTexture;
+                m_BareResource = slot.m_BareResource;
             }
         }
     }
