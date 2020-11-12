@@ -2,11 +2,11 @@
 
 # Sample Mesh
 
-**Menu Path : Operator > Sampling > Sample Mesh**
+Menu Path : **Operator > Sampling > Sample Mesh**
 
-**Menu Path : Operator > Sampling > Sample Skinned Mesh**
+Menu Path : **Operator > Sampling > Sample Skinned Mesh**
 
-The Sample Mesh or Skinned Mesh Operator allows you to fetch vertex data of a static or transformed geometry.
+The Sample Mesh or Skinned Mesh Operator allows you to fetch vertex data of a static or skinned geometry.
 
 ## Operator settings
 
