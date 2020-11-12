@@ -169,92 +169,6 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
     }
 }
 
-#if !defined(_SURFACE_TYPE_TRANSPARENT) || !defined(HAS_LIGHTLOOP)
-
-    void Foo( PositionInputs posInput, float3 vtxNormal, float3 positionRWSDdx, float3 positionRWSDdy, DecalData decalData,
-                        inout float4 DBuffer0, inout float4 DBuffer1, inout float4 DBuffer2, inout float2 DBuffer3, inout float alpha)
-    {
-        float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
-        float3 positionDS = mul(worldToDecal, float4(posInput.positionWS, 1.0)).xyz;
-        positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5, 0.5);  // decal clip space
-        if ((all(positionDS.xyz > 0.0) && all(1.0 - positionDS.xyz > 0.0)))
-        {
-            DBuffer0.xyzw += float4(1.0, 0.0, 0.0, 1.0);
-        }
-    }
-
-    uint xGenerateLogBaseBufferIndex(uint2 tileIndex, uint numTilesX, uint numTilesY, uint eyeIndex)
-    {
-        uint eyeOffset = eyeIndex * numTilesX * numTilesY;
-        return (eyeOffset + (tileIndex.y * numTilesX) + tileIndex.x);
-    }
-
-    float xLogBase(float x, float b)
-    {
-        return log2(x) / log2(b);
-    }
-
-    int xSnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
-    {
-    #if USE_LEFT_HAND_CAMERA_SPACE
-        float z = z_in;
-    #else
-        float z = -z_in;
-    #endif
-
-        const int C = 1 << g_iLog2NumClusters;
-        const float rangeFittedDistance = max(0, z - g_fNearPlane) / (g_fFarPlane - g_fNearPlane);
-        return (int)clamp( xLogBase( lerp(1.0, PositivePow(suggestedBase, (float) C), rangeFittedDistance), suggestedBase), 0.0, (float)(C - 1));
-    }
-
-    uint xGetLightClusterIndex(uint2 tileIndex, float linearDepth)
-    {
-        float logBase = g_fClustBase;
-        if (g_isLogBaseBufferEnabled)
-        {
-            const uint logBaseIndex = xGenerateLogBaseBufferIndex(tileIndex, _NumTileClusteredX, _NumTileClusteredY, unity_StereoEyeIndex);
-            logBase = g_logBaseBuffer[logBaseIndex];
-        }
-
-        return xSnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
-    }
-
-    uint xGenerateLayeredOffsetBufferIndex(uint lightCategory, uint2 tileIndex, uint clusterIndex, uint numTilesX, uint numTilesY, int numClusters, uint eyeIndex)
-    {
-        #define LIGHTCATEGORY_COUNT (6)
-        // Each eye is split into category, cluster, x, y
-
-        uint eyeOffset = eyeIndex * LIGHTCATEGORY_COUNT * numClusters * numTilesX * numTilesY;
-        int lightOffset = ((lightCategory * numClusters + clusterIndex) * numTilesY + tileIndex.y) * numTilesX + tileIndex.x;
-
-        return (eyeOffset + lightOffset);
-    }
-
-    void xGetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-    {
-        uint2 tileIndex    = posInput.tileCoord;
-        uint  clusterIndex = xGetLightClusterIndex(tileIndex, posInput.linearDepth);
-
-        int nrClusters = (1 << g_iLog2NumClusters);
-
-        const int idx = xGenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
-
-        uint dataPair = g_vLayeredOffsetsBuffer[idx];
-        start = dataPair & 0x7ffffff;
-        lightCount = (dataPair >> 27) & 31;
-    }
-
-    uint xFetchIndex(uint lightStart, uint lightOffset)
-    {
-        return g_vLightListGlobal[lightStart + lightOffset];
-    }
-
-    DecalData xFetchDecal(uint index)
-    {
-        return _DecalDatas[index];
-    }
-#endif
-
 #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP) // forward transparent using clustered decals
 DecalData FetchDecal(uint start, uint i)
 {
@@ -350,35 +264,22 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
 #endif
 
 if (g_prepasslessDecals != 0) {
-    #if !defined(TILE_SIZE_CLUSTERED)
-    #define TILE_SIZE_CLUSTERED (32)
-    #endif
-    posInput.tileCoord = uint2(posInput.positionSS.xy) / TILE_SIZE_CLUSTERED;
+    posInput.tileCoord = uint2(posInput.positionSS.xy) / DecalGetTileSize();
 
     #define LIGHTCATEGORY_DECAL (4)
     uint decalCount, decalStart;
-    /* TODO: Get clustering working. It doesn't work right now. Nothing happens unless we're inside a decal's volume, in which
-       case we will see that decal's influence with some flickering. */
-// if Clustering
-        // xGetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
-        // uint decalStartLane0;
-        // bool fastPath = IsFastPath(decalStart, decalStartLane0);
-    // ---
-        DecalMaterialPassGetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
-        // #if SCALARIZE_LIGHT_LOOP
-        //     uint decalLane0;
-        //     fastPath = IsFastPath(decanlStart, decalLane0);
 
-        //     if (fastPath)
-        //     {
-        //         decanlStart = decalLane0;
-        //     }
-        // #endif
-// else
-    // decalCount = _DecalCount;
-    // decalStart = 0;
-    // bool fastPath = false;
-// endif
+    DecalMaterialPassGetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
+#if SCALARIZE_LIGHT_LOOP
+    uint decalLane0;
+    fastPath = IsFastPath(decalStart, decalLane0);
+
+    if (fastPath)
+    {
+        decalStart = decalLane0;
+    }
+#endif
+
     float3 positionRWS = posInput.positionWS;
     // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
     float3 positionRWSDdx = ddx(positionRWS);
@@ -386,62 +287,35 @@ if (g_prepasslessDecals != 0) {
     uint decalLayerMask = GetMeshRenderingDecalLayer();
     uint v_decalListOffset = 0;
     uint v_decalIdx = decalStart;
-// #if true
     while (v_decalListOffset < decalCount)
     {
-// if Clustering
-            // v_decalIdx = xFetchIndex(decalStart, v_decalListOffset);
-        // ---
-            v_decalIdx = DecalMaterialPassFetchIndex(decalStart, v_decalListOffset);
-            // #if SCALARIZE_LIGHT_LOOP
-            //     uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
-            // #else
-                uint s_decalIdx = v_decalIdx;
-            // #endif
-// else
-        // v_decalIdx = decalStart + v_decalListOffset;
-        // uint s_decalIdx = v_decalIdx;
-// endif
+        v_decalIdx = DecalMaterialPassFetchIndex(decalStart, v_decalListOffset);
+#if SCALARIZE_LIGHT_LOOP
+        uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
+#else
+        uint s_decalIdx = v_decalIdx;
+#endif
 
         if (s_decalIdx == -1) break;
 
         DecalData s_decalData = _DecalDatas[s_decalIdx];
         bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
-        // if (s_decalIdx >= v_decalIdx)
+        if (s_decalIdx >= v_decalIdx)
         {
             v_decalListOffset++;
             if (!isRejected)
-                // Foo(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
                 EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
         }
     }
-// #else // #if true
-//     if (decalCount > 0) {
-//         uint idx = g_vDecalLightListGlobal[decalStart + v_decalListOffset];
-//         // FIXME: This should show different colors, one for each of the three active decals.
-//         // However, it only shows green, meaning that idx is always 0. Needs investigation.
-//         if (idx == 0) {
-//             DBuffer0 = float4(0.0, 1.0, 0.0, 1.0);
-//         } else if (idx == 1) {
-//             DBuffer0 = float4(0.0, 0.0, 1.0, 1.0);
-//         } else if (idx == 2) {
-//             DBuffer0 = float4(1.0, 0.0, 1.0, 1.0);
-//         } else if (idx == 3) {
-//             DBuffer0 = float4(0.0, 1.0, 1.0, 1.0);
-//         } else if (idx > 3) {
-//             DBuffer0 = float4(1.0, 0.0, 0.0, 1.0);
-//         }
-//     }
-// #endif // #if true
 
-} else { // (g_PrepasslessDecals)
+} else { // (g_PrepasslessDecals != 0)
     DBuffer0 = LOAD_TEXTURE2D_X(_DBufferTexture0, int2(posInput.positionSS.xy));
     DBuffer1 = LOAD_TEXTURE2D_X(_DBufferTexture1, int2(posInput.positionSS.xy));
     DBuffer2 = LOAD_TEXTURE2D_X(_DBufferTexture2, int2(posInput.positionSS.xy));
 #ifdef DECALS_4RT
     DBuffer3 = LOAD_TEXTURE2D_X(_DBufferTexture3, int2(posInput.positionSS.xy)).xy;
 #endif
-} // (g_PrepasslessDecals)
+} // (g_PrepasslessDecals != 0)
 
 #endif
 

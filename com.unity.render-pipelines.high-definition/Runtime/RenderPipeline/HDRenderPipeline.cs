@@ -2582,7 +2582,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         => BuildGPULightListProbeVolumesCommon(a.hdCamera, c);
                 }
             }
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) &&
+                hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals) &&
+                ShaderConfig.s_PrepasslessDecals == 1)
             {
                 // TODO: (Nick): Should we only build decal light lists async of we build standard light lists async? Or should we always build decal light lists async?
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
@@ -2643,7 +2645,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1)
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) &&
+                hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals) &&
+                ShaderConfig.s_PrepasslessDecals == 1)
             {
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
                 {

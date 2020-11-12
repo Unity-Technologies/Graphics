@@ -2804,7 +2804,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_lightList.lightsPerView[viewIndex].bounds.Add(DecalSystem.m_Bounds[i]);
                             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(DecalSystem.m_LightVolumes[i]);
 
-                            if (ShaderConfig.s_PrepasslessDecals == 1)
+                            if (ShaderConfig.s_PrepasslessDecals == 1 && hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals))
                             {
                                 // If in prepassless mode, also add decals to the decal-only light list, which is used to shade
                                 // deferred-rendered geometry
@@ -2899,7 +2899,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                if (ShaderConfig.s_PrepasslessDecals == 1)
+                if (ShaderConfig.s_PrepasslessDecals == 1 && hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals) )
                 {
                     // Aggregate the remaining probe volume views into the first entry of the list (view 0)
                     for (int viewIndex = 1; viewIndex < hdCamera.viewCount; ++viewIndex)
@@ -3575,9 +3575,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void PushDecalLightListGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
         {
-            Debug.Assert(ShaderConfig.s_PrepasslessDecals == 1);
-
-            if (!param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if (!param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) ||
+                !param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals))
                 return;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushDecalLightListGlobalParameters)))
@@ -3623,7 +3622,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_PrepasslessDecals != 1)
                 return;
 
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) ||
+                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals))
                 return;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildGPULightListDecals)))

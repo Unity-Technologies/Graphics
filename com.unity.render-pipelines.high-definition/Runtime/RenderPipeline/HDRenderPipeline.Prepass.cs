@@ -221,7 +221,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 BuildGPULightListOutput decalListOutput = new BuildGPULightListOutput();
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1)
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) &&
+                    hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals) &&
+                    ShaderConfig.s_PrepasslessDecals == 1)
                 {
                     decalListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_DecalClusterData, DecalSystem.m_DecalDatasCount, ref m_ShaderVariablesDecalLightListCB, result.depthBuffer, result.stencilBuffer, result.gbuffer);
                 }
@@ -588,7 +590,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.probeVolumePerVoxelOffset = builder.ReadComputeBuffer(probeVolumeLightList.perVoxelOffset);
                 }
 
-                passData.needDecalLightLists = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) && ShaderConfig.s_PrepasslessDecals == 1;
+                passData.needDecalLightLists =
+                    hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) &&
+                    hdCamera.frameSettings.IsEnabled(FrameSettingsField.PrepasslessDecals) &&
+                    ShaderConfig.s_PrepasslessDecals == 1;
                 if (passData.needDecalLightLists)
                 {
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
