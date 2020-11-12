@@ -68,9 +68,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             const int maxMainLights = 1;
             int maxVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + maxMainLights;
 
-            m_AdditionalLightIndexToVisibleLightIndex = new int[maxVisibleAdditionalLights];
+            // These array sizes should be as big as ScriptableCullingParameters.maximumVisibleLights (that is defined during ScriptableRenderer.SetupCullingParameters).
+            // We initialize these array sizes with the number of visible lights allowed by the ForwardRenderer.
+            // The number of visible lights can become much higher when using the Deferred rendering path, we resize the arrays during Setup() if required.
+            m_AdditionalLightIndexToVisibleLightIndex = new int[maxVisibleLights];
             m_VisibleLightIndexToAdditionalLightIndex = new int[maxVisibleLights];
-            m_AdditionalLightIndexToShadowParams = new Vector4[maxVisibleAdditionalLights];
+            m_AdditionalLightIndexToShadowParams = new Vector4[maxVisibleLights];
 
             if (!m_UseStructuredBuffer)
             {
@@ -185,6 +188,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             return fovBias;
         }
 
+        bool m_IssuedMessageAboutShadowSlicesTooMany = false;
+
         public bool Setup(ref RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
@@ -205,7 +210,27 @@ namespace UnityEngine.Rendering.Universal.Internal
                     continue;
 
                 if (IsValidShadowCastingLight(ref renderingData.lightData, i))
-                    totalShadowSlicesCount += GetPunctualLightShadowSlicesCount(visibleLights[i].lightType);
+                {
+                    int shadowSlicesCountForThisLight = GetPunctualLightShadowSlicesCount(visibleLights[i].lightType);
+
+                    if (!m_UseStructuredBuffer)
+                    {
+                        // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl
+                        // We have to limit its size because uniform buffers cannot be higher than 64kb for some platforms.
+                        if(totalShadowSlicesCount + shadowSlicesCountForThisLight > m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length)
+                        {
+                            if (!m_IssuedMessageAboutShadowSlicesTooMany)
+                            {
+                                Debug.Log($"There are too many shadowed additional punctual lights active at the same time, URP will not render all the shadows. To ensure all shadows are rendered, reduce the number of shadowed additional lights in the scene ; make sure they are not active at the same time ; or replace point lights by spot lights (spot lights use less shadow maps than point lights).");
+                                m_IssuedMessageAboutShadowSlicesTooMany = true; // Only output this once
+                            }
+
+                            break;
+                        }
+                    }
+
+                    totalShadowSlicesCount += shadowSlicesCountForThisLight;
+                }
             }
 
             int atlasWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
@@ -220,6 +245,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             if ( m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix == null ||
                 (m_UseStructuredBuffer && (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length < totalShadowSlicesCount))  ) // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix can be resized when using SSBO to pass shadow data (no size limitation)
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[totalShadowSlicesCount];
+
+            if(m_AdditionalLightIndexToVisibleLightIndex.Length < visibleLights.Length)
+            {
+                // Array "visibleLights" is returned by ScriptableRenderContext.Cull()
+                // The maximum number of "visibleLights" that ScriptableRenderContext.Cull() should return, is defined by parameter ScriptableCullingParameters.maximumVisibleLights
+                // Universal RP sets this "ScriptableCullingParameters.maximumVisibleLights" value during ScriptableRenderer.SetupCullingParameters.
+                // When using Deferred rendering, it is possible to specify a very high number of visible lights.
+                m_AdditionalLightIndexToVisibleLightIndex = new int[visibleLights.Length];
+                m_VisibleLightIndexToAdditionalLightIndex = new int[visibleLights.Length];
+                m_AdditionalLightIndexToShadowParams = new Vector4[visibleLights.Length];
+            }
 
             int validShadowCastingLightsCount = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
