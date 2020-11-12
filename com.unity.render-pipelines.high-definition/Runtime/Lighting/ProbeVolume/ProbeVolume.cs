@@ -179,5 +179,35 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return parameters.size;
         }
+
+#if UNITY_EDITOR
+        protected void Update()
+        {
+        }
+        
+        internal void OnLightingDataCleared()
+        {
+        }
+
+        internal void OnLightingDataAssetCleared()
+        {
+        }
+
+        internal void OnProbesBakeCompleted()
+        {
+        }
+
+        internal void OnBakeCompleted()
+        {
+        }
+
+        internal void ForceBakingDisabled()
+        { 
+        }
+
+        internal void ForceBakingEnabled()
+        {
+        }
+#endif
     } 
 } // UnityEngine.Experimental.Rendering.HDPipeline

@@ -22,6 +22,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 Corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
             }
 
+            public Volume(Volume copy)
+            {
+                X = copy.X;
+                Y = copy.Y;
+                Z = copy.Z;
+                Corner = copy.Corner;
+            }
+
             public Bounds CalculateAABB()
             {
                 Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -48,11 +56,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 return new Bounds((min + max) / 2, max - min);
             }
+
+            public void Transform(Matrix4x4 trs)
+            {
+                Corner = trs.MultiplyPoint(Corner);
+                X = trs.MultiplyVector(X);
+                Y = trs.MultiplyVector(Y);
+                Z = trs.MultiplyVector(Z);
+            }
+
+            public override string ToString()
+            {
+                return $"Corner: {Corner}, X: {X}, Y: {Y}, Z: {Z}";
+            }
         }
 
         public struct BrickFlags
         {
-            uint  flags;
+            uint flags;
 
             public bool discard { get { return (flags & 1) != 0; } set { flags = (flags & (~1u)) | (value ? 1u : 0); } }
             public bool subdivide { get { return (flags & 2) != 0; } set { flags = (flags & (~2u)) | (value ? 2u : 0); } }
@@ -60,19 +81,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public struct RefVolTransform
         {
-            public Matrix4x4   refSpaceToWS;
-            public Vector3     posWS;
-            public Quaternion  rot;
-            public float       scale;
+            public Matrix4x4 refSpaceToWS;
+            public Vector3 posWS;
+            public Quaternion rot;
+            public float scale;
         }
 
         public struct RuntimeResources
         {
             public ComputeBuffer index;
-            public Texture3D     L0;
-            public Texture3D     L1_R;
-            public Texture3D     L1_G;
-            public Texture3D     L1_B;
+            public Texture3D L0;
+            public Texture3D L1_R;
+            public Texture3D L1_G;
+            public Texture3D L1_B;
         }
 
         public struct RegId
@@ -85,17 +106,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
         }
 
-        private int                 m_id = 0;
-        private RefVolTransform     m_Transform;
-        private float               m_NormalBias;
-        private int                 m_MaxSubdivision;
-        private ProbeBrickPool      m_Pool;
-        private ProbeBrickIndex     m_Index;
-        private List<Brick>[]       m_TmpBricks = new List<Brick>[2];
-        private List<BrickFlags>    m_TmpFlags = new List<BrickFlags>();
-        private List<Chunk>         m_TmpSrcChunks = new List<Chunk>();
-        private List<Chunk>         m_TmpDstChunks = new List<Chunk>();
-        private float[]             m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
+        private int m_id = 0;
+        private RefVolTransform m_Transform;
+        private float m_NormalBias;
+        private int m_MaxSubdivision;
+        private ProbeBrickPool m_Pool;
+        private ProbeBrickIndex m_Index;
+        private List<Brick>[] m_TmpBricks = new List<Brick>[2];
+        private List<BrickFlags> m_TmpFlags = new List<BrickFlags>();
+        private List<Chunk> m_TmpSrcChunks = new List<Chunk>();
+        private List<Chunk> m_TmpDstChunks = new List<Chunk>();
+        private float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         // index related
@@ -106,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Profiler.BeginSample("Create Reference volume");
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
-            m_Transform.scale = 1.0f;
+            m_Transform.scale = 1f;
             m_Transform.refSpaceToWS = Matrix4x4.identity;
 
             m_NormalBias = 0f;
@@ -123,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
             for (int i = 1; i < ProbeBrickPool.kBrickProbeCountPerDim - 1; i++)
                 m_PositionOffsets[i] = i * probeDelta;
-            m_PositionOffsets[m_PositionOffsets.Length-1] = 1.0f;
+            m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
             Profiler.EndSample();
         }
 
@@ -135,21 +156,23 @@ namespace UnityEngine.Rendering.HighDefinition
             return rr;
         }
 
-        public void SetGridDensity(float minBrickSize, int maxSubdivision)
+        public void SetTRS(Vector3 position, Quaternion rotation, float minBrickSize)
         {
-            m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels);
-
+            m_Transform.posWS = position;
+            m_Transform.rot = rotation;
             m_Transform.scale = minBrickSize;
             m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
 
+        public void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
         public void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
 
         internal static int cellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
-        internal float brickSize( int subdivisionLevel) { return m_Transform.scale * cellSize(subdivisionLevel); }
+        internal float brickSize(int subdivisionLevel) { return m_Transform.scale * cellSize(subdivisionLevel); }
         internal float minBrickSize() { return m_Transform.scale; }
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
         public Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
+        public RefVolTransform GetTransform() { return m_Transform; }
 
         public delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
@@ -163,14 +186,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Profiler.BeginSample("CreateBricks");
             // generate bricks for all areas covered by the passed in volumes, potentially subdividing them based on the subdivider's decisions
-            foreach( var v in volumes)
+            foreach (var v in volumes)
             {
                 ConvertVolume(v, subdivider, outSortedBricks);
             }
 
             Profiler.BeginSample("sort");
             // sort from larger to smaller bricks
-            outSortedBricks.Sort( (Brick lhs, Brick rhs) =>
+            outSortedBricks.Sort((Brick lhs, Brick rhs) =>
             {
                 if (lhs.size != rhs.size)
                     return lhs.size > rhs.size ? -1 : 1;
@@ -255,9 +278,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 m_TmpBricks[0].Clear();
-                if( m_TmpBricks[1].Count > 0 )
+                if (m_TmpBricks[1].Count > 0)
                 {
-                    Debug.Log( "Calling SubdivideBricks with " + m_TmpBricks[1].Count + " bricks." );
+                    Debug.Log("Calling SubdivideBricks with " + m_TmpBricks[1].Count + " bricks.");
                     SubdivideBricks(m_TmpBricks[1], m_TmpBricks[0]);
 
                     // Cull out of bounds bricks
@@ -329,15 +352,15 @@ namespace UnityEngine.Rendering.HighDefinition
             c.z = 0;
 
             // currently this code assumes that the texture width is a multiple of the allocation chunk size
-            for( int i = 0; i < m_TmpDstChunks.Count; i++ )
+            for (int i = 0; i < m_TmpDstChunks.Count; i++)
             {
                 m_TmpSrcChunks.Add(c);
                 c.x += chunk_size * ProbeBrickPool.kBrickProbeCountPerDim;
-                if( c.x >= dataloc.width )
+                if (c.x >= dataloc.width)
                 {
                     c.x = 0;
                     c.y += ProbeBrickPool.kBrickProbeCountPerDim;
-                    if( c.y >= dataloc.height )
+                    if (c.y >= dataloc.height)
                     {
                         c.y = 0;
                         c.z += ProbeBrickPool.kBrickProbeCountPerDim;
@@ -409,7 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
             List<Chunk> ch_list;
             if (!m_Registry.TryGetValue(id, out ch_list))
             {
-                Debug.Log( "Tried to release bricks with id=" + id.id + " but no bricks were registered under this id." );
+                Debug.Log("Tried to release bricks with id=" + id.id + " but no bricks were registered under this id.");
                 return;
             }
 
@@ -462,6 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int z = 0; z < logicalBrickRes.z; z++)
                     {
                         Vector3Int pos = origin + new Vector3Int(x, y, z) * brickTotalSize;
+                        Debug.Assert(pos.x >= 0 && pos.y >= 0 && pos.z >= 0);
                         outBricks.Add(new Brick(pos, brickSubDivLevel));
                     }
                 }
