@@ -34,9 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool NeedClearColorBuffer(HDCamera hdCamera)
         {
             if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Color ||
-                // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
-                m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                // If the matcap view is enabled, the sky isn't updated so we clear the background color
+                // If the matcap view or luxmeter is enabled, the sky isn't updated so we clear the background color
                 m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                 // If we want the sky but the sky don't exist, still clear with background color
                 (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
@@ -54,9 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Color clearColor = hdCamera.backgroundColorHDR;
 
-            // We set the background color to black when the luxmeter is enabled to avoid picking the sky color
-            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 clearColor = Color.black;
 
             return clearColor;

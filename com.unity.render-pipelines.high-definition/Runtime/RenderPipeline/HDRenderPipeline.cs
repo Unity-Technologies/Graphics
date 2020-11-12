@@ -4210,10 +4210,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PreRenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
-            {
+            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky || m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
+                !m_SkyManager.RequiresPreRenderSky(hdCamera))
                 return;
-            }
 
             bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             var colorBuffer = msaaEnabled ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
@@ -4225,10 +4224,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
-            {
+            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky || m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
-            }
 
             // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
             // We load from the color buffer, perform blending manually, and store to the atmospheric scattering buffer.
@@ -4238,7 +4235,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var intermediateBuffer = msaaEnabled ? m_OpaqueAtmosphericScatteringMSAABuffer : m_OpaqueAtmosphericScatteringBuffer;
             var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled);
 
-            var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
             m_SkyManager.RenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_CurrentDebugDisplaySettings, m_FrameCount, cmd);
 
             if (Fog.IsFogEnabled(hdCamera) || Fog.IsPBRFogEnabled(hdCamera))
@@ -5524,9 +5520,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearHDRTarget)))
                 {
                     if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Color ||
-                        // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
-                        m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                        // If the matcap view is enabled, the sky isn't updated so we clear the background color
+                        // If the matcap view or luxmeter is enabled, the sky isn't updated so we clear the background color
                         m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                         // If we want the sky but the sky don't exist, still clear with background color
                         (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
