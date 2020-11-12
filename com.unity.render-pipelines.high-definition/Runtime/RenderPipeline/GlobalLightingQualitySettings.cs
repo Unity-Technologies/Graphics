@@ -138,6 +138,19 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 8;
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 12;
             RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 16;
+
+            // Fog
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.Low] = FogControl.Balance;
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.Medium] = FogControl.Balance;
+            Fog_ControlMode[(int)ScalableSettingLevelParameter.Level.High] = FogControl.Balance;
+
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.Low] = 0.166f;
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.Medium] = 0.33f;
+            Fog_Budget[(int)ScalableSettingLevelParameter.Level.High] = 0.666f;
+
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.Low] = 0.666f;
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.Medium] = 0.666f;
+            Fog_DepthRatio[(int)ScalableSettingLevelParameter.Level.High] = 0.50f;
         }
 
         internal static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
@@ -228,7 +241,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public int[] RTRDenoiserRadius = new int[s_QualitySettingCount];
 
         // TODO: Volumetric fog quality
-
+        /// <summary>Controls which control mode should be used to define the volumetric fog parameters.</summary>
+        public FogControl[] Fog_ControlMode = new FogControl[s_QualitySettingCount];
+        /// <summary>Controls the budget of the volumetric fog effect.</summary>
+        public float[] Fog_Budget = new float[s_QualitySettingCount];
+        /// <summary>Controls how the budget is shared between screen resolution and depth.</summary>
+        public float[] Fog_DepthRatio = new float[s_QualitySettingCount];
         // TODO: Shadows. This needs to be discussed further as there is an idiosyncracy here as we have different level of quality settings,
         //some for resolution per light (4 levels) some per volume (which are 3 levels everywhere). This needs to be discussed more.
 

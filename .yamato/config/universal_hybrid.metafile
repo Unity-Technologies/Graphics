@@ -3,66 +3,71 @@ project:
   folder: UniversalHybridTest
 test_platforms:
   - type: Standalone
-    extra_utr_flags:
-      - --compilation-errors-as-warnings
-    timeout:
-      OSX_Metal: 2400
-    timeout_build:
-      Android: 1800
-    extra_utr_flags_build:
-      - --compilation-errors-as-warnings
+    utr_flags:
+      - [all]: --compilation-errors-as-warnings
+      - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      - [all]: --compilation-errors-as-warnings
   - type: playmode
-    extra_utr_flags:
-      - --compilation-errors-as-warnings
-#  - type: editmode
-#    extra_utr_flags:
-#      - --compilation-errors-as-warnings
-build_configs:
-#- name: il2cpp_apiNet2
-#  scripting_backend: IL2CPP
-#  api_level: NET_2_0
-#- name: il2cpp_apiNet4
-#  scripting_backend: IL2CPP
-#  api_level: NET_4_6
-- name: mono_apiNet2
-  scripting_backend: Mono2x
-  api_level: NET_2_0
-#- name: mono_apiNet4
-#  scripting_backend: Mono2x
-#  api_level: NET_4_6
-color_spaces:
-  - Linear
-#  - gamma
+    utr_flags:
+      - [all]: --compilation-errors-as-warnings
 platforms:
   - name: Win
     apis:
-      - DX11
-#      - DX12
-      - Vulkan
+      - name: DX11
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: OSX 
     apis:
-      - Metal
-#      - OpenGLCore
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis: 
-      - Vulkan
-      - OpenGLCore
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Android
     apis:
-      - OpenGLES3
-      - Vulkan
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: playmode
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
     - platform: OSX
       api: Metal
-      build_config: mono_apiNet2
+      build_config: mono
       color_space: Linear
       test_platforms:
-      #  - Standalone
         - playmode 
