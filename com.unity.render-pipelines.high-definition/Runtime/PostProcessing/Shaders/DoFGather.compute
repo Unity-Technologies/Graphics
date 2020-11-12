@@ -2,6 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
@@ -16,9 +17,11 @@ CBUFFER_END
 
 #define NumRings            _Params.x
 #define MaxCoCRadius        _Params.y
+#define Anamorphism         _Params.z
 #define MaxCoCMipLevel      _Params2.x
 #define MaxCoCMipWidth      _Params2.y
 #define MaxCoCMipHeight     _Params2.z
+#define MaxColorMip         _Params2.w
 
 // Input textures
 TEXTURE2D_X(_InputTexture);
@@ -29,26 +32,14 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 // A set of Defines to fine-tune the algorithm
 #define NUM_BUCKETS 3
-#define RING_DENSITY 8.0
 #define ADAPTIVE_RADIUS
-//#define OCTAWEB_SORTING
-//#define UNIFORM_WEIGHTS
-
-// Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
-#ifndef OCTAWEB_SORTING
-    #define RING_COLOR totalColor
-    #define RING_MAXCOC maxCoC
-    #define RING_ALPHA totalAlpha
-#else
-    #define RING_COLOR ringColor
-    #define RING_MAXCOC ringMaxCoC
-    #define RING_ALPHA ringAlpha
-#endif
+#define STRATIFY
+#define PHYSICAL_WEIGHTS
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
 
-float GetBucketWeight(float sampleCoC, float noise, int bucket)
+float GetBucketWeight(float sampleCoC, float centerCoC, float noise, int bucket)
 {
     // Note: we could potentially get higher quality by allowing artists to fine-tune the bucket/cascade transitions,
     // but DoF is not as sensitive as shadows, so for now it's better to not expose many settings.
@@ -57,6 +48,10 @@ float GetBucketWeight(float sampleCoC, float noise, int bucket)
 
     float w0 = saturate((sampleCoC - bucketLimit[0] - bucketTransition[0] * noise) / bucketTransition[0]);
     float w1 = saturate((bucketTransition[1] * noise - sampleCoC) / bucketTransition[1]);
+    bool depthTest = (sampleCoC <= 2 * centerCoC);
+    w0 = depthTest ? w0 : 0.0;
+    float w2 = depthTest ? 1.0 - w0 - w1 : 0.0;
+
     if (bucket == 0)
     {
         return w0;
@@ -67,7 +62,7 @@ float GetBucketWeight(float sampleCoC, float noise, int bucket)
     }
     else
     {
-        return 1.0 - w0 - w1;
+        return w2;
     }
 }
 
@@ -77,67 +72,31 @@ float GetCoCRadius(int2 positionSS)
     return CoCRadius;
 }
 
-float GetCoCMaxRadius(int2 positionSS)
-{
-#ifndef ADAPTIVE_RADIUS
-    return MaxCoCRadius;
-#else
-
-    int lod = MaxCoCMipLevel;
-    uint2 size = float2(MaxCoCMipWidth, MaxCoCMipHeight);
-
-    // Take RTHandleScale into account and odd texture dimension sizes (it's not enough to do a positionSS >> lod)
-    uint2 coords = positionSS * _ScreenSize.zw * size.xy * _RTHandleScale.xy;
-
-    // Find the max CoC that is overlapping this pixel by sampling the max neighborhood
-    float maxOverlapingCoC = abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords, lod).x);
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, 0), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (0, 1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, 1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, 0), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (0, -1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, -1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (-1, 1), lod).x));
-    maxOverlapingCoC = max(maxOverlapingCoC, abs(LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, coords + uint2 (1, -1), lod).x));
-    return maxOverlapingCoC;
-#endif
-}
-
 float GetSampleWeight(float cocRadius)
 {
-#ifdef UNIFORM_WEIGHTS
-    return 1.0f;
-#endif
-
+#ifdef PHYSICAL_WEIGHTS
     float pixelRadius = 0.7071f;
     float radius = max(pixelRadius, cocRadius);
     return rcp(PI * radius * radius);
+#else
+    return 1.0f;
+#endif
 }
 
 float2 PointInCircle(float angle)
 {
-    return float2(cos(angle), sin(angle));
-}
-
-float GetNumSamples(float radius, float maxRadius)
-{
-    float dR = maxRadius / NumRings;
-    float rings = (dR == 0) ? 0 : floor(radius / dR);
-    float seriesSum = 0.5 * rings * (rings + 1);
-    return 1.0 + seriesSum * RING_DENSITY;
+    return float2(cos(angle), sin(angle)) * float2 (1 - Anamorphism, 1 + Anamorphism);
 }
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
-    int bucketIndex = 0;
 
     // Bucket 0 : far focus region
     // Bucket 1 : in focus region
     // Bucket 2 : near focus region
     float4 totalColor[NUM_BUCKETS];
-    float maxCoC[NUM_BUCKETS];
     float prevRingWeight[NUM_BUCKETS];
     float totalHits[NUM_BUCKETS];
 #ifdef ENABLE_ALPHA
@@ -148,68 +107,41 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     for (int i = 0; i < NUM_BUCKETS; ++i)
     {
         totalColor[i] = 0.0f;
-        maxCoC[i] = 0.0f;
         prevRingWeight[i] = 0.0f;
 #ifdef ENABLE_ALPHA
         totalAlpha[i] = 0.0f;
 #endif
     }
 
-    float maxRadius = GetCoCMaxRadius(posInputs.positionSS);
+    CTYPE originalColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;
 
+    // Note: for the far-field, we don't need to search further than than the central CoC.
+    // If there is a larger CoC that overlaps the central pixel then it will have greater depth
+    float centerCoC = GetCoCRadius(posInputs.positionSS);
+    float maxRadius = abs(centerCoC);
+    
     float dR = rcp(NumRings);
+    int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
+    int numSamples = maxRadius > 0 ? NumRings : 0;
 
-    int sampleOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
-    // Note: adjusting pseudo-randomly the sampleOffset for each pixel seems to considerably improve the sampling
-    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, sampleOffset);
-    float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 3 * posInputs.positionSS.x + posInputs.positionSS.y + sampleOffset);
+    // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
+    float lod = min(MaxColorMip, log2(2 * PI * maxRadius * rcp(numSamples)));
 
-    // Note: For zero radius we still go through the loop (for one iteration). We can avoid the cost of computing weigths if we early exit (at the cost of extra code complexity).
-    float totalRings = maxRadius > 0 ? NumRings : 0;
-
-#ifdef ENABLE_ALPHA
-    CTYPE originalColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;;
-#endif
-
-    // Iterate over the octaweb pattern and gather the DoF samples
-    for (float ring = totalRings; ring >= 0; ring -= 1.0)
+    // Gather the DoF samples
+    for (int ring = 0; ring < numSamples; ring += 1)
     {
-        float numSamples = (ring > 0) ? RING_DENSITY : 1;
-        float dAng = 2.0f * PI / numSamples;
-
-        float stratum = max((ring - 1) * dR, 0);
-        float normalizedRadius = (ring > 0) ? stratum + noise2 * dR : 0;
-
-        float ringOffset = noise * dAng;
-
-#ifdef OCTAWEB_SORTING
-        float4 ringColor[NUM_BUCKETS];
-        float ringMaxCoC[NUM_BUCKETS];
-        float ringHits[NUM_BUCKETS];
-#ifdef ENABLE_ALPHA
-        float ringAlpha[NUM_BUCKETS];
-#endif
-
-        for (int i = 0; i < NUM_BUCKETS; ++i)
+        float dAng = 2.0f * PI * rcp(numSamples);
+        for (int i = 0; i < numSamples; i += 1)
         {
-            ringColor[i] = 0.0f;
-            ringMaxCoC[i] = 0.0f;
-            ringHits[i] = 0.0f;
-#ifdef ENABLE_ALPHA
-            ringAlpha[i] = 0.0f;
+            float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 1);
+            float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 0);
+#ifdef STRATIFY
+            float sampleRadius = sqrt((ring + r2) * dR) * maxRadius;
+            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle((i + r1) * dAng);
+#else
+            float sampleRadius = sqrt(r2) * maxRadius;
+            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(r1 * 2.0f * PI);
 #endif
-        }
-#endif
-
-        for (float ang = ringOffset; ang < 2 * PI; ang += dAng)
-        {
-            float sampleRadius = sqrt(normalizedRadius) * maxRadius;
-            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(ang);
-            sampleTC = clamp(sampleTC, float2(0, 0), _ScreenSize.xy - float2(1, 1));
-
-            // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
-            // Note: We have generated only 4 additional mip levels, so don't go any deeper than that
-            float lod = min(4, log2(2 * PI * sampleRadius * rcp(numSamples)));
             CTYPE sampleColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinear(sampleTC * _ScreenSize.zw), lod).CTYPE_SWIZZLE;
             float sampleCoC = GetCoCRadius(sampleTC);
 
@@ -218,36 +150,14 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
                 for (int j = 0; j < NUM_BUCKETS; ++j)
                 {
                     float weight = GetSampleWeight(abs(sampleCoC));
-                    float bucketWeight = GetBucketWeight(sampleCoC, noise2, j);
-                    weight *= bucketWeight;
-                    RING_COLOR[j] += float4(sampleColor.xyz * weight, weight);
-                    RING_MAXCOC[j] = max(RING_MAXCOC[j] * bucketWeight, abs(sampleCoC));
-#ifdef OCTAWEB_SORTING
-                    ringHits[j] += bucketWeight;
-#endif
+                    weight *= GetBucketWeight(sampleCoC, centerCoC, r2, j);
+                    totalColor[j] += float4(sampleColor.xyz * weight, weight);
 #ifdef ENABLE_ALPHA
-                    RING_ALPHA[j] += sampleColor.w * weight;
+                    totalAlpha[j] += sampleColor.w * weight;
 #endif
                 }
             }
         }
-
-#ifdef OCTAWEB_SORTING
-        for (int j = 0; j < NUM_BUCKETS; ++j)
-        {
-            float currentAvg = RING_COLOR[j].w * numSamples;
-            float prevAvg = (ring < numRings) ? prevRingWeight[j] : currentAvg;
-            float occlusion = saturate(prevAvg - currentAvg);
-            float alpha = ringHits[j] * numSamples;
-
-            float blendFactor = 1.0 - alpha * occlusion;
-            totalColor[j] = blendFactor * totalColor[j] + RING_COLOR[j];
-            prevRingWeight[j] = currentAvg;
-#ifdef ENABLE_ALPHA
-            totalAlpha[j] += blendFactor * totalAlpha[j] + RING_ALPHA[j];
-#endif
-        }
-#endif
     }
 
     float4 outColor = 0;
@@ -266,7 +176,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[j];
 #endif
     }
-    outColor.xyz = outColor.xyz * rcp(outColor.w);
+
+    // In case we did not gather any samples, return the original color
+    outColor.xyz = outColor.w > 0 ? outColor.xyz * rcp(outColor.w) : originalColor.xyz;
 
 #ifdef ENABLE_ALPHA
     // Preserve the original value of the pixels with zero alpha.
