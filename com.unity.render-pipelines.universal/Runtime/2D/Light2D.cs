@@ -222,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal void UpdateMesh(bool forceUpdate)
         {
-            int hashCode = GetHashCode();
+            int hashCode = GenerateHashCode();
             if (forceUpdate && hashCode != m_HashCode)
             {
 				switch(m_LightType)
@@ -288,7 +288,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Light2DManager.DeregisterLight(this);
         }
 
-        public override int GetHashCode()
+        private int GenerateHashCode()
         {
             var hashCode = 0;
             unchecked
