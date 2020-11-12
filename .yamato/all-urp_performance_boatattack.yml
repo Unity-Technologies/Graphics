@@ -28,6 +28,9 @@ All_URP_Performance_BoatAttack_trunk:
          rerun: on-new-revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear_trunk
          rerun: on-new-revision
+    variables:
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: head
 All_URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: All URP_Performance_BoatAttack CI - CUSTOM-REVISION
     dependencies:
@@ -51,3 +54,5 @@ All_URP_Performance_BoatAttack_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: head
