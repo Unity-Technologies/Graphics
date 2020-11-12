@@ -1,7 +1,7 @@
 * [Universal Render Pipeline](index.md)
 * [Requirements](requirements)
-* [What's new](whats-new/urp-whats-new.md)
-  * [URP 10](whats-new/urp-whats-new-10.md)
+* [What's new in URP 10.2](whats-new/urp-whats-new.md)
+  * [URP 10.1](whats-new/urp-whats-new-10.md)
 * [Features]()
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
 * [Getting started](InstallingAndConfiguringURP.md)
@@ -40,6 +40,7 @@
   * [Camera component reference](camera-component-reference.md)
 
 * [Post-processing](integration-with-post-processing.md)
+  * [How to configure](integration-with-post-processing.md#post-proc-how-to)
   * [Volumes](Volumes.md)
     * [Volume Profile](VolumeProfile.md)
     * [Volume Overrides](VolumeOverrides.md)
