@@ -45,7 +45,6 @@ namespace UnityEditor.ShaderGraph
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
             return "UnityBuildSamplerStateStruct(SamplerState_Linear_Repeat)";
-            //return $"{nodeOwner.GetVariableNameForSlot(id)}_Linear_Repeat";     // TODO: ??
         }
 
         public override SlotValueType valueType { get { return SlotValueType.SamplerState; } }
@@ -65,7 +64,7 @@ namespace UnityEditor.ShaderGraph
                     filter = TextureSamplerState.FilterMode.Linear,
                     wrap = TextureSamplerState.WrapMode.Repeat
                 },
-                // overrideReferenceName = $"{nodeOwner.GetVariableNameForSlot(id)}_Linear_Repeat",
+                overrideReferenceName = "SamplerState_Linear_Repeat",
                 generatePropertyBlock = false,
             });
         }

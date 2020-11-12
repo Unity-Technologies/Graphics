@@ -61,10 +61,10 @@ namespace UnityEditor.ShaderGraph
             if (edgesSampler.Any())
                 samplerValue = GetSlotValue(SamplerInputId, generationMode);
             else
-                samplerValue = string.Format("{0}.samplerstate", textureValue);
+                samplerValue = textureValue;
 
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
-            sb.AppendLine("{0}(TEXTURE2D_ARGS({1}.tex, {2}), {3}, {4}, {5}, {6});", GetFunctionName(), textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue);
+            sb.AppendLine("{0}(TEXTURE2D_ARGS({1}.tex, {2}.samplerstate), {3}, {4}, {5}, {6});", GetFunctionName(), textureValue, samplerValue, uvValue, offsetValue, strengthValue, outputValue);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)

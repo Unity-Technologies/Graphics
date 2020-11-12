@@ -19,7 +19,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture3DMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
@@ -47,17 +46,9 @@ namespace UnityEditor.ShaderGraph
             return base.GetVariableNameForSlot(OutputSlotId);
         }
 
-        string GetTextureVariableName()
-        {
-            return $"UnityBuildTexture3DStruct({GetTexturePropertyName()})";
-        }
-
         public override string GetVariableNameForSlot(int slotId)
         {
-            if (slotId == OutputSlotId)
-                return GetTextureVariableName();
-            else
-                return base.GetVariableNameForSlot(slotId);
+            return $"UnityBuildTexture3DStruct({GetTexturePropertyName()})";
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
