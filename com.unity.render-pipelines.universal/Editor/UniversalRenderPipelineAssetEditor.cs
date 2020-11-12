@@ -491,12 +491,14 @@ namespace UnityEditor.Rendering.Universal
             };
 
             list.onCanRemoveCallback = li => { return li.count > 1; };
-
+            
             list.onRemoveCallback = li =>
             {
                 // Checking so that the user is not deleting  the default renderer
                 if (li.index != m_DefaultRendererProp.intValue)
                 {
+                    // Need to add the undo to the removal of our assets here, for it to work properly.
+                    Undo.RecordObject(target, $"Deleting renderer at index {li.index}");
                     li.serializedProperty.DeleteArrayElementAtIndex(li.index);
                     UpdateDefaultRendererValue(li.index);
 
@@ -507,6 +509,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip,
                         "Close");
                 }
+
                 EditorUtility.SetDirty(target);
             };
 

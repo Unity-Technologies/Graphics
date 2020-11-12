@@ -160,6 +160,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal new Camera camera
+        {
+            get => gameObject.GetComponent<Camera>();
+        }
+
         /// <summary>
         /// Controls if this camera should render shadows.
         /// </summary>
@@ -294,7 +299,18 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public ScriptableRenderer scriptableRenderer
         {
-            get => UniversalRenderPipeline.asset?.GetRenderer(m_RendererIndex);
+            get
+            {
+                if(!UniversalRenderPipeline.asset.ValidateRendererData(m_RendererIndex))
+                {
+                    int defaultIndex = UniversalRenderPipeline.asset.m_DefaultRendererIndex;
+                    Debug.LogWarning(
+                        $"Renderer at <b>index {m_RendererIndex.ToString()}</b> is missing for camera <b>{camera.name}</b>, falling back to Default Renderer. <b>{UniversalRenderPipeline.asset.m_RendererDataList[defaultIndex].name}</b>",
+                        UniversalRenderPipeline.asset);
+                    return UniversalRenderPipeline.asset.GetRenderer(defaultIndex);
+                }
+                return UniversalRenderPipeline.asset.GetRenderer(m_RendererIndex);
+            }
         }
 
         /// <summary>
