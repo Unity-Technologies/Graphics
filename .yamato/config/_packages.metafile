@@ -56,7 +56,6 @@ packages:
     hascodependencies: 1
 platforms:
   - name: Win
-  - name: OSX
 agent_pack: package_ci_win_large 
 agent_publish: package_ci_win_large 
 agent_publish_all: package_ci_ubuntu_large 
