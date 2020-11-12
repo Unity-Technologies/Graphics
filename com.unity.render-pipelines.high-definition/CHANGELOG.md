@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed issue with density volumes flickering when editing shape box.
 
 ## [10.2.0] - 2020-10-19
 
