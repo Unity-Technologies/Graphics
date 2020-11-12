@@ -10,38 +10,29 @@ using UnityEngine.U2D;
 namespace UnityEngine.Experimental.Rendering.Universal
 {
 
-    internal struct ShapeMeshBatch
-    {
-        internal int hashCode;
-        internal int meshCount;
-        internal int startHash;
-        internal int endHash;
-    }
-
     internal static class Light2DBatch
     {
+        private static int kMaxBatchLimit = 1024;
+        
+        static Dictionary<int, Mesh> s_BatchMeshes = new Dictionary<int,Mesh>();
 
-        static Dictionary<ShapeMeshBatch, Mesh> s_BatchMeshes = new Dictionary<ShapeMeshBatch,Mesh>();
+        static CombineInstance[] s_ActiveBatchMeshInstances = new CombineInstance[kMaxBatchLimit];
 
-        static List<CombineInstance> s_ActiveBatchMeshInstances = new List<CombineInstance>();
-
-        static HashSet<ShapeMeshBatch> s_ActiveBatchHashes = new HashSet<ShapeMeshBatch>();
+        private static int[] s_UnusedMeshIndices = new int[kMaxBatchLimit];
+        
+        static HashSet<int> s_ActiveBatchHashes = new HashSet<int>();
 
         static List<Mesh> s_MeshPool = new List<Mesh>();
 
-        static ShapeMeshBatch s_ActiveShapeMeshBatch = new ShapeMeshBatch();
+        static int s_ActiveShapeMeshBatch = 0;
 
         static Material s_ActiveMaterial = null;
-
-        static int s_Batches = 0;
-
-        static int s_MeshCombined = 0;
-
-        internal static Material sActiveMaterial => s_ActiveMaterial;
-
-        internal static int sBatchCount => s_Batches;
-
-        internal static int sMeshCount => s_MeshCombined;
+        
+        internal static int s_ActiveMeshes = 0;
+        
+        internal static int s_Batches = 0; // For tests.
+        
+        internal static int s_CombineOperations = 0; // For tests.
 
         static void StartScope()
         {
@@ -51,29 +42,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static void EndScope()
         {
-            List<ShapeMeshBatch> unusedMeshes = new List<ShapeMeshBatch>();
+            int i = 0;
             foreach (var batchMesh in s_BatchMeshes)
             {
                 if (!s_ActiveBatchHashes.Contains(batchMesh.Key))
                 {
                     s_MeshPool.Add(batchMesh.Value);
-                    unusedMeshes.Add(batchMesh.Key);
+                    s_UnusedMeshIndices[i++] = batchMesh.Key;
                 }
             }
-            foreach (var unusedMesh in unusedMeshes)
+            for (int j = 0; j < i; ++j)
             {
-                s_BatchMeshes.Remove(unusedMesh);
+                s_BatchMeshes.Remove(s_UnusedMeshIndices[j]);
             }
         }
 
         static void StartBatch(Material mat)
         {
-            s_ActiveShapeMeshBatch.hashCode = 16777619;
-            s_ActiveShapeMeshBatch.meshCount = 0;
-            s_ActiveShapeMeshBatch.startHash = 0;
-            s_ActiveShapeMeshBatch.endHash = 0;
+            s_ActiveShapeMeshBatch = 16777619;
             s_ActiveMaterial = mat;
-            s_ActiveBatchMeshInstances.Clear();
+            s_ActiveMeshes = 0;
         }
 
         static void AddMesh(Mesh mesh, Transform transform, int hashCode)
@@ -81,14 +69,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             CombineInstance ci = new CombineInstance();
             ci.mesh = mesh;
             ci.transform = transform.localToWorldMatrix;
-            s_ActiveBatchMeshInstances.Add(ci);
-
-            if (s_ActiveShapeMeshBatch.startHash == 0)
-                s_ActiveShapeMeshBatch.startHash = hashCode;
-            s_ActiveShapeMeshBatch.endHash = hashCode;
-            s_ActiveShapeMeshBatch.meshCount = s_ActiveShapeMeshBatch.meshCount + 1;
-            s_ActiveShapeMeshBatch.hashCode = s_ActiveShapeMeshBatch.hashCode * 16777619 ^ hashCode;
-            s_ActiveShapeMeshBatch.hashCode = s_ActiveShapeMeshBatch.hashCode * 16777619 ^ transform.localToWorldMatrix.GetHashCode();
+            s_ActiveBatchMeshInstances[s_ActiveMeshes++] = ci;
+            
+            s_ActiveShapeMeshBatch = s_ActiveShapeMeshBatch * 16777619 ^ hashCode;
+            s_ActiveShapeMeshBatch = s_ActiveShapeMeshBatch * 16777619 ^ mesh.GetHashCode();
+            s_ActiveShapeMeshBatch = s_ActiveShapeMeshBatch * 16777619 ^ transform.localToWorldMatrix.GetHashCode();
         }
 
         internal static void EndBatch(CommandBuffer cmd)
@@ -98,8 +83,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             var material = s_ActiveMaterial;
             s_ActiveMaterial = null;
-            if (s_ActiveBatchMeshInstances.Count == 1)
+            if (s_ActiveMeshes == 1)
             {
+                // If there is only one in batch, just call current one.
                 cmd.DrawMesh(s_ActiveBatchMeshInstances[0].mesh, s_ActiveBatchMeshInstances[0].transform, material);
                 return;
             }
@@ -113,15 +99,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     mesh.Clear();
                     s_MeshPool.RemoveAt(s_MeshPool.Count - 1);
                 }
-
-                if (mesh == null)
-                {
-                    mesh = new Mesh();
-                }
-
-                s_MeshCombined++;
-                mesh.CombineMeshes(s_ActiveBatchMeshInstances.ToArray());
+                mesh ??= new Mesh();
+                
+                CombineInstance[] ci = new CombineInstance[s_ActiveMeshes];
+                Array.Copy(s_ActiveBatchMeshInstances, ci, s_ActiveMeshes);
+                mesh.CombineMeshes(ci);
                 s_BatchMeshes.Add(s_ActiveShapeMeshBatch, mesh);
+                s_CombineOperations++;
             }
 
             s_ActiveBatchHashes.Add(s_ActiveShapeMeshBatch);
@@ -141,15 +125,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (!light.shadowsEnabled)
                 {
-                    if (Light2DBatch.sActiveMaterial == null || Light2DBatch.sActiveMaterial != material)
+                    if (s_ActiveMaterial == null || s_ActiveMaterial != material || s_ActiveMeshes >= kMaxBatchLimit)
                     {
                         // If this is not the same material, end any previous valid batch.
-                        if (Light2DBatch.sActiveMaterial)
-                            Light2DBatch.EndBatch(cmd);
-                        Light2DBatch.StartBatch(material);
+                        if (s_ActiveMaterial)
+                            EndBatch(cmd);
+                        StartBatch(material);
                     }
 
-                    Light2DBatch.AddMesh(light.lightMesh, light.transform, light.hashCode);
+                    AddMesh(light.lightMesh, light.transform, light.hashCode);
                     return true;
                 }
             }

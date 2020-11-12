@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             m_Camera.GetComponent<Camera>().Render();
             yield return null;            
 
-            Assert.AreEqual(0, Light2DBatch.sBatchCount);
+            Assert.AreEqual(0, Light2DBatch.s_Batches);
         }
         
         [UnityTest]
@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             m_Camera.GetComponent<Camera>().Render();
             yield return null;            
             
-            Assert.AreEqual(1, Light2DBatch.sBatchCount);
+            Assert.AreEqual(1, Light2DBatch.s_Batches);
         }     
         
         [UnityTest]
@@ -239,7 +239,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             m_Camera.GetComponent<Camera>().Render();
             yield return null;            
             
-            Assert.AreEqual(0, Light2DBatch.sBatchCount);
+            Assert.AreEqual(0, Light2DBatch.s_Batches);
         }             
      
         [UnityTest]
@@ -269,12 +269,12 @@ namespace UnityEngine.Rendering.Universal.Tests
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
 
-            meshCount = Light2DBatch.sMeshCount;
+            meshCount = Light2DBatch.s_CombineOperations;
             
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
             
-            Assert.AreEqual(meshCount, Light2DBatch.sMeshCount);
+            Assert.AreEqual(meshCount, Light2DBatch.s_CombineOperations);
         }           
         
         [UnityTest]
@@ -304,18 +304,18 @@ namespace UnityEngine.Rendering.Universal.Tests
             yield return null;
 
             light2.transform.position = new Vector3(0, 0, 100.0f);
-            meshCount = Light2DBatch.sMeshCount;
+            meshCount = Light2DBatch.s_CombineOperations;
             
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
             
-            Assert.AreNotEqual(meshCount, Light2DBatch.sMeshCount);
-            meshCount = Light2DBatch.sMeshCount;
+            Assert.AreNotEqual(meshCount, Light2DBatch.s_CombineOperations);
+            meshCount = Light2DBatch.s_CombineOperations;
             
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
             
-            Assert.AreEqual(meshCount, Light2DBatch.sMeshCount);            
+            Assert.AreEqual(meshCount, Light2DBatch.s_CombineOperations);            
         }              
         
         [UnityTest]
@@ -347,18 +347,18 @@ namespace UnityEngine.Rendering.Universal.Tests
             var shapePath2 = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 2, 0) };
             light2.SetShapePath(shapePath2);
             light2.UpdateMesh(true);
-            meshCount = Light2DBatch.sMeshCount;
+            meshCount = Light2DBatch.s_CombineOperations;
             
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
             
-            Assert.AreNotEqual(meshCount, Light2DBatch.sMeshCount);
-            meshCount = Light2DBatch.sMeshCount;
+            Assert.AreNotEqual(meshCount, Light2DBatch.s_CombineOperations);
+            meshCount = Light2DBatch.s_CombineOperations;
             
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
             
-            Assert.AreEqual(meshCount, Light2DBatch.sMeshCount);            
+            Assert.AreEqual(meshCount, Light2DBatch.s_CombineOperations);            
         }           
         
         [UnityTest]
@@ -388,18 +388,18 @@ namespace UnityEngine.Rendering.Universal.Tests
             yield return null;
 
             light2.color = Color.grey;
-            meshCount = Light2DBatch.sMeshCount;
+            meshCount = Light2DBatch.s_CombineOperations;
             
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
             
-            Assert.AreNotEqual(meshCount, Light2DBatch.sMeshCount);
-            meshCount = Light2DBatch.sMeshCount;
+            Assert.AreNotEqual(meshCount, Light2DBatch.s_CombineOperations);
+            meshCount = Light2DBatch.s_CombineOperations;
             
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
             
-            Assert.AreEqual(meshCount, Light2DBatch.sMeshCount);            
+            Assert.AreEqual(meshCount, Light2DBatch.s_CombineOperations);            
         }                   
         
     }
