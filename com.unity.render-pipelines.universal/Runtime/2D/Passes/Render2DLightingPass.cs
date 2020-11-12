@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_InverseHDREmulationScaleID = Shader.PropertyToID("_InverseHDREmulationScale");
         private static readonly int k_UseSceneLightingID = Shader.PropertyToID("_UseSceneLighting");
         private static readonly int k_RendererColorID = Shader.PropertyToID("_RendererColor");
+        private static readonly int k_CameraSortingLayerTextureID = Shader.PropertyToID("_CameraSortingLayerTexture");
 
         private static readonly int[] k_ShapeLightTextureIDs =
         {
@@ -71,6 +72,32 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
             }
         }
+
+        private void CopyCameraSortingLayerRenderTexture(ScriptableRenderContext context, RenderingData renderingData)
+        {
+            var cmd = CommandBufferPool.Get();
+            cmd.Clear();
+            this.CreateCameraSortingLayerRenderTexture(renderingData, cmd, m_Renderer2DData.cameraSortingLayerDownsamplingMethod);
+
+            Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_Renderer2DData.samplingMaterial : m_Renderer2DData.blitMaterial;
+            RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+            cmd.SetRenderTarget(colorAttachment);
+            cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
+            context.ExecuteCommandBuffer(cmd);
+        }
+
+        private short GetCameraSortingLayerBoundsIndex()
+        {
+            SortingLayer[] sortingLayers = Light2DManager.GetCachedSortingLayer();
+            for (short i = 0; i < sortingLayers.Length; i++)
+            {
+                if (sortingLayers[i].id == m_Renderer2DData.cameraSortingLayerTextureBound)
+                    return (short)sortingLayers[i].value;
+            }
+
+            return short.MinValue;
+        }
+
 
         private int DrawLayerBatches(
             LayerBatch[] layerBatches,
@@ -163,8 +190,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
 
-                        filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+
+                        short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
+                        // If our camera sorting layer texture bound is inside our batch we need to break up the DrawRenderers into two batches
+                        if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
+                        {
+                            filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, cameraSortingLayerBoundsIndex);
+                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                            CopyCameraSortingLayerRenderTexture(context, renderingData);
+
+                            filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
+                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                        }
+                        else
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                            if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
+                                CopyCameraSortingLayerRenderTexture(context, renderingData);
+                        }
+
+
 
                         // Draw light volumes
                         if (layerBatch.lightStats.totalVolumetricUsage > 0)

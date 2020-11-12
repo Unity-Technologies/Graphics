@@ -37,9 +37,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
             m_Render2DLightingPass = new Render2DLightingPass(data);
-            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+            m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, data.m_BlitMaterial);
+            m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, data.m_BlitMaterial);
+            m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, data.m_BlitMaterial);
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -67,8 +67,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_PostProcessPass.Cleanup();
             m_FinalPostProcessPass.Cleanup();
             m_ColorGradingLutPass.Cleanup();
-            
-            CoreUtils.Destroy(m_BlitMaterial);
         }
 
         public Renderer2DData GetRenderer2DData()
@@ -95,6 +93,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || !cameraData.isDefaultViewport
                     || !m_UseDepthStencilBuffer
                     || !cameraData.resolveFinalTarget
+                    || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
                 m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;

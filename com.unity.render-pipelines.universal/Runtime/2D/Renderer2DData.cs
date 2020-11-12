@@ -43,6 +43,15 @@ namespace UnityEngine.Experimental.Rendering.Universal
         bool m_UseDepthStencilBuffer = true;
 
         [SerializeField]
+        bool m_UseCameraSortingLayersTexture = false;
+
+        [SerializeField]
+        int m_CameraSortingLayersTextureBound = 0;
+
+        [SerializeField]
+        Downsampling m_CameraSortingLayerDownsamplingMethod = Downsampling.None;
+
+        [SerializeField]
         uint m_MaxLightRenderTextureCount = 16;
 
         [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
@@ -60,6 +69,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField, Reload("Shaders/Utils/Blit.shader")]
         Shader m_BlitShader = null;
 
+        [SerializeField, Reload("Shaders/Utils/Sampling.shader")]
+        Shader m_SamplingShader = null;
+
         [SerializeField, Reload("Shaders/2D/ShadowGroup2D.shader")]
         Shader m_ShadowGroupShader = null;
 
@@ -76,6 +88,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [HideInInspector]
         private Texture2D m_FallOffLookup = null;
 
+        internal Material m_BlitMaterial;
+        internal Material m_SamplingMaterial;
+
         public float hdrEmulationScale => m_HDREmulationScale;
         internal float lightRenderTextureScale => m_LightRenderTextureScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
@@ -86,12 +101,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader pointLightShader => m_PointLightShader;
         internal Shader pointLightVolumeShader => m_PointLightVolumeShader;
         internal Shader blitShader => m_BlitShader;
+        internal Shader samplingShader => m_SamplingShader;
         internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
         internal PostProcessData postProcessData => m_PostProcessData;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
         internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;
+        internal bool useCameraSortingLayerTexture => m_UseCameraSortingLayersTexture;
+        internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
+        internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
+        internal Material blitMaterial => m_BlitMaterial;
+        internal Material samplingMaterial => m_SamplingMaterial;
 
         protected override ScriptableRenderer Create()
         {
@@ -125,6 +146,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 shadowMaterials = new Material[totalMaterials];
             if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
                 removeSelfShadowMaterials = new Material[totalMaterials];
+
+            m_BlitMaterial = CoreUtils.CreateEngineMaterial(blitShader);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(samplingShader);
         }
 
         // transient data
@@ -136,6 +160,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal float normalsRenderTargetScale { get; set; }
         internal RenderTargetHandle normalsRenderTarget;
         internal RenderTargetHandle shadowsRenderTarget;
+        internal RenderTargetHandle cameraSortingLayerRenderTarget;
 
         // this shouldn've been in RenderingData along with other cull results
         internal ILight2DCullResult lightCullResult { get; set; }
