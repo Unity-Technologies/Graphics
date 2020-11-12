@@ -48,7 +48,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -98,7 +98,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -184,7 +184,7 @@ Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -238,7 +238,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_L
         CUSTOM_REVISION: custom_revision_not_set
         BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
+      -  git clone git@github.com:Unity-Technologies/BoatAttack.git#%BOAT_ATTACK_REVISION% TestProjects/BoatAttack
       -  choco source add -n Unity -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
       -  choco install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
