@@ -552,7 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 var compositorData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                 if (compositorData)
-                    compositorData.clearColorTexture = (m_Show && m_InputTexture != null) ? m_InputTexture : Texture2D.blackTexture;
+                    compositorData.clearColorTexture = (m_Show && m_InputTexture != null) ? m_InputTexture : null;
             }
 
             if (m_LayerCamera.enabled)
@@ -653,14 +653,16 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 if (layerPositionInStack != 0)
                 {
-                    // The next layer in the stack should clear with the texture of the previous layer: this will copy the content of the target RT to the RTHandle and preserve post process
+                    // The next layer in the stack should clear with the texture of the previous layer:
+                    // this will copy the content of the target RT to the RTHandle and preserve post process
+                    // Unless we have an image layer with a valid texture: in this case we use the texture as clear color
                     cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.None;
                     var compositorData = m_LayerCamera.GetComponent<AdditionalCompositorData>();
                     if (!compositorData)
                     {
                         compositorData = m_LayerCamera.gameObject.AddComponent<AdditionalCompositorData>();
                     }
-                    if (m_Type != LayerType.Image)
+                    if (m_Type != LayerType.Image || (m_Type == LayerType.Image && m_InputTexture == null))
                     {
                         compositorData.clearColorTexture = targetLayer.GetRenderTarget();
                         compositorData.clearDepthTexture = targetLayer.m_RTHandle;
