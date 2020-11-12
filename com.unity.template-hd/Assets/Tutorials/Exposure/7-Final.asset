@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,18 +36,17 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Congratulations!
-      m_Description: 'You have finished the <b>Exposure</b> tutorial. While its not
-        an easy task to get use to physically correct light values and exposure,
-        learning these topics can help you greatly when aiming for photorealism.
-
-
-        More
-        info about Exposure can be found in our  <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Override-Exposure.html">documentation.</a>
-
-
-        Note:
-        You do not need to save in order to follow other tutorials.'
+      Title:
+        m_Untranslated: Congratulations!
+      Text:
+        m_Untranslated: "You have finished the <b>Exposure</b> tutorial. While its
+          not an easy task to get use to physically correct light values and exposure,
+          learning these topics can help you greatly when aiming for photorealism.\n\nHere
+          is a<a href=\"https://youtu.be/yqCHiZrgKzs?t=1026\">video</a> tutorial
+          on the subject. \nMore info about Exposure can be found in our  <a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Override-Exposure.html\">documentation.</a>\n\nNote:
+          You do not need to save in order to follow other tutorials."
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -74,13 +77,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

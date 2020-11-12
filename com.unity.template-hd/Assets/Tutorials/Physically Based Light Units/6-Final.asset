@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,24 +36,19 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Congratulations!
-      m_Description: 'You completed the tutorial. Learning to use Physically Based
-        Light values can greatly help achieve realistic looks.
-
-
-        While we
-        did not use IES profiles in this demo, they are files often privided by the
-        manufacturers that are really easy to use and can add more detail to your
-        light sources. See href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/IES-Profile.html"<a>IES
-        profiles</a>
-
-
-        When talking about  physically corrent lighting it
-        is crucial to also understand Exposure, which we will cover in the next chapter.
-
-
-        Note:
-        You do not need to save in order to follow other tutorials.'
+      Title:
+        m_Untranslated: Congratulations!
+      Text:
+        m_Untranslated: "You completed the tutorial. Learning to use Physically Based
+          Light values can greatly help achieve realistic looks.\n\nHere is a<a href=\"https://youtu.be/yqCHiZrgKzs?t=1936\">video</a>
+          tutorial on the subject. \n\nWhile we did not use IES profiles in this
+          demo, they are files often privided by the manufacturers that are really
+          easy to use and can add more detail to your light sources. See href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/IES-Profile.html\"<a>IES
+          profiles</a>\n\nWhen talking about  physically corrent lighting it is crucial
+          to also understand Exposure, which we will cover in the next chapter.\n\nNote:
+          You do not need to save in order to follow other tutorials."
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -80,13 +79,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
