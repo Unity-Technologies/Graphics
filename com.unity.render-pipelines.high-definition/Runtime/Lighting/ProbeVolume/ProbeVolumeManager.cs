@@ -51,10 +51,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             volumes.Remove(volume);
-
-            HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            if (hdrp != null)
-                hdrp.ReleaseProbeVolumeFromAtlas(volume);
         }
 
 #if UNITY_EDITOR

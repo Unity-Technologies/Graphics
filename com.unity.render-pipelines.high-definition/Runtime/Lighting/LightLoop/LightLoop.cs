@@ -555,11 +555,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
 
-        // HDRenderPipeline needs to cache m_ProbeVolumeList as a member variable, as it cannot be passed in directly into BuildGPULightListProbeVolumesCommon() async compute
-        // due to the HDGPUAsyncTask API. We could have extended HDGPUAsyncTaskParams definition to contain a ProbeVolumeList, but this seems worse, as all other async compute
-        // tasks do not care about it.
-        ProbeVolumeList m_ProbeVolumeList;
-
         // This control if we use cascade borders for directional light by default
         static internal readonly bool s_UseCascadeBorders = true;
 
@@ -2691,7 +2686,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2774,14 +2769,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Inject density volumes into the clustered data structure for efficient look up.
                 m_DensityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
-                m_ProbeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
-
-                bool probeVolumeNormalBiasEnabled = false;
-                if (ShaderConfig.s_EnableProbeVolumes == 1)
-                {
-                    var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-                    probeVolumeNormalBiasEnabled = !(settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
-                }
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
@@ -2798,16 +2785,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Density volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
                         CreateBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
-                        m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
-                        m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-                    }
-
-                    for (int i = 0, n = m_ProbeVolumeCount; i < n; i++)
-                    {
-                        // Probe volumes are not lights and therefore should not affect light classification.
-                        LightFeatureFlags featureFlags = 0;
-                        float probeVolumeNormalBiasWS = probeVolumeNormalBiasEnabled ? probeVolumes.data[i].normalBiasWS : 0.0f;
-                        CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeNormalBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
                         m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                     }
@@ -3463,14 +3440,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             return parameters;
-        }
-
-        // Note: This is a trivial setter and could be removed if we do not like that style.
-        // I exposed it as a function, even though it will only ever be set by HDRenderPipeline just to make it more clear that
-        // m_ProbeVolumeList is not set inside of LightLoop.cs
-        void SetProbeVolumeList(ProbeVolumeList probeVolumeList)
-        {
-            m_ProbeVolumeList = probeVolumeList;
         }
 
         void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)

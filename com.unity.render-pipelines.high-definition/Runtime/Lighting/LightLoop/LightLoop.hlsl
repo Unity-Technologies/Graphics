@@ -505,6 +505,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         if (uninitialized)
 #endif
         {
+            /*
             // Need to make sure not to apply ModifyBakedDiffuseLighting() twice to our bakeDiffuseLighting data, which could happen if we are dealing with initialized data (light maps).
             // Create a local BuiltinData variable here, and then add results to builtinData.bakeDiffuseLighting at the end.
             BuiltinData builtinDataProbeVolumes;
@@ -550,6 +551,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             // Note: builtinDataProbeVolumes.bakeDiffuseLighting and builtinDataProbeVolumes.backBakeDiffuseLighting were combine inside of ModifyBakedDiffuseLighting().
             builtinData.bakeDiffuseLighting += builtinDataProbeVolumes.bakeDiffuseLighting;
+            */
         }
     }
 #endif
