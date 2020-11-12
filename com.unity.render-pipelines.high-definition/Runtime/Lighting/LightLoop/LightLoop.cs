@@ -644,7 +644,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightList m_lightList;
         int m_TotalLightCount = 0;
         int m_DensityVolumeCount = 0;
-        int m_ProbeVolumeCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -2791,10 +2790,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount;
-                if (ShaderConfig.s_EnableProbeVolumes == 1)
-                {
-                    m_TotalLightCount += m_ProbeVolumeCount;
-                }
 
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
@@ -3373,7 +3368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.lightList = m_lightList;
             parameters.skyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera);
             parameters.useComputeAsPixel = DeferredUseComputeAsPixel(hdCamera.frameSettings);
-            parameters.probeVolumeEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && m_ProbeVolumeCount > 0;
+            parameters.probeVolumeEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume);
 
             bool isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 

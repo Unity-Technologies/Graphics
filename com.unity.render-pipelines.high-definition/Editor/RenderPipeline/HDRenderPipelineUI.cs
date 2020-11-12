@@ -974,6 +974,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
 
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
+            {
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+                using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
+                {
+                    ++EditorGUI.indentLevel;
+
+                    if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
+                        EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
+                    
+                    --EditorGUI.indentLevel;
+                }
+            } // s_ProbeVolumesEvaluationMode
+
             EditorGUILayout.Space(); //to separate with following sub sections
         }
 

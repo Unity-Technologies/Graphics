@@ -33,28 +33,10 @@ namespace UnityEditor.Rendering.HighDefinition
             CED.Conditional(
                 IsFeatureEnabled,
                 CED.Group(
-                    CED.FoldoutGroup(
-                        Styles.k_VolumeHeader,
-                        Expandable.Volume,
-                        k_ExpandedStateVolume,
-                        Drawer_ToolBar,
-                        Drawer_AdvancedSwitch,
-                        Drawer_VolumeContent
-                        ),
-                    CED.space,
-                    CED.FoldoutGroup(
-                        Styles.k_ProbesHeader,
-                        Expandable.Probes,
-                        k_ExpandedStateProbes,
-                        Drawer_PrimarySettings
-                        ),
-                    CED.space,
-                    CED.FoldoutGroup(
-                        Styles.k_BakingHeader,
-                        Expandable.Baking,
-                        k_ExpandedStateBaking,
-                        Drawer_BakeToolBar
-                        )
+                    Drawer_ToolBar,
+                    Drawer_AdvancedSwitch,
+                    Drawer_VolumeContent,
+                    Drawer_BakeToolBar
                     )
                 )
             );
@@ -81,13 +63,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
-            EditorGUILayout.Slider(serialized.backfaceTolerance, 0.0f, 1.0f, Styles.s_BackfaceToleranceLabel);
-            EditorGUILayout.PropertyField(serialized.dilationIterations, Styles.s_DilationIterationLabel);
+            //EditorGUILayout.PropertyField(serialized.probeVolumeAsset, Styles.s_DataAssetLabel);
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Bake Selected"))
             {
-                
+
             }
             GUILayout.EndHorizontal();
         }
@@ -109,50 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 owner);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
-        }
-
-        static void Drawer_PrimarySettings(SerializedProbeVolume serialized, Editor owner)
-        {
-            EditorGUILayout.PropertyField(serialized.drawProbes, Styles.s_DrawProbesLabel);
-            EditorGUILayout.PropertyField(serialized.probeSpacingMode, Styles.s_ProbeSpacingModeLabel);
-            switch ((ProbeSpacingMode)serialized.probeSpacingMode.enumValueIndex)
-            {
-                case ProbeSpacingMode.Density:
-                {
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.DelayedFloatField(serialized.densityX, Styles.s_DensityXLabel);
-                    EditorGUILayout.DelayedFloatField(serialized.densityY, Styles.s_DensityYLabel);
-                    EditorGUILayout.DelayedFloatField(serialized.densityZ, Styles.s_DensityZLabel);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        serialized.resolutionX.intValue = Mathf.Max(1, Mathf.RoundToInt(serialized.densityX.floatValue * serialized.size.vector3Value.x));
-                        serialized.resolutionY.intValue = Mathf.Max(1, Mathf.RoundToInt(serialized.densityY.floatValue * serialized.size.vector3Value.y));
-                        serialized.resolutionZ.intValue = Mathf.Max(1, Mathf.RoundToInt(serialized.densityZ.floatValue * serialized.size.vector3Value.z));
-                    }
-                    break;
-                }
-
-                case ProbeSpacingMode.Resolution:
-                {
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.DelayedIntField(serialized.resolutionX, Styles.s_ResolutionXLabel);
-                    EditorGUILayout.DelayedIntField(serialized.resolutionY, Styles.s_ResolutionYLabel);
-                    EditorGUILayout.DelayedIntField(serialized.resolutionZ, Styles.s_ResolutionZLabel);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        serialized.resolutionX.intValue = Mathf.Max(1, serialized.resolutionX.intValue);
-                        serialized.resolutionY.intValue = Mathf.Max(1, serialized.resolutionY.intValue);
-                        serialized.resolutionZ.intValue = Mathf.Max(1, serialized.resolutionZ.intValue);
-
-                        serialized.densityX.floatValue = (float)serialized.resolutionX.intValue / Mathf.Max(1e-5f, serialized.size.vector3Value.x);
-                        serialized.densityY.floatValue = (float)serialized.resolutionY.intValue / Mathf.Max(1e-5f, serialized.size.vector3Value.y);
-                        serialized.densityZ.floatValue = (float)serialized.resolutionZ.intValue / Mathf.Max(1e-5f, serialized.size.vector3Value.z);
-                    }
-                    break;
-                }
-
-                default: break;
-            }
         }
 
         static void Drawer_AdvancedSwitch(SerializedProbeVolume serialized, Editor owner)
@@ -186,84 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
                 serialized.size.vector3Value = tmpClamp;
             }
-
-            Vector3 s = serialized.size.vector3Value;
-            EditorGUI.BeginChangeCheck();
-            if (serialized.advancedFade.boolValue)
-            {
-                EditorGUI.BeginChangeCheck();
-                CoreEditorUtils.DrawVector6(Styles.s_BlendLabel, serialized.positiveFade, serialized.negativeFade, Vector3.zero, s, InfluenceVolumeUI.k_HandlesColor, serialized.size);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    //forbid positive/negative box that doesn't intersect in inspector too
-                    Vector3 positive = serialized.positiveFade.vector3Value;
-                    Vector3 negative = serialized.negativeFade.vector3Value;
-                    for (int axis = 0; axis < 3; ++axis)
-                    {
-                        if (positive[axis] > 1f - negative[axis])
-                        {
-                            if (positive == serialized.positiveFade.vector3Value)
-                            {
-                                negative[axis] = 1f - positive[axis];
-                            }
-                            else
-                            {
-                                positive[axis] = 1f - negative[axis];
-                            }
-                        }
-                    }
-
-                    serialized.positiveFade.vector3Value = positive;
-                    serialized.negativeFade.vector3Value = negative;
-                }
-            }
-            else
-            {
-                EditorGUI.BeginChangeCheck();
-                float distanceMax = Mathf.Min(s.x, s.y, s.z);
-                float uniformFadeDistance = serialized.uniformFade.floatValue * distanceMax;
-                uniformFadeDistance = EditorGUILayout.FloatField(Styles.s_BlendLabel, uniformFadeDistance);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serialized.uniformFade.floatValue = Mathf.Clamp(uniformFadeDistance / distanceMax, 0f, 0.5f);
-                }
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                Vector3 posFade = new Vector3();
-                posFade.x = Mathf.Clamp01(serialized.positiveFade.vector3Value.x);
-                posFade.y = Mathf.Clamp01(serialized.positiveFade.vector3Value.y);
-                posFade.z = Mathf.Clamp01(serialized.positiveFade.vector3Value.z);
-
-                Vector3 negFade = new Vector3();
-                negFade.x = Mathf.Clamp01(serialized.negativeFade.vector3Value.x);
-                negFade.y = Mathf.Clamp01(serialized.negativeFade.vector3Value.y);
-                negFade.z = Mathf.Clamp01(serialized.negativeFade.vector3Value.z);
-
-                serialized.positiveFade.vector3Value = posFade;
-                serialized.negativeFade.vector3Value = negFade;
-            }
-
-            // Distance fade.
-            {
-                EditorGUI.BeginChangeCheck();
-
-                float distanceFadeStart = EditorGUILayout.FloatField(Styles.s_DistanceFadeStartLabel, serialized.distanceFadeStart.floatValue);
-                float distanceFadeEnd   = EditorGUILayout.FloatField(Styles.s_DistanceFadeEndLabel,   serialized.distanceFadeEnd.floatValue);
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    distanceFadeStart = Mathf.Max(0, distanceFadeStart);
-                    distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
-
-                    serialized.distanceFadeStart.floatValue = distanceFadeStart;
-                    serialized.distanceFadeEnd.floatValue   = distanceFadeEnd;
-                }
-            }
-
-            EditorGUILayout.PropertyField(serialized.lightLayers);
-            EditorGUILayout.PropertyField(serialized.volumeBlendMode, Styles.s_VolumeBlendModeLabel);
-            EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
+            
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
         }
     }

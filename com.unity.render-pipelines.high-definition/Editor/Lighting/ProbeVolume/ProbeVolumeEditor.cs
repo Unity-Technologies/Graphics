@@ -93,9 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected void OnSceneGUI()
         {
             ProbeVolume probeVolume = target as ProbeVolume;
-
-
-
+            
             if (!blendBoxes.TryGetValue(probeVolume, out HierarchicalBox blendBox)) { return; }
             if (!shapeBoxes.TryGetValue(probeVolume, out HierarchicalBox shapeBox)) { return; }
 
@@ -117,20 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             Undo.RecordObject(probeVolume, "Change Probe Volume Blend");
 
-                            //work in local space to compute the change on positiveFade and negativeFade
-                            Vector3 newCenterBlendLocalPosition = blendBox.center;
-                            Vector3 halfSize = blendBox.size * 0.5f;
-                            Vector3 size = probeVolume.parameters.size;
-                            Vector3 posFade = newCenterBlendLocalPosition + halfSize;
-                            posFade.x = 0.5f - posFade.x / size.x;
-                            posFade.y = 0.5f - posFade.y / size.y;
-                            posFade.z = 0.5f - posFade.z / size.z;
-                            Vector3 negFade = newCenterBlendLocalPosition - halfSize;
-                            negFade.x = 0.5f + negFade.x / size.x;
-                            negFade.y = 0.5f + negFade.y / size.y;
-                            negFade.z = 0.5f + negFade.z / size.z;
-                            probeVolume.parameters.positiveFade = posFade;
-                            probeVolume.parameters.negativeFade = negFade;
+                            
                         }
                     }
                     break;
