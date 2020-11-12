@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Cinematic Physical Camera
+  m_Name: CinematicPhysicalCamera
   m_EditorClassIdentifier: 
   components:
   - {fileID: 8680965241258278511}
@@ -165,22 +165,22 @@ MonoBehaviour:
     m_Value: 200
     min: 0
   m_NearSampleCount:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 5
     min: 3
     max: 8
   m_NearMaxBlur:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 4
     min: 0
     max: 8
   m_FarSampleCount:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 7
     min: 3
     max: 16
   m_FarMaxBlur:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 8
     min: 0
     max: 16
@@ -189,7 +189,7 @@ MonoBehaviour:
     m_Value: 1
   m_Resolution:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
   m_PhysicallyBased:
     m_OverrideState: 1
     m_Value: 0
