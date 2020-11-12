@@ -3,8 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk:
-    name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode_mono_apiNet2_Linear on version trunk
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
+URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_trunk:
+    name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -18,15 +22,15 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/Top-URP-Assets/Logs/*.log"
-URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_apiNet2_Linear_trunk:
-    name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode_mono_apiNet2_Linear on version trunk
+URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_trunk:
+    name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -40,15 +44,15 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_apiNet2_Linear_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/Top-URP-Assets/Logs/*.log"
-URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_Top_Asset_Store on Win_Vulkan_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -64,7 +68,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISIO
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -73,8 +77,8 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISIO
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -90,7 +94,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISIO
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/URP-Update-testing/Top-URP-Assets && unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-vulkan"
+      -  cd TestProjects/URP-Update-testing/Top-URP-Assets && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:

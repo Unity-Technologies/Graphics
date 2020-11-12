@@ -3,77 +3,89 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
 All_HDRP_trunk:
     name: All HDRP CI - trunk
     dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_apiNet2_Linear_trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_trunk
          rerun: on-new-revision
 All_HDRP_CUSTOM-REVISION:
     name: All HDRP CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_NonRenderGraph_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_CUSTOM-REVISION
          rerun: always

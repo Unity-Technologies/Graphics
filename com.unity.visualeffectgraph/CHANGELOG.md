@@ -5,9 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [11.0.0] - 2020-10-21
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
 
 ## [10.2.0] - 2020-10-19
 ### Added
@@ -17,8 +16,11 @@ The version number for this package has increased due to a version update of a r
 - New Position on Signed Distance Field block
 - Added command to delete unuser parameters.
 - Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
+- New particle strip attribute in Initialize: spawnIndexInStrip
+- Added Get Strip Index subgraph utility operator in Additional Samples
+- Added Encompass (Point) subgraph utility operator in Additional Samples
 
-## Fixed
+### Fixed
 - "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
 - Fix [Case 1268977](https://issuetracker.unity3d.com/product/unity/issues/guid/1268977/)
 - Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
@@ -46,6 +48,15 @@ The version number for this package has increased due to a version update of a r
 - Addressing for mirror and clamp modes in sequential operators and blocks
 - Incorrect volume spawning for Sphere & Circle with thickness absolute
 - Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fixed rare bug causing the vfx compilation to do nothing silently.
+- Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph  
+- SpawnOverDistance spawner block now behaves correctly
+- Quad strip outputs take into account orientation block
+- Fixed Random Vector subgraph utility operator in Additional Samples
+- Fixed Set Strip Progress Attribute utility block in Additional Samples
+- Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
+- Remove temporarily "Exact Fixed Time Step" option on VisualEffectAsset to avoid unexpected behavior
 
 ## [10.1.0] - 2020-10-12
 ### Added

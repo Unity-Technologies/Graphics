@@ -2,7 +2,8 @@
 
 To maximize performance and minimize bandwidth usage, HDRP by default renders image frames in the **R11G11B10** format. However, this format does not include an alpha channel, which might be required for applications that want to composite HDRP's output over other images.
 
-In order to configure HDRP to output an alpha channel, the user should first choose the  **R16G16B16A16** *Color Buffer Format* in the rendering section of the HDRP Asset, which can be found in the [ Edit -> Project Settings ] menu. However, please note that enabling this option will incur a performance overhead.
+In order to configure HDRP to output an alpha channel, the user should first choose the  **R16G16B16A16** *Color Buffer Format* in the rendering section of the HDRP Asset, which can be found in the [ Edit -> Project Settings ] menu. However, please note that enabling this option will incur a performance overhead. In HDRP, opaque materials always output 1 in the alpha channel, unless [Alpha Clipping](Alpha-Clipping) is enabled.
+In case you want to export the alpha of an opaque material, one solution is to enable the alpha clip with a threshold of 0.
 
 Furthermore, when post-processing is enabled, the *Buffer Format* for post-processing operations should also be set to *R16G16B16A16* in order to apply post-processing operation in the alpha channel. This can be selected from the post-processing section of the HDRP asset. If the post-processing format is set to **R11G11B10**, then HDRP will output a copy of the alpha channel without any post-processing on it.
 

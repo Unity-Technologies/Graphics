@@ -253,6 +253,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        public void SetSubblocksFlattenedParent()
+        {
+            VFXContext parent = GetParent();
+            foreach (var block in recursiveSubBlocks)
+                block.flattenedParent = parent;
+        }
+
         protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kSettingChanged)

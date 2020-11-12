@@ -94,9 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new HDEditorUtils.IndentScope())
             {
                 // Draw the quality controls
-                GUI.enabled = GUI.enabled && base.overrideState;
                 DrawQualitySettings();
-                GUI.enabled = true;
             }
         }
 

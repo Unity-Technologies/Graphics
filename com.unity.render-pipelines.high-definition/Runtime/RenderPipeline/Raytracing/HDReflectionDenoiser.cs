@@ -128,6 +128,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.noisyToOutputSignal);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._HistoryBuffer, reflDenoiserResources.historySignal);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
+            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraDepthTexture, reflDenoiserResources.depthBuffer);
+
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer0);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, reflDenoiserResources.motionVectorBuffer);
@@ -171,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle noisyToOutputSignal;
         }
 
-        public TextureHandle DenoiseRTR(RenderGraph renderGraph, in ReflectionDenoiserParameters parameters,
+        public TextureHandle DenoiseRTR(RenderGraph renderGraph, in ReflectionDenoiserParameters parameters, HDCamera hdCamera,
                                 TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, RTHandle historyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection)))
@@ -182,6 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.ReadTexture(depthPyramid);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+
                 passData.intermediateBuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                 { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture0" });
                 passData.intermediateBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)

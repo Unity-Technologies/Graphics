@@ -3,8 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
-    name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_apiNet2_Linear on version trunk
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
+URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk:
+    name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_Linear on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -18,15 +22,15 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack-19-4/Logs/*.log"
-URPUpdate_BoatAttack_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
-    name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_apiNet2_Linear on version trunk
+URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk:
+    name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_Linear on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -40,15 +44,15 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_apiNet2_Linear_trunk:
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u 37c5ec4c3cb13853f9074c74cbac49a232178bd8 -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.windows.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack-19-4/Logs/*.log"
-URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -64,7 +68,7 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=il2cpp --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=.
     artifacts:
         logs:
             paths:
@@ -73,8 +77,8 @@ URPUpdate_BoatAttack_Win_DX11_playmode_mono_apiNet2_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-URPUpdate_BoatAttack_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_apiNet2_Linear on version CUSTOM-REVISION
+URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack on Win_DX11_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -90,7 +94,7 @@ URPUpdate_BoatAttack_Win_DX11_editmode_mono_apiNet2_Linear_CUSTOM-REVISION:
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-testing/BoatAttack-19-4/Packages/com.unity.shadergraph" /Y
       -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --scripting-backend=Mono2x --extra-editor-arg="-colorspace=Linear" --reruncount=2 --extra-editor-arg="-force-d3d11"
+      -  cd TestProjects/URP-Update-testing/BoatAttack-19-4 && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:

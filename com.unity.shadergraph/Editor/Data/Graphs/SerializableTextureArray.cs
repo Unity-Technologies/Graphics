@@ -23,6 +23,42 @@ namespace UnityEditor.ShaderGraph.Internal
 #pragma warning restore 649
         }
 
+        // used to get a Texture2DArray ref guid without loading the Texture2dArray asset itself into memory
+        [Serializable]
+        class MinimalTextureHelper
+        {
+            [Serializable]
+            public struct MinimalTextureRef
+            {
+                public string guid;
+            }
+            public MinimalTextureRef textureArray;
+        }
+
+        internal string guid
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(m_SerializedTexture))
+                {
+                    var textureHelper = new MinimalTextureHelper();
+                    EditorJsonUtility.FromJsonOverwrite(m_SerializedTexture, textureHelper);
+                    if (!string.IsNullOrEmpty(textureHelper.textureArray.guid))
+                        return textureHelper.textureArray.guid;
+                }
+                if (!string.IsNullOrEmpty(m_Guid))
+                {
+                    return m_Guid;
+                }
+                if (m_TextureArray != null)
+                {
+                    if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_TextureArray, out string guid, out long localId))
+                        return guid;
+                }
+                return null;
+            }
+        }
+
         public Texture2DArray textureArray
         {
             get
