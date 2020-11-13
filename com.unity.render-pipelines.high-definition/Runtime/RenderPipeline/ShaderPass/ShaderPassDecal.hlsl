@@ -4,6 +4,9 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
+#if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/DecalMeshBiasTypeEnum.cs.hlsl"
+#endif
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
@@ -20,7 +23,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 #if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 
     float3 worldSpaceBias = 0.0f;
-    if (_DecalMeshBiasType == 1)
+    if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_VIEW_BIAS)
     {
         float3 positionRWS = TransformObjectToWorld(inputMesh.positionOS);
         float3 V = GetWorldSpaceNormalizeViewDir(positionRWS);
@@ -28,7 +31,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
         worldSpaceBias = V * (_DecalMeshViewBias);
     }
     varyingsType.vmesh = VertMesh(inputMesh, worldSpaceBias);
-    if (_DecalMeshBiasType == 0)
+    if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_DEPTH_BIAS)
     {
         MeshDecalsPositionZBias(varyingsType);
     }

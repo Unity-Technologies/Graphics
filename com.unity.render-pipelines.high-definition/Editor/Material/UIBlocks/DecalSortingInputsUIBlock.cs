@@ -24,9 +24,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public const string header = "Sorting Inputs";
 
-            public static GUIContent meshDecalBiasType = new GUIContent("Mesh Decal Bias Type", "Set the type of bias that is applied to the mesh decal. Depth Bias applies a bias to the final depth value, while View bias applies a world space bias (in cm) alongside the view vector.");
+            public static GUIContent meshDecalBiasType = new GUIContent("Mesh Decal Bias Type", "Set the type of bias that is applied to the mesh decal. Depth Bias applies a bias to the final depth value, while View bias applies a world space bias (in meters) alongside the view vector.");
             public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh Decal Depth Bias", "Sets a depth bias to stop the decal's Mesh from overlapping with other Meshes.");
-            public static GUIContent meshDecalViewBiasText = new GUIContent("Mesh Decal View Bias", "Sets a world-space bias alongside the view vector to stop the decal's Mesh from overlapping with other Meshes. The unit is centimeters.");
+            public static GUIContent meshDecalViewBiasText = new GUIContent("Mesh Decal View Bias", "Sets a world-space bias alongside the view vector to stop the decal's Mesh from overlapping with other Meshes. The unit is meters.");
             public static GUIContent drawOrderText = new GUIContent("Draw Order", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
         }
 
@@ -74,11 +74,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             materialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
             materialEditor.ShaderProperty(decalMeshBiasType, Styles.meshDecalBiasType);
-            if(decalMeshBiasType.floatValue == 0)
+            if ((int)decalMeshBiasType.floatValue == (int)DecalMeshDepthBiasType.DepthBias)
             {
                 materialEditor.ShaderProperty(decalMeshDepthBias, Styles.meshDecalDepthBiasText);
             }
-            else if (decalMeshBiasType.floatValue == 1)
+            else if ((int)decalMeshBiasType.floatValue == (int)DecalMeshDepthBiasType.ViewBias)
             {
                 materialEditor.ShaderProperty(decalMeshViewBias, Styles.meshDecalViewBiasText);
             }
