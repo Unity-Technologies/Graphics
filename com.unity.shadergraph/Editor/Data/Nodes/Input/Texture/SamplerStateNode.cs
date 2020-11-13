@@ -93,8 +93,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForNode()
         {
-            return string.Format(@"SamplerState_{1}_{2}",       // TODO: {0} ??
-                NodeUtils.GetHLSLSafeName(name),
+            return string.Format(@"SamplerState_{0}_{1}",
                 Enum.GetName(typeof(TextureSamplerState.FilterMode), filter), 
                 Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap));
         }
