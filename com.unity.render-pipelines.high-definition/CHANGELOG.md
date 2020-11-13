@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.5.2] - 2020-09-14
 
+### Added
+- Added a warning when trying to bake with static lighting being in an invalid state.
+
 ### Fixed
 - Fixed a null ref exception when baking reflection probes.
 
