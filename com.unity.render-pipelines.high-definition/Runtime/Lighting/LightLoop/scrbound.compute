@@ -16,7 +16,7 @@
 /* ------------------------------ Inputs ------------------------------------ */
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
-StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer : register(t0);
+StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
 
 /* ------------------------------ Outputs ----------------------------------- */
 

@@ -40,21 +40,21 @@
 
 #if (PASS == FILL_COARSE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    StructuredBuffer<float4> _xyBoundsBuffer : register(t0); // {x_min, x_max, y_min, y_max}
+    StructuredBuffer<float4> _xyBoundsBuffer; // {x_min, x_max, y_min, y_max}
 #endif
 
 #if (PASS == PRUNE_COARSE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer  : register(t0);
+    StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    StructuredBuffer<uint>             _SrcCoarseTileBuffer : register(t1); // Index range + index list
+    StructuredBuffer<uint>             _SrcCoarseTileBuffer; // Index range + index list
 #endif
 
 #if (PASS == FILL_FINE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer  : register(t0);
+    StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    StructuredBuffer<uint>             _CoarseTileBuffer    : register(t1); // Index range + index list
+    StructuredBuffer<uint>             _CoarseTileBuffer; // Index range + index list
 #endif
 
 /* ------------------------------ Outputs ----------------------------------- */
@@ -68,12 +68,12 @@
     // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) *
     // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (2 + COARSE_TILE_ENTRY_LIMIT) * 2 bytes per entry.
     // For example (1080p): 30 * 17 * 5 * 1 * (2 + 64) * 2 = 328.71 KiB.
-    RWStructuredBuffer<uint> _CoarseTileBuffer : register(u0); // Index range + index list
+    RWStructuredBuffer<uint> _CoarseTileBuffer; // Index range + index list
 #endif
 
 #if (PASS == PRUNE_COARSE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
-    RWStructuredBuffer<uint> _DstCoarseTileBuffer : register(u0); // Index range + index list
+    RWStructuredBuffer<uint> _DstCoarseTileBuffer; // Index range + index list
 #endif
 
 #if (PASS == FILL_FINE_TILES)
@@ -85,7 +85,7 @@
     // DIV_ROUND_UP(RES_X, FINE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_TILE_SIZE) *
     // BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (2 + FINE_TILE_ENTRY_LIMIT) * 2 bytes per entry.
     // For example (1080p): 240 * 135 * 5 * 1 * (2 + 16) * 2 = 5.56 MiB.
-    RWStructuredBuffer<uint> _FineTileBuffer : register(u0); // Index range + index list
+    RWStructuredBuffer<uint> _FineTileBuffer; // Index range + index list
 #endif
 
 /* ------------------------------ Utilities --------------------------------- */

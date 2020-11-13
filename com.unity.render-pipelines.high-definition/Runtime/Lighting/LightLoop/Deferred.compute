@@ -48,7 +48,7 @@
 #define USE_FPTL_LIGHTLIST 1
 
 // Comment out the line to loop over all lights (for debugging purposes)
-#define FINE_BINNING // Keep in sync with 'classification.compute'
+#define FINE_BINNING // Keep in sync with 'classification.compute' and 'builddispatchindirect.compute'
 
 //-------------------------------------------------------------------------------------
 // Include

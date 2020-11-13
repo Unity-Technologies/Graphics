@@ -12,7 +12,7 @@
 /* ------------------------------ Inputs ------------------------------------ */
 
 // 1x list for all entites (sorted by category, we concatenate lists of all views).
-StructuredBuffer<float2> _wBoundsBuffer : register(t0); // {w_min, w_max}
+StructuredBuffer<float2> _wBoundsBuffer; // {w_min, w_max}
 
 /* ------------------------------ Outputs ----------------------------------- */
 
@@ -20,7 +20,7 @@ StructuredBuffer<float2> _wBoundsBuffer : register(t0); // {w_min, w_max}
 // The size of the buffer can be computed as follows:
 // Z_BIN_COUNT * BOUNDEDENTITYCATEGORY_COUNT * EYE_COUNT * (4 bytes per range).
 // For example (1080p): 8192 * 5 * 1 * 4 = 160 KiB.
-RWStructuredBuffer<uint> _zBinBuffer : register(u0); // {last << 16 | first}
+RWStructuredBuffer<uint> _zBinBuffer; // {last << 16 | first}
 
 /* ------------------------------ Utilities --------------------------------- */
 
