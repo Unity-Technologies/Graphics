@@ -24,7 +24,8 @@
 #define SSGI_FILTER_TILE_SIZE 8
 
 // Noisy buffer input
-TEXTURE2D_X(_InputNoisyBuffer);
+TEXTURE2D_X(_InputNoisyBuffer0);
+TEXTURE2D_X(_InputNoisyBuffer1);
 
 // Constant buffer that should hold all the scalar values require
 CBUFFER_START(UnityScreenSpaceGlobalIllumination)
@@ -32,14 +33,24 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     float4 _HalfScreenSize;
     int _IndirectDiffuseSpatialFilter;
     float _HistoryValidity;
+    float _PixelSpreadAngleTangent;
 CBUFFER_END
 
 // Denoised output buffer
-RW_TEXTURE2D_X(float4, _OutputFilteredBuffer);
+RW_TEXTURE2D_X(float4, _OutputFilteredBuffer0);
+RW_TEXTURE2D_X(float4, _OutputFilteredBuffer1);
 
-#define SPATIAL_FILTER_SIGMA_RATIO 1.0
-#define DEPTH_WEIGHT_MULTIPLIER 1000.0f
+#define SPATIAL_FILTER_SIGMA_RATIO 0.9
+#define DEPTH_WEIGHT_MULTIPLIER 100.0f
 #define NORMAL_WEIGHT_MULTIPLIER 5.0
+// The maximal world space distance for temporal reprojection
+#define MAX_WORLD_SPACE_DISTANCE 0.1
+// The maximal pixel reprojection distance
+#define PIXEL_RADIUS_TOLERANCE_THRESHOLD 4
+
+// Number of samples to compelte the accumulation loop
+#define NUM_SAMPLE_LOOP 8.0
+#define EXPONENTIAL_ACCUMULATION_FACTOR (NUM_SAMPLE_LOOP/(NUM_SAMPLE_LOOP + 1.0f))
 
 [numthreads(SSGI_FILTER_TILE_SIZE, SSGI_FILTER_TILE_SIZE, 1)]
 void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupThreadId : SV_GroupThreadID , uint2 groupId : SV_GroupID)
@@ -52,30 +63,32 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
 #if HALF_RES
     // Get the posinputs of the current version of the pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + centerCoord).r;
-    float4 normalCompressed = LOAD_TEXTURE2D_X(_NormalBufferTexture, centerCoord * 2 );
     NormalData normalData;
-    DecodeFromNormalBuffer(normalCompressed, 0, normalData);
+    DecodeFromNormalBuffer(centerCoord * 2, normalData);
 #else
     // Get the posinputs of the current version of the pixel
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
-    float4 normalCompressed = LOAD_TEXTURE2D_X(_NormalBufferTexture, centerCoord);
     NormalData normalData;
-    DecodeFromNormalBuffer(normalCompressed, 0, normalData);
+    DecodeFromNormalBuffer(centerCoord, normalData);
 #endif
 
     // If the current point we are processing is a background point or the whole history should be discarded for an other reason, we invalidate the history
     if (depth == UNITY_RAW_FAR_CLIP_VALUE)
     {
-        _OutputFilteredBuffer[COORD_TEXTURE2D_X(centerCoord)] = 0;
+        _OutputFilteredBuffer0[COORD_TEXTURE2D_X(centerCoord)] = LOAD_TEXTURE2D_X(_InputNoisyBuffer0, centerCoord);
+        _OutputFilteredBuffer1[COORD_TEXTURE2D_X(centerCoord)] = LOAD_TEXTURE2D_X(_InputNoisyBuffer1, centerCoord);
         return;
     }
 
     // Convert the depth into linear for weight evaluation
     float centerz01 = Linear01Depth(depth, _ZBufferParams);
-    float3 colorSum = 0.0;
+
+    // Initialize the accumulation buffers
+    float4 colorSum0 = 0.0;
+    float3 colorSum1 = 0.0;
     float wSum = 0.0;
-    int2 tapCoord = centerCoord;
-    float sigma = _IndirectDiffuseSpatialFilter * SPATIAL_FILTER_SIGMA_RATIO;
+
+    const float sigma = _IndirectDiffuseSpatialFilter * SPATIAL_FILTER_SIGMA_RATIO;
 
     // Loop through the neighboord and do our filter
     for (int y = -_IndirectDiffuseSpatialFilter; y <= _IndirectDiffuseSpatialFilter; ++y)
@@ -86,7 +99,7 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
             float r = sqrt(x * x + y * y);
 
             // Compute the absolute tap coord
-            tapCoord = centerCoord + int2(x, y);
+            int2 tapCoord = centerCoord + int2(x, y);
 
             // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
 #if HALF_RES
@@ -106,15 +119,16 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
             // Read the depth of the tap pixel
 #if HALF_RES
             float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + tapCoord).r;
-            float4 normalCompressedTap = LOAD_TEXTURE2D_X(_NormalBufferTexture, tapCoord * 2);
             NormalData normalDataTap;
-            DecodeFromNormalBuffer(normalCompressedTap, 0, normalDataTap);
+            DecodeFromNormalBuffer(tapCoord * 2, normalDataTap);
 #else
             float tapDepth = LOAD_TEXTURE2D_X(_DepthTexture, tapCoord).r;
-            float4 normalCompressedTap = LOAD_TEXTURE2D_X(_NormalBufferTexture, tapCoord);
             NormalData normalDataTap;
-            DecodeFromNormalBuffer(normalCompressedTap, 0, normalDataTap);
+            DecodeFromNormalBuffer(tapCoord, normalDataTap);
 #endif
+            if (tapDepth == UNITY_RAW_FAR_CLIP_VALUE)
+                continue;
+
             // Convert the tapped depth to linear for weight evaluation
             float tapz01 = Linear01Depth(tapDepth, _ZBufferParams);
 
@@ -129,18 +143,21 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
             const float w = r ? gaussian(r, sigma) * depthWeight * normalWeight : 1.0;
 
             // Accumuate this value
-            colorSum += LOAD_TEXTURE2D_X(_InputNoisyBuffer, tapCoord).xyz * w;
+            colorSum0 += LOAD_TEXTURE2D_X(_InputNoisyBuffer0, tapCoord).xyzw * w;
+            colorSum1 += LOAD_TEXTURE2D_X(_InputNoisyBuffer1, tapCoord).xyz * w;
             wSum += w;
         }
     }
 
     // Output the result to the buffer and propagate the w channel as is.
     // TODO: We could save bandwidth by doing this using a 111110 texture and storing the w in a different texture
-    _OutputFilteredBuffer[COORD_TEXTURE2D_X(centerCoord)] = float4(colorSum / wSum, LOAD_TEXTURE2D_X(_InputNoisyBuffer, centerCoord).w);
+    _OutputFilteredBuffer0[COORD_TEXTURE2D_X(centerCoord)] = float4(colorSum0 / wSum);
+    _OutputFilteredBuffer1[COORD_TEXTURE2D_X(centerCoord)] = float4(colorSum1 / wSum, LOAD_TEXTURE2D_X(_InputNoisyBuffer1, centerCoord).w);
 }
 
 // History buffer input
-TEXTURE2D_X(_HistoryBuffer);
+TEXTURE2D_X(_HistoryBuffer0);
+TEXTURE2D_X(_HistoryBuffer1);
 // Depth buffer of the previous frame, this is either the full res depth or half res based on the variant of the shader
 TEXTURE2D_X(_HistoryDepthTexture);
 
@@ -154,7 +171,8 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
     int2 centerCoord = dispatchThreadId.xy;
 
     // Read the color as early as possible 
-    float4 color = LOAD_TEXTURE2D_X(_InputNoisyBuffer, centerCoord);
+    float4 color0 = LOAD_TEXTURE2D_X(_InputNoisyBuffer0, centerCoord);
+    float4 color1 = LOAD_TEXTURE2D_X(_InputNoisyBuffer1, centerCoord);
 
 #if HALF_RES
     // We need the full res coordinate for the inputs
@@ -170,8 +188,8 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
 #endif
     
     // Initialize the output buffer in case of an early exit.
-    _OutputFilteredBuffer[COORD_TEXTURE2D_X(centerCoord)] = 0.0;
-
+    _OutputFilteredBuffer0[COORD_TEXTURE2D_X(centerCoord)] = color0;
+    _OutputFilteredBuffer1[COORD_TEXTURE2D_X(centerCoord)] = float4(color1.xyz, 1.0);
 
     // If the current point we are processing is a background point or the whole history should be discarded for an other reason, we invalidate the history
     if (depth == UNITY_RAW_FAR_CLIP_VALUE)
@@ -211,13 +229,24 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
     // Compute the world space position (from previous frame)
     float3 historyPositionWS = ComputeWorldSpacePosition(posInputs.positionNDC - velocity, historyDepth, UNITY_MATRIX_PREV_I_VP);
 
+    // Real the normal data for this pixel
+    NormalData normalData;
+    DecodeFromNormalBuffer(centerCoord, normalData);
+
+    // Compute the max reprojection distance. This is evaluated as the max between a fixed radius value and an approximation of the footprint of the pixel.
+    const float3 viewWS = GetWorldSpaceNormalizeViewDir(posInputs.positionWS);
+    float parallelPixelFootPrint = _PixelSpreadAngleTangent * length(posInputs.positionWS);
+    float realPixelFootPrint = parallelPixelFootPrint / abs(dot(normalData.normalWS, viewWS));
+    float maxRadius = max(MAX_WORLD_SPACE_DISTANCE, realPixelFootPrint * PIXEL_RADIUS_TOLERANCE_THRESHOLD);
+
     // Is it too far from the current position?
-    if (length(historyPositionWS - posInputs.positionWS) > 0.1)
+    if (length(historyPositionWS - posInputs.positionWS) > maxRadius)
         invalidHistory = true;
 
     // Fetch history data
-    float4 history = LOAD_TEXTURE2D_X(_HistoryBuffer, historyTapCoord);
-    float sampleCount = history.w;
+    float4 history0 = LOAD_TEXTURE2D_X(_HistoryBuffer0, historyTapCoord);
+    float4 history1 = LOAD_TEXTURE2D_X(_HistoryBuffer1, historyTapCoord);
+    float sampleCount = history1.w;
 
     // Accumulation factor that tells us how much we need to keep the history data
     float accumulationFactor = 0.0;
@@ -229,24 +258,21 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
         accumulationFactor = 0.0;
 
         // To avoid nan values
-    #if SINGLE_CHANNEL
-        history.x = 0.0;
-    #else
-        history.xyz = 0.0;
-    #endif
+        history0 = 0.0;
+        history1 = float4(0.501960784f, 0.501960784f, 0.0, 0.0);
         sampleCount = 1.0;
     }
     else
     {
         // Otherwise we compute the accumulation factor
-        accumulationFactor = sampleCount >= 8.0 ? 0.97 : (sampleCount / (sampleCount + 1.0));
+        accumulationFactor = sampleCount >= NUM_SAMPLE_LOOP ? EXPONENTIAL_ACCUMULATION_FACTOR : (sampleCount / (sampleCount + 1.0));
 
         // Update the sample count
-        sampleCount = min(sampleCount + 1.0, 8.0);
+        sampleCount = min(sampleCount + 1.0, NUM_SAMPLE_LOOP);
 
         // If the history pixel was moving, we descide to throw partially the history
         // TODO: Expose this as a parameter
-        if (color.w > 0.0)
+        if (color1.w > 0.0)
         {
             sampleCount = 5.0;
             accumulationFactor = sampleCount / (sampleCount + 1.0);
@@ -254,7 +280,8 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
     }
 
     // Do the accumulation based on the values we computed and store the new sample count in the w channel
-    _OutputFilteredBuffer[COORD_TEXTURE2D_X(centerCoord)] = float4(color.xyz * (1.0 - accumulationFactor) + history.xyz * accumulationFactor, sampleCount);
+    _OutputFilteredBuffer0[COORD_TEXTURE2D_X(centerCoord)] = float4(color0 * (1.0 - accumulationFactor) + history0 * accumulationFactor);
+    _OutputFilteredBuffer1[COORD_TEXTURE2D_X(centerCoord)] = float4(color1.xyz * (1.0 - accumulationFactor) + history1.xyz * accumulationFactor, sampleCount);
 }
 
 [numthreads(SSGI_FILTER_TILE_SIZE, SSGI_FILTER_TILE_SIZE, 1)]
@@ -265,5 +292,6 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
         return;  // Out of bounds, discard
 
-    _OutputFilteredBuffer[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_InputNoisyBuffer, dispatchThreadId.xy);
+    _OutputFilteredBuffer0[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_InputNoisyBuffer0, dispatchThreadId.xy);
+    _OutputFilteredBuffer1[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_InputNoisyBuffer1, dispatchThreadId.xy);
 }

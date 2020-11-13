@@ -348,6 +348,7 @@ MonoBehaviour:
     AverageCorrectnessThreshold: 0.001
     UseHDR: 0
   WaitFrames: 0
+  XRCompatible: 0
 --- !u!81 &971756571
 AudioListener:
   m_ObjectHideFlags: 0

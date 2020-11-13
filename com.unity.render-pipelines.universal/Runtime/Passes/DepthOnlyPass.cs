@@ -16,8 +16,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTextureDescriptor descriptor { get; private set; }
 
         FilteringSettings m_FilteringSettings;
-        const string m_ProfilerTag = "Depth Prepass";
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
         ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
 
         /// <summary>
@@ -25,6 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public DepthOnlyPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(DepthOnlyPass));
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             renderPassEvent = evt;
         }
@@ -48,15 +47,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
             cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
-            ConfigureTarget(depthAttachmentHandle.Identifier());
+            ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            // NOTE: Do NOT mix ProfilingScope with named CommandBuffers i.e. CommandBufferPool.Get("name").
+            // Currently there's an issue which results in mismatched markers.
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.DepthPrepass)))
             {
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -64,13 +65,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
-
-                ref CameraData cameraData = ref renderingData.cameraData;
-                Camera camera = cameraData.camera;
-                if (cameraData.isStereoEnabled)
-                {
-                    context.StartMultiEye(camera, eyeIndex);
-                }
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 

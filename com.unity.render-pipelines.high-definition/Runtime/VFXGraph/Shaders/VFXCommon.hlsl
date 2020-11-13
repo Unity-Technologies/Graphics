@@ -141,7 +141,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 
     float3 volColor, volOpacity;
     EvaluateAtmosphericScattering(posInput, V, volColor, volOpacity); // Premultiplied alpha
-
+    
 #if VFX_BLENDMODE_ALPHA
     color.rgb = color.rgb * (1 - volOpacity) + volColor * color.a;
 #elif VFX_BLENDMODE_ADD
@@ -157,16 +157,21 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
 }
 
 #ifdef VFX_VARYING_PS_INPUTS
+float4 VFXApplyPreExposure(float4 color, float exposureWeight)
+{
+    float exposure = lerp(1.0f, GetCurrentExposureMultiplier(), exposureWeight);
+    color.xyz *= exposure;
+    return color;
+}
+
 float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
 #ifdef VFX_VARYING_EXPOSUREWEIGHT
-	float exposure = lerp(1.0f, GetCurrentExposureMultiplier(),input.VFX_VARYING_EXPOSUREWEIGHT);
+    return VFXApplyPreExposure(color, input.VFX_VARYING_EXPOSUREWEIGHT);
 #elif VFX_BYPASS_EXPOSURE
-    float exposure = 1.0f;
+    return VFXApplyPreExposure(color, 0.0f);
 #else
-	float exposure = GetCurrentExposureMultiplier();
+    return VFXApplyPreExposure(color, 1.0f);
 #endif
-	color.xyz *= exposure;
-    return color;
 }
 #endif

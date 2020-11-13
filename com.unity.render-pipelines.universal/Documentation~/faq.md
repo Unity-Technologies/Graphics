@@ -1,7 +1,7 @@
 # Frequently asked questions (FAQ)
 This section answers some frequently asked questions about the Universal Render Pipeline (URP). These questions come from the [General Graphics](https://forum.unity.com/forums/general-graphics.76/) section on our forums, from the [Unity Discord](https://discord.gg/unity) channel, and from our support teams.
 
-For information about the High Definition Render Pipeline (HDRP), please see the [HDRP documentation](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki/High-Definition-Render-Pipeline-overview).
+For information about the High Definition Render Pipeline (HDRP), see the [HDRP documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html).
 
 ## Can I use URP and HDRP at the same time?
 No. They're both built with the Scriptable Render Pipeline (SRP), but their render paths and light models are different.

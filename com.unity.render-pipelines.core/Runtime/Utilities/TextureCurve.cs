@@ -252,6 +252,9 @@ namespace UnityEngine.Rendering
         public TextureCurveParameter(TextureCurve value, bool overrideState = false)
             : base(value, overrideState) { }
 
+        /// <summary>
+        /// Release implementation.
+        /// </summary>
         public override void Release() => m_Value.Release();
 
         // TODO: TextureCurve interpolation

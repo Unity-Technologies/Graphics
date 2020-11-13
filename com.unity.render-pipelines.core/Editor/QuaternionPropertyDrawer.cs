@@ -9,7 +9,10 @@ namespace UnityEditor.Rendering
         {
             var euler = property.quaternionValue.eulerAngles;
             EditorGUI.BeginChangeCheck();
+            var w = EditorGUIUtility.wideMode;
+            EditorGUIUtility.wideMode = true;
             euler = EditorGUI.Vector3Field(position, label, euler);
+            EditorGUIUtility.wideMode = w;
             if (EditorGUI.EndChangeCheck())
                 property.quaternionValue = Quaternion.Euler(euler);
         }

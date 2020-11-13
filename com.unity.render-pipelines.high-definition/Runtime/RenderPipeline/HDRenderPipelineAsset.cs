@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
-
+#if UNITY_EDITOR
+using System.Linq;
+using UnityEditorInternal;
+#endif
 namespace UnityEngine.Rendering.HighDefinition
 {
     enum ShaderVariantLogLevel
@@ -9,6 +12,12 @@ namespace UnityEngine.Rendering.HighDefinition
         Disabled,
         OnlyHDRPShaders,
         AllShaders,
+    }
+
+    enum LensAttenuationMode
+    {
+        ImperfectLens,
+        PerfectLens
     }
 
     /// <summary>
@@ -22,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
-            
+
         }
 
         void Reset() => OnValidate();
@@ -76,6 +85,22 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_DefaultVolumeProfile = value;
         }
 
+        [SerializeField] private LensAttenuationMode m_LensAttenuation;
+
+        internal LensAttenuationMode lensAttenuationMode
+        {
+            get => m_LensAttenuation;
+            set => m_LensAttenuation = value;
+        }
+
+        [SerializeField] private bool m_UseRenderGraph = true;
+
+        internal bool useRenderGraph
+        {
+            get => m_UseRenderGraph;
+            set => m_UseRenderGraph = value;
+        }
+
 #if UNITY_EDITOR
         [SerializeField] private VolumeProfile m_DefaultLookDevProfile;
 
@@ -97,7 +122,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // - cannot rely on OnEnable
                 //thus fallback with lazy init for them
                 if (m_RenderPipelineEditorResources == null || m_RenderPipelineEditorResources.Equals(null))
-                    m_RenderPipelineEditorResources = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                {
+                    var objs = InternalEditorUtility.LoadSerializedFileAndForget(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                    m_RenderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
+                }
+
                 return m_RenderPipelineEditorResources;
             }
             set { m_RenderPipelineEditorResources = value; }
@@ -140,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     maxPlanarReflectionProbePerCamera = currentPlatformRenderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen,
                     maxActivePlanarReflectionProbe = 512,
-                    planarReflectionProbeSize = (int)PlanarReflectionAtlasResolution.PlanarReflectionResolution512,
+                    planarReflectionProbeSize = (int)PlanarReflectionAtlasResolution.Resolution512,
                     maxActiveReflectionProbe = 512,
                     reflectionProbeSize = (int)currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize
                 };
@@ -196,8 +225,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderingLayerNames[6] = m_RenderPipelineSettings.lightLayerName6;
             m_RenderingLayerNames[7] = m_RenderPipelineSettings.lightLayerName7;
 
+            m_RenderingLayerNames[8] = m_RenderPipelineSettings.decalLayerName0;
+            m_RenderingLayerNames[9] = m_RenderPipelineSettings.decalLayerName1;
+            m_RenderingLayerNames[10] = m_RenderPipelineSettings.decalLayerName2;
+            m_RenderingLayerNames[11] = m_RenderPipelineSettings.decalLayerName3;
+            m_RenderingLayerNames[12] = m_RenderPipelineSettings.decalLayerName4;
+            m_RenderingLayerNames[13] = m_RenderPipelineSettings.decalLayerName5;
+            m_RenderingLayerNames[14] = m_RenderPipelineSettings.decalLayerName6;
+            m_RenderingLayerNames[15] = m_RenderPipelineSettings.decalLayerName7;
+
             // Unused
-            for (int i = 8; i < m_RenderingLayerNames.Length; ++i)
+            for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
             }
@@ -247,6 +285,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [System.NonSerialized]
+        string[] m_DecalLayerNames = null;
+        /// <summary>
+        /// Names used for display of light layers.
+        /// </summary>
+        public string[] decalLayerNames
+        {
+            get
+            {
+                if (m_DecalLayerNames == null)
+                {
+                    m_DecalLayerNames = new string[8];
+                }
+
+                for (int i = 0; i < 8; ++i)
+                {
+                    m_DecalLayerNames[i] = renderingLayerNames[i + 8];
+                }
+
+                return m_DecalLayerNames;
+            }
+        }
+
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader
             => m_RenderPipelineResources?.shaders.defaultPS;
@@ -255,9 +316,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal List<string> beforeTransparentCustomPostProcesses = new List<string>();
         [SerializeField]
+        internal List<string> beforeTAACustomPostProcesses = new List<string>();
+        [SerializeField]
         internal List<string> beforePostProcessCustomPostProcesses = new List<string>();
         [SerializeField]
         internal List<string> afterPostProcessCustomPostProcesses = new List<string>();
+
+        [SerializeField]
+        internal VirtualTexturingSettingsSRP virtualTexturingSettings = new VirtualTexturingSettingsSRP();
 
 #if UNITY_EDITOR
         /// <summary>HDRP default material.</summary>
@@ -369,7 +435,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 #endif
 
-        // Implement IVirtualTexturingEnabledRenderPipeline
+        /// <summary>
+        /// Indicates if virtual texturing is currently enabled for this render pipeline instance.
+        /// </summary>
         public bool virtualTexturingEnabled { get { return true; } }
     }
 }

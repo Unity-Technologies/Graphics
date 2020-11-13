@@ -161,7 +161,8 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
                 // TODO: remove all this code when the fix for SerializedReference lands
-                EditorGUI.PropertyField(rect, m_SortingCriteria, Styles.sortingCriteria);
+                m_SortingCriteria.intValue = (int)(SortingCriteria)EditorGUI.EnumFlagsField(rect, Styles.sortingCriteria, (SortingCriteria)m_SortingCriteria.intValue);
+                // EditorGUI.PropertyField(rect, m_SortingCriteria, Styles.sortingCriteria);
                 rect.y += Styles.defaultLineSpace;
 
                 EditorGUI.indentLevel--;
@@ -171,6 +172,9 @@ namespace UnityEditor.Rendering.HighDefinition
         // Tell if we need to show a warning for rendering opaque object and we're in deferred.
         bool ShowOpaqueObjectWarning()
         {
+            if (HDRenderPipeline.currentAsset == null)
+                return false;
+
             // Only opaque objects are concerned
             RenderQueueRange currentRange = CustomPassUtils.GetRenderQueueRangeFromRenderQueueType((CustomPass.RenderQueueType)m_RenderQueue.intValue);
             var allOpaque = HDRenderQueue.k_RenderQueue_AllOpaque;
@@ -188,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Tell if we need to show the MSAA message info
         bool ShowMsaaObjectInfo()
         {
-            if (!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+            if (HDRenderPipeline.currentAsset == null || !HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportMSAA)
                 return false;
             
             if (m_Volume.injectionPoint != CustomPassInjectionPoint.AfterPostProcess && m_Volume.injectionPoint != CustomPassInjectionPoint.BeforePostProcess)

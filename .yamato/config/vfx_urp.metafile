@@ -1,0 +1,69 @@
+project:
+  name: VFX_URP
+  folder: VisualEffectGraph_URP
+test_platforms:
+  - type: Standalone
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
+  - type: playmode
+#  - type: editmode
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+      # - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: OSX 
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: playmode_XR
+          - name: Standalone
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Linux
+    apis: 
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+#  - name: Android
+#    apis: 
+#      - name: Vulkan
+#      - name: OpenGLES3
+#    build_configs:
+#      - name: mono
+#    color_spaces:
+#      - Linear
+#  - name: iPhone
+#    apis: 
+#      - name: Metal
+#    build_configs:
+#      - name: mono
+#    color_spaces:
+#      - Linear
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+        - playmode

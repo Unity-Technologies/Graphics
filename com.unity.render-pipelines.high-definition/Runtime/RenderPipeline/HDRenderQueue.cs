@@ -17,7 +17,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             Opaque = UnityEngine.Rendering.RenderQueue.Geometry,
+            OpaqueDecal = UnityEngine.Rendering.RenderQueue.Geometry + 225, // Opaque Decal mean Opaque that can receive decal
             OpaqueAlphaTest = UnityEngine.Rendering.RenderQueue.AlphaTest,
+            OpaqueDecalAlphaTest = UnityEngine.Rendering.RenderQueue.AlphaTest + 25,
             // Warning: we must not change Geometry last value to stay compatible with occlusion
             OpaqueLast = UnityEngine.Rendering.RenderQueue.GeometryLast,
 
@@ -64,8 +66,28 @@ namespace UnityEngine.Rendering.HighDefinition
             Unknown
         }
 
+        internal static RenderQueueType MigrateRenderQueueToHDRP10(RenderQueueType renderQueue)
+        {
+            switch((int)renderQueue)
+            {
+                case 0: return RenderQueueType.Background; // Background
+                case 1: return RenderQueueType.Opaque; // Opaque
+                case 2: return RenderQueueType.AfterPostProcessOpaque; // AfterPostProcessOpaque
+                case 3: return RenderQueueType.Opaque; // RaytracingOpaque
+                case 4: return RenderQueueType.PreRefraction; // PreRefraction
+                case 5: return RenderQueueType.Transparent; // Transparent
+                case 6: return RenderQueueType.LowTransparent; // LowTransparent
+                case 7: return RenderQueueType.AfterPostprocessTransparent; // AfterPostprocessTransparent
+                case 8: return RenderQueueType.Transparent; // RaytracingTransparent
+                case 9: return RenderQueueType.Overlay; // Overlay
+                default:
+                case 10: return RenderQueueType.Unknown; // Unknown
+            }
+        }
+
         public static readonly RenderQueueRange k_RenderQueue_OpaqueNoAlphaTest = new RenderQueueRange { lowerBound = (int)Priority.Background, upperBound = (int)Priority.OpaqueAlphaTest - 1 };
         public static readonly RenderQueueRange k_RenderQueue_OpaqueAlphaTest = new RenderQueueRange { lowerBound = (int)Priority.OpaqueAlphaTest, upperBound = (int)Priority.OpaqueLast };
+        public static readonly RenderQueueRange k_RenderQueue_OpaqueDecalAndAlphaTest = new RenderQueueRange { lowerBound = (int)Priority.OpaqueDecal, upperBound = (int)Priority.OpaqueLast };
         public static readonly RenderQueueRange k_RenderQueue_AllOpaque = new RenderQueueRange { lowerBound = (int)Priority.Background, upperBound = (int)Priority.OpaqueLast };
 
         public static readonly RenderQueueRange k_RenderQueue_AfterPostProcessOpaque = new RenderQueueRange { lowerBound = (int)Priority.AfterPostprocessOpaque, upperBound = (int)Priority.AfterPostprocessOpaqueAlphaTest };
@@ -108,14 +130,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return RenderQueueType.Unknown;
         }
 
-        public static int ChangeType(RenderQueueType targetType, int offset = 0, bool alphaTest = false)
+        public static int ChangeType(RenderQueueType targetType, int offset = 0, bool alphaTest = false, bool receiveDecal = false)
         {
             switch (targetType)
             {
                 case RenderQueueType.Background:
                     return (int)Priority.Background;
                 case RenderQueueType.Opaque:
-                    return alphaTest ? (int)Priority.OpaqueAlphaTest : (int)Priority.Opaque;
+                    return alphaTest ?
+                        (receiveDecal ? (int)Priority.OpaqueDecalAlphaTest : (int)Priority.OpaqueAlphaTest) :
+                        (receiveDecal ? (int)Priority.OpaqueDecal : (int)Priority.Opaque);
                 case RenderQueueType.AfterPostProcessOpaque:
                     return alphaTest ? (int)Priority.AfterPostprocessOpaqueAlphaTest : (int)Priority.AfterPostprocessOpaque;
                 case RenderQueueType.PreRefraction:
@@ -141,8 +165,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     return RenderQueueType.Transparent;
                 case RenderQueueType.AfterPostProcessOpaque:
                     return RenderQueueType.AfterPostprocessTransparent;
-                case RenderQueueType.LowTransparent:
-                    return RenderQueueType.LowTransparent;
                 default:
                     //keep transparent mapped to transparent
                     return type;

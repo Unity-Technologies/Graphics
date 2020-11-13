@@ -45,7 +45,7 @@ public class LowResolutionRequester : MonoBehaviour
         {
             foreach (int prop in properties)
             {
-                UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(materialToRequest, prop, new Rect(0.0f, 0.0f, 1.0f, 1.0f), firstMipToRequest, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
+                UnityEngine.Rendering.VirtualTexturing.Streaming.RequestRegion(materialToRequest, prop, new Rect(0.0f, 0.0f, 1.0f, 1.0f), firstMipToRequest, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
             }
         }
 #endif

@@ -18,6 +18,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const PerObjectData k_RendererConfigurationBakedLighting = PerObjectData.LightProbe | PerObjectData.Lightmaps | PerObjectData.LightProbeProxyVolume;
         internal const PerObjectData k_RendererConfigurationBakedLightingWithShadowMask = k_RendererConfigurationBakedLighting | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume | PerObjectData.ShadowMask;
 
+        /// <summary>Returns the render configuration for baked static lighting, this value can be used in a RendererListDesc call to render Lit objects.</summary>
+        public static PerObjectData GetBakedLightingRenderConfig() => k_RendererConfigurationBakedLighting;
+        /// <summary>Returns the render configuration for baked static lighting with shadow masks, this value can be used in a RendererListDesc call to render Lit objects when shadow masks are enabled.</summary>
+        public static PerObjectData GetBakedLightingWithShadowMaskRenderConfig() => k_RendererConfigurationBakedLightingWithShadowMask;
+
         /// <summary>Default HDAdditionalReflectionData</summary>
         static internal HDAdditionalReflectionData s_DefaultHDAdditionalReflectionData { get { return ComponentSingleton<HDAdditionalReflectionData>.instance; } }
         /// <summary>Default HDAdditionalLightData</summary>
@@ -122,31 +127,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return types;
         }
 
-        // Helper to help to display debug info on screen
-        static float s_OverlayLineHeight = -1.0f;
-        internal static void ResetOverlay() => s_OverlayLineHeight = -1.0f;
-
-        internal static float GetRuntimeDebugPanelWidth(HDCamera hdCamera)
+        internal static int GetRuntimeDebugPanelWidth(HDCamera hdCamera)
         {
             // 600 is the panel size from 'DebugUI Panel' prefab + 10 pixels of padding
-            float width = DebugManager.instance.displayRuntimeUI ? 610.0f : 0.0f;
-            return Mathf.Min(hdCamera.actualWidth, width);
-        }
-
-        internal static void NextOverlayCoord(ref float x, ref float y, float overlayWidth, float overlayHeight, HDCamera hdCamera)
-        {
-            x += overlayWidth;
-            s_OverlayLineHeight = Mathf.Max(overlayHeight, s_OverlayLineHeight);
-            // Go to next line if it goes outside the screen.
-            if ( (x + overlayWidth) > hdCamera.actualWidth)
-            {
-                x = 0.0f;
-                y -= s_OverlayLineHeight;
-                s_OverlayLineHeight = -1.0f;
-            }
-
-            if (x == 0)
-                x += GetRuntimeDebugPanelWidth(hdCamera);
+            int width = DebugManager.instance.displayRuntimeUI ? 610 : 0;
+            return Math.Min(hdCamera.actualWidth, width);
         }
 
         /// <summary>Get the aspect ratio of a projection matrix.</summary>
@@ -194,23 +179,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Transpose for HLSL.
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
-        }
-
-        // Scale and bias to transform unnormalized viewport/pixel coordinates to normalized device coordinates
-        internal static Vector4 ComputeInverseViewportScaleBias(HDCamera hdCamera)
-        {
-            float verticalFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-            Vector2 lensShift = hdCamera.camera.GetGateFittedLensShift();
-
-            float aspectRatio = hdCamera.camera.aspect < 0 ? hdCamera.screenSize.x * hdCamera.screenSize.w : hdCamera.camera.aspect;
-            float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-
-            // See the comment in ComputePixelCoordToWorldSpaceViewDirectionMatrix for the derivation
-            return new Vector4(
-                -2.0f * hdCamera.screenSize.z * tanHalfVertFoV * aspectRatio,
-                -2.0f * hdCamera.screenSize.w * tanHalfVertFoV,
-                (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio,
-                (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV);
         }
 
         internal static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
@@ -263,6 +231,75 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Blit a texture using a quad in the current render target, by performing an alpha blend with the existing content on the render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="scaleBiasTex">Scale and bias for sampling the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
+        public static void BlitQuadWithPaddingMultiply(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            if (source.wrapMode == TextureWrapMode.Repeat)
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 12 : 11, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            else
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 10 : 9, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        /// <summary>
+        /// Blit a texture (which is a Octahedral projection) using a quad in the current render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="scaleBiasTex">Scale and bias for sampling the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
+        public static void BlitOctahedralWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 8, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        /// <summary>
+        /// Blit a texture (which is a Octahedral projection) using a quad in the current render target, by performing an alpha blend with the existing content on the render target.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source texture.</param>
+        /// <param name="textureSize">Source texture size.</param>
+        /// <param name="scaleBiasTex">Scale and bias for sampling the input texture.</param>
+        /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        /// <param name="mipLevelTex">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        /// <param name="paddingInPixels">Padding in pixels.</param>
+        public static void BlitOctahedralWithPaddingMultiply(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 13, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        /// <summary>
         /// Blit a RTHandle texture.
         /// </summary>
         /// <param name="cmd">Command Buffer used for rendering.</param>
@@ -272,10 +309,48 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
-            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureXR.dimension), bilinear ? 1 : 0);
+        }
+
+        /// <summary>
+        /// Blit a 2D texture and depth buffer.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="sourceColor">Source Texture for color.</param>
+        /// <param name="sourceDepth">Source RenderTexture for depth.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        internal static void BlitColorAndDepth(CommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
+        {
+            HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            if (hdPipeline != null)
+            {
+                Material mat = hdPipeline.GetBlitColorAndDepthMaterial();
+
+                s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
+                s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+                s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, sourceColor);
+                if (blitDepth)
+                    s_PropertyBlock.SetTexture(HDShaderIDs._InputDepth, sourceDepth, RenderTextureSubElement.Depth);
+                cmd.DrawProcedural(Matrix4x4.identity, mat, blitDepth ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
+            }
+        }
+
+        /// <summary>
+        /// Blit a RTHandle texture
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="material">Material to invoke when blitting.</param>
+        /// <param name="pass">Pass idx within the material to invoke.</param>
+        static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
+        {
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            cmd.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }
 
         // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
@@ -297,6 +372,24 @@ namespace UnityEngine.Rendering.HighDefinition
             // Will set the correct camera viewport as well.
             CoreUtils.SetRenderTarget(cmd, destination);
             BlitTexture(cmd, source, viewportScale, mipLevel, bilinear);
+        }
+
+        /// <summary>
+        /// Blit a RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// This overloads allows the user to override the default blit shader
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="material">The material to use when blitting</param>
+        /// <param name="pass">pass to use of the provided material</param>
+        public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material, int pass)
+        {
+            Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
+            // Will set the correct camera viewport as well.
+            CoreUtils.SetRenderTarget(cmd, destination);
+            BlitTexture(cmd, source, viewportScale, material, pass);
         }
 
 
@@ -522,6 +615,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
+                // No work needed.
+                if (viewportSize == mipLevelSizes[0])
+                    return;
+
                 textureSize = viewportSize;
                 mipLevelSizes[0] = viewportSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
@@ -584,20 +681,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static bool IsQuaternionValid(Quaternion q)
             => (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]) > float.Epsilon;
 
-        // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
-        internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
-        {
-            return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
-                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
-                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
-                    graphicDevice == GraphicsDeviceType.XboxOne ||
-                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
-                    graphicDevice == GraphicsDeviceType.Metal ||
-                    graphicDevice == GraphicsDeviceType.Vulkan
-                    // Switch isn't supported currently (19.3)
-                    /* || graphicDevice == GraphicsDeviceType.Switch */);
-        }
-
         internal static void CheckRTCreated(RenderTexture rt)
         {
             // In some cases when loading a project for the first time in the editor, the internal resource is destroyed.
@@ -630,6 +713,19 @@ namespace UnityEngine.Rendering.HighDefinition
                                ComputeViewportLimit(viewportSize.y, bufferSize.y)); // Limit(y)
         }
 
+        // Note: If you add new platform in this function, think about adding support in IsSupportedBuildTarget() function below
+        internal static bool IsSupportedGraphicDevice(GraphicsDeviceType graphicDevice)
+        {
+            return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
+                    graphicDevice == GraphicsDeviceType.Direct3D12 ||
+                    graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                    graphicDevice == GraphicsDeviceType.XboxOne ||
+                    graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                    graphicDevice == GraphicsDeviceType.Metal ||
+                    graphicDevice == GraphicsDeviceType.Vulkan
+                    // Switch isn't supported currently (19.3)
+                    /* || graphicDevice == GraphicsDeviceType.Switch */);
+        }
 
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
@@ -643,14 +739,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
-                    buildTarget == UnityEditor.BuildTarget.iOS ||
-                    buildTarget == UnityEditor.BuildTarget.Switch);
+                    // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
+                    // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
+                    buildTarget == UnityEditor.BuildTarget.CloudRendering);
         }
 
-        internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, out GraphicsDeviceType unsupportedGraphicDevice)
+        internal static bool AreGraphicsAPIsSupported(UnityEditor.BuildTarget target, ref GraphicsDeviceType unsupportedGraphicDevice)
         {
-            unsupportedGraphicDevice = GraphicsDeviceType.Null;
-
             foreach (var graphicAPI in UnityEditor.PlayerSettings.GetGraphicsAPIs(target))
             {
                 if (!HDUtils.IsSupportedGraphicDevice(graphicAPI))
@@ -679,33 +774,57 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal static bool IsSupportedBuildTargetAndDevice(UnityEditor.BuildTarget activeBuildTarget, out GraphicsDeviceType unsupportedGraphicDevice)
+        {
+            unsupportedGraphicDevice = SystemInfo.graphicsDeviceType;
+
+            // If the build target matches the operating system of the editor
+            // and if the graphic api is chosen automatically, then only the system's graphic device type matters
+            // otherwise, we need to iterate over every graphic api available in the list to track every non-supported APIs
+            // if the build target does not match the editor OS, then we have to check using the graphic api list
+            bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget) && (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget));
+
+            if (autoAPI ? HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) : HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, ref unsupportedGraphicDevice)
+                && HDUtils.IsSupportedBuildTarget(activeBuildTarget)
+                && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
+                return true;
+
+            return false;
+        }
+
 #endif
+
+        internal static bool IsMacOSVersionAtLeast(string os, int majorVersion, int minorVersion, int patchVersion)
+        {
+            int startIndex = os.LastIndexOf(" ");
+            var parts = os.Substring(startIndex + 1).Split('.');
+            int currentMajorVersion = Convert.ToInt32(parts[0]);
+            int currentMinorVersion = Convert.ToInt32(parts[1]);
+            int currentPatchVersion = Convert.ToInt32(parts[2]);
+
+            if (currentMajorVersion < majorVersion) return false;
+            if (currentMajorVersion > majorVersion) return true;
+            if (currentMinorVersion < minorVersion) return false;
+            if (currentMinorVersion > minorVersion) return true;
+            if (currentPatchVersion < patchVersion) return false;
+            if (currentPatchVersion > patchVersion) return true;
+            return true;
+        }
 
         internal static bool IsOperatingSystemSupported(string os)
         {
             // Metal support depends on OS version:
             // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
             // macOS 10.12.x should usually work with AMD, but issues with Intel/Nvidia GPUs. Regardless of the GPU, there are issues with MTLCompilerService crashing with some shaders
-            // macOS 10.13.x is expected to work, and if it's a driver/shader compiler issue, there's still hope on getting it fixed to next shipping OS patch release
+            // macOS 10.13.x should work, but active development tests against current OS
             //
             // Has worked experimentally with iOS in the past, but it's not currently supported
             //
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
-                if (os.StartsWith("Mac"))
-                {
-                    // TODO: Expose in C# version number, for now assume "Mac OS X 10.10.4" format with version 10 at least
-                    int startIndex = os.LastIndexOf(" ");
-                    var parts = os.Substring(startIndex + 1).Split('.');
-                    int a = Convert.ToInt32(parts[0]);
-                    int b = Convert.ToInt32(parts[1]);
-                    // In case in the future there's a need to disable specific patch releases
-                    // int c = Convert.ToInt32(parts[2]);
-
-                    if (a < 10 || b < 13)
-                        return false;
-                }
+                if (os.StartsWith("Mac") && !IsMacOSVersionAtLeast(os, 10, 13, 0))
+                    return false;
             }
 
             return true;
@@ -837,22 +956,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="renderContext">Current Scriptable Render Context.</param>
         /// <param name="cmd">Command Buffer used for rendering.</param>
         /// <param name="rendererList">Renderer List to render.</param>
+        [Obsolete("Please use CoreUtils.DrawRendererList instead.")]
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
         {
-            if (!rendererList.isValid)
-                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
-
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            if (rendererList.stateBlock == null)
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
-            else
-            {
-                var renderStateBlock = rendererList.stateBlock.Value;
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
-            }
+            CoreUtils.DrawRendererList(renderContext, cmd, rendererList);
         }
 
         // $"HDProbe RenderCamera ({probeName}: {face:00} for viewer '{viewerName}')"
@@ -1000,7 +1107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return size;
         }
 
-        internal static void DisplayUnsupportedMessage(string msg)
+        internal static void DisplayMessageNotification(string msg)
         {
             Debug.LogError(msg);
 
@@ -1010,20 +1117,48 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        internal static void DisplayUnsupportedAPIMessage(string graphicAPI = null)
+        internal static string GetUnsupportedAPIMessage(string graphicAPI)
         {
             // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
 #if UNITY_EDITOR
             var buildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             string currentPlatform = buildTarget.ToString();
-            graphicAPI = graphicAPI ?? UnityEditor.PlayerSettings.GetGraphicsAPIs(buildTarget).First().ToString();
+            var osFamily = BuildTargetToOperatingSystemFamily(buildTarget);
 #else
             string currentPlatform = SystemInfo.operatingSystem;
-            graphicAPI = graphicAPI ?? SystemInfo.graphicsDeviceType.ToString();
+            var osFamily = SystemInfo.operatingSystemFamily;
 #endif
 
-            string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
-            DisplayUnsupportedMessage(msg);
+            string os = null;
+            switch (osFamily)
+            {
+                case OperatingSystemFamily.MacOSX:
+                    os = "Mac";
+                    break;
+                case OperatingSystemFamily.Windows:
+                    os = "Windows";
+                    break;
+                case OperatingSystemFamily.Linux:
+                    os = "Linux";
+                    break;
+            }
+
+            string msg = "Platform " + currentPlatform + " with graphics API " + graphicAPI + " is not supported with HDRP";
+
+            // Display more information to the users when it should have use Metal instead of OpenGL
+            if (graphicAPI.StartsWith("OpenGL"))
+            {
+                if (SystemInfo.operatingSystem.StartsWith("Mac"))
+                    msg += ", use the Metal graphics API instead";
+                else if (SystemInfo.operatingSystem.StartsWith("Windows"))
+                    msg += ", use the Vulkan graphics API instead";
+            }
+
+            msg += ".\nChange the platform/device to a compatible one or remove incompatible graphics APIs.\n";
+            if (os != null)
+                msg += "To do this, go to Project Settings > Player > Other Settings and modify the Graphics APIs for " + os + " list.";
+
+            return msg;
         }
 
         internal static void ReleaseComponentSingletons()

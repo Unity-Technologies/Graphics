@@ -1,6 +1,6 @@
 # Rendering from multiple Cameras to the same render target 
 
-In the Universal Render Pipeline (URP), multiple [Base Cameras](camera-types-and-render-mode.md#base-camera) or [Camera Stacks](camera-stacking.md) can render to the same render target. This allows you to create effects such as split screen rendering.
+In the Universal Render Pipeline (URP), multiple [Base Cameras](camera-types-and-render-type.md#base-camera) or [Camera Stacks](camera-stacking.md) can render to the same render target. This allows you to create effects such as split screen rendering.
 
 If more than one Base Camera or Camera Stack renders to the same area of a render target, Unity draws each pixel in the overlapping area multiple times. Unity draws the Base Camera or Camera Stack with the highest priority last, on top of the previously drawn pixels. For more information on overdraw, see [Advanced information](cameras-advanced.md).
 

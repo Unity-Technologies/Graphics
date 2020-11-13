@@ -1,5 +1,8 @@
 using System;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -117,9 +120,13 @@ namespace UnityEngine.Rendering.HighDefinition
         uint m_EditorOnlyData;
 
         // Runtime Data
-        RenderTexture m_RealtimeTexture;
+        RTHandle m_RealtimeTexture;
+        RTHandle m_RealtimeDepthBuffer;
         RenderData m_RealtimeRenderData;
         bool m_WasRenderedSinceLastOnDemandRequest = true;
+#if UNITY_EDITOR
+        bool m_WasRenderedDuringAsyncCompilation = false;
+#endif
 
         // Array of names that will be used in the Render Loop to name the probes in debug
         internal string[] probeName = new string[6];
@@ -128,6 +135,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+#if UNITY_EDITOR
+                if (m_WasRenderedDuringAsyncCompilation && !ShaderUtil.anythingCompiling)
+                    return true;
+#endif
                 if (mode != ProbeSettings.Mode.Realtime)
                     return false;
                 switch (realtimeMode)
@@ -185,8 +196,47 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public RenderTexture realtimeTexture
         {
+            get => m_RealtimeTexture != null ? m_RealtimeTexture : null;
+            set
+            {
+                if (m_RealtimeTexture != null)
+                    m_RealtimeTexture.Release();
+                m_RealtimeTexture = RTHandles.Alloc(value);
+                m_RealtimeTexture.rt.name = $"ProbeRealTimeTexture_{name}";
+            }
+        }
+
+        /// <summary>
+        /// The allocated realtime depth texture. Can be null if the probe never rendered with the realtime mode.
+        ///
+        /// Most of the time, you do not need to set this value yourself. You can set this property in situations
+        /// where you want to manually assign data that differs from what Unity generates.
+        /// </summary>
+        public RenderTexture realtimeDepthTexture
+        {
+            get => m_RealtimeDepthBuffer != null ? m_RealtimeDepthBuffer : null;
+            set
+            {
+                if (m_RealtimeDepthBuffer != null)
+                    m_RealtimeDepthBuffer.Release();
+                m_RealtimeDepthBuffer = RTHandles.Alloc(value);
+                m_RealtimeDepthBuffer.rt.name = $"ProbeRealTimeDepthTexture_{name}";
+            }
+        }
+
+        /// <summary>
+        /// Returns an RThandle reference to the realtime texture where the color result of the probe is stored.
+        /// </summary>
+        public RTHandle realtimeTextureRTH
+        {
             get => m_RealtimeTexture;
-            set => m_RealtimeTexture = value;
+        }
+        /// <summary>
+        /// Returns an RThandle reference to the realtime texture where the depth result of the probe is stored.
+        /// </summary>
+        public RTHandle realtimeDepthTextureRTH
+        {
+            get => m_RealtimeDepthBuffer;
         }
 
         /// <summary>
@@ -226,7 +276,27 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case ProbeSettings.Mode.Baked: return m_BakedTexture = texture;
                 case ProbeSettings.Mode.Custom: return m_CustomTexture = texture;
-                case ProbeSettings.Mode.Realtime: return m_RealtimeTexture = (RenderTexture)texture;
+                case ProbeSettings.Mode.Realtime: return realtimeTexture = (RenderTexture)texture;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        /// <summary>
+        /// Set the depth texture for a specific target mode.
+        /// </summary>
+        /// <param name="targetMode">The mode to update.</param>
+        /// <param name="texture">The texture to set.</param>
+        /// <returns>The texture that was set.</returns>
+        public Texture SetDepthTexture(ProbeSettings.Mode targetMode, Texture texture)
+        {
+            if (targetMode == ProbeSettings.Mode.Realtime && !(texture is RenderTexture))
+                throw new ArgumentException("'texture' must be a RenderTexture for the Realtime mode.");
+
+            switch (targetMode)
+            {
+                case ProbeSettings.Mode.Baked: return m_BakedTexture = texture;
+                case ProbeSettings.Mode.Custom: return m_CustomTexture = texture;
+                case ProbeSettings.Mode.Realtime: return realtimeDepthTexture = (RenderTexture)texture;
                 default: throw new ArgumentOutOfRangeException();
             }
         }
@@ -249,10 +319,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public RenderData renderData => GetRenderData(mode);
         /// <summary>
         /// Get the render data of a specific mode.
-        /// 
+        ///
         /// Note: The HDProbe stores only one RenderData per mode, even for view dependent probes with multiple viewers.
         /// In that case, make sure that you have set the RenderData relative to the expected viewer before rendering.
-        /// Otherwise the data retrieved by this function will be wrong. 
+        /// Otherwise the data retrieved by this function will be wrong.
         /// </summary>
         /// <param name="targetMode">The mode to query</param>
         /// <returns>The requested render data</returns>
@@ -300,9 +370,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public ProbeSettings.RealtimeMode realtimeMode { get => m_ProbeSettings.realtimeMode; set => m_ProbeSettings.realtimeMode = value; }
         /// <summary>
-        /// Resolution of the probee.
+        /// Resolution of the probe.
         /// </summary>
-        public PlanarReflectionAtlasResolution resolution { get => m_ProbeSettings.resolution; set => m_ProbeSettings.resolution = value; }
+        public PlanarReflectionAtlasResolution resolution
+        {
+            get
+            {
+                var hdrp = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
+                // We return whatever value is in resolution if there is no hdrp pipeline (nothing will work anyway)
+                return hdrp != null ? m_ProbeSettings.resolutionScalable.Value(hdrp.asset.currentPlatformRenderPipelineSettings.planarReflectionResolution) : m_ProbeSettings.resolution;
+            }
+        }
 
         // Lighting
         /// <summary>Light layer to use by this probe.</summary>
@@ -408,6 +486,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void SetIsRendered(int frame)
         {
+#if UNITY_EDITOR
+            m_WasRenderedDuringAsyncCompilation = ShaderUtil.anythingCompiling;
+#endif
             m_WasRenderedSinceLastOnDemandRequest = true;
             wasRenderedAfterOnEnable = true;
             lastRenderedFrame = frame;
@@ -437,8 +518,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateProbeName()
         {
-            // TODO: ask if this is ok:
-            if (settings.type == ProbeSettings.ProbeType.PlanarProbe)
+            if (settings.type == ProbeSettings.ProbeType.ReflectionProbe)
             {
                 for (int i = 0; i < 6; i++)
                     probeName[i] = $"Reflection Probe RenderCamera ({name}: {(CubemapFace)i})";

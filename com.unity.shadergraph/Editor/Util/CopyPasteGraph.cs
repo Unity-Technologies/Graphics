@@ -179,6 +179,18 @@ namespace UnityEditor.ShaderGraph
 
         public IEnumerable<string> metaKeywordIds => m_MetaKeywordIds;
 
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            // should we add support for versioning old CopyPasteGraphs from old versions of Unity?
+            // so you can copy from old paste to new
+
+            foreach (var node in m_Nodes.SelectValue())
+            {
+                node.UpdateNodeAfterDeserialization();
+                node.SetupSlots();
+            }
+        }
+
         internal static CopyPasteGraph FromJson(string copyBuffer, GraphData targetGraph)
         {
             try

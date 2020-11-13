@@ -151,16 +151,16 @@ namespace UnityEditor.VFX.UI
 
         public string exposedName
         {
-            get { return m_ParentController.parameter.exposedName; }
+            get { return m_ParentController.model.exposedName; }
         }
         public bool exposed
         {
-            get { return m_ParentController.parameter.exposed; }
+            get { return m_ParentController.model.exposed; }
         }
 
         public int order
         {
-            get { return m_ParentController.parameter.order; }
+            get { return m_ParentController.model.order; }
         }
         public override bool expanded
         {
@@ -265,6 +265,8 @@ namespace UnityEditor.VFX.UI
         {
             throw new NotImplementedException();
         }
+        void IPropertyRMProvider.StartLiveModification() { }
+        void IPropertyRMProvider.EndLiveModification() { }
 
         public override void DrawGizmos(VisualEffect component)
         {

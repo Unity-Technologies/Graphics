@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Data.Util;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -46,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             // inputs
             ActiveFields activeFields;
             Dictionary<string, string> namedFragments;
-            string templatePath;
+            string[] templatePaths;
             bool isDebug;
 
             // intermediates
@@ -54,15 +53,15 @@ namespace UnityEditor.ShaderGraph
 
             // outputs
             ShaderStringBuilder result;
-            List<string> sourceAssetDependencyPaths;
+            AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string templatePath, List<string> sourceAssetDependencyPaths, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
-                this.templatePath = templatePath;
-                this.sourceAssetDependencyPaths = sourceAssetDependencyPaths;
+                this.templatePaths = templatePaths;
+                this.assetCollection = assetCollection;
                 this.result = outShaderCodeResult ?? new ShaderStringBuilder();
                 includedFiles = new HashSet<string>();
             }
@@ -79,8 +78,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     includedFiles.Add(filePath);
 
-                    if (sourceAssetDependencyPaths != null)
-                        sourceAssetDependencyPaths.Add(filePath);
+                    if (assetCollection != null)
+                    {
+                        GUID guid = AssetDatabase.GUIDFromAssetPath(filePath);
+                        if (!guid.Empty())
+                            assetCollection.AddAssetDependency(guid, AssetCollection.Flags.SourceDependency);
+                    }
 
                     string[] templateLines = File.ReadAllLines(filePath);
                     foreach (string line in templateLines)
@@ -208,10 +211,31 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        var includeLocation = Path.Combine(templatePath, param.GetString());
-                        if (!File.Exists(includeLocation))
+                        bool found = false;
+                        string includeLocation = null;
+
+                        // Use reverse order in the array, higher number element have higher priority in case $include exist in several directories
+                        for (int i = templatePaths.Length - 1; i >= 0; i--)
                         {
-                            Error("ERROR: $include cannot find file : " + includeLocation, includeCommand.s, param.start);
+                            string templatePath = templatePaths[i];
+                            includeLocation = Path.Combine(templatePath, param.GetString());
+                            if (File.Exists(includeLocation))
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            string errorStr = "ERROR: $include cannot find file : " + param.GetString() + ". Looked into:\n";
+
+                            foreach (string templatePath in templatePaths)
+                            {
+                                errorStr += "// " + templatePath + "\n";
+                            }
+
+                            Error(errorStr, includeCommand.s, param.start);
                         }
                         else
                         {

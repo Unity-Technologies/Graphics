@@ -207,11 +207,17 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     {
     case DEBUGVIEW_FABRIC_SURFACEDATA_NORMAL_VIEW_SPACE:
         // Convert to view space
-        result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
-        break;
+        {
+            float3 vsNormal = TransformWorldToViewDir(surfaceData.normalWS);
+            result = IsNormalized(vsNormal) ?  vsNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        }
     case DEBUGVIEW_FABRIC_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-        result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
-        break;
+        {
+            float3 vsGeomNormal = TransformWorldToViewDir(surfaceData.geomNormalWS);
+            result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        }
     }
 }
 
@@ -225,11 +231,17 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     {
     case DEBUGVIEW_FABRIC_BSDFDATA_NORMAL_VIEW_SPACE:
         // Convert to view space
-        result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
-        break;
+        {
+            float3 vsNormal = TransformWorldToViewDir(bsdfData.normalWS);
+            result = IsNormalized(vsNormal) ?  vsNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        }
     case DEBUGVIEW_FABRIC_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-        result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
-        break;
+        {
+            float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
+            result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
+            break;
+        }
     }
 }
 
@@ -609,20 +621,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 R = preLightData.iblR;
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
-
-    float iblMipLevel;
-    // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
-    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-    if (IsEnvIndexTexture2D(lightData.envIndex))
-    {
-        // Empirical remapping
-        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidLodCount - 1, 0));
-    }
-    else
-    {
-        iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
-    }
+    float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
 
     // If it is a silk, we need to use the GGX convolution (slice0), otherwise the charlie convolution (slice1)
     int sliceIndex = 0;
@@ -631,7 +630,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         sliceIndex = _EnvSliceSize - 1;
     }
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel, lightData.rangeCompressionFactorCompensation, sliceIndex);
+    float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness, intersectionDistance, sliceIndex);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
     envLighting = preLightData.specularFGD * preLD.rgb;
@@ -651,7 +650,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out LightLoopOutput lightLoopOutput)
 {
     AmbientOcclusionFactor aoFactor;
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
@@ -662,13 +661,13 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
-    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
-    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
+    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
     // TODO: Multiscattering for cloth?
 
 #ifdef DEBUG_DISPLAY
-    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
 #endif
 }
 

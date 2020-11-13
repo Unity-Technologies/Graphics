@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph
 
         public override SlotValueType valueType { get { return SlotValueType.SamplerState; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.SamplerState; } }
+        public override bool isDefaultValue => true;
+        
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
             var matOwner = owner as AbstractMaterialNode;

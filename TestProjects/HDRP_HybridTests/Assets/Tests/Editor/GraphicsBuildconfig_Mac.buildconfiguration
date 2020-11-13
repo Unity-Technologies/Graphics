@@ -55,6 +55,10 @@
                 {
                     "Scene": "GlobalObjectId_V1-1-8ee73dd4cf8cf8840be0e22af3a3fd26-102900000-0",
                     "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-b2fdac4989956904b89357094bed6e1f-102900000-0",
+                    "AutoLoad": false
                 }
             ]
         },
@@ -62,7 +66,8 @@
             "$type": "Unity.Build.Classic.ClassicBuildProfile, Unity.Build.Classic",
             "$version": 1,
             "Platform": "OSX",
-            "Configuration": 3
+            "Configuration": 3,
+            "Incremental": false
         },
         {
             "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
@@ -71,7 +76,7 @@
             "UseIncrementalGC": false
         },
         {
-            "$type": "Unity.Build.Common.OutputBuildDirectory, Unity.Build.Common",
+            "$type": "Unity.Build.Common.OutputBuildDirectory, Unity.Build",
             "OutputDirectory": "Builds/GraphicsTest"
         }
     ]

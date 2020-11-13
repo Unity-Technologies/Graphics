@@ -1,3 +1,4 @@
+
 #ifndef UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 #define UNIVERSAL_TERRAIN_LIT_PASSES_INCLUDED
 
@@ -108,6 +109,8 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
+    input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
+    input.shadowMask = SAMPLE_SHADOWMASK(IN.uvMainAndLM.zw)
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -374,7 +377,6 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
     defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
     half occlusion = dot(splatControl, defaultOcclusion);
-
     half alpha = weight;
 #endif
 
@@ -385,17 +387,22 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
-    
-    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
 
+    // Baked lighting.
     half4 color;
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-
-    color.rgb += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
     color.a = alpha;
+    SplatmapFinalColor(color, inputData.fogCoord);
 
-    SplatmapFinalColor(color, inputData.fogCoord); 
+    // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
+    // as forward renderer because we apply blending pre-lighting instead of post-lighting.
+    // Blending of smoothness and normals is also not correct but close enough?
+    brdfData.diffuse.rgb *= alpha;
+    brdfData.specular.rgb *= alpha;
+    inputData.normalWS = inputData.normalWS * alpha;
+    smoothness *= alpha;
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb);
 
@@ -492,6 +499,84 @@ half4 DepthOnlyFragment(VaryingsLean IN) : SV_TARGET
     return half4(_ObjectId, _PassValue, 1.0, 1.0);
 #endif
     return 0;
+}
+
+
+// DepthNormal pass
+struct AttributesDepthNormal
+{
+    float4 positionOS : POSITION;
+    float3 normalOS : NORMAL;
+    float2 texcoord : TEXCOORD0;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct VaryingsDepthNormal
+{
+    float4 uvMainAndLM              : TEXCOORD0; // xy: control, zw: lightmap
+    #ifndef TERRAIN_SPLAT_BASEPASS
+        float4 uvSplat01                : TEXCOORD1; // xy: splat0, zw: splat1
+        float4 uvSplat23                : TEXCOORD2; // xy: splat2, zw: splat3
+    #endif
+
+    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+        float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
+        float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+        float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    #else
+        float3 normal                   : TEXCOORD3;
+    #endif
+
+    float4 clipPos                  : SV_POSITION;
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
+VaryingsDepthNormal DepthNormalOnlyVertex(AttributesDepthNormal v)
+{
+    VaryingsDepthNormal o = (VaryingsDepthNormal)0;
+
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+    TerrainInstancing(v.positionOS, v.normalOS, v.texcoord);
+
+    VertexPositionInputs Attributes = GetVertexPositionInputs(v.positionOS.xyz);
+
+    o.uvMainAndLM.xy = v.texcoord;
+    o.uvMainAndLM.zw = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
+    #ifndef TERRAIN_SPLAT_BASEPASS
+        o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord, _Splat0);
+        o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord, _Splat1);
+        o.uvSplat23.xy = TRANSFORM_TEX(v.texcoord, _Splat2);
+        o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
+    #endif
+
+    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+        half3 viewDirWS = GetWorldSpaceViewDir(Attributes.positionWS);
+        #if !SHADER_HINT_NICE_QUALITY
+            viewDirWS = SafeNormalize(viewDirWS);
+        #endif
+        float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
+        VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
+
+        o.normal = half4(normalInput.normalWS, viewDirWS.x);
+        o.tangent = half4(normalInput.tangentWS, viewDirWS.y);
+        o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
+    #else
+        o.normal = TransformObjectToWorldNormal(v.normalOS);
+    #endif
+
+    o.clipPos = Attributes.positionCS;
+    return o;
+}
+
+half4 DepthNormalOnlyFragment(VaryingsDepthNormal IN) : SV_TARGET
+{
+    #ifdef _ALPHATEST_ON
+        ClipHoles(IN.uvMainAndLM.xy);
+    #endif
+
+    half3 normalWS = IN.normal;
+    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
 
 #endif

@@ -4,7 +4,7 @@
 
 ![](images/Precision_DropDown.png)
 
-Shader Graph allows you to set specific precision data modes for optimization across different platforms. Use the **Precision** drop-down menu in the top left corner to set the precision for the entire graph, or the gear icon menu on each node to set the precision for individual nodes on the graph.
+Shader Graph allows you to set specific precision data modes for optimization across different platforms. Use the **Graph Settings** button in the top left corner to reveal the [Graph Settings](Graph-Settings-Menu.md) menu set the precision for the entire graph, or the gear icon menu on each node to set the precision for individual nodes on the graph.
 
 See [Precision Types](Precision-Types.md) for more information about type options. 
 
@@ -61,7 +61,7 @@ Set precision for the **Sub Graph Output** on the **Output** node. This precisio
 
 ![](images/Precision_SubGraph_01.png)
 
-For **Sub Graph Inputs**, set precision modes for each individual [Property](Property-Types.md) on the Sub Graph's [Blackboard](Blackboard.md). Properties that use the `inherit` option inherit the **Graph Precision** you set for the Sub Graph using the drop-down menu in the top left corner.
+For **Sub Graph Inputs**, set precision modes for each individual [Property](Property-Types.md) through the [Internal Inspector](Internal-Inspector.md). Properties that use the `inherit` option inherit the **Graph Precision** you set for the Sub Graph using the drop-down menu in the top left corner.
 
 ![](images/Precision_SubGraph_02.png)
 

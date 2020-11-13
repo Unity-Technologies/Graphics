@@ -15,7 +15,7 @@ HDRP includes the following Shader Graphs:
 - StackLit
 - Unlit
 
-The [Lit](Lit-Shader.html), [LayeredLit](Layered-Lit-Shader.html), and [Unlit](Unlit-Shader.html) Shaders are available as standard Shaders (without Shader Graph). This means that you can use them without creating a Shader Graph instance, and edit them in the Inspector. To use these, select a Material to view it in the Inspector and click on the **Shader** drop-down. Go to the **HDRP** section to see a list of every HDRP Shader that does not require a Shader Graph instance.
+The [Lit](Lit-Shader.md), [LayeredLit](Layered-Lit-Shader.md), and [Unlit](Unlit-Shader.md) Shaders are available as standard Shaders (without Shader Graph). This means that you can use them without creating a Shader Graph instance, and edit them in the Inspector. To use these, select a Material to view it in the Inspector and click on the **Shader** drop-down. Go to the **HDRP** section to see a list of every HDRP Shader that does not require a Shader Graph instance.
 
 <a name="Creation"></a>
 
@@ -36,8 +36,8 @@ To create a Material that uses a Shader Graph (for example, a StackLit Graph), f
 To edit properties for Materials that use Shader Graphs, the Inspector window only allows access to a limited number of properties. To edit all Material properties, you must directly edit the Shader Graph's Master Node.
 
 1. Double-click on the Shader Graph Asset to open it. The window displays the Master Node and a list of the available inputs. See these in the **Surface Inputs** section of the screenshot below.
-2. To expose the rest of the properties, click on the cog in the top right of the Master Node. See these other properties in the **Surface Options** section of the screenshot below.
-3. Edit the values for the cog's properties in the same way as you would do in the Inspector window. The list of inputs on the Master Node, and the available properties in the cog's list, changes depending on what options you select.
+2. To expose the rest of the properties, click on the gear in the top right of the Master Node. See these other properties in the **Surface Options** section of the screenshot below.
+3. Edit the values for the gear's properties in the same way as you would do in the Inspector window. The list of inputs on the Master Node, and the available properties in the gear's list, changes depending on what options you select.
 
 ![](Images/CreatingAndEditingHDRPShaderGraphs1.png)
 
@@ -65,6 +65,24 @@ If you want to change the value of a Material’s property in the Unity Editor I
 You should only expose a property if you intend to change it in the Inspector while you develop your application in the Editor. Otherwise, it’s good practice to leave it unexposed, so that it doesn’t take up too much space in the Inspector, and it can’t accidentally change.
 
 If a property is not exposed, you can still edit it. To edit the property for every Material instance that uses the selected Shader, open the Shader Graph Asset and edit the property directly in the Blackboard. To edit the property for a single Material instance that uses the Shader, use a script. 
+
+**:warning: HDRP reserves a set of property names that you should not use in the Blackboard. If you use any of them, the Material will most likely not work correctly.  
+For the list of restricted property names and their uses, see the following table:**
+
+Property Name | HDRP Usage
+--- | ---
+`_EmissionColor` | Global illumination emission color.
+`_BaseColor` | Global illumination alpha clip.
+`_BaseColorMap` | Global illumination alpha clip.
+`_RenderQueueType` | The render queue type HDRP uses to schedule the Material in the render queue.
+`_UseShadowThreshold` | HDRP internal.
+`_RequireSplitLighting` | HDRP internal.
+`_ReceivesSSR` | Surface Options.
+`_TransparentDepthPrepassEnable` | Surface Options.
+`_TransparentDepthPostpassEnable` | Surface Options.
+`_SurfaceType` | Surface Options.
+`_DoubleSidedEnable` | Surface Options.
+`_AlphaCutoffEnable` | Surface Options.
 
 <a name="ConcreteNodes"></a>
 

@@ -1,4 +1,4 @@
-#include "GraniteShaderLibBase.h"
+#include "GraniteShaderLibBase.hlsl"
 
 #define VtAddressMode_Wrap 0
 #define VtAddressMode_Clamp 1
@@ -98,6 +98,11 @@ int VirtualTexturingLookup(
         if ( input.sampleQuality == VtSampleQuality_Low && input.levelMode == VtLevel_Bias)
         {
             mipLevel += input.lodOrOffset;
+            // GranitePrivate_CalcMiplevelAnisotropic will already clamp between 0 gra_NumLevels
+            // But we need to do it again here. The alternative is modifying dx,dy before passing to
+            // GranitePrivate_CalcMiplevelAnisotropic adding a pow2 + 4 fmuls so probably
+            // the exra clamp is more appropriate here.
+            mipLevel = clamp(mipLevel, 0.0f, gra_NumLevels);
         }
 
         mipLevel = floor(mipLevel + 0.5f); //round nearest

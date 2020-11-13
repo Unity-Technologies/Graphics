@@ -2,6 +2,13 @@
 
 Before you begin, make sure that your project is set up properly, and the graphs are loading correctly. See [Getting started with Shader Graph](Getting-Started) for more information.
 
+## Create a New Graph 
+Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shaders** will display the various creation options. 
+
+A **Blank Shader Graph** will create a Shader Graph with no selected active [targets]() or [block nodes](Block-Node). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Menu.md) to continue. 
+
+Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened. 
+
 ## Create a new node
 
 Use the **Create Node** menu to create new nodes. There are two ways to open the menu:
@@ -17,7 +24,7 @@ In the menu, you can type in the search bar to look for specific nodes, or brows
 
 To build a graph, you need to connect nodes together. To do so, click the **Output Slot** of a node, and drag that connection into the **Input Slot** of another node.
 
-Start by connecting the Color node to the **Albedo** slot of our master node. 
+Start by connecting the Color node to the **Base Color** [block]() of our [Fragment Stack](). 
 
 ![](images/MyFirstShaderGraph_02.png)
 
@@ -60,18 +67,20 @@ To create a new property, use the **Add (+)** button on the top right corner of 
 
 ![](images/MyFirstShaderGraph_07.png)
 
-This adds a new property in the Blackboard with the following options.
+This adds a new property in the Blackboard with the following options in the **Node Settings** tab of the [Graph Inspector]() when the property is selected.
 
 ![](images/MyFirstShaderGraph_08.png)
 
 | **Option**          | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
-| **Property button** | To change the name of the property, right-click the button, select **Rename**, then enter a new property name. To delete the property, right-click the button, and select **Delete**. |
+| **Property button** | To change the name of the property, right-click the button in the Blackboard, select **Rename**, then enter a new property name. To delete the property, right-click the button, and select **Delete**. |
 | **Exposed**         | Enable this checkbox to make the property visible from the Material's Inspector. |
 | **Reference**       | The property's name that appears in C# scripts. To change the **Reference** name, enter a new string. |
 | **Default**         | The default value of the property.                           |
 | **Mode**            | The mode of the property. Each property has different modes. For **Color**, you can select either **Default** or **HDR**. |
-| **Precision**            | The default [precision](Precision-Modes) of the property. |
+| **Precision**       | The default [precision](Precision-Modes) of the property. |
+| **Hybrid Instanced**| An experimental feature that enables this property to be instanced when using the Hybrid DOTS renderer. |
+
 
 There are two ways to reference a property in your graph:
 
@@ -80,7 +89,7 @@ There are two ways to reference a property in your graph:
 
 ![](images/MyFirstShaderGraph_09.png)
 
-Try connecting the property to the **Albedo** output slot. The object immediately changes to black.
+Try connecting the property to the **Base Color** block. The object immediately changes to black.
 
 ![](images/MyFirstShaderGraph_10.png)
 
@@ -89,6 +98,8 @@ Save your graph, and return to the Material's Inspector. The property now appear
 ![](images/MyFirstShaderGraph_11.png)
 
 ## More Tutorials
+
+Older tutorials use an outdated format of Shader Graph with master nodes. When looking at older tutorials, reference the [Upgrade Guide]() for tips on how to convert the master node to a [Master Stack](). 
 
 To keep exploring how to use Shader Graph to author shaders, check out these blog posts:
 

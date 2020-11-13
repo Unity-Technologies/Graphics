@@ -145,13 +145,29 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_RequestedAOVBuffers != null)
             {
                 foreach (var bufferId in m_RequestedAOVBuffers)
-                    textures.Add(m_BufferAllocator(bufferId));
+                {
+                    var rtHandle = m_BufferAllocator(bufferId);
+                    textures.Add(rtHandle);
+                    if (rtHandle == null)
+                    {
+                        Debug.LogError("Allocation for requested AOVBuffers ID: " + bufferId.ToString() + " have fail. Please ensure the callback allocator do the correct allocation.");
+                    }
+                }
+                    
             }
 
             if (m_CustomPassAOVBuffers != null)
             {
                 foreach (var aovBufferId in m_CustomPassAOVBuffers)
-                    customPassTextures.Add(m_CustomPassBufferAllocator(aovBufferId));
+                {
+                    var rtHandle = m_CustomPassBufferAllocator(aovBufferId);
+                    customPassTextures.Add(rtHandle);
+
+                    if (rtHandle == null)
+                    {
+                        Debug.LogError("Allocation for requested AOVBuffers ID: " + aovBufferId.ToString() + " have fail. Please ensure the callback for custom pass allocator do the correct allocation.");
+                    }
+                }
             }
         }
 
@@ -179,7 +195,48 @@ namespace UnityEngine.Rendering.HighDefinition
             if (index == -1)
                 return;
 
-            HDUtils.BlitCameraTexture(cmd, source, targets[index]);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
+            {
+                HDUtils.BlitCameraTexture(cmd, source, targets[index]);
+            }
+        }
+
+        class PushCameraTexturePassData
+        {
+            public TextureHandle source;
+            // Not super clean to not use TextureHandles here. In practice it's ok because those texture are never passed back to any other render pass.
+            public RTHandle target;
+        }
+
+        internal void PushCameraTexture(
+            RenderGraph renderGraph,
+            AOVBuffers aovBufferId,
+            HDCamera camera,
+            TextureHandle source,
+            List<RTHandle> targets
+        )
+        {
+            if (!isValid || m_RequestedAOVBuffers == null)
+                return;
+
+            Assert.IsNotNull(m_RequestedAOVBuffers);
+            Assert.IsNotNull(targets);
+
+            var index = Array.IndexOf(m_RequestedAOVBuffers, aovBufferId);
+            if (index == -1)
+                return;
+
+            using (var builder = renderGraph.AddRenderPass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
+            {
+                passData.source = builder.ReadTexture(source);
+                passData.target = targets[index];
+
+                builder.SetRenderFunc(
+                (PushCameraTexturePassData data, RenderGraphContext ctx) =>
+                {
+                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
+                });
+            }
         }
 
         internal void PushCustomPassTexture(
@@ -221,42 +278,60 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class PushCameraTexturePassData
+        class PushCustomPassTexturePassData
         {
-            public int                  requestIndex;
-            public TextureHandle        source;
+            public TextureHandle source;
+            public RTHandle customPassSource;
             // Not super clean to not use TextureHandles here. In practice it's ok because those texture are never passed back to any other render pass.
-            public List<RTHandle>       targets;
+            public RTHandle target;
         }
 
-        internal void PushCameraTexture(
-            RenderGraph         renderGraph,
-            AOVBuffers          aovBufferId,
-            HDCamera            camera,
-            TextureHandle       source,
-            List<RTHandle>      targets
+        internal void PushCustomPassTexture(
+            RenderGraph renderGraph,
+            CustomPassInjectionPoint injectionPoint,
+            TextureHandle cameraSource,
+            Lazy<RTHandle> customPassSource,
+            List<RTHandle> targets
         )
         {
-            if (!isValid || m_RequestedAOVBuffers == null)
+            if (!isValid || m_CustomPassAOVBuffers == null)
                 return;
 
-            Assert.IsNotNull(m_RequestedAOVBuffers);
             Assert.IsNotNull(targets);
 
-            var index = Array.IndexOf(m_RequestedAOVBuffers, aovBufferId);
+            int index = -1;
+            for (int i = 0; i < m_CustomPassAOVBuffers.Length; ++i)
+            {
+                if (m_CustomPassAOVBuffers[i].injectionPoint == injectionPoint)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
             if (index == -1)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<PushCameraTexturePassData>("Push AOV Camera Texture", out var passData))
+            using (var builder = renderGraph.AddRenderPass<PushCustomPassTexturePassData>("Push Custom Pass Texture", out var passData))
             {
-                passData.requestIndex = index;
-                passData.source = builder.ReadTexture(source);
-                passData.targets = targets;
+                if (m_CustomPassAOVBuffers[index].outputType == CustomPassAOVBuffers.OutputType.Camera)
+                {
+                    passData.source = builder.ReadTexture(cameraSource);
+                    passData.customPassSource = null;
+                }
+                else
+                {
+                    passData.customPassSource = customPassSource.Value;
+                }
+                passData.target = targets[index];
 
                 builder.SetRenderFunc(
-                (PushCameraTexturePassData data, RenderGraphContext ctx) =>
+                (PushCustomPassTexturePassData data, RenderGraphContext ctx) =>
                 {
-                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.source), data.targets[data.requestIndex]);
+                    if (data.customPassSource != null)
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.customPassSource, data.target);
+                    else
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
                 });
             }
         }

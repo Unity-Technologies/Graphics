@@ -3,10 +3,6 @@
 
 float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinData builtinData, const PreLightData preLightData, BSDFData bsdfData, const PositionInputs posInput, float3 posRWS)
 {
-    float3 diffuseLighting;
-    float3 specularLighting;
-
-
     #if IS_OPAQUE_PARTICLE
     uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
     #elif USE_ONLY_AMBIENT_LIGHTING
@@ -25,7 +21,13 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
     #endif
 
     #endif
-    LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+
+    LightLoopOutput lightLoopOutput;
+    LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+
+    // Alias
+    float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+    float3 specularLighting = lightLoopOutput.specularLighting;
 
     diffuseLighting *= GetCurrentExposureMultiplier();
     specularLighting *= GetCurrentExposureMultiplier();
@@ -100,10 +102,8 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 #else
 
 
-float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData builtinData,const VFX_VARYING_PS_INPUTS i)
+float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, const SurfaceData surfaceData, float3 emissiveColor, float opacity)
 {
-    VFXClipFragmentColor(builtinData.opacity,i);
-
 	uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
     float3 posRWS = VFXGetPositionRWS(i);
 	float4 posSS = i.VFX_VARYING_POSCS;
@@ -116,28 +116,27 @@ float4 VFXGetPixelOutputForwardShaderGraph(SurfaceData surfaceData, BuiltinData 
     preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
     preLightData.diffuseFGD = 1.0f;
 
-    float3 emissive = builtinData.emissiveColor;
-    InitBuiltinData(posInput, builtinData.opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData);
-    builtinData.emissiveColor = emissive;
+    BuiltinData builtinData;
+    InitBuiltinData(posInput, opacity, surfaceData.normalWS, -surfaceData.normalWS, (float4)0, (float4)0, builtinData);
+    builtinData.emissiveColor = emissiveColor;
     PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surfaceData, builtinData);
 
-    return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
+    return VFXCalcPixelOutputForward(surfaceData, builtinData, preLightData, bsdfData, posInput, posRWS);
 }
 #endif
 #else
 
 
-void VFXSetupBuiltin(inout BuiltinData builtin,SurfaceData surface,float3 emissiveColor, VFX_VARYING_PS_INPUTS i)
+void VFXSetupBuiltinForGBuffer(const VFX_VARYING_PS_INPUTS i, const SurfaceData surface, float3 emissiveColor, float opacity, out BuiltinData builtin)
 {
     uint2 tileIndex = uint2(0,0);
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
     PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
-    InitBuiltinData(posInput, builtin.opacity, surface.normalWS, -surface.normalWS, (float4)0, (float4)0, builtin);
+    InitBuiltinData(posInput, opacity, surface.normalWS, -surface.normalWS, (float4)0, (float4)0, builtin);
     builtin.emissiveColor = emissiveColor;
-    PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput,surface, builtin);
+    PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInput.positionWS), posInput, surface, builtin);
 }
-
 
 #define VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer) \
 { \
@@ -154,7 +153,7 @@ void VFXSetupBuiltin(inout BuiltinData builtin,SurfaceData surface,float3 emissi
     BuiltinData builtinData; \
     VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
  \
-    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), i.VFX_VARYING_POSCS, outNormalBuffer); \
+    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), outNormalBuffer); \
 }
 
 #endif

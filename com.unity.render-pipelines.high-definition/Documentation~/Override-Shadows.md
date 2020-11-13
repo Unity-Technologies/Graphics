@@ -1,12 +1,12 @@
 # Shadows
 
-The **Shadows** [Volume component override](Volume-Components.html) controls the maximum distance at which HDRP renders shadow cascades and shadows from [punctual lights](Glossary.html#PunctualLight). It uses cascade splits to control the quality of shadows cast by Directional Lights over distance from the Camera.
+The **Shadows** [Volume component override](Volume-Components.md) controls the maximum distance at which HDRP renders shadow cascades and shadows from [punctual lights](Glossary.md#PunctualLight). It uses cascade splits to control the quality of shadows cast by Directional Lights over distance from the Camera.
 
 ## Using Shadows
 
-**Shadows** uses the [Volume](Volumes.html) framework, so to enable and modify **Shadows** properties, you must add a **Shadows** override to a [Volume](Volumes.html) in your Scene.
+**Shadows** uses the [Volume](Volumes.md) framework, so to enable and modify **Shadows** properties, you must add a **Shadows** override to a [Volume](Volumes.md) in your Scene.
 
-The **Shadows** override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**). You can also manually add a **Shadows** override to any [Volume](Volumes.html). To add **Shadows** to a Volume:
+The **Shadows** override comes as default when you create a **Scene Settings** GameObject (Menu: **GameObject > Rendering > Scene Settings**). You can also manually add a **Shadows** override to any [Volume](Volumes.md). To add **Shadows** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Shadows**. You can now use the **Shadows** override to alter shadow settings for this Volume.
@@ -14,6 +14,8 @@ The **Shadows** override comes as default when you create a **Scene Settings** G
 ## Properties
 
 ![](Images/Override-Shadows1.png)
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
@@ -44,7 +46,7 @@ In the Scene view and the Game view, the cascade visualization feature allows yo
 
 ![](Images/Override-Shadows3.png)
 
-In the Scene view and the Game view, you can use the cascade visualization feature to see the boundaries and borders of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. To enable the cascade visualization feature, click the **Visualize Cascades** button at the top of the list of **Shadows** properties. You can now see the shadow maps in the Scene view and the Game view. 
+In the Scene view and the Game view, you can use the cascade visualization feature to see the boundaries and borders of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. To enable the cascade visualization feature, click the **Show Cascades** button at the top of the list of **Shadows** properties. You can now see the shadow maps in the Scene view and the Game view. 
 
 - You can use the Scene view Camera to move around your Scene and quickly visualize the shadow maps of different areas.
-- You can use the Game view Camera to visualize the shadow maps from the point of view of the end user. You can use the **Visualize Cascades** feature while in Play Mode, which is useful if you have some method of controlling the Camera’s position and rotation and want to see the shadow maps from different points of view in your Project.
+- You can use the Game view Camera to visualize the shadow maps from the point of view of the end user. You can use the **Show Cascades** feature while in Play Mode, which is useful if you have some method of controlling the Camera’s position and rotation and want to see the shadow maps from different points of view in your Project.

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering.Universal;
@@ -8,8 +9,30 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
+
     static class Renderer2DMenus
     {
+        static void Create2DRendererData(Action<Renderer2DData> onCreatedCallback)
+        {
+            var instance = ScriptableObject.CreateInstance<Create2DRendererDataAsset>();
+            instance.onCreated += onCreatedCallback;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, instance, "New 2D Renderer Data.asset", null, null);
+        }
+
+        class Create2DRendererDataAsset : EndNameEditAction
+        {
+            public event Action<Renderer2DData> onCreated;
+
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var instance = CreateInstance<Renderer2DData>();
+                AssetDatabase.CreateAsset(instance, pathName);
+                Selection.activeObject = instance;
+
+                onCreated(instance);
+            }
+        }
+
         internal static void PlaceGameObjectInFrontOfSceneView(GameObject go)
         {
             var sceneViews = SceneView.sceneViews;
@@ -136,7 +159,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/2D Renderer (Experimental)", priority = CoreUtils.assetCreateMenuPriority2 + 1)]
         static void Create2DRendererData()
         {
-            Renderer2DData.Create2DRendererData((instance) =>
+            Renderer2DMenus.Create2DRendererData((instance) =>
             {
                 Analytics.RendererAssetData modifiedData = new Analytics.RendererAssetData();
                 modifiedData.instance_id = instance.GetInstanceID();

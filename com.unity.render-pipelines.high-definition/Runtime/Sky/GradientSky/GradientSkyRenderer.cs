@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public GradientSkyRenderer()
         {
+            SupportDynamicSunLight = false;
         }
 
         public override void Build()

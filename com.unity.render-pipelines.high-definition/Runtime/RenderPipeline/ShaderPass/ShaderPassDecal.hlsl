@@ -1,13 +1,13 @@
-#if (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH) && (SHADERPASS != SHADERPASS_FORWARD_PREVIEW)
+#if (SHADERPASS != SHADERPASS_DEPTH_ONLY) && (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH) && (SHADERPASS != SHADERPASS_FORWARD_PREVIEW)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/VertMesh.hlsl"
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalPrepassBuffer.hlsl"
 
 void MeshDecalsPositionZBias(inout VaryingsToPS input)
 {
-#if defined(UNITY_REVERSED_Z)
+#if UNITY_REVERSED_Z
 	input.vmesh.positionCS.z -= _DecalMeshDepthBias;
 #else
 	input.vmesh.positionCS.z += _DecalMeshDepthBias;
@@ -24,43 +24,93 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
     return PackVaryingsType(varyingsType);
 }
 
-
 void Frag(  PackedVaryingsToPS packedInput,
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     OUTPUT_DBUFFER(outDBuffer)
-#elif (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph
+#elif defined(SCENEPICKINGPASS) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph and scene picking
     out float4 outColor : SV_Target0
 #else
     out float4 outEmissive : SV_Target0
 #endif
 )
 {
+#ifdef SCENEPICKINGPASS
+    outColor = _SelectionID;
+#else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
     DecalSurfaceData surfaceData;
     float clipValue = 1.0;
+    float angleFadeFactor = 1.0;
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)    
 
 	float depth = LoadCameraDepth(input.positionSS.xy);
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    // Decal layer mask accepted by the receiving material
+    DecalPrepassData material;
+    ZERO_INITIALIZE(DecalPrepassData, material);
+    if (_EnableDecalLayers)
+    {
+        // Clip the decal if it does not pass the decal layer mask of the receiving material.
+        // Decal layer of the decal
+        uint decalLayerMask = uint(UNITY_ACCESS_INSTANCED_PROP(Decal, _DecalLayerMaskFromDecal).x);
+
+        DecodeFromDecalPrepass(posInput.positionSS, material);
+
+        if ((decalLayerMask & material.decalLayerMask) == 0)
+            clipValue -= 2.0;
+    }
+
     // Transform from relative world space to decal space (DS) to clip the decal
     float3 positionDS = TransformWorldToObject(posInput.positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5, 0.5);
     if (!(all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
     {
-        clipValue = -1.0; // helper lanes will be clipped
-        #ifndef SHADER_API_METAL
-        clip(clipValue); // call clip as early as possible
-        #endif
+        clipValue -= 2.0; // helper lanes will be clipped
     }
 
+    // call clip as early as possible
+#ifndef SHADER_API_METAL
+    // Calling clip here instead of inside the condition above shouldn't make any performance difference
+    // but case save one clip call.
+    clip(clipValue);
+#else
+    // Metal Shading Language declares that fragment discard invalidates
+    // derivatives for the rest of the quad, so we need to reorder when
+    // we discard during decal projection, or we get artifacts along the
+    // edges of the projection(any partial quads get bad partial derivatives
+    //regardless of whether they are computed implicitly or explicitly).
+    if (clipValue > 0.0)
+    {
+#endif
     input.texCoord0.xy = positionDS.xz;
     input.texCoord1.xy = positionDS.xz;
     input.texCoord2.xy = positionDS.xz;
     input.texCoord3.xy = positionDS.xz;
 
     float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+    // For now we only allow angle fading when decal layers are enabled
+    // TODO: Reconstructing normal from depth buffer result in poor result.
+    // We may revisit it in the future
+    // This is example code:  float3 vtxNormal = normalize(cross(ddy(posInput.positionWS), ddx(posInput.positionWS)));
+    // But better implementation (and costlier) can be find here: https://atyuwen.github.io/posts/normal-reconstruction/
+    if (_EnableDecalLayers)
+    {
+        // Check if this decal projector require angle fading
+        float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+        float2 angleFade = float2(normalToWorld[1][3], normalToWorld[2][3]);
+
+        if (angleFade.y < 0.0f) // if angle fade is enabled
+        {
+            float dotAngle = dot(material.geomNormalWS, normalToWorld[2].xyz);
+            // See equation in DecalSystem.cs - simplified to a madd mul add here
+            angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
+        }
+    }
+
 #else // Decal mesh
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0));
@@ -73,59 +123,11 @@ void Frag(  PackedVaryingsToPS packedInput,
     #endif
 #endif
 
-    GetSurfaceData(input, V, posInput, surfaceData);
-
-// Perform HTile optimization only on platform that support it
-#if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
-    uint2 htileCoord = input.positionSS.xy / 8;
-    int stride = (_ScreenSize.x + 7) / 8;
-    uint mask = surfaceData.HTileMask;
-    uint tileCoord1d = htileCoord.y * stride + htileCoord.x;
-#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    // This is an optimization to reduce the number of atomatic operation executed.
-    // smallest tile index in the wave
-    uint minTileCoord1d = WaveActiveMin(tileCoord1d);
-    while (minTileCoord1d != -1)
-    {
-        if ((minTileCoord1d == tileCoord1d) && (clipValue > 0.0))// if this is the current tile and not a helper lane
-        {
-            // calculate the mask across the current tile
-            mask = WaveActiveBitOr(surfaceData.HTileMask);
-
-            // Is it the first active lane?
-            if(WaveIsFirstLane())
-            {
-                // recalculate tileCoord1d, because on Xbox the register holding its value gets overwritten
-                if (tileCoord1d != -1)
-                {
-                    tileCoord1d = htileCoord.y * stride + htileCoord.x;
-                }
-                InterlockedOr(_DecalPropertyMaskBuffer[tileCoord1d], mask);
-            }
-            // mark this tile as processed
-            tileCoord1d = -1;
-        }
-        // recalculate tileCoord1d, because on Xbox the register holding its value gets overwritten
-        if (tileCoord1d != -1)
-        {
-            tileCoord1d = htileCoord.y * stride + htileCoord.x;
-        }
-        // get the next tile with smallest index
-        minTileCoord1d = WaveActiveMin(tileCoord1d);
-    }
-#else // PLATFORM_SUPPORTS_WAVE_INTRINSICS
-    InterlockedOr(_DecalPropertyMaskBuffer[tileCoord1d], mask);
-#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
-
-#endif // ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)) && defined(PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER)
-
+    GetSurfaceData(input, V, posInput, angleFadeFactor, surfaceData);
 
 #if ((SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)) && defined(SHADER_API_METAL)
-    // Metal Shading Language declares that fragment discard invalidates
-    // derivatives for the rest of the quad, so we need to reorder when
-    // we discard during decal projection, or we get artifacts along the
-    // edges of the projection(any partial quads get bad partial derivatives
-    //regardless of whether they are computed implicitly or explicitly).
+    } // if (clipValue > 0.0)
+
     clip(clipValue);
 #endif
 
@@ -147,5 +149,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     // Emissive need to be pre-exposed
     outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
     outEmissive.a = 1.0;
+#endif
 #endif
 }

@@ -97,6 +97,7 @@ struct LightData
     real angleScale;
     real angleOffset;
     float3 forward;
+    float iesCut;
     int lightType;
     float3 right;
     real range;
@@ -105,7 +106,6 @@ struct LightData
     float3 color;
     float rangeAttenuationBias;
     int cookieMode;
-    int cookieIndex;
     int shadowIndex;
     float4 cookieScaleOffset;
     int contactShadowMask;
@@ -143,7 +143,7 @@ struct EnvLightData
     float3 influenceUp;
     float3 influenceRight;
     float3 influenceExtents;
-    float unused00;
+    float roughReflections;
     float3 blendDistancePositive;
     float3 blendDistanceNegative;
     float3 blendNormalDistancePositive;

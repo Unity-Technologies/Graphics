@@ -351,8 +351,7 @@ BilateralData TapBilateralData(uint2 coordSS)
     if ((NORMAL_WEIGHT > 0.0) || (PLANE_WEIGHT > 0.0))
     {
         NormalData normalData;
-        const float4 normalBuffer = LOAD_TEXTURE2D_X(_NormalBufferTexture, coordSS);
-        DecodeFromNormalBuffer(normalBuffer, coordSS, normalData);
+        DecodeFromNormalBuffer(coordSS, normalData);
         key.normal = normalData.normalWS;
     }
 
@@ -496,7 +495,6 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     #endif
 }
 
-RW_TEXTURE2D_X(float4, _ScreenSpaceShadowsTextureRW);
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]
 void AreaShadowNoDenoise(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -507,15 +505,16 @@ void AreaShadowNoDenoise(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     uint2 currentCoord = groupId * AREA_BILLATERAL_TILE_SIZE + groupThreadId;
 
     // Grab the previous value stored in the buffer. We use a max with 0 to avoid using invalid values that may come from rthandle resizing
-    float4 previousValue = max(0, _ScreenSpaceShadowsTextureRW[uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))]);
+    float2 inputValues = _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)].xy;
 
     // Compute the shadow value that we need to store
-    float shadowValue = _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y > 0.0 ? _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].x / _DenoiseInputTexture[COORD_TEXTURE2D_X(currentCoord)].y : 0.0;
+    float shadowValue = inputValues.y > 0.0 ? inputValues.x / inputValues.y : 0.0;
     
     // Only override when the mask is 1.0
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue + _DenoisingHistoryMask * shadowValue;
+    _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(shadowValue,shadowValue,shadowValue, 1.0);
 }
 
+RW_TEXTURE2D_X(float4, _ScreenSpaceShadowsTextureRW);
 uint _DenoisingHistorySlot;
 
 [numthreads(AREA_BILLATERAL_TILE_SIZE, AREA_BILLATERAL_TILE_SIZE, 1)]

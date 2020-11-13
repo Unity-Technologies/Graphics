@@ -1,6 +1,11 @@
+#ifndef UNITY_COOKIE_SAMPLING_INCLUDED
+#define UNITY_COOKIE_SAMPLING_INCLUDED
+
 //-----------------------------------------------------------------------------
 // Cookie sampling functions
 // ----------------------------------------------------------------------------
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 #define COOKIE_ATLAS_SIZE _CookieAtlasData.x
 #define COOKIE_ATLAS_RCP_PADDING _CookieAtlasData.y
@@ -38,8 +43,12 @@ float3 SampleCookie2D(float2 coord, float4 scaleOffset, float lod = 0) // TODO: 
 }
 
 // Used by point lights.
-float3 SampleCookieCube(float3 coord, int index)
+float3 SamplePointCookie(float3 lightToSample, float4 scaleOffset, float lod = 0)
 {
-    // TODO: add MIP maps to combat aliasing?
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
+    float2 params = PackNormalOctQuadEncode(lightToSample);
+    float2 uv     = saturate(params*0.5f + 0.5f);
+
+    return SampleCookie2D(uv, scaleOffset, lod);
 }
+
+#endif // UNITY_COOKIE_SAMPLING_INCLUDED

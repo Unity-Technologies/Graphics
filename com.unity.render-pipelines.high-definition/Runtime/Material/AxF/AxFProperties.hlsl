@@ -51,6 +51,8 @@ SAMPLER(sampler_SVBRDF_ClearcoatIORMap);
 
 CBUFFER_START(UnityPerMaterial)
 
+    float4  _MappingMask;
+
     // Scale/Offsets:
     float4  _Material_SO; // Main scale, TODO: scale - but not offset - could be moved to vertex shader and applied to uv0
 
@@ -118,6 +120,8 @@ float _AlphaCutoff;
 float _UseShadowThreshold;
 float _AlphaCutoffShadow;
 float4 _DoubleSidedConstants;
+float _BlendMode;
+float _EnableBlendModePreserveSpecularLighting;
 
 // Specular AA
 float _EnableGeometricSpecularAA;
@@ -130,8 +134,9 @@ float _SpecularAAThreshold;
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
 
-// Following two variables are feeded by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
+float4 _SelectionID;
 
 CBUFFER_END

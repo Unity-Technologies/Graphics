@@ -18,9 +18,9 @@ struct HDShadowData
     float normalBias;
     real4 zBufferParam;
     float4 shadowMapSize;
-    real4 shadowFilterParams0;
+    float4 shadowFilterParams0;
     float3 cacheTranslationDelta;
-    float _pad0;
+    float isInCachedAtlas;
     float4x4 shadowToWorld;
 };
 

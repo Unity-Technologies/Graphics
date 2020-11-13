@@ -9,6 +9,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // This will be used during GBuffer and/or forward passes.
         TextureHandle CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
         {
+#if UNITY_2020_2_OR_NEWER
+            FastMemoryDesc fastMemDesc;
+            fastMemDesc.inFastMemory = true;
+            fastMemDesc.residencyFraction = 1.0f;
+            fastMemDesc.flags = FastMemoryFlags.SpillTop;
+#endif
+
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
                 colorFormat = GraphicsFormat.R8G8B8A8_SRGB,
@@ -17,8 +24,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableMSAA = msaa,
                 clearBuffer = NeedClearGBuffer(),
                 clearColor = Color.clear,
-                name = string.Format("SSSBuffer{0}", msaa ? "MSAA" : "" ) }
-            );
+                name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
+#if UNITY_2020_2_OR_NEWER
+                , fastMemoryDesc = fastMemDesc
+#endif
+            });
         }
 
         class SubsurfaceScaterringPassData
@@ -30,6 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthTexture;
             public TextureHandle cameraFilteringBuffer;
             public TextureHandle sssBuffer;
+            public ComputeBufferHandle coarseStencilBuffer;
         }
 
         void RenderSubsurfaceScattering(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer,
@@ -38,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, ref prepassOutput);
+            BuildCoarseStencilAndResolveIfNeeded(renderGraph, hdCamera, resolveOnly: false, ref prepassOutput);
 
             TextureHandle depthStencilBuffer = prepassOutput.depthBuffer;
             TextureHandle depthTexture = prepassOutput.depthPyramidTexture;
@@ -51,24 +62,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.depthTexture = builder.ReadTexture(depthTexture);
                 passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
+                passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
                 if (passData.parameters.needTemporaryBuffer)
                 {
-                    passData.cameraFilteringBuffer = builder.WriteTexture(renderGraph.CreateTexture(
+                    passData.cameraFilteringBuffer = builder.CreateTransientTexture(
                                             new TextureDesc(Vector2.one, true, true)
-                                            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" }));
+                                            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
+                }
+                else
+                {
+                    // We need to set this as otherwise it will still be using an handle that is potentially coming from another rendergraph execution.
+                    // For example if we have two cameras, if  NeedTemporarySubsurfaceBuffer() is false, but one camera has MSAA and one hasn't, only one camera
+                    // will have passData.parameters.needTemporaryBuffer true and the other that doesn't, without explicit setting to null handle will try to use handle of the other camera.
+                    passData.cameraFilteringBuffer = TextureHandle.nullHandle;
                 }
 
                 builder.SetRenderFunc(
                 (SubsurfaceScaterringPassData data, RenderGraphContext context) =>
                 {
                     var resources = new SubsurfaceScatteringResources();
-                    resources.colorBuffer = context.resources.GetTexture(data.colorBuffer);
-                    resources.diffuseBuffer = context.resources.GetTexture(data.diffuseBuffer);
-                    resources.depthStencilBuffer = context.resources.GetTexture(data.depthStencilBuffer);
-                    resources.depthTexture = context.resources.GetTexture(data.depthTexture);
-                    resources.cameraFilteringBuffer = context.resources.GetTexture(data.cameraFilteringBuffer);
-                    resources.sssBuffer = context.resources.GetTexture(data.sssBuffer);
-                    resources.coarseStencilBuffer = data.parameters.coarseStencilBuffer;
+                    resources.colorBuffer = data.colorBuffer;
+                    resources.diffuseBuffer = data.diffuseBuffer;
+                    resources.depthStencilBuffer = data.depthStencilBuffer;
+                    resources.depthTexture = data.depthTexture;
+                    resources.cameraFilteringBuffer = data.cameraFilteringBuffer;
+                    resources.sssBuffer = data.sssBuffer;
+                    resources.coarseStencilBuffer = data.coarseStencilBuffer;
 
                     RenderSubsurfaceScattering(data.parameters, resources, context.cmd);
                 });

@@ -1,0 +1,287 @@
+Pass
+{
+    $splice(PassName)
+    Tags
+    {
+        $splice(LightMode)
+    }
+
+    // Render State
+    $splice(RenderState)
+
+    // Debug
+    $splice(Debug)
+
+    // --------------------------------------------------
+    // Pass
+
+    HLSLPROGRAM
+
+    // Pragmas
+    $splice(PassPragmas)
+
+    // Keywords
+    $splice(PassKeywords)
+    $splice(GraphKeywords)
+
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl" // Required to be include before we include properties as it define DECLARE_STACK_CB
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphHeader.hlsl" // Need to be here for Gradient struct definition
+
+    // --------------------------------------------------
+    // Defines
+
+    // Attribute
+    $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
+    $AttributesMesh.tangentOS:          #define ATTRIBUTES_NEED_TANGENT
+    $AttributesMesh.uv0:                #define ATTRIBUTES_NEED_TEXCOORD0
+    $AttributesMesh.uv1:                #define ATTRIBUTES_NEED_TEXCOORD1
+    $AttributesMesh.uv2:                #define ATTRIBUTES_NEED_TEXCOORD2
+    $AttributesMesh.uv3:                #define ATTRIBUTES_NEED_TEXCOORD3
+    $AttributesMesh.color:              #define ATTRIBUTES_NEED_COLOR
+    $VaryingsMeshToPS.positionRWS:      #define VARYINGS_NEED_POSITION_WS
+    $VaryingsMeshToPS.normalWS:         #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $VaryingsMeshToPS.texCoord0:        #define VARYINGS_NEED_TEXCOORD0
+    $VaryingsMeshToPS.texCoord1:        #define VARYINGS_NEED_TEXCOORD1
+    $VaryingsMeshToPS.texCoord2:        #define VARYINGS_NEED_TEXCOORD2
+    $VaryingsMeshToPS.texCoord3:        #define VARYINGS_NEED_TEXCOORD3
+    $VaryingsMeshToPS.color:            #define VARYINGS_NEED_COLOR
+
+    $features.graphVertex:              #define HAVE_MESH_MODIFICATION
+
+    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
+
+    $splice(GraphDefines)
+
+    // Following two define are a workaround introduce in 10.1.x for RaytracingQualityNode
+    // The ShaderGraph don't support correctly migration of this node as it serialize all the node data
+    // in the json file making it impossible to uprgrade. Until we get a fix, we do a workaround here
+    // to still allow us to rename the field and keyword of this node without breaking existing code.
+    #ifdef RAYTRACING_SHADER_GRAPH_DEFAULT 
+    #define RAYTRACING_SHADER_GRAPH_HIGH
+    #endif
+
+    #ifdef RAYTRACING_SHADER_GRAPH_RAYTRACED
+    #define RAYTRACING_SHADER_GRAPH_LOW
+    #endif
+    // end
+
+    #ifndef SHADER_UNLIT
+    // We need isFrontFace when using double sided - it is not required for unlit as in case of unlit double sided only drive the cullmode
+    // VARYINGS_NEED_CULLFACE can be define by VaryingsMeshToPS.FaceSign input if a IsFrontFace Node is included in the shader graph.
+    #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
+        #define VARYINGS_NEED_CULLFACE
+    #endif
+    #endif
+
+    // Specific Material Define
+    $include("ShaderPassDefine.template.hlsl")
+    // Caution: we can use the define SHADER_UNLIT onlit after the above Material include as it is the Unlit template who define it
+
+    // To handle SSR on transparent correctly with a possibility to enable/disable it per framesettings
+    // we should have a code like this:
+    // if !defined(_DISABLE_SSR_TRANSPARENT)
+    // pragma multi_compile _ WRITE_NORMAL_BUFFER
+    // endif
+    // i.e we enable the multicompile only if we can receive SSR or not, and then C# code drive
+    // it based on if SSR transparent in frame settings and not (and stripper can strip it).
+    // this is currently not possible with our current preprocessor as _DISABLE_SSR_TRANSPARENT is a keyword not a define
+    // so instead we used this and chose to pay the extra cost of normal write even if SSR transaprent is disabled.
+    // Ideally the shader graph generator should handle it but condition below can't be handle correctly for now.
+    #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
+    #if !defined(_DISABLE_SSR_TRANSPARENT) && !defined(SHADER_UNLIT)
+        #define WRITE_NORMAL_BUFFER
+    #endif
+    #endif
+
+    #ifndef DEBUG_DISPLAY
+        // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+        // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+        #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
+            #if SHADERPASS == SHADERPASS_FORWARD
+            #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+            #elif SHADERPASS == SHADERPASS_GBUFFER
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
+            #endif
+        #endif
+    #endif
+
+    // Translate transparent motion vector define
+    #if defined(_TRANSPARENT_WRITES_MOTION_VEC) && defined(_SURFACE_TYPE_TRANSPARENT)
+        #define _WRITE_TRANSPARENT_MOTION_VECTOR
+    #endif
+
+    // Dots Instancing
+    $splice(DotsInstancingOptions)
+
+    // Various properties
+
+    $splice(HybridV1InjectedBuiltinProperties)
+
+    // -- Graph Properties
+    $splice(GraphProperties)
+
+    // -- Property used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
+
+    // -- Properties used by SceneSelectionPass
+    #ifdef SCENESELECTIONPASS
+    int _ObjectId;
+    int _PassValue;
+    #endif
+
+    // Includes
+    $splice(PreGraphIncludes)
+
+    // --------------------------------------------------
+    // Structs and Packing
+
+    $splice(PassStructs)
+
+    $splice(InterpolatorPack)
+
+    // --------------------------------------------------
+    // Graph
+
+
+    // Graph Functions
+    $splice(GraphFunctions)
+
+    // Graph Vertex
+    $splice(GraphVertex)
+
+    // Graph Pixel
+    $splice(GraphPixel)
+
+    // --------------------------------------------------
+    // Build Graph Inputs
+
+    $features.graphVertex:  $include("VertexAnimation.template.hlsl")
+    $features.graphPixel:   $include("SharedCode.template.hlsl")
+
+    // --------------------------------------------------
+    // Build Surface Data (Specific Material)
+
+    $include("ShaderPass.template.hlsl")
+
+    // --------------------------------------------------
+    // Get Surface And BuiltinData
+
+    void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
+    {
+        // Don't dither if displaced tessellation (we're fading out the displacement instead to match the next LOD)
+        #if !defined(SHADER_STAGE_RAY_TRACING) && !defined(_TESSELLATION_DISPLACEMENT)
+        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+        LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+        #endif
+        #endif
+
+        #ifndef SHADER_UNLIT
+        #ifdef _DOUBLESIDED_ON
+            float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
+        #else
+            float3 doubleSidedConstants = float3(1.0, 1.0, 1.0);
+        #endif
+
+        ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants); // Apply double sided flip on the vertex normal
+        #endif // SHADER_UNLIT
+
+        SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+
+        // Perform alpha test very early to save performance (a killed pixel will not sample textures)
+        // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
+        #ifdef _ALPHATEST_ON
+            float alphaCutoff = surfaceDescription.AlphaClipThreshold;
+            #if SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_PREPASS
+            // The TransparentDepthPrepass is also used with SSR transparent.
+            // If an artists enable transaprent SSR but not the TransparentDepthPrepass itself, then we use AlphaClipThreshold
+            // otherwise if TransparentDepthPrepass is enabled we use AlphaClipThresholdDepthPrepass
+            $DoAlphaTestPrepass: alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPrepass;
+            #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
+            // DepthPostpass always use its own alpha threshold
+            alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
+            #elif (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
+            // If use shadow threshold isn't enable we don't allow any test
+            $DoAlphaTestShadow: alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
+            #endif
+
+            GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaCutoff);
+        #endif
+
+        #if !defined(SHADER_STAGE_RAY_TRACING) && _DEPTHOFFSET_ON
+        ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+        #endif
+
+        #ifndef SHADER_UNLIT
+        float3 bentNormalWS;
+        BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
+
+        // Builtin Data
+        // For back lighting we use the oposite vertex normal
+        InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        #else
+        BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
+
+        ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+        builtinData.opacity = surfaceDescription.Alpha;
+
+        #if defined(DEBUG_DISPLAY)
+            // Light Layers are currently not used for the Unlit shader (because it is not lit)
+            // But Unlit objects do cast shadows according to their rendering layer mask, which is what we want to
+            // display in the light layers visualization mode, therefore we need the renderingLayers
+            builtinData.renderingLayers = GetMeshRenderingLightLayer();
+        #endif
+
+        #endif // SHADER_UNLIT
+
+        #ifdef _ALPHATEST_ON
+            // Used for sharpening by alpha to mask - Alpha to covertage is only used with depth only and forward pass (no shadow pass, no transparent pass)
+            builtinData.alphaClipTreshold = alphaCutoff;
+        #endif
+
+        // override sampleBakedGI - not used by Unlit
+        $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
+        $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
+
+        $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+
+        // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
+        // We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
+        // This is a limitation of the current MRT approach.
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+
+        #if _DEPTHOFFSET_ON
+        builtinData.depthOffset = surfaceDescription.DepthOffset;
+        #endif
+
+        // TODO: We should generate distortion / distortionBlur for non distortion pass
+        #if (SHADERPASS == SHADERPASS_DISTORTION)
+        builtinData.distortion = surfaceDescription.Distortion;
+        builtinData.distortionBlur = surfaceDescription.DistortionBlur;
+        #endif
+
+        #ifndef SHADER_UNLIT
+        // PostInitBuiltinData call ApplyDebugToBuiltinData
+        PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+        #else
+        ApplyDebugToBuiltinData(builtinData);
+        #endif
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
+    }
+
+    // --------------------------------------------------
+    // Main
+
+    $splice(PostGraphIncludes)
+
+    ENDHLSL
+}

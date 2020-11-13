@@ -22,11 +22,11 @@
 }
 .port.typeboolean
 {
-    --port-color: #9481E6;
+    --port-color: #d9b3ff;
 }
 .port.typeuint32
 {
-    --port-color: #9481E6;
+    --port-color: #6e55dd;
 }
 .port.typeflipbook
 {

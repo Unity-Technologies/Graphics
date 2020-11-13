@@ -286,60 +286,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [GenerateHLSL]
-        public enum PbrSkyConfig
-        {
-            // Tiny
-            GroundIrradianceTableSize     = 256, // <N, L>
-
-            // 32 MiB
-            InScatteredRadianceTableSizeX = 128, // <N, V>
-            InScatteredRadianceTableSizeY = 32,  // height
-            InScatteredRadianceTableSizeZ = 16,  // AzimuthAngle(L) w.r.t. the view vector
-            InScatteredRadianceTableSizeW = 64,  // <N, L>,
-        }
-
-        [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.PBRSky)]
-        unsafe struct ShaderVariablesPhysicallyBasedSky
-        {
-            // All the distance-related entries use SI units (meter, 1/meter, etc).
-            public float _PlanetaryRadius;
-            public float _RcpPlanetaryRadius;
-            public float _AtmosphericDepth;
-            public float _RcpAtmosphericDepth;
-
-            public float _AtmosphericRadius;
-            public float _AerosolAnisotropy;
-            public float _AerosolPhasePartConstant;
-            public float _Unused;
-
-            public float _AirDensityFalloff;
-            public float _AirScaleHeight;
-            public float _AerosolDensityFalloff;
-            public float _AerosolScaleHeight;
-
-            public Vector3 _AirSeaLevelExtinction;
-            public float _AerosolSeaLevelExtinction;
-
-            public Vector3 _AirSeaLevelScattering;
-            public float _IntensityMultiplier;
-
-            public Vector3 _AerosolSeaLevelScattering;
-            public float _ColorSaturation;
-
-            public Vector3 _GroundAlbedo;
-            public float _AlphaSaturation;
-
-            public Vector3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
-            public float _AlphaMultiplier;
-
-            public Vector3 _HorizonTint;
-            public float _HorizonZenithShiftPower;
-
-            public Vector3 _ZenithTint;
-            public float _HorizonZenithShiftScale;
-        }
-
         // Store the hash of the parameters each time precomputation is done.
         // If the hash does not match, we must recompute our data.
         int m_LastPrecomputationParamHash;
@@ -422,9 +368,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             float R    = pbrSky.GetPlanetaryRadius();
-            float D    = Mathf.Max(pbrSky.airMaximumAltitude.value, pbrSky.aerosolMaximumAltitude.value);
+            float D    = pbrSky.GetMaximumAltitude();
             float airH = pbrSky.GetAirScaleHeight();
             float aerH = pbrSky.GetAerosolScaleHeight();
+            float aerA = pbrSky.GetAerosolAnisotropy();
             float iMul = GetSkyIntensity(pbrSky, builtinParams.debugSettings);
 
             Vector2 expParams = ComputeExponentialInterpolationParams(pbrSky.horizonZenithShift.value);
@@ -435,9 +382,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConstantBuffer._RcpAtmosphericDepth       = 1.0f / D;
 
             m_ConstantBuffer._AtmosphericRadius         = R + D;
-            m_ConstantBuffer._AerosolAnisotropy         = pbrSky.aerosolAnisotropy.value;
-            m_ConstantBuffer._AerosolPhasePartConstant  = CornetteShanksPhasePartConstant(pbrSky.aerosolAnisotropy.value);
+            m_ConstantBuffer._AerosolAnisotropy         = aerA;
+            m_ConstantBuffer._AerosolPhasePartConstant  = CornetteShanksPhasePartConstant(aerA);
             m_ConstantBuffer._Unused                    = 0.0f; // Warning fix
+            m_ConstantBuffer._Unused2                   = 0.0f; // Warning fix
 
             m_ConstantBuffer._AirDensityFalloff         = 1.0f / airH;
             m_ConstantBuffer._AirScaleHeight            = airH;
@@ -496,11 +444,15 @@ namespace UnityEngine.Rendering.HighDefinition
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             // TODO: the following expression is somewhat inefficient, but good enough for now.
-            Vector3 X = builtinParams.worldSpaceCameraPos;
-            float   r = Vector3.Distance(X, pbrSky.GetPlanetCenterPosition(X));
-            float   R = pbrSky.GetPlanetaryRadius();
+            Vector3 cameraPos = builtinParams.worldSpaceCameraPos;
+            Vector3 planetCenter = pbrSky.GetPlanetCenterPosition(cameraPos);
+            float R = pbrSky.GetPlanetaryRadius();
 
-            bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
+            Vector3 cameraToPlanetCenter = planetCenter - cameraPos;
+            float r = cameraToPlanetCenter.magnitude;
+            cameraPos = planetCenter - Mathf.Max(R, r) * cameraToPlanetCenter.normalized;
+
+            bool simpleEarthMode = pbrSky.type.value == PhysicallyBasedSkyModel.EarthSimple;
 
             CommandBuffer cmd = builtinParams.commandBuffer;
 
@@ -514,7 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                          pbrSky.spaceRotation.value.z);
 
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1,  builtinParams.worldSpaceCameraPos);
+            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1,  cameraPos);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1,           builtinParams.viewMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation,        Matrix4x4.Rotate(planetRotation));
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation,         Matrix4x4.Rotate(spaceRotation));
@@ -523,7 +475,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int hasGroundAlbedoTexture = 0;
 
-            if (pbrSky.groundColorTexture.value != null)
+            if (pbrSky.groundColorTexture.value != null && !simpleEarthMode)
             {
                 hasGroundAlbedoTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundAlbedoTexture, pbrSky.groundColorTexture.value);
@@ -532,7 +484,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int hasGroundEmissionTexture = 0;
 
-            if (pbrSky.groundEmissionTexture.value != null)
+            if (pbrSky.groundEmissionTexture.value != null && !simpleEarthMode)
             {
                 hasGroundEmissionTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._GroundEmissionTexture,    pbrSky.groundEmissionTexture.value);
@@ -542,7 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int hasSpaceEmissionTexture = 0;
 
-            if (pbrSky.spaceEmissionTexture.value != null)
+            if (pbrSky.spaceEmissionTexture.value != null && !simpleEarthMode)
             {
                 hasSpaceEmissionTexture = 1;
                 s_PbrSkyMaterialProperties.SetTexture(HDShaderIDs._SpaceEmissionTexture,    pbrSky.spaceEmissionTexture.value);
@@ -552,7 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
-            int pass = (renderForCubemap ? 0 : 2) + (isPbrSkyActive ? 0 : 1);
+            int pass = (renderForCubemap ? 0 : 2);
 
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
         }

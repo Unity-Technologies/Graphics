@@ -123,7 +123,7 @@ namespace UnityEditor.VFX.UI
                 this.item = item;
             }
 
-            public override string category { get { return "Subgraph Block/" + item.category; } }
+            public override string category { get { return item.category; } }
             public override string name { get { return item.name; } }
         }
 

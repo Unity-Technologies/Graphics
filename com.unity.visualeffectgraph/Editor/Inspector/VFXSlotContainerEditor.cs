@@ -44,7 +44,7 @@ class VFXSlotContainerEditor : Editor
         }
     }
 
-    public virtual void DoInspectorGUI()
+    public virtual SerializedProperty DoInspectorGUI()
     {
         var slotContainer = targets[0] as VFXModel;
         List<VFXSetting> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector).ToList();
@@ -57,9 +57,12 @@ class VFXSlotContainerEditor : Editor
             settingFields.RemoveAll(t => excluded.Any( u=> u.name == t.name));
         }
 
-        foreach (var prop in settingFields.Select(t => new KeyValuePair<FieldInfo, SerializedProperty>(t.field, FindProperty(t))).Where(t => t.Value != null))
+        SerializedProperty modifiedSetting = null;
+        foreach (var prop in settingFields.Select(t => new KeyValuePair<VFXSetting, SerializedProperty>(t, FindProperty(t))).Where(t => t.Value != null))
         {
-            var attrs = prop.Key.GetCustomAttributes(typeof(StringProviderAttribute), true);
+            var fieldInfo = prop.Key.field;
+            EditorGUI.BeginChangeCheck();
+            var attrs = fieldInfo.GetCustomAttributes(typeof(StringProviderAttribute), true);
             if (attrs.Length > 0)
             {
                 var strings = StringPropertyRM.FindStringProvider(attrs)();
@@ -71,12 +74,12 @@ class VFXSlotContainerEditor : Editor
                     prop.Value.stringValue = strings[result];
                 }
             }
-            else if (prop.Key.FieldType.IsEnum && prop.Key.FieldType.GetCustomAttributes(typeof(FlagsAttribute), false).Length == 0)
+            else if (fieldInfo.FieldType.IsEnum && fieldInfo.FieldType.GetCustomAttributes(typeof(FlagsAttribute), false).Length == 0)
             {
                 GUIContent[] enumNames = null;
                 int[] enumValues = null;
 
-                Array enums = Enum.GetValues(prop.Key.FieldType);
+                Array enums = Enum.GetValues(fieldInfo.FieldType);
                 List<int> values = new List<int>(enums.Length);
                 for (int i = 0; i < enums.Length; ++i)
                 {
@@ -87,13 +90,18 @@ class VFXSlotContainerEditor : Editor
                 {
                     VFXModel targetIte = target as VFXModel;
 
-                    var filteredValues = targetIte.GetFilteredOutEnumerators(prop.Key.Name);
+                    var filteredValues = targetIte.GetFilteredOutEnumerators(fieldInfo.Name);
                     if (filteredValues != null)
                         foreach (int val in filteredValues)
                             values.Remove(val);
                 }
-                enumNames = values.Select(t => new GUIContent(Enum.GetName(prop.Key.FieldType, t))).ToArray();
+                enumNames = values.Select(t => new GUIContent(Enum.GetName(fieldInfo.FieldType, t))).ToArray();
                 enumValues = values.ToArray();
+
+                HeaderAttribute attr = fieldInfo.GetCustomAttributes<HeaderAttribute>().FirstOrDefault();
+
+                if( attr != null)
+                    GUILayout.Label( attr.header, EditorStyles.boldLabel);
 
                 EditorGUILayout.IntPopup(prop.Value,enumNames,enumValues );
             }
@@ -109,7 +117,13 @@ class VFXSlotContainerEditor : Editor
                     }
                 }
             }
+            if(EditorGUI.EndChangeCheck())
+            {
+                modifiedSetting = prop.Value;
+            }
         }
+
+        return modifiedSetting;
     }
 
     IGizmoController m_CurrentController;
@@ -214,16 +228,18 @@ class VFXSlotContainerEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-        DoInspectorGUI();
+        SerializedProperty modifiedProperty = DoInspectorGUI();
 
-        if (serializedObject.ApplyModifiedProperties())
+        if (modifiedProperty != null && modifiedProperty.serializedObject.ApplyModifiedProperties())
         {
-            foreach (VFXModel slotContainer in targets.OfType<VFXModel>())
+            foreach (VFXModel slotContainer in modifiedProperty.serializedObject.targetObjects)
             {
                 // notify that something changed.
+                slotContainer.OnSettingModified(slotContainer.GetSetting(modifiedProperty.propertyPath));
                 slotContainer.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
         }
+        serializedObject.ApplyModifiedProperties();
     }
 
     public class Contents

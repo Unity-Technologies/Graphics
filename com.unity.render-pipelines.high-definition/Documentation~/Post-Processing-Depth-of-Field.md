@@ -4,12 +4,12 @@ The Depth Of Field component applies a depth of field effect, which simulates th
 
 ## Using Depth Of Field
 
-**Depth Of Field** uses the [Volume](Volumes.html) framework, so to enable and modify **Depth Of Field** properties, you must add a **Depth Of Field** override to a [Volume](Volumes.html) in your Scene. To add **Depth Of Field** to a Volume:
+**Depth Of Field** uses the [Volume](Volumes.md) framework, so to enable and modify **Depth Of Field** properties, you must add a **Depth Of Field** override to a [Volume](Volumes.md) in your Scene. To add **Depth Of Field** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Depth Of Field**. HDRP now applies **Depth Of Field** to any Camera this Volume affects.
 
-Depth Of Field includes [more options](More-Options.html) that you must manually expose.
+Depth Of Field includes [more options](More-Options.md) that you must manually expose.
 
 
 ## Properties
@@ -18,7 +18,7 @@ Depth Of Field includes [more options](More-Options.html) that you must manually
 
 | **Property**       | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
-| **Focus Mode**     | Use the drop-down to select the mode that HDRP uses to set the focus for the depth of field effect.<br />&#8226; **Off**: Select this option to disable depth of field.<br />&#8226; **Use Physical Camera**: Select this option to use the physical [Camera](HDRP-Camera.html) to set focusing properties for the depth of field effect. For information on what Camera properties affect depth of field, see [Physical Camera settings](#PhysicalCameraSettings).<br />&#8226; **Manual**: Select this option to use custom values to set the focus of the depth of field effect. |
+| **Focus Mode**     | Use the drop-down to select the mode that HDRP uses to set the focus for the depth of field effect.<br />&#8226; **Off**: Select this option to disable depth of field.<br />&#8226; **Use Physical Camera**: Select this option to use the physical [Camera](HDRP-Camera.md) to set focusing properties for the depth of field effect. For information on what Camera properties affect depth of field, see [Physical Camera settings](#PhysicalCameraSettings).<br />&#8226; **Manual**: Select this option to use custom values to set the focus of the depth of field effect. |
 | **Focus Distance** | Set the distance to the focus point from the Camera.<br />This property only appears when you select **Use Physical Camera** from the **Focus Mode** drop-down. |
 
 ### Near Blur
@@ -43,18 +43,19 @@ Depth Of Field includes [more options](More-Options.html) that you must manually
 
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
-| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the depth of field effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.<br />This property only appears when you enable [more options](More-Options.html). |
-| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Depth Of Field effect, but results in smoother visuals.<br />This property only appears when you enable [more options](More-Options.html). |
+| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the depth of field effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.<br />This property only appears when you enable [more options](More-Options.md). |
+| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Depth Of Field effect, but results in smoother visuals.<br />This property only appears when you enable [more options](More-Options.md). |
+| **Physically Based** | Enable the checkbox to make HDRP use a more accurate but slower physically-based technique for the computation of Deph-of-Field. It is highly recommended to enable [Temporal anti-aliasing (TAA)](Anti-Aliasing) at the same time, for improved quality especially when using a low number of samples. <br /> The amount of defocus blur differs depending on this value. When enabled, the defocus blur is closer to what you would expect from a real-world camera with a configuration that matches the [Camera's](HDRP-Camera) physical camera properties. However, it is not exactly the same as a real-world camera because HDRP caps the maximum radius of the defocus blur (using the **Max Radius** property) for performance and quality reasons.|
 
 <a name="PhysicalCameraSettings"></a>
 
 ## Physical Camera settings
 
-Here is a list of the physical [Camera](HDRP-Camera.html) properties that affect the Depth of Field effect when you select **Use Physical Camera** from the **Focus Mode** drop-down.
+Here is a list of the physical [Camera](HDRP-Camera.md) properties that affect the Depth of Field effect when you select **Use Physical Camera** from the **Focus Mode** drop-down.
 
 | **Property**     | **Effect**                                                   |
 | ---------------- | ------------------------------------------------------------ |
-| **Aperture**     | The larger this value, the larger the [bokeh](Glossary.html#Bokeh) and overall blur effect. |
+| **Aperture**     | The larger this value, the larger the [bokeh](Glossary.md#Bokeh) and overall blur effect. |
 | **Blades Count** | This determines the shape of the bokeh. For more information on the effect this property has, see the example below. |
 | **Curvature**    | Determines how much of the blades are visible. Use this to change the roundness of bokeh in the blur. For more information on the effect this property has, see the example below. |
 

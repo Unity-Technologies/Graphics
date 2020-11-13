@@ -25,9 +25,6 @@ namespace UnityEditor.ShaderGraph
         SlotType m_SlotType = SlotType.Input;
 
         [SerializeField]
-        int m_Priority = int.MaxValue;
-
-        [SerializeField]
         bool m_Hidden;
 
         [SerializeField]
@@ -50,15 +47,10 @@ namespace UnityEditor.ShaderGraph
             this.stageCapability = stageCapability;
         }
 
-        protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, int priority, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+        internal void SetInternalData(SlotType slotType, string shaderOutputName)
         {
-            m_Id = slotId;
-            m_DisplayName = displayName;
-            m_SlotType = slotType;
-            m_Priority = priority;
-            m_Hidden = hidden;
-            m_ShaderOutputName = shaderOutputName;
-            this.stageCapability = stageCapability;
+            this.m_SlotType = slotType;
+            this.shaderOutputName = shaderOutputName;
         }
 
         public virtual VisualElement InstantiateControl()
@@ -180,6 +172,7 @@ namespace UnityEditor.ShaderGraph
 
         public AbstractMaterialNode owner { get; set; }
 
+        // if hidden, the slot does not create a port in the UI
         public bool hidden
         {
             get { return m_Hidden; }
@@ -220,6 +213,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public abstract bool isDefaultValue { get; }
+
         public abstract SlotValueType valueType { get; }
 
         public abstract ConcreteSlotValueType concreteValueType { get; }
@@ -240,6 +235,14 @@ namespace UnityEditor.ShaderGraph
         {
             get { return m_HasError; }
             set { m_HasError = value; }
+        }
+
+        public bool IsUsingDefaultValue()
+        {
+            if (!isConnected && isDefaultValue)
+                return true;
+            else
+                return false;
         }
 
         public bool IsCompatibleWith(MaterialSlot otherSlot)
@@ -270,7 +273,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            if (generationMode.IsPreview())
+            if (generationMode.IsPreview() && matOwner.isActive)
                 return matOwner.GetVariableNameForSlot(id);
 
             return ConcreteSlotValueAsVariable();
@@ -316,7 +319,6 @@ namespace UnityEditor.ShaderGraph
             m_Id = other.m_Id;
             m_DisplayName = other.m_DisplayName;
             m_SlotType = other.m_SlotType;
-            m_Priority = other.m_Priority;
             m_Hidden = other.m_Hidden;
             m_ShaderOutputName = other.m_ShaderOutputName;
             m_StageCapability = other.m_StageCapability;

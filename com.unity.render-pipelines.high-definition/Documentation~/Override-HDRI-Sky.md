@@ -8,16 +8,18 @@ Tip: [Unity HDRI Pack](https://assetstore.unity.com/packages/essentials/beta-pro
 
 ## Using HDRI Sky
 
-**HDRI Sky** uses the [Volume](Volumes.html) framework, so to enable and modify **HDRI Sky** properties, you must add an **HDRI Sky** override to a [Volume](Volumes.html) in your Scene. To add **HDRI Sky** to a Volume:
+**HDRI Sky** uses the [Volume](Volumes.md) framework, so to enable and modify **HDRI Sky** properties, you must add an **HDRI Sky** override to a [Volume](Volumes.md) in your Scene. To add **HDRI Sky** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Sky** and click on **HDRI Sky**.
 
-After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **HDRI Sky**. HDRP now renders an **HDRI Sky** for any Camera this Volume affects.
+After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sky**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **HDRI Sky**. HDRP now renders an **HDRI Sky** for any Camera this Volume affects.
 
 ## Properties
 
 ![](Images/Override-HDRISky1.png)
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                         | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -31,7 +33,7 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 | **Intensity Mode**        | Use the drop-down to select the method that HDRP uses to calculate the sky intensity.<br />&#8226; **Exposure**: HDRP calculates intensity from an exposure value in EV100.<br />&#8226; **Multiplier**: HDRP calculates intensity from a flat multiplier. <br />&#8226; **Lux**: HDRP calculates intensity in terms of a target Lux value. |
 | - **Exposure**                   | Set the amount of light per unit area that HDRP applies to the HDRI Sky cubemap.<br />This property only appears when you select **Exposure** from the **Intensity Mode** drop-down. |
 | - **Multiplier**                 | Set the multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value.<br />This property only appears when you select **Multiplier** from the **Intensity Mode** drop-down. |
-| - **Desired Lux Value**          | Set an absolute intensity for the HDR Texture you set in **HDRI Sky**, in [Lux](Physical-Light-Units.html#Lux). This value represents the light received in a direction perpendicular to the ground. This is similar to the Lux unit you use to represent the Sun and thus is complimentary.<br />This property only appears when you select **Lux** from the **Sky Intensity Mode** drop-down. |
+| - **Desired Lux Value**          | Set an absolute intensity for the HDR Texture you set in **HDRI Sky**, in [Lux](Physical-Light-Units.md#Lux). This value represents the light received in a direction perpendicular to the ground. This is similar to the Lux unit you use to represent the Sun and thus is complimentary.<br />This property only appears when you select **Lux** from the **Sky Intensity Mode** drop-down. |
 | - **Upper Hemisphere Lux Value** | Displays the relative intensity, in Lux, for the current HDR texture set in **HDRI Sky**. The final multiplier HDRP applies for intensity is **Desired Lux Value** / **Upper Hemisphere Lux Value**. This field is an informative helper.<br />This property only appears when you select **Lux** from the **Sky Intensity Mode** drop-down. |
 | **Rotation**                     | Use the slider to set the angle to rotate the cubemap, in degrees. |
 | **Update Mode**                  | Use the drop-down to set the rate at which HDRP updates the sky environment (using Ambient and Reflection Probes).<br />&#8226; **On Changed**: HDRP updates the sky environment when one of the sky properties changes.<br />&#8226; **On Demand**: HDRP waits until you manually call for a sky environment update from a script.<br />&#8226; **Realtime**: HDRP updates the sky environment at regular intervals defined by the **Update Period**. |

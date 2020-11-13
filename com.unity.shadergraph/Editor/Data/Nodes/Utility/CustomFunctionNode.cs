@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     [HasDependencies(typeof(MinimalCustomFunctionNode))]
     [Title("Utility", "Custom Function")]
-    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IHasSettings
+    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         [Serializable]
         public class MinimalCustomFunctionNode : IHasDependencies
@@ -26,14 +26,19 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             string m_FunctionSource = null;
 
-            public void GetSourceAssetDependencies(List<string> paths)
+            public void GetSourceAssetDependencies(AssetCollection assetCollection)
             {
                 if (m_SourceType == HlslSourceType.File)
                 {
                     m_FunctionSource = UpgradeFunctionSource(m_FunctionSource);
                     if (IsValidFunction(m_SourceType, m_FunctionName, m_FunctionSource, null))
                     {
-                        paths.Add(AssetDatabase.GUIDToAssetPath(m_FunctionSource));
+                        if (GUID.TryParse(m_FunctionSource, out GUID guid))
+                        {
+                            // as this is just #included into the generated .shader file
+                            // it doesn't actually need to be a dependency, other than for export package
+                            assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+                        }
                     }
                 }
             }
@@ -227,11 +232,7 @@ namespace UnityEditor.ShaderGraph
                 if (fromNode == null)
                     return string.Empty;
 
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
-                if (slot == null)
-                    return string.Empty;
-
-                return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, port.concreteValueType);
+                return fromNode.GetOutputForSlot(fromSocketRef, port.concreteValueType, generationMode);
             }
 
             return port.GetDefaultValue(generationMode);
@@ -283,10 +284,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
-            if (!this.GetOutputSlots<MaterialSlot>().Any())
-            {
-                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
-            }
             if(sourceType == HlslSourceType.File)
             {
                 if(!string.IsNullOrEmpty(functionSource))
@@ -299,31 +296,32 @@ namespace UnityEditor.ShaderGraph
                         {
                             owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
                         }
+                        else
+                        {
+                            owner.ClearErrorsForNode(this);
+                        }
                     }
                 }
+            }
+            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            {
+                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
             ValidateSlotName();
 
             base.ValidateNode();
         }
 
-        public void Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencies)
         {
             if (changedFileDependencies.Contains(m_FunctionSource))
             {
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
                 Dirty(ModificationScope.Graph);
+                return true;
             }
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            PropertySheet ps = new PropertySheet();
-            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
-            ps.Add(new ReorderableSlotListView(this, SlotType.Output));
-            ps.Add(new HlslFunctionView(this));
-            return ps;
+            return false;
         }
 
         public static string UpgradeFunctionSource(string functionSource)

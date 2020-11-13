@@ -9,6 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [HasDependencies(typeof(MinimalTexture3DInputMaterialSlot))]
     class Texture3DInputMaterialSlot : Texture3DMaterialSlot
     {
         [SerializeField]
@@ -19,6 +20,8 @@ namespace UnityEditor.ShaderGraph
             get { return m_Texture.texture; }
             set { m_Texture.texture = value; }
         }
+
+        public override bool isDefaultValue => texture == null;
 
         public Texture3DInputMaterialSlot()
         {}
@@ -75,6 +78,21 @@ namespace UnityEditor.ShaderGraph
             var slot = foundSlot as Texture3DInputMaterialSlot;
             if (slot != null)
                 m_Texture = slot.m_Texture;
+        }
+    }
+
+    class MinimalTexture3DInputMaterialSlot : IHasDependencies
+    {
+        [SerializeField]
+        private SerializableTexture m_Texture = null;
+
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            var guidString = m_Texture.guid;
+            if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out var guid))
+            {
+                assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+            }
         }
     }
 }

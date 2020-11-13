@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Data.Util;
+﻿﻿using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
