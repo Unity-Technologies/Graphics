@@ -3,7 +3,8 @@
 # Installs the hooks in the current repository.
 # run_cmd function taken from https://github.com/Unity-Technologies/dots/blob/master/Tools/CI/util/subprocess_helpers.py
 
-import subprocess, logging, os
+import subprocess, logging, os, json, sys
+from pathlib import Path
 
 def run_cmd(cmd, cwd=None):
     """Runs a command and returns its output as an UTF-8 string.
@@ -20,7 +21,7 @@ def run_cmd(cmd, cwd=None):
         cmd = cmd.split()
     assert isinstance(cmd, list), 'cmd must be of list type, but was "{}"'.format(type(cmd))
     logging.info("  Running: {0} (cwd: {1})".format(' '.join(cmd), cwd))
-    return subprocess.check_output(cmd, cwd=cwd, universal_newlines=True)
+    return subprocess.check_output(cmd, cwd=cwd, universal_newlines=True).rstrip()
 
 
 def install_git_lfs():
@@ -28,7 +29,7 @@ def install_git_lfs():
 
 
 def replace_shebangs():
-    repo_root = run_cmd('git rev-parse --show-toplevel').strip('\n')
+    repo_root = run_cmd('git rev-parse --show-toplevel')
     hooks_folder = os.path.join(repo_root, '.git/hooks')
     current_shebang = "#!/bin/sh"
     replacement = "#!/usr/bin/env sh"
@@ -52,12 +53,55 @@ def install_hooks():
     run_cmd('pre-commit install --hook-type pre-push --allow-missing-config')
 
 
+# Check perl installation
+# (used for code formatting)
+def config_perl(config):
+    try:
+        perl_path = run_cmd('where perl')
+        config['perl'] = perl_path
+        return config
+    except subprocess.CalledProcessError as e:
+        print(e.output, file=sys.stderr)
+        print('Perl is required in order to run the formatting tools. Please install perl and retry installing the hooks.', file=sys.stderr)
+        exit(1)
+
+
+# Fetch unity-meta
+# (used for code formatting)
+def config_unity_meta(config):
+    home = str(Path.home())
+    default_unity_meta_path = os.path.join(home, 'unity-meta/')
+    if os.path.exists(default_unity_meta_path):
+        config['unity-meta'] = default_unity_meta_path
+        return config
+    else:
+        print('unity-meta is required in order to run the formatting tools. Please install it (https://internaldocs.hq.unity3d.com/unity-meta/setup/) and retry installing the hooks. If it is not in your $HOME folder, manually add the path to it in .git/hooks/graphics-config.json', file=sys.stderr)
+        exit(1)
+
+
+def config_hooks():
+    repo_root = run_cmd('git rev-parse --show-toplevel')
+    config_path = os.path.join(repo_root, ".git/hooks/graphics-config.json")
+    config = {}
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as config_file_r:
+            config = json.load(config_file_r)
+
+    ## Add static configuration methods here
+    config = config_unity_meta(config)
+    config = config_perl(config)
+
+    with open(config_path, 'w') as config_file_w:
+        json.dump(config, config_file_w, indent=4, sort_keys=True)
+
+
 def main():
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     install_git_lfs()
     replace_shebangs()
     install_precommit()
     install_hooks()
+    config_hooks()
 
 
 if __name__ == "__main__":
