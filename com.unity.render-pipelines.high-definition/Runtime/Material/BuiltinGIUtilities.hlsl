@@ -1,32 +1,11 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
-
-#define USE_ADAPTIVE_PROBE_VOLUME
-
-#ifdef USE_ADAPTIVE_PROBE_VOLUME
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
-
-// Resources required for APV
-StructuredBuffer<int> _APVResIndex;
-TEXTURE3D(_APVResL0);
-TEXTURE3D(_APVResL1_R);
-TEXTURE3D(_APVResL1_G);
-TEXTURE3D(_APVResL1_B);
-
-#endif // USE_ADAPTIVE_PROBE_VOLUME
-
 // Include the IndirectDiffuseMode enum
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 
-#ifdef SHADERPASS
-#if ((SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1) && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING || SHADERPASS == SHADERPASS_FORWARD))
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
-#endif
-#endif // #ifdef SHADERPASS
-
 #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
 
 #define UNINITIALIZED_GI float3((1 << 11), 1, (1 << 10))
 
@@ -102,21 +81,6 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 
 void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backNormalWS, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
-#ifdef USE_ADAPTIVE_PROBE_VOLUME
-    //-----------------------------------------------------------------------------------------------------
-    // Adaptive Probe Volume code
-    APVResources apvRes;
-    apvRes.index = _APVResIndex;
-    apvRes.L0 = _APVResL0;
-    apvRes.L1_R = _APVResL1_R;
-    apvRes.L1_G = _APVResL1_G;
-    apvRes.L1_B = _APVResL1_B;
-    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(positionRWS), normalWS, apvRes,
-        bakeDiffuseLighting, backBakeDiffuseLighting);
-    return;
-    //-----------------------------------------------------------------------------------------------------
-#endif
-
     if (unity_ProbeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
@@ -177,6 +141,7 @@ void SampleBakedGI(
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
     bakeDiffuseLighting = UNINITIALIZED_GI;
+    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(positionRWS), normalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
     return;
 #endif
 

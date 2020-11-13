@@ -14,7 +14,6 @@ struct APVConstants
 
 static const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
 
-
 struct APVResources
 {
     StructuredBuffer<int> index;
@@ -23,6 +22,13 @@ struct APVResources
     Texture3D L1_G;
     Texture3D L1_B;
 };
+
+// Resources required for APV
+StructuredBuffer<int> _APVResIndex;
+TEXTURE3D(_APVResL0);
+TEXTURE3D(_APVResL1_R);
+TEXTURE3D(_APVResL1_G);
+TEXTURE3D(_APVResL1_B);
 
 APVConstants LoadAPVConstants( StructuredBuffer<int> index )
 {
@@ -79,6 +85,9 @@ float3 EvaluateAmbientProbe(float3 normalWS)
 void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVResources apvRes,
     out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
+    bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    backBakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+
     APVConstants apvConst = LoadAPVConstants( apvRes.index );
 
     // transform into APV space
@@ -158,6 +167,20 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVReso
     // evaluate the SH coefficients
     bakeDiffuseLighting = SHEvalLinearL0L1(normalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
     backBakeDiffuseLighting = SHEvalLinearL0L1(-normalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
+}
+
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS,
+    out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
+{
+    APVResources apvRes;
+    apvRes.index = _APVResIndex;
+    apvRes.L0 = _APVResL0;
+    apvRes.L1_R = _APVResL1_R;
+    apvRes.L1_G = _APVResL1_G;
+    apvRes.L1_B = _APVResL1_B;
+
+    EvaluateAdaptiveProbeVolume(posWS, normalWS, apvRes,
+        bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 
 #endif // __PROBEVOLUME_HLSL__
