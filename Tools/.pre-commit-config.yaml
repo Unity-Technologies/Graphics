@@ -1,6 +1,6 @@
 repos:
-  - repo: ../../../gfx-automation-tools
-    rev: e7cab35
+  - repo: git@github.cds.internal.unity3d.com:theo-penavaire/gfx-automation-tools.git
+    rev: b49459e
     hooks:
       - id: file-extension-to-lowercase
       - id: check-shader-includes
