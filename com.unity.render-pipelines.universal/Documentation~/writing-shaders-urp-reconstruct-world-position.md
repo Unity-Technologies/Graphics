@@ -50,12 +50,15 @@ Make the following changes to the ShaderLab code:
     real depth = SampleSceneDepth(UV);
     #else
     // Adjust z to match NDC for OpenGL
-    real depth = SampleSceneDepth(UV) * 2.0 - 1.0;
+    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(UV));
     #endif
     ```
    `SampleSceneDepth` is defined in the `DeclareDepthTexture.hlsl`. It will return Z value in the range of `[0, 1]`.
    The depth value needs to be in NDC space for the reconstruction function. For Z in D3D it is `[0,1]`, but in OpenGL it is `[-1, 1]`.
+   
    `UNITY_REVERSED_Z` is used to detect the platform difference and adjust the Z value range. More detailed explanation in step 6.
+   
+   `UNITY_NEAR_CLIP_VALUE`is a platform independent near plane value for clip space.
 5. Reconstruct world position from the UV and Z coordinates.
     ```c++
     float3 worldPos = ComputeWorldSpacePosition(UV, depth, UNITY_MATRIX_I_VP);
@@ -168,12 +171,12 @@ Shader "Example/URPReconstructWorldPos"
                 float2 UV = IN.positionHCS.xy / _ScaledScreenParams.xy;
                 
                 // Sample the depth from the camera depth texture.
-                #if UNITY_REVERSED_Z
+            #if UNITY_REVERSED_Z
                 real depth = SampleSceneDepth(UV);
-                #else
-                // Adjust z to match NDC for OpenGL
-                real depth = SampleSceneDepth(UV) * 2.0 - 1.0;
-                #endif
+            #else
+                // Adjust z to match NDC for OpenGL [-1, 1]
+                real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(UV));
+            #endif
 
                 // Reconstruct world position.
                 float3 worldPos = ComputeWorldSpacePosition(UV, depth, UNITY_MATRIX_I_VP);
@@ -189,15 +192,15 @@ Shader "Example/URPReconstructWorldPos"
                 half4 color = white ? half4(1,1,1,1) : half4(0,0,0,1);
 
                 // Set the color black close to the far plane
-#if UNITY_REVERSED_Z
+            #if UNITY_REVERSED_Z
                 // Platforms with REVERSED_Z, such as D3D
                 if(depth < 0.0001)
                     return half4(0,0,0,1);
-#else
+            #else
                 // Platforms without REVERSED_Z, such as OpenGL
                 if(depth > 0.9999)
                     return half4(0,0,0,1);
-#endif
+            #endif
                 
                 return color;
             }
