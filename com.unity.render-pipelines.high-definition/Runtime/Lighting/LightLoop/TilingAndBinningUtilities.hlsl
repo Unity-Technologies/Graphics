@@ -234,28 +234,6 @@ uint ComputeTileBufferBodyIndex(uint tile, uint category, uint eye)
     return ComputeTileBufferBodyIndex(tile, category, eye, TILE_BUFFER_DIMS, TILE_ENTRY_LIMIT);
 }
 
-bool IsBinEmpty(uint tile, uint zBin, uint category, uint eye)
-{
-    bool b = true;
-
-    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, category, eye);
-    const uint tileRangeData         = TILE_BUFFER[tileBufferHeaderIndex]; // {last << 16 | first}
-    const bool isTileEmpty           = tileRangeData == UINT16_MAX;
-
-    if (!isTileEmpty) // Avoid wasted work
-    {
-        const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, category, eye);
-        const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
-
-        const uint2 tileEntityIndexRange = uint2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
-        const uint2 zBinEntityIndexRange = uint2(zBinRangeData & UINT16_MAX, zBinRangeData >> 16);
-
-        b = !IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange);
-    }
-
-    return b;
-}
-
 #endif // NO_SHADERVARIABLESGLOBAL_HLSL
 
 #endif // UNITY_TILINGANDBINNINGUTILITIES_INCLUDED

@@ -21,13 +21,43 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
+/* ------------------------------ Inputs ------------------------------------ */
+
+TEXTURE2D_X_UINT2(_StencilTexture);
+
+/* ------------------------------ Outputs ----------------------------------- */
+
 RWStructuredBuffer<uint> g_TileFeatureFlags;
+
+/* ------------------------------ Utilities --------------------------------- */
+
+bool IsBinEmpty(uint tile, uint zBin, uint category, uint eye)
+{
+    bool b = true;
+
+    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, category, eye);
+    const uint tileRangeData         = TILE_BUFFER[tileBufferHeaderIndex]; // {last << 16 | first}
+    const bool isTileEmpty           = tileRangeData == UINT16_MAX;
+
+    if (!isTileEmpty) // Avoid wasted work
+    {
+        const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, category, eye);
+        const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
+
+        const uint2 tileEntityIndexRange = uint2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
+        const uint2 zBinEntityIndexRange = uint2(zBinRangeData & UINT16_MAX, zBinRangeData >> 16);
+
+        b = !IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange);
+    }
+
+    return b;
+}
+
+/* ------------------------------ Implementation ---------------------------- */
 
 #ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
     groupshared uint gs_TileFeatureFlags;
 #endif
-
-TEXTURE2D_X_UINT2(_StencilTexture);
 
 [numthreads(TILE_SIZE * TILE_SIZE, 1, 1)]
 void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
@@ -96,7 +126,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 
     if (t == 0) // Avoid bank conflicts
     {
-        uint bufferIndex = tile + IndexFromCoordinate(uint2(0, 0, eye), TILE_BUFFER_DIMS);
+        uint bufferIndex = tile + IndexFromCoordinate(uint3(0, 0, eye), TILE_BUFFER_DIMS);
         g_TileFeatureFlags[bufferIndex] = featureFlags;
     }
 }
