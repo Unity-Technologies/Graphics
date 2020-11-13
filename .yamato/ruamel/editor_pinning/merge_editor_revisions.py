@@ -13,20 +13,11 @@ from collections import OrderedDict
 from update_revisions import load_config, DEFAULT_CONFIG_FILE, EXPECTATIONS_PATH
 from util.subprocess_helpers import git_cmd, run_cmd
 
-yaml = ruamel.yaml.YAML()
 
-
-def load_yml(filepath):
-    with open(filepath) as f:
-        return yaml.load(f)
-
-def ordereddict_to_dict(d):
-    return {k: ordereddict_to_dict(v) for k, v in d.items()} if isinstance(d, OrderedDict) else d
-
-
-def checkout_and_pull_branch(branch, working_dir):
-    git_cmd(f'checkout {branch}', working_dir)
-    git_cmd('pull', working_dir)
+def checkout_and_pull_branch(branch, working_dir, development_mode=False):
+    if not development_mode:
+        git_cmd(f'checkout {branch}', working_dir)
+        git_cmd('pull', working_dir)
 
 def commit_and_push(commit_msg, working_dir, development_mode=False):
     if not development_mode:
@@ -65,58 +56,7 @@ def apply_target_revision_changes(editor_versions_file, yml_files_path, commit, 
         return True
     return False
 
-def get_yamato_dependency_tree(job_id, api_key):
-    """Calls Yamato API (GET/jobid/tree)for given job id. Returns JSON dependency tree if success, and None if fails."""
-    try:
-        url = f'http://yamato-api.cds.internal.unity3d.com/jobs/{job_id}/tree'
-        headers={"Authorization":f"ApiKey {api_key}"}
-        response = requests.get(url=url, headers=headers)
-        dependency_tree = response.json()
-        if response.status_code != 200:
-            raise Exception()
-        return dependency_tree
-    except:
-        print(f"Failed to call Yamato API. Got {response.json()}")
-        return None
     
-def update_green_project_revisions(editor_versions_file, project_versions_file, track, projects, job_id, api_key, working_dir):
-    """Updates green project revisions file for given track. If any updates present, adds to git and returns True. If not, returns False."""
-    
-    # get the revisions used for the job, the last green project revisions, and Yamato dependency tree  
-    updated_at = str(datetime.datetime.utcnow())
-    revisions_key = f"{track}_latest_internal" if track=="trunk" else f"{track}_staging"
-    revisions = load_yml(editor_versions_file)["editor_versions"][revisions_key]
-    last_green_projects = load_yml(project_versions_file)
-    dependency_tree = get_yamato_dependency_tree(job_id, api_key)
-    if not dependency_tree:
-        return False
-    
-    # update revisions for each project
-    is_updated = False 
-    for project in projects:
-        jobs = [node for node in dependency_tree["nodes"] if node["name"].lower()==f"all {project} ci - {track}"] 
-        if len(jobs) == 0:
-            continue
-
-        job = jobs[0]
-        if job["status"] == 'success': 
-            print(f'Updating for {project}')
-            if not last_green_projects.get(project):
-                last_green_projects[project] = {}
-            last_green_projects[project]["updated_at"] = updated_at
-            last_green_projects[project]["last_green_revisions"] = revisions
-            is_updated = True
-
-    if is_updated: # at least one project got updated
-        last_green_projects = ordereddict_to_dict(last_green_projects)
-        with open(project_versions_file, 'w') as f:
-            yaml.dump(last_green_projects, f)
-        
-        git_cmd(f'add {project_versions_file}', working_dir)
-        return True
-    
-    return False
-
 
 def parse_args(flags):
     parser = argparse.ArgumentParser()
@@ -126,10 +66,6 @@ def parse_args(flags):
                         help=f'Configuration YAML file to use. Default: {DEFAULT_CONFIG_FILE}')
     parser.add_argument("--revision", required=True)
     parser.add_argument("--track", required=True)
-    parser.add_argument("--jobid", required=False, 
-                        help='If specified, Yamato API is called to update green revisions for projects according to dependencies.')
-    parser.add_argument("--apikey", required=False, 
-                        help='Needed for Yamato auth if jobid arg is specified.')
     parser.add_argument("--working-dir", required=False,
                         help='Working directory (optional). If omitted the root '
                         'of the repo will be used.')
@@ -146,7 +82,6 @@ def main(argv):
     args = parse_args(argv)
     config = load_config(args.config)
     editor_versions_file = config['editor_versions_file'].replace('TRACK',str(args.track))
-    project_versions_file = config['project_versions_file'].replace('TRACK',str(args.track))
 
     try:
         working_dir = args.working_dir or os.path.abspath(git_cmd('rev-parse --show-toplevel', cwd='.').strip())
@@ -157,7 +92,7 @@ def main(argv):
         if args.local:
             logging.warning('\n\n!! DEVELOPMENT MODE: will not switch branch, pull or push !!\n')
         else:
-            checkout_and_pull_branch(args.target_branch, working_dir)
+            checkout_and_pull_branch(args.target_branch, working_dir, args.local)
             if git_cmd('rev-parse HEAD').strip() == args.revision:
                 print('No changes compared to current revision. Exiting...')
                 return 0
@@ -166,11 +101,6 @@ def main(argv):
         if apply_target_revision_changes(editor_versions_file, config['yml_files_path'], args.revision, working_dir):
             commit_and_push(f'[CI] [{str(args.track)}] Updated latest editors metafile', working_dir, args.local)
 
-            # Update, commit and push green project versions file
-            if args.jobid and args.apikey:
-                print(f'Updating green project revisions according to job {args.jobid}.')
-                if update_green_project_revisions(editor_versions_file, project_versions_file, str(args.track), config['projects'], args.jobid, args.apikey, working_dir):
-                    commit_and_push(f'[CI] [{str(args.track)}] Updated green project revisions', working_dir, args.local)
         else:
             print('No revision changes to merge. Exiting successfully without any '
                          'commit/push.')
