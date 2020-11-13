@@ -431,7 +431,7 @@ half Upsample(Varyings input) : SV_Target
 //
 //    return (p1.r + p1.g + p1.b + p1.a) * 0.25h;
 //#else
-    half texelSize = _SourceSize.z * rcp(DOWNSAMPLE);
+    half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
 
     half p1 = SAMPLE_BASEMAP_R(uv + half2(-1.0, -1.0) * texelSize);
     half p2 = SAMPLE_BASEMAP_R(uv + half2(-1.0, 1.0) * texelSize);
@@ -517,36 +517,36 @@ half HorizontalVerticalGaussianBlur(Varyings input) : SV_Target
 // Used in DOUBLE-S.T.E.A.L. (aka Wreckless)
 // From his GDC2003 Presentation: Frame Buffer Postprocessing Effects in  DOUBLE-S.T.E.A.L (Wreckless)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-half4 KawaseBlurFilter( half2 texCoord, half2 pixelSize, half iteration )
+half KawaseBlurFilter( half2 texCoord, half2 pixelSize, half iteration )
 {
     half2 texCoordSample;
     half2 halfPixelSize = pixelSize * 0.5h;
     half2 dUV = ( pixelSize.xy * half2( iteration, iteration ) ) + halfPixelSize.xy;
 
-    half4 cOut;
+    half cOut;
 
     // Sample top left pixel
     texCoordSample.x = texCoord.x - dUV.x;
     texCoordSample.y = texCoord.y + dUV.y;
 
-    cOut = SAMPLE_BASEMAP(texCoordSample);
+    cOut = SAMPLE_BASEMAP_R(texCoordSample);
 
     // Sample top right pixel
     texCoordSample.x = texCoord.x + dUV.x;
     texCoordSample.y = texCoord.y + dUV.y;
 
-    cOut += SAMPLE_BASEMAP(texCoordSample);
+    cOut += SAMPLE_BASEMAP_R(texCoordSample);
 
     // Sample bottom right pixel
     texCoordSample.x = texCoord.x + dUV.x;
     texCoordSample.y = texCoord.y - dUV.y;
-    cOut += SAMPLE_BASEMAP(texCoordSample);
+    cOut += SAMPLE_BASEMAP_R(texCoordSample);
 
     // Sample bottom left pixel
     texCoordSample.x = texCoord.x - dUV.x;
     texCoordSample.y = texCoord.y - dUV.y;
 
-    cOut += SAMPLE_BASEMAP(texCoordSample);
+    cOut += SAMPLE_BASEMAP_R(texCoordSample);
 
     // Average
     cOut *= 0.25h;
