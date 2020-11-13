@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception when baking reflection probes.
 - Fixed TAA issue and hardware dynamic resolution.
 - Fixed an issue where look dev lighting would go black when a new scene is loaded.
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
 
 ## [8.2.0] - 2020-07-08
 
