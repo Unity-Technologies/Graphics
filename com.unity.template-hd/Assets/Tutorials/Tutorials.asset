@@ -151,3 +151,13 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 0}
     Tutorial: {fileID: 11400000, guid: b8cf016225e75b64bafb9322aedd74dd, type: 2}
+  - OrderInView: 26
+    Heading:
+      m_Untranslated: Cinematics
+    Text:
+      m_Untranslated: 
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: c01e4319c51e072499e7971738ab2748, type: 2}
