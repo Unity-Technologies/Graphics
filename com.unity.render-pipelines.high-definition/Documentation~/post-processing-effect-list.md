@@ -1,6 +1,6 @@
 # Post-processing effects
 
-The High Definition Render Pipeline (HDRP) includes a variety of post-processing effects you can use to alter the rendered frames in your application. The list of effects is as follows:
+The High Definition Render Pipeline (HDRP) includes a variety of post-processing effects you can use to alter the final look of rendered frames in your application. The list of effects is as follows:
 
 * [Bloom](Post-Processing-Bloom.md)
 * [Channel Mixer](Post-Processing-Channel-Mixer.md)
