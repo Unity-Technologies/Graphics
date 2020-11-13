@@ -100,7 +100,6 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
-        - Standalone_XR
         - editmode
         - playmode
         - playmode_XR
