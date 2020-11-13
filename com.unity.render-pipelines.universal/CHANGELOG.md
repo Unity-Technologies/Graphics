@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [11.0.0] - 2020-10-21
 
 ### Changed
-- Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles.
+- Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
+- UNITY_Z_0_FAR_FROM_CLIPSPACE now remaps to [0, far] range on all platforms consistently. Previously OpenGL platforms did not remap, discarding small amount of range [-near, 0]. 
 
 ### Added
 - Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
