@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
 
-            public static readonly GUIContent enableBatching = EditorGUIUtility.TrTextContent("Enable Batching", "Enable Batching for Shape / Parametric Lights.");
+            public static readonly GUIContent enableBatching = EditorGUIUtility.TrTextContent("Enable Light Batching", "Enable Batching for Shape / Parametric Lights.");
 
             public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
             public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Camera Sorting Layers Downsampling Method", "Method used to copy _CameraSortingLayersTexture");

@@ -123,15 +123,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             get { return m_EnableBatching; }
             set { m_EnableBatching = value; }
         }
-
-        internal void SetLightBlendStyle(Light2DBlendStyle style, int i)
-        {
-            if (i < m_LightBlendStyles.Length)
-            {
-                m_LightBlendStyles[i] = style;
-            }
-        }
-        
+       
         protected override ScriptableRenderer Create()
         {
 #if UNITY_EDITOR

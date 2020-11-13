@@ -30,7 +30,7 @@ Shader "Hidden/Light2D-Shape"
             {
                 float3 positionOS   : POSITION;
                 // extrusionDir & _FalloffDistance;
-                float3 nor          : NORMAL;
+                float3 extrude      : NORMAL;
                 float4 color        : COLOR;
                 // Used as data for Shape Lights : x FallOffIntensity
                 float2 uv           : TEXCOORD0;
@@ -63,8 +63,8 @@ Shader "Hidden/Light2D-Shape"
                 Varyings o = (Varyings)0;
 
                 float3 positionOS = attributes.positionOS;
-                positionOS.x = positionOS.x + attributes.nor.z * attributes.nor.x;
-                positionOS.y = positionOS.y + attributes.nor.z * attributes.nor.y;
+                positionOS.x = positionOS.x + attributes.extrude.z * attributes.extrude.x;
+                positionOS.y = positionOS.y + attributes.extrude.z * attributes.extrude.y;
                 
                 o.positionCS = TransformObjectToHClip(positionOS);
                 o.color = attributes.color * _InverseHDREmulationScale;

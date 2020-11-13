@@ -185,63 +185,7 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             Assert.AreEqual(0, Light2DBatch.s_Batches);
         }
-        
-        [UnityTest]
-        public IEnumerator OnEnableRendererDataBatching_EnablesBatching_AdditiveStyle()
-        {
-            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-            var rendererData = asset.scriptableRendererData as Renderer2DData;
-            
-            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
-            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
-            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
-            
-            rendererData.enableBatching = true;
-            light1.lightType = Light2D.LightType.Freeform;
-            light1.SetShapePath(shapePath);
-            light1.UpdateMesh(true);
-            light2.lightType = Light2D.LightType.Freeform;
-            light2.SetShapePath(shapePath);
-            light2.UpdateMesh(true);
-            
-            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
-            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
-            m_Data.SetLightBlendStyle(style, 0);            
 
-            m_Camera.GetComponent<Camera>().Render();
-            yield return null;            
-            
-            Assert.AreEqual(1, Light2DBatch.s_Batches);
-        }     
-        
-        [UnityTest]
-        public IEnumerator OnEnableRendererDataBatching_DisablesBatching_MultiplicativeStyle()
-        {
-            var asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-            var rendererData = asset.scriptableRendererData as Renderer2DData;
-            
-            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
-            var light1 = m_TestObjectBatched1.AddComponent<Light2D>();
-            var light2 = m_TestObjectBatched2.AddComponent<Light2D>();
-            
-            rendererData.enableBatching = true;
-            light1.lightType = Light2D.LightType.Freeform;
-            light1.SetShapePath(shapePath);
-            light1.UpdateMesh(true);
-            light2.lightType = Light2D.LightType.Freeform;
-            light2.SetShapePath(shapePath);
-            light2.UpdateMesh(true);
-            
-            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
-            style.blendMode = Light2DBlendStyle.BlendMode.Multiply;
-            m_Data.SetLightBlendStyle(style, 0);            
-
-            m_Camera.GetComponent<Camera>().Render();
-            yield return null;            
-            
-            Assert.AreEqual(0, Light2DBatch.s_Batches);
-        }             
-     
         [UnityTest]
         public IEnumerator BatchingCachesMesh_IfThereAreNoChanges()
         {
@@ -260,12 +204,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             light2.lightType = Light2D.LightType.Freeform;
             light2.SetShapePath(shapePath);
             light2.UpdateMesh(true);
-            
-            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
-            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
-            m_Data.SetLightBlendStyle(style, 0);
 
-            
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
 
@@ -295,10 +234,6 @@ namespace UnityEngine.Rendering.Universal.Tests
             light2.lightType = Light2D.LightType.Freeform;
             light2.SetShapePath(shapePath);
             light2.UpdateMesh(true);
-            
-            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
-            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
-            m_Data.SetLightBlendStyle(style, 0);
 
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
@@ -336,10 +271,6 @@ namespace UnityEngine.Rendering.Universal.Tests
             light2.lightType = Light2D.LightType.Freeform;
             light2.SetShapePath(shapePath);
             light2.UpdateMesh(true);
-            
-            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
-            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
-            m_Data.SetLightBlendStyle(style, 0);
 
             m_Camera.GetComponent<Camera>().Render();
             yield return null;
@@ -379,10 +310,6 @@ namespace UnityEngine.Rendering.Universal.Tests
             light2.lightType = Light2D.LightType.Freeform;
             light2.SetShapePath(shapePath);
             light2.UpdateMesh(true);
-            
-            Light2DBlendStyle style = m_Data.lightBlendStyles[0];
-            style.blendMode = Light2DBlendStyle.BlendMode.Additive;
-            m_Data.SetLightBlendStyle(style, 0);
 
             m_Camera.GetComponent<Camera>().Render();
             yield return null;

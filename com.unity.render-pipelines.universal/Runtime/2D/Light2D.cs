@@ -229,21 +229,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal void UpdateMesh(bool forceUpdate)
         {
             int hashCode = GenerateHashCode();
+            Color finalColor = color * intensity;
             if (forceUpdate && hashCode != m_HashCode)
             {
                 switch (m_LightType)
                 {
                     case LightType.Freeform:
-                        m_LocalBounds = LightUtility.GenerateShapeMesh(this, color * intensity, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeIntensity);
+                        m_LocalBounds = LightUtility.GenerateShapeMesh(this, finalColor, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeIntensity);
                         break;
                     case LightType.Parametric:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeIntensity);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, finalColor, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeIntensity);
                         break;
                     case LightType.Sprite:
-                        m_LocalBounds = LightUtility.GenerateSpriteMesh(this, color * intensity, m_LightCookieSprite);
+                        m_LocalBounds = LightUtility.GenerateSpriteMesh(this, finalColor, m_LightCookieSprite);
                         break;
                     case LightType.Point:
-                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, volumeIntensity);
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, finalColor,1.412135f, 0, 0, 4, falloffIntensity, volumeIntensity);
                         break;
                 }
             }

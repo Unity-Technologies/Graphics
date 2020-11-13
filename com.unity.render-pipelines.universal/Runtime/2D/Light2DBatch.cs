@@ -1,18 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Collections;
-using Unity.Mathematics;
-using UnityEngine.Experimental.Rendering.Universal.LibTessDotNet;
 using UnityEngine.Rendering;
-using UnityEngine.U2D;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
 
     internal static class Light2DBatch
     {
-        private static int kMaxBatchLimit = 1024;
+        private static readonly int kMaxBatchLimit = 1024;
         
         static Dictionary<int, Mesh> s_BatchMeshes = new Dictionary<int,Mesh>();
 
@@ -96,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 if (s_MeshPool.Count > 0)
                 {
                     mesh = s_MeshPool[s_MeshPool.Count - 1];
-                    mesh.Clear();
+                    if (mesh) mesh.Clear();
                     s_MeshPool.RemoveAt(s_MeshPool.Count - 1);
                 }
                 mesh ??= new Mesh();
