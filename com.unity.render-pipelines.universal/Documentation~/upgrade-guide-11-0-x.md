@@ -1,16 +1,12 @@
 # Upgrading to version 11.0.x of the Universal Render Pipeline
 
-1. `Autodesk Interactive`, `Autodesk Interactive Masked` and `Autodesk Interactive Transparent` shader graphs were renamed to remove spaces from their paths. 
+This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 11.0.x.
 
-If you were searching these shaders by calling `Shader.Find()` you now have to update the shader names to remove spaces as well, f.ex, `Shader.Find("AutodeskInteractive)`.
+## Upgrading from URP 10.0.x–10.2.x
 
-# Upgrading to version 10.1.x of the Universal Render Pipeline
+1. The file names of the following Shader Graph shaders were renamed. The new file names do not have spaces:<br/>`Autodesk Interactive`<br/>`Autodesk Interactive Masked`<br/>`Autodesk Interactive Transparent` 
 
-1. URP 10.2.x does not have breaking changes compared with URP 10.1.x. To upgrade URP to version 10.2.x, install the new version of the package.
-
-## Upgrading from URP 10.0.x
-
-1. URP 10.1.x does not have breaking changes compared with URP 10.0.x. To upgrade URP to version 10.1.x, install the new version of the package.
+    If your code uses the `Shader.Find()` method to search for the shaders, remove spaces from the shader names, for example, `Shader.Find("AutodeskInteractive)`.
 
 ## Upgrading from URP 7.2.x and later releases
 
