@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Post Processes affecting preview cameras.
 - Fixed serialization issue with matcap scale intensity.
 - Fixed XR shadows culling
+- Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
 
 ### Changed
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
