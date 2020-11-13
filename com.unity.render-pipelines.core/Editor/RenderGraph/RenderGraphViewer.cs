@@ -111,8 +111,19 @@ public class RenderGraphViewer : EditorWindow
 
         var topRowElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.TopRowElement");
         topRowElement.style.minHeight = passNamesContainerHeight;
+
     }
 
+    void LastRenderPassLabelChanged(GeometryChangedEvent evt)
+    {
+        var label = evt.currentTarget as Label;
+        Vector2 textSize = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 10, VisualElement.MeasureMode.Undefined);
+        float textWidth = Mathf.Max(kRenderPassWidth, textSize.x);
+
+        // Keep a margin on the right of the container to avoid label being clipped.
+        var viewerContainer = m_GraphViewerElement.Q<VisualElement>("GraphViewer.ViewerContainer");
+        viewerContainer.style.marginRight = Mathf.Max(viewerContainer.style.marginRight.value.value, (textWidth - kRenderPassWidth));
+    }
 
     void UpdateResourceLifetimeColor(int passIndex, StyleColor colorRead, StyleColor colorWrite)
     {
@@ -164,7 +175,7 @@ public class RenderGraphViewer : EditorWindow
             VisualElement passElement = m_PassElementsInfo[consumer].pass;
             if (passElement != null)
             {
-                VisualElement passButton = passElement.Q("PassCell");
+                VisualElement passButton = passElement.Q("RenderPass.Cell");
                 passButton.style.backgroundColor = colorRead;
             }
         }
@@ -178,7 +189,7 @@ public class RenderGraphViewer : EditorWindow
             VisualElement passElement = m_PassElementsInfo[producer].pass;
             if (passElement != null)
             {
-                VisualElement passButton = passElement.Q("PassCell");
+                VisualElement passButton = passElement.Q("RenderPass.Cell");
                 passButton.style.backgroundColor = colorWrite;
             }
         }
@@ -215,13 +226,14 @@ public class RenderGraphViewer : EditorWindow
     VisualElement CreateRenderPass(string name, int index, bool culled)
     {
         var container = new VisualElement();
+        container.name = "RenderPass";
         container.style.width = kRenderPassWidth;
         container.style.overflow = Overflow.Visible;
         container.style.flexDirection = FlexDirection.ColumnReverse;
         container.style.minWidth = kRenderPassWidth;
 
         var cell = new Button();
-        cell.name = "PassCell";
+        cell.name = "RenderPass.Cell";
         cell.style.marginBottom = 0.0f;
         cell.style.marginLeft = 0.0f;
         cell.style.marginRight = 0.0f;
@@ -237,6 +249,7 @@ public class RenderGraphViewer : EditorWindow
         container.Add(cell);
 
         var label = new Label(name);
+        label.name = "RenderPass.Label";
         label.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 0.0f, -45.0f));
         container.Add(label);
 
@@ -388,6 +401,7 @@ public class RenderGraphViewer : EditorWindow
 
         int passIndex = 0;
         finalPassCount = 0;
+        int lastValidPassIndex = -1;
         foreach (var pass in debugData.passList)
         {
             if ((pass.culled && !m_Filter.HasFlag(Filter.CulledPasses)) || !pass.generateDebugData)
@@ -401,8 +415,15 @@ public class RenderGraphViewer : EditorWindow
                 m_PassElementsInfo[passIndex].remap = finalPassCount;
                 passNamesElement.Add(passElement);
                 finalPassCount++;
+                lastValidPassIndex = passIndex;
             }
             passIndex++;
+        }
+
+        if (lastValidPassIndex > 0)
+        {
+            var label = m_PassElementsInfo[lastValidPassIndex].pass.Q<Label>("RenderPass.Label");
+            label.RegisterCallback<GeometryChangedEvent>(LastRenderPassLabelChanged);
         }
 
         topRowElement.Add(passNamesElement);
@@ -475,13 +496,16 @@ public class RenderGraphViewer : EditorWindow
         m_PassElementsInfo.Resize(debugData.passList.Count);
 
         var horizontalScrollView = new ScrollView(ScrollViewMode.Horizontal);
+        horizontalScrollView.name = "GraphViewer.HorizontalScrollView";
 
         var graphViewerElement = new VisualElement();
+        graphViewerElement.name = "GraphViewer.ViewerContainer";
         graphViewerElement.style.flexDirection = FlexDirection.Column;
 
         var topRowElement = CreateTopRowWithPasses(debugData, out int finalPassCount);
 
         var resourceScrollView = new ScrollView(ScrollViewMode.Vertical);
+        resourceScrollView.name = "GraphViewer.ResourceScrollView";
 
         // Has to match RenderGraphModule.RenderGraphResourceType order.
         Filter[] resourceFilterFlags = { Filter.Textures, Filter.ComputeBuffers };
