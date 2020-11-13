@@ -76,8 +76,7 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       
       - [all]: --testproject=.
-      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
@@ -115,8 +114,7 @@ test_platforms:
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       
       - [all]: --testproject=.
-      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
@@ -142,8 +140,7 @@ test_platforms:
       - [iPhone_Metal]: --platform=iOS
       
       - [all]: --testproject=.
-      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
