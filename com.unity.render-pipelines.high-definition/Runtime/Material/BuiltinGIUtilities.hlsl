@@ -111,8 +111,8 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
     apvRes.L1_R = _APVResL1_R;
     apvRes.L1_G = _APVResL1_G;
     apvRes.L1_B = _APVResL1_B;
-    bakeDiffuseLighting = EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(positionRWS), normalWS, apvRes);
-    backBakeDiffuseLighting = EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(positionRWS), backNormalWS, apvRes);
+    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(positionRWS), normalWS, apvRes,
+        bakeDiffuseLighting, backBakeDiffuseLighting);
     return;
     //-----------------------------------------------------------------------------------------------------
 #endif
@@ -177,7 +177,7 @@ void SampleBakedGI(
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
     bakeDiffuseLighting = UNINITIALIZED_GI;
-    EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+    return;
 #endif
 
 #elif SAMPLE_PROBEVOLUME_BUILTIN // SAMPLE_PROBEVOLUME_BUILTIN && SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 0

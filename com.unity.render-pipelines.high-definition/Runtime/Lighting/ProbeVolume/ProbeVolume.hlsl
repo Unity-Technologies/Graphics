@@ -76,7 +76,8 @@ float3 EvaluateAmbientProbe(float3 normalWS)
 
 #define APV_USE_BASE_OFFSET
 
-float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVResources apvRes)
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVResources apvRes,
+    out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     APVConstants apvConst = LoadAPVConstants( apvRes.index );
 
@@ -91,7 +92,9 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
     if( any( abs( posRS ) > float3(apvConst.indexDim / 2) ) )
 #endif
     {
-        return EvaluateAmbientProbe( normalWS );
+        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
+        backBakeDiffuseLighting = EvaluateAmbientProbe(-normalWS);
+        return;
     }
 
     // convert to index
@@ -101,7 +104,12 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
     // get the y-offset
     int  yoffset = apvRes.index[kAPVConstantsSize + index.z * apvConst.indexDim.x + index.x];
     if( yoffset == -1 || posRS.y < yoffset || posRS.y >= float(apvConst.indexDim.y) )
-        return EvaluateAmbientProbe( normalWS );
+    {
+        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
+        backBakeDiffuseLighting = EvaluateAmbientProbe(-normalWS);
+        return;
+    }
+
     index.y = posRS.y - yoffset;
 #endif
     // resolve the index
@@ -112,7 +120,9 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
     // no valid brick loaded for this index, fallback to ambient probe
     if( packed_pool_idx == 0xffffffff )
     {
-        return EvaluateAmbientProbe( normalWS );
+        bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
+        backBakeDiffuseLighting = EvaluateAmbientProbe(-normalWS);
+        return;
     }
 
     // unpack pool idx
@@ -146,8 +156,8 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
     l1_B = DecodeSH(l0.b, l1_B);
 
     // evaluate the SH coefficients
-    float3 final_color = SHEvalLinearL0L1( normalWS, float4( l1_R, l0.r ), float4( l1_G, l0.g ), float4( l1_B, l0.b ) );
-    return final_color;
+    bakeDiffuseLighting = SHEvalLinearL0L1(normalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
+    backBakeDiffuseLighting = SHEvalLinearL0L1(-normalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
 }
 
 #endif // __PROBEVOLUME_HLSL__
