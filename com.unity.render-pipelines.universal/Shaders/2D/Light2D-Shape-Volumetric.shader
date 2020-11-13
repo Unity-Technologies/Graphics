@@ -23,9 +23,7 @@ Shader "Hidden/Light2D-Shape-Volumetric"
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
-#ifdef SPRITE_LIGHT
                 half2  uv           : TEXCOORD0;
-#endif
             };
 
             struct Varyings
