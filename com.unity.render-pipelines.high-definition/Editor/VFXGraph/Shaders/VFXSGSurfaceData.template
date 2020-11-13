@@ -1,7 +1,7 @@
 SurfaceData surface;
-BuiltinData builtin;
+float3 builtinEmissiveColor = (float3)0;
+float builtinOpacity = (float)0;
 surface = (SurfaceData)0;
-builtin = (BuiltinData)0;
 
 surface.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 surface.specularOcclusion = 1.0f;
@@ -9,8 +9,8 @@ surface.ambientOcclusion = 1.0f;
 surface.subsurfaceMask = 1.0f;
 
 #if HAS_SHADERGRAPH_PARAM_ALPHA
-    builtin.opacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
-    VFXClipFragmentColor(builtin.opacity,i);
+    builtinOpacity = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
+    VFXClipFragmentColor(builtinOpacity, i);
 #endif
 
 #if HAS_SHADERGRAPH_PARAM_SMOOTHNESS
@@ -31,5 +31,5 @@ surface.subsurfaceMask = 1.0f;
 surface.normalWS = normalWS;
 
 #if HAS_SHADERGRAPH_PARAM_EMISSION
-    builtin.emissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSION};
+    builtinEmissiveColor = OUTSG.${SHADERGRAPH_PARAM_EMISSION};
 #endif

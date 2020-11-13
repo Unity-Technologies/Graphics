@@ -305,7 +305,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
             colorAccumulation.rgb = accumulation.rgb + (1.0 - accumulation.w) * centralColor.rgb;
 #if ENABLE_ALPHA
-            colorAccumulation.w = alphaAccumulation + (1.0 - accumulation.w) * centralColor.w;
+            colorAccumulation.w = alphaAccumulation * invSampleCount + (1.0 - accumulation.w) * centralColor.w;
 #endif
 
 #if DEBUG_VIEW == WEIGHT_VIS
@@ -315,7 +315,7 @@ void MotionBlurCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 
 #if DEBUG_VIEW == MAX_MOTION_VEC
-        colorAccumulation = float3(maxMotionVec, 0.0);
+        colorAccumulation.xyz = float3(maxMotionVec, 0.0);
         float maxMotionVecLenPix = MotionVecLengthInPixelsFromEncoded(tileMaxNeighbourhood.xy);
         colorAccumulation = maxMotionVecLenPix;
 #endif

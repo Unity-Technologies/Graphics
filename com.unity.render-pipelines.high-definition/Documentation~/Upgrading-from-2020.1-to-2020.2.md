@@ -169,21 +169,39 @@ For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
 
 From 10.x, the shader keywords _BLENDMODE_ALPHA _BLENDMODE_ADD and _BLENDMODE_PRE_MULTIPLY have been removed. They are no longer used and the property _Blendmode is used instead.
+Similarly the shader keyword _BLENDMODE_PRESERVE_SPECULAR_LIGHTING has been removed and in its place the property _EnableBlendModePreserveSpecularLighting is used in shader code.
+
 For example in Material.hlsl, the following lines:
+
 ```
     #if defined(_BLENDMODE_ADD) || defined(_BLENDMODE_ALPHA)
         return float4(diffuseLighting * opacity + specularLighting, opacity);
 ```
-is replace by 
+are replaced by 
 ```
     if (_BlendMode == BLENDMODE_ALPHA || _BlendMode == BLENDMODE_ADDITIVE)
-        return float4(diffuseLighting * opacity + specularLighting, opacity);
+        return float4(diffuseLighting * opacity + specularLighting * (
+#ifdef SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+        _EnableBlendModePreserveSpecularLighting ? 1.0f :
+#endif
+            opacity), opacity);
+
 ```
-This reduced the number of shader variant. In case of custom shader it can be required to move the include of Material.hlsl after the declaration of the property _Blendmode.
+This reduced the number of shader variant. In case of custom shader it can be required to move the include of Material.hlsl after the declaration of the property _Blendmode.  Also, if the custom shader wants to support the blend mode preserve specular option, it needs to make sure _EnableBlendModePreserveSpecularLighting property is defined and that the compile time constant SUPPORT_BLENDMODE_PRESERVE_SPECULAR_LIGHTING is defined too. 
+
 
 From 10.x, HDRP includes a new optimization for [Planar Reflection Probes](Planar-Reflection-Probe.md). Now, when a shader samples a probe's environment map, it samples from mip level 0 if the LightData.roughReflections parameter is enabled (has a value of 1.0). You must update your custom shaders to take this behavior into account.
 For example, the call in the Lit shader has been updated to:
 `float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);`
+In addition a new functionality for to fake distance based roughness have been added on Reflection Probe and a new helper function have been introduce. The precedent code is finnaly rewrite as
+`float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness, intersectionDistance);`
+in the Lit shader. `intersectionDistance` is the return parameter of the EvaluateLight_EnvIntersection() function.
+
+From 10.x, HDRP uses range remapping for the metallic property when using a mask map.
+In the Lit, LitTessellation, LayeredLit and LayeredLitTesselation shaders, two new properties have been added: `_MetallicRemapMin` and `_MetallicRemapMax`.
+In the Decal shader, the property `_MetallicRemapMin` have been added, and `_MetallicScale` has been renamed as `_MetallicRemapMax`.
+
+From 10.x, a new pass ScenePickingPass have been added to all the shader and master node to allow the editor to correctly handle the picking with tesselated objects and backfaced objects.
 
 ## Raytracing
 
@@ -225,3 +243,8 @@ This change can affect you if you had multiple HDRP asset setup as **Quality Set
 
 We recommend to put all the diffusion profiles used in your project in the HDRP Asset assigned in the **Graphics Settings** before upgrading. This operation will prevent any issue after the upgrade regarding lost diffusion profile in the project.
 
+## Post Processing
+
+Previously, in the Motion Blur volume component the camera rotation clamp was always active such that by default the part of the motion vector derived from camera rotation was clamped differently. This can create confusion due to changes in motion vectors that are relative to camera. 
+
+From 2020.2, the camera rotation clamp option is not the default, but needs to be selected as an option under the **Camera Clamp Mode** setting. Moreover, additional clamping controls on camera influence on motion blur are available under the same setting. 

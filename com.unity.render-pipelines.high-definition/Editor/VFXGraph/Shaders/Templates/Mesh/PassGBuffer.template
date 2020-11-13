@@ -111,8 +111,9 @@ ${VFXEnd}
             ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
 
             ${VFXIncludeRP("VFXSGSurfaceData.template")}
-            
-            VFXSetupBuiltin(builtin,surface,builtin.emissiveColor, i);
+
+            BuiltinData builtin;
+            VFXSetupBuiltinForGBuffer(i, surface, builtinEmissiveColor, builtinOpacity, builtin);
             ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
         #else
             VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
