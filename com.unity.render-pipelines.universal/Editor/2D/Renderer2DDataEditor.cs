@@ -29,7 +29,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
             public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
+
             public static readonly GUIContent enableBatching = EditorGUIUtility.TrTextContent("Enable Batching", "Enable Batching for Shape / Parametric Lights.");
+
+            public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
+            public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Camera Sorting Layers Downsampling Method", "Method used to copy _CameraSortingLayersTexture");
         }
 
         struct LightBlendStyleProps
@@ -52,6 +56,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_DefaultCustomMaterial;
         SerializedProperty m_MaxLightRenderTextureCount;
         SerializedProperty m_EnableBatchingProp;
+
+        SerializedProperty m_UseCameraSortingLayersTexture;
+        SerializedProperty m_CameraSortingLayersTextureBound;
+        SerializedProperty m_CameraSortingLayerDownsamplingMethod;
 
         SavedBool m_GeneralFoldout;
         SavedBool m_LightRenderTexturesFoldout;
@@ -86,6 +94,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
             m_MaxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
             m_EnableBatchingProp = serializedObject.FindProperty("m_EnableBatching");
+
+            m_CameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
+            m_UseCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
+            m_CameraSortingLayerDownsamplingMethod = serializedObject.FindProperty("m_CameraSortingLayerDownsamplingMethod");
 
             int numBlendStyles = m_LightBlendStyles.arraySize;
             m_LightBlendStylePropsArray = new LightBlendStyleProps[numBlendStyles];
@@ -128,9 +140,39 @@ namespace UnityEditor.Experimental.Rendering.Universal
             DrawGeneral();
             DrawLightRenderTextures();
             DrawLightBlendStyles();
+            DrawCameraSortingLayerTexture();
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
+        }
+
+        public void DrawCameraSortingLayerTexture()
+        {
+            SortingLayer[] sortingLayers = SortingLayer.layers;
+            string[] optionNames = new string[sortingLayers.Length + 1];
+            int[] optionIds = new int[sortingLayers.Length + 1];
+            optionNames[0] = "Disabled";
+            optionIds[0] = -1;
+
+            int currentOptionIndex = 0;
+            for (int i = 0; i < sortingLayers.Length; i++)
+            {
+                optionNames[i + 1] = sortingLayers[i].name;
+                optionIds[i + 1] = sortingLayers[i].id;
+                if (sortingLayers[i].id == m_CameraSortingLayersTextureBound.intValue)
+                    currentOptionIndex = i + 1;
+            }
+
+
+            int selectedOptionIndex = !m_UseCameraSortingLayersTexture.boolValue ? 0 : currentOptionIndex;
+            selectedOptionIndex = EditorGUILayout.Popup(Styles.cameraSortingLayerTextureBound, selectedOptionIndex, optionNames);
+
+            m_UseCameraSortingLayersTexture.boolValue = selectedOptionIndex != 0;
+            m_CameraSortingLayersTextureBound.intValue = optionIds[selectedOptionIndex];
+
+            EditorGUI.BeginDisabledGroup(!m_UseCameraSortingLayersTexture.boolValue);
+            EditorGUILayout.PropertyField(m_CameraSortingLayerDownsamplingMethod, Styles.cameraSortingLayerDownsampling);
+            EditorGUI.EndDisabledGroup();
         }
 
         private void DrawGeneral()

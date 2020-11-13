@@ -73,8 +73,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [FormerlySerializedAs("m_LightCookieSprite")]
         [SerializeField] Sprite m_DeprecatedPointLightCookieSprite;
 
-        [SerializeField] bool m_UseNormalMap = false;
-
         [SerializeField] int m_LightOrder = 0;
 
         [SerializeField] OverlapOperation m_OverlapOperation = OverlapOperation.Additive;
@@ -104,14 +102,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         private ushort[] m_Triangles = new ushort[1];
 
-        // Transients
-        int m_PreviousLightCookieSprite;
-        int m_HashCode = 0;
-
         internal LightUtility.LightMeshVertex[] vertices { get { return m_Vertices; } set { m_Vertices = value; } }
 
         internal ushort[] indices { get { return m_Triangles; } set { m_Triangles = value; } }
 
+        // Transients
+        int m_PreviousLightCookieSprite;
+        int m_HashCode = 0;
         internal int hashCode => m_HashCode;
 
         internal int[] affectedSortingLayers => m_ApplyToSortingLayers;
@@ -196,7 +193,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
         public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } }
         public float falloffIntensity => m_FalloffIntensity;
-        public bool useNormalMap => m_UseNormalMap;
 
         [Obsolete]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}
@@ -235,21 +231,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int hashCode = GenerateHashCode();
             if (forceUpdate && hashCode != m_HashCode)
             {
-				switch(m_LightType)
-				{
-                	case LightType.Freeform:
-	                    m_LocalBounds = LightUtility.GenerateShapeMesh(this, color * intensity, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeIntensity);
-    	                break;
-        	        case LightType.Parametric:
-            	        m_LocalBounds = LightUtility.GenerateParametricMesh(this, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeIntensity);
-                	    break;
-                	case LightType.Sprite:
-                    	m_LocalBounds = LightUtility.GenerateSpriteMesh(this, color * intensity, m_LightCookieSprite);
-                    	break;
-                	case LightType.Point:
-	                    m_LocalBounds = LightUtility.GenerateParametricMesh(this, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, volumeIntensity);
-    	                break;
-				}
+                switch (m_LightType)
+                {
+                    case LightType.Freeform:
+                        m_LocalBounds = LightUtility.GenerateShapeMesh(this, color * intensity, m_ShapePath, m_ShapeLightFalloffSize, falloffIntensity, volumeIntensity);
+                        break;
+                    case LightType.Parametric:
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, color * intensity, m_ShapeLightParametricRadius, m_ShapeLightFalloffSize, m_ShapeLightParametricAngleOffset, m_ShapeLightParametricSides, falloffIntensity, volumeIntensity);
+                        break;
+                    case LightType.Sprite:
+                        m_LocalBounds = LightUtility.GenerateSpriteMesh(this, color * intensity, m_LightCookieSprite);
+                        break;
+                    case LightType.Point:
+                        m_LocalBounds = LightUtility.GenerateParametricMesh(this, color * intensity,1.412135f, 0, 0, 4, falloffIntensity, volumeIntensity);
+                        break;
+                }
             }
             m_HashCode = hashCode;
         }
