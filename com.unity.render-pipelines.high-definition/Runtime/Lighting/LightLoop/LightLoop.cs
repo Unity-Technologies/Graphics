@@ -3869,30 +3869,33 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!parameters.enableFeatureVariants) return;
 
-            // clear dispatch indirect buffer
-            if (parameters.useComputeAsPixel)
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildDispatchIndirect)))
             {
-                cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-                cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
-                cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
+                // clear dispatch indirect buffer
+                if (parameters.useComputeAsPixel)
+                {
+                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                    cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
+                    cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
 
+                }
+                else
+                {
+                    cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                    cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
+                }
+
+                // add tiles to indirect buffer
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileList, resources.tileList);
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
+
+                // Assume that we use fine (and not coarse) tiles in the shader.
+                int numTiles   = parameters.fineTileBufferDimensions.x * parameters.fineTileBufferDimensions.y;
+                int groupCount = HDUtils.DivRoundUp(numTiles, k_ThreadGroupOptimalSize);
+
+                cmd.DispatchCompute(parameters.buildDispatchIndirectShader, 0, groupCount, 1, parameters.viewCount);
             }
-            else
-            {
-                cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-                cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
-            }
-
-            // add tiles to indirect buffer
-            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileList, resources.tileList);
-            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
-
-            // Assume that we use fine (and not coarse) tiles in the shader.
-            int numTiles   = parameters.fineTileBufferDimensions.x * parameters.fineTileBufferDimensions.y;
-            int groupCount = HDUtils.DivRoundUp(numTiles, k_ThreadGroupOptimalSize);
-
-            cmd.DispatchCompute(parameters.buildDispatchIndirectShader, 0, groupCount, 1, parameters.viewCount);
         }
 
         static bool DeferredUseComputeAsPixel(FrameSettings frameSettings)
