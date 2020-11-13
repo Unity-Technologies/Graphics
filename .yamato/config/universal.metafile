@@ -103,19 +103,19 @@ all:
         - editmode
         - playmode
         - playmode_XR
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        # - Standalone
-        - playmode
-    - platform: OSX
-      api: OpenGLCore
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
+#    - platform: OSX
+#      api: Metal
+#      build_config: mono
+#      color_space: Linear
+#      test_platforms:
+#        # - Standalone
+#        - playmode
+#    - platform: OSX
+#      api: OpenGLCore
+#      build_config: mono
+#      color_space: Linear
+#      test_platforms:
+#        - editmode
     - project: Universal_Stereo
       all: true
     - project: Universal_Hybrid
