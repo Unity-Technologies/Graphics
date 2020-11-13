@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Post Processes affecting preview cameras.
 - Fixed serialization issue with matcap scale intensity.
 - Fixed XR shadows culling
+- Fixed volument component creation via script.
+- Fixed issue with exposure history being uninitialized on second frame.
 - Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
 
 ### Changed
