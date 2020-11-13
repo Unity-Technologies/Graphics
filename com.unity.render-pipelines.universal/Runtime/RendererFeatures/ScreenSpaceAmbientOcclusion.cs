@@ -273,6 +273,8 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.colorFormat = RenderTextureFormat.ARGB32;
                 cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Bilinear);
 
+                m_Descriptor.colorFormat = (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Gaussian) ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
+
                 cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
 
@@ -284,6 +286,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_Descriptor.width *= downsampleDivider;
                     m_Descriptor.height *= downsampleDivider;
+                    m_Descriptor.colorFormat = RenderTextureFormat.R8;
 
                     cmd.GetTemporaryRT(s_SSAOTexture4ID, m_Descriptor, FilterMode.Bilinear);
 

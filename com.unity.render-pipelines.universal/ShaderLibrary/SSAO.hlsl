@@ -420,7 +420,7 @@ half4 HorizontalVerticalBlur(Varyings input) : SV_Target
     return lerp(1.0 - BlurSmall(uv, delta ), 1-lerp(blurH.r, blurV.r, 0.5), 0.5);
 }
 
-half4 Upsample(Varyings input) : SV_Target
+half Upsample(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
@@ -433,10 +433,10 @@ half4 Upsample(Varyings input) : SV_Target
 //#else
     half texelSize = _SourceSize.z * rcp(DOWNSAMPLE);
 
-    half4 p1 = SAMPLE_BASEMAP(uv + half2(-1.0, -1.0) * texelSize);
-    half4 p2 = SAMPLE_BASEMAP(uv + half2(-1.0, 1.0) * texelSize);
-    half4 p3 = SAMPLE_BASEMAP(uv + half2(1.0, -1.0) * texelSize);
-    half4 p4 = SAMPLE_BASEMAP(uv + half2(1.0, 1.0) * texelSize);
+    half p1 = SAMPLE_BASEMAP_R(uv + half2(-1.0, -1.0) * texelSize);
+    half p2 = SAMPLE_BASEMAP_R(uv + half2(-1.0, 1.0) * texelSize);
+    half p3 = SAMPLE_BASEMAP_R(uv + half2(1.0, -1.0) * texelSize);
+    half p4 = SAMPLE_BASEMAP_R(uv + half2(1.0, 1.0) * texelSize);
 
     return (p1 + p2 + p3 + p4) * 0.25h;
 //#endif
@@ -472,50 +472,39 @@ half GaussianBlur( half2 uv, half2 pixelOffset)
     return colOut;
 }
 
-half4 HorizontalGaussianBlur(Varyings input) : SV_Target
+half HorizontalGaussianBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
     float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 1.0, 0.0);
 
-    half4 col = half4(0,0,0,0);
-
-    col.r = GaussianBlur(uv, delta);
-
-    return col;
+    return GaussianBlur(uv, delta);
 }
 
-half4 VerticalGaussianBlur(Varyings input) : SV_Target
+half VerticalGaussianBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
     float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 1.0);
 
-    half4 col = half4(0,0,0,0);
-
-    col.r = 1.0h - GaussianBlur(uv, delta);
-
-    return col;
+    return 1.0h - GaussianBlur(uv, delta);
 }
 
-half4 HorizontalVerticalGaussianBlur(Varyings input) : SV_Target
+half HorizontalVerticalGaussianBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
+
+    // Horizontal
     float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 1.0, 0.0);
+    half colH = 1.0h - GaussianBlur(uv, delta);
 
-    half4 colH = half4(0,0,0,0);
-
-    colH.r = 1.0h - GaussianBlur(uv, delta);
-
+    // Vertical
     delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 1.0);
-
-    half4 colV = half4(0,0,0,0);
-
-    colV.r = 1.0h - GaussianBlur(uv, delta);
+    half colV = 1.0h - GaussianBlur(uv, delta);
 
     return lerp(colH, colV, 0.5);
 }
