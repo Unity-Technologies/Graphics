@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed issue with gameview repaint in the graphics compositor (case 1290622).
 
 ## [10.2.0] - 2020-10-19
 
