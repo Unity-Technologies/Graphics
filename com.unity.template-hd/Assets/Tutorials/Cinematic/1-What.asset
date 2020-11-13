@@ -37,16 +37,16 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Cinematics
+        m_Untranslated: Cinematic
       Text:
         m_Untranslated: 'Likely you have noticed Media in the Hierarchy window. It
-          contains a few examples of how to make simple cutscenes within Unity.
+          contains a few examples of how cutscenes can be made.
 
 
           These
           cutscenes rely on Timeline and Cinemachine features, those are pretty broad
-          subjects so we will not go in depth. However we will show you how to play
-          the cinematic and make a simple one of your own.'
+          subjects on their own so we will not cover them in depth. However we will
+          show you how to play the ones included in our project.'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

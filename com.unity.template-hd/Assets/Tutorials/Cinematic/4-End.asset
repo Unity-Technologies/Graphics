@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 3-Animated
+  m_Name: 4-End
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -37,20 +37,16 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Play animated cutscene
+        m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: '1) Inside Media, disable Screenshots and enable Cinematic
-
-          2)
-          Make sure you still have Timeline window docked and Cinematic Timeline
-          is selected in the <i>Hierarchy</i>
-
-          3) Enter Play
-
-
-          The
-          cutscene with animated cameras should start. Notice the setup in the Timeline
-          is a little more complex this time, It uses 2 virtual Cinemachine cameras.'
+        m_Untranslated: "You have finished the <b>Cinematic</b> tutorial. Now you
+          know how to Play the cutscenes provided within the project. \n\nTo understand
+          how these cutscenes are made, explore the Timeline assets in the Animations
+          folder or watch <a href=\"https://www.youtube.com/watch?v=x6Q5sKXjZOM\">Using
+          Cinemachine: Getting Started</a> video. \n\nAs always more information
+          can also be found on the<a href=\"https://docs.unity3d.com/Packages/com.unity.cinemachine@2.6/manual/index.html\">Cinemachine
+          Documentation</a> page.\n\nNote: You do not need to save in order to follow
+          other tutorials."
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

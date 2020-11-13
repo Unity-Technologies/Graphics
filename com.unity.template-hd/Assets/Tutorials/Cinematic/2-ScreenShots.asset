@@ -58,19 +58,19 @@ MonoBehaviour:
           Timeline window should open, dock it somewhere so it doesnt block the scene
           view.
 
-          6) Make sure ScreenshotsTimeline is selected in the <i>Hierarchy</i>,
-          in order to see progress in Timeline window.
+          6) Make sure ScreenshotsTimeline is selected in the <i>Hierarchy</i>.
 
-          7) Enter Play
-
-
-          You
-          should see camera changing position 10 times, showcasing the level.
+          7)
+          Enter Play
 
 
-          Note:
-          steps 3, 4, 5, 6 are optional. You can play the cinematic without them
-          but wont see the progress in Timeline window.
+          You should see camera changing position 10 times,
+          showcasing the level.
+
+
+          Note: steps 3, 4, 5, 6 are optional.
+          You can play the cinematic without them but wont see the progress in Timeline
+          window.
 
 
 '
