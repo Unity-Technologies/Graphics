@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._Texture2D, referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
             action(new HLSLProperty(HLSLType._float4, referenceName + "_TexelSize", decl));
-            action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl));
+            // action(new HLSLProperty(HLSLType._float4, referenceName + "_ST", decl)); // TODO: allow users to make use of the ST values
         }
 
         internal override string GetPropertyAsArgumentString()
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Internal
             if (isSubgraphProperty)
                 return referenceName;
             else
-                return $"UnityBuildTexture2DStruct({referenceName})";
+                return $"UnityBuildTexture2DStructNoScale({referenceName})";
         }
 
         [SerializeField]

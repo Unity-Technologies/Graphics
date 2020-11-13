@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return $"UnityBuildTexture2DStruct({GetTexturePropertyName()})";
+            return $"UnityBuildTexture2DStructNoScale({GetTexturePropertyName()})";
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)

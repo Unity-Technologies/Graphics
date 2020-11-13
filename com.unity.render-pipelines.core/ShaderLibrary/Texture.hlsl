@@ -38,8 +38,8 @@ struct UnityTexture2D
 };
 
 #define UnityBuildTexture2DStruct(n) UnityBuildTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler##n), n##_TexelSize, n##_ST)
-#define UnityBuildTexture2DStructNoScale(n) UnityBuildTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler_##n), n##_TexelSize)
-UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplerstate), float4 texelSize, float4 scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f))
+#define UnityBuildTexture2DStructNoScale(n) UnityBuildTexture2DStructInternal(TEXTURE2D_ARGS(n, sampler##n), n##_TexelSize, float4(1, 1, 0, 0))
+UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplerstate), float4 texelSize, float4 scaleTranslate)
 {
     UnityTexture2D result;
     result.tex = tex;
@@ -53,8 +53,6 @@ struct UnityTexture2DArray
 {
     TEXTURE2D_ARRAY(tex);
     SAMPLERDECL(samplerstate)
-//    float4 texelSize;           // ??  are these valid for Texture2DArrays?
-//    float4 scaleTranslate;      // ??
 };
 
 #define UnityBuildTexture2DArrayStruct(n) UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_ARGS(n, sampler##n))
@@ -63,8 +61,6 @@ UnityTexture2DArray UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_PARAM
     UnityTexture2DArray result;
     result.tex = tex;
     ASSIGN_SAMPLER(result.samplerstate, samplerstate);
-//    result.texelSize = texelSize;
-//    result.scaleTranslate = scaleTranslate;
     return result;
 }
 
@@ -73,18 +69,14 @@ struct UnityTextureCube
 {
     TEXTURECUBE(tex);
     SAMPLERDECL(samplerstate)
-    //    float4 texelSize;           // ??  are these valid for Texture2DArrays?
-    //    float4 scaleTranslate;      // ??
 };
 
 #define UnityBuildTextureCubeStruct(n) UnityBuildTextureCubeStructInternal(TEXTURECUBE_ARGS(n, sampler##n))
-UnityTextureCube UnityBuildTextureCubeStructInternal(TEXTURECUBE_PARAM(tex, samplerstate)) //, float4 texelSize, float4 scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f))
+UnityTextureCube UnityBuildTextureCubeStructInternal(TEXTURECUBE_PARAM(tex, samplerstate))
 {
     UnityTextureCube result;
     result.tex = tex;
     ASSIGN_SAMPLER(result.samplerstate, samplerstate);
-    //    result.texelSize = texelSize;
-    //    result.scaleTranslate = scaleTranslate;
     return result;
 }
 
@@ -93,18 +85,14 @@ struct UnityTexture3D
 {
     TEXTURE3D(tex);
     SAMPLERDECL(samplerstate)
-    //    float4 texelSize;           // ??  are these valid for Texture2DArrays?
-    //    float4 scaleTranslate;      // ??
 };
 
 #define UnityBuildTexture3DStruct(n) UnityBuildTexture3DStructInternal(TEXTURE3D_ARGS(n, sampler##n))
-UnityTexture3D UnityBuildTexture3DStructInternal(TEXTURE3D_PARAM(tex, samplerstate)) //, float4 texelSize, float4 scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f))
+UnityTexture3D UnityBuildTexture3DStructInternal(TEXTURE3D_PARAM(tex, samplerstate))
 {
     UnityTexture3D result;
     result.tex = tex;
     ASSIGN_SAMPLER(result.samplerstate, samplerstate);
-    //    result.texelSize = texelSize;
-    //    result.scaleTranslate = scaleTranslate;
     return result;
 }
 
