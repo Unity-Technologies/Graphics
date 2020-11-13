@@ -22,15 +22,17 @@ namespace UnityEngine.VFX.Utility
         /// Creates a new ExposedProperty from a string.
         /// </summary>
         /// <param name="name">the string desired name</param>
+        /// <returns>The newly created ExposedProperty from name.</returns>
         public static implicit operator ExposedProperty(string name)
         {
             return new ExposedProperty(name);
         }
 
         /// <summary>
-        /// Converts automatically an ExposedProperty to a string
+        /// Converts automatically an ExposedProperty to a string.
         /// </summary>
         /// <param name="parameter"></param>
+        /// <returns>The stored name.</returns>
         public static explicit operator string(ExposedProperty parameter)
         {
             return parameter.m_Name;
@@ -40,13 +42,14 @@ namespace UnityEngine.VFX.Utility
         /// Converts automatically an ExposedProperty to an int (based on Shader.PropertyToID())
         /// </summary>
         /// <param name="parameter"></param>
+        /// <returns>The Shader.PropertyToID result</returns>
         public static implicit operator int(ExposedProperty parameter)
         {
 #if UNITY_EDITOR
             //In Editor, m_Id cached cannot be used for several reasons :
             // - m_Name is modified thought a SerializedProperty
-            // -ExposedParameter are stored in array, when we modify it, m_Id is reset to zero
-            // -Undo /Redo is restoring m_Name
+            // - ExposedParameter are stored in array, when we modify it, m_Id is reset to zero
+            // - Undo /Redo is restoring m_Name
             // Could be resolved modifying directly object reference in inspector, but for Undo/Redo, we have to invalid everything
             //In Runtime, there isn't any undo/redo and SerializedObject is only available in UnityEditor namespace
             return Shader.PropertyToID(parameter.m_Name);

@@ -45,6 +45,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader colorPyramidPS;
             [Reload("Runtime/RenderPipeline/RenderPass/DepthPyramid.compute")]
             public ComputeShader depthPyramidCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/GenerateMaxZ.compute")]
+            public ComputeShader maxZCS;
+
             [Reload("Runtime/Core/CoreResources/GPUCopy.compute")]
             public ComputeShader copyChannelCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceReflections.compute")]
@@ -193,6 +196,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugHDShadowMapPS;
             [Reload("Runtime/Lighting/Shadow/MomentShadows.compute")]
             public ComputeShader momentShadowsCS;
+            [Reload("Runtime/Lighting/Shadow/ShadowBlit.shader")]
+            public Shader shadowBlitPS;
 
             // Decal
             [Reload("Runtime/Material/Decal/DecalNormalBuffer.shader")]

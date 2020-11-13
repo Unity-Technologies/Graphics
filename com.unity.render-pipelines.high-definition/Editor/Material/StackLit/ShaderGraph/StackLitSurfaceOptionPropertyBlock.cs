@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         class Styles
         {
-            public static GUIContent materialType = new GUIContent("Material Type", "TODO");
+            public static GUIContent materialType = new GUIContent("Material Type", "Allow to select the lighting model to used with this Material.");
         }
 
         StackLitData stackLitData;

@@ -69,16 +69,15 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
         static public void SetDefaultCamera(CompositionManager compositor)
         {
-            var camera = CompositionManager.GetSceceCamera();
-            if (camera != null)
+            // Create a new camera for the compositor's output
+            var newCameraGameObject = new GameObject(k_DefaultCameraName);
+            var camera = newCameraGameObject.AddComponent<Camera>();
             {
-                var outputCamera = Object.Instantiate(camera);
-                RemoveAudioListeners(outputCamera);
-                outputCamera.name = k_DefaultCameraName;
-                outputCamera.tag = "Untagged";
-                outputCamera.cullingMask = 0; // we don't want to render any 3D objects on the compositor camera
-                compositor.outputCamera = outputCamera;
+                camera.tag = "Untagged";
+                camera.cullingMask = 0; // we don't want to render any 3D objects on the compositor camera
             }
+            newCameraGameObject.AddComponent<HDAdditionalCameraData>();
+            compositor.outputCamera = camera;
         }
 
         static public void SetDefaultLayers(CompositionManager compositor)

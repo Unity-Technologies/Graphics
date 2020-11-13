@@ -1,4 +1,3 @@
-#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -120,6 +119,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             get
             {
+                EnsureProperties();
                 return m_Data.m_Properties.SelectValue().ToList();
             }
         }
@@ -135,7 +135,6 @@ namespace UnityEditor.ShaderGraph.Internal
             var json = MultiJson.Serialize(m_Data);
             m_SerializedVfxAssetData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
             m_Data = null;
-            EnsureProperties();
         }
 
         void EnsureProperties()
@@ -155,7 +154,6 @@ namespace UnityEditor.ShaderGraph.Internal
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             m_Data = null;
-            EnsureProperties();
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() { }
@@ -196,4 +194,3 @@ namespace UnityEditor.ShaderGraph.Internal
         }
     }
 }
-#endif

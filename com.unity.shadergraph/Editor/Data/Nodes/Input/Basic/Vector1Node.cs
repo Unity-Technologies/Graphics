@@ -46,6 +46,13 @@ namespace UnityEditor.ShaderGraph
             return new Vector1ShaderProperty { value = slot.value };
         }
 
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+
+            name = "Float";
+        }
+
         int IPropertyFromNode.outputSlotId { get { return OutputSlotId; } }
     }
 }
