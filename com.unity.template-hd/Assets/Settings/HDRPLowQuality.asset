@@ -226,7 +226,7 @@ MonoBehaviour:
     customBufferFormat: 12
     supportedLitShaderMode: 2
     planarReflectionResolution:
-      m_Values: 000100000004000000080000
+      m_Values: 000100000002000000020000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
@@ -280,7 +280,7 @@ MonoBehaviour:
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
-        useDynamicViewportRescale: 0
+        useDynamicViewportRescale: 1
       areaLightShadowAtlas:
         shadowAtlasResolution: 2048
         shadowAtlasDepthBits: 16
@@ -430,8 +430,8 @@ MonoBehaviour:
       - 0.33
       - 0.666
       Fog_DepthRatio:
-      - 0.666
-      - 0.666
+      - 0.5
+      - 0.5
       - 0.5
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1

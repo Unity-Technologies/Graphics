@@ -280,7 +280,7 @@ MonoBehaviour:
       punctualLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
-        useDynamicViewportRescale: 0
+        useDynamicViewportRescale: 1
       areaLightShadowAtlas:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 16
@@ -426,12 +426,12 @@ MonoBehaviour:
       RTRDenoiserRadius: 080000000c00000010000000
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
-      - 0.166
-      - 0.33
-      - 0.666
+      - 0.25
+      - 0.5
+      - 0.75
       Fog_DepthRatio:
-      - 0.666
-      - 0.666
+      - 0.5
+      - 0.5
       - 0.5
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
