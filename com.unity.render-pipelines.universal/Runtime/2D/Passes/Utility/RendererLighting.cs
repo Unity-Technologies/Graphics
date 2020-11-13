@@ -415,7 +415,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 if (anyLights)
                 {
-                    var enableBatching = pass.rendererData.enableBatching && pass.rendererData.lightBlendStyles[i].blendMode == Light2DBlendStyle.BlendMode.Additive;
                     RenderLightSet(
                         pass, renderingData,
                         i,
@@ -423,7 +422,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         layerToRender,
                         identifier,
                         pass.rendererData.lightCullResult.visibleLights,
-                        enableBatching
+                        pass.rendererData.enableBatching
                     );
                 }
 

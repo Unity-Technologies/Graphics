@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var vcount = 0;
             var icount = 0;
             const float kClipperScale = 10000.0f;
-            Mesh mesh = light.lightMesh;
+            var mesh = light.lightMesh;
 
             // todo Revisit this while we do Batching.
             var meshInteriorColor = new Color(lightColor.r, lightColor.g, lightColor.b,1.0f);
@@ -388,7 +388,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var triangles = new NativeArray<ushort>(indexCount, Allocator.Temp);
             var centerIndex = (ushort)(2 * sides);
             var uvData = new float2(fallOffIntensity, volumeOpacity);
-            Mesh mesh = light.lightMesh;
+            var mesh = light.lightMesh;
 
             // Only Alpha value in Color channel is ever used. May remove it or keep it for batching params in the future.
             var color = new Color( lightColor.r, lightColor.g, lightColor.b, 1);
@@ -467,7 +467,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // this needs to be called before getting UV at the line below.
             // Venky fixed it, enroute to trunk
             var uvs = sprite.uv;
-            Mesh mesh = light.lightMesh;
+            var mesh = light.lightMesh;
 
             if(sprite == null)
             {
