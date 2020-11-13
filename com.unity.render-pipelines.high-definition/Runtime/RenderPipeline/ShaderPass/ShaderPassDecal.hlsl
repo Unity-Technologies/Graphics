@@ -17,9 +17,23 @@ void MeshDecalsPositionZBias(inout VaryingsToPS input)
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
 #if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
-	MeshDecalsPositionZBias(varyingsType);
+
+    float3 worldSpaceBias = 0.0f;
+    if (_DecalMeshBiasType == 1)
+    {
+        float3 positionRWS = TransformObjectToWorld(inputMesh.positionOS);
+        float3 V = GetWorldSpaceNormalizeViewDir(positionRWS);
+
+        worldSpaceBias = V * (_DecalMeshViewBias);
+    }
+    varyingsType.vmesh = VertMesh(inputMesh, worldSpaceBias);
+    if (_DecalMeshBiasType == 0)
+    {
+        MeshDecalsPositionZBias(varyingsType);
+    }
+#else
+    varyingsType.vmesh = VertMesh(inputMesh);
 #endif
     return PackVaryingsType(varyingsType);
 }
