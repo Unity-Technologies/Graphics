@@ -261,7 +261,7 @@ public class RenderGraphViewer : EditorWindow
     void ResourceNamesContainerChanged(GeometryChangedEvent evt)
     {
         var label = evt.currentTarget as Label;
-        float textWidth = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 10, VisualElement.MeasureMode.Undefined).x + 5.0f; // Keep a small margin
+        float textWidth = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 10, VisualElement.MeasureMode.Undefined).x;
 
         var cornerElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Corner");
         cornerElement.style.width = Mathf.Max(textWidth, cornerElement.style.width.value.value);
@@ -568,6 +568,7 @@ public class RenderGraphViewer : EditorWindow
 
         m_GraphViewerElement = new VisualElement();
         m_GraphViewerElement.name = "GraphViewer";
+        m_GraphViewerElement.style.marginLeft = 20.0f; // Margin on the left of resource labels.
         m_GraphViewerElement.style.flexDirection = FlexDirection.Column;
 
         RebuildGraphViewerUI();
