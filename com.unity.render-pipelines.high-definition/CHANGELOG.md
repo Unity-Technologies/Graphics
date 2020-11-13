@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed TAA issue and hardware dynamic resolution.
 - Fixed an issue where look dev lighting would go black when a new scene is loaded.
+- Fixed issue with exposure history being uninitialized on second frame.
 
 ## [8.2.0] - 2020-07-08
 
