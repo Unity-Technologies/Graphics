@@ -904,9 +904,6 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
 
-            if (asset.k_AssetPreviousVersion < 6)
-                asset.k_AssetPreviousVersion = 6;
-
             if (asset.k_AssetPreviousVersion < 7)
             {
                 asset.postProcessData = PostProcessData.GetDefaultPostProcessData();

@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
             public Shader materialErrorPS;
         }
 
+        [Obsolete("This is obsolete, PostProcessData was moved into UniversalRenderPipelineAsset.", false)]
         public PostProcessData postProcessData = null;
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -198,9 +199,11 @@ namespace UnityEngine.Rendering.Universal
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
 
+#pragma warning disable 618 // Obsolete warning
             // As now post process data is stored in Universal Render Pipeline, we can dereference non custom data.
             if (postProcessData == PostProcessData.GetDefaultPostProcessData())
                 postProcessData = null;
+#pragma warning restore 618 // Obsolete warning
 #endif
         }
     }

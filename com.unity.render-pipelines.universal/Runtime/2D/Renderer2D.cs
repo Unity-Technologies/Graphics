@@ -39,12 +39,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
             UniversalRenderPipelineAsset urpAsset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+#pragma warning disable 618 // Obsolete warning
             PostProcessData postProcessData = data.postProcessData ? data.postProcessData : urpAsset.postProcessData;
+#pragma warning restore 618 // Obsolete warning
             if (postProcessData != null)
             {
-                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
-                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
-                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
+                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, postProcessData);
+                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, postProcessData, m_BlitMaterial);
+                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, postProcessData, m_BlitMaterial);
                 k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
                 k_ColorGradingLutHandle.Init("_InternalGradingLut");
             }

@@ -850,11 +850,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
         }
 
-        bool IsPostProcessingEnabled(UniversalRenderPipelineAsset rpAsset)
-        {
-            return rpAsset.postProcessData != null && m_AdditionalCameraDataRenderPostProcessing.boolValue;
-        }
-
         bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)
         {
             var layers = InternalEditorUtility.layers;

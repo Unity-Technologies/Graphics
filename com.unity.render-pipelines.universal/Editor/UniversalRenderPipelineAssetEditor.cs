@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
             // Post-processing
-            public static GUIContent postProcessLabel = new GUIContent("Post Process Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
+            public static GUIContent postProcessLabel = EditorGUIUtility.TrTextContent("Post Process Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static GUIContent postProcessIncluded = EditorGUIUtility.TrTextContent("Post Processing", "Includes or removes Post Processing from builds, this includes rendering passes, shaders and texture resources.");
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
@@ -388,6 +388,7 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
+#pragma warning disable 618 // Obsolete warning
                 bool renderersUsePostProcessData = false;
                 for (int i = 0; i < m_RendererDataProp.arraySize; i++)
                 {
@@ -407,6 +408,7 @@ namespace UnityEditor.Rendering.Universal
                         break;
                     }
                 }
+#pragma warning restore 618 // Obsolete warning
 
                 GUI.enabled = !renderersUsePostProcessData;
                 EditorGUI.BeginChangeCheck();

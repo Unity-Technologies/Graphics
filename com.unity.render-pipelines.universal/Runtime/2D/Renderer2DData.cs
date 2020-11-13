@@ -74,6 +74,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Shader blitShader => m_BlitShader;
         internal Shader shadowGroupShader => m_ShadowGroupShader;
         internal Shader removeSelfShadowShader => m_RemoveSelfShadowShader;
+        [Obsolete("This is obsolete, PostProcessData was moved into UniversalRenderPipelineAsset.", false)]
         internal PostProcessData postProcessData => m_PostProcessData;
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;

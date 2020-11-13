@@ -166,8 +166,9 @@ namespace UnityEngine.Rendering.Universal
                 m_RenderTransparentForwardPass = new DrawObjectsPass(URPProfileId.DrawTransparentObjects, false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
             }
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
-
+#pragma warning disable 618 // Obsolete warning
             PostProcessData postProcessData = data.postProcessData ? data.postProcessData : urpAsset.postProcessData;
+#pragma warning restore 618 // Obsolete warning
             if (postProcessData != null)
             {
                 m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, postProcessData);

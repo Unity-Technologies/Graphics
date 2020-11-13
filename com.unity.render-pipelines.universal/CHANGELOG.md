@@ -18,9 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - The maximum number of visible lights when using OpenGL ES 3.x on Android now depends on the minimum OpenGL ES 3.x version as configured in PlayerSettings.
 - The default value of the HDR property of a newly created Universal Render Pipeline Asset, is now set to true.
-
-### Changed
-- Moved PostProcessData into Universal Render Pipeline asset and made it optional. Builds will no longer include post processing shaders and textures when it will be disabled.
+- Moved `ForwardRendererData.postProcessData` into `UniversalRenderPipelineAsset.postProcessData` and made it optional. Builds will no longer include post processing shaders and textures when it is null.
 
 ### Fixed
 - Fixed an issue were the filter window could not be defocused using the mouse. [case 1242032](https://issuetracker.unity3d.com/issues/urp-volume-override-window-doesnt-disappear-when-clicked-on-the-other-windows-in-the-editor)
