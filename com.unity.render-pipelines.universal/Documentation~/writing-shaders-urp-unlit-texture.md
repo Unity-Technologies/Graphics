@@ -9,7 +9,7 @@ Use the Unity shader source file from section [URP unlit shader with color input
     ```c++
     Properties
     { 
-        _BaseMap("Base Map", 2D) = "white"
+        [MainTexture]_BaseMap("Base Map", 2D) = "white"
     }
     ```
 
@@ -17,7 +17,7 @@ Use the Unity shader source file from section [URP unlit shader with color input
 
     !["Texture property with Tiling and Offset controls"](Images/shader-examples/unlit-shader-tutorial-texture-property-in-inspector.png)
     
-    The `_BaseMap` property name is a reserved name. When you declare a property with this name, Unity uses this property as the [main texture](https://docs.unity3d.com/ScriptReference/Material-mainTexture.html) of the Material. 
+    The `_MainTex` property name is a reserved name. When you declare a property with this name or a property with [MainTexture] attribute, Unity uses this property as the [main texture](https://docs.unity3d.com/ScriptReference/Material-mainTexture.html) of the Material. 
 
 2. In `struct Attributes` and `struct Varyings`, add the `uv` variable for the UV coordinates on the texture:
 
@@ -76,7 +76,7 @@ Shader "Example/URPUnlitShaderTexture"
     // called Base Map.
     Properties
     { 
-        _BaseMap("Base Map", 2D) = "white"
+        [MainTexture]_BaseMap("Base Map", 2D) = "white"
     }
 
     SubShader

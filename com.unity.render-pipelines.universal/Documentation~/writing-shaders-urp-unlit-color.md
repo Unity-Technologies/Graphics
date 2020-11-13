@@ -9,7 +9,7 @@ Use the Unity shader source file from section [URP unlit basic shader](writing-s
     ```c++
     Properties
     { 
-        _BaseColor("Base Color", Color) = (1, 1, 1, 1)
+        [MainColor]_BaseColor("Base Color", Color) = (1, 1, 1, 1)
     }
     ```
     
@@ -17,7 +17,7 @@ Use the Unity shader source file from section [URP unlit basic shader](writing-s
 
     ![Base Color property on a Material](Images/shader-examples/urp-material-prop-base-color.png) 
 
-    The `_BaseColor` property name is a reserved name. When you declare a property with this name, Unity uses this property as the [main color](https://docs.unity3d.com/ScriptReference/Material-color.html) of the Material. 
+    The `_Color` property name is a reserved name. When you declare a property with this name or a property with `[MainColor]` attribute, Unity uses this property as the [main color](https://docs.unity3d.com/ScriptReference/Material-color.html) of the Material. 
 
 2. When you declare a property in the Properties block, you also need to declare it in the HLSL code. 
     
@@ -56,7 +56,7 @@ Shader "Example/URPUnlitShaderColor"
     // has the default value (1, 1, 1, 1).
     Properties
     { 
-        _BaseColor("Base Color", Color) = (1, 1, 1, 1)
+        [MainColor]_BaseColor("Base Color", Color) = (1, 1, 1, 1)
     }
     
     SubShader
