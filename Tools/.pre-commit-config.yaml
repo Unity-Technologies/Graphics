@@ -1,0 +1,8 @@
+repos:
+  - repo: ../../../gfx-automation-tools
+    rev: a4342eb
+    hooks:
+      - id: file-extension-to-lowercase
+      - id: check-shader-includes
+      - id: check-branch-name
+        stages: [push]
