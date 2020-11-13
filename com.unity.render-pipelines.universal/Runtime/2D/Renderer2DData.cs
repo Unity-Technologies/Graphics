@@ -131,6 +131,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             base.OnEnable();
 #if UNITY_EDITOR
             OnEnableInEditor();
+
+            if (!Application.isPlaying)
+                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 #endif
 
             for (var i = 0; i < m_LightBlendStyles.Length; ++i)
@@ -147,7 +150,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
                 removeSelfShadowMaterials = new Material[totalMaterials];
 
-            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(blitShader);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(samplingShader);
         }
