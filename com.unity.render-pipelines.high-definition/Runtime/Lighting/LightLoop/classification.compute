@@ -1,10 +1,10 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel main
-
 #pragma multi_compile_local _ LIGHT_CLASSIFICATION
 #pragma multi_compile_local _ MATERIAL_CLASSIFICATION
+
+#pragma kernel main
 
 #define FINE_BINNING // Keep in sync with 'deferred.compute' and 'builddispatchindirect.compute'
 

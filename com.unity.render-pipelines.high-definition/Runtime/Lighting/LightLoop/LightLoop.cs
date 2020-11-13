@@ -746,13 +746,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // note that nrTiles include the viewCount in allocation below
                     lightList = new ComputeBuffer((int)BoundedEntityCategory.Count * dwordsPerTile * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display // WTF ???
-                    tileList = new ComputeBuffer((int)TiledLightingConstants.s_NumFeatureVariants * nrTiles, sizeof(uint));
-                    tileFeatureFlags = new ComputeBuffer(nrTiles, sizeof(uint));
+                    //tileList = new ComputeBuffer((int)TiledLightingConstants.s_NumFeatureVariants * nrTiles, sizeof(uint));
+                    //tileFeatureFlags = new ComputeBuffer(nrTiles, sizeof(uint));
 
-                    // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
-                    // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
-                    // Use use max size of 4 unit for allocation
-                    dispatchIndirectBuffer = new ComputeBuffer(viewCount * TiledLightingConstants.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments);
+                    //// DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
+                    //// DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
+                    //// Use use max size of 4 unit for allocation
+                    //dispatchIndirectBuffer = new ComputeBuffer(viewCount * TiledLightingConstants.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments);
                 }
 
                 // Cluster
@@ -799,6 +799,18 @@ namespace UnityEngine.Rendering.HighDefinition
                                                    * (2 + TiledLightingConstants.s_FineTileEntryLimit) / 2;
 
                     fineTileBuffer = new ComputeBuffer(fineTileBufferElementCount, sizeof(uint)); // Index range + index list
+
+                    // Assume the deferred lighting CS uses fine tiles.
+                    int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
+
+                    tileFeatureFlags = new ComputeBuffer(numTiles * viewCount, sizeof(uint));
+
+                    // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
+                    // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
+                    // Use use max size of 4 unit for allocation
+                    dispatchIndirectBuffer = new ComputeBuffer(TiledLightingConstants.s_NumFeatureVariants * viewCount, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
+
+                    tileList = new ComputeBuffer(numTiles * viewCount * TiledLightingConstants.s_NumFeatureVariants, sizeof(uint));
                 }
 
                 // Make sure to invalidate the content of the buffers
@@ -971,7 +983,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[,] s_ClusterObliqueKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
         static int s_ClearVoxelAtomicKernel;
         static int s_ClearDispatchIndirectKernel;
-        static int s_BuildIndirectKernel;
         static int s_ClearDrawProceduralIndirectKernel;
         static int s_BuildMaterialFlagsOrKernel;
 
@@ -1190,7 +1201,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
 
-            s_BuildIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildIndirect");
             s_ClearDispatchIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDispatchIndirect");
 
             s_ClearDrawProceduralIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDrawProceduralIndirect");
@@ -3853,7 +3863,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.useComputeAsPixel)
             {
                 cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-                cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
                 cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
                 cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
 
@@ -3865,14 +3874,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // add tiles to indirect buffer
-            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileList, resources.tileList);
-            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
-            cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
-            cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
-            // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
-            cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
-            }
+            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileList, resources.tileList);
+            cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
+
+            // Assume that we use fine (and not coarse) tiles in the shader.
+            int numTiles   = parameters.fineTileBufferDimensions.x * parameters.fineTileBufferDimensions.y;
+            int groupCount = HDUtils.DivRoundUp(numTiles, k_ThreadGroupOptimalSize);
+
+            cmd.DispatchCompute(parameters.buildDispatchIndirectShader, 0, groupCount, 1, parameters.viewCount);
         }
 
         static bool DeferredUseComputeAsPixel(FrameSettings frameSettings)

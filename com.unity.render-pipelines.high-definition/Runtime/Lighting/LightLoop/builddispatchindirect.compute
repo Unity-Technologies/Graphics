@@ -1,66 +1,80 @@
-#pragma kernel BuildIndirect
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #pragma multi_compile _ IS_DRAWPROCEDURALINDIRECT
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma kernel main
+
+#define FINE_BINNING // Keep in sync with 'deferred.compute' and 'classification.compute'
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
-#ifdef PLATFORM_LANE_COUNT      // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
+/* ------------------------------ Inputs ------------------------------------ */
+
+StructuredBuffer<uint> g_TileFeatureFlags;
+
+/* ------------------------------ Outputs ----------------------------------- */
+
+RWBuffer<uint>           g_DispatchIndirectBuffer; // Indirect arguments have to be in a _buffer_, not a structured buffer
+RWStructuredBuffer<uint> g_TileList;
+
+/* ------------------------------ Utilities --------------------------------- */
+
+
+/* ------------------------------ Implementation ---------------------------- */
+
+#ifdef PLATFORM_LANE_COUNT
 #define NR_THREADS              PLATFORM_LANE_COUNT
 #else
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
 
-RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );   // Indirect arguments have to be in a _buffer_, not a structured buffer
-RWStructuredBuffer<uint> g_TileList;
-StructuredBuffer<uint> g_TileFeatureFlags;
-
-uniform uint g_NumTiles;
-uniform uint g_NumTilesX;
-
 [numthreads(NR_THREADS, 1, 1)]
-void BuildIndirect(uint3 dispatchThreadId : SV_DispatchThreadID)
+void main(uint3 threadID : SV_DispatchThreadID, uint3 groupID : SV_GroupID)
 {
-    if (dispatchThreadId.x >= g_NumTiles)
-        return;
+    const uint tile = threadID.x;
+    const uint eye  = groupID.z;
 
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    const uint clampedTile = min(tile, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
 
-    uint featureFlags = g_TileFeatureFlags[dispatchThreadId.x + unity_StereoEyeIndex * g_NumTiles];
+    // Helper threads may perform the same computation on valid data,
+    // but do not store the results of the computation to memory.
+    const bool isHelperThread = tile != clampedTile;
 
-    uint tileY = (dispatchThreadId.x + 0.5f) / (float)g_NumTilesX;    // Integer division is extremely expensive, so we better avoid it
-    uint tileX = dispatchThreadId.x - tileY * g_NumTilesX;
+    if (isHelperThread) return; // Avoid adding too many checks or branches below
+
+    uint bufferIndex  = clampedTile + IndexFromCoordinate(uint3(0, 0, eye), TILE_BUFFER_DIMS);
+    uint featureFlags = g_TileFeatureFlags[bufferIndex];
 
     // Check if there is no material (means it is a sky/background pixel).
-    // Note that we can have no lights, yet we still need to render geometry with precomputed illumination.
+    // Note that a tile may have no lights, and yet we still need to render geometry with precomputed illumination.
     if ((featureFlags & MATERIAL_FEATURE_MASK_FLAGS) != 0)
     {
         uint variant = FeatureFlagsToTileVariant(featureFlags);
-        uint tileOffset;
 
-#ifdef IS_DRAWPROCEDURALINDIRECT
-        // We are filling up an indirect argument buffer for DrawProceduralIndirect.
-        // The buffer contains {vertex count per instance, instance count, start vertex location, and start instance location} = {0, instance count, 0, 0, 0}
+        uint tileOffset; // This includes the eye index for XR
+
+        // TODO: optimize this using TGSM or wave intrinsics!
+        // We really shouldn't spam the atomic counter located in the global memory...
+    #ifdef IS_DRAWPROCEDURALINDIRECT
+        // We are filling up an indirect argument (uint4) buffer for DrawProceduralIndirect.
+        // The buffer contains {vertex count per instance, instance count, start vertex location, and start instance location}.
         InterlockedAdd(g_DispatchIndirectBuffer[variant * 4 + 1], 1, tileOffset);
-#else
-        uint prevGroupCnt;
+    #else
+        // We are filling up an indirect argument (uint3) buffer for DispatchIndirect.
+        // The buffer contains {groupCntX, groupCntY, groupCntZ} = {groupCnt, 1, 1}.
+        InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 1, tileOffset);
+    #endif
 
-        // We are filling up an indirect argument buffer for DispatchIndirect.
-        // The buffer contains {groupCntX, groupCntY, groupCntZ} = {groupCnt, 0, 0}.
-        InterlockedAdd(g_DispatchIndirectBuffer[variant * 3 + 0], 4, prevGroupCnt);
-        tileOffset = prevGroupCnt / 4; // 4x 8x8 groups per a 16x16 tile
-#endif
+        uint listIndex = tileOffset + IndexFromCoordinate(uint4(0, 0, 0, variant), uint3(TILE_BUFFER_DIMS, _XRViewCount));
 
-        // See LightDefinitions class in LightLoop.cs
-        uint tileIndex = (unity_StereoEyeIndex << TILE_INDEX_SHIFT_EYE) | (tileY << TILE_INDEX_SHIFT_Y) | (tileX << TILE_INDEX_SHIFT_X);
-        // For g_TileList each VR eye is interlaced instead of one eye and then the other. Thus why we use _XRViewCount here
-        g_TileList[variant * g_NumTiles * _XRViewCount + tileOffset] = tileIndex;
+        g_TileList[listIndex] = (eye << TILE_INDEX_SHIFT_EYE) | clampedTile; // Must retain the eye index
     }
 }
