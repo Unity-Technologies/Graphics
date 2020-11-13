@@ -83,6 +83,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
     // Unlit object, sky/background and forward opaque tag don't tag the StencilUsage.RequiresDeferredLighting bit
     uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, clampedPixelCoord));
 
+    // TODO: use coarse stencil here.
     if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) != 0)
     {
         featureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
