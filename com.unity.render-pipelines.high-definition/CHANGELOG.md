@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.3.1] - 2020-07-23
 
+### Added
+- Added a warning when trying to bake with static lighting being in an invalid state.
+
 ### Fixed
 - Fixed issue in Material Postprocess which may fail due to empty SubAsset.
 - Fixed a null ref exception when baking reflection probes.
