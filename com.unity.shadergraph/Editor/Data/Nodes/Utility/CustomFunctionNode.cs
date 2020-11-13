@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph
     class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         // 0 original version
-        // 1 differentiate between UnityTexture2D and Texture2D
+        // 1 differentiate between struct-based UnityTexture2D and bare Texture2D resources (for all texture and samplerstate resources)
         public override int latestVersion => 1;
 
         [Serializable]

@@ -28,6 +28,14 @@ namespace UnityEditor.ShaderGraph
             set { m_BareResource = value; }
         }
 
+        public override string GetHLSLVariableType()
+        {
+            if (m_BareResource)
+                return "Texture2DArray";
+            else
+                return concreteValueType.ToShaderString();
+        }
+
         public override SlotValueType valueType { get { return SlotValueType.Texture2DArray; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Texture2DArray; } }
         public override bool isDefaultValue => true;
