@@ -260,21 +260,24 @@ public class RenderGraphViewer : EditorWindow
 
     void ResourceNamesContainerChanged(GeometryChangedEvent evt)
     {
+        var label = evt.currentTarget as Label;
+        float textWidth = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 10, VisualElement.MeasureMode.Undefined).x + 5.0f; // Keep a small margin
+
         var cornerElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Corner");
-        cornerElement.style.width = Mathf.Max(evt.newRect.width, cornerElement.style.width.value.value);
-        cornerElement.style.minWidth = Mathf.Max(evt.newRect.width, cornerElement.style.minWidth.value.value);
+        cornerElement.style.width = Mathf.Max(textWidth, cornerElement.style.width.value.value);
+        cornerElement.style.minWidth = Mathf.Max(textWidth, cornerElement.style.minWidth.value.value);
 
         // We need to make sure all resource types have the same width
         m_GraphViewerElement.Query("GraphViewer.Resources.ResourceNames").Build().ForEach((elem) =>
         {
-            elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
-            elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
+            elem.style.width = Mathf.Max(textWidth, elem.style.width.value.value);
+            elem.style.minWidth = Mathf.Max(textWidth, elem.style.minWidth.value.value);
         });
 
         m_GraphViewerElement.Query("GraphViewer.Resources.ResourceTypeName").Build().ForEach((elem) =>
         {
-            elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
-            elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
+            elem.style.width = Mathf.Max(textWidth, elem.style.width.value.value);
+            elem.style.minWidth = Mathf.Max(textWidth, elem.style.minWidth.value.value);
         });
     }
 
@@ -282,6 +285,9 @@ public class RenderGraphViewer : EditorWindow
     {
         var label = new Label(name);
         label.style.height = kResourceHeight;
+        label.style.overflow = Overflow.Hidden;
+        label.style.textOverflow = TextOverflow.Ellipsis;
+        label.style.unityTextOverflowPosition = TextOverflowPosition.End;
         if (imported)
             label.style.color = m_ImportedResourceColor;
         else
@@ -442,7 +448,6 @@ public class RenderGraphViewer : EditorWindow
         resourceNamesContainer.style.flexDirection = FlexDirection.Column;
         resourceNamesContainer.style.overflow = Overflow.Hidden;
         resourceNamesContainer.style.alignItems = Align.FlexEnd;
-        resourceNamesContainer.RegisterCallback<GeometryChangedEvent>(ResourceNamesContainerChanged);
 
         var resourcesLifeTimeElement = new VisualElement();
         resourcesLifeTimeElement.name = "GraphViewer.Resources.ResourceLifeTime";
@@ -521,6 +526,7 @@ public class RenderGraphViewer : EditorWindow
                 resourceNameLabel.style.unityTextAlign = TextAnchor.MiddleRight;
                 resourceNameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
                 resourceNameLabel.style.fontSize = 13;
+                resourceNameLabel.RegisterCallback<GeometryChangedEvent>(ResourceNamesContainerChanged);
                 resourceScrollView.Add(resourceNameLabel);
                 resourceScrollView.Add(resourceViewerElement);
 
