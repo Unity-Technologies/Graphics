@@ -249,7 +249,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // When custom passes are re-ordered, a topological change happens in the SerializedProperties
             // So we have to rebuild all the drawers that were storing SerializedProperties.
-            // customPassDrawers.Clear();
+            customPassDrawers.Clear();
         }
 
         float GetCustomPassEditorHeight(SerializedProperty pass) => EditorGUIUtility.singleLineHeight;
