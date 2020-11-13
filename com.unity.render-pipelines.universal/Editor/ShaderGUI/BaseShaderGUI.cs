@@ -86,6 +86,9 @@ namespace UnityEditor
 
             public static readonly GUIContent depthClipText = new GUIContent("Depth Clipping",
                 "Restricts the range for depth to increase precision but can create artificats if large triangles clip the near and far planes.");
+
+            public static readonly GUIContent shadowPancakingText = new GUIContent("Shadow Pancaking",
+                "Stacks vertices to the near plane explicitly in the shadow caster pass.");
         }
 
         #endregion
@@ -101,6 +104,8 @@ namespace UnityEditor
         protected MaterialProperty cullingProp { get; set; }
 
         protected MaterialProperty zClipProp { get; set; }
+
+        protected MaterialProperty shadowPancakingProp { get; set; }
 
         protected MaterialProperty alphaClipProp { get; set; }
 
@@ -160,6 +165,7 @@ namespace UnityEditor
             emissionColorProp = FindProperty("_EmissionColor", properties, false);
             queueOffsetProp = FindProperty("_QueueOffset", properties, false);
             zClipProp = FindProperty("_ZClip", properties);
+            shadowPancakingProp = FindProperty("_ShadowPancaking", properties);
         }
 
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
@@ -284,6 +290,13 @@ namespace UnityEditor
             var zClipEnabled = EditorGUILayout.Toggle(Styles.depthClipText, zClipProp.floatValue == 1);
             if (EditorGUI.EndChangeCheck())
                 zClipProp.floatValue = zClipEnabled ? 1 : 0;
+            EditorGUI.showMixedValue = false;
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = shadowPancakingProp.hasMixedValue;
+            var shadowPancakingEnabled = EditorGUILayout.Toggle(Styles.shadowPancakingText, shadowPancakingProp.floatValue == 1);
+            if (EditorGUI.EndChangeCheck())
+                shadowPancakingProp.floatValue = shadowPancakingEnabled ? 1 : 0;
             EditorGUI.showMixedValue = false;
         }
 
@@ -426,6 +439,15 @@ namespace UnityEditor
             // Normal Map
             if (material.HasProperty("_BumpMap"))
                 CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
+
+            if (material.HasProperty("_ShadowPancaking") && material.GetFloat("_ShadowPancaking") == 1.0f)
+            {
+                material.EnableKeyword("_SHADOW_PANCAKING_ON");
+            }
+            else
+            {
+                material.DisableKeyword("_SHADOW_PANCAKING_ON");
+            }
 
             // Shader specific keyword functions
             shadingModelFunc?.Invoke(material);

@@ -57,7 +57,9 @@ Shader "Universal Render Pipeline/Complex Lit"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
+
         _ZClip("Depth Clipping", Float) = 1.0
+        [HideInInspector] _ShadowPancaking("__sp", Float) = 1.0
 
         _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
@@ -159,6 +161,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_vertex _SHADOW_PANCAKING_ON
 
             //--------------------------------------
             // GPU Instancing
@@ -379,6 +382,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             // Material Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature_local_vertex _SHADOW_PANCAKING_ON
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment

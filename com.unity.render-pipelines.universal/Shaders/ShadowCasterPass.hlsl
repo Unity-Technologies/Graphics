@@ -27,14 +27,13 @@ float4 GetShadowPositionHClip(Attributes input)
 
     float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
 
-    if (_ZClip == 0.0)
-    {
+#if defined(_SHADOW_PANCAKING_ON)
 #if UNITY_REVERSED_Z
         positionCS.z = min(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
 #else
         positionCS.z = max(positionCS.z, positionCS.w * UNITY_NEAR_CLIP_VALUE);
 #endif
-    }
+#endif
 
     return positionCS;
 }
