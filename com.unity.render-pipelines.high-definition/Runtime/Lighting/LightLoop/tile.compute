@@ -142,7 +142,7 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     const uint  globalTileIndex  = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
     const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
-    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x);
+    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.
@@ -687,7 +687,7 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
 
     const uint  globalTileIndex  = IndexFromCoordinate(uint2(tile, g), TILES_PER_GROUP);
     const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
-    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x);
+    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
 
     // Helper threads may perform the same computation on valid data,
     // but do not store the results of the computation to memory.
@@ -787,7 +787,7 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
     const uint  fineTilesPerCoarseTile = Sq(coarseToFineSizeRatio);
     const uint  globalCoarseTileIndex  = (g * TILES_PER_GROUP) / fineTilesPerCoarseTile; // Wave-uniform
     const uint  clampedCoarseTileIndex = min(globalCoarseTileIndex, COARSE_TILE_BUFFER_DIMS.x * COARSE_TILE_BUFFER_DIMS.y - 1);
-    const uint2 clampedCoarseTileCoord = CoordinateFromIndex(clampedCoarseTileIndex, COARSE_TILE_BUFFER_DIMS.x);
+    const uint2 clampedCoarseTileCoord = CoordinateFromIndex(clampedCoarseTileIndex, COARSE_TILE_BUFFER_DIMS.x); // TODO: avoid integer division
 
     // Within the coarse tile, we process fine tiles in the Morton order.
     // Of course, both coarse and fine tiles are arranged linearly in memory.

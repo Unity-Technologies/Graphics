@@ -3819,6 +3819,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (parameters.computeLightVariants)
                 {
                     parameters.classificationShader.EnableKeyword("LIGHT_CLASSIFICATION");
+                    cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
                 }
 
                 if (parameters.computeMaterialVariants)

@@ -151,14 +151,17 @@ uint FeatureFlagsToTileVariant(uint featureFlags)
 
 #ifdef USE_INDIRECT
 
-uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
+uint TileVariantToFeatureFlags(uint variant, uint tile, uint eye)
 {
     if (variant == NUM_FEATURE_VARIANTS - 1)
     {
+        // Same as in 'classification.compute'.
+        uint bufferIndex = tile + IndexFromCoordinate(uint3(0, 0, eye), TILE_BUFFER_DIMS);
+
         // We don't have any compile-time feature information.
         // Therefore, we load the feature classification data at runtime to avoid
         // entering every single branch based on feature flags.
-        return g_TileFeatureFlags[tileIndex];
+        return g_TileFeatureFlags[bufferIndex];
     }
     else
     {

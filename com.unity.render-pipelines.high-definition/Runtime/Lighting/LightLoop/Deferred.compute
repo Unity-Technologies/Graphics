@@ -99,50 +99,34 @@ TEXTURE2D_X_UINT2(_StencilTexture);
 RW_TEXTURE2D_X(float3, diffuseLightingUAV);
 RW_TEXTURE2D_X(float4, specularLightingUAV);
 
-#define GROUP_SIZE (8)
-
 #ifdef USE_INDIRECT
-
 StructuredBuffer<uint> g_TileList;
-
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
-{
-    uint  tileIndex   = g_TileList[g_TileListOffset + (groupId / 4)];
-    uint2 tileCoord   = uint2((tileIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tileIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
-    uint2 pixelCoord  = tileCoord * GetTileSize()
-                      + uint2(groupId & 1, (groupId >> 1) & 1) * GROUP_SIZE
-                      + groupThreadId;
-
-    UNITY_XR_ASSIGN_VIEW_INDEX(tileIndex >> TILE_INDEX_SHIFT_EYE);
-
-    uint screenWidth  = (uint)_ScreenSize.x;
-    uint numTilesX    = (screenWidth + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
-    uint tileVariantIndex = tileCoord.x + tileCoord.y * numTilesX;
-
-    uint tile = 0;
-
-#if defined(UNITY_STEREO_INSTANCING_ENABLED)
-    uint screenHeight = (uint)_ScreenSize.y;
-    uint numTilesY = (screenHeight + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
-    tileVariantIndex += unity_StereoEyeIndex * numTilesX * numTilesY;
 #endif
 
-    uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileVariantIndex);
+[numthreads(TILE_SIZE, TILE_SIZE, 1)]
+void SHADE_OPAQUE_ENTRY(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID)
+{
+#ifdef USE_INDIRECT
+    uint variantOffset = g_TileListOffset;
+    uint tileOffset    = groupId.x; // Includes the eye index for XR
+    uint tileAndEye    = g_TileList[variantOffset + tileOffset];
+    uint eye           = tileAndEye >> TILE_INDEX_SHIFT_EYE;
+    uint tile          = tileAndEye ^ (eye << TILE_INDEX_SHIFT_EYE);
 
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye); // Sets 'unity_StereoEyeIndex'
+
+    uint featureFlags  = TileVariantToFeatureFlags(VARIANT, tile, unity_StereoEyeIndex);
 #else // !USE_INDIRECT
+    uint tile          = groupId.x;
+    uint eye           = groupId.z;
 
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye);
 
-    uint2 tileCoord    = (GROUP_SIZE * groupId) / TILE_SIZE;
-    uint  tile         = ComputeTileIndex(tileCoord);
-    uint2 pixelCoord   = dispatchThreadId.xy;
-    uint  featureFlags = UINT_MAX;
-
+    uint featureFlags  = UINT_MAX;
 #endif
+
+    uint2 tileCoord  = CoordinateFromIndex(tile, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
+    uint2 pixelCoord = tileCoord * TILE_SIZE + groupThreadId.xy;      // TODO: Morton order?
 
     // This need to stay in sync with deferred.shader
 

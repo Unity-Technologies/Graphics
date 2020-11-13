@@ -201,7 +201,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                 float depth = GetTileDepth(pixelCoord);
 
-                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, pixelCoord / GetTileSize());
+                PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 int2 tileCoord = (float2)pixelCoord / GetTileSize();
                 int2 mouseTileCoord = _MousePixelCoord.xy / GetTileSize();

@@ -230,10 +230,10 @@ Shader "Hidden/HDRP/DeferredTile"
 
                 uint tileIndex = input.tileIndexAndCoord.x;
                 uint2 tileCoord = input.tileIndexAndCoord.yz;
-                uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileIndex);
+                uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileIndex, unity_StereoEyeIndex);
 
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
