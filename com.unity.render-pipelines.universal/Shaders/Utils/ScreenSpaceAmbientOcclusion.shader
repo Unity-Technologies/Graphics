@@ -160,5 +160,18 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             ENDHLSL
         }
 
+        // 8 - Upsample
+        Pass
+        {
+            Name "SSAO_Upsample"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment Upsample
+                #pragma target 4.5
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
     }
 }

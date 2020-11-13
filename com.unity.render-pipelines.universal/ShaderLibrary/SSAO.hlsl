@@ -420,6 +420,28 @@ half4 HorizontalVerticalBlur(Varyings input) : SV_Target
     return lerp(1.0 - BlurSmall(uv, delta ), 1-lerp(blurH.r, blurV.r, 0.5), 0.5);
 }
 
+half4 Upsample(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    half2 uv = input.uv;
+
+//#if SHADER_TARGET >= 45 && defined(PLATFORM_SUPPORT_GATHER)
+//    half4 p1 = half4(GATHER_RED_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)));
+//
+//    return (p1.r + p1.g + p1.b + p1.a) * 0.25h;
+//#else
+    half texelSize = _SourceSize.z * rcp(DOWNSAMPLE);
+
+    half4 p1 = SAMPLE_BASEMAP(uv + half2(-1.0, -1.0) * texelSize);
+    half4 p2 = SAMPLE_BASEMAP(uv + half2(-1.0, 1.0) * texelSize);
+    half4 p3 = SAMPLE_BASEMAP(uv + half2(1.0, -1.0) * texelSize);
+    half4 p4 = SAMPLE_BASEMAP(uv + half2(1.0, 1.0) * texelSize);
+
+    return (p1 + p2 + p3 + p4) * 0.25h;
+//#endif
+}
+
 // Gaussian Blur
 // https://software.intel.com/content/www/us/en/develop/blogs/an-investigation-of-fast-real-time-gpu-based-image-blur-algorithms.html
 half GaussianBlur( half2 uv, half2 pixelOffset)
@@ -496,6 +518,51 @@ half4 HorizontalVerticalGaussianBlur(Varyings input) : SV_Target
     colV.r = 1.0h - GaussianBlur(uv, delta);
 
     return lerp(colH, colV, 0.5);
+}
+
+
+// Kawase Blur
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Developed by Masaki Kawase, Bunkasha Games
+// Used in DOUBLE-S.T.E.A.L. (aka Wreckless)
+// From his GDC2003 Presentation: Frame Buffer Postprocessing Effects in  DOUBLE-S.T.E.A.L (Wreckless)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+half4 KawaseBlurFilter( half2 texCoord, half2 pixelSize, half iteration )
+{
+    half2 texCoordSample;
+    half2 halfPixelSize = pixelSize * 0.5h;
+    half2 dUV = ( pixelSize.xy * half2( iteration, iteration ) ) + halfPixelSize.xy;
+
+    half4 cOut;
+
+    // Sample top left pixel
+    texCoordSample.x = texCoord.x - dUV.x;
+    texCoordSample.y = texCoord.y + dUV.y;
+
+    cOut = SAMPLE_BASEMAP(texCoordSample);
+
+    // Sample top right pixel
+    texCoordSample.x = texCoord.x + dUV.x;
+    texCoordSample.y = texCoord.y + dUV.y;
+
+    cOut += SAMPLE_BASEMAP(texCoordSample);
+
+    // Sample bottom right pixel
+    texCoordSample.x = texCoord.x + dUV.x;
+    texCoordSample.y = texCoord.y - dUV.y;
+    cOut += SAMPLE_BASEMAP(texCoordSample);
+
+    // Sample bottom left pixel
+    texCoordSample.x = texCoord.x - dUV.x;
+    texCoordSample.y = texCoord.y - dUV.y;
+
+    cOut += SAMPLE_BASEMAP(texCoordSample);
+
+    // Average
+    cOut *= 0.25h;
+
+    return cOut;
 }
 
 

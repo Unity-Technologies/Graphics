@@ -179,6 +179,7 @@ namespace UnityEngine.Rendering.Universal
                 BlurHorizontalGaussian = 5,
                 BlurVerticalGaussian = 6,
                 BlurHorizontalVerticalGaussian = 7,
+                Upsample = 8,
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -342,7 +343,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // if we are downsampling, do an extra upsample pass
                     if (blurFinalUpsample)
-                        RenderingUtils.Blit(cmd, m_SSAOTexture2Target, m_SSAOTexture4Target, blitMaterial);
+                        RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture4Target, ShaderPasses.Upsample);
 
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, blurFinalUpsample ? m_SSAOTexture4Target: m_SSAOTexture2Target);
