@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+
+# Installs the hooks in the current repository.
+# run_cmd function taken from https://github.com/Unity-Technologies/dots/blob/master/Tools/CI/util/subprocess_helpers.py
+
+import subprocess, logging, os
+
+def run_cmd(cmd, cwd=None):
+    """Runs a command and returns its output as an UTF-8 string.
+    NOTICE: The output normally ends with a newline that might need to be stripped.
+    NOTICE: This does not return any stderr if the command succeeds, only on
+        non-zero exit code when the error is raised.
+    Args:
+        cmd: Command line as a string or a list (if any item contains spaces).
+        cwd: Working directory to run the command in. If omitted the
+            interpreter's working dir will be used.
+    Raises: subprocess.CalledProcessError similar to subprocess.check_output.
+    """
+    if isinstance(cmd, str):
+        cmd = cmd.split()
+    assert isinstance(cmd, list), 'cmd must be of list type, but was "{}"'.format(type(cmd))
+    logging.info("  Running: {0} (cwd: {1})".format(' '.join(cmd), cwd))
+    return subprocess.check_output(cmd, cwd=cwd, universal_newlines=True)
+
+
+def install_git_lfs():
+    run_cmd('git lfs install --force')
+
+
+def replace_shebangs():
+    repo_root = run_cmd('git rev-parse --show-toplevel').strip('\n')
+    hooks_folder = os.path.join(repo_root, '.git/hooks')
+    current_shebang = "#!/bin/sh"
+    replacement = "#!/usr/bin/env sh"
+    for dname, dirs, files in os.walk(hooks_folder):
+        for fname in files:
+            fpath = os.path.join(dname, fname)
+            with open(fpath) as f:
+                s = f.read()
+            s = s.replace(current_shebang, replacement)
+            with open(fpath, "w") as f:
+                f.write(s)
+
+
+def install_precommit():
+    run_cmd('pip install pre-commit')
+
+
+def install_hooks():
+    # Allow missing config in case the user checkouts a branch without the config file.
+    run_cmd('pre-commit install --allow-missing-config')
+    run_cmd('pre-commit install --hook-type pre-push --allow-missing-config')
+
+
+def main():
+    logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+    install_git_lfs()
+    replace_shebangs()
+    install_precommit()
+    install_hooks()
+
+
+if __name__ == "__main__":
+    exit(main())
