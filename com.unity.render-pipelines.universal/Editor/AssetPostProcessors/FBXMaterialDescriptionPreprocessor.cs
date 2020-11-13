@@ -68,27 +68,27 @@ namespace UnityEditor.Rendering.Universal
 
             if (isTransparent)
             {
-                material.SetInt("_Mode", 3);
+                material.SetFloat("_Mode", 3.0f);
                 material.SetOverrideTag("RenderType", "Transparent");
-                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                material.SetInt("_ZWrite", 0);
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                material.SetFloat("_ZWrite", 0.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-                material.SetInt("_Surface", 1);
+                material.SetFloat("_Surface", 1.0f);
             }
             else
             {
-                material.SetInt("_Mode", 0);
+                material.SetFloat("_Mode", 0.0f);
                 material.SetOverrideTag("RenderType", "");
-                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                material.SetInt("_ZWrite", 1);
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                material.SetFloat("_ZWrite", 1.0f);
                 material.DisableKeyword("_ALPHATEST_ON");
                 material.DisableKeyword("_ALPHABLEND_ON");
                 material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = -1;
-                material.SetInt("_Surface", 0);
+                material.SetFloat("_Surface", 0.0f);
             }
 
             if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture!=null)
