@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
 - Fixed Custom Post Processes affecting preview cameras.
 - Fixed serialization issue with matcap scale intensity.
+- Fixed issue with exposure history being uninitialized on second frame.
 
 ## [7.5.1] - 2020-09-02
 
