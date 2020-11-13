@@ -30,10 +30,7 @@ Shader "Hidden/Light2D-Shape"
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
-
-#ifdef SPRITE_LIGHT
                 float2 uv           : TEXCOORD0;
-#endif
             };
 
             struct Varyings
