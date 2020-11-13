@@ -3848,6 +3848,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._GBufferTexture[2], resources.gBuffer[2]);
                 cmd.SetComputeBufferParam( parameters.classificationShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
 
+                if (resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
+                {
+                    cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._StencilTexture, resources.stencilTexture);
+                }
+                else
+                {
+                    cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._StencilTexture, resources.stencilTexture, 0, RenderTextureSubElement.Stencil);
+                }
+
                 // Assume that we use fine (and not coarse) tiles in the shader.
                 int numTiles = parameters.fineTileBufferDimensions.x * parameters.fineTileBufferDimensions.y;
 
@@ -4525,8 +4534,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct DeferredLightingParameters
         {
-            public int                  numTilesX;
-            public int                  numTilesY;
             public int                  numTiles;
             public bool                 enableTile;
             public bool                 outputSplitLighting;
@@ -4551,11 +4558,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool debugDisplayOrSceneLightOff = CoreUtils.IsSceneLightingDisabled(hdCamera.camera) || debugDisplaySettings.IsDebugDisplayEnabled();
 
-            int w = hdCamera.actualWidth;
-            int h = hdCamera.actualHeight;
-            parameters.numTilesX = (w + 15) / 16;
-            parameters.numTilesY = (h + 15) / 16;
-            parameters.numTiles = parameters.numTilesX * parameters.numTilesY;
+            // Assume the deferred lighting CS uses fine tiles.
+            Vector2Int fineTileBufferDimensions = GetFineTileBufferDimensions(hdCamera);
+            parameters.numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
+
             parameters.enableTile = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DeferredTile);
             parameters.outputSplitLighting = hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
             parameters.useComputeLightingEvaluation = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation);
@@ -4676,18 +4682,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     cmd.SetComputeTextureParam(parameters.deferredComputeShader, kernel, HDShaderIDs._StencilTexture, resources.depthStencilBuffer, 0, RenderTextureSubElement.Stencil);
 
-                    // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
                     if (parameters.enableFeatureVariants)
                     {
                         cmd.SetComputeBufferParam(parameters.deferredComputeShader, kernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
                         cmd.SetComputeIntParam(parameters.deferredComputeShader, HDShaderIDs.g_TileListOffset, variant * parameters.numTiles * parameters.viewCount);
                         cmd.SetComputeBufferParam(parameters.deferredComputeShader, kernel, HDShaderIDs.g_TileList, resources.tileListBuffer);
-                        cmd.DispatchCompute(parameters.deferredComputeShader, kernel, resources.dispatchIndirectBuffer, (uint)variant * 3 * sizeof(uint));
+                        cmd.DispatchCompute(parameters.deferredComputeShader, kernel, resources.dispatchIndirectBuffer, (uint)(variant * 3 * sizeof(uint)));
                     }
                     else
                     {
-                        // 4x 8x8 groups per a 16x16 tile.
-                        cmd.DispatchCompute(parameters.deferredComputeShader, kernel, parameters.numTilesX * 2, parameters.numTilesY * 2, parameters.viewCount);
+                        cmd.DispatchCompute(parameters.deferredComputeShader, kernel, parameters.numTiles, 1, parameters.viewCount);
                         break; // There's only one variant. Don't render the same thing 30 times!
                     }
                 }
@@ -4708,7 +4712,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int variant = 0; variant < parameters.numVariants; variant++)
                 {
-                    cmd.SetGlobalInt(HDShaderIDs.g_TileListOffset, variant * parameters.numTiles);
+                    cmd.SetGlobalInt(HDShaderIDs.g_TileListOffset, variant * parameters.numTiles * parameters.viewCount);
 
                     cmd.EnableShaderKeyword(s_variantNames[variant]);
 
