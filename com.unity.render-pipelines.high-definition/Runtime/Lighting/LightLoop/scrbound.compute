@@ -516,6 +516,7 @@ void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 
     if (!isHelperThread && (t == 0)) // Avoid bank conflicts
     {
+        // TODO: double-check to make sure that off-screen entities get assigned invalid AABBs.
         _xyBoundsBuffer[bufferIndex] = float4(ndcAaBbMinPt.x, ndcAaBbMaxPt.x, ndcAaBbMinPt.y, ndcAaBbMaxPt.y);
         _wBoundsBuffer[bufferIndex]  = float2(ndcAaBbMinPt.w, ndcAaBbMaxPt.w);
     }
