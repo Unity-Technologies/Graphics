@@ -1,6 +1,6 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
-from ..shared.constants import PATH_UNITY_REVISION, NPM_UPMCI_INSTALL_URL
+from ..shared.constants import PATH_UNITY_REVISION, NPM_UPMCI_INSTALL_URL, get_unity_downloader_cli_cmd
 from ..shared.yml_job import YMLJob
 
 class Project_TestMinEditorJob():
@@ -14,7 +14,7 @@ class Project_TestMinEditorJob():
 
         # define dependencies
         dependencies = [f'{projectcontext_filepath()}#{projectcontext_job_id_pack()}']
-        dependencies.extend([f'{editor_filepath()}#{editor_job_id_test_min_editor(platform["os"]) }'])
+        dependencies.extend([f'{editor_priming_filepath()}#{editor_job_id_test_min_editor(platform["os"]) }'])
                 
         # define commands
         commands = [

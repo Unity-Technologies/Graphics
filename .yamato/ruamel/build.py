@@ -10,8 +10,9 @@ from jobs.packages.yml_project import create_projectcontext_ymls
 from jobs.abv.yml_abv import create_abv_ymls
 from jobs.preview_publish.yml_pb import create_preview_publish_ymls
 from jobs.templates.yml_template import create_template_ymls
+from jobs.formatting.yml_formatting import create_formatting_ymls
 
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 yamato_dir = os.path.join(root_dir,'.yamato')
 config_dir = os.path.join(yamato_dir,'config')
 comment = ''' 
@@ -22,7 +23,7 @@ comment = '''
 
 shared = {}
 yml_files = {}
-
+       
 def yml_load(filepath):
     with open(filepath) as f:
         return yaml.load(f)
@@ -47,17 +48,21 @@ def assert_dependencies():
                     print(f'Mistake in file {yml_file}#{job_id} for dependency {dep_file}#{dep_job_id}')
 
 
-def add_comments():
+def add_headers(editors):
     for yml_file, yml_value in yml_files.items():
         with open(os.path.join(root_dir,yml_value['path']), 'r+') as f:
             yml = f.read()
             f.seek(0, 0)
             f.write(comment)
+            for editor in editors:
+                if not str(editor['track']).lower()=='custom-revision' and editor['editor_pinning']:
+                    f.write('{% metadata_file .yamato/_latest_editor_versions_'+ str(editor["track"]) +'.metafile -%}\n')
+            # f.write('\n---\n\n') # no need for variables/jobs separator since no editor pinning on this branch
             f.write(yml)
 
-def get_metafile(metafile_name, unfold_agents_root_keys=[], unfold_test_platforms_root_keys=[]):
+def get_metafile(metafile_name):
     metafile = yml_load(metafile_name)
-    return format_metafile(metafile, shared, unfold_agents_root_keys, unfold_test_platforms_root_keys)
+    return format_metafile(metafile, shared)
 
 
 if __name__== "__main__":
@@ -68,12 +73,13 @@ if __name__== "__main__":
     yaml.indent(offset=2, mapping=4, sequence=5)
 
     # clear directory from existing yml files, not to have old duplicates etc
-    old_yml_files = glob.glob(os.path.join(yamato_dir,'**/*.yml'), recursive=True)
+    old_yml_files = glob.glob(os.path.join(yamato_dir,'*.yml'), recursive=True)
     for f in old_yml_files:
         os.remove(f)
 
     # read shared file
     shared = yml_load(os.path.join(config_dir,'__shared.metafile'))
+    
 
     # create editor
     print(f'Running: editor')
@@ -87,8 +93,7 @@ if __name__== "__main__":
     yml_dump_files(create_projectcontext_ymls(package_metafile))
 
     # create abv
-    print(f'Running: ABV')
-    abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'), unfold_agents_root_keys=['smoke_test'], unfold_test_platforms_root_keys=['smoke_test'])
+    abv_metafile = get_metafile(os.path.join(config_dir,'_abv.metafile'))
     yml_dump_files(create_abv_ymls(abv_metafile))
 
     # create preview publish
@@ -101,6 +106,11 @@ if __name__== "__main__":
     template_metafile = get_metafile(os.path.join(config_dir,'_templates.metafile'))
     yml_dump_files(create_template_ymls(template_metafile))
 
+    # create template jobs
+    # print(f'Running: formatting')
+    # formatting_metafile = get_metafile(os.path.join(config_dir,'_formatting.metafile'))
+    # yml_dump_files(create_formatting_ymls(formatting_metafile))
+
     # create yml jobs for each specified project
     #for project_metafile in glob.glob(os.path.join(config_dir,'*universal*.metafile')):
     for project_metafile in glob.glob(os.path.join(config_dir,'[!_]*.metafile')):
@@ -112,6 +122,6 @@ if __name__== "__main__":
     print(f'Checking dependency paths')
     assert_dependencies()
 
-    # # add comments on top of all yml files
-    print(f'Adding comments')
-    add_comments()
+    # # add headers on top of all yml files (comment + metafile path)
+    print(f'Adding headers')
+    add_headers(shared["editors"])
