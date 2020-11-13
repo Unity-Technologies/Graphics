@@ -4,10 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [8.3.0] - 2020-07-23
+## [8.3.1] - 2020-07-23
 
 ### Fixed
+- Fixed issue in Material Postprocess which may fail due to empty SubAsset.
+- Fixed a null ref exception when baking reflection probes.
 - Fixed TAA issue and hardware dynamic resolution.
 - Fixed an issue where look dev lighting would go black when a new scene is loaded.
 

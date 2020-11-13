@@ -1244,6 +1244,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
 
+            if (HDRenderPipeline.defaultAsset == null)
+                return;
+
             GetOrCreateDefaultVolume();
             GetOrCreateDebugTextures();
 
@@ -1468,7 +1471,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
                         // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
                         // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
-                        // (see m_SkyManager.HasSetValidAmbientProbe in this function). 
+                        // (see m_SkyManager.HasSetValidAmbientProbe in this function).
                         if (m_FrameCount > 1)
                             probe.SetIsRendered(m_FrameCount);
 
@@ -1862,7 +1865,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
                             // To avoid that the render data for the wrong view is used, we previously store a copy of the render data
-                            // for each viewer and we are going to set it on the probe right before said viewer is rendered. 
+                            // for each viewer and we are going to set it on the probe right before said viewer is rendered.
                             foreach (var probeDataPair in renderRequest.viewDependentProbesData)
                             {
                                 var probe = probeDataPair.Item2;
@@ -1920,7 +1923,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
-                            {                                
+                            {
                                 if (HDUtils.TryGetAdditionalCameraDataOrDefault(renderRequest.hdCamera.camera).xrRendering)
                                 {
                                     m_XRSystem.RenderMirrorView(cmd);
@@ -2146,7 +2149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // After Depth and Normals/roughness including decals
             bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
 
-            // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth. 
+            // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth.
             if (depthBufferModified)
                 m_IsDepthBufferCopyValid = false;
 

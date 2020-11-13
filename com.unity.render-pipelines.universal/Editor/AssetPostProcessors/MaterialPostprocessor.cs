@@ -96,7 +96,12 @@ namespace UnityEditor.Rendering.Universal
             string commandLineOptions = System.Environment.CommandLine;
             bool inTestSuite = commandLineOptions.Contains("-testResults");
             if (inTestSuite)
+            {
+                // Need to update material version to prevent infinite loop in the upgrader
+                // when running tests.
+                UniversalProjectSettings.materialVersionForUpgrade = k_Upgraders.Length;
                 return;
+            }
 
             foreach (var asset in s_ImportedAssetThatNeedSaving)
             {
@@ -106,6 +111,7 @@ namespace UnityEditor.Rendering.Universal
             AssetDatabase.SaveAssets();
             //to prevent data loss, only update the saved version if user applied change and assets are written to
             UniversalProjectSettings.materialVersionForUpgrade = k_Upgraders.Length;
+            UniversalProjectSettings.Save();
 
             s_ImportedAssetThatNeedSaving.Clear();
             s_NeedsSavingAssets = false;
