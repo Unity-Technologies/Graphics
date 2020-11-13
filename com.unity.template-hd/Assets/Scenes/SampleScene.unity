@@ -6354,6 +6354,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: TR_SectionB_01
       objectReference: {fileID: 0}
+    - target: {fileID: 5231792397020062134, guid: dd7bc729052fb0349850831c3c596d60, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6763497481495130190, guid: dd7bc729052fb0349850831c3c596d60, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8110425016416769263, guid: dd7bc729052fb0349850831c3c596d60, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -12259,7 +12267,7 @@ PlayableDirector:
   - key: {fileID: 0}
     value: {fileID: 0}
   - key: {fileID: -7133908531712093841, guid: 5a54d61bc58f43341aa47f398b54ed14, type: 2}
-    value: {fileID: 3803442147378894686}
+    value: {fileID: 0}
   m_ExposedReferences:
     m_References:
     - 076ca21c2ab4ce348b22d754ddf321f5: {fileID: 1706685499}
@@ -16187,7 +16195,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -61.02054, z: 0}
+    textureOffset: {x: -0, y: -38.76931, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17434,7 +17442,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1594496557}
-  m_LocalRotation: {x: 0.37005496, y: -0.023240356, z: 0.022165285, w: 0.9284546}
+  m_LocalRotation: {x: 0.5819895, y: -0.036550365, z: 0.03485959, w: 0.8116262}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -17645,7 +17653,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 35.32029
+  m_FocalLength: 40
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -17654,7 +17662,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 37.530186
+  field of view: 33.39849
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -24276,7 +24284,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922889286}
-  m_LocalRotation: {x: 0.53440297, y: -0.03356179, z: 0.032009285, w: 0.8439565}
+  m_LocalRotation: {x: 0.56405085, y: -0.03542374, z: 0.033785112, w: -0.8242878}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -25917,7 +25925,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2019943081}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 54.51268, y: 3.6264765, z: -0.27789378}
+  m_LocalPosition: {x: 54.51268, y: 3.5350385, z: -0.27789378}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1663721606}
@@ -25940,7 +25948,7 @@ MonoBehaviour:
     m_ObsoleteSphereInfiniteProjection: 0
     m_ObsoleteBoxInfiniteProjection: 0
     m_Shape: 0
-    m_BoxSize: {x: 21.070374, y: 3.3781772, z: 6.7204466}
+    m_BoxSize: {x: 20.849854, y: 3.5610533, z: 6.499929}
     m_SphereRadius: 1
 --- !u!1001 &2029157704
 PrefabInstance:
@@ -28828,7 +28836,7 @@ MonoBehaviour:
       m_SphereRadius: 1
     proxySettings:
       useInfluenceVolumeAsProxyVolume: 1
-      capturePositionProxySpace: {x: 4.0097046, y: -0.38276696, z: 0}
+      capturePositionProxySpace: {x: 3.1675072, y: -0.32657003, z: 0.44814965}
       captureRotationProxySpace: {x: 0, y: 0, z: 0, w: 1}
       mirrorPositionProxySpace: {x: 0, y: 0, z: 0}
       mirrorRotationProxySpace: {x: 0, y: 0, z: 0, w: 0}
