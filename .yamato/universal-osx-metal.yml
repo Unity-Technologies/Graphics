@@ -19,9 +19,6 @@ Universal_OSX_Metal_Standalone_mono_Linear_trunk:
         # Fix SSH config on the VM. The Bokken team needs to fix this.
         - sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
 
-        # Debug variables.
-        - env | sort
-
         # Cleanup stuff.
         - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/.ssh/id_rsa_cds_github ~/.ssh/config"
         - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/Graphics"
@@ -44,8 +41,7 @@ Universal_OSX_Metal_Standalone_mono_Linear_trunk:
         - chmod +x TestProjects/UniversalGraphicsTest/utr
 
         # Upload the Graphics repo to the device.
-        - rsync -aP --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
-        - ssh bokken@$BOKKEN_DEVICE_IP "ls -lah ~/"
+        - rsync -aqP --inplace $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/
 
         # Run build/tests and update/report results.
         - >
