@@ -32,9 +32,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[shadowIndex].Identifier());
         }
 
-        public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, int lightIndex)
+        public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
         {
-            cmdBuffer.SetGlobalTexture("_ShadowTex", m_RenderTargets[lightIndex].Identifier());
+            cmdBuffer.SetGlobalTexture("_ShadowTex", m_RenderTargets[shadowIndex].Identifier());
+            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1 - light.shadowIntensity);
+            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
+        }
+
+        public static void DisableGlobalShadowTexture(CommandBuffer cmdBuffer)
+        {
+            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1);
+            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1);
         }
 
         private static void CreateShadowRenderTexture(IRenderPass2D pass, RenderTargetHandle rtHandle, RenderingData renderingData, CommandBuffer cmdBuffer)
@@ -85,9 +93,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture)
         {
-            cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1 - light.shadowIntensity);
-            cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
-
             cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmdBuffer.ClearRenderTarget(true, true, Color.black);  // clear stencil
 

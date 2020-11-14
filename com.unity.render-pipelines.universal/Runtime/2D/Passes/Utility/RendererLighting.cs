@@ -195,8 +195,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var shadowIndex = 0;
                 while (batchedLights < remainingLights && shadowIndex < maxShadowTextureCount)
                 {
-                    var light = lights[shadowIndex];
-                    if (light.shadowsEnabled)
+                    var light = lights[lightIndex + batchedLights];
+                    if (light.shadowsEnabled && light.shadowIntensity > 0)
                     {
                         ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmd, shadowIndex);
                         ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowIndex, light.shadowIntensity);
@@ -233,8 +233,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                             continue;
 
                         // Set the shadow texture to read from
-                        if (light.shadowsEnabled)
-                            ShadowRendering.SetGlobalShadowTexture(cmd, shadowIndex++);
+                        if (light.shadowsEnabled && light.shadowIntensity > 0)
+                            ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowIndex++);
+                        else
+                            ShadowRendering.DisableGlobalShadowTexture(cmd);
 
 
                         if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
@@ -258,8 +260,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
 
                 // Release all of the temporary shadow textures
-                for (var lightIndexOffset = shadowIndex-1; lightIndexOffset >= 0; lightIndexOffset--)
-                    ShadowRendering.ReleaseShadowRenderTexture(cmd, lightIndexOffset);
+                for (var releaseIndex = shadowIndex-1; releaseIndex >= 0; releaseIndex--)
+                    ShadowRendering.ReleaseShadowRenderTexture(cmd, releaseIndex);
 
                 lightIndex += batchedLights;
             }
