@@ -1,0 +1,4 @@
+host github.cds.internal.unity3d.com
+  HostName github.cds.internal.unity3d.com
+  IdentityFile ~/.ssh/id_rsa_cds_github
+  User git
