@@ -12,13 +12,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_ShadowVolumeIntensityID = Shader.PropertyToID("_ShadowVolumeIntensity");
         private static readonly int k_ShadowRadiusID = Shader.PropertyToID("_ShadowRadius");
 
-        private static RenderTargetHandle[] m_RenderTargets;
+        private static RenderTargetHandle[] m_RenderTargets = null;
         public static  uint maxTextureCount { get; private set; }
 
         public static void InitializeBudget(uint maxTextureCount)
         {
-            m_RenderTargets = new RenderTargetHandle[maxTextureCount];
-            ShadowRendering.maxTextureCount = maxTextureCount;
+            if (m_RenderTargets == null || m_RenderTargets.Length != maxTextureCount)
+            {
+                m_RenderTargets = new RenderTargetHandle[maxTextureCount];
+                ShadowRendering.maxTextureCount = maxTextureCount;
+
+                for (int i = 0; i < maxTextureCount; i++)
+                {
+                    unsafe
+                    {
+                        m_RenderTargets[i].id = Shader.PropertyToID($"ShadowTex_{i}");
+                    }
+                }
+            }
         }
 
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
