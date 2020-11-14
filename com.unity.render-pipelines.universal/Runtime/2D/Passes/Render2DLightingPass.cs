@@ -252,6 +252,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             filterSettings.sortingLayerRange = SortingLayerRange.all;
 
             LayerUtility.InitializeBudget(m_Renderer2DData.lightRenderTextureMemoryBudget);
+            ShadowRendering.InitializeBudget(m_Renderer2DData.shadowRenderTextureMemoryBudget);
 
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)

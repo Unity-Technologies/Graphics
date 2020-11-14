@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public static void InitializeBudget(uint maxTextureCount)
         {
             m_RenderTargets = new RenderTargetHandle[maxTextureCount];
+            ShadowRendering.maxTextureCount = maxTextureCount;
         }
 
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
