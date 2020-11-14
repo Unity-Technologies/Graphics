@@ -267,9 +267,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
             var maxShadowTextureCount = ShadowRendering.maxTextureCount;
+            var requiresRTInit = true;
 
             // This case should never happen, but if it does it may cause an infinite loop later.
             if (maxShadowTextureCount < 1)
@@ -297,6 +298,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         shadowIndex++;
                     }
                     batchedLights++;
+                }
+
+                // Set the current RT to the light RT
+                if (shadowIndex > 0 || requiresRTInit)
+                {
+                    cmd.SetRenderTarget(renderTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    requiresRTInit = false;
                 }
 
                 // Render all the lights.
@@ -352,8 +360,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 lightIndex += batchedLights;
             }
         }
-
-
 
         public static void SetShapeLightShaderGlobals(this IRenderPass2D pass, CommandBuffer cmd)
         {
