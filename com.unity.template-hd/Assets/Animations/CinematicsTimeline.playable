@@ -29,7 +29,7 @@ MonoBehaviour:
   m_Name: ImageRecorderSettings
   m_EditorClassIdentifier: 
   enabled: 1
-  take: 7
+  take: 10
   captureEveryNthFrame: 1
   fileNameGenerator:
     m_Path:
@@ -38,11 +38,20 @@ MonoBehaviour:
       m_ForceAssetFolder: 0
       m_AbsolutePath: C:/Users/pydon/Desktop/Frames
     m_FileName: image_<Frame>
+  <RecordMode>k__BackingField: 0
+  <FrameRatePlayback>k__BackingField: 0
+  frameRate: 30
+  <StartFrame>k__BackingField: 0
+  <EndFrame>k__BackingField: 0
+  <StartTime>k__BackingField: 0
+  <EndTime>k__BackingField: 0
+  <CapFrameRate>k__BackingField: 1
   outputFormat: 1
   captureAlpha: 0
   m_ImageInputSelector:
     m_Selected: gameViewInputSettings
     gameViewInputSettings:
+      <RecordTransparency>k__BackingField: 0
       m_OutputResolution:
         m_CustomWidth: 1024
         m_CustomHeight: 1024
@@ -52,8 +61,10 @@ MonoBehaviour:
           m_CustomAspectX: 1
           m_CustomAspectY: 1
           m_ImageAspect: 1
+      forceEvenSize: 0
       flipFinalOutput: 1
     cameraInputSettings:
+      <RecordTransparency>k__BackingField: 0
       m_OutputResolution:
         m_CustomWidth: 1024
         m_CustomHeight: 1024
@@ -63,11 +74,13 @@ MonoBehaviour:
           m_CustomAspectX: 1
           m_CustomAspectY: 1
           m_ImageAspect: 1
+      forceEvenSize: 0
       source: 2
       cameraTag: 
       flipFinalOutput: 0
       captureUI: 0
     camera360InputSettings:
+      <RecordTransparency>k__BackingField: 0
       source: 2
       cameraTag: 
       flipFinalOutput: 0
@@ -77,9 +90,11 @@ MonoBehaviour:
       m_OutputWidth: 1024
       m_OutputHeight: 2048
     renderTextureInputSettings:
+      <RecordTransparency>k__BackingField: 0
       renderTexture: {fileID: 0}
       flipFinalOutput: 0
     renderTextureSamplerSettings:
+      <RecordTransparency>k__BackingField: 0
       source: 1
       m_RenderWidth: 1280
       m_RenderHeight: 720
@@ -307,19 +322,6 @@ MonoBehaviour:
   m_Loop: 0
   m_Version: 1
   m_Rotation: {x: 0, y: 0, z: 0, w: 1}
---- !u!114 &-8507364376169249158
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1e95aa6d658d694785bfde37c857fff, type: 3}
-  m_Name: RecorderClip
-  m_EditorClassIdentifier: 
-  settings: {fileID: -9160995860980402031}
 --- !u!114 &-8142876869193055489
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2483,7 +2485,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Version: 0
   m_Tracks:
-  - {fileID: 9162934835586826942}
   - {fileID: -7133908531712093841}
   - {fileID: 6457011845286483473}
   - {fileID: -1729864149966584170}
@@ -4914,97 +4915,5 @@ MonoBehaviour:
     m_PostExtrapolationTime: 0
     m_PreExtrapolationTime: 0
     m_DisplayName: CM Shot 8 End
-  m_Markers:
-    m_Objects: []
---- !u!114 &9162934835586826942
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e6cf5671577b7344ba25c25b4346ce4, type: 3}
-  m_Name: Recorder Track
-  m_EditorClassIdentifier: 
-  m_Version: 3
-  m_AnimClip: {fileID: 0}
-  m_Locked: 0
-  m_Muted: 0
-  m_CustomPlayableFullTypename: 
-  m_Curves: {fileID: 0}
-  m_Parent: {fileID: 11400000}
-  m_Children: []
-  m_Clips:
-  - m_Version: 1
-    m_Start: 0
-    m_ClipIn: 0
-    m_Asset: {fileID: -8507364376169249158}
-    m_Duration: 65.93333333333334
-    m_TimeScale: 1
-    m_ParentTrack: {fileID: 9162934835586826942}
-    m_EaseInDuration: 0
-    m_EaseOutDuration: 0
-    m_BlendInDuration: 0
-    m_BlendOutDuration: 0
-    m_MixInCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    m_MixOutCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    m_BlendInCurveMode: 0
-    m_BlendOutCurveMode: 0
-    m_ExposedParameterNames: []
-    m_AnimationCurves: {fileID: 0}
-    m_Recordable: 0
-    m_PostExtrapolationMode: 0
-    m_PreExtrapolationMode: 0
-    m_PostExtrapolationTime: 0
-    m_PreExtrapolationTime: 0
-    m_DisplayName: RecorderClip
   m_Markers:
     m_Objects: []
