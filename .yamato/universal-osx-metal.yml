@@ -31,7 +31,7 @@ Universal_OSX_Metal_Standalone_mono_Linear_trunk:
         - ssh bokken@$BOKKEN_DEVICE_IP "chmod 600 ~/.ssh/config"
 
         # Setup Git identity.
-        - echo $GITHUB_CDS_SSH_PRIVKEY | base64 -d > id_rsa_cds_github
+        - echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
         - scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github
         - ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
 
