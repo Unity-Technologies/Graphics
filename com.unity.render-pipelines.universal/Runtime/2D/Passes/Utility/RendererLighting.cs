@@ -192,28 +192,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var batchedLights = 0;
 
                 // Add lights to our batch until the number of shadow textures reach the maxShadowTextureCount
-                var shadowIndex = 0;
-                while (batchedLights < remainingLights && shadowIndex < maxShadowTextureCount)
+                var shadowLightCount = 0;
+                while (batchedLights < remainingLights && shadowLightCount < maxShadowTextureCount)
                 {
                     var light = lights[lightIndex + batchedLights];
                     if (light.shadowsEnabled && light.shadowIntensity > 0)
                     {
-                        ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmd, shadowIndex);
-                        ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowIndex, light.shadowIntensity);
-                        shadowIndex++;
+                        ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmd, shadowLightCount);
+                        ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowIntensity);
+                        shadowLightCount++;
                     }
                     batchedLights++;
                 }
 
                 // Set the current RT to the light RT
-                if (shadowIndex > 0 || requiresRTInit)
+                if (shadowLightCount > 0 || requiresRTInit)
                 {
                     cmd.SetRenderTarget(renderTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                     requiresRTInit = false;
                 }
 
                 // Render all the lights.
-                shadowIndex = 0;
+                shadowLightCount = 0;
                 for (var lightIndexOffset = 0; lightIndexOffset < batchedLights; lightIndexOffset++)
                 {
                     var light = lights[(int)(lightIndex + lightIndexOffset)];
@@ -234,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         // Set the shadow texture to read from
                         if (light.shadowsEnabled && light.shadowIntensity > 0)
-                            ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowIndex++);
+                            ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowLightCount++);
                         else
                             ShadowRendering.DisableGlobalShadowTexture(cmd);
 
@@ -260,7 +260,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
 
                 // Release all of the temporary shadow textures
-                for (var releaseIndex = shadowIndex-1; releaseIndex >= 0; releaseIndex--)
+                for (var releaseIndex = shadowLightCount-1; releaseIndex >= 0; releaseIndex--)
                     ShadowRendering.ReleaseShadowRenderTexture(cmd, releaseIndex);
 
                 lightIndex += batchedLights;
@@ -287,28 +287,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var batchedLights = 0;
 
                 // Add lights to our batch until the number of shadow textures reach the maxShadowTextureCount
-                var shadowIndex = 0;
-                while (batchedLights < remainingLights && shadowIndex < maxShadowTextureCount)
+                var shadowLightCount = 0;
+                while (batchedLights < remainingLights && shadowLightCount < maxShadowTextureCount)
                 {
                     var light = lights[lightIndex + batchedLights];
                     if (light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0)
                     {
-                        ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmd, shadowIndex);
-                        ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowIndex, light.shadowVolumeIntensity);
-                        shadowIndex++;
+                        ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmd, shadowLightCount);
+                        ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowVolumeIntensity);
+                        shadowLightCount++;
                     }
                     batchedLights++;
                 }
 
                 // Set the current RT to the light RT
-                if (shadowIndex > 0 || requiresRTInit)
+                if (shadowLightCount > 0 || requiresRTInit)
                 {
                     cmd.SetRenderTarget(renderTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                     requiresRTInit = false;
                 }
 
                 // Render all the lights.
-                shadowIndex = 0;
+                shadowLightCount = 0;
                 for (var lightIndexOffset = 0; lightIndexOffset < batchedLights; lightIndexOffset++)
                 {
                     var light = lights[(int)(lightIndex + lightIndexOffset)];
@@ -327,7 +327,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                         // Set the shadow texture to read from
                         if (light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0)
-                            ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowIndex++);
+                            ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowLightCount++);
                         else
                             ShadowRendering.DisableGlobalShadowTexture(cmd);
 
@@ -354,7 +354,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
 
                 // Release all of the temporary shadow textures
-                for (var releaseIndex = shadowIndex - 1; releaseIndex >= 0; releaseIndex--)
+                for (var releaseIndex = shadowLightCount - 1; releaseIndex >= 0; releaseIndex--)
                     ShadowRendering.ReleaseShadowRenderTexture(cmd, releaseIndex);
 
                 lightIndex += batchedLights;
