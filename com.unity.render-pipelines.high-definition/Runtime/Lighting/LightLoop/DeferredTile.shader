@@ -43,7 +43,8 @@ Shader "Hidden/HDRP/DeferredTile"
 
             #define USE_INDIRECT    // otherwise TileVariantToFeatureFlags() will not be defined in Lit.hlsl!!!
 
-            #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL
+            // Comment out the line to loop over all lights (for debugging purposes)
+            #define FINE_BINNING // Keep in sync with 'classification.compute' and 'builddispatchindirect.compute'
 
             #ifdef VARIANT0
             #define VARIANT 0
@@ -201,13 +202,14 @@ Shader "Hidden/HDRP/DeferredTile"
 
             Varyings Vert(Attributes input)
             {
-                uint  tilePackIndex = g_TileList[g_TileListOffset + input.instID];
-                uint2 tileCoord = uint2((tilePackIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tilePackIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
-                uint2 pixelCoord  = tileCoord * GetTileSize();
+                uint variantOffset = g_TileListOffset;
+                uint tileOffset    = input.instID; // Includes the eye index for XR
+                uint tileAndEye    = g_TileList[variantOffset + tileOffset];
+                uint eye           = tileAndEye >> TILE_INDEX_SHIFT_EYE;
+                uint tile          = tileAndEye ^ (eye << TILE_INDEX_SHIFT_EYE);
 
-                uint screenWidth  = (uint)_ScreenSize.x;
-                uint numTilesX    = (screenWidth + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
-                uint tileIndex    = tileCoord.x + tileCoord.y * numTilesX;
+                uint2 tileCoord  = CoordinateFromIndex(tile, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
+                uint2 pixelCoord = tileCoord * TILE_SIZE;
 
                 // This handles both "real quad" and "2 triangles" cases: remaps {0, 1, 2, 3, 4, 5} into {0, 1, 2, 3, 0, 2}.
                 uint quadIndex = (input.vertexID & 0x03) + (input.vertexID >> 2) * (input.vertexID & 0x01);
@@ -219,7 +221,7 @@ Shader "Hidden/HDRP/DeferredTile"
                 // Tiles coordinates always start at upper-left corner of the screen (y axis down).
                 // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
                 output.positionCS.y *= -1.0;
-                output.tileIndexAndCoord = uint3(tileIndex, tileCoord);
+                output.tileIndexAndCoord = uint3(tile, tileCoord);
 
                 return output;
             }
@@ -228,12 +230,14 @@ Shader "Hidden/HDRP/DeferredTile"
             {
                 // This need to stay in sync with deferred.compute
 
-                uint tileIndex = input.tileIndexAndCoord.x;
+                uint tile = input.tileIndexAndCoord.x;
                 uint2 tileCoord = input.tileIndexAndCoord.yz;
-                uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileIndex, unity_StereoEyeIndex);
+                uint featureFlags = TileVariantToFeatureFlags(VARIANT, tile, unity_StereoEyeIndex);
 
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+                uint zBin = ComputeZBinIndex(posInput.linearDepth);
 
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
@@ -244,7 +248,7 @@ Shader "Hidden/HDRP/DeferredTile"
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 LightLoopOutput lightLoopOutput;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+                LightLoop(V, posInput, tile, zBin, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
                 // Alias
                 float3 diffuseLighting = lightLoopOutput.diffuseLighting;
@@ -308,7 +312,8 @@ Shader "Hidden/HDRP/DeferredTile"
             #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
-            #define USE_FPTL_LIGHTLIST 1 // deferred opaque always use FPTL
+            // Comment out the line to loop over all lights (for debugging purposes)
+            #define FINE_BINNING // Keep in sync with 'classification.compute' and 'builddispatchindirect.compute'
 
             #ifdef DEBUG_DISPLAY
                 // Don't care about this warning in debug
@@ -401,6 +406,9 @@ Shader "Hidden/HDRP/DeferredTile"
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
+                uint tile = ComputeTileIndex(posInput.positionSS);
+                uint zBin = ComputeZBinIndex(posInput.linearDepth);
+
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
                 BSDFData bsdfData;
@@ -410,7 +418,7 @@ Shader "Hidden/HDRP/DeferredTile"
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 LightLoopOutput lightLoopOutput;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
+                LightLoop(V, posInput, tile, zBin, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
 
                 // Alias
                 float3 diffuseLighting = lightLoopOutput.diffuseLighting;

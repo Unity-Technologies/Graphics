@@ -172,7 +172,7 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
 #endif
 }
 
-void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
+void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
                 out LightLoopOutput lightLoopOutput)
 {
     // Init LightLoop output structure
@@ -236,7 +236,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
         i = 0;
 
-        while (TryLoadPunctualLightData(i, posInput.tile, posInput.zBin, lightData))
+        while (TryLoadPunctualLightData(i, tile, zBin, lightData))
         {
             if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {

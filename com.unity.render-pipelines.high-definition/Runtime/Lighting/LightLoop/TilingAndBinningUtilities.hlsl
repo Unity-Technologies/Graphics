@@ -193,9 +193,9 @@ uint ComputeZBinIndex(float linearDepth)
 
 // Cannot be used to index directly into the buffer.
 // Use ComputeTileBufferIndex for that purpose.
-// tileCoord = pixelCoord / TILE_SIZE.
-uint ComputeTileIndex(uint2 tileCoord)
+uint ComputeTileIndex(uint2 pixelCoord)
 {
+    uint2 tileCoord = pixelCoord / TILE_SIZE;
     return IndexFromCoordinate(uint4(tileCoord, 0, 0),
                                uint3(TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
 }

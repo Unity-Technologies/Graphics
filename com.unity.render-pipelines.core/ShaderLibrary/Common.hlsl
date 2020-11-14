@@ -1038,9 +1038,6 @@ struct PositionInputs
     uint2  positionSS;  // Screen space pixel coordinates                       : [0, NumPixels)
     float  deviceDepth; // Depth from the depth buffer                          : [0, 1] (typically reversed)
     float  linearDepth; // View space Z coordinate                              : [Near, Far]
-
-    uint   tile;        // Screen tile index
-    uint   zBin;        // Depth bin index
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
@@ -1059,10 +1056,6 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 #endif
     posInput.positionNDC *= invScreenSize;
     posInput.positionSS = uint2(positionSS);
-
-    // These two are only used by certain (binned lighting) passes,
-    // so they must be initialized explicitly (only when necessary).
-    posInput.tile = posInput.zBin = 0;
 
     return posInput;
 }

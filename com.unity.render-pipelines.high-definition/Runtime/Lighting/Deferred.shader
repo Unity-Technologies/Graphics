@@ -41,7 +41,8 @@ Shader "Hidden/HDRP/Deferred"
             #pragma multi_compile _ DEBUG_DISPLAY
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
-            #define USE_FPTL_LIGHTLIST // deferred opaque always use FPTL
+            // Comment out the line to loop over all lights (for debugging purposes)
+            #define FINE_BINNING
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -131,6 +132,9 @@ Shader "Hidden/HDRP/Deferred"
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
+                uint tile = ComputeTileIndex(posInput.positionSS);
+                uint zBin = ComputeZBinIndex(posInput.linearDepth);
+
                 BSDFData bsdfData;
                 BuiltinData builtinData;
                 DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
@@ -138,12 +142,12 @@ Shader "Hidden/HDRP/Deferred"
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 LightLoopOutput lightLoopOutput;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
+                LightLoop(V, posInput, tile, zBin, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
 
                 // Alias
                 float3 diffuseLighting = lightLoopOutput.diffuseLighting;
                 float3 specularLighting = lightLoopOutput.specularLighting;
- 
+
                 diffuseLighting *= GetCurrentExposureMultiplier();
                 specularLighting *= GetCurrentExposureMultiplier();
 
