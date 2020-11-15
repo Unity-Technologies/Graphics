@@ -159,15 +159,16 @@ namespace UnityEditor.VFX
                         return parent;
                     }).ToArray();
 
-                    //Then, patch them if appropriate (if there will be an evaluation, we should skipped patch)
+                    //Then, patch them if appropriate (if there will be an evaluation, we should skip the patch process)
                     if ((gpuTransformation || patchReadAttributeForSpawn) && !ShouldEvaluate(expression, parents))
                     {
                         parents = parents.Select(parent =>
                         {
                             bool currentGPUTransformation = gpuTransformation;
-                            if (!expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU) || parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
+                            if (!expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU) //if source expression was already compilable on CPU : e.g. SampleGradient can be evaluated by CPU, BakeGradient isn't relevant
+                                || parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU) //if parent uses an expression not compilable : e.g a SampleTexture2D indirection to fetch among several SampleGradient, it's illegal, it will generate an error later
+                            )
                             {
-                                //TODO: Add comment
                                 currentGPUTransformation = false;
                             }
                             parent = PatchVFXExpression(parent, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
