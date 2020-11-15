@@ -19,7 +19,8 @@ Universal_OSX_Metal_Standalone_mono_Linear_trunk:
         - sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
 
         # Cleanup stuff for a Yamato Remote re-run. Only delete the source dir on the device if you really need to wipe it.
-        - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/.ssh/id_rsa_cds_github ~/.ssh/config"
+        - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/.ssh/id_rsa_cds_github ~/.ssh/config ~/.utr_result"
+        - rm -rf ~/.utr_result
         # - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/Graphics"
 
         # Setup SSH config.
@@ -44,11 +45,11 @@ Universal_OSX_Metal_Standalone_mono_Linear_trunk:
         # Get the Editor and required components for the project. This will be rendered as a single line command. Beware of the quotes and the semicolons! They bite, repeatedly. :(
         - >
             ssh bokken@$BOKKEN_DEVICE_IP
-            "\$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli \\
-                -u {{editor_versions.trunk_latest_internal.macos.revision}} \\
-                -c editor \\
-                -c il2cpp \\
-                --wait \\
+            "\$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli    \\
+                -u {{editor_versions.trunk_latest_internal.macos.revision}}             \\
+                -c editor                                                               \\
+                -c il2cpp                                                               \\
+                --wait                                                                  \\
                 --published-only"
 
         # Run build/tests on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes too.
@@ -59,23 +60,23 @@ Universal_OSX_Metal_Standalone_mono_Linear_trunk:
             echo UPM Registry: \$UPM_REGISTRY;
             echo ==================================================;
             cd ~/Graphics/TestProjects/UniversalGraphicsTest/;
-            ./utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest/test-results \\
-                --editor-location=/Users/bokken/.Editor \\
-                --platform=StandaloneOSX \\
-                --reruncount=2 \\
-                --scripting-backend=Mono2x \\
-                --suite=playmode \\
-                --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest \\
+            ./utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest/test-results   \\
+                --editor-location=/Users/bokken/.Editor                                                     \\
+                --platform=StandaloneOSX                                                                    \\
+                --reruncount=2                                                                              \\
+                --scripting-backend=Mono2x                                                                  \\
+                --suite=playmode                                                                            \\
+                --testproject=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest                     \\
                 --timeout=2400;
-            echo $? > ~/.utr_result"
+            echo \$? > ~/.utr_result"
 
         # Get result data from test device.
-        - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
         - rsync -aqP bokken@$BOKKEN_DEVICE_IP:~/Graphics/TestProjects/UniversalGraphicsTest/test-results $YAMATO_SOURCE_DIR/TestProjects/UniversalGraphicsTest/
+        - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
 
         # Print status and exit with UTR's exit code.
         - |
-            UTR_RESULT=$(($(cat ~/.utr_result)))
+            UTR_RESULT=$(cat ~/.utr_result)
             echo "=================================================="
             echo "UTR exit code: $UTR_RESULT"
             echo "=================================================="
