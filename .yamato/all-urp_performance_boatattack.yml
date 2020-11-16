@@ -14,19 +14,19 @@ All_URP_Performance_BoatAttack_trunk:
          rerun: on-new-revision
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on-new-revision
     variables:
         BOAT_ATTACK_BRANCH: master
@@ -38,19 +38,19 @@ All_URP_Performance_BoatAttack_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_editmode_build_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#URP_Performance_BoatAttack_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

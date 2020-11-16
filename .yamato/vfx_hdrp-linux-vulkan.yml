@@ -28,7 +28,7 @@ VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
       -  path: .yamato/vfx_hdrp-linux-vulkan.yml#Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
 Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
-    name: Build VFX_HDRP on Linux_Vulkan_mono_Linear_Player on version trunk
+    name: Build VFX_HDRP on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
@@ -114,7 +114,7 @@ VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  path: .yamato/vfx_hdrp-linux-vulkan.yml#Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
 Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build VFX_HDRP on Linux_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
+    name: Build VFX_HDRP on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: cds-ops/ubuntu-18.04-base:stable
