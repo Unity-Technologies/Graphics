@@ -40,5 +40,9 @@ void GenerateMipMap(uint3 id : SV_DispatchThreadID)
 
     // Then we use the bilinear filter to interpolate the value of the next mip level
     float4 value = SAMPLE_TEXTURE3D_LOD(_Src3DTexture, s_linear_clamp_sampler, uvw, _SrcMip);    
-    _Dst3DTexture[id] = value;
+
+    if (_AlphaOnlyTexture)
+        _Dst3DTexture[id + _DstOffset] = float4(1, 1, 1, value.a);
+    else
+        _Dst3DTexture[id + _DstOffset] = value;
 }

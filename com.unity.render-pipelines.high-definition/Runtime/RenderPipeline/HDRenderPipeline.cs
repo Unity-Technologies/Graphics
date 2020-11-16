@@ -1221,6 +1221,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CustomPassVolume.Cleanup();
 
+            DensityVolumeManager.manager.ReleaseAtlas();
+
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
             CoreUtils.Destroy(m_MotionVectorResolve);

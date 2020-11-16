@@ -18,7 +18,7 @@ struct DensityVolumeEngineData
     float endTimesRcpDistFadeLen;
     float3 rcpNegFaceFade;
     int useVolumeMask;
-    float2 atlasOffset;
+    float3 atlasOffset;
     int maskResolution;
 };
 
@@ -91,7 +91,7 @@ int GetUseVolumeMask(DensityVolumeEngineData value)
 {
     return value.useVolumeMask;
 }
-float2 GetAtlasOffset(DensityVolumeEngineData value)
+float3 GetAtlasOffset(DensityVolumeEngineData value)
 {
     return value.atlasOffset;
 }

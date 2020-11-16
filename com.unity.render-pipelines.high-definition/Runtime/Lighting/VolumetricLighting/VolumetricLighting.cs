@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   endTimesRcpDistFadeLen;
         public Vector3 rcpNegFaceFade;
         public int     useVolumeMask; // bool
-        public Vector2 atlasOffset;   // x and y coordinates in the atlas in pixels
+        public Vector3 atlasOffset;   // x and y coordinates in the atlas in pixels
         public int     maskResolution;
 
         public static DensityVolumeEngineData GetNeutralValues()
@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scattering             = Vector3.zero;
             data.extinction             = 0;
-            data.atlasOffset            = Vector2.zero;
+            data.atlasOffset            = Vector3.zero;
             data.textureTiling          = Vector3.one;
             data.textureScroll          = Vector3.zero;
             data.rcpPosFaceFade         = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -698,7 +698,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cb._VolumeMaskDimensions.x = volumeAtlas.width; // 1 / number of textures
                 cb._VolumeMaskDimensions.y = volumeAtlas.height;
-                cb._VolumeMaskDimensions.z = volumeAtlas.depth;
+                cb._VolumeMaskDimensions.z = volumeAtlas.volumeDepth;
                 cb._VolumeMaskDimensions.w = 0; // Not used
             }
 

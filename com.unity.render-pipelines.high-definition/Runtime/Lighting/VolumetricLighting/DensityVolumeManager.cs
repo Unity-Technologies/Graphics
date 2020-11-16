@@ -18,21 +18,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Texture3DAtlas volumeAtlas = null;
+        Texture3DAtlas m_VolumeAtlas = null;
+        public Texture3DAtlas volumeAtlas
+        {
+            get
+            {
+                if (m_VolumeAtlas == null)
+                {
+                    var settings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
+                    m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, (int)settings.maxDensityVolumesOnScreen);
+
+                    // When HDRP is initialized and this atlas created, some density volume may have been initialized before so we add them here.
+                    foreach (var volume in m_Volumes)
+                    {
+                        if (volume.parameters.volumeMask != null)
+                            AddTextureIntoAtlas(volume.parameters.volumeMask);
+                    }
+                }
+
+                return m_VolumeAtlas;
+            }
+        }
 
         List<DensityVolume> m_Volumes = null;
-        int m_MaxDensityVolumeSize;
-        int m_MaxDensityVolumeOnScreen;
 
         DensityVolumeManager()
         {
-            var settings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
-            m_MaxDensityVolumeSize = (int)settings.maxDensityVolumeSize;
-            m_MaxDensityVolumeOnScreen = settings.maxDensityVolumesOnScreen;
             m_Volumes = new List<DensityVolume>();
-            Debug.Log(m_MaxDensityVolumeSize);
-            Debug.Log(m_MaxDensityVolumeOnScreen);
-            volumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, m_MaxDensityVolumeSize, m_MaxDensityVolumeOnScreen);
         }
 
         public void RegisterVolume(DensityVolume volume)
@@ -43,10 +55,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (volumeAtlas.IsTextureValid(volume.parameters.volumeMask))
                 {
-                    if (!volumeAtlas.AddTexture(volume.parameters.volumeMask))
-                        Debug.LogError($"No more space in the density volume atlas, consider increasing the max density volume on screen in the HDRP asset.");
+                    AddTextureIntoAtlas(volume.parameters.volumeMask);
                 }
             }
+        }
+
+        void AddTextureIntoAtlas(Texture volumeTexture)
+        {
+            if (!volumeAtlas.AddTexture(volumeTexture))
+                Debug.LogError($"No more space in the density volume atlas, consider increasing the max density volume on screen in the HDRP asset.");
         }
 
         public void DeRegisterVolume(DensityVolume volume)
@@ -75,16 +92,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_Volumes;
         }
 
-        private void VolumeAtlasRefresh()
+        // Note that this function will not release the manager itself as it have to live outside of HDRP to handle density volume components
+        internal void ReleaseAtlas()
         {
-            volumeAtlas.ClearTextures();
-            foreach (DensityVolume volume in m_Volumes)
-            {
-                if (volume.parameters.volumeMask != null)
-                {
-                    volumeAtlas.AddTexture(volume.parameters.volumeMask);
-                }
-            }
+            // Release the atlas so next time the manager is used, it is reallocated with new HDRP settings.
+            volumeAtlas.Release();
+            m_VolumeAtlas = null;
         }
 
         // TODO: we'll need to remove texture index

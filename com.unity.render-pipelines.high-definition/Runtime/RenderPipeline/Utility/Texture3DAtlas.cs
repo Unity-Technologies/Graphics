@@ -46,16 +46,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 this.hash = 0;
             }
 
+            // Subdivide the current cell in 8 cubes of equal size
             public void PopulateChildren()
             {
                 children = new AtlasElement[8];
+
+                int halfSize = size / 2;
+                // Down Front left corner
+                children[0] = new AtlasElement(position + new Vector3Int(0, 0, 0), halfSize);
+                // Down Front right corner
+                children[1] = new AtlasElement(position + new Vector3Int(halfSize, 0, 0), halfSize);
+                // Down Back left corner
+                children[2] = new AtlasElement(position + new Vector3Int(0, 0, halfSize), halfSize);
+                // Down Back right corner
+                children[3] = new AtlasElement(position + new Vector3Int(halfSize, 0, halfSize), halfSize);
+                // Up Front left corner
+                children[4] = new AtlasElement(position + new Vector3Int(0, halfSize, 0), halfSize);
+                // Up Front right corner
+                children[5] = new AtlasElement(position + new Vector3Int(halfSize, halfSize, 0), halfSize);
+                // Up Back left corner
+                children[6] = new AtlasElement(position + new Vector3Int(0, halfSize, halfSize), halfSize);
+                // Up Back right corner
+                children[7] = new AtlasElement(position + new Vector3Int(halfSize, halfSize, halfSize), halfSize);
                 
-                // TODO: split the cell in 8 cubes of POT size
-                for (int i = 0; i < 8; i++)
-                {
-                    children[i].position = new Vector3Int();
-                    children[i].parent = this;
-                }
+                foreach (var child in children)
+                    child.parent = this;
             }
 
             public void RemoveChildrenIfEmpty()
@@ -68,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (remove)
                     children = null;
             }
+
+            public override string ToString() => $"3D Atlas Element, pos: {position}, size: {size}, texture:{texture}, children: {children != null}";
         }
 
         List<AtlasElement>  m_Elements = new List<AtlasElement>();
@@ -129,8 +146,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Fill the atlas with empty elements:
             for (int i = 0; i < maxElementCount; i++)
             {
-                Vector3Int pos = new Vector3Int((i % xElementCount) * maxElementSize, (int)((i / (float)xElementCount) * maxElementSize), 0);
-                m_Elements.Add(new AtlasElement(pos, maxElementSize));
+                Vector3Int pos = new Vector3Int((i % xElementCount) * maxElementSize, (int)(Mathf.FloorToInt(i / (float)xElementCount) * maxElementSize), 0);
+                var elem = new AtlasElement(pos, maxElementSize);
+                m_Elements.Add(elem);
             }
 
             m_Texture3DAtlasCompute = HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.texture3DAtlasCS;
@@ -182,6 +200,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
 
+            if (tex.width < 1)
+            {
+                Debug.LogError($"3D Texture Atlas: Added texture {tex} size {tex.width} is smaller than 1.");
+                return false;
+            }
+
             if (!Mathf.IsPowerOfTwo(tex.width))
             {
                 Debug.LogError($"3D Texture Atlas: Added texture {tex} size {tex.width} is not power of two.");
@@ -207,18 +231,89 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool TryAddTextureToTree(Texture tex)
         {
-            foreach (var element in m_Elements)
+            // For texture that have the max size in the atlas, we just have to find the first empty element.
+            if (tex.width == m_MaxElementSize)
             {
-                // TODO: handle smaller elements correctly
-                if (element.IsFree() && element.size >= tex.width)
+                var freeElem = m_Elements.FirstOrDefault(e => e.IsFree());
+                if (freeElem != null)
                 {
-                    element.texture = tex;
-                    m_TextureElementsMap.Add(tex, element);
+                    SetTextureToElem(freeElem, tex);
+                    Debug.Log("Add: " + freeElem);
+                    return true;
+                }
+            }
+            else // Otherwise, we traverse the tree in depth to find a suitable position
+            {
+                // Find free element by looking at children
+                var freeElem = FindFreeElementWithSize(tex.width);
+
+                if (freeElem != null)
+                {
+                    SetTextureToElem(freeElem, tex);
+                    return true;
+                }
+                else
+                {
+                    // If we didn't found any empty element of the same size ass the texture, then we have to create a new one 
+                    freeElem = m_Elements.FirstOrDefault(e => e.IsFree());
+
+                    // No more space in the atlas
+                    if (freeElem == null)
+                        return true;
+
+                    while (freeElem.size > tex.width)
+                    {
+                        freeElem.PopulateChildren();
+                        freeElem = freeElem.children[0];
+                    }
+
+                    SetTextureToElem(freeElem, tex);
                     return true;
                 }
             }
 
+            void SetTextureToElem(AtlasElement element, Texture texture)
+            {
+                element.texture = texture;
+                m_TextureElementsMap.Add(texture, element);
+            }
+
             return false;
+        }
+
+        AtlasElement FindFreeElementWithSize(int size)
+        {
+            AtlasElement FindFreeElement(int size, AtlasElement elem)
+            {
+                if (elem.size == size)
+                {
+                    if (elem.IsFree())
+                        return elem;
+                    else
+                        return null;
+                }
+
+                if (elem.children == null)
+                    return null;
+
+                foreach (var child in elem.children)
+                {
+                    if (child.children != null && elem.size > size)
+                        return FindFreeElement(size, child);
+                    else if (child.IsFree())
+                        return child;
+                }
+                return null;
+            }
+
+            foreach (var elem in m_Elements)
+            {
+                var result = FindFreeElement(size, elem);
+                if (result != null)
+                    return result;
+            }
+
+            return null;
         }
 
         public void RemoveTexture(Texture tex)
@@ -243,12 +338,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TextureElementsMap.Clear();
         }
 
-        public Vector2 GetTextureOffset(Texture tex)
+        public Vector3 GetTextureOffset(Texture tex)
         {
             if (tex != null && m_TextureElementsMap.TryGetValue(tex, out var element))
-                return new Vector2(element.position.x, element.position.y);
+                return (Vector3)element.position;
             else
-                return -Vector2.one;
+                return -Vector3.one;
         }
 
         public void Update(CommandBuffer cmd)
@@ -268,31 +363,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     CopyTexture(cmd, element);
                 }
             }
-            
-            // if (m_textures.Count > 0)
-            // {
-            //     int textureSliceSize = m_MaxElementSize * m_MaxElementSize * m_MaxElementSize;
-            //     int totalTextureSize = textureSliceSize * m_textures.Count;
+        }
 
-            //     Color [] colorData = new Color[totalTextureSize];
-            //     m_atlas = new Texture3D(m_MaxElementSize, m_MaxElementSize, m_MaxElementSize * m_textures.Count, m_format, true);
-
-            //     //Iterate through all the textures and append their texture data to the texture array
-            //     //Once CopyTexture works for 3D textures we can replace this with a series of copy texture calls
-            //     for (int i = 0; i < m_textures.Count; i++)
-            //     {
-            //         Texture3D tex = m_textures[i];
-            //         Color [] texData = tex.GetPixels();
-            //         Array.Copy(texData, 0, colorData, textureSliceSize * i, texData.Length);
-            //     }
-
-            //     m_atlas.SetPixels(colorData);
-            //     m_atlas.Apply();
-            // }
-            // else
-            // {
-            //     m_atlas = null;
-            // }
+        struct MipGenerationSwapData
+        {
+            public RenderTexture target;
+            public Vector3Int offset;
+            public int mipOffset;
         }
 
         void CopyTexture(CommandBuffer cmd, AtlasElement element)
@@ -316,27 +393,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Generating the first mip from the source texture into the atlas to save a copy.
                     GenerateMip(cmd, element.texture, Vector3Int.zero, 0, m_Atlas, element.position, 1);
 
-                    // TODO: struct for this
-                    var source = m_Atlas;
-                    var destination = m_MipMapGenerationTemp;
-                    var sourceOffset = element.position;
-                    var destinationOffset = Vector3Int.zero;
-                    var sourceMipOffset = 0;
-                    var destinationMipOffset = -2; // m_MipMapGenerationTemp is allocated in quater res to save memory so we need to apply a mip offset when writing to it  .
+                    MipGenerationSwapData source = new MipGenerationSwapData{ target = m_Atlas, offset = element.position, mipOffset = 0};
+                     // m_MipMapGenerationTemp is allocated in quater res to save memory so we need to apply a mip offset when writing to it  .
+                    MipGenerationSwapData destination = new MipGenerationSwapData{ target = m_MipMapGenerationTemp, offset = Vector3Int.zero, mipOffset = -2};
+
                     for (int i = 2; i < mipMapCount; i++)
                     {
-                        GenerateMip(cmd, source, sourceOffset, i + sourceMipOffset - 1, destination, destinationOffset, i + destinationMipOffset);
+                        GenerateMip(cmd, source.target, source.offset, i + source.mipOffset - 1, destination.target, destination.offset, i + destination.mipOffset);
 
-                        // Swap RTs and offsets 
-                        var t = source;
+                        // Swap rt settings 
+                        var temp = source;
                         source = destination;
-                        destination = t;
-                        var to = sourceOffset;
-                        sourceOffset = destinationOffset;
-                        destinationOffset = to;
-                        var tm = sourceMipOffset;
-                        sourceMipOffset = destinationMipOffset;
-                        destinationMipOffset = tm;
+                        destination = temp;
                     }
 
                     // Copy back the mips from the temp target to the atlas
@@ -386,6 +454,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Compute the source scale and offset in UV space:
             Vector3 offset = new Vector3(sourceOffset.x / (float)source.width, sourceOffset.y / (float)source.height, sourceOffset.z / (float)GetTextureDepth(source));
+            Vector3Int dstOffset = new Vector3Int(destinationOffset.x >> destinationMip, destinationOffset.y >> destinationMip, destinationOffset.z >> destinationMip);
 
             Vector3Int sourceTextureMipSize = new Vector3Int(source.width >> (sourceMip + 1), source.height >> (sourceMip + 1), GetTextureDepth(source) >> (sourceMip + 1));
             Vector3Int destinationTextureMipSize = new Vector3Int(destination.width >> destinationMip, destination.height >> destinationMip, GetTextureDepth(destination) >> destinationMip);
@@ -402,10 +471,13 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(m_Texture3DAtlasCompute, HDShaderIDs._SrcMip, sourceMip);
 
             cmd.SetComputeTextureParam(m_Texture3DAtlasCompute, m_GenerateMipKernel, HDShaderIDs._Dst3DTexture, destination, destinationMip);
-            cmd.SetComputeVectorParam(m_Texture3DAtlasCompute, HDShaderIDs._DstOffset, (Vector3)destinationOffset);
+            cmd.SetComputeVectorParam(m_Texture3DAtlasCompute, HDShaderIDs._DstOffset, (Vector3)dstOffset);
 
             int mipMapSize = GetTextureDepth(destination) >> destinationMip; // We assume that the texture is POT
             cmd.SetComputeIntParam(m_Texture3DAtlasCompute, HDShaderIDs._SrcSize, mipMapSize);
+
+            bool alphaOnly = (source is Texture3D t) && t.format == TextureFormat.Alpha8;
+            cmd.SetComputeFloatParam(m_Texture3DAtlasCompute, HDShaderIDs._AlphaOnlyTexture, alphaOnly ? 1 : 0);
 
             cmd.DispatchCompute(
                 m_Texture3DAtlasCompute,
@@ -417,6 +489,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public RenderTexture GetAtlas() => m_Atlas;
+
+        public void Release()
+        {
+            ClearTextures();
+            m_Atlas.Release();
+        }
 
         public static long GetApproxCacheSizeInByte(int elementSize, int elementCount, GraphicsFormat format)
         {
