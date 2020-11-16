@@ -49,6 +49,11 @@ namespace UnityEditor.VFX
             shader = ((VFXDataMesh)GetData()).shader;
         }
 
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            return VFXCoordinateSpace.Local;
+        }
+
         public override bool SetupCompilation()
         {
             shader = ((VFXDataMesh)GetData()).shader;

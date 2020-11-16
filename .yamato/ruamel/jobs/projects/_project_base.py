@@ -38,4 +38,8 @@ def _job(project, test_platform_name, editor, platform, api, cmd, build_config, 
                 'path' : f'{editor_priming_filepath()}#{editor_job_id(editor["name"], platform["os"])}',
                 'rerun' : editor["rerun_strategy"]}])
 
+    if project["name"] == "URP_Performance_BoatAttack":
+        job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
+        job.add_var_custom('BOAT_ATTACK_REVISION', 'head')
+
     return job
