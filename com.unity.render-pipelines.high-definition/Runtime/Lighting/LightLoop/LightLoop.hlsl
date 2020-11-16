@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
 #else
 // Required to have access to the indirectDiffuseMode enum in forward pass where we don't include BuiltinUtilities
@@ -493,7 +493,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 #endif
 
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
     bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
     builtinData.bakeDiffuseLighting = uninitialized ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
 

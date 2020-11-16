@@ -54,6 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions : StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToPS.name, "instanceID", "", ShaderValueType.Uint,
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
+            // Note: we don't generate cullFace here as it is always present in VertMesh.hlsl
         }
 
         public struct VaryingsMeshToDS

@@ -3,7 +3,6 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
     HLSLINCLUDE
         #pragma exclude_renderers gles
         #pragma multi_compile_local _ _USE_RGBM
-        #pragma multi_compile _ _USE_FAST_SRGB_LINEAR_CONVERSION
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -83,10 +82,6 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             half3 color = o.xyz;
         #else
             half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
-        #endif
-
-        #if UNITY_COLORSPACE_GAMMA
-            color = GetSRGBToLinear(color);
         #endif
 
             // User controlled clamp to limit crazy high broken spec

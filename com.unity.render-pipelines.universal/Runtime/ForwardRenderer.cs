@@ -83,13 +83,14 @@ namespace UnityEngine.Rendering.Universal
         RenderingMode m_RenderingMode;
         StencilState m_DefaultStencilState;
 
-        Material m_BlitMaterial;
-        Material m_CopyDepthMaterial;
-        Material m_SamplingMaterial;
-        Material m_ScreenspaceShadowsMaterial;
-        Material m_TileDepthInfoMaterial;
-        Material m_TileDeferredMaterial;
-        Material m_StencilDeferredMaterial;
+        // Materials used in URP Scriptable Render Passes
+        Material m_BlitMaterial = null;
+        Material m_CopyDepthMaterial = null;
+        Material m_SamplingMaterial = null;
+        Material m_ScreenspaceShadowsMaterial = null;
+        Material m_TileDepthInfoMaterial = null;
+        Material m_TileDeferredMaterial = null;
+        Material m_StencilDeferredMaterial = null;
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
@@ -101,8 +102,8 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             m_ScreenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
-            m_TileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
-            m_TileDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDeferredPS);
+            //m_TileDepthInfoMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDepthInfoPS);
+            //m_TileDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.tileDeferredPS);
             m_StencilDeferredMaterial = CoreUtils.CreateEngineMaterial(data.shaders.stencilDeferredPS);
 
             StencilStateData stencilData = data.defaultStencilState;
@@ -273,8 +274,23 @@ namespace UnityEngine.Rendering.Universal
             if (m_DeferredLights != null)
                 m_DeferredLights.ResolveMixedLightingMode(ref renderingData);
 
+            // Assign the camera color target early in case it is needed during AddRenderPasses.
+            bool isPreviewCamera = cameraData.isPreviewCamera;
+            var createColorTexture = rendererFeatures.Count != 0 && !isPreviewCamera;
+            if (createColorTexture)
+            {
+                m_ActiveCameraColorAttachment = m_CameraColorAttachment;
+                var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled) activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
+#endif
+                ConfigureCameraColorTarget(activeColorRenderTargetId);
+            }
+
             // Add render passes and gather the input requirements
+            isCameraColorTargetValid = true;
             AddRenderPasses(ref renderingData);
+            isCameraColorTargetValid = false;
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
             // Should apply post-processing after rendering this camera?
@@ -286,7 +302,6 @@ namespace UnityEngine.Rendering.Universal
             // TODO: We could cache and generate the LUT before rendering the stack
             bool generateColorGradingLUT = cameraData.postProcessEnabled;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            bool isPreviewCamera = cameraData.isPreviewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
@@ -306,8 +321,7 @@ namespace UnityEngine.Rendering.Universal
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
             m_CopyDepthPass.renderPassEvent = (!requiresDepthTexture && (applyPostProcessing || isSceneViewCamera)) ? RenderPassEvent.AfterRenderingTransparents : RenderPassEvent.AfterRenderingOpaques;
-            bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
-            createColorTexture |= (rendererFeatures.Count != 0);
+            createColorTexture |= RequiresIntermediateColorTexture(ref cameraData);
             createColorTexture |= renderPassInputs.requiresColorTexture;
             createColorTexture &= !isPreviewCamera;
 
@@ -420,10 +434,20 @@ namespace UnityEngine.Rendering.Universal
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
             // If deferred rendering path was selected, it has already made a copy.
-            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture && createDepthTexture && this.actualRenderingMode != RenderingMode.Deferred)
+            bool requiresDepthCopyPass = !requiresDepthPrepass
+                                         && renderingData.cameraData.requiresDepthTexture
+                                         && createDepthTexture
+                                         && this.actualRenderingMode != RenderingMode.Deferred;
+            if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
                 EnqueuePass(m_CopyDepthPass);
+            }
+
+            // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth
+            if (cameraData.renderType == CameraRenderType.Base && !requiresDepthPrepass && !requiresDepthCopyPass)
+            {
+                Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
 
             if (renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture)
@@ -671,11 +695,12 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
             {
-                int msaaSamples = descriptor.msaaSamples;
                 if (createColor)
                 {
                     bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                     var colorDescriptor = descriptor;
+                    colorDescriptor.useMipMap = false;
+                    colorDescriptor.autoGenerateMips = false;
                     colorDescriptor.depthBufferBits = (useDepthRenderBuffer) ? k_DepthStencilBufferBits : 0;
                     cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
                 }
@@ -683,6 +708,8 @@ namespace UnityEngine.Rendering.Universal
                 if (createDepth)
                 {
                     var depthDescriptor = descriptor;
+                    depthDescriptor.useMipMap = false;
+                    depthDescriptor.autoGenerateMips = false;
 #if ENABLE_VR && ENABLE_XR_MODULE
                     // XRTODO: Enabled this line for non-XR pass? URP copy depth pass is already capable of handling MSAA.
                     depthDescriptor.bindMS = depthDescriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve && (SystemInfo.supportsMultisampledTextures != 0);
@@ -699,8 +726,11 @@ namespace UnityEngine.Rendering.Universal
 
         bool PlatformRequiresExplicitMsaaResolve()
         {
+            // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
+            // TODO: should also be valid on Metal MacOS/Editor, but currently not working as expected. Remove the "mobile only" requirement once trunk has a fix.
+
             return !SystemInfo.supportsMultisampleAutoResolve &&
-                   SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
+                   !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && Application.isMobilePlatform);
         }
 
         /// <summary>

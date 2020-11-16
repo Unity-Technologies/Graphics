@@ -137,6 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingIndirectDiffuseEvaluation,
         RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        RaytracingIndirectDiffuseAdjustWeight,
+
         // RTSSS
         RaytracingSSS,
         RaytracingSSSTrace,

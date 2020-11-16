@@ -132,7 +132,7 @@ MonoBehaviour:
   - {fileID: 7206989897909045908}
   m_FixedDuration: 0
   m_EditorSettings:
-    m_Framerate: 60
+    m_Framerate: 30
     m_ScenePreview: 1
   m_DurationMode: 0
   m_MarkerTrack: {fileID: 9076127134632802600}
@@ -276,7 +276,7 @@ MonoBehaviour:
     m_Start: 0
     m_ClipIn: 0
     m_Asset: {fileID: 2000278883325589059}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -342,10 +342,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 1
   - m_Version: 1
-    m_Start: 4.999999999999998
+    m_Start: 2
     m_ClipIn: 0
     m_Asset: {fileID: 2987344365405500798}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -411,10 +411,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 2
   - m_Version: 1
-    m_Start: 9.999999999999998
+    m_Start: 4.000000000000002
     m_ClipIn: 0
     m_Asset: {fileID: -5361689237702786821}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -480,10 +480,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 3
   - m_Version: 1
-    m_Start: 14.999999999999996
+    m_Start: 6.000000000000002
     m_ClipIn: 0
     m_Asset: {fileID: -7318707438537784122}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -549,10 +549,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 4
   - m_Version: 1
-    m_Start: 19.999999999999996
+    m_Start: 8.000000000000004
     m_ClipIn: 0
     m_Asset: {fileID: -7509283030167094440}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -618,10 +618,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 5
   - m_Version: 1
-    m_Start: 24.999999999999996
+    m_Start: 10
     m_ClipIn: 0
     m_Asset: {fileID: -1857068044906140732}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -687,10 +687,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 6
   - m_Version: 1
-    m_Start: 30
+    m_Start: 12
     m_ClipIn: 0
     m_Asset: {fileID: -1378530507966805372}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -756,10 +756,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 7
   - m_Version: 1
-    m_Start: 35
+    m_Start: 14
     m_ClipIn: 0
     m_Asset: {fileID: 1889581106370423229}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -825,10 +825,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 8
   - m_Version: 1
-    m_Start: 40
+    m_Start: 15.999999999999998
     m_ClipIn: 0
     m_Asset: {fileID: 3427665510104522246}
-    m_Duration: 5
+    m_Duration: 2.0000000000000018
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
@@ -894,10 +894,10 @@ MonoBehaviour:
     m_PreExtrapolationTime: 0
     m_DisplayName: Screenshot Camera 9
   - m_Version: 1
-    m_Start: 45
+    m_Start: 18
     m_ClipIn: 0
     m_Asset: {fileID: 6850447457271600788}
-    m_Duration: 5
+    m_Duration: 2
     m_TimeScale: 1
     m_ParentTrack: {fileID: 7206989897909045908}
     m_EaseInDuration: 0
