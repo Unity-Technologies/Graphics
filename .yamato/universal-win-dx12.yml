@@ -28,7 +28,7 @@ Universal_Win_DX12_Standalone_mono_Linear_2020.2:
       -  path: .yamato/universal-win-dx12.yml#Build_Universal_Win_DX12_Standalone_mono_Linear_2020.2
          rerun: on-new-revision
 Build_Universal_Win_DX12_Standalone_mono_Linear_2020.2:
-    name: Build Universal on Win_DX12_mono_Linear_Player on version 2020.2
+    name: Build Universal on Win_DX12_mono_Linear_Standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -150,7 +150,7 @@ Universal_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
       -  path: .yamato/universal-win-dx12.yml#Build_Universal_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
 Build_Universal_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build Universal on Win_DX12_mono_Linear_Player on version CUSTOM-REVISION
+    name: Build Universal on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable

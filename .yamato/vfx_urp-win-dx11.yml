@@ -27,7 +27,7 @@ VFX_URP_Win_DX11_Standalone_mono_Linear_2020.2:
       -  path: .yamato/vfx_urp-win-dx11.yml#Build_VFX_URP_Win_DX11_Standalone_mono_Linear_2020.2
          rerun: on-new-revision
 Build_VFX_URP_Win_DX11_Standalone_mono_Linear_2020.2:
-    name: Build VFX_URP on Win_DX11_mono_Linear_Player on version 2020.2
+    name: Build VFX_URP on Win_DX11_mono_Linear_Standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -100,7 +100,7 @@ VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
       -  path: .yamato/vfx_urp-win-dx11.yml#Build_VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
 Build_VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build VFX_URP on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
+    name: Build VFX_URP on Win_DX11_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
