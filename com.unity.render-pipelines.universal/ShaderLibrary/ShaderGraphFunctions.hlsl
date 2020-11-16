@@ -57,7 +57,8 @@ float3 shadergraph_LWReflectionProbe(float3 viewDir, float3 normalOS, float lod)
 void shadergraph_LWFog(float3 position, out float4 color, out float density)
 {
     color = unity_FogColor;
-    density = ComputeFogFactor(TransformObjectToHClip(position).z);
+    float z0Far = abs(TransformWorldToView(TransformObjectToWorld(position)).z);
+    density = ComputeFogIntensity(ComputeFogFactorZ0ToFar(z0Far));
 }
 
 // This function assumes the bitangent flip is encoded in tangentWS.w
