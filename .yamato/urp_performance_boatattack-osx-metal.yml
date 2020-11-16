@@ -109,8 +109,8 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_Linear_trunk:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_Linear on version trunk
+URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
+    name: URP_Performance_BoatAttack on OSX_Metal_performance_build_editmode_mono_Linear on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -270,8 +270,8 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always
-URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on OSX_Metal_performance_editmode_build_mono_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on OSX_Metal_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
