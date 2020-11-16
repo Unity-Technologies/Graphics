@@ -684,10 +684,13 @@ namespace UnityEngine.Rendering.Universal
             set { m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize); }
         }
 
+        
+        /// <summary>
+        /// Returns true if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
+        /// </summary>
         public bool useFastSRGBLinearConversion
         {
             get { return m_UseFastSRGBLinearConversion; }
-            set { m_UseFastSRGBLinearConversion = value; }
         }
 
        /// <summary>
