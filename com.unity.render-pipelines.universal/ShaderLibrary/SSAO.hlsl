@@ -19,6 +19,9 @@ half4 _BlurOffset;
 half4 _SSAOParams;
 half4 _SourceSize;
 
+half _KawaseBlurIteration;
+int _LastKawasePass;
+
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
 #define RADIUS _SSAOParams.y
@@ -552,6 +555,23 @@ half KawaseBlurFilter( half2 texCoord, half2 pixelSize, half iteration )
     cOut *= 0.25h;
 
     return cOut;
+}
+
+
+half KawaseBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    half2 uv = input.uv;
+
+    half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
+
+    half col = KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration);
+
+    if (_LastKawasePass)
+        col = 1.0h - col;
+
+    return col;
 }
 
 

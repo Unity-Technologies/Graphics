@@ -173,5 +173,17 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             ENDHLSL
         }
 
+        // 9 - Kawase Blur
+        Pass
+        {
+            Name "SSAO_Kawase"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment KawaseBlur
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
     }
 }
