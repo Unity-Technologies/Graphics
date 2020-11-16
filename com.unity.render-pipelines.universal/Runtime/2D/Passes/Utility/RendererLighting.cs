@@ -172,87 +172,192 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.DrawMesh(lightMesh, matrix, material);
         }
 
-
         private static void RenderLightSet(IRenderPass2D pass, RenderingData renderingData, int blendStyleIndex, CommandBuffer cmd, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
-            foreach (var light in lights)
+            var maxShadowTextureCount = ShadowRendering.maxTextureCount;
+            var requiresRTInit = true;
+
+            // This case should never happen, but if it does it may cause an infinite loop later.
+            if (maxShadowTextureCount < 1)
             {
-                if (light != null &&
-                    light.lightType != Light2D.LightType.Global &&
-                    light.blendStyleIndex == blendStyleIndex &&
-                    light.IsLitLayer(layerToRender))
+                Debug.LogError("maxShadowTextureCount cannot be less than 1");
+                return;
+            }
+
+            // Break up light rendering into batches for the purpose of shadow casting
+            var lightIndex = 0;
+            while(lightIndex < lights.Count)
+            {
+                var remainingLights = (uint)lights.Count - lightIndex;
+                var batchedLights = 0;
+
+                // Add lights to our batch until the number of shadow textures reach the maxShadowTextureCount
+                var shadowLightCount = 0;
+                while (batchedLights < remainingLights && shadowLightCount < maxShadowTextureCount)
                 {
-                    // Render light
-                    var lightMaterial = pass.rendererData.GetLightMaterial(light, false);
-                    if (lightMaterial == null)
-                        continue;
-
-                    var lightMesh = light.lightMesh;
-                    if (lightMesh == null)
-                        continue;
-
-                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowsEnabled ? light.shadowIntensity : 0, renderTexture, renderTexture);
-
-                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                        cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
-
-                    SetGeneralLightShaderGlobals(pass, cmd, light);
-
-                    if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
-                        SetPointLightShaderGlobals(pass, cmd, light);
-
-                    // Light code could be combined...
-                    if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    var light = lights[lightIndex + batchedLights];
+                    if (light.shadowsEnabled && light.shadowIntensity > 0)
                     {
-                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                        ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmd, shadowLightCount);
+                        ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowIntensity);
+                        shadowLightCount++;
                     }
-                    else if (light.lightType == Light2D.LightType.Point)
+                    batchedLights++;
+                }
+
+                // Set the current RT to the light RT
+                if (shadowLightCount > 0 || requiresRTInit)
+                {
+                    cmd.SetRenderTarget(renderTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    requiresRTInit = false;
+                }
+
+                // Render all the lights.
+                shadowLightCount = 0;
+                for (var lightIndexOffset = 0; lightIndexOffset < batchedLights; lightIndexOffset++)
+                {
+                    var light = lights[(int)(lightIndex + lightIndexOffset)];
+
+                    if (light != null &&
+                        light.lightType != Light2D.LightType.Global &&
+                        light.blendStyleIndex == blendStyleIndex &&
+                        light.IsLitLayer(layerToRender))
                     {
-                        DrawPointLight(cmd, light, lightMesh, lightMaterial);
+                        // Render light
+                        var lightMaterial = pass.rendererData.GetLightMaterial(light, false);
+                        if (lightMaterial == null)
+                            continue;
+
+                        var lightMesh = light.lightMesh;
+                        if (lightMesh == null)
+                            continue;
+
+                        // Set the shadow texture to read from
+                        if (light.shadowsEnabled && light.shadowIntensity > 0)
+                            ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowLightCount++);
+                        else
+                            ShadowRendering.DisableGlobalShadowTexture(cmd);
+
+
+                        if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                            cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
+
+                        SetGeneralLightShaderGlobals(pass, cmd, light);
+
+                        if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
+                            SetPointLightShaderGlobals(pass, cmd, light);
+
+                        // Light code could be combined...
+                        if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                        {
+                            cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightMaterial);
+                        }
+                        else if (light.lightType == Light2D.LightType.Point)
+                        {
+                            DrawPointLight(cmd, light, lightMesh, lightMaterial);
+                        }
                     }
                 }
+
+                // Release all of the temporary shadow textures
+                for (var releaseIndex = shadowLightCount-1; releaseIndex >= 0; releaseIndex--)
+                    ShadowRendering.ReleaseShadowRenderTexture(cmd, releaseIndex);
+
+                lightIndex += batchedLights;
             }
         }
 
-        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
+        public static void RenderLightVolumes(this IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmd, int layerToRender, int endLayerValue, RenderTargetIdentifier renderTexture, List<Light2D> lights)
         {
-            for (var i = 0; i < lights.Count; i++)
+            var maxShadowTextureCount = ShadowRendering.maxTextureCount;
+            var requiresRTInit = true;
+
+            // This case should never happen, but if it does it may cause an infinite loop later.
+            if (maxShadowTextureCount < 1)
             {
-                var light = lights[i];
+                Debug.LogError("maxShadowTextureCount cannot be less than 1");
+                return;
+            }
 
-                if (light.lightType == Light2D.LightType.Global)
-                    continue;
+            // Break up light rendering into batches for the purpose of shadow casting
+            var lightIndex = 0;
+            while(lightIndex < lights.Count)
+            {
+                var remainingLights = (uint)lights.Count - lightIndex;
+                var batchedLights = 0;
 
-                if (light.volumeIntensity <= 0.0f || !light.volumeIntensityEnabled)
-                    continue;
-
-                var topMostLayerValue = light.GetTopMostLitLayer();
-                if (endLayerValue == topMostLayerValue) // this implies the layer is correct
+                // Add lights to our batch until the number of shadow textures reach the maxShadowTextureCount
+                var shadowLightCount = 0;
+                while (batchedLights < remainingLights && shadowLightCount < maxShadowTextureCount)
                 {
-                    var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
-                    var lightMesh = light.lightMesh;
-
-                    ShadowRendering.RenderShadows(pass, renderingData, cmd, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
-
-                    if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
-                        cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
-
-                    SetGeneralLightShaderGlobals(pass, cmd, light);
-
-                    // Is this needed
-                    if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
-                        SetPointLightShaderGlobals(pass, cmd, light);
-
-                    // Could be combined...
-                    if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                    var light = lights[lightIndex + batchedLights];
+                    if (light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0)
                     {
-                        cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                        ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmd, shadowLightCount);
+                        ShadowRendering.PrerenderShadows(pass, renderingData, cmd, layerToRender, light, shadowLightCount, light.shadowVolumeIntensity);
+                        shadowLightCount++;
                     }
-                    else if (light.lightType == Light2D.LightType.Point)
+                    batchedLights++;
+                }
+
+                // Set the current RT to the light RT
+                if (shadowLightCount > 0 || requiresRTInit)
+                {
+                    cmd.SetRenderTarget(renderTexture, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                    requiresRTInit = false;
+                }
+
+                // Render all the lights.
+                shadowLightCount = 0;
+                for (var lightIndexOffset = 0; lightIndexOffset < batchedLights; lightIndexOffset++)
+                {
+                    var light = lights[(int)(lightIndex + lightIndexOffset)];
+
+                    if (light.lightType == Light2D.LightType.Global)
+                        continue;
+
+                    if (light.volumeIntensity <= 0.0f || !light.volumeIntensityEnabled)
+                        continue;
+
+                    var topMostLayerValue = light.GetTopMostLitLayer();
+                    if (endLayerValue == topMostLayerValue) // this implies the layer is correct
                     {
-                        DrawPointLight(cmd, light, lightMesh, lightVolumeMaterial);
+                        var lightVolumeMaterial = pass.rendererData.GetLightMaterial(light, true);
+                        var lightMesh = light.lightMesh;
+
+                        // Set the shadow texture to read from
+                        if (light.volumetricShadowsEnabled && light.shadowVolumeIntensity > 0)
+                            ShadowRendering.SetGlobalShadowTexture(cmd, light, shadowLightCount++);
+                        else
+                            ShadowRendering.DisableGlobalShadowTexture(cmd);
+
+                        if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
+                            cmd.SetGlobalTexture(k_CookieTexID, light.lightCookieSprite.texture);
+
+                        SetGeneralLightShaderGlobals(pass, cmd, light);
+
+                        // Is this needed
+                        if (light.normalMapQuality != Light2D.NormalMapQuality.Disabled || light.lightType == Light2D.LightType.Point)
+                            SetPointLightShaderGlobals(pass, cmd, light);
+
+                        // Could be combined...
+                        if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform || light.lightType == Light2D.LightType.Sprite)
+                        {
+                            cmd.DrawMesh(lightMesh, light.transform.localToWorldMatrix, lightVolumeMaterial);
+                        }
+                        else if (light.lightType == Light2D.LightType.Point)
+                        {
+                            DrawPointLight(cmd, light, lightMesh, lightVolumeMaterial);
+                        }
                     }
                 }
+
+
+                // Release all of the temporary shadow textures
+                for (var releaseIndex = shadowLightCount - 1; releaseIndex >= 0; releaseIndex--)
+                    ShadowRendering.ReleaseShadowRenderTexture(cmd, releaseIndex);
+
+                lightIndex += batchedLights;
             }
         }
 

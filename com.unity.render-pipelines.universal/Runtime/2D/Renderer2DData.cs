@@ -54,6 +54,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         uint m_MaxLightRenderTextureCount = 16;
 
+        [SerializeField]
+        uint m_MaxShadowRenderTextureCount = 1;
+
         [SerializeField, Reload("Shaders/2D/Light2D-Shape.shader")]
         Shader m_ShapeLightShader = null;
 
@@ -108,6 +111,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal TransparencySortMode transparencySortMode => m_TransparencySortMode;
         internal Vector3 transparencySortAxis => m_TransparencySortAxis;
         internal uint lightRenderTextureMemoryBudget => m_MaxLightRenderTextureCount;
+        internal uint shadowRenderTextureMemoryBudget => m_MaxShadowRenderTextureCount;
         internal bool useCameraSortingLayerTexture => m_UseCameraSortingLayersTexture;
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
