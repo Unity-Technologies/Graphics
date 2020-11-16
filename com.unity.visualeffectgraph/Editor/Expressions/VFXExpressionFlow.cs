@@ -22,12 +22,6 @@ namespace UnityEditor.VFX
 
         public VFXExpressionCondition(VFXValueType type, VFXCondition cond, VFXExpression left, VFXExpression right) : base(VFXExpression.Flags.None, new VFXExpression[] { left, right })
         {
-            if (type != left.valueType || type != right.valueType)
-                throw new InvalidOperationException(string.Format("Unexpected value type in condition expression : {0}/{1} (expected {2})", left.valueType, right.valueType, type));
-
-            if (type != VFXValueType.Float && type != VFXValueType.Uint32 && type != VFXValueType.Int32)
-                throw new NotImplementedException("This type is not handled by condition expression: " + type);
-
             condition = cond;
             this.type = type;
         }
@@ -92,7 +86,6 @@ namespace UnityEditor.VFX
         {
             var newExpression = (VFXExpressionCondition)base.Reduce(reducedParents);
             newExpression.condition = condition;
-            newExpression.type = type;
             return newExpression;
         }
 
