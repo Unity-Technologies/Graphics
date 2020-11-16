@@ -29,5 +29,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_B , m_APVResources.L1_B);
             }
         }
+
+        private void UpdateShaderVariablesProbeVolumes(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
+        {
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
+                return;
+
+            cb._EnableProbeVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) ? 1u : 0u;
+        }
     }
 }
