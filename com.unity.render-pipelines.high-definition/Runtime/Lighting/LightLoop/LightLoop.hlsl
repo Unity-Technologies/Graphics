@@ -494,14 +494,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #endif
 
 #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
-    bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
-    builtinData.bakeDiffuseLighting = uninitialized ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
+    bool uninitializedGI = IsUninitializedGI(builtinData.bakeDiffuseLighting);
+    builtinData.bakeDiffuseLighting = uninitializedGI ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
 
     // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
     // No need to branch internally on _EnableProbeVolumes uniform.
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
-        if (uninitialized)
+        if (uninitializedGI)
         {
             // Need to make sure not to apply ModifyBakedDiffuseLighting() twice to our bakeDiffuseLighting data, which could happen if we are dealing with initialized data (light maps).
             // Create a local BuiltinData variable here, and then add results to builtinData.bakeDiffuseLighting at the end.
@@ -513,7 +513,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             float3 apvBakeDiffuseLighting = UNINITIALIZED_GI;
             float3 apvBackBakeDiffuseLighting = UNINITIALIZED_GI;
 
-            // TODO: Verify if we want to pass on a specific normal for the back face lighting.
             EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS),
                                         bsdfData.normalWS,
                                         -bsdfData.normalWS,
@@ -535,13 +534,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             #if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
             // If we are deferred we should apply baked AO here as it was already apply for lightmap.
-            // But in deferred ambientOcclusion is white so we should use specularOcclusion instead. It is the
-            // same case than for Microshadow so we can reuse this function. It should not be apply in forward
+            // But in deferred ambientOcclusion is white so we should use specularOcclusion instead. It should not be apply in forward
             // as in this case the baked AO is correctly apply in PostBSDF()
             // This is apply only on bakeDiffuseLighting as ModifyBakedDiffuseLighting combine both bakeDiffuseLighting and backBakeDiffuseLighting
-
-            // TODO: Have a different name for this function, it is very confusing.
-            apvBakeDiffuseLighting *= GetAmbientOcclusionForMicroShadowing(bsdfData);
+            apvBakeDiffuseLighting *= bsdfData.specularOcclusion;
             #endif
 
             ApplyDebugToBuiltinData(apvBuiltinData);
