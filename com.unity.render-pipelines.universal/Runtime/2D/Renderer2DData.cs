@@ -91,9 +91,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [HideInInspector]
         private Texture2D m_FallOffLookup = null;
 
-        internal Material m_BlitMaterial;
-        internal Material m_SamplingMaterial;
-
         public float hdrEmulationScale => m_HDREmulationScale;
         internal float lightRenderTextureScale => m_LightRenderTextureScale;
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
@@ -115,8 +112,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal bool useCameraSortingLayerTexture => m_UseCameraSortingLayersTexture;
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
-        internal Material blitMaterial => m_BlitMaterial;
-        internal Material samplingMaterial => m_SamplingMaterial;
 
         protected override ScriptableRenderer Create()
         {
@@ -133,12 +128,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         protected override void OnEnable()
         {
             base.OnEnable();
-#if UNITY_EDITOR
-            OnEnableInEditor();
-
-            if (!Application.isPlaying)
-                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-#endif
 
             for (var i = 0; i < m_LightBlendStyles.Length; ++i)
             {
@@ -153,9 +142,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 shadowMaterials = new Material[totalMaterials];
             if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
                 removeSelfShadowMaterials = new Material[totalMaterials];
-
-            m_BlitMaterial = CoreUtils.CreateEngineMaterial(blitShader);
-            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(samplingShader);
         }
 
         // transient data
