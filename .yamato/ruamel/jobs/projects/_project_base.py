@@ -8,8 +8,8 @@ from ..shared.yml_job import YMLJob
 def _job(project, test_platform_name, editor, platform, api, cmd, build_config, color_space):
 
     # define name
-    if test_platform_name.lower() == 'standalone_build':
-        job_name = f'Build {project["name"]} on {platform["name"]}_{api["name"]}_{build_config["name"]}_{color_space}_Player on version {editor["name"]}'
+    if test_platform_name.lower().endswith('_build'):
+        job_name = f'Build {project["name"]} on {platform["name"]}_{api["name"]}_{build_config["name"]}_{color_space}_{test_platform_name}_Player on version {editor["name"]}'
     else:
         job_name = f'{project["name"]} on {platform["name"]}_{api["name"]}_{test_platform_name}_{build_config["name"]}_{color_space} on version {editor["name"]}'
 
@@ -30,7 +30,7 @@ def _job(project, test_platform_name, editor, platform, api, cmd, build_config, 
         job.add_artifacts_project_logs(project.get("folder_standalone", project["folder"]))
     else:
         job.add_artifacts_project_logs(project["folder"])
-        
+
 
 
     if not editor['editor_pinning']:
