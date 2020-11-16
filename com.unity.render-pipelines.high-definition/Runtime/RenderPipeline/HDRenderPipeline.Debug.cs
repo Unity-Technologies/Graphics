@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
@@ -513,14 +514,22 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, AOVRequestData aovRequest,
+                                List<RTHandle> aovBuffers)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+
+            GraphicsFormat aovFormat = GraphicsFormat.None;
+            if (aovRequest.isValid)
+            {
+                var index = aovRequest.GetBufferIndex(AOVBuffers.Color);
+                aovFormat = aovBuffers[index].rt.graphicsFormat;
+            }
 
             var output = renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetColorBufferFormat(),
+                    colorFormat = aovRequest.isValid ? aovFormat : GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
                     enableMSAA = msaa,

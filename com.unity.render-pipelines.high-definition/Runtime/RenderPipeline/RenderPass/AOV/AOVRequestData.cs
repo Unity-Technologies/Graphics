@@ -201,6 +201,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal int GetBufferIndex(AOVBuffers aovBufferId)
+        {
+            return Array.IndexOf(m_RequestedAOVBuffers, aovBufferId);
+        }
+
         class PushCameraTexturePassData
         {
             public TextureHandle source;

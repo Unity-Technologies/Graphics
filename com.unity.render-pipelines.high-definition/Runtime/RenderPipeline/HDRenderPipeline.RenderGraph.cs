@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Stop Single Pass is after post process.
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera);
+                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, aovRequest, aovBuffers);
                 colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
