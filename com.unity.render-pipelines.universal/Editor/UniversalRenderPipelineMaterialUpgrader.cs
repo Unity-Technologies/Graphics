@@ -277,6 +277,11 @@ namespace UnityEditor.Rendering.Universal
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
 
+            if (material.IsKeywordEnabled("_ALPHATEST_ON"))
+            {
+                material.SetFloat("_AlphaClip", 1.0f);
+            }
+
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", material.GetTexture("_MetallicGlossMap"));
@@ -309,17 +314,17 @@ namespace UnityEditor.Rendering.Universal
             var legacyRenderingMode = (LegacyRenderingMode)material.GetFloat("_Surface");
             if (legacyRenderingMode == LegacyRenderingMode.Transparent)
             {
-                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Transparent);
-                material.SetInt("_Blend", (int)BaseShaderGUI.BlendMode.Premultiply);
+                material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Transparent);
+                material.SetFloat("_Blend", (float)BaseShaderGUI.BlendMode.Premultiply);
             }
             else if (legacyRenderingMode == LegacyRenderingMode.Fade)
             {
-                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Transparent);
-                material.SetInt("_Blend", (int)BaseShaderGUI.BlendMode.Alpha);
+                material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Transparent);
+                material.SetFloat("_Blend", (float)BaseShaderGUI.BlendMode.Alpha);
             }
             else
             {
-                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Opaque);
+                material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Opaque);
             }
         }
 

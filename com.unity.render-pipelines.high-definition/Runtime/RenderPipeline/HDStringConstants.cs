@@ -162,8 +162,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");
-        public static readonly int g_vProbeVolumesLayeredOffsetsBuffer = Shader.PropertyToID("g_vProbeVolumesLayeredOffsetsBuffer");
-        public static readonly int g_vProbeVolumesLightListGlobal = Shader.PropertyToID("g_vProbeVolumesLightListGlobal");
 
         public static readonly int g_vLayeredOffsetsBuffer = Shader.PropertyToID("g_vLayeredOffsetsBuffer");
 
@@ -851,7 +849,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _MotionBlurParams               = Shader.PropertyToID("_MotionBlurParams0");
         public static readonly int _MotionBlurParams1              = Shader.PropertyToID("_MotionBlurParams1");
         public static readonly int _MotionBlurParams2              = Shader.PropertyToID("_MotionBlurParams2");
+        public static readonly int _MotionBlurParams3              = Shader.PropertyToID("_MotionBlurParams3");
         public static readonly int _PrevVPMatrixNoTranslation      = Shader.PropertyToID("_PrevVPMatrixNoTranslation");
+        public static readonly int _CurrVPMatrixNoTranslation      = Shader.PropertyToID("_CurrVPMatrixNoTranslation");
 
         public static readonly int _SMAAAreaTex                    = Shader.PropertyToID("_AreaTex");
         public static readonly int _SMAASearchTex                  = Shader.PropertyToID("_SearchTex");
