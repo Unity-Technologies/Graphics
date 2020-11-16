@@ -339,13 +339,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool showCascade
         {
-            get => m_CurrentDebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
+            get => m_DebugDisplaySettings.GetDebugLightingMode() == DebugLightingMode.VisualizeCascade;
             set
             {
                 if (value)
-                    m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.VisualizeCascade);
+                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.VisualizeCascade);
                 else
-                    m_CurrentDebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
+                    m_DebugDisplaySettings.SetDebugLightingMode(DebugLightingMode.None);
             }
         }
 
@@ -929,19 +929,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool CheckAPIValidity()
         {
-            GraphicsDeviceType unsupportedDeviceType;
-            if (!IsSupportedPlatform(out unsupportedDeviceType))
+            if (!IsSupportedPlatformAndDevice(out GraphicsDeviceType deviceType))
             {
-                HDUtils.DisplayUnsupportedAPIMessage(unsupportedDeviceType.ToString());
-
-                // Display more information to the users when it should have use Metal instead of OpenGL
-                if (SystemInfo.graphicsDeviceType.ToString().StartsWith("OpenGL"))
-                {
-                    if (SystemInfo.operatingSystem.StartsWith("Mac"))
-                        HDUtils.DisplayUnsupportedMessage("Use Metal API instead.");
-                    else if (SystemInfo.operatingSystem.StartsWith("Windows"))
-                        HDUtils.DisplayUnsupportedMessage("Use Vulkan API instead.");
-                }
+                string msg = HDUtils.GetUnsupportedAPIMessage(deviceType.ToString());
+                HDUtils.DisplayMessageNotification(msg);
 
                 return false;
             }
@@ -949,53 +940,29 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        // Note: If you add new platform in this function, think about adding support when building the player to in HDRPCustomBuildProcessor.cs
-        bool IsSupportedPlatform(out GraphicsDeviceType unsupportedGraphicDevice)
+        // Note: If you add new platform in this function, think about adding support when building the player too in HDRPCustomBuildProcessor.cs
+        bool IsSupportedPlatformAndDevice(out GraphicsDeviceType unsupportedGraphicDevice)
         {
             unsupportedGraphicDevice = SystemInfo.graphicsDeviceType;
 
             if (!SystemInfo.supportsComputeShaders)
+            {
+                HDUtils.DisplayMessageNotification("Current platform / API don't support ComputeShaders which is a requirement.");
                 return false;
+            }
 
             if (!(defaultResources?.shaders.defaultPS?.isSupported ?? true))
+            {
+                HDUtils.DisplayMessageNotification("Unable to compile Default Material based on Lit.shader. Either there is a compile error in Lit.shader or the current platform / API isn't compatible.");
                 return false;
+            }            
 
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
-            // If the build target matches the operating system of the editor
-            if (SystemInfo.operatingSystemFamily == HDUtils.BuildTargetToOperatingSystemFamily(activeBuildTarget))
-            {
-                bool autoAPI = UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(activeBuildTarget);
-
-                // then, there is two configuration possible:
-                if (autoAPI)
-                {
-                    // if the graphic api is chosen automatically, then only the system's graphic device type matters
-                    if (!HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType))
-                        return false;
-                }
-                else
-                {
-                    // otherwise, we need to iterate over every graphic api available in the list to track every non-supported APIs
-                    return HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, out unsupportedGraphicDevice);
-                }
-            }
-            else // if the build target does not match the editor OS, then we have to check using the graphic api list
-            {
-                return HDUtils.AreGraphicsAPIsSupported(activeBuildTarget, out unsupportedGraphicDevice);
-            }
-
-            if (!HDUtils.IsSupportedBuildTarget(activeBuildTarget))
-                return false;
+            return HDUtils.IsSupportedBuildTargetAndDevice(activeBuildTarget, out unsupportedGraphicDevice);
 #else
-            if (!HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType))
-                return false;
+            return HDUtils.IsSupportedGraphicDevice(SystemInfo.graphicsDeviceType) && HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem);
 #endif
-
-            if (!HDUtils.IsOperatingSystemSupported(SystemInfo.operatingSystem))
-                return false;
-
-            return true;
         }
 
         void UnsetRenderingFeatures()
@@ -2547,39 +2514,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderRayTracingPrepass(cullingResults, hdCamera, renderContext, cmd, false);
 
-            // When evaluating probe volumes in material pass, we build a custom probe volume light list.
-            // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
-            // Build probe volumes light list async during depth prepass.
-            // TODO: (Nick): Take a look carefully at data dependancies - could this be moved even earlier? Directly after PrepareVisibleProbeVolumeList?
-            // The probe volume light lists do not depend on any of the framebuffer RTs being cleared - do they depend on anything in PushGlobalParams()?
-            // Do they depend on hdCamera.xr.StartSinglePass()?
-            var buildProbeVolumeLightListTask = new HDGPUAsyncTask("Build probe volume light list", ComputeQueueType.Background);
-
-            // Avoid garbage by explicitely passing parameters to the lambdas
-            var asyncParams = new HDGPUAsyncTaskParams
-            {
-                renderContext = renderContext,
-                hdCamera = hdCamera,
-                frameCount = m_FrameCount,
-            };
-
-            // Currently we only have a single task that could potentially happen asny with depthPrepass.
-            // Keeping this variable here in case additional passes are added.
-            var haveAsyncTaskWithDepthPrepass = false;
-
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
-            {
-                // TODO: (Nick): Should we only build probe volume light lists async of we build standard light lists async? Or should we always build probe volume light lists async?
-                if (hdCamera.frameSettings.BuildLightListRunsAsync())
-                {
-                    buildProbeVolumeLightListTask.Start(cmd, asyncParams, Callback, !haveAsyncTaskWithDepthPrepass);
-
-                    haveAsyncTaskWithDepthPrepass = true;
-
-                    void Callback(CommandBuffer c, HDGPUAsyncTaskParams a)
-                        => BuildGPULightListProbeVolumesCommon(a.hdCamera, c);
-                }
-            }
             // This is always false in forward and if it is true, is equivalent of saying we have a partial depth prepass.
             bool shouldRenderMotionVectorAfterGBuffer = RenderDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
             if (!shouldRenderMotionVectorAfterGBuffer)
@@ -2602,31 +2536,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SharedRTManager.ResolveSharedRT(cmd, hdCamera);
 
             RenderDBuffer(hdCamera, cmd, renderContext, cullingResults);
-
-
-            // When evaluating probe volumes in material pass, we build a custom probe volume light list.
-            // When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
-            {
-                if (hdCamera.frameSettings.BuildLightListRunsAsync())
-                {
-                    buildProbeVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
-
-                    void Callback(CommandBuffer c, HDCamera cam)
-                    {
-                        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                        var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_ProbeVolumeClusterData);
-                        PushProbeVolumeLightListGlobalParams(globalParams, c);
-                    }
-                }
-                else
-                {
-                    BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
-                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
-                    PushProbeVolumeLightListGlobalParams(globalParams, cmd);
-                }
-            }
 
             RenderGBuffer(cullingResults, hdCamera, renderContext, cmd);
 
@@ -2721,6 +2630,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 var volumeVoxelizationTask = new HDGPUAsyncTask("Volumetric voxelization", ComputeQueueType.Background);
                 var SSRTask = new HDGPUAsyncTask("Screen Space Reflection", ComputeQueueType.Background);
                 var SSAOTask = new HDGPUAsyncTask("SSAO", ComputeQueueType.Background);
+
+                // Avoid garbage by explicitely passing parameters to the lambdas
+                var asyncParams = new HDGPUAsyncTaskParams
+                {
+                    renderContext = renderContext,
+                    hdCamera = hdCamera,
+                    frameCount = m_FrameCount,
+                };
 
                 var haveAsyncTaskWithShadows = false;
                 if (hdCamera.frameSettings.BuildLightListRunsAsync())
@@ -2849,7 +2766,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     VolumeVoxelizationPass(hdCamera, cmd, m_FrameCount);
                 }
 
-                GenerateMaxZ(cmd, hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), m_FrameCount);
+                GenerateMaxZ(cmd, hdCamera, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetDepthBufferMipChainInfo(), m_FrameCount);
 
                 // Render the volumetric lighting.
                 // The pass requires the volume properties, the light list and the shadows, and can run async.
@@ -3295,6 +3212,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.xr.enabled)
             {
                 cullingParams = hdCamera.xr.cullingParams;
+
+                // Sync the FOV on the camera to match the projection from the XR device in order to cull shadows accurately
+                if (!camera.usePhysicalProperties)
+                    camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
             }
             else
             {

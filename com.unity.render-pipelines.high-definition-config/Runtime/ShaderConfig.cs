@@ -5,21 +5,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
-    /// Options for the mode HDRP uses to evaluate probe volumes.
-    /// </summary>
-    ///<seealso cref="ShaderOptions"/>
-    [GenerateHLSL(PackingRules.Exact)]
-    public enum ProbeVolumesEvaluationModes
-    {
-        /// <summary>Disables probe volumes.</summary>
-        Disabled = 0,
-        /// <summary>Evaluates probe volumes in the light loop.</summary>
-        LightLoop = 1,
-        /// <summary>Evaluates probe volumes in the material pass.</summary>
-        MaterialPass = 2,
-    }
-
-    /// <summary>
     /// Options for the method HDRP uses to encode probe volumes.
     /// </summary>
     ///<seealso cref="ShaderOptions"/>
@@ -77,15 +62,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // It's functionality is subject to breaking changes and whole sale removal.
         // It is not recommended for use outside of for providing feedback. It should not be used in production.
         // To enable, set:
-        // ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass
+        // EnableProbeVolumes = 1
         // and inside of the editor run:
         // Edit->Render Pipeline->Generate Shader Includes
         // Probe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.
         // Also uncomment in the HDRP package all ".../Experimental/Probe Volume" menu
 
-        /// <summary>The probe volume evaluation mode.</summary>
-        /// <seealso cref = "ProbeVolumesEvaluationModes " />
-        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
+        /// <summary>Whether probe volumes are enabled.</summary>
+        EnableProbeVolumes = 0, 
         /// <summary>Probe volume supports additive blending.</summary>
         ProbeVolumesAdditiveBlending = 1,
         /// <summary>The probe volume filtering mode.</summary>
@@ -127,9 +111,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Indicates whether to precompute atmosphere attenuation for the directional light on the CPU.</summary>
         ///<seealso cref="ShaderOptions.PrecomputedAtmosphericAttenuation"/>
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
-        /// <summary>Specifies the probe volume evaluation mode.</summary>
-        ///<seealso cref="ShaderOptions.ProbeVolumesEvaluationMode"/>
-        public static ProbeVolumesEvaluationModes s_ProbeVolumesEvaluationMode = (ProbeVolumesEvaluationModes)ShaderOptions.ProbeVolumesEvaluationMode;
+
+        /// <summary>Whether probe volumes are enabled.</summary>
+        public static int s_EnableProbeVolumes = (int)ShaderOptions.EnableProbeVolumes;
         /// <summary>Indicates whether probe volumes support additive blending.</summary>
         ///<seealso cref="ShaderOptions.ProbeVolumesAdditiveBlending"/>
         public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;

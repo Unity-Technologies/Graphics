@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightingBuffers.screenspaceShadowBuffer = RenderScreenSpaceShadows(m_RenderGraph, hdCamera, prepassOutput, prepassOutput.depthBuffer, prepassOutput.normalBuffer, prepassOutput.motionVectorsBuffer, rayCountTexture);
 
-                var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, m_DepthBufferMipChainInfo, m_FrameCount);
+                var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, m_DepthBufferMipChainInfo, m_FrameCount);
 
                 var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult, m_FrameCount);
 

@@ -3,6 +3,7 @@ using UnityEditorInternal;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
@@ -160,7 +161,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public static void FadingOptions(Material material, MaterialEditor materialEditor, ParticleProperties properties)
         {
             // Z write doesn't work with fading
-            bool hasZWrite = (material.GetInt("_ZWrite") != 0);
+            bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
             if(!hasZWrite)
             {
                 // Soft Particles
@@ -178,6 +179,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                     if (enabled >= 0.5f)
                     {
+                        UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
+                        if (urpAsset != null && !urpAsset.supportsCameraDepthTexture)
+                        {
+                            GUIStyle warnStyle = new GUIStyle(GUI.skin.label);
+                            warnStyle.fontStyle = FontStyle.BoldAndItalic;
+                            warnStyle.wordWrap = true;
+                            EditorGUILayout.HelpBox("Soft Particles require depth texture. Please enable \"Depth Texture\" in the Universal Render Pipeline settings.", MessageType.Warning);
+                        }
+
                         EditorGUI.indentLevel++;
                         BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Surface Fade"),
                             properties.softParticlesNearFadeDistance,
@@ -369,7 +379,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             // Is the material transparent, this is set in BaseShaderGUI
             bool isTransparent = material.GetTag("RenderType", false) == "Transparent";
             // Z write doesn't work with distortion/fading
-            bool hasZWrite = (material.GetInt("_ZWrite") != 0);
+            bool hasZWrite = (material.GetFloat("_ZWrite") > 0.0f);
 
             // Flipbook blending
             if (material.HasProperty("_FlipbookBlending"))
