@@ -55,6 +55,7 @@ platforms:
   - name: Win
     apis:
       - name: DX11
+      - name: Vulkan
     build_configs:
       - name: mono
     color_spaces:
