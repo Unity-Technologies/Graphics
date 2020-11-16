@@ -84,11 +84,11 @@ namespace UnityEditor.VFX
 
             private bool ShouldEvaluate(VFXExpression exp, VFXExpression[] reducedParents)
             {
-                //Apply first reduction, flag could change depending on parent after reduction (e.g.: PerElement removed)
-                exp = exp.Reduce(reducedParents);
-
                 if (!HasAny(VFXExpressionContextOption.Reduction | VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding))
                     return false;
+
+                //Apply first reduction, flag could change depending on parent after reduction (e.g.: PerElement removed)
+                exp = exp.Reduce(reducedParents);
 
                 if (exp.IsAny(Flags.NotCompilableOnCPU))
                     return false;
