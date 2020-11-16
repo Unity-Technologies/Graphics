@@ -43,8 +43,8 @@ test_platforms:
     name: performance_editmode_build
     is_performance: True
     utr_flags:
-      - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=Build
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Build;Low;Medium
+      - [all]: --testfilter=Build
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low --testfilter=Medium
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
