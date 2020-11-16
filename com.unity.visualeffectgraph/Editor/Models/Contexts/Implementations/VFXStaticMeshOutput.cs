@@ -262,6 +262,8 @@ namespace UnityEditor.VFX
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
 
             ResyncSlots(true);
+
+            Invalidate(InvalidationCause.kUIChangedTransient);
         }
     }
 }
