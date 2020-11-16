@@ -13,6 +13,8 @@ To add a **Diffusion Profile Override** to a Volume:
 
 ![](Images\Override-DiffusionProfile1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | **Property**                               | **Description**                                              |
 | ------------------------------------------ | ------------------------------------------------------------ |
 | **Diffusion Profile List**                 | Assign a Diffusion Profile to each field to create a list of Diffusion Profiles that Materials in this Volume can use. Click the plus icon to add another field. To remove a Diffusion Profile from the list, select it in the list and click the minus icon. |
