@@ -574,6 +574,25 @@ half KawaseBlur(Varyings input) : SV_Target
     return col;
 }
 
+half DualKawaseBlur(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    half2 uv = input.uv;
+
+    half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
+
+    half col = KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration);
+
+    col += KawaseBlurFilter(uv, texelSize, _KawaseBlurIteration * 2.0 + 1.0);
+    col *= 0.5h;
+
+    if (_LastKawasePass)
+        col = 1.0h - col;
+
+    return col;
+}
+
 
 
 #endif //UNIVERSAL_SSAO_INCLUDED

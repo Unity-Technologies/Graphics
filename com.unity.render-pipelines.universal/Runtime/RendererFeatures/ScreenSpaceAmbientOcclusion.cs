@@ -37,7 +37,8 @@ namespace UnityEngine.Rendering.Universal
         {
             Bilateral,
             Gaussian,
-            Kawase
+            Kawase,
+            DualKawase
         }
     }
 
@@ -184,6 +185,7 @@ namespace UnityEngine.Rendering.Universal
                 BlurHorizontalVerticalGaussian = 7,
                 Upsample = 8,
                 KawaseBlur = 9,
+                DualKawaseBlur = 10,
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -277,9 +279,7 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.colorFormat = RenderTextureFormat.ARGB32;
                 cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Bilinear);
 
-                bool useRedComponentOnly =
-                    m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Gaussian ||
-                    m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Kawase;
+                bool useRedComponentOnly = m_CurrentSettings.BlurType > ScreenSpaceAmbientOcclusionSettings.BlurTypes.Bilateral;
 
                 m_Descriptor.colorFormat = useRedComponentOnly ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
@@ -323,14 +323,15 @@ namespace UnityEngine.Rendering.Universal
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
-                    if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Kawase)
+                    if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Kawase || m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.DualKawase)
                     {
+                        ShaderPasses shaderPass = (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Kawase) ? ShaderPasses.KawaseBlur : ShaderPasses.DualKawaseBlur;
                         if (m_CurrentSettings.SinglePassBlur)
                         {
                             cmd.SetGlobalInt(s_LastKawasePass, 1);
                             cmd.SetGlobalFloat(s_KawaseBlurIterationID, 0);
 
-                            RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, ShaderPasses.KawaseBlur);
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture2Target, shaderPass);
                         }
                         else
                         {
@@ -339,12 +340,12 @@ namespace UnityEngine.Rendering.Universal
                             cmd.SetGlobalInt(s_LastKawasePass, 0);
                             cmd.SetGlobalFloat(s_KawaseBlurIterationID, 0);
 
-                            RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture3Target, ShaderPasses.KawaseBlur);
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture3Target, shaderPass);
 
                             cmd.SetGlobalFloat(s_KawaseBlurIterationID, 1);
                             cmd.SetGlobalInt(s_LastKawasePass, 1);
 
-                            RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, ShaderPasses.KawaseBlur);
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture3Target, m_SSAOTexture2Target, shaderPass);
                         }
                     }
                     else if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Gaussian)
