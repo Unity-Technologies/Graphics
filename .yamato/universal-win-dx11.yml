@@ -147,7 +147,7 @@ Universal_Win_DX11_Standalone_XR_mono_Linear_trunk:
       -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Standalone_XR_mono_Linear_trunk
          rerun: on-new-revision
 Build_Universal_Win_DX11_Standalone_XR_mono_Linear_trunk:
-    name: Build Universal on Win_DX11_mono_Linear_Player on version trunk
+    name: Build Universal on Win_DX11_mono_Linear_Standalone_XR_build_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -335,7 +335,7 @@ Universal_Win_DX11_Standalone_XR_mono_Linear_CUSTOM-REVISION:
       -  path: .yamato/universal-win-dx11.yml#Build_Universal_Win_DX11_Standalone_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
 Build_Universal_Win_DX11_Standalone_XR_mono_Linear_CUSTOM-REVISION:
-    name: Build Universal on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
+    name: Build Universal on Win_DX11_mono_Linear_Standalone_XR_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
