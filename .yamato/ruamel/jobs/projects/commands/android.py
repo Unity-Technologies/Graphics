@@ -14,17 +14,13 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
-        f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
-        f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
-        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
          set /p GIT_REVISIONDATE=<revdate.tmp
          echo %GIT_REVISIONDATE%
          del revdate.tmp
-        utr {" ".join(utr_args)}'''),
-        f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
+         utr {" ".join(utr_args)}''')
         ]
     
     extra_cmds = extra_perf_cmd(project_folder)
