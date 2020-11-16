@@ -285,6 +285,9 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
+        /// <summary>
+        /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
+        /// </summary>
         public bool useFastSRGBLinearConversion;
     }
 
