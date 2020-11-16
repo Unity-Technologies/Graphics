@@ -34,12 +34,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly ProfilingSampler m_ProfilingDrawLayerBatch = new ProfilingSampler("Draw Layer Batch");
         private static readonly ProfilingSampler m_ProfilingSamplerUnlit = new ProfilingSampler("Render Unlit");
 
+        Material m_BlitMaterial;
+        Material m_SamplingMaterial;
+
         private readonly Renderer2DData m_Renderer2DData;
+        
         private bool m_HasValidDepth;
 
-        public Render2DLightingPass(Renderer2DData rendererData)
+        public Render2DLightingPass(Renderer2DData rendererData, Material blitMaterial, Material samplingMaterial)
         {
             m_Renderer2DData = rendererData;
+            m_BlitMaterial = blitMaterial;
+            m_SamplingMaterial = samplingMaterial;
         }
 
         internal void Setup(bool hasValidDepth)
@@ -79,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmd.Clear();
             this.CreateCameraSortingLayerRenderTexture(renderingData, cmd, m_Renderer2DData.cameraSortingLayerDownsamplingMethod);
 
-            Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_Renderer2DData.samplingMaterial : m_Renderer2DData.blitMaterial;
+            Material copyMaterial = m_Renderer2DData.cameraSortingLayerDownsamplingMethod == Downsampling._4xBox ? m_SamplingMaterial : m_BlitMaterial;
             RenderingUtils.Blit(cmd, colorAttachment, m_Renderer2DData.cameraSortingLayerRenderTarget.id, copyMaterial, 0, false, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
             cmd.SetRenderTarget(colorAttachment);
             cmd.SetGlobalTexture(k_CameraSortingLayerTextureID, m_Renderer2DData.cameraSortingLayerRenderTarget.id);
