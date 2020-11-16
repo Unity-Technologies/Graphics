@@ -136,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var height = (int)(renderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
             var descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.graphicsFormat = GetRenderTextureFormat();
+            descriptor.graphicsFormat = renderingData.cameraData.cameraTargetDescriptor.graphicsFormat;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
