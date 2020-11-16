@@ -18,7 +18,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent transparencySortAxis = EditorGUIUtility.TrTextContent("Transparency Sort Axis", "Axis used for custom axis sorting mode");
             public static readonly GUIContent hdrEmulationScale = EditorGUIUtility.TrTextContent("HDR Emulation Scale", "Describes the scaling used by lighting to remap dynamic range between LDR and HDR");
             public static readonly GUIContent lightRTScale = EditorGUIUtility.TrTextContent("Render Scale", "The resolution of intermediate light render textures, in relation to the screen resolution. 1.0 means full-screen size.");
-            public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Render Textures", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
+            public static readonly GUIContent maxLightRTCount = EditorGUIUtility.TrTextContent("Max Light Render Textures", "How many intermediate light render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
+            public static readonly GUIContent maxShadowRTCount = EditorGUIUtility.TrTextContent("Max Shadow Render Textures", "How many intermediate shadow render textures can be created and utilized concurrently. Higher value usually leads to better performance on mobile hardware at the cost of more memory.");
             public static readonly GUIContent defaultMaterialType = EditorGUIUtility.TrTextContent("Default Material Type", "Material to use when adding new objects to a scene");
             public static readonly GUIContent defaultCustomMaterial = EditorGUIUtility.TrTextContent("Default Custom Material", "Material to use when adding new objects to a scene");
 
@@ -31,9 +32,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
 
             public static readonly GUIContent enableBatching = EditorGUIUtility.TrTextContent("Enable Light Batching", "Enable Batching for Shape / Parametric Lights.");
-
-            public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
-            public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Camera Sorting Layers Downsampling Method", "Method used to copy _CameraSortingLayersTexture");
+            public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
+            public static readonly GUIContent cameraSortingLayerTextureBound = EditorGUIUtility.TrTextContent("Bound", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
+            public static readonly GUIContent cameraSortingLayerDownsampling = EditorGUIUtility.TrTextContent("Downsampling Method", "Method used to copy _CameraSortingLayersTexture");
         }
 
         struct LightBlendStyleProps
@@ -55,8 +56,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SerializedProperty m_DefaultMaterialType;
         SerializedProperty m_DefaultCustomMaterial;
         SerializedProperty m_MaxLightRenderTextureCount;
-        SerializedProperty m_EnableBatchingProp;
+        SerializedProperty m_MaxShadowRenderTextureCount;
 
+        SerializedProperty m_EnableBatchingProp;
         SerializedProperty m_UseCameraSortingLayersTexture;
         SerializedProperty m_CameraSortingLayersTextureBound;
         SerializedProperty m_CameraSortingLayerDownsamplingMethod;
@@ -64,6 +66,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
         SavedBool m_GeneralFoldout;
         SavedBool m_LightRenderTexturesFoldout;
         SavedBool m_LightBlendStylesFoldout;
+        SavedBool m_CameraSortingLayerTextureFoldout;
 
         Analytics.Renderer2DAnalytics m_Analytics = Analytics.Renderer2DAnalytics.instance;
         Renderer2DData m_Renderer2DData;
@@ -93,8 +96,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_LightRenderTextureScale = serializedObject.FindProperty("m_LightRenderTextureScale");
             m_LightBlendStyles = serializedObject.FindProperty("m_LightBlendStyles");
             m_MaxLightRenderTextureCount = serializedObject.FindProperty("m_MaxLightRenderTextureCount");
-            m_EnableBatchingProp = serializedObject.FindProperty("m_EnableBatching");
+            m_MaxShadowRenderTextureCount = serializedObject.FindProperty("m_MaxShadowRenderTextureCount");
 
+            m_EnableBatchingProp = serializedObject.FindProperty("m_EnableBatching");
             m_CameraSortingLayersTextureBound = serializedObject.FindProperty("m_CameraSortingLayersTextureBound");
             m_UseCameraSortingLayersTexture = serializedObject.FindProperty("m_UseCameraSortingLayersTexture");
             m_CameraSortingLayerDownsamplingMethod = serializedObject.FindProperty("m_CameraSortingLayerDownsamplingMethod");
@@ -126,6 +130,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_GeneralFoldout = new SavedBool($"{target.GetType()}.GeneralFoldout", true);
             m_LightRenderTexturesFoldout = new SavedBool($"{target.GetType()}.LightRenderTexturesFoldout", true);
             m_LightBlendStylesFoldout = new SavedBool($"{target.GetType()}.LightBlendStylesFoldout", true);
+            m_CameraSortingLayerTextureFoldout = new SavedBool($"{target.GetType()}.CameraSortingLayerTextureFoldout", true);
         }
 
         private void OnDestroy()
@@ -148,6 +153,11 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         public void DrawCameraSortingLayerTexture()
         {
+            CoreEditorUtils.DrawSplitter();
+            m_CameraSortingLayerTextureFoldout.value = CoreEditorUtils.DrawHeaderFoldout(Styles.cameraSortingLayerTextureHeader, m_CameraSortingLayerTextureFoldout.value);
+            if (!m_CameraSortingLayerTextureFoldout.value)
+                return;
+
             SortingLayer[] sortingLayers = SortingLayer.layers;
             string[] optionNames = new string[sortingLayers.Length + 1];
             int[] optionIds = new int[sortingLayers.Length + 1];
@@ -211,6 +221,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             EditorGUILayout.PropertyField(m_LightRenderTextureScale, Styles.lightRTScale);
             EditorGUILayout.PropertyField(m_MaxLightRenderTextureCount, Styles.maxLightRTCount);
+            EditorGUILayout.PropertyField(m_MaxShadowRenderTextureCount, Styles.maxShadowRTCount);
 
             EditorGUILayout.Space();
         }

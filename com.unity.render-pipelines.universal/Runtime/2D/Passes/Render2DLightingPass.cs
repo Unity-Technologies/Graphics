@@ -215,8 +215,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         {
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);
-                            
-                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, depthAttachment, m_Renderer2DData.lightCullResult.visibleLights, m_Renderer2DData.enableBatching);
+
+                            this.RenderLightVolumes(renderingData, cmd, layerBatch.startLayerID, layerBatch.endLayerValue, colorAttachment, m_Renderer2DData.lightCullResult.visibleLights, m_Renderer2DData.enableBatching);
 
                             cmd.EndSample(sampleName);
                         }
@@ -252,6 +252,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             filterSettings.sortingLayerRange = SortingLayerRange.all;
 
             LayerUtility.InitializeBudget(m_Renderer2DData.lightRenderTextureMemoryBudget);
+            ShadowRendering.InitializeBudget(m_Renderer2DData.shadowRenderTextureMemoryBudget);
 
             var isSceneLit = m_Renderer2DData.lightCullResult.IsSceneLit();
             if (isSceneLit)

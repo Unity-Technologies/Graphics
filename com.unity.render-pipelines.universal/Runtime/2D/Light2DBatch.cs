@@ -90,7 +90,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (mesh) mesh.Clear();
                     s_MeshPool.RemoveAt(s_MeshPool.Count - 1);
                 }
-                mesh ??= new Mesh();
+                if (!mesh)
+                    mesh = new Mesh();
                 
                 Combine(mesh, s_ActiveMeshes);
                 s_BatchMeshes.Add(s_ActiveBatchHash, mesh);
