@@ -40,7 +40,7 @@ test_platforms:
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
   - type: editmode
-    name: performance_editmode_build
+    name: performance_build_editmode
     is_performance: True
     utr_flags:
       - [all]: --testfilter=Build
@@ -65,6 +65,19 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+      performance_build_editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
   - name: Android
     apis: 
       - name: Vulkan
@@ -77,6 +90,19 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
   - name: iPhone
     apis: 
       - name: Metal
@@ -96,7 +122,7 @@ platforms:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
         flavor: b1.large
-      performance_editmode_build:
+      performance_build_editmode:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
         flavor: b1.large
@@ -116,25 +142,25 @@ all:
       test_platforms:
         - performance_playmode_runtime
         - performance_playmode_editor
-        - performance_editmode_build
+        - performance_build_editmode
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
+        - performance_build_editmode
     - platform: Android
       api: Vulkan
       build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
+        - performance_build_editmode
     - platform: iPhone
       api: Metal
       build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
+        - performance_build_editmode

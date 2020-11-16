@@ -40,7 +40,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
 Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_Player on version trunk
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -91,10 +91,10 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
         players:
             paths:
               -  "players/**"
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_trunk:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_Linear on version trunk
+URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::VM
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -127,18 +127,14 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Line
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-      -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
-                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --artifacts_path=test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter="Low;Medium" --testproject=./TestProjects/BoatAttack
-      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+                  utr --artifacts_path=test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter="Low;Medium" --testproject=./TestProjects/BoatAttack
     artifacts:
         logs:
             paths:
@@ -180,7 +176,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
       -  path: .yamato/urp_performance_boatattack-android-vulkan.yml#Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
 Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_Player on version CUSTOM-REVISION
+    name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -235,10 +231,10 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on Android_Vulkan_performance_editmode_build_il2cpp_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on Android_Vulkan_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::VM
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -272,18 +268,14 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Line
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
-      -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  |5-
 
-                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --artifacts_path=test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter="Low;Medium" --testproject=./TestProjects/BoatAttack
-      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+                  utr --artifacts_path=test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=Android --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter="Low;Medium" --testproject=./TestProjects/BoatAttack
     artifacts:
         logs:
             paths:
