@@ -499,10 +499,8 @@ namespace UnityEditor.Rendering.Universal
                 {
                     // Need to add the undo to the removal of our assets here, for it to work properly.
                     Undo.RecordObject(target, $"Deleting renderer at index {li.index}");
-                    li.serializedProperty.DeleteArrayElementAtIndex(li.index);
-                    UpdateDefaultRendererValue(li.index);
-
                     prop.DeleteArrayElementAtIndex(li.index);
+                    UpdateDefaultRendererValue(li.index);
                 }
                 else
                 {
