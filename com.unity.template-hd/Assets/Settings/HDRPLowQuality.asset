@@ -426,9 +426,9 @@ MonoBehaviour:
       RTRDenoiserRadius: 080000000c00000010000000
       Fog_ControlMode: 000000000000000000000000
       Fog_Budget:
-      - 0.166
-      - 0.33
-      - 0.666
+      - 0.125
+      - 0.25
+      - 0.5
       Fog_DepthRatio:
       - 0.5
       - 0.5

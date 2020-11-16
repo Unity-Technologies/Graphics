@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 1481.7754, g: 1835.8867, b: 2430.4492, a: 1}
+  m_IndirectSpecularColor: {r: 1481.7451, g: 1835.5391, b: 2429.8105, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -12107,7 +12107,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1086288951
 Transform:
   m_ObjectHideFlags: 0
@@ -17446,7 +17446,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1594496557}
-  m_LocalRotation: {x: 0.6436562, y: -0.04042318, z: 0.03855325, w: 0.76327336}
+  m_LocalRotation: {x: 0.5467588, y: -0.034337785, z: 0.03274936, w: 0.67033553}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -17657,7 +17657,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 45.615536
+  m_FocalLength: 40
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -17666,7 +17666,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 29.477518
+  field of view: 61.927517
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -24195,7 +24195,7 @@ MonoBehaviour:
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
-    m_Aperture: 2
+    m_Aperture: 1
     m_BladeCount: 9
     m_Curvature: {x: 2, y: 11}
     m_BarrelClipping: 0.25
@@ -24254,7 +24254,7 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 40
+  m_FocalLength: 40.400005
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -24263,7 +24263,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 33.39849
+  field of view: 67.380135
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -24288,7 +24288,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922889286}
-  m_LocalRotation: {x: 0.7421897, y: -0.04661129, z: 0.044455145, w: -0.6670874}
+  m_LocalRotation: {x: 0.6347848, y: -0.039866008, z: 0.038021885, w: 0.7071067}
   m_LocalPosition: {x: -3.4893818, y: 3.7002506, z: -6.505281}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -24917,23 +24917,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7309198494485904026, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9633659
+      value: 0.9858665
       objectReference: {fileID: 0}
     - target: {fileID: 7309198494485904026, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.26819053
+      value: 0.16753308
       objectReference: {fileID: 0}
     - target: {fileID: 7309198494485904026, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.0000000018626451
+      value: -0.0000000018626449
       objectReference: {fileID: 0}
     - target: {fileID: 7309198494485904026, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0.0000000074505797
       objectReference: {fileID: 0}
     - target: {fileID: 7309198494485904026, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 31.113
+      value: 19.289
       objectReference: {fileID: 0}
     - target: {fileID: 7533444171772566442, guid: d3c98eda0dc408d43a20cce4541da78f, type: 3}
       propertyPath: m_StaticEditorFlags
