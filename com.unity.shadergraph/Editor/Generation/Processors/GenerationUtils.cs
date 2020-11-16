@@ -796,15 +796,19 @@ namespace UnityEditor.ShaderGraph
             using (surfaceDescriptionFunction.BlockScope())
             {
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
+                surfaceDescriptionFunction.AppendLine("$variables");
+                VariableRegistry variableRegistry = new VariableRegistry(new ShaderStringBuilder(1));
                 for(int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, variableRegistry, surfaceDescriptionFunction,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
 
+                variableRegistry.builder.currentNode = null;
                 functionRegistry.builder.currentNode = null;
                 surfaceDescriptionFunction.currentNode = null;
+                surfaceDescriptionFunction.ReplaceEverywhere("$variables", variableRegistry.builder.ToString());
 
                 GenerateSurfaceDescriptionRemap(graph, rootNode, slots,
                     surfaceDescriptionFunction, mode);
@@ -826,12 +830,27 @@ namespace UnityEditor.ShaderGraph
             AbstractMaterialNode activeNode,
             List<int> keywordPermutations,
             FunctionRegistry functionRegistry,
+            VariableRegistry variableRegistry,
             ShaderStringBuilder descriptionFunction,
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
             GraphData graph,
             GenerationMode mode)
         {
+
+            if(activeNode is IGeneratesVariables variablesNode)
+            {
+                if(keywordPermutations != null)
+                    descriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationSetConditional(keywordPermutations));
+
+                variableRegistry.builder.currentNode = activeNode;
+                variablesNode.GenerateNodeVariables(variableRegistry, mode);
+                variableRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
+
+                if(keywordPermutations != null)
+                    descriptionFunction.AppendLine("#endif");
+            }
+
             if (activeNode is IGeneratesFunction functionNode)
             {
                 functionRegistry.builder.currentNode = activeNode;
@@ -963,15 +982,19 @@ namespace UnityEditor.ShaderGraph
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
+                builder.AppendLine("$variables");
+                VariableRegistry variableRegistry = new VariableRegistry(new ShaderStringBuilder(1));
                 for(int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, variableRegistry, builder,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
 
+                variableRegistry.builder.currentNode = null;
                 functionRegistry.builder.currentNode = null;
                 builder.currentNode = null;
+                builder.ReplaceEverywhere("$variables", variableRegistry.builder.ToString());
 
                 if(slots.Count != 0)
                 {
