@@ -68,7 +68,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42ef2681fa3dc8c4fa031f044e68c63f, type: 3}
   m_Name: GlobalIllumination
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   m_AdvancedMode: 0
   quality:
     m_OverrideState: 1
@@ -96,7 +96,7 @@ MonoBehaviour:
     max: 8
   rayTracing:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   layerMask:
     m_OverrideState: 0
     m_Value:
@@ -261,6 +261,7 @@ MonoBehaviour:
   - {fileID: -3884635811236973832}
   - {fileID: -6382068893477564681}
   - {fileID: 2902098638182066567}
+  - {fileID: 8152162069762170485}
 --- !u!114 &613563888497867621
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -390,3 +391,45 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1000
     min: 0.01
+--- !u!114 &8152162069762170485
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31394aa05878563408489d5c1688f3a0, type: 3}
+  m_Name: PathTracing
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  enable:
+    m_OverrideState: 1
+    m_Value: 0
+  layerMask:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Bits: 4294967295
+  maximumSamples:
+    m_OverrideState: 1
+    m_Value: 2048
+    min: 1
+    max: 4096
+  minimumDepth:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 1
+    max: 10
+  maximumDepth:
+    m_OverrideState: 1
+    m_Value: 10
+    min: 1
+    max: 10
+  maximumIntensity:
+    m_OverrideState: 1
+    m_Value: 50
+    min: 0
+    max: 100
