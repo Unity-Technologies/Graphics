@@ -86,6 +86,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [FormerlySerializedAs("m_PointLightQuality")]
         [SerializeField] NormalMapQuality m_NormalMapQuality = NormalMapQuality.Disabled;
 
+        [SerializeField] bool m_UseNormalMap = false;   // This is now deprecated. Keep it here for backwards compatibility.
+
         [SerializeField] bool m_ShadowIntensityEnabled = false;
         [Range(0, 1)]
         [SerializeField] float m_ShadowIntensity = 0.75f;
@@ -286,6 +288,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
+            if (!m_UseNormalMap && m_NormalMapQuality != NormalMapQuality.Disabled)
+                m_NormalMapQuality = NormalMapQuality.Disabled;
+
             UpdateMesh(!hasCachedMesh);
             if (hasCachedMesh)
             {
