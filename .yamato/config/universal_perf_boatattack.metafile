@@ -100,6 +100,13 @@ platforms:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
         flavor: b1.large
+  - name: OSX
+    apis:
+      - name: Metal
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
