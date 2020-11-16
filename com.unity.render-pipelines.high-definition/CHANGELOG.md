@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed issue in Material Postprocess which may fail due to empty SubAsset.
 - Fixed a null ref exception when baking reflection probes.
+- Fixed TAA issue and hardware dynamic resolution.
+- Fixed an issue where look dev lighting would go black when a new scene is loaded.
 
 ## [8.2.0] - 2020-07-08
 

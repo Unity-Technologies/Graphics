@@ -33,6 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LookDevVolumeProfileHash = newHashCode;
 
                 VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
+                profile.hideFlags = HideFlags.HideAndDontSave;
                 volume.sharedProfile = profile;
 
                 // Remove potentially existing components in the user profile.
@@ -237,6 +238,12 @@ namespace UnityEngine.Rendering.HighDefinition
             data.additionalLightData.intensity = 0f;
             data.additionalCameraData.backgroundColorHDR = oldBackgroundColor;
             data.additionalCameraData.clearColorMode = oldClearMode;
+        }
+
+        void IDataProvider.Cleanup(StageRuntimeInterface SRI)
+        {
+            LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+            CoreUtils.Destroy(data.volume.sharedProfile);
         }
     }
 }
