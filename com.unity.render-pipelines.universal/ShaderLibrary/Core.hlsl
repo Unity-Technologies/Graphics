@@ -39,7 +39,7 @@
 
 
 #if UNITY_REVERSED_Z
-    #if SHADER_API_OPENGL || SHADER_API_GLES || SHADER_API_GLES3
+    #if SHADER_API_GLCORE || SHADER_API_GLES || SHADER_API_GLES3
         //GL with reversed z => z clip range is [near, -far] -> remapping to [0, far]
         #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max((coord - _ProjectionParams.y)/(-_ProjectionParams.z-_ProjectionParams.y)*_ProjectionParams.z, 0)
     #else
