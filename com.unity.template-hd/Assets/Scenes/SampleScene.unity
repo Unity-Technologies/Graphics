@@ -11839,7 +11839,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isGlobal: 1
-  priority: 1
+  priority: 1000
   blendDistance: 0
   weight: 1
   sharedProfile: {fileID: 11400000, guid: c0ac2d244d5db184bbeb274a3d277bf1, type: 2}
@@ -16752,7 +16752,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -54.41275, z: 0}
+    textureOffset: {x: -0, y: -8.6688595, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
