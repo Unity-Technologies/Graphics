@@ -409,7 +409,7 @@ namespace UnityEngine.Rendering.Universal
                     requiresDepthPrepass = false;
                     generateColorGradingLUT = false;
                     copyColorPass = false;
-                    copyDepthPass = false;
+                    requiresDepthCopyPass = false;
                 }
             }
 
