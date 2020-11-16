@@ -5,9 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [8.3.1] - 2020-07-23
-
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 
 ## [8.2.0] - 2020-07-08
 
@@ -134,7 +133,6 @@ The version number for this package has increased due to a version update of a r
 - Fix yamato error : check vfx manager on domain reload instead of vfx import.
 - Filter out unrelevant events from event desc while compiling
 - Missing Packing.hlsl include while using an unlit shadergraph.
-- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added
