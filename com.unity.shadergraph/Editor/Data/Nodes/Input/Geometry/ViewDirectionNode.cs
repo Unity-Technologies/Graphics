@@ -56,17 +56,6 @@ namespace UnityEditor.ShaderGraph
             switch (sgVersion)
             {
                 case 0:
-                    if(generationMode == GenerationMode.Preview)
-                    {
-                        registry.ProvideFunction(functionName, s =>
-                        {
-                            s.AppendLine("$precision3 {0} ($precision3 In)", functionName);
-                            using (s.BlockScope())
-                            {
-                                s.AppendLine("return normalize(In);");
-                            }
-                        });
-                    }
                     break;
                 case 1:
                 default:
@@ -91,17 +80,6 @@ namespace UnityEditor.ShaderGraph
             switch (sgVersion)
             {
                 case 0:
-                    if(generationMode == GenerationMode.Preview)
-                    {
-                        registry.ProvideVariable(GetVariableName(), s =>
-                        {
-                            s.AppendLine("$precision3 {0} = {1}(IN.{2});",
-                                GetVariableName(),
-                                functionName,
-                                space.ToVariableName(InterpolatorType.ViewDirection)
-                                );
-                        });
-                    }
                     break;
                 case 1:
                 default:
