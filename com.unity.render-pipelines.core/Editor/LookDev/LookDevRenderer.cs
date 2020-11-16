@@ -30,7 +30,6 @@ namespace UnityEditor.Rendering.LookDev
                 return;
             disposed = true;
 
-            stage?.Dispose();
             stage = null;
             updater = null;
             output?.Release();
