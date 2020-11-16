@@ -18,13 +18,11 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
-        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
          set /p GIT_REVISIONDATE=<revdate.tmp
          echo %GIT_REVISIONDATE%
          del revdate.tmp
-        utr {" ".join(utr_args)}'''),
-        f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
+         utr {" ".join(utr_args)}''')
         ]
     
     extra_cmds = extra_perf_cmd(project_folder)
