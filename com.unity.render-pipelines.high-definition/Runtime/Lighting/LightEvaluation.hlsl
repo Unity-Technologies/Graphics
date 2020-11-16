@@ -295,6 +295,12 @@ SHADOW_TYPE EvaluateShadow_Directional( LightLoopContext lightLoopContext, Posit
         g_DebugShadowAttenuation = shadow;
 #endif
 
+    // Cloud shadows
+    float3 lightToSample = posInput.positionWS - light.positionRWS;
+    float2 posLS = float2(dot(lightToSample, normalize(light.right)), dot(lightToSample, normalize(light.up)));
+
+    shadow *= SAMPLE_TEXTURE2D_LOD(_DirectionalShadowCookie, s_linear_repeat_sampler, posLS / _DirectionalShadowCookieTiling, 0).r;
+
     return shadow;
 #else // LIGHT_EVALUATION_NO_SHADOWS
     return 1.0;

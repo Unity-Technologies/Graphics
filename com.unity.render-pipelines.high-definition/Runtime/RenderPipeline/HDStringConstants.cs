@@ -153,6 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NumTiles = Shader.PropertyToID("_NumTiles");
 
         public static readonly int _CookieAtlas = Shader.PropertyToID("_CookieAtlas");
+        public static readonly int _DirectionalShadowCookie = Shader.PropertyToID("_DirectionalShadowCookie");
 
         public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");
         public static readonly int _Env2DTextures = Shader.PropertyToID("_Env2DTextures");
