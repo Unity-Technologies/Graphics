@@ -42,7 +42,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
 Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::VM
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -94,7 +94,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
 URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_trunk:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_editmode_build_Player on version trunk
     agent:
-        type: Unity::mobile::android
+        type: Unity::VM
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -182,7 +182,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
 Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::VM
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:
@@ -238,7 +238,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
 URP_Performance_BoatAttack_Android_Vulkan_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Performance_BoatAttack on Android_Vulkan_il2cpp_Linear_performance_editmode_build_Player on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::android
+        type: Unity::VM
         image: mobile/android-execution-r19:stable
         flavor: b1.large
     variables:

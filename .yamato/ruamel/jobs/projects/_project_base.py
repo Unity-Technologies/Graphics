@@ -15,7 +15,10 @@ def _job(project, test_platform_name, editor, platform, api, cmd, build_config, 
 
     # define agent
     platform_agents_project = platform.get(f'agents_project_{api["name"]}', platform.get('agents_project'))
-    agent = platform_agents_project.get(f'{test_platform_name.lower()}', platform_agents_project['default']) # replace(" ","_") called for playmode_XR
+    if test_platform_name.lower().endswith('_build'):
+        agent = platform_agents_project.get('standalone_build', platform_agents_project['default']) # replace(" ","_") called for playmode_XR
+    else:
+        agent = platform_agents_project.get(f'{test_platform_name.lower()}', platform_agents_project['default']) # replace(" ","_") called for playmode_XR
 
     # construct job
     job = YMLJob()
