@@ -6,23 +6,23 @@
 All_Universal_Stereo_2019.4:
     name: All Universal_Stereo CI - 2019.4
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_2019.4
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_2019.4
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_2019.4
          rerun: on-new-revision
 All_Universal_Stereo_fast-2019.4:
     name: All Universal_Stereo CI - fast-2019.4
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_fast-2019.4
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_fast-2019.4
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
 All_Universal_Stereo_CUSTOM-REVISION:
     name: All Universal_Stereo CI - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_CUSTOM-REVISION
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_CUSTOM-REVISION
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

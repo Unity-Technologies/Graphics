@@ -23,11 +23,11 @@ all_project_ci_weekly_2019.4:
     dependencies:
       -  path: .yamato/_abv.yml#all_project_ci_2019.4
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_2019.4
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_2019.4
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_2019.4
+      -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_2019.4
          rerun: on-new-revision
     triggers:
         recurring:
@@ -36,23 +36,23 @@ all_project_ci_weekly_2019.4:
 trunk_verification_2019.4:
     name: Trunk verification - 2019.4
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_2019.4
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_2019.4
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_2019.4
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_2019.4
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_2019.4
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_2019.4
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_2019.4
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_2019.4
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_2019.4
          rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_2019.4
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_2019.4
          rerun: on-new-revision
 all_project_ci_fast-2019.4:
     name: _ABV for SRP repository - fast-2019.4
@@ -72,23 +72,23 @@ all_project_ci_fast-2019.4:
 trunk_verification_fast-2019.4:
     name: Trunk verification - fast-2019.4
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-2019.4
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_fast-2019.4
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_fast-2019.4
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_fast-2019.4
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-2019.4
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-2019.4
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_fast-2019.4
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_fast-2019.4
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_fast-2019.4
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_fast-2019.4
          rerun: on-new-revision
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository - CUSTOM-REVISION
@@ -110,23 +110,23 @@ all_project_ci_CUSTOM-REVISION:
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
