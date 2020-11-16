@@ -23,7 +23,7 @@ test_platforms:
       - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
-      - [Android_Vulkan, Android_OpenGLES3]: --testfilter=Low --testfilter=Medium
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low --testfilter=Medium
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -38,13 +38,13 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
-      - [Android_Vulkan, Android_OpenGLES3]: --testfilter=Low --testfilter=Medium
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low --testfilter=Medium
   - type: editmode
     name: performance_editmode_build
     is_performance: True
     utr_flags:
       - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=Build
-      - [Android_Vulkan, Android_OpenGLES3]: --testfilter=Build;Low;Medium
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Build;Low;Medium
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
