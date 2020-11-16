@@ -284,6 +284,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         ? s_FovLastValue
                         : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
                 }
+                else if (s_FovChanged && isPhysicalCamera && !p.projectionMatrixMode.hasMultipleDifferentValues)
+                {
+                    // If we have a physical camera, we should also update the focal length here, because the
+                    // Drawer_PhysicalCamera will not be executed if the physical camera fold-out is closed
+                    cam.verticalFOV.floatValue = fovAxisVertical
+                        ? s_FovLastValue
+                        : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
+
+                    float sensorLength = cam.fovAxisMode.intValue == 0 ? cam.sensorSize.vector2Value.y : cam.sensorSize.vector2Value.x;
+                    float focalLengthVal = Camera.FieldOfViewToFocalLength(s_FovLastValue, sensorLength);
+                    cam.focalLength.floatValue = EditorGUILayout.FloatField(focalLengthContent, focalLengthVal);
+                }
 
                 EditorGUILayout.Space();
             }

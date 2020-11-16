@@ -611,7 +611,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
                     passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
                     passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
-                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
+                    if (passData.parameters.tiledLighting)
+                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
@@ -638,18 +639,25 @@ namespace UnityEngine.Rendering.HighDefinition
         class GenerateMaxZMaskPassData
         {
             public GenerateMaxZParameters parameters;
+            public TextureHandle          depthTexture;
             public TextureHandle          maxZ8xBuffer;
             public TextureHandle          maxZBuffer;
             public TextureHandle          dilatedMaxZBuffer;
         }
 
-        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
+        TextureHandle GenerateMaxZPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
+                if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
+                {
+                    return renderGraph.defaultResources.blackTextureXR;
+                }
+
                 using (var builder = renderGraph.AddRenderPass<GenerateMaxZMaskPassData>("Generate Max Z Mask for Volumetric", out var passData))
                 {
                     passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo, frameIndex);
+                    passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZ8xBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask8x));
                     passData.maxZ8xBuffer = builder.WriteTexture(passData.maxZ8xBuffer);
                     passData.maxZBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask));
@@ -660,7 +668,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (GenerateMaxZMaskPassData data, RenderGraphContext ctx) =>
                     {
-                        GenerateMaxZ(data.parameters, data.maxZ8xBuffer, data.maxZBuffer, data.dilatedMaxZBuffer, ctx.cmd);
+                        GenerateMaxZ(data.parameters, data.depthTexture, data.maxZ8xBuffer, data.maxZBuffer, data.dilatedMaxZBuffer, ctx.cmd);
                     });
 
                     return passData.dilatedMaxZBuffer;
@@ -694,7 +702,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     //builder.EnableAsyncCompute(hdCamera.frameSettings.VolumetricLightingRunsAsync());
 
                     passData.parameters = parameters;
-                    passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
+                    if (passData.parameters.tiledLighting)
+                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);

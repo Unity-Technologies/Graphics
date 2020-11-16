@@ -783,6 +783,8 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 tileCoord = pixelCoord / TILE_SIZE_BIG_TILE;
 #endif
     uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
+	// This clamp is important as _VBufferVoxelSize can have float value which can cause en overflow (Crash on Vulkan and Metal)
+    tileIndex = min(tileIndex, _NumTileBigTileX * _NumTileBigTileY);
 
     // Do not jitter 'voxelCoord' else. It's expected to correspond to the center of the voxel.
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
