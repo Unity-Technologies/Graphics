@@ -143,7 +143,7 @@ struct EnvLightData
     float3 influenceUp;
     float3 influenceRight;
     float3 influenceExtents;
-    float roughReflections;
+    int pad0;
     float3 blendDistancePositive;
     float3 blendDistanceNegative;
     float3 blendNormalDistancePositive;
@@ -153,6 +153,8 @@ struct EnvLightData
     float weight;
     float multiplier;
     float rangeCompressionFactorCompensation;
+    float roughReflections;
+    float distanceBasedRoughness;
     int envIndex;
 };
 

@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
+### Added
+- Added the possibility to disable distance based roughness for reflection probes.
+
 ### Changed
 - Removed the material pass probe volumes evaluation mode. 
 

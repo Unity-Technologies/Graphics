@@ -226,7 +226,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 influenceRight;
 
         public Vector3 influenceExtents;
-        public float roughReflections; // Use only with planar reflections. 1.0 mean supported rough reflections
+
+        public int pad0;
 
         public Vector3 blendDistancePositive;
         public Vector3 blendDistanceNegative;
@@ -240,6 +241,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float weight;
         public float multiplier;
         public float rangeCompressionFactorCompensation;
+
+        // Only used for planar reflections to drop all mips below mip0
+        public float roughReflections;
+        // Only used for reflection probes to avoid using the proxy for distance based roughness.
+        public float distanceBasedRoughness;
 
         // Sampling properties
         public int envIndex;

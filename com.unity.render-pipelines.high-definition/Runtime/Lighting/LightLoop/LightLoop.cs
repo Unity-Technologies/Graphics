@@ -1858,8 +1858,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
         {
-            // For the generic case, we consider that all probes have mip maps. The more specific case will override this attribute.
+            // By default, rough reflections are enabled for both types of probes.
             envLightData.roughReflections = 1.0f;
+            envLightData.distanceBasedRoughness = 0.0f;
 
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
@@ -1956,6 +1957,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         out _, out var cameraPositionSettings, 0
                     );
                     capturePosition = cameraPositionSettings.position;
+
+                    // Propagate the distance based information to the env light data
+                    envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness ? 1.0f : 0.0f;
 
                     break;
                 }
