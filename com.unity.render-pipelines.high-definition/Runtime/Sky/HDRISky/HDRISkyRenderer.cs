@@ -116,6 +116,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi, hdriSky));
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters2, GetBackplateParameters2(hdriSky));
+                m_SkyHDRIMaterial.SetMatrix(HDShaderIDs._RenderCubemapViewmatrix, builtinParams.viewMatrix);
+                m_SkyHDRIMaterial.SetFloat(HDShaderIDs._BackplateIsBakingCubemap, renderForCubemap ? 1.0f : 0.0f);
 
                 m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 
@@ -178,7 +180,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters1, GetBackplateParameters1(backplatePhi, hdriSky));
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters2, GetBackplateParameters2(hdriSky));
+            m_SkyHDRIMaterial.SetMatrix(HDShaderIDs._RenderCubemapViewmatrix, builtinParams.viewMatrix);
             m_SkyHDRIMaterial.SetColor(HDShaderIDs._BackplateShadowTint, hdriSky.shadowTint.value);
+            m_SkyHDRIMaterial.SetFloat(HDShaderIDs._BackplateIsBakingCubemap, renderForCubemap ? 1.0f : 0.0f);
             uint shadowFilter = 0u;
             if (hdriSky.pointLightShadow.value)
                 shadowFilter |= unchecked((uint)LightFeatureFlags.Punctual);

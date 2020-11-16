@@ -445,6 +445,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BackplateParameters2 = Shader.PropertyToID("_BackplateParameters2");
         public static readonly int _BackplateShadowTint = Shader.PropertyToID("_BackplateShadowTint");
         public static readonly int _BackplateShadowFilter = Shader.PropertyToID("_BackplateShadowFilter");
+        public static readonly int _RenderCubemapViewmatrix = Shader.PropertyToID("_RenderCubemapViewmatrix");
+        public static readonly int _BackplateIsBakingCubemap = Shader.PropertyToID("_BackplateIsBakingCubemap");
         public static readonly int _SkyIntensity = Shader.PropertyToID("_SkyIntensity");
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 

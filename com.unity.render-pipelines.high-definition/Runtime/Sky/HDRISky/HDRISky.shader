@@ -53,15 +53,17 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     TEXTURE2D(_Flowmap);
     SAMPLER(sampler_Flowmap);
 
-    float4 _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
-    float4 _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
-    float4 _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
-    float4 _BackplateParameters2; // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
-    float3 _BackplateShadowTint;  // xyz: ShadowTint
-    uint   _BackplateShadowFilter;
+    float4  _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
+    float4  _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
+    float4  _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
+    float4  _BackplateParameters2; // xy: BackplateTextureRotation (cos/sin), zw: Backplate Texture Offset
+    float4x4 _RenderCubemapViewmatrix;
+    float3  _BackplateShadowTint;  // xyz: ShadowTint
+    uint    _BackplateShadowFilter;
+    float   _BackplateIsBakingCubemap;
 
     float4 _FlowmapParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
-    
+
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
     #define _SinPhi             _SkyParam.w
@@ -115,6 +117,20 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         //return UNITY_MATRIX_I_V._m03_m13_m23;
         return _WorldSpaceCameraPos;
         //return GetPrimaryCameraPosition();
+        //return _RenderCubemapViewmatrix._14_24_34 + _WorldSpaceCameraPos;
+        //return _RenderCubemapViewmatrix._m03_m13_m23;
+    }
+
+    float3 GetWorldSpaceCameraPos(float3 worldPos)
+    {
+        //return worldPos - UNITY_MATRIX_I_V._14_24_34;
+        //return UNITY_MATRIX_I_V._14_24_34;
+        //return worldPos - UNITY_MATRIX_I_V._m03_m13_m23;
+        //return worldPos - _WorldSpaceCameraPos;
+        //return worldPos - GetPrimaryCameraPosition();
+        //return worldPos;
+        //return worldPos - _RenderCubemapViewmatrix._14_24_34;
+        return worldPos - GetWorldSpaceCameraPos();
     }
 
     float3 RotationUp(float3 p, float2 cos_sin)
@@ -129,7 +145,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float3 GetPositionOnInfinitePlane(float3 dir)
     {
         const float3 cameraPosWS = GetWorldSpaceCameraPos();
-        const float alpha = (_GroundLevel - cameraPosWS.y)/dir.y;
+        const float alpha = (_GroundLevel - cameraPosWS.y) / dir.y;
 
         return cameraPosWS + alpha*dir;
     }
@@ -243,6 +259,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float3 dir = -viewDirWS;
 
         return GetColorWithRotation(dir, exposure, _CosSinPhi);
+        //return float4(1, 0, 0, 1);
     }
 
     float3 GetScreenSpaceAmbientOcclusionForBackplate(float2 positionSS, float NdotV, float perceptualRoughness)
@@ -277,6 +294,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float3 ao = GetScreenSpaceAmbientOcclusionForBackplate(posInput.positionSS, originalDir.z, 1.0);
 
         return float4(ao * output, exposure);
+        //return float4(1, 0, 0, 1);
     }
 
     float4 FragBaking(Varyings input) : SV_Target
@@ -299,7 +317,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
         if (IsBackplateHitWithBlend(finalPos, blend, viewDirWS))
         {
-            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - GetWorldSpaceCameraPos(), UNITY_MATRIX_VP).z;
+            //depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - GetWorldSpaceCameraPos(), UNITY_MATRIX_VP).z;
+            depth = ComputeNormalizedDeviceCoordinatesWithZ(GetWorldSpaceCameraPos(finalPos), UNITY_MATRIX_VP).z;
         }
         else
         {
@@ -309,13 +328,28 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float curDepth = LoadCameraDepth(input.positionCS.xy);
 
         if (curDepth > depth)
-            discard;
+        {
+            if (_BackplateIsBakingCubemap > 0.5f)
+                return float4(0, 0, 1024, 1);
+            else
+                discard;
+        }
 
         float4 results = 0; // Warning
         if (curDepth == UNITY_RAW_FAR_CLIP_VALUE)
-            results = RenderSky(input, exposure);
+        {
+            if (_BackplateIsBakingCubemap > 0.5f)
+                results = float4(1024, 0, 0, 1);
+            else
+                results = RenderSky(input, exposure);
+        }
         else if (curDepth <= depth)
-            results = RenderSkyWithBackplate(input, finalPos, exposure, viewDirWS, blend, depth);
+        {
+            if (_BackplateIsBakingCubemap > 0.5f)
+                results = float4(0, 1024, 0, 1);
+            else
+                results = RenderSkyWithBackplate(input, finalPos, exposure, viewDirWS, blend, depth);
+        }
 
         return results;
     }
@@ -329,6 +363,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         return RenderBackplate(input, GetCurrentExposureMultiplier());
+        //return float4(1000, 0, 0, 1);
     }
 
     float GetDepthWithBackplate(Varyings input)
@@ -338,7 +373,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float depth;
         if (IsBackplateHit(finalPos, viewDirWS))
         {
-            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - GetWorldSpaceCameraPos(), UNITY_MATRIX_VP).z;
+            depth = ComputeNormalizedDeviceCoordinatesWithZ(GetWorldSpaceCameraPos(finalPos), UNITY_MATRIX_VP).z;
         }
         else
         {
@@ -385,6 +420,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
+                #define CUBEMAP_BAKING
                 #pragma fragment FragBaking
             ENDHLSL
         }
@@ -412,6 +448,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
+                #define CUBEMAP_BAKING
                 #pragma fragment FragBakingBackplate
             ENDHLSL
         }
@@ -439,6 +476,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             Cull Off
 
             HLSLPROGRAM
+                #define CUBEMAP_BAKING
                 #pragma fragment FragBakingBackplateDepth
             ENDHLSL
         }
