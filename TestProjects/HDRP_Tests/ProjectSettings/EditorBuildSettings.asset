@@ -339,11 +339,11 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2316_ShadowTint.unity
     guid: c59b82120d32fbf4d96793fb7e0ec339
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2318_Mixed_Cached_ShadowMap_Spot.unity
-    guid: d4a5828c5a9a32444b15a298a759ff53
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2317_Mixed_Cached_ShadowMap_Point.unity
     guid: f0256a9b31ae76e45bb04cfbbd6799ec
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2318_Mixed_Cached_ShadowMap_Spot.unity
+    guid: d4a5828c5a9a32444b15a298a759ff53
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
