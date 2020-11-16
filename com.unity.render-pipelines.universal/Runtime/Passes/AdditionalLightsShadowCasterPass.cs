@@ -78,9 +78,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (!m_UseStructuredBuffer)
             {
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
-                const int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-                int maxShadowSlices = Math.Min(6*maxVisibleAdditionalLights, MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO);
-                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[maxShadowSlices];
+
+                int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
+                if(UniversalRenderPipeline.maxVisibleAdditionalLights != UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile)
+                {
+                    // Reduce uniform block size on Mobile/GL to avoid shader performance or compilation issues - keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
+                    MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = UniversalRenderPipeline.maxVisibleAdditionalLights;
+                }
+                m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
             }
         }
 
