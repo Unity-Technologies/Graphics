@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing materials to be upgraded multiple times.
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
 - Fixed Deferred renderer on some Android devices by forcing accurate GBuffer normals. [case 1288042]
+- Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
 
 ## [10.2.0] - 2020-10-19
 
