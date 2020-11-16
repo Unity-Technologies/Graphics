@@ -333,7 +333,7 @@ namespace UnityEditor.VFX.Test
         {
             EditTestAsset(8);
 
-            var builtInItem = VFXLibrary.GetOperators().Where(t => typeof(VFXDynamicBuiltInParameter).IsAssignableFrom(t.modelType)).First();
+            var builtInItem = VFXLibrary.GetOperators().Where(t => typeof(VFXBuiltInParameter).IsAssignableFrom(t.modelType)).First();
 
             var builtIn = m_ViewController.AddVFXOperator(Vector2.zero, builtInItem);
 
