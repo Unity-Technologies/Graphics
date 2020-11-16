@@ -82,7 +82,7 @@ float3 EvaluateAmbientProbe(float3 normalWS)
 
 #define APV_USE_BASE_OFFSET
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVResources apvRes,
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS, in APVResources apvRes,
     out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -102,7 +102,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVReso
 #endif
     {
         bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
-        backBakeDiffuseLighting = EvaluateAmbientProbe(-normalWS);
+        backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
         return;
     }
 
@@ -115,7 +115,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVReso
     if( yoffset == -1 || posRS.y < yoffset || posRS.y >= float(apvConst.indexDim.y) )
     {
         bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
-        backBakeDiffuseLighting = EvaluateAmbientProbe(-normalWS);
+        backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
         return;
     }
 
@@ -130,7 +130,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVReso
     if( packed_pool_idx == 0xffffffff )
     {
         bakeDiffuseLighting = EvaluateAmbientProbe(normalWS);
-        backBakeDiffuseLighting = EvaluateAmbientProbe(-normalWS);
+        backBakeDiffuseLighting = EvaluateAmbientProbe(backNormalWS);
         return;
     }
 
@@ -166,10 +166,10 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVReso
 
     // evaluate the SH coefficients
     bakeDiffuseLighting = SHEvalLinearL0L1(normalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
-    backBakeDiffuseLighting = SHEvalLinearL0L1(-normalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
+    backBakeDiffuseLighting = SHEvalLinearL0L1(backNormalWS, float4(l1_R, l0.r), float4(l1_G, l0.g), float4(l1_B, l0.b));
 }
 
-void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS,
+void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 backNormalWS,
     out float3 bakeDiffuseLighting, out float3 backBakeDiffuseLighting)
 {
     APVResources apvRes;
@@ -179,7 +179,7 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS,
     apvRes.L1_G = _APVResL1_G;
     apvRes.L1_B = _APVResL1_B;
 
-    EvaluateAdaptiveProbeVolume(posWS, normalWS, apvRes,
+    EvaluateAdaptiveProbeVolume(posWS, normalWS, backNormalWS, apvRes,
         bakeDiffuseLighting, backBakeDiffuseLighting);
 }
 

@@ -141,7 +141,6 @@ void SampleBakedGI(
     // and we can safely overwrite baked data value with value from probe volume evaluation in light loop.
 #if !SAMPLE_LIGHTMAP
     bakeDiffuseLighting = UNINITIALIZED_GI;
-    EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(positionRWS), normalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
     return;
 #endif
 
