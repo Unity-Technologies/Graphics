@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
 
         public static implicit operator Type(SerializableType value)
         {
-            return !ReferenceEquals(value, null) ? value.m_Type : null;
+            return value != null ? value.m_Type : null;
         }
 
         private SerializableType() {}
@@ -48,43 +48,42 @@ namespace UnityEditor.VFX
 
         public static Type GetType(string name)
         {
-            return Type.GetType(name);
-        }
+            Type type = Type.GetType(name);
 
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(this, obj))
-                return true;
+            if (type == null && !string.IsNullOrEmpty(name)) // if type wasn't found, resolve the assembly (to use VFX package assembly name instead)
+            {
+                string[] splitted = name.Split(',');
+                // Replace the assembly with the one containing VFXGraph type which will be either "Unity.VisualEffect.Graph.Editor" or "Unity.VisualEffect.Graph.Editor-testable"
+                splitted[1] = typeof(VFXGraph).Assembly.GetName().Name;
 
-            Type otherType = null;
-            if (obj is SerializableType)
-                otherType = ((SerializableType)obj)?.m_Type;
-            else if (obj is Type)
-                otherType = (Type)obj;
-            else if (!ReferenceEquals(obj, null))
-                return false;
+                name = string.Join(",", splitted);
 
-            return m_Type == otherType;
-        }
+                type = Type.GetType(name);
 
-        public static bool operator==(SerializableType left, SerializableType right)
-        {
-            if (!ReferenceEquals(left, null))
-                return left.Equals(right);
-            if (!ReferenceEquals(right, null))
-                return right.Equals(left);
+                if (type == null) // resolve runtime type if editor assembly didnt work
+                {
+                    splitted[1] = splitted[1].Replace(".Editor", ".Runtime");
+                    name = string.Join(",", splitted);
+                    type = Type.GetType(name);
+                }
 
-            return true; // both null
-        }
+                // If from here we still haven't found the type, try a last time with the name only.
+                if (type == null)
+                {
+                    AppDomain currentDomain = AppDomain.CurrentDomain;
+                    foreach (Assembly assembly in currentDomain.GetAssemblies())
+                    {
+                        type = assembly.GetType(splitted[0]);
+                        if (type != null)
+                            return type;
+                    }
+                }
 
-        public static bool operator !=(SerializableType left, SerializableType right)
-        {
-            return !(left == right);
-        }
+                if (type == null)
+                    Debug.LogErrorFormat("Cannot get Type from name: {0}", name);
+            }
 
-        public override int GetHashCode()
-        {
-            return m_Type != null ? m_Type.GetHashCode() : 0;
+            return type;
         }
 
         public string text
