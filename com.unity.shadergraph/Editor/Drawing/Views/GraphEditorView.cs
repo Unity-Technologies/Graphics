@@ -258,10 +258,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = (c) =>
                 {
-                    m_SearchWindowProvider.connectedPort = null;
-                    SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                        item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
-                        c.screenMousePosition - editorWindow.position.position, null);
+                    if (EditorWindow.focusedWindow == editorWindow)
+                    {
+                        m_SearchWindowProvider.connectedPort = null;
+                        SearcherWindow.Show(editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
+                            item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
+                            c.screenMousePosition - editorWindow.position.position, null);
+                    }
                 };
             m_GraphView.RegisterCallback<FocusInEvent>( evt =>
             {

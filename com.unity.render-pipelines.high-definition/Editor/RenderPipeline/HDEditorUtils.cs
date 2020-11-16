@@ -287,6 +287,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 yield return property.displayName;
         }
 
+        public static bool IsTargetAlive(this SerializedProperty property)
+            => property != null && property.serializedObject.targetObject != null &&
+               !property.serializedObject.targetObject.Equals(null);
+
         /// <summary>
         /// Helper to get an enum value from a SerializedProperty.
         /// This handle case where index do not correspond to enum value.

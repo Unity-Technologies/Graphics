@@ -87,7 +87,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Bind the output texture
                 cmd.SetComputeTextureParam(indirectDiffuseCS, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[0], m_GbufferManager.GetBuffer(0));
                 cmd.SetComputeTextureParam(indirectDiffuseCS, indirectDiffuseKernel, HDShaderIDs._GBufferTexture[3], m_GbufferManager.GetBuffer(3));
-                cmd.SetComputeVectorParam(indirectDiffuseCS, HDShaderIDs._IndirectLightingMultiplier, new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0));
+
+                IndirectLightingController indirectLightingController = hdCamera.volumeStack.GetComponent<IndirectLightingController>();
+                cmd.SetComputeFloatParam(indirectDiffuseCS, HDShaderIDs._IndirectDiffuseLightingMultiplier, indirectLightingController.indirectDiffuseIntensity.value);
+                cmd.SetComputeIntParam(indirectDiffuseCS, HDShaderIDs._IndirectDiffuseLightingLayers, hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? (int)indirectLightingController.GetIndirectDiffuseLightingLayers() : -1);
+                cmd.SetComputeFloatParam(indirectDiffuseCS, HDShaderIDs._ReflectionLightingMultiplier, indirectLightingController.reflectionLightingMultiplier.value);
+                cmd.SetComputeIntParam(indirectDiffuseCS, HDShaderIDs._ReflectionLightingLayers, hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? (int)indirectLightingController.GetReflectionLightingLayers() : -1);
 
                 // Evaluate the dispatch parameters
                 int areaTileSize = 8;

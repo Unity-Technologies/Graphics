@@ -446,11 +446,13 @@ namespace UnityEngine.Rendering.HighDefinition
             var pbrSky = builtinParams.skySettings as PhysicallyBasedSky;
 
             // TODO: the following expression is somewhat inefficient, but good enough for now.
-            Vector3 X = builtinParams.worldSpaceCameraPos;
-            float   r = Vector3.Distance(X, pbrSky.GetPlanetCenterPosition(X));
-            float   R = pbrSky.GetPlanetaryRadius();
+            Vector3 cameraPos = builtinParams.worldSpaceCameraPos;
+            Vector3 planetCenter = pbrSky.GetPlanetCenterPosition(cameraPos);
+            float R = pbrSky.GetPlanetaryRadius();
 
-            bool isPbrSkyActive = r > R; // Disable sky rendering below the ground
+            Vector3 cameraToPlanetCenter = planetCenter - cameraPos;
+            float r = cameraToPlanetCenter.magnitude;
+            cameraPos = planetCenter - Mathf.Max(R, r) * cameraToPlanetCenter.normalized;
 
             CommandBuffer cmd = builtinParams.commandBuffer;
 
@@ -464,7 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                          pbrSky.spaceRotation.value.z);
 
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
-            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1,  builtinParams.worldSpaceCameraPos);
+            s_PbrSkyMaterialProperties.SetVector(HDShaderIDs._WorldSpaceCameraPos1,  cameraPos);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._ViewMatrix1,           builtinParams.viewMatrix);
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._PlanetRotation,        Matrix4x4.Rotate(planetRotation));
             s_PbrSkyMaterialProperties.SetMatrix(HDShaderIDs._SpaceRotation,         Matrix4x4.Rotate(spaceRotation));
@@ -502,7 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             s_PbrSkyMaterialProperties.SetInt(HDShaderIDs._RenderSunDisk, renderSunDisk ? 1 : 0);
 
-            int pass = (renderForCubemap ? 0 : 2) + (isPbrSkyActive ? 0 : 1);
+            int pass = (renderForCubemap ? 0 : 2);
 
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
         }

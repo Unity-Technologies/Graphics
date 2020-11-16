@@ -496,6 +496,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CachedDrawDistances = newCachedDrawDistances;
                     m_CachedUVScaleBias = newCachedUVScaleBias;
                     m_CachedAffectsTransparency = newCachedAffectsTransparency;
+                    m_CachedLayerMask = newCachedLayerMask;
                     m_CachedSceneLayerMask = newCachedSceneLayerMask;
                     m_CachedFadeFactor = newCachedFadeFactor;
                 }
@@ -1020,7 +1021,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (textureScaleBias.m_Texture != null)
             {
-                if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
+                if (Atlas.IsCached(out textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
+                {
+                    Atlas.UpdateTexture(cmd, textureScaleBias.m_Texture, ref textureScaleBias.m_ScaleBias);
+                }
+                else if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
                 {
                     m_AllocationSuccess = false;
                 }

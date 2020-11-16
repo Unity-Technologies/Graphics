@@ -4,13 +4,40 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.2.0] - 2020-07-07
+## [8.3.1] - 2020-07-23
+
+### Fixed
+- Fixed issue in Material Postprocess which may fail due to empty SubAsset.
+- Fixed a null ref exception when baking reflection probes.
+- Fixed TAA issue and hardware dynamic resolution.
+- Fixed an issue where look dev lighting would go black when a new scene is loaded.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed sky asserts with XR multipass
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
+- Fixed error about layers when disabling emissive mesh for area lights.
+- Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed lookdev toggling renderers that are set to non editable or are hidden in the inspector.
+- Fixed issue causing the editor field not updating the disc area light radius.
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
+- Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed issue with diffusion profile not being updated upon reset of the editor. 
+- Fixed Amplitude -> Min/Max parametrization conversion
+
+### Changed
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Reduced the number of global keyword used in deferredTile.shader
+
+## [8.2.0] - 2020-07-08
 
 ### Added
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
 - Added support for AxF measurements importing into texture resources tilings.
 - Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 - Added support for multiple mapping modes in AxF.
+- Add support of lightlayers on indirect lighting controller
 
 ### Fixed
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
@@ -62,6 +89,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed AxF handling of roughness for Blinn-Phong type materials
 - Fixed AxF UI errors when surface type is switched to transparent
 - Fixed a bug where connections to the `Normal` slot on *Stack Lit Master* node would be lost when changing normal space. 
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed issue with completely black AO on double sided materials when normal mode is set to None.
+- Fixed issue with culling layer mask of area light's emissive mesh 
+- Fixed UI drawing of the quaternion (1251235)
+- The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
+- Fixed for area light not updating baked light result when modifying with gizmo.
+- Fixed issue with white flash when enabling SSR.
+- Fix inconsistencies with transparent motion vectors and opaque by allowing camera only transparent motion vectors.
+- Fixed issue with depth pyramid generation and dynamic resolution.
+- Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
+- Fixed an issue where opening the look dev window with the light theme would make the window blink and eventually crash unity.
+- Fixed culling for decals when used in prefabs and edited in context.
+- Fixed XR single-pass macros in tessellation shaders.
+- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
@@ -146,6 +187,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Force to rebake probe with missing baked texture. (1253367)
 - Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 - Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
+- Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
+- PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
+- Fixed UI drawing of the quaternion (1251235)
+- Fixed taaFrameIndex and XR tests 4052 and 4053
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
