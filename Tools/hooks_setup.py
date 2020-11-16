@@ -75,13 +75,13 @@ def config_unity_meta(config):
         config['unity-meta'] = default_unity_meta_path
         return config
     else:
-        print('unity-meta is required in order to run the formatting tools. Please install it (https://internaldocs.hq.unity3d.com/unity-meta/setup/) and retry installing the hooks. If it is not in your $HOME folder, manually add the path to it in .git/hooks/graphics-config.json', file=sys.stderr)
+        print('unity-meta is required in order to run the formatting tools. Please install it (https://internaldocs.hq.unity3d.com/unity-meta/setup/) and retry installing the hooks. If it is not in your $HOME folder, manually add the path to it in .git/hooks/hooks-config.json', file=sys.stderr)
         exit(1)
 
 
 def config_hooks():
     repo_root = run_cmd('git rev-parse --show-toplevel')
-    config_path = os.path.join(repo_root, ".git/hooks/graphics-config.json")
+    config_path = os.path.join(repo_root, ".git/hooks/hooks-config.json")
     config = {}
     if os.path.exists(config_path):
         with open(config_path, 'r') as config_file_r:
