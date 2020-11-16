@@ -15,8 +15,11 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_tr
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -63,8 +66,11 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -93,7 +99,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_tru
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -111,8 +117,11 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_Linear_trun
         flavor: m1.mac
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -141,7 +150,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_Linear_trun
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -160,8 +169,11 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_runtime_mono_Linear_CU
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -212,8 +224,11 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -242,7 +257,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_playmode_editor_mono_Linear_CUS
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
@@ -264,8 +279,11 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_Linear_CUST
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: head
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -294,7 +312,7 @@ URP_Performance_BoatAttack_OSX_Metal_performance_editmode_build_mono_Linear_CUST
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '$(/usr/local/bin/python3 -m site --user-base)/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testfilter=Build --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/BoatAttack && ~/Graphics/TestProjects/BoatAttack/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/BoatAttack/test-results --category=URP --editor-location=/Users/bokken/.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=BoatAttack --platform=editmode --report-performance-data --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=/Users/bokken/Graphics/TestProjects/BoatAttack"
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/BoatAttack/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/BoatAttack/test-results/ TestProjects/BoatAttack/test-results/
