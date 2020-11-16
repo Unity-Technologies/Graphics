@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-InputData CreateInputData(VaryingsParticle input, half3 normalTS)
+InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
 {
     InputData output;
 
@@ -13,7 +13,7 @@ InputData CreateInputData(VaryingsParticle input, half3 normalTS)
 #ifdef _NORMALMAP
     half3 viewDirWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
     output.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
-    output.normalWS = TransformTangentToWorld(normalTS, output.tangentMatrixWS);
+    output.normalWS = TransformTangentToWorld(surfaceData.normalTS, output.tangentMatrixWS);
 #else
     half3 viewDirWS = input.viewDirWS;
     output.normalWS = input.normalWS;
@@ -31,7 +31,7 @@ InputData CreateInputData(VaryingsParticle input, half3 normalTS)
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
-    output.normalTS = normalTS;
+    output.normalTS = surfaceData.normalTS;
     output.shadowMask = half4(1, 1, 1, 1);
     output.shadowCoord = float4(0, 0, 0, 0);
 
@@ -48,18 +48,18 @@ InputData CreateInputData(VaryingsParticle input, half3 normalTS)
     return output;
 }
 
-SurfaceData CreateSurfaceData(half2 uv, half3 blendUv, half4 color, float4 projectedPosition)
+SurfaceData CreateSurfaceData(ParticleParams particleParams)
 {
     SurfaceData surfaceData;
-    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, color, projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
-    half3 normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    half4 albedo = SampleAlbedo(particleParams.uv, particleParams.blendUv, _BaseColor, particleParams.baseColor, particleParams.projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
+    half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
 
     #if defined (_DISTORTION_ON)
-    albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, projectedPosition);
+    albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
     #endif
 
     #if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv).rgb * _EmissionColor.rgb;
+    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
     #else
     half3 emission = half3(0, 0, 0);
     #endif
@@ -141,25 +141,16 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     ParticleParams particleParams;
     InitParticleParams(input, particleParams);
 
-    half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), particleParams);
-    half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    SurfaceData surfaceData = CreateSurfaceData(particleParams);
+    InputData inputData = CreateInputData(input, surfaceData);
 
-#if defined (_DISTORTION_ON)
-    albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
-#endif
-
-#if defined(_EMISSION)
-    half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
-#else
-    half3 emission = half3(0, 0, 0);
-#endif
-
-    half3 result = albedo.rgb + emission;
+    half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);
     half fogFactor = input.positionWS.w;
-    result = MixFog(result, fogFactor);
-    albedo.a = OutputAlpha(albedo.a, _Surface);
 
-    return half4(result, albedo.a);
+    finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
+    finalColor.a = OutputAlpha(finalColor.a, _Surface);
+
+    return finalColor;
 }
 
 #endif // UNIVERSAL_PARTICLES_UNLIT_FORWARD_PASS_INCLUDED
