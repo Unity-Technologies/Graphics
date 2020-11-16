@@ -91,4 +91,4 @@ You can use Scene view gizmos to visually customize specific properties.
 
 If you use a Planar Reflection Probe as a mirror (i.e its influence volume overlap a GameObject with a Material that has its smoothness and metallic properties set to 1) it is best practice to disable the **Rough Refraction** property to decrease the resource intensity.
 If a receiving surface isn't a perfect mirror and the **Rough Reflection** option is disabled, the surface still renders smooth, but the result is physically incorrect.
- 
+
