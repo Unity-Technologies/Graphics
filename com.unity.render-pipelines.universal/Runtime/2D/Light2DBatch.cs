@@ -147,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal static bool Batch(CommandBuffer cmd, Light2D light, Material material)
         {
-            if (!light.shadowsEnabled && (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform))
+            if (!light.shadowsEnabled && light.normalMapQuality == Light2D.NormalMapQuality.Disabled && (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform))
             {
                 if (s_ActiveMaterial == null || s_ActiveMaterial != material || s_ActiveMeshes >= kMaxBatchLimit || s_BatchedIndexCount > kGeometryDataLimit || s_BatchedVertexCount > kGeometryDataLimit)
                 {
