@@ -13,6 +13,7 @@
   * [Renderer Feature](urp-renderer-feature.md)
     * [How to add a Renderer Feature](urp-renderer-feature-how-to-add.md)
 * [Upgrade guides](upgrade-guides.md)
+  * [Upgrading to URP 11.0.x](upgrade-guide-11-0-x.md)
   * [Upgrading to URP 10.1.x](upgrade-guide-10-1-x.md)
   * [Upgrading to URP 10.0.x](upgrade-guide-10-0-x.md)
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
@@ -39,6 +40,7 @@
   * [Camera component reference](camera-component-reference.md)
 
 * [Post-processing](integration-with-post-processing.md)
+  * [How to configure](integration-with-post-processing.md#post-proc-how-to)
   * [Volumes](Volumes.md)
     * [Volume Profile](VolumeProfile.md)
     * [Volume Overrides](VolumeOverrides.md)

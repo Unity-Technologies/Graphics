@@ -437,9 +437,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string theme = EditorGUIUtility.isProSkin ? "_dark" : "_light";
                 if (isSubGraph)
-                    icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon_gray" + theme + "@16");
+                    icon = Resources.Load<Texture2D>("Icons/sg_subgraph_icon_gray" + theme);
                 else
-                    icon = Resources.Load<Texture2D>("Icons/sg_graph_icon_gray" + theme + "@16");
+                    icon = Resources.Load<Texture2D>("Icons/sg_graph_icon_gray" + theme);
             }
 
             titleContent = new GUIContent(title, icon);

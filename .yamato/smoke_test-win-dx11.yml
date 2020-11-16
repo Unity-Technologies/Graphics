@@ -49,7 +49,7 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/SRP_SmokeTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/SRP_SmokeTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -72,9 +72,9 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_mono_Linear_trunk
+      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_Smoke_Test_Win_DX11_Player_mono_Linear_trunk:
+Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
@@ -148,7 +148,7 @@ Smoke_Test_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/SRP_SmokeTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/SRP_SmokeTest && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -177,9 +177,9 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Smoke_Test_Win_DX11_Player_mono_Linear_CUSTOM-REVISION:
+Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
