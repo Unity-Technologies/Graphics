@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         static List<Mesh> s_MeshPool = new List<Mesh>();
 
-        static int s_ActiveShapeMeshBatch = 0;
+        static int s_ActiveBatchHash = 0;
 
         static Material s_ActiveMaterial = null;
         
@@ -29,32 +29,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         
         internal static int s_CombineOperations = 0; // For tests.
 
-        static void StartScope()
-        {
-            s_Batches = 0;
-            s_ActiveBatchHashes.Clear();
-        }
-
-        static void EndScope()
-        {
-            int i = 0;
-            foreach (var batchMesh in s_BatchMeshes)
-            {
-                if (!s_ActiveBatchHashes.Contains(batchMesh.Key))
-                {
-                    s_MeshPool.Add(batchMesh.Value);
-                    s_UnusedMeshIndices[i++] = batchMesh.Key;
-                }
-            }
-            for (int j = 0; j < i; ++j)
-            {
-                s_BatchMeshes.Remove(s_UnusedMeshIndices[j]);
-            }
-        }
-
         static void StartBatch(Material mat)
         {
-            s_ActiveShapeMeshBatch = 16777619;
+            s_ActiveBatchHash = 16777619;
             s_ActiveMaterial = mat;
             s_ActiveMeshes = 0;
         }
@@ -66,9 +43,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ci.transform = transform.localToWorldMatrix;
             s_ActiveBatchMeshInstances[s_ActiveMeshes++] = ci;
             
-            s_ActiveShapeMeshBatch = s_ActiveShapeMeshBatch * 16777619 ^ hashCode;
-            s_ActiveShapeMeshBatch = s_ActiveShapeMeshBatch * 16777619 ^ mesh.GetHashCode();
-            s_ActiveShapeMeshBatch = s_ActiveShapeMeshBatch * 16777619 ^ transform.localToWorldMatrix.GetHashCode();
+            s_ActiveBatchHash = s_ActiveBatchHash * 16777619 ^ hashCode;
+            s_ActiveBatchHash = s_ActiveBatchHash * 16777619 ^ mesh.GetHashCode();
+            s_ActiveBatchHash = s_ActiveBatchHash * 16777619 ^ transform.localToWorldMatrix.GetHashCode();
         }
 
         internal static void EndBatch(CommandBuffer cmd)
@@ -86,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             Mesh mesh = null;
-            if (!s_BatchMeshes.TryGetValue(s_ActiveShapeMeshBatch, out mesh))
+            if (!s_BatchMeshes.TryGetValue(s_ActiveBatchHash, out mesh))
             {
                 if (s_MeshPool.Count > 0)
                 {
@@ -99,38 +76,50 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CombineInstance[] ci = new CombineInstance[s_ActiveMeshes];
                 Array.Copy(s_ActiveBatchMeshInstances, ci, s_ActiveMeshes);
                 mesh.CombineMeshes(ci);
-                s_BatchMeshes.Add(s_ActiveShapeMeshBatch, mesh);
+                s_BatchMeshes.Add(s_ActiveBatchHash, mesh);
                 s_CombineOperations++;
             }
 
-            s_ActiveBatchHashes.Add(s_ActiveShapeMeshBatch);
+            s_ActiveBatchHashes.Add(s_ActiveBatchHash);
             cmd.DrawMesh(mesh, Matrix4x4.identity, material);
             s_Batches++;
         }
 
         internal static void Reset()
         {
-            EndScope();
-            StartScope();
+            int i = 0;
+            
+            foreach (var batchMesh in s_BatchMeshes)
+            {
+                if (!s_ActiveBatchHashes.Contains(batchMesh.Key))
+                {
+                    s_MeshPool.Add(batchMesh.Value);
+                    s_UnusedMeshIndices[i++] = batchMesh.Key;
+                }
+            }
+            for (int j = 0; j < i; ++j)
+            {
+                s_BatchMeshes.Remove(s_UnusedMeshIndices[j]);
+            }            
+
+            s_Batches = 0;
+            s_ActiveBatchHashes.Clear();
         }
 
         internal static bool Batch(CommandBuffer cmd, Light2D light, Material material)
         {
-            if (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform)
+            if (!light.shadowsEnabled && (light.lightType == Light2D.LightType.Parametric || light.lightType == Light2D.LightType.Freeform))
             {
-                if (!light.shadowsEnabled)
+                if (s_ActiveMaterial == null || s_ActiveMaterial != material || s_ActiveMeshes >= kMaxBatchLimit)
                 {
-                    if (s_ActiveMaterial == null || s_ActiveMaterial != material || s_ActiveMeshes >= kMaxBatchLimit)
-                    {
-                        // If this is not the same material, end any previous valid batch.
-                        if (s_ActiveMaterial)
-                            EndBatch(cmd);
-                        StartBatch(material);
-                    }
-
-                    AddMesh(light.lightMesh, light.transform, light.hashCode);
-                    return true;
+                    // If this is not the same material, end any previous valid batch.
+                    if (s_ActiveMaterial)
+                        EndBatch(cmd);
+                    StartBatch(material);
                 }
+
+                AddMesh(light.lightMesh, light.transform, light.hashCode);
+                return true;
             }
 
             return false;

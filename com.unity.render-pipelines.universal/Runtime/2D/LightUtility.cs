@@ -39,13 +39,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return changed;
         }
 
-        public static bool CheckForChange(Color a, ref Color b)
-        {
-            var changed = a != b;
-            b = a;
-            return changed;
-        }
-
         private enum PivotType
         {
             PivotBase,
@@ -59,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal struct LightMeshVertex
         {
             public float3 position;
-            public float3 nor;
+            public float3 normal;
             public Color color;
             public float2 uv;
 
@@ -81,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var prevCount = VCount;
             var tessIndices = tess.Elements.Select(i => i);
             var tessVertices = tess.Vertices.Select(v =>
-                new LightMeshVertex() { position =  new float3(v.Position.X, v.Position.Y, 0), color = c, uv = uvData, nor = float3.zero });
+                new LightMeshVertex() { position =  new float3(v.Position.X, v.Position.Y, 0), color = c, uv = uvData, normal = float3.zero });
 
             foreach(var v in tessVertices)
                 vertices[VCount++] = v;
@@ -308,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         position = new float3(inner[i].Position.X, inner[i].Position.Y, 0),
                         color = meshInteriorColor,
                         uv = uvData,
-                        nor = float3.zero
+                        normal = float3.zero
                     };
                     innerIndices[i] = (ushort)(vcount - 1);
                 }
@@ -328,7 +321,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         position = new float3(currPoint.x, currPoint.y, 0),
                         color = meshExteriorColor,
                         uv = uvData,
-                        nor = float3.zero
+                        normal = float3.zero
                     };
 
                     if (prevIndex != currIndex)
@@ -397,7 +390,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 position = float3.zero,
                 color = color,
                 uv = uvData,
-                nor = new float3(0, 0, falloffDistance)
+                normal = new float3(0, 0, falloffDistance)
             };
 
             var radiansPerSide = 2 * Mathf.PI / sides;
@@ -416,14 +409,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     position = endPoint,
                     color = new Color(lightColor.r, lightColor.g, lightColor.b, 0),
                     uv = uvData,
-                    nor = new float3(extrudeDir.x, extrudeDir.y, falloffDistance)
+                    normal = new float3(extrudeDir.x, extrudeDir.y, falloffDistance)
                 };
                 vertices[vertexIndex + 1] = new LightMeshVertex
                 {
                     position = endPoint,
                     color = color,
                     uv = uvData,
-                    nor = new float3(0, 0, falloffDistance)
+                    normal = new float3(0, 0, falloffDistance)
                 };
 
                 // Triangle 1 (Tip)
@@ -490,7 +483,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     position = new Vector3(srcVertices[i].x, srcVertices[i].y, 0) - center,
                     color = color,
                     uv = srcUVs[i],
-                    nor = float3.zero
+                    normal = float3.zero
                 };
             }
             mesh.SetVertexBufferParams(vertices.Length, LightMeshVertex.VertexLayout);
