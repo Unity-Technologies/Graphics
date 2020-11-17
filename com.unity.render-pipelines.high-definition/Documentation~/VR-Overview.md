@@ -54,4 +54,4 @@ You can use the following defines to include or exclude code from your scripts.
 ## Known issues
 
 With single-pass rendering, some shaders external to HDRP (like TextMesh Pro) might only render on one eye.
-This issue has been resolved on the next version of HDRP (10.x and beyond).
+This issue has been resolved in the next version of HDRP (10.x and above).
