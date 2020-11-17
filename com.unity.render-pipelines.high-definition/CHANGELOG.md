@@ -5,7 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [11.0.0] - 2020-10-21
+### Changed
+- Removed the material pass probe volumes evaluation mode. 
+
 ### Fixed
+- Fixed probe volumes debug views.
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
 
 ## [10.2.0] - 2020-10-19
@@ -26,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added missing documentation for unsupported SG RT nodes and light's include for raytracing attrbute.
 - Added documentation for LODs not being supported by ray tracing.
 - Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
+- Added anamorphism support for phsyical DoF, switched to blue noise sampling and fixed tiling artifacts.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
@@ -91,6 +96,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing errors in GenerateMaxZ when opaque objects or decals are disabled. 
 - Fixed an issue with Bake button of Reflection Probe when in custom mode
 - Fixed exceptions related to the debug display settings when changing the default frame settings.
+- Fixed picking for materials with depth offset.
+- Fixed issue with exposure history being uninitialized on second frame.
+- Fixed issue when changing FoV with the physical camera fold-out closed.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.

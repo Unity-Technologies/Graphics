@@ -65,9 +65,9 @@ all:
       color_space: Linear
       test_platforms:
         - playmode
-    - platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode 
+#    - platform: OSX
+#      api: Metal
+#      build_config: mono
+#      color_space: Linear
+#      test_platforms:
+#        - playmode 
