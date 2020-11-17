@@ -62,11 +62,11 @@ bool IsBinEmpty(uint tile, uint zBin, uint category, uint eye)
 [numthreads(TILE_SIZE * TILE_SIZE, 1, 1)]
 void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
 {
-    const uint t    = threadID.x;
-    const uint tile = groupID.x;
-    const uint eye  = groupID.z;
+    const uint  t         = threadID.x;
+    const uint2 tileCoord = groupID.xy;
+    const uint  eye       = groupID.z;
 
-    const uint2 tileCoord         = CoordinateFromIndex(tile, TILE_BUFFER_DIMS.x);   // TODO: avoid integer division
+    const uint  tile              = IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
     const uint2 localPixelCoord   = DecodeMorton2D(t & (TILE_SIZE * TILE_SIZE - 1)); // Use AND to inform the compiler
     const uint2 globalPixelCoord  = tileCoord * TILE_SIZE + localPixelCoord;
     const uint2 clampedPixelCoord = min(globalPixelCoord, uint2(_ScreenSize.xy) - 1);

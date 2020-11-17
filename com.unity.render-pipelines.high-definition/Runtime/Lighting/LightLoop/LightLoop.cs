@@ -3860,9 +3860,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Assume that we use fine (and not coarse) tiles in the shader.
-                int numTiles = parameters.fineTileBufferDimensions.x * parameters.fineTileBufferDimensions.y;
-
-                cmd.DispatchCompute(parameters.classificationShader, 0, numTiles, 1, parameters.viewCount);
+                cmd.DispatchCompute(parameters.classificationShader, 0, parameters.fineTileBufferDimensions.x, parameters.fineTileBufferDimensions.y, parameters.viewCount);
             }
         }
 
