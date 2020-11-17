@@ -218,15 +218,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.xlarge
   Android:
     name: Android
