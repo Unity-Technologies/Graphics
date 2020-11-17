@@ -55,9 +55,9 @@ namespace UnityEditor
             UnityEngine.VFX.VFXManager.activateVFX = true;
         }
 
-        public const string templateAssetName = "Simple Particle System.vfx";
-        public const string templateBlockSubgraphAssetName = "Default Subgraph Block.vfxblock";
-        public const string templateOperatorSubgraphAssetName = "Default Subgraph Operator.vfxoperator";
+        public const string templateAssetName = "SimpleParticleSystem.vfx";
+        public const string templateBlockSubgraphAssetName = "DefaultSubgraphBlock.vfxblock";
+        public const string templateOperatorSubgraphAssetName = "DefaultSubgraphOperator.vfxoperator";
 
         [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)

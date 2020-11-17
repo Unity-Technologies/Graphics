@@ -930,7 +930,7 @@ namespace UnityEditor.VFX.Test
         public void ConvertToSubgraph()
         {
             //Create a new vfx based on the usual template
-            var templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/Simple Particle System.vfx");
+            var templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor/Templates/SimpleParticleSystem.vfx");
             System.IO.File.WriteAllText(testSubgraphAssetName, templateString);
 
             VFXViewWindow window = VFXViewWindow.GetWindow<VFXViewWindow>();
