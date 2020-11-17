@@ -112,6 +112,9 @@ namespace UnityEngine.Rendering.Universal
         {
             // always dispose unmanaged resources
             m_PostProcessPass.Cleanup();
+            m_FinalPostProcessPass.Cleanup();
+            m_ColorGradingLutPass.Cleanup();
+
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
@@ -260,8 +263,10 @@ namespace UnityEngine.Rendering.Universal
 
             EnqueuePass(m_RenderOpaqueForwardPass);
 
+            Skybox cameraSkybox;
+            cameraData.camera.TryGetComponent<Skybox>(out cameraSkybox);
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
-            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null && !isOverlayCamera)
+            if (camera.clearFlags == CameraClearFlags.Skybox && (RenderSettings.skybox != null || cameraSkybox?.material != null) && !isOverlayCamera)
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
@@ -464,6 +469,15 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        bool PlatformRequiresExplicitMsaaResolve()
+        {
+            // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
+            // TODO: should also be valid on Metal MacOS/Editor, but currently not working as expected. Remove the "mobile only" requirement once trunk has a fix.
+
+            return !SystemInfo.supportsMultisampleAutoResolve &&
+                   !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && Application.isMobilePlatform);
+        }
+
         /// <summary>
         /// Checks if the pipeline needs to create a intermediate render texture.
         /// </summary>
@@ -483,7 +497,7 @@ namespace UnityEngine.Rendering.Universal
             bool isStereoEnabled = cameraData.isStereoEnabled;
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f) && !cameraData.isStereoEnabled;
             bool isCompatibleBackbufferTextureDimension = cameraTargetDescriptor.dimension == TextureDimension.Tex2D;
-            bool requiresExplicitMsaaResolve = msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve;
+            bool requiresExplicitMsaaResolve = msaaSamples > 1 && PlatformRequiresExplicitMsaaResolve();
             bool isOffscreenRender = cameraData.targetTexture != null && !isSceneViewCamera;
             bool isCapturing = cameraData.captureActions != null;
 

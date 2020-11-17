@@ -323,11 +323,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                // HIG doesnt allow us to remove data on a re-draw and without a user input.
-                GUIStyle errorStyle = new GUIStyle(EditorStyles.label) { padding = new RectOffset { left = -16 } };
-                m_NameContent.text = "MISSING CAMERA";
-                string warningInfo = "Camera is missing";
-                EditorGUI.LabelField(rect, m_NameContent, TempContent("", warningInfo, m_ErrorIcon), errorStyle);
+                camera.GetComponent<UniversalAdditionalCameraData>().UpdateCameraStack();
 
                 // Need to clean out the errorCamera list here.
                 errorCameras.Clear();

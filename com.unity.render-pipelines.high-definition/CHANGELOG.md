@@ -6,8 +6,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.3.1] - 2020-07-23
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed issue in Material Postprocess which may fail due to empty SubAsset.
+- Fixed a null ref exception when baking reflection probes.
+- Fixed TAA issue and hardware dynamic resolution.
+- Fixed an issue where look dev lighting would go black when a new scene is loaded.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed sky asserts with XR multipass
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
+- Fixed error about layers when disabling emissive mesh for area lights.
+- Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed lookdev toggling renderers that are set to non editable or are hidden in the inspector.
+- Fixed issue causing the editor field not updating the disc area light radius.
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
+- Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed issue with diffusion profile not being updated upon reset of the editor. 
+- Fixed Amplitude -> Min/Max parametrization conversion
+
+### Changed
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Reduced the number of global keyword used in deferredTile.shader
 
 ## [8.2.0] - 2020-07-08
 

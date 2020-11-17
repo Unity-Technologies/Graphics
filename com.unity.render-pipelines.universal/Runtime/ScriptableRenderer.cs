@@ -69,9 +69,14 @@ namespace UnityEngine.Rendering.Universal
             
             if (setInverseMatrices)
             {
-                Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
-                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
-                
+                // There's an inconsistency in handedness between unity_matrixV and unity_WorldToCamera
+                // Unity changes the handedness of unity_WorldToCamera (see Camera::CalculateMatrixShaderProps)
+                // we will also change it here to avoid breaking existing shaders. (case 1257518)
+                Matrix4x4 worldToCameraMatrix = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * viewMatrix;
+                Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix.inverse;
+                cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, worldToCameraMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, cameraToWorldMatrix);
+
                 Matrix4x4 viewAndProjectionMatrix = cameraData.GetGPUProjectionMatrix() * viewMatrix;
                 Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
@@ -266,6 +271,15 @@ namespace UnityEngine.Rendering.Universal
 
         public void Dispose()
         {
+            // Dispose all renderer features...
+            for (int i = 0; i < m_RendererFeatures.Count; ++i)
+            {
+                if (rendererFeatures[i] == null)
+                    continue;
+
+                rendererFeatures[i].Dispose();
+            }
+
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -426,6 +440,7 @@ namespace UnityEngine.Rendering.Universal
                 EndXRRendering(context, renderingData, eyeIndex);
             }
 
+            DrawWireOverlay(context, camera);
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
             InternalFinishRendering(context, cameraData.resolveFinalTarget);
@@ -450,13 +465,6 @@ namespace UnityEngine.Rendering.Universal
         protected static ClearFlag GetCameraClearFlag(ref CameraData cameraData)
         {
             var cameraClearFlags = cameraData.camera.clearFlags;
-
-#if UNITY_EDITOR
-            // We need public API to tell if FrameDebugger is active and enabled. In that case
-            // we want to force a clear to see properly the drawcall stepping.
-            // For now, to fix FrameDebugger in Editor, we force a clear.
-            cameraClearFlags = CameraClearFlags.SolidColor;
-#endif
 
             // Universal RP doesn't support CameraClearFlags.DepthOnly and CameraClearFlags.Nothing.
             // CameraClearFlags.DepthOnly has the same effect of CameraClearFlags.SolidColor
@@ -571,7 +579,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Camera camera = cameraData.camera;
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
-            
+
             // Invalid configuration - use current attachment setup
             // Note: we only check color buffers. This is only technically correct because for shadowmaps and depth only passes
             // we bind depth as color and Unity handles it underneath. so we never have a situation that all color buffers are null and depth is bound.
@@ -697,6 +705,7 @@ namespace UnityEngine.Rendering.Universal
                     if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
                         return;
 
+                    // Otherwise default is the pipeline camera target.
                     passColorAttachment = m_CameraColorTarget;
                     passDepthAttachment = m_CameraDepthTarget;
                 }
@@ -844,6 +853,14 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (UnityEditor.Handles.ShouldRenderGizmos())
                 context.DrawGizmos(camera, gizmoSubset);
+#endif
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        void DrawWireOverlay(ScriptableRenderContext context, Camera camera)
+        {
+#if UNITY_EDITOR
+            context.DrawWireOverlay(camera);
 #endif
         }
 

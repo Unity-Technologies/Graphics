@@ -83,6 +83,10 @@
             * [Blackbody](Blackbody-Node)
             * [Gradient](Gradient-Node)  
             * [Sample Gradient](Sample-Gradient-Node)
+        * High Definition Render Pipeline
+            * [Diffusion Profile](Diffusion-Profile-Node.md)
+            * [Exposure](Exposure-Node.md)
+            * [HD Scene Color](HD-Scene-Color-Node.md)
         * Matrix
             * [Matrix 2x2](Matrix-2x2-Node)  
             * [Matrix 3x3](Matrix-3x3-Node)  
@@ -217,9 +221,11 @@
             * [Nand](Nand-Node)  
             * [Not](Not-Node)  
             * [Or](Or-Node)
+        * High Definition Render Pipeline
+            * [Emission](Emission-Node.md)
         * [Custom Function](Custom-Function-Node)
         * [Keyword](Keyword-Node)
-        * [Preview](Preview-Node)  
+        * [Preview](Preview-Node)
         * [Sub Graph](Sub-graph-Node)            
     * [UV](UV-Nodes)
         * [Flipbook](Flipbook-Node)  

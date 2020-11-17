@@ -31,6 +31,8 @@ To change how much the atmosphere attenuates light, you can change the density o
 
 ## Properties
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 ### Planet
 
 | **Property**                   | **Description**                                              |
