@@ -1,7 +1,7 @@
 * [High Definition Render Pipeline](index.md)
-* [Requirements](System-Requirements.md.md)
-* [What's new](whats-new.md.md)
-  * [10](whats-new-10.md.md)
+* [Requirements](System-Requirements.md)
+* [What's new](whats-new.md)
+  * [10](whats-new-10.md)
 * Features
   * [Features List](HDRP-Features.md)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison.md)
@@ -13,7 +13,7 @@
   * [Exposing More Options](More-Options.md)
   * [Sample Content](HDRP-Sample-Content.md)
   * [Sample project](HDRP-Sample-Projects.md)
-  * [Menu Items](Menu-Items.md.md)
+  * [Menu Items](Menu-Items.md)
 * Upgrading HDRP between Unity Versions
   * [Material Upgrade](Material-Upgrade.md)
   * [5.x to 6.x](Upgrading-from-2019.1-to-2019.2.md)
@@ -45,7 +45,7 @@
       * [Physically Based Sky](Override-Physically-Based-Sky.md)
       * [Procedural Sky](Override-Procedural-Sky.md)
     * [Visual Environment](Override-Visual-Environment.md)
-  * [Volumes API](Volumes-API.md.md)
+  * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
   * [HDRP Asset](HDRP-Asset.md)
   * [Frame Settings](Frame-Settings.md)
@@ -73,14 +73,14 @@
       * [Autodesk Interactive Transparent Shader](Autodesk-Interactive-Shader-Transparent.md)
     * [AxF Shader](AxF-Shader.md)
     * [Decal Shader](Decal-Shader.md)
-    * [Cottom/Wool Shader](cotton-wool-shader.md.md)
-    * [Eye Shader](eye-shader.md.md)
-    * [Hair Shader](hair-shader.md.md)
+    * [Cottom/Wool Shader](cotton-wool-shader.md)
+    * [Eye Shader](eye-shader.md)
+    * [Hair Shader](hair-shader.md)
     * [Layered Lit Shader](Layered-Lit-Shader.md)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader.md)
     * [Lit Shader](Lit-Shader.md)
-    * [Silk Shader](silk-shader.md.md)
-    * [Terrain Lit Shader](Terrain-Lit-Shader.md.md)
+    * [Silk Shader](silk-shader.md)
+    * [Terrain Lit Shader](Terrain-Lit-Shader.md)
     * [Unlit Shader](Unlit-Shader.md)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Customizing-HDRP-materials-with-Shader-Graph.md)
@@ -89,7 +89,7 @@
     * [Hair](Master-Node-Hair.md)
     * [Lit](Master-Node-Lit.md)
     * [Unlit](Master-Node-Unlit.md)
-  * [Shader Graph Nodes](Shader-Graph-Nodes.md.md)
+  * [Shader Graph Nodes](Shader-Graph-Nodes.md)
 * Lighting
   * [Reflection in HDRP](Reflection-in-HDRP.md)
   * [Refraction in HDRP](Refraction-in-HDRP.md)
@@ -109,11 +109,11 @@
   * [Volumetric Lighting](Volumetric-Lighting.md)
   * [Physical Light Units and Intensities](Physical-Light-Units.md)
   * IES
-    * [IES Profile](IES-Profile.md.md)
-    * [IES Importer](IES-Importer.md.md)
+    * [IES Profile](IES-Profile.md)
+    * [IES Importer](IES-Importer.md)
 * Camera
   * [HD Camera](HDRP-Camera.md)
-  * [Scene View Camera](Scene-View-Camera.md.md)
+  * [Scene View Camera](Scene-View-Camera.md)
   * [Dynamic Resolution](Dynamic-Resolution.md)
   * [Motion Vectors](Motion-Vectors.md)
   * [Anti-Aliasing](Anti-Aliasing.md)
@@ -161,7 +161,7 @@
     * [Recursive Rendering](Ray-Tracing-Recursive-Rendering.md)
   * Shader Graph Keywords
     * [Raytracing Quality](SGNode-Raytracing-Quality.md)
-  * [Ray Tracing and Animations](Ray-Tracing-Animations.md.md)
+  * [Ray Tracing and Animations](Ray-Tracing-Animations.md)
   * Debugging
     * [Debugging Ray-Traced Effects](Ray-Tracing-Debug.md)
 * Components
@@ -184,6 +184,6 @@
   * [Creating a Custom Post-Process Effect](Custom-Post-Process.md)
   * [Creating a Custom Render Pass](Custom-Pass.md)
   * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
-  * [Render Graph](render-graph.md.md)
+  * [Render Graph](render-graph.md)
 * [HDRP Glossary](Glossary.md)
 * [Known Issues and How To Fix Them](Known-Issues.md)
