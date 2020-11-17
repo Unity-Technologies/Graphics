@@ -519,17 +519,24 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
-            GraphicsFormat aovFormat = GraphicsFormat.None;
+            GraphicsFormat rtFormat = GetColorBufferFormat();
             if (aovRequest.isValid)
             {
                 var index = aovRequest.GetBufferIndex(AOVBuffers.Color);
-                aovFormat = aovBuffers[index].rt.graphicsFormat;
+                if (index < 0)
+                {
+                    index = aovRequest.GetBufferIndex(AOVBuffers.Output);
+                }
+                if (index >= 0)
+                {
+                    rtFormat = aovBuffers[index].rt.graphicsFormat;
+                }
             }
 
             var output = renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = aovRequest.isValid ? aovFormat : GetColorBufferFormat(),
+                    colorFormat = rtFormat,
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
                     enableMSAA = msaa,
