@@ -46,7 +46,7 @@ Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_2020.2:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
+                 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest --timeout=1800
     artifacts:
         logs:
             paths:
@@ -98,7 +98,7 @@ Build_Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  |5-
 
                   export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-                 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/UniversalGraphicsTest --timeout=1800
+                 ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/UniversalGraphicsTest --timeout=1800
     artifacts:
         logs:
             paths:
