@@ -324,6 +324,8 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 ligh
         return 1.0;
 
     half isPointLight = shadowParams.z;
+
+    UNITY_BRANCH
     if (isPointLight)
     {
         // This is a point light, we have to find out which shadow slice to sample from
