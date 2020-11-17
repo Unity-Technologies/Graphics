@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadow resolution settings level in the light explorer.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
 - Fixed issue with exposure history being uninitialized on second frame.
+- Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
