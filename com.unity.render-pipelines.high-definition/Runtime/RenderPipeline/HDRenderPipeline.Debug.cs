@@ -60,6 +60,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle depthBuffer;
             public ComputeBufferHandle debugBuffer;
             public RendererListHandle rendererList;
+
+            public Texture clearColorTexture;
+            public RenderTexture clearDepthTexture;
+            public bool clearDepth;
         }
 
         void RenderFullScreenDebug(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, CullingResults cull, HDCamera hdCamera)
@@ -74,9 +78,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(hdCamera.actualWidth * hdCamera.actualHeight * hdCamera.viewCount, sizeof(uint))));
                 passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.rendererList));
 
+                passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
+                passData.clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera
+                passData.clearDepth = hdCamera.clearDepth;
+
                 builder.SetRenderFunc(
                 (FullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
+                    CoreUtils.SetRenderTarget(ctx.cmd, data.output);
+                    if (data.clearColorTexture != null)
+                    {
+                        HDUtils.BlitColorAndDepth(ctx.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
+                    }
+
                     RenderFullScreenDebug(  data.parameters,
                                             data.output,
                                             data.depthBuffer,

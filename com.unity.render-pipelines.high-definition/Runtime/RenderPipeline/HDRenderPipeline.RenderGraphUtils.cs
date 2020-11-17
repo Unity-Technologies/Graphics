@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                 m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                 m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
-                clearColor = Color.black;
+                clearColor = Color.clear;
 
             return clearColor;
         }
