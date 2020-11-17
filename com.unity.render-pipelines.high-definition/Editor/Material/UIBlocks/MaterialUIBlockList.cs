@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using System.Linq;
+using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -54,9 +55,15 @@ namespace UnityEditor.Rendering.HighDefinition
             Initialize(materialEditor, properties);
             foreach (var uiBlock in this)
             {
-                // We load material properties at each frame because materials can be animated and to make undo/redo works
-                uiBlock.UpdateMaterialProperties(properties);
-                uiBlock.OnGUI();
+                try
+                {
+                    // We load material properties at each frame because materials can be animated and to make undo/redo works
+                    uiBlock.UpdateMaterialProperties(properties);
+                    uiBlock.OnGUI();
+                } catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
             }
         }
 
