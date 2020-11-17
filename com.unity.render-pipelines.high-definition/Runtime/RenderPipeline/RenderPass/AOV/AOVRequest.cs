@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary> The world space position of visible surfaces.</summary>
         WorldSpacePosition,
         /// <summary> The Fresnel 0 term of visible surfaces.</summary>
-        Fresnel0,
+        Fresnel0
     }
 
     /// <summary>Use this request to define how to render an AOV.</summary>
