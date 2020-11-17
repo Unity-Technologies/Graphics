@@ -291,6 +291,11 @@ namespace UnityEditor.ShaderGraph
             properties.Add(default(PreviewProperty));
         }
 
+        public virtual string GetHLSLVariableType()
+        {
+            return concreteValueType.ToShaderString();
+        }
+
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
 
         public bool Equals(MaterialSlot other)
@@ -313,6 +318,10 @@ namespace UnityEditor.ShaderGraph
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
             }
         }
+
+        // this tracks old CustomFunctionNode slots that are expecting the old bare resource inputs
+        // rather than the new structure-based inputs
+        internal virtual bool bareResource { get { return false; } set { } }
 
         public virtual void CopyDefaultValue(MaterialSlot other)
         {

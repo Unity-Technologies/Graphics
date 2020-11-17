@@ -214,24 +214,7 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
-                switch (prop)
-                {
-                    case Texture2DShaderProperty texture2DProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture2DArrayShaderProperty texture2DArrayProp:
-                        arguments.Add(string.Format("TEXTURE2D_ARRAY_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case Texture3DShaderProperty texture3DProp:
-                        arguments.Add(string.Format("TEXTURE3D_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    case CubemapShaderProperty cubemapProp:
-                        arguments.Add(string.Format("TEXTURECUBE_ARGS({0}, sampler{0})", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                    default:
-                        arguments.Add(string.Format("{0}", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
-                        break;
-                }
+                arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
             }
 
             // pass surface inputs through
@@ -247,7 +230,19 @@ namespace UnityEditor.ShaderGraph
                 arguments.Add(feedbackVar);
             }
 
-            sb.AppendLine("{0}({1});", asset.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
+            sb.AppendIndentation();
+            sb.Append(asset.functionName);
+            sb.Append("(");
+            bool firstArg = true;
+            foreach (var arg in arguments)
+            {
+                if (!firstArg)
+                    sb.Append(", ");
+                firstArg = false;
+                sb.Append(arg);
+            }
+            sb.Append(");");
+            sb.AppendNewLine();
         }
 
         public void OnEnable()

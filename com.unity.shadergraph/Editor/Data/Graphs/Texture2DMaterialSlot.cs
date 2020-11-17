@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -19,6 +20,22 @@ namespace UnityEditor.ShaderGraph
             : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {}
 
+        [SerializeField]
+        internal bool m_BareResource = false;
+        internal override bool bareResource
+        {
+            get { return m_BareResource; }
+            set { m_BareResource = value; }
+        }
+
+        public override string GetHLSLVariableType()
+        {
+            if (m_BareResource)
+                return "Texture2D";
+            else
+                return concreteValueType.ToShaderString();
+        }
+
         public override SlotValueType valueType { get { return SlotValueType.Texture2D; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Texture2D; } }
         public override bool isDefaultValue => true;
@@ -27,6 +44,12 @@ namespace UnityEditor.ShaderGraph
         {}
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
-        {}
+        {
+            var slot = foundSlot as Texture2DMaterialSlot;
+            if (slot != null)
+            {
+                m_BareResource = slot.m_BareResource;
+            }
+        }
     }
 }
