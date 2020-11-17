@@ -36,7 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Screen space ambient occlusion buffer.</summary>
         ScreenSpaceAmbientOcclusion,
         /// <summary>Motion vectors buffer.</summary>
-        MotionVectors
+        MotionVectors,
+        /// <summary> Fresnel 0.</summary>
+        Fresnel0,
     }
 
     /// <summary>Use this request to define how to render an AOV.</summary>
@@ -171,6 +173,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case DebugFullScreen.MotionVectors:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.MotionVectors);
+                    break;
+                case DebugFullScreen.Fresnel0:
+                    debug.SetDebugViewGBuffer(MaterialDebugSettings.GetGBufferMaterialEnumByName("fresnel0"));
                     break;
                 default:
                     throw new ArgumentException("Unknown DebugFullScreen");
