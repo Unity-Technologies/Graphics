@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.3.1] - 2020-07-23
 
+### Added
+- Added a warning when trying to bake with static lighting being in an invalid state.
+
 ### Fixed
 - Fixed issue in Material Postprocess which may fail due to empty SubAsset.
 - Fixed a null ref exception when baking reflection probes.
@@ -25,10 +28,33 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
 - Fixed issue with diffusion profile not being updated upon reset of the editor. 
 - Fixed Amplitude -> Min/Max parametrization conversion
+- Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
+- Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
+- Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
+- Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
+- Fixed SSS materials appearing black in matcap mode.
+- Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Fixed issue with volume manager trying to access a null volume.
+- Fixed issue with bloom showing a thin black line after rescaling window. 
+- Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
+- Fixed nan in pbr sky
+- Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
+- Fixed Custom Post Processes affecting preview cameras.
+- Fixed issue with box light not visible if range is below one and range attenuation is off.
+- Fixed serialization issue with matcap scale intensity.
+- Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
+- Fixed XR shadows culling
+- Fixed volument component creation via script.
+- Fixed shadow resolution settings level in the light explorer.
+- Fixed issue when changing FoV with the physical camera fold-out closed.
+- Fixed issue with exposure history being uninitialized on second frame.
+- Fixed nan in reflection probe when volumetric fog filtering is enabled, causing the whole probe to be invalid.
+- Fixed a null ref in the volume component list when there is no volume components in the project.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
 - Reduced the number of global keyword used in deferredTile.shader
+- Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
 
 ## [8.2.0] - 2020-07-08
 
