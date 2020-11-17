@@ -47,6 +47,13 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz);
 
+#ifdef PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
+    {
+        IncrementQuadOverdrawCounter(posInput.positionSS.xy, input.primitiveID);
+    }
+#endif
+
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
@@ -95,14 +102,6 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
         outColor = float4(result, 1.0);
     }
-
-#ifdef PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER
-    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
-    {
-        IncrementQuadOverdrawCounter(posInput.positionSS.xy, input.primitiveID);
-    }
-#endif
-
 
     return outColor;
 }
