@@ -35,11 +35,11 @@ Unity saves the Graphics Compositor properties in a .asset file with the same na
 
 ## Adding and removing Composition Layers
 To add a new Composition Layer, create a new Texture2D input property in the [Composition Graph](#composition-graph). For convenience, you have to provide a short and indicative name (such as BackGround Layer) in the Reference field in the Node Settings of the Graph Inspector. 
-When you next save the Composition Graph, the new layer appears automatically in the [Render Schedule](#render-schedule) section of the Graphics Compositor window with the name that you have used as Reference. From there, you can control the [layer properties](Compositor-User-Options.md#composition-layer-properties) and specify how to [fill the layer with content](#sub-layers:-adding-content-to-composition-layers). 
+When you next save the Composition Graph, the new layer appears automatically in the [Render Schedule](#render-schedule) section of the Graphics Compositor window with the name that you have used as Reference. From there, you can control the [layer properties](Compositor-User-Options.md#composition-layer-properties) and specify how to [fill the layer with content](#adding-content-to-composition-layers). 
 
 Similarly, to delete a Composition Layer, remove the corresponding Texture 2D property from the [Composition Graph](#composition-graph).
 
-## Sub-layers: Adding content to Composition Layers
+## Adding content to Composition Layers
 Each Composition Layer can source its content from one or more Sub-layers. There are three types of Sub-layer:
 - **Camera Sub-layer:** The source of the content is a Unity Camera. You can select which Camera to use in the properties of the Sub-layer.
 - **Video Sub-layer:** The source of the content is a Unity Video Player. You can select which Video Player to use in the properties of the Sub-layer.
