@@ -30,6 +30,10 @@ MonoBehaviour:
       sceneLabels: Default
       scenePath: Assets/Scenes/0003_TesselationShadow.unity
       enabled: 1
+    - scene: 1001_PostProcess_ScreenSpaceGlobalIllumination
+      sceneLabels: Default
+      scenePath: Assets/Scenes/1001_PostProcess_ScreenSpaceGlobalIllumination.unity
+      enabled: 1
     srpAssets:
     - asset: {fileID: 11400000, guid: 423a7719ceb044c4c8be3a078b6bf2c5, type: 2}
       assetLabels: Default
