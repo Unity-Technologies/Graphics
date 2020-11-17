@@ -16,6 +16,8 @@ For information on how to use a Texture to specify ambient occlusion caused by d
 
 ![](Images/OverrideAmbientOcclusion1.png)
 
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
+
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
 | **Intensity**                | Use the slider to guide the intensity of the ambient occlusion. Higher values lead to darker results. HDRP uses this value as an exponent to evaluate a pixel's final value for ambient occlusion. |

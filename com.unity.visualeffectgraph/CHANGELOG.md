@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.3.1] - 2020-07-23
 ### Fixed
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Handle correctly disabled alphaTreshold material slot in shaderGraph.
 
 ## [8.2.0] - 2020-07-08
