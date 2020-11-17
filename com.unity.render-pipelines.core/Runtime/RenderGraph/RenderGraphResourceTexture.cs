@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using UnityEngine.Rendering;
 
@@ -284,6 +285,46 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 return graphicsResource != null ? graphicsResource.name : "null resource";
             else
                 return desc.name;
+        }
+
+        // NOTE:
+        // Next two functions should have been implemented in RenderGraphResource<DescType, ResType> but for some reason,
+        // when doing so, it's impossible to break in the Texture version of the virtual function (with VS2017 at least), making this completely un-debuggable.
+        // To work around this, we just copy/pasted the implementation in each final class...
+
+        public override void CreatePooledGraphicsResource()
+        {
+            Debug.Assert(m_Pool != null, "CreatePooledGraphicsResource should only be called for regular pooled resources");
+
+            int hashCode = desc.GetHashCode();
+
+            if (graphicsResource != null)
+                throw new InvalidOperationException(string.Format("Trying to create an already created resource ({0}). Resource was probably declared for writing more than once in the same pass.", GetName()));
+
+            var pool = m_Pool as TexturePool;
+            if (!pool.TryGetResource(hashCode, out graphicsResource))
+            {
+                CreateGraphicsResource();
+            }
+
+            cachedHash = hashCode;
+            pool.RegisterFrameAllocation(cachedHash, graphicsResource);
+        }
+
+        public override void ReleasePooledGraphicsResource(int frameIndex)
+        {
+            if (graphicsResource == null)
+                throw new InvalidOperationException($"Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
+
+            // Shared resources don't use the pool
+            var pool = m_Pool as TexturePool;
+            if (pool != null)
+            {
+                pool.ReleaseResource(cachedHash, graphicsResource, frameIndex);
+                pool.UnregisterFrameAllocation(cachedHash, graphicsResource);
+            }
+
+            Reset(null);
         }
 
         public override void CreateGraphicsResource(string name = "")
