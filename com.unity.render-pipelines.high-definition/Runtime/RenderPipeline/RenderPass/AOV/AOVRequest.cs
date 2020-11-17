@@ -37,7 +37,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ScreenSpaceAmbientOcclusion,
         /// <summary>Motion vectors buffer.</summary>
         MotionVectors,
-        /// <summary> Fresnel 0.</summary>
+        /// <summary> The world space position of visible surfaces.</summary>
+        WorldSpacePosition,
+        /// <summary> The Fresnel 0 term of visible surfaces.</summary>
         Fresnel0,
     }
 
@@ -173,6 +175,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case DebugFullScreen.MotionVectors:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.MotionVectors);
+                    break;
+                case DebugFullScreen.WorldSpacePosition:
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
                     break;
                 case DebugFullScreen.Fresnel0:
                     debug.SetDebugViewGBuffer(MaterialDebugSettings.GetGBufferMaterialEnumByName("fresnel0"));
