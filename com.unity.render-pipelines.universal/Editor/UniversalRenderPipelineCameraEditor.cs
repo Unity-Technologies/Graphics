@@ -787,18 +787,19 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.BeginChangeCheck();
 
             Rect controlRect = EditorGUILayout.GetControlRect(true);
+            controlRect.width = controlRect.width - 24;
             EditorGUI.BeginProperty(controlRect, Styles.rendererType, m_AdditionalCameraDataRendererProp);
 
             EditorGUI.showMixedValue = m_AdditionalCameraDataRendererProp.hasMultipleDifferentValues;
             int selectedRenderer = EditorGUI.IntPopup(controlRect, Styles.rendererType, selectedRendererOption, rpAsset.rendererDisplayList, UniversalRenderPipeline.asset.rendererIndexList);
             EditorGUI.EndProperty();
-            Rect selectRect = new Rect(controlRect.x + controlRect.width - 24, controlRect.y, 24, EditorGUIUtility.singleLineHeight);
+            Rect selectRect = new Rect(controlRect.x + controlRect.width, controlRect.y, 24, EditorGUIUtility.singleLineHeight);
             if (m_UniversalRenderPipeline.ValidateRendererData(selectedRendererOption))
             {
                 if (GUI.Button(selectRect, Styles.rendererSettingsText))
                 {
                     var rendererList = m_UniversalRenderPipeline.RendererDataList;
-                    var obj = rendererList[selectedRendererOption];
+                    var obj = rpAsset.GetRendererData(selectedRendererOption);
                     Selection.SetActiveObjectWithContext((Object)obj, null);
                 }
             }
