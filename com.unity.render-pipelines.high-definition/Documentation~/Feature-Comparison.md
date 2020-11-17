@@ -365,7 +365,7 @@ The tables that follow provide an overview of the **Features** that the High Def
 
 | **Feature**       | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------- | ------------------------ | ------------------------------- |
-| AR Foundation | No                       | No                              |
+| AR Foundation | Yes                    | No                        |
 
 ## Debug
 

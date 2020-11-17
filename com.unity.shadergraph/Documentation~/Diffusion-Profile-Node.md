@@ -1,12 +1,20 @@
 # Diffusion Profile Node
 
-The Diffusion Profile Node allows you to sample a [Diffusion Profile](Diffusion-Profile.html) Asset in your Shader Graph. For information on what a Diffusion Profile is and the properties that it contains, see the [Diffusion Profile documentation](Diffusion-Profile.html).
+The Diffusion Profile Node allows you to sample a [Diffusion Profile](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Diffusion-Profile.html) Asset in your Shader Graph. For information on what a Diffusion Profile is and the properties that it contains, see the [Diffusion Profile documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/Diffusion-Profile.html).
 
-## Output port
+## Render pipeline compatability
+
+| **Node**               | **Universal Render Pipeline (URP)** | **High Definition Render Pipeline (HDRP)** |
+| ---------------------- | ----------------------------------- | ------------------------------------------ |
+| Diffusion Profile Node | No                                  | Yes                                        |
+
+## Ports
 
 | name | **Direction** | type | description |
 |--- | --- | --- | --- |
 | **Out** | Output | float | Outputs a unique float that the Shader uses to identify the Diffusion Profile. |
+
+## Notes
 
 The output of this Node is a float value that represents a Diffusion Profile. The Shader can use this value to find settings for the Diffusion Profile Asset that this value represents.
 

@@ -434,12 +434,12 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<DragPerformEvent>(OnDragPerform);
             RegisterCallback<ValidateCommandEvent>(ValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
+            RegisterCallback<AttachToPanelEvent>(OnEnterPanel);
+            RegisterCallback<DetachFromPanelEvent>(OnLeavePanel);
 
             graphViewChanged = VFXGraphViewChanged;
 
             elementResized = VFXElementResized;
-
-            Undo.undoRedoPerformed = OnUndoPerformed;
 
             viewDataKey = "VFXView";
 
@@ -1719,6 +1719,16 @@ namespace UnityEditor.VFX.UI
             {
                 return canCopySelection && !selection.Any(t => t is Group);
             }
+        }
+
+        void OnEnterPanel(AttachToPanelEvent e)
+        {
+            Undo.undoRedoPerformed += OnUndoPerformed;
+        }
+
+        void OnLeavePanel(DetachFromPanelEvent e)
+        {
+            Undo.undoRedoPerformed -= OnUndoPerformed;
         }
 
         public void ValidateCommand(ValidateCommandEvent evt)

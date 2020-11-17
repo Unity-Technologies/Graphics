@@ -477,9 +477,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO : Bind this directly to the debug menu instead of having an intermediate value
             m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
 
-            // Propagate it to the debug menu
-            m_DebugDisplaySettings.data.msaaSamples = m_MSAASamples;
-
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 
             if (m_RayTracingSupported)
@@ -1385,6 +1382,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cullingResults = req.cullingResults;
                                     skipClearCullingResults.Add(req.index);
                                     needCulling = false;
+                                    m_SkyManager.UpdateCurrentSkySettings(hdCamera);
                                 }
                             }
                         }
@@ -1997,7 +1995,10 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 // Make sure we are in sync with the debug menu for the msaa count
-                m_MSAASamples = m_DebugDisplaySettings.data.msaaSamples;
+                m_MSAASamples = (m_DebugDisplaySettings.data.msaaSamples != MSAASamples.None) ?
+                    m_DebugDisplaySettings.data.msaaSamples :
+                    m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount;
+
                 m_SharedRTManager.SetNumMSAASamples(m_MSAASamples);
 
                 m_DebugDisplaySettings.UpdateCameraFreezeOptions();
@@ -2573,6 +2574,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
             cmd.SetViewport(hdCamera.finalViewport);
 
+            if (camera.cameraType == CameraType.SceneView)
+                RenderWireOverlay(cmd, camera, renderContext);
+
             // Render overlay Gizmos
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
@@ -2746,6 +2750,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.xr.enabled)
             {
                 cullingParams = hdCamera.xr.cullingParams;
+
+                // Sync the FOV on the camera to match the projection from the XR device in order to cull shadows accurately
+                if (!camera.usePhysicalProperties)
+                    camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
             }
             else
             {
@@ -2887,6 +2895,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
         }
+
+#if UNITY_EDITOR
+        void RenderWireOverlay(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        {
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderWireFrame)))
+            {
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                renderContext.DrawWireOverlay(camera);
+            }
+        }
+#endif
 
         static RendererListDesc CreateOpaqueRendererListDesc(
             CullingResults cull,

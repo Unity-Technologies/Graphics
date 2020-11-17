@@ -67,7 +67,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float3 output = acc / wSum;
 
     // Guard bands
-    output *= all(dispatchThreadId.xy < uint2(_TexelSize.xy));
+    output *= all(dispatchThreadId.xy <= uint2(_TexelSize.xy));
 
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = output;
 }
