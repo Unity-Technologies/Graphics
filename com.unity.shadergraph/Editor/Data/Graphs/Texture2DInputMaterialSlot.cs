@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph
     class MinimalTexture2DInputMaterialSlot : IHasDependencies
     {
         [SerializeField]
-        private SerializableTexture m_Texture;
+        private SerializableTexture m_Texture = null;
 
         public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {
