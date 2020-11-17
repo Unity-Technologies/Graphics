@@ -1,7 +1,11 @@
-using UnityEditor.AssetImporters;
-using UnityEditor.Experimental;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -21,7 +25,7 @@ namespace UnityEditor.Rendering.Universal
         {
             return k_Order;
         }
-        
+
         static bool Is3DsMaxPhysicalMaterial(MaterialDescription description)
         {
             float classIdA;
@@ -33,6 +37,10 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
+                return;
+
             if (Is3DsMaxPhysicalMaterial(description))
             {
                 CreateFrom3DsPhysicalMaterial(description, material, clips);
