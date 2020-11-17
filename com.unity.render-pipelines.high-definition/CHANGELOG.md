@@ -4,13 +4,46 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [8.3.0] - 2020-07-23
+## [8.3.1] - 2020-07-23
 
 ### Fixed
+- Fixed issue in Material Postprocess which may fail due to empty SubAsset.
+- Fixed a null ref exception when baking reflection probes.
 - Fixed TAA issue and hardware dynamic resolution.
 - Fixed an issue where look dev lighting would go black when a new scene is loaded.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed sky asserts with XR multipass
+- Fixed XR Display providers not getting zNear and zFar plane distances passed to them when in HDRP.
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed issue with dynamic resolution handler when no OnResolutionChange callback is specified. 
+- Fixed error about layers when disabling emissive mesh for area lights.
+- Fixed issue with sun icon being clipped in the look dev window. 
+- Fixed lookdev toggling renderers that are set to non editable or are hidden in the inspector.
+- Fixed issue causing the editor field not updating the disc area light radius.
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile.
+- Fixed issue that caused the decal atlas to not be updated upon changing of the decal textures content.
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed issue with diffusion profile not being updated upon reset of the editor. 
+- Fixed Amplitude -> Min/Max parametrization conversion
+- Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
+- Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
+- Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
+- Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
+- Fixed SSS materials appearing black in matcap mode.
+- Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Fixed issue with volume manager trying to access a null volume.
+- Fixed issue with bloom showing a thin black line after rescaling window. 
+- Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
+- Fixed nan in pbr sky
+- Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
+- Fixed Custom Post Processes affecting preview cameras.
+- Fixed issue with box light not visible if range is below one and range attenuation is off.
+- Fixed serialization issue with matcap scale intensity.
 - Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
+
+### Changed
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Reduced the number of global keyword used in deferredTile.shader
 
 ## [8.2.0] - 2020-07-08
 

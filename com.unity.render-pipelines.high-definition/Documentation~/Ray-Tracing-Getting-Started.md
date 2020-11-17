@@ -15,7 +15,7 @@ This document covers:
 ## Hardware requirements
 
 Full ray tracing hardware acceleration is available on following GPUs:
-- NVIDIA GeForce RTX 2060, RTX 2080 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti
+- NVIDIA GeForce RTX 2060, RTX 2060 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti, and
 NVIDIA TITAN RTX
 - NVIDIA Quadro RTX 3000 (laptop only), RTX 4000, RTX 5000, RTX 6000, RTX 8000
 
@@ -155,6 +155,15 @@ To enable ray tracing for a specific Camera:
 1. Click on the Camera in the Scene or Hierarchy to view it in the Inspector.
 2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
 3. in the **Rendering** section, enable **Ray Tracing**.
+
+<a name="FinalSetup-BuildSettings"></a>
+
+#### Build settings
+
+To build your Project to a Unity Player, ray tracing requires that the build uses 64 bits architecture. To set your build to use 64 bits architecture:
+
+1. Open the Build Settings window (menu: **File > Build Settings**).
+2. From the **Architecture** drop-down, select **x86_64**.
 
 <a name="RayTracingEffectsOverview"></a>
 
