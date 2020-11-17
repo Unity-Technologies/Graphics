@@ -22,6 +22,8 @@ test_platforms:
       - [all]: --category=URP
       - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -35,11 +37,14 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
       - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
   - type: editmode
-    name: performance_editmode_build
+    name: performance_build_editmode
     is_performance: True
     utr_flags:
       - [all]: --testfilter=Build
+      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
@@ -51,6 +56,7 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
+      - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
 platforms:
   - name: Win
     apis:
@@ -59,6 +65,19 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+      performance_build_editmode:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
   - name: Android
     apis: 
       - name: Vulkan
@@ -71,6 +90,19 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
+    agents_project:
+      default:
+        type: Unity::mobile::android
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      standalone_build:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
+      performance_build_editmode:
+        type: Unity::VM
+        image: mobile/android-execution-r19:stable
+        flavor: b1.large
   - name: iPhone
     apis: 
       - name: Metal
@@ -90,10 +122,17 @@ platforms:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
         flavor: b1.large
-      performance_editmode_build:
+      performance_build_editmode:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
         flavor: b1.large
+  - name: OSX
+    apis:
+      - name: Metal
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
@@ -103,25 +142,25 @@ all:
       test_platforms:
         - performance_playmode_runtime
         - performance_playmode_editor
-        - performance_editmode_build
+        - performance_build_editmode
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
+        - performance_build_editmode
     - platform: Android
       api: Vulkan
       build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
+        - performance_build_editmode
     - platform: iPhone
       api: Metal
       build_config: il2cpp
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_editmode_build
+        - performance_build_editmode
