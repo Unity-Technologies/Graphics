@@ -59,6 +59,9 @@ namespace UnityEditor
         public const string templateBlockSubgraphAssetName = "DefaultSubgraphBlock.vfxblock";
         public const string templateOperatorSubgraphAssetName = "DefaultSubgraphOperator.vfxoperator";
 
+        public const string editorResourcesFolder = "Editor Default Resources";
+        public static string editorResourcesPath => VisualEffectGraphPackageInfo.assetPackagePath + "/" + editorResourcesFolder;
+
         [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
