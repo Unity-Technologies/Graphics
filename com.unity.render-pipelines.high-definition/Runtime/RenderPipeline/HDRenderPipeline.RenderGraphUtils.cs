@@ -58,7 +58,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We set the background color to black when the luxmeter is enabled to avoid picking the sky color
             if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
-                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
+                m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
+                m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled())
                 clearColor = Color.black;
 
             return clearColor;
