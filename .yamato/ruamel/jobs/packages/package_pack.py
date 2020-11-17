@@ -1,7 +1,7 @@
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import package_job_id_pack
 from ..shared.yml_job import YMLJob
-from ..shared.constants import NPM_UPMCI_INSTALL_URL
+from ..shared.constants import NPM_UPMCI_INSTALL_URL, PATH_PACKAGES_temp
 
 class Package_PackJob():
     
@@ -19,8 +19,9 @@ class Package_PackJob():
         job.set_agent(agent)
         job.add_commands( [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
-                f'upm-ci package pack --package-path {package["packagename"]}'])
-        job.add_artifacts_packages(pack=True)
+                f'mkdir {PATH_PACKAGES_temp}\\{package["id"]}',
+                f'upm-ci package pack --package-path {package["packagename"]} --artifacts-path {PATH_PACKAGES_temp}/{package["id"]}'])
+        job.add_artifacts_packages(package_id=package["id"])
         return job
     
     

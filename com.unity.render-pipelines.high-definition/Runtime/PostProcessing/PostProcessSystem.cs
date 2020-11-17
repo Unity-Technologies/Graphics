@@ -436,24 +436,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_PostProcessEnabled)
                 {
-                    // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
-                    // content into smaller viewports with some effects like Bloom that rely on bilinear
-                    // filtering and can't use clamp sampler and the likes
-                    // Note: some platforms can't clear a partial render target so we directly draw black triangles
-                    {
-                        int w = camera.actualWidth;
-                        int h = camera.actualHeight;
-                        cmd.SetRenderTarget(source, 0, CubemapFace.Unknown, -1);
-
-                        if (w < source.rt.width || h < source.rt.height)
-                        {
-                            cmd.SetViewport(new Rect(w, 0, k_RTGuardBandSize, h));
-                            cmd.DrawProcedural(Matrix4x4.identity, m_ClearBlackMaterial, 0, MeshTopology.Triangles, 3, 1);
-                            cmd.SetViewport(new Rect(0, h, w + k_RTGuardBandSize, k_RTGuardBandSize));
-                            cmd.DrawProcedural(Matrix4x4.identity, m_ClearBlackMaterial, 0, MeshTopology.Triangles, 3, 1);
-                        }
-                    }
-
                     // Optional NaN killer before post-processing kicks in
                     bool stopNaNs = camera.stopNaNs && m_StopNaNFS;
 

@@ -477,9 +477,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO : Bind this directly to the debug menu instead of having an intermediate value
             m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
 
-            // Propagate it to the debug menu
-            m_DebugDisplaySettings.data.msaaSamples = m_MSAASamples;
-
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 
             if (m_RayTracingSupported)
@@ -1244,6 +1241,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ValidAPI || cameras.Length == 0)
                 return;
 
+            if (HDRenderPipeline.defaultAsset == null)
+                return;
+
             GetOrCreateDefaultVolume();
             GetOrCreateDebugTextures();
 
@@ -1382,6 +1382,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cullingResults = req.cullingResults;
                                     skipClearCullingResults.Add(req.index);
                                     needCulling = false;
+                                    m_SkyManager.UpdateCurrentSkySettings(hdCamera);
                                 }
                             }
                         }
@@ -1468,7 +1469,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
                         // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
                         // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
-                        // (see m_SkyManager.HasSetValidAmbientProbe in this function). 
+                        // (see m_SkyManager.HasSetValidAmbientProbe in this function).
                         if (m_FrameCount > 1)
                             probe.SetIsRendered(m_FrameCount);
 
@@ -1862,7 +1863,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
                             // To avoid that the render data for the wrong view is used, we previously store a copy of the render data
-                            // for each viewer and we are going to set it on the probe right before said viewer is rendered. 
+                            // for each viewer and we are going to set it on the probe right before said viewer is rendered.
                             foreach (var probeDataPair in renderRequest.viewDependentProbesData)
                             {
                                 var probe = probeDataPair.Item2;
@@ -1920,7 +1921,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
-                            {                                
+                            {
                                 if (HDUtils.TryGetAdditionalCameraDataOrDefault(renderRequest.hdCamera.camera).xrRendering)
                                 {
                                     m_XRSystem.RenderMirrorView(cmd);
@@ -1994,7 +1995,10 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 // Make sure we are in sync with the debug menu for the msaa count
-                m_MSAASamples = m_DebugDisplaySettings.data.msaaSamples;
+                m_MSAASamples = (m_DebugDisplaySettings.data.msaaSamples != MSAASamples.None) ?
+                    m_DebugDisplaySettings.data.msaaSamples :
+                    m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount;
+
                 m_SharedRTManager.SetNumMSAASamples(m_MSAASamples);
 
                 m_DebugDisplaySettings.UpdateCameraFreezeOptions();
@@ -2146,7 +2150,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // After Depth and Normals/roughness including decals
             bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
 
-            // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth. 
+            // If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth.
             if (depthBufferModified)
                 m_IsDepthBufferCopyValid = false;
 
@@ -2570,6 +2574,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
             cmd.SetViewport(hdCamera.finalViewport);
 
+            if (camera.cameraType == CameraType.SceneView)
+                RenderWireOverlay(cmd, camera, renderContext);
+
             // Render overlay Gizmos
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
@@ -2743,6 +2750,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdCamera.xr.enabled)
             {
                 cullingParams = hdCamera.xr.cullingParams;
+
+                // Sync the FOV on the camera to match the projection from the XR device in order to cull shadows accurately
+                if (!camera.usePhysicalProperties)
+                    camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
             }
             else
             {
@@ -2884,6 +2895,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
         }
+
+#if UNITY_EDITOR
+        void RenderWireOverlay(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        {
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderWireFrame)))
+            {
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                renderContext.DrawWireOverlay(camera);
+            }
+        }
+#endif
 
         static RendererListDesc CreateOpaqueRendererListDesc(
             CullingResults cull,

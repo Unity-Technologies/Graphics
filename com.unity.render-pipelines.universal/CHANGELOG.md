@@ -4,11 +4,30 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [8.3.0] - 2020-07-23
+## [8.3.1] - 2020-07-23
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
+### Fixed
+- Fixed camera backgrounds not matching between editor and build when background is set to 'Uninitialized'. [case 1224369](https://issuetracker.unity3d.com/issues/urp-uninitialized-camera-background-type-does-not-match-between-the-build-and-game-view)
+- Fixed an issue where the package would fail to compile if the Animation module was disabled. [case 1227068](https://issuetracker.unity3d.com/product/unity/issues/guid/1227068/)
+- Fixed camera overlay stacking adding to respect unity general reference restrictions. [case 1240788](https://issuetracker.unity3d.com/issues/urp-overlay-camera-is-missing-in-stack-list-of-the-base-camera-prefab)
+- Fixed RenderObject to reflect name changes done in CustomForwardRenderer asset. [case 1246256](https://issuetracker.unity3d.com/issues/urp-renderobject-name-does-not-reflect-inside-customforwardrendererdata-asset-on-renaming-in-the-inspector)
+- Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)
+- Fixed an issue where Stencil settings wasn't serialized properly in sub object [case 1241218](https://issuetracker.unity3d.com/issues/stencil-overrides-in-urp-7-dot-3-1-render-objects-does-not-save-or-apply)
+- Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
+- Fixed an issue that caused an infinite asset database reimport when running Unity in command line with -testResults argument.
+- Fixed an issue that caused a warning to be thrown about temporary render texture not found when user calls ConfigureTarget(0). [case 1220871](https://issuetracker.unity3d.com/issues/urp-scriptable-render-passes-which-dont-require-a-bound-render-target-triggers-render-target-warning)
+- Fixed issue that caused some properties in the camera to not be bold and highlighted when edited in prefab mode. [case 1230082](https://issuetracker.unity3d.com/issues/urp-camera-prefab-fields-render-type-renderer-background-type-are-not-bolded-and-highlighted-when-edited-in-prefab-mode)
+- Fixed an issue that impacted MSAA performance on iOS/Metal [case 1219054](https://issuetracker.unity3d.com/issues/urp-ios-msaa-has-a-bigger-negative-impact-on-performance-when-using-urp-compared-to-built-in-rp)
+- Fixed division by zero in `V_SmithJointGGX` function.
+- Fixed an issue where Pixel lighting variants were stripped in builds if another URP asset had Additional Lights set to Per Vertex [case 1263514](https://issuetracker.unity3d.com/issues/urp-all-pixel-lighting-variants-are-stripped-in-build-if-at-least-one-urp-asset-has-additional-lights-set-to-per-vertex)
+- Fixed not using the local skybox on the camera game object when the Skybox Material property in the Lighting window was set to null.
+- Fixed an issue with a render texture failing assertion when chosing an invalid format. [case 1271035](https://issuetracker.unity3d.com/issues/the-error-occurs-when-a-render-texture-which-has-a-certain-color-format-is-applied-to-the-cameras-output-target)
+- Fixed an issue that caused the unity_CameraToWorld matrix to have z flipped values. [case 1257518](https://issuetracker.unity3d.com/issues/parameter-unity-cameratoworld-dot-13-23-33-is-inverted-when-using-universal-rp-7-dot-4-1-and-newer)
+- Fixed an issue where transparent meshes were rendered opaque when using custom render passes [case 1262887](https://issuetracker.unity3d.com/issues/urp-transparent-meshes-are-rendered-as-opaques-when-using-lit-shader-with-custom-render-pass)
+- Fixed Missing camera cannot be removed after scene is saved by removing the Missing camera label. [case 1252255](https://issuetracker.unity3d.com/issues/universal-rp-missing-camera-cannot-be-removed-from-camera-stack-after-scene-is-saved)
+- Fixed MissingReferenceException when removing Missing camera from camera stack by removing Missing camera label. [case 1252263](https://issuetracker.unity3d.com/issues/universal-rp-missingreferenceexception-errors-when-removing-missing-camera-from-stack)
+- Fixed a memory leak in Scriptable Renderer Data Editor.
+ 
 ## [8.2.0] - 2020-07-08
 
 ### Added
@@ -46,6 +65,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where camera stacking with MSAA on OpenGL resulted in a black screen. [Case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used).
 - Fixed an issue where Model Importer Materials used the Standard Shader from the Built-in Render Pipeline instead of URP Lit shader when the import happened at Editor startup.
 - Fixed an issue causing shadows to be incorrectly rendered when a light was close to the shadow caster.
+- Fixed an issue where camera stacking with postFX on XR resulted in a grey screen. [Case 1260378](https://issuetracker.unity3d.com/issues/xr-urp-game-view-is-grey-when-using-camera-stacking-and-enabling-post-processing)
 
 ## [8.1.0] - 2020-04-21
 
@@ -129,6 +149,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed a performance regression when you used the 2D Renderer.
 - Fixed an issue where the Freeform 2D Light gizmo didn't correctly show the Falloff offset.
 - Fixed an issue where the 2D Renderer rendered nothing when you used shadow-casting lights with incompatible Renderer2DData.
+- Fixed an issue where errors were generated when the Physics2D module was not included in the project's manifest.
 - Fixed an issue where Prefab previews were incorrectly lit when you used the 2D Renderer.
 - Fixed an issue where the Light didn't update correctly when you deleted a Sprite that a Sprite 2D Light uses.
 - Fixed an issue where 2D Lighting was broken for Perspective Cameras.
@@ -205,6 +226,15 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where Post-Processing caused nothing to render on GLES2.
 - Fixed an issue that caused depth texture to be flipped when sampling from shaders [case 1225362](https://issuetracker.unity3d.com/issues/game-object-is-rendered-incorrectly-in-the-game-view-when-sampling-depth-texture)
 - Fixed an issue with not being able to remove Light Mode Tags [case 1240895](https://issuetracker.unity3d.com/issues/urp-unable-to-remove-added-lightmode-tags-of-filters-property-in-render-object)
+- Fixed an issue where terrain and speedtree materials would not get upgraded by upgrade project materials. [case 1204189](https://fogbugz.unity3d.com/f/cases/1204189/)
+- Fixed camera overlay stacking adding to respect unity general reference restrictions. [case 1240788](https://issuetracker.unity3d.com/issues/urp-overlay-camera-is-missing-in-stack-list-of-the-base-camera-prefab)
+- Fixed RenderObject to reflect name changes done in CustomForwardRenderer asset. [case 1246256](https://issuetracker.unity3d.com/issues/urp-renderobject-name-does-not-reflect-inside-customforwardrendererdata-asset-on-renaming-in-the-inspector)
+- Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.[case 1250829](https://issuetracker.unity3d.com/issues/main-light-shadows-are-ignored-in-favor-of-additional-lights-shadows)
+- Fixed an issue that caused renderer feature to not render correctly if the pass was injected before rendering opaques and didn't implement `Configure` method. [case 1259750](https://issuetracker.unity3d.com/issues/urp-not-rendering-with-a-renderer-feature-before-rendering-shadows)
+- Fixed issue that caused color grading to not work correctly with camera stacking. [case 1263193](https://issuetracker.unity3d.com/product/unity/issues/guid/1263193/)
+- Fixed an issue that caused an infinite asset database reimport when running Unity in command line with -testResults argument.
+- Fixed an issue that caused a warning to be thrown about temporary render texture not found when user calls ConfigureTarget(0). [case 1220871](https://issuetracker.unity3d.com/issues/urp-scriptable-render-passes-which-dont-require-a-bound-render-target-triggers-render-target-warning)
+- Fixed MSAA on Metal MacOS and Editor.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
@@ -236,7 +266,8 @@ The version number for this package has increased due to a version update of a r
 - The renderer override on the Camera is now an enum that maps to the list of `ScriptableRendererData` on the Render Pipeline Asset.
 - Pixel Perfect Camera now allows rendering to a render texture.
 - Light2D GameObjects that you've created now have a default position with z equal to 0.
-- Documentation: Changed the "Getting Started" section into "Install and Configure". Re-arranged the Table of Content.  
+- Documentation: Changed the "Getting Started" section into "Install and Configure". Re-arranged the Table of Content.
+- Default attachment setup behaviour for ScriptableRenderPasses that execute before rendering opaques is now set use current the active render target setup. This improves performance in some situations.  
 
 ### Fixed
 - Fixed LightProbe occlusion contribution. [case 1146667](https://issuetracker.unity3d.com/product/unity/issues/guid/1146667/)
@@ -265,6 +296,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue where the Terrain shader generated NaNs.
 - Fixed an issue that caused the `Opaque Color` pass to never render at half or quarter resolution.
 - Fixed and issue where stencil state on a `ForwardRendererData` was reset each time rendering happened.
+- Fixed an issue that caused renderer feature to not render correctly if the pass was injected before rendering opaques and didn't implement `Configure` method. [case 1259750](https://issuetracker.unity3d.com/issues/urp-not-rendering-with-a-renderer-feature-before-rendering-shadows)
 
 ## [7.0.1] - 2019-07-25
 ### Changed

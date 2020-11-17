@@ -101,8 +101,8 @@ Shader "Universal Render Pipeline/Unlit"
 #endif
 
                 color = MixFog(color, input.fogCoord);
-                alpha = OutputAlpha(alpha);
-                
+                alpha = OutputAlpha(alpha, _Surface);
+
                 return half4(color, alpha);
             }
             ENDHLSL

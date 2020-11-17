@@ -147,7 +147,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                             float w = saturate(1 - r * rcp(light.flareSize));
 
                             color *= light.flareTint;
-                            scale *= pow(w, light.flareFalloff);
+                            scale *= SafePositivePow(w, light.flareFalloff);
                         }
 
                         radiance += color * scale;
