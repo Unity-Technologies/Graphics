@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New ViewportToWorldPoint operator
 
 ### Fixed
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 - Fix for node window staying when clicking elsewhere
 - Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
 - fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
