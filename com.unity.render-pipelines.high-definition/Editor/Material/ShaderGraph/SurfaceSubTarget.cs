@@ -160,7 +160,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (pass.IsLightingOrMaterial())
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
-            
+            else if (pass.lightMode == HDShaderPassNames.s_FullScreenDebugStr)
+                pass.keywords.Add(CoreKeywordDescriptors.DebugDisplayDefine);
+
             if (!pass.IsDXR())
                 pass.keywords.Add(CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true));
 
