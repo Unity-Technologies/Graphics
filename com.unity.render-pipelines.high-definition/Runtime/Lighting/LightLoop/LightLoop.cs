@@ -3870,10 +3870,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildDispatchIndirect)))
             {
+
+                // Assume that we use fine (and not coarse) tiles in the shader.
+                int numTiles = parameters.fineTileBufferDimensions.x * parameters.fineTileBufferDimensions.y;
+
                 // clear dispatch indirect buffer
                 if (parameters.useComputeAsPixel)
                 {
                     cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
+                    cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles,      numTiles);
                     cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
                     cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
 
@@ -3889,8 +3894,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileList, resources.tileList);
                 cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
 
-                // Assume that we use fine (and not coarse) tiles in the shader.
-                int numTiles   = parameters.fineTileBufferDimensions.x * parameters.fineTileBufferDimensions.y;
                 int groupCount = HDUtils.DivRoundUp(numTiles, k_ThreadGroupOptimalSize);
 
                 cmd.DispatchCompute(parameters.buildDispatchIndirectShader, 0, groupCount, 1, parameters.viewCount);

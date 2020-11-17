@@ -187,7 +187,7 @@ Shader "Hidden/HDRP/DeferredTile"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                nointerpolation uint3 tileIndexAndCoord : TEXCOORD0;
+                nointerpolation uint2 tileCoord : TEXCOORD0;
             };
 
             struct Outputs
@@ -214,14 +214,14 @@ Shader "Hidden/HDRP/DeferredTile"
                 // This handles both "real quad" and "2 triangles" cases: remaps {0, 1, 2, 3, 4, 5} into {0, 1, 2, 3, 0, 2}.
                 uint quadIndex = (input.vertexID & 0x03) + (input.vertexID >> 2) * (input.vertexID & 0x01);
                 float2 pp = GetQuadVertexPosition(quadIndex).xy;
-                pixelCoord += uint2(pp.xy * TILE_SIZE_FPTL);
+                pixelCoord += uint2(pp.xy * TILE_SIZE);
 
                 Varyings output;
                 output.positionCS = float4((pixelCoord * _ScreenSize.zw) * 2.0 - 1.0, 0, 1);
                 // Tiles coordinates always start at upper-left corner of the screen (y axis down).
                 // Clip-space coordinatea always have y axis up. Hence, we must always flip y.
                 output.positionCS.y *= -1.0;
-                output.tileIndexAndCoord = uint3(tile, tileCoord);
+                output.tileCoord = tileCoord;
 
                 return output;
             }
@@ -230,8 +230,9 @@ Shader "Hidden/HDRP/DeferredTile"
             {
                 // This need to stay in sync with deferred.compute
 
-                uint tile = input.tileIndexAndCoord.x;
-                uint2 tileCoord = input.tileIndexAndCoord.yz;
+                uint2 tileCoord = input.tileCoord;
+
+                uint tile         = IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
                 uint featureFlags = TileVariantToFeatureFlags(VARIANT, tile, unity_StereoEyeIndex);
 
                 float depth = LoadCameraDepth(input.positionCS.xy).x;
