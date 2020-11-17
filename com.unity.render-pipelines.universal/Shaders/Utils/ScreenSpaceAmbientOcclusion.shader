@@ -111,5 +111,35 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
+
+        // 4 - After Opaque
+        Pass
+        {
+            Name "SSAO_AfterOpaque"
+
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment FragAfterOpaque
+
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+                half4 FragAfterOpaque(Varyings input) : SV_Target
+                {
+                    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(input.uv);
+                    half occlusion = aoFactor.directAmbientOcclusion;
+                    return half4(0.0, 0.0, 0.0, occlusion);
+                }
+
+            ENDHLSL
+        }
     }
 }

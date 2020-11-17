@@ -245,7 +245,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             "Deferred Directional Light (Lit)",
             "Deferred Directional Light (SimpleLit)",
             "ClearStencilPartial",
-            "Fog"
+            "Fog",
+            "SSAOOnly"
         };
 
         internal enum TileDeferredPasses
@@ -262,7 +263,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             DirectionalLit,
             DirectionalSimpleLit,
             ClearStencilPartial,
-            Fog
+            Fog,
+            SSAOOnly
         };
 
         // Used to initialize all RenderTargetHandles.
@@ -1110,7 +1112,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 // Firt directional light will apply SSAO if possible, unless there is none.
                 if (!HasStencilLightsOfType(LightType.Directional))
-                    RenderSSAOForLightingBuffer(cmd, ref renderingData);
+                    RenderSSAOBeforeShading(cmd, ref renderingData);
 
                 // Stencil lights must be applied before tile light because main directional light may require to overwrite lighting buffer for SSAO.
                 RenderStencilLights(context, cmd, ref renderingData);
@@ -1729,12 +1731,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }
 
-        void RenderSSAOForLightingBuffer(CommandBuffer cmd, ref RenderingData renderingData)
+        void RenderSSAOBeforeShading(CommandBuffer cmd, ref RenderingData renderingData)
         {
             if (m_FullscreenMesh == null)
                 m_FullscreenMesh = CreateFullscreenMesh();
 
-            cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, 7);
+            cmd.DrawMesh(m_FullscreenMesh, Matrix4x4.identity, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.SSAOOnly]);
         }
 
         void RenderFog(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData)

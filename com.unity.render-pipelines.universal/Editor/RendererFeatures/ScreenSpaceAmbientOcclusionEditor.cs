@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering.Universal
     {
         #region Serialized Properties
         private SerializedProperty m_Downsample;
+        private SerializedProperty m_AfterOpaque;
         private SerializedProperty m_Source;
         private SerializedProperty m_NormalQuality;
         private SerializedProperty m_Intensity;
@@ -24,6 +25,7 @@ namespace UnityEditor.Rendering.Universal
         private struct Styles
         {
             public static GUIContent Downsample = EditorGUIUtility.TrTextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
+            public static GUIContent AfterOpaque = EditorGUIUtility.TrTextContent("After Opaque", "With this option enabled, Unity calculates and apply SSAO after the opaque pass to improve performance on mobile platforms with tiled-based GPU architectures. This is not physically correct.");
             public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "This option determines whether the ambient occlusion reconstructs the normal from depth or is given by a Normals texture. In deferred rendering mode, Gbuffer Normals texture is always used.");
             public static GUIContent NormalQuality = new GUIContent("Normal Quality", "The options in this field define the number of depth texture samples that Unity takes when computing the normals. Low: 1 sample, Medium: 5 samples, High: 9 samples.");
             public static GUIContent Intensity = EditorGUIUtility.TrTextContent("Intensity", "The degree of darkness that Ambient Occlusion adds.");
@@ -37,6 +39,7 @@ namespace UnityEditor.Rendering.Universal
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
             m_Source = settings.FindPropertyRelative("Source");
             m_Downsample = settings.FindPropertyRelative("Downsample");
+            m_AfterOpaque = settings.FindPropertyRelative("AfterOpaque");
             m_NormalQuality = settings.FindPropertyRelative("NormalSamples");
             m_Intensity = settings.FindPropertyRelative("Intensity");
             m_DirectLightingStrength = settings.FindPropertyRelative("DirectLightingStrength");
@@ -55,6 +58,8 @@ namespace UnityEditor.Rendering.Universal
             bool isDeferredRenderingMode = RendererIsDeferred();
 
             EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
+
+            EditorGUILayout.PropertyField(m_AfterOpaque, Styles.AfterOpaque);
 
             GUI.enabled = !isDeferredRenderingMode;
             EditorGUILayout.PropertyField(m_Source, Styles.Source);

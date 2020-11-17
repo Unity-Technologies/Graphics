@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     {
         // Parameters
         [SerializeField] internal bool Downsample = false;
+        [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
         [SerializeField] internal NormalQuality NormalSamples = NormalQuality.Medium;
         [SerializeField] internal float Intensity = 3.0f;
@@ -60,7 +61,6 @@ namespace UnityEngine.Rendering.Universal
 
             GetMaterial();
             m_SSAOPass.profilerTag = name;
-            m_SSAOPass.renderPassEvent = RenderPassEvent.AfterRenderingGbuffer;
         }
 
         /// <inheritdoc/>
@@ -130,6 +130,7 @@ namespace UnityEngine.Rendering.Universal
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
+            private RenderTargetIdentifier m_LightingTarget = new RenderTargetIdentifier(s_LightingID, 0, CubemapFace.Unknown, -1);
             private RenderTextureDescriptor m_Descriptor;
 
             // Constants
@@ -148,13 +149,15 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
+            private static readonly int s_LightingID = Shader.PropertyToID("_CameraColorTexture"); // (kc)
 
             private enum ShaderPasses
             {
                 AO = 0,
                 BlurHorizontal = 1,
                 BlurVertical = 2,
-                BlurFinal = 3
+                BlurFinal = 3,
+                Apply = 4
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -164,6 +167,8 @@ namespace UnityEngine.Rendering.Universal
 
             internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer)
             {
+                this.renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
+
                 m_Renderer = renderer;
                 m_CurrentSettings = featureSettings;
 
@@ -311,7 +316,10 @@ namespace UnityEngine.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                    if (!m_CurrentSettings.AfterOpaque)
+                    {
+                        CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                    }
                     PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
                     // Execute the SSAO
@@ -325,6 +333,13 @@ namespace UnityEngine.Rendering.Universal
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTexture2Target);
                     cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+                }
+
+                // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
+                if (m_CurrentSettings.AfterOpaque)
+                {
+                    // (kc) add profiler tag
+                    RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_LightingTarget, ShaderPasses.Apply);
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -358,6 +373,7 @@ namespace UnityEngine.Rendering.Universal
                     throw new ArgumentNullException("cmd");
                 }
 
+                if (!m_CurrentSettings.AfterOpaque)
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture1ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture2ID);
