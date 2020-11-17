@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Custom Post Processes affecting preview cameras.
 - Fixed issue with box light not visible if range is below one and range attenuation is off.
 - Fixed serialization issue with matcap scale intensity.
+- Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
