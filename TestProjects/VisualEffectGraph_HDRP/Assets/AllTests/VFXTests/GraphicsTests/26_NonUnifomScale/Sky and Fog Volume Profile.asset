@@ -1,6 +1,101 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-7724654706381055090
+--- !u!114 &-4191103419780972490
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
+  m_Name: VisualEnvironment
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  skyType:
+    m_OverrideState: 1
+    m_Value: 4
+  skyAmbientMode:
+    m_OverrideState: 0
+    m_Value: 0
+  fogType:
+    m_OverrideState: 0
+    m_Value: 0
+--- !u!114 &-3523076381547727959
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d08ce26990eb1a4a9177b860541e702, type: 3}
+  m_Name: Exposure
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  mode:
+    m_OverrideState: 1
+    m_Value: 0
+  meteringMode:
+    m_OverrideState: 0
+    m_Value: 2
+  luminanceSource:
+    m_OverrideState: 0
+    m_Value: 1
+  fixedExposure:
+    m_OverrideState: 1
+    m_Value: 13
+  compensation:
+    m_OverrideState: 0
+    m_Value: 0
+  limitMin:
+    m_OverrideState: 0
+    m_Value: -10
+  limitMax:
+    m_OverrideState: 0
+    m_Value: 20
+  curveMap:
+    m_OverrideState: 0
+    m_Value:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -10
+        value: -10
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 20
+        value: 20
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  adaptationMode:
+    m_OverrideState: 0
+    m_Value: 1
+  adaptationSpeedDarkToLight:
+    m_OverrideState: 0
+    m_Value: 3
+    min: 0.001
+  adaptationSpeedLightToDark:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0.001
+--- !u!114 &-3312908501886929541
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -10,7 +105,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d877ec3e844f2ca46830012e8e79319b, type: 3}
-  m_Name: 
+  m_Name: PhysicallyBasedSky
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
@@ -117,7 +212,7 @@ MonoBehaviour:
     max: 10
   groundTint:
     m_OverrideState: 1
-    m_Value: {r: 0.122641504, g: 0.1043775, b: 0.09313812, a: 1}
+    m_Value: {r: 0.11320752, g: 0.11320752, b: 0.11320752, a: 1}
     hdr: 0
     showAlpha: 0
     showEyeDropper: 0
@@ -176,7 +271,24 @@ MonoBehaviour:
     m_Value: 0
     min: -1
     max: 1
---- !u!114 &-4151792930034644520
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: Sky and Fog Volume Profile
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: -3523076381547727959}
+  - {fileID: -3312908501886929541}
+  - {fileID: -4191103419780972490}
+  - {fileID: 3556815007921638052}
+--- !u!114 &3556815007921638052
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -186,7 +298,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 953beb541740ddc499d005ee80c9ff29, type: 3}
-  m_Name: 
+  m_Name: Fog
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
@@ -242,11 +354,11 @@ MonoBehaviour:
     m_Value: 400
     min: 1
   enableVolumetricFog:
-    m_OverrideState: 1
-    m_Value: 1
+    m_OverrideState: 0
+    m_Value: 0
   anisotropy:
-    m_OverrideState: 1
-    m_Value: 0.65
+    m_OverrideState: 0
+    m_Value: 0
     min: -1
     max: 1
   globalLightProbeDimmer:
@@ -263,161 +375,6 @@ MonoBehaviour:
     m_Value: 0.75
     min: 0
     max: 1
-  screenResolutionPercentage:
-    m_OverrideState: 0
-    m_Value: 12.5
-    min: 6.25
-    max: 100
-  volumeSliceCount:
-    m_OverrideState: 0
-    m_Value: 64
-    min: 1
-    max: 1024
   filter:
     m_OverrideState: 0
     m_Value: 0
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: Sky and Fog Settings Profile
-  m_EditorClassIdentifier: 
-  components:
-  - {fileID: 1142777632297148762}
-  - {fileID: -7724654706381055090}
-  - {fileID: -4151792930034644520}
-  - {fileID: 7642060734654139733}
---- !u!114 &1142777632297148762
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d7593b3a9277ac4696b20006c21dde2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  active: 1
-  m_AdvancedMode: 0
-  skyType:
-    m_OverrideState: 1
-    m_Value: 4
-  skyAmbientMode:
-    m_OverrideState: 1
-    m_Value: 0
-  fogType:
-    m_OverrideState: 1
-    m_Value: 0
---- !u!114 &7642060734654139733
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d08ce26990eb1a4a9177b860541e702, type: 3}
-  m_Name: Exposure
-  m_EditorClassIdentifier: 
-  active: 1
-  m_AdvancedMode: 0
-  mode:
-    m_OverrideState: 1
-    m_Value: 4
-  meteringMode:
-    m_OverrideState: 0
-    m_Value: 2
-  luminanceSource:
-    m_OverrideState: 0
-    m_Value: 1
-  fixedExposure:
-    m_OverrideState: 0
-    m_Value: 0
-  compensation:
-    m_OverrideState: 0
-    m_Value: 0
-  limitMin:
-    m_OverrideState: 1
-    m_Value: 2
-  limitMax:
-    m_OverrideState: 1
-    m_Value: 14
-  curveMap:
-    m_OverrideState: 0
-    m_Value:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: -10
-        value: -10
-        inSlope: 0
-        outSlope: 1
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 20
-        value: 20
-        inSlope: 1
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-  adaptationMode:
-    m_OverrideState: 0
-    m_Value: 1
-  adaptationSpeedDarkToLight:
-    m_OverrideState: 0
-    m_Value: 3
-    min: 0.001
-  adaptationSpeedLightToDark:
-    m_OverrideState: 0
-    m_Value: 1
-    min: 0.001
-  weightTextureMask:
-    m_OverrideState: 0
-    m_Value: {fileID: 0}
-  histogramPercentages:
-    m_OverrideState: 0
-    m_Value: {x: 40, y: 90}
-    min: 0
-    max: 100
-  histogramUseCurveRemapping:
-    m_OverrideState: 0
-    m_Value: 0
-  targetMidGray:
-    m_OverrideState: 0
-    m_Value: 0
-  centerAroundExposureTarget:
-    m_OverrideState: 0
-    m_Value: 0
-  proceduralCenter:
-    m_OverrideState: 0
-    m_Value: {x: 0.5, y: 0.5}
-  proceduralRadii:
-    m_OverrideState: 0
-    m_Value: {x: 0.15, y: 0.15}
-  maskMinIntensity:
-    m_OverrideState: 0
-    m_Value: -30
-  maskMaxIntensity:
-    m_OverrideState: 0
-    m_Value: 30
-  proceduralSoftness:
-    m_OverrideState: 0
-    m_Value: 0.5
-    min: 0
