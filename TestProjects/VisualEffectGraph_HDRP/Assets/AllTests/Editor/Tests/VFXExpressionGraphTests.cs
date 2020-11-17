@@ -167,6 +167,94 @@ namespace UnityEditor.VFX.Test
                 VFXExpressionContextOption.Reduction
             );
         }
+
+        public static readonly bool[] s_Check_GPU_Constant_Skip_Rule = new bool[] { true, false };
+
+        [Test]
+        public void Check_GPU_Constant_Skip_Rule_Simple([ValueSource("s_Check_GPU_Constant_Skip_Rule")] bool constantFolding)
+        {
+            TestExpressionGraph(
+                g =>
+                {
+                    var context = (VFXContext)g[0];
+                    var attrib = ScriptableObject.CreateInstance<Block.SetAttribute>();
+                    attrib.SetSettingValue("attribute", "color");
+                    context.AddChild(attrib);
+
+                    var inline = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                    inline.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
+                    inline.inputSlots[0].value = new Vector3(1.0f, 0.3f, 0.1f);
+                    g.AddChild(inline);
+                    inline.outputSlots[0].Link(attrib.inputSlots[0]);
+                },
+
+                g =>
+                {
+                    var context = (VFXContext)g.vfx[0];
+                    var slot = context.children.First().GetInputSlot(0);
+                    var exp = g.exp.GPUExpressionsToReduced[slot.GetExpression()];
+                    //TODOPAUL : improve this test, it doesn't cover correctly this behavior
+                    if (constantFolding)
+                    {
+                        Assert.AreEqual(-1, g.exp.GetFlattenedIndex(exp));
+                    }
+                    else
+                    {
+                        Assert.AreNotEqual(-1, g.exp.GetFlattenedIndex(exp));
+                    }
+                },
+                constantFolding ? VFXExpressionContextOption.ConstantFolding : VFXExpressionContextOption.Reduction
+            );
+        }
+
+        [Test]
+        public void Check_GPU_Constant_Skip_Rule_Mixing_CPU_Evaluation([ValueSource("s_Check_GPU_Constant_Skip_Rule")] bool constantFolding)
+        {
+            TestExpressionGraph(
+                g =>
+                {
+                    var context = (VFXContext)g[0];
+                    var attrib = ScriptableObject.CreateInstance<Block.SetAttribute>();
+                    attrib.SetSettingValue("attribute", "color");
+                    context.AddChild(attrib);
+
+                    var inline = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                    inline.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
+                    inline.inputSlots[0].value = new Vector3(1.0f, 0.3f, 0.1f);
+                    g.AddChild(inline);
+
+                    var totalTime = ScriptableObject.CreateInstance<VFXDynamicBuiltInParameter>();
+                    totalTime.SetSettingValue("m_BuiltInParameters", VFXDynamicBuiltInParameter.BuiltInFlag.VfxTotalTime);
+                    g.AddChild(totalTime);
+
+                    var add = ScriptableObject.CreateInstance<VFX.Operator.Add>();
+                    add.SetOperandType(0, typeof(Vector3));
+                    add.SetOperandType(1, typeof(float));
+                    g.AddChild(add);
+
+                    Assert.IsTrue(add.inputSlots[0].Link(inline.outputSlots[0]));
+                    Assert.IsTrue(add.inputSlots[1].Link(totalTime.outputSlots[0]));
+                    Assert.IsTrue(add.outputSlots[0].Link(attrib.inputSlots[0]));
+                },
+
+                g =>
+                {
+                    var context = (VFXContext)g.vfx[0];
+                    var slot = context.children.First().GetInputSlot(0);
+                    var exp = g.exp.GPUExpressionsToReduced[slot.GetExpression()];
+                    //TODOPAUL : improve this test, it doesn't cover correctly this behavior
+                    if (constantFolding)
+                    {
+                        Assert.AreEqual(-1, g.exp.GetFlattenedIndex(exp));
+                    }
+                    else
+                    {
+                        Assert.AreNotEqual(-1, g.exp.GetFlattenedIndex(exp));
+                    }
+                },
+                constantFolding ? VFXExpressionContextOption.ConstantFolding : VFXExpressionContextOption.Reduction
+            );
+        }
     }
 }
 #endif

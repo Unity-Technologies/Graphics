@@ -10,10 +10,12 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.VFX
 {
+    [Flags]
     enum VFXDeviceTarget
     {
-        CPU,
-        GPU,
+        None = 0,
+        CPU = 1 << 0,
+        GPU = 1 << 1,
     }
 
     class VFXExpressionGraph
@@ -22,21 +24,23 @@ namespace UnityEditor.VFX
         {
             public int depth;
             public int index;
+            public VFXDeviceTarget usage;
         }
 
         public VFXExpressionGraph()
         {}
 
-        private void AddExpressionDataRecursively(Dictionary<VFXExpression, ExpressionData> dst, VFXExpression exp, int depth = 0)
+        private void AddExpressionDataRecursively(Dictionary<VFXExpression, ExpressionData> dst, VFXExpression exp, VFXDeviceTarget target, int depth = 0)
         {
             ExpressionData data;
-            if (!dst.TryGetValue(exp, out data) || data.depth < depth)
+            if (!dst.TryGetValue(exp, out data) || data.depth < depth || !data.usage.HasFlag(target))
             {
                 data.index = -1; // Will be overridden later on
-                data.depth = depth;
+                data.depth = Math.Max(depth, data.depth);
+                data.usage = data.usage | target;
                 dst[exp] = data;
                 foreach (var parent in exp.parents)
-                    AddExpressionDataRecursively(dst, parent, depth + 1);
+                    AddExpressionDataRecursively(dst, parent, data.usage, data.depth + 1);
             }
         }
 
@@ -46,6 +50,9 @@ namespace UnityEditor.VFX
             VFXExpression.Flags forbiddenFlags = VFXExpression.Flags.None)
         {
             var expressionContext = new VFXExpression.Context(options, m_GlobalEventAttributes);
+
+            if (target != VFXDeviceTarget.GPU && target != VFXDeviceTarget.CPU)
+                throw new InvalidOperationException("Unexpected mixing target flat : " + target);
 
             var contextsToExpressions = target == VFXDeviceTarget.GPU ? m_ContextsToGPUExpressions : m_ContextsToCPUExpressions;
             var expressionsToReduced = target == VFXDeviceTarget.GPU ? m_GPUExpressionsToReduced : m_CPUExpressionsToReduced;
@@ -80,7 +87,7 @@ namespace UnityEditor.VFX
             m_Expressions.UnionWith(allReduced);
 
             foreach (var exp in expressionsToReduced.Values)
-                AddExpressionDataRecursively(m_ExpressionsData, exp);
+                AddExpressionDataRecursively(m_ExpressionsData, exp, target);
         }
 
         public void CompileExpressions(VFXGraph graph, VFXExpressionContextOption options, bool filterOutInvalidContexts = false)
@@ -172,8 +179,23 @@ namespace UnityEditor.VFX
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {
                     var exp = kvp.Key;
-                    return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU); // remove per element expression from flattened data // TODOPAUL (now, otherwise, we will never do it, can be done with usage maybe ?) Remove uniform constants too
-                });
+
+                    if (kvp.Value.usage == VFXDeviceTarget.None)
+                        throw new InvalidOperationException("Unexpected unknown VFXDeviceTarget usage" + exp);
+
+                    //Remove per element expression from flattened data
+                    if (exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
+                        return false;
+
+                    //Remove constant if value only used by GPU (it will be automatically patched in generated source code)
+                    if (    options.HasFlag(VFXExpressionContextOption.ConstantFolding)
+                        &&  kvp.Value.usage == VFXDeviceTarget.GPU //aka only GPU
+                        &&  exp.Is(VFXExpression.Flags.Constant))
+                        if (!m_ExpressionsData.Any(e => e.Key.parents.Contains(exp))) //TODOPAUL : replace this condition, it's actually !end expression, check m_GPUExpressionsToReduced
+                            return true; //Fail on 007_MeshSampling
+
+                    return true;
+                }).ToArray(); //TODOPAUL : remove this to array
 
                 var expressionPerSpawn = sortedList.Where(o => o.Key.Is(VFXExpression.Flags.PerSpawn));
                 var expressionNotPerSpawn = sortedList.Where(o => !o.Key.Is(VFXExpression.Flags.PerSpawn));
@@ -182,8 +204,8 @@ namespace UnityEditor.VFX
                 //It's more convenient for two reasons :
                 // - Reduces process chunk for ComputePreProcessExpressionForSpawn
                 // - Allows to determine the maximum index of expression while processing main expression evaluation
-                sortedList = expressionNotPerSpawn.OrderByDescending(o => o.Value.depth);
-                sortedList = sortedList.Concat(expressionPerSpawn.OrderByDescending(o => o.Value.depth));
+                sortedList = expressionNotPerSpawn.OrderByDescending(o => o.Value.depth).ToArray(); //TODOPAUL : remove this to array, only for debug
+                sortedList = sortedList.Concat(expressionPerSpawn.OrderByDescending(o => o.Value.depth)).ToArray(); //TODOPAUL : remove this to array, only for debug
 
                 m_FlattenedExpressions = sortedList.Select(o => o.Key).ToList();
                 // update index in expression data
