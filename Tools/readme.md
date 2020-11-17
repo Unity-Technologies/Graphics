@@ -19,15 +19,10 @@ Note: If you already installed the git hooks (before November 2020), you need to
 
 ### Available hooks
 
-A description of the hooks we currently have is available on the [hooks' library repository](https://github.cds.internal.unity3d.com/theo-penavaire/gfx-automation-tools#available-git-hooks).
+A description of the hooks we currently have is available in the [hooks' library repository](https://github.cds.internal.unity3d.com/theo-penavaire/gfx-automation-tools#available-git-hooks).
 
 For this repository we have enabled:
 - format-code
 - check-shader-includes
 - file-extension-to-lowercase
 - check-branch-name
-
-### check-branch-name - Branch name convention
-
-- All new branches enclosed in a folder (valid name: `folder/my-branch`) 
-- All branches in lowercase, except for the enclosing `HDRP` folder (valid names: `HDRP/my-branch`, `something-else/my-branch`)
