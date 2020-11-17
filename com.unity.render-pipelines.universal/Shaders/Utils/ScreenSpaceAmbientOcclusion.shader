@@ -197,5 +197,29 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             ENDHLSL
         }
 
+        // 11 - Dual Filtering Downsample
+        Pass
+        {
+            Name "SSAO_DualFilteringDownsample"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment DualFilteringDownsample
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
+        // 12 - Dual Filtering Upsample
+        Pass
+        {
+            Name "SSAO_DualFilteringUpsample"
+
+            HLSLPROGRAM
+                #pragma vertex VertDefault
+                #pragma fragment DualFilteringUpsample
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
+            ENDHLSL
+        }
+
     }
 }

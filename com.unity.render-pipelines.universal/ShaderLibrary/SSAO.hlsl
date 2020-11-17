@@ -463,6 +463,7 @@ half GaussianBlur( half2 uv, half2 pixelOffset)
        2.06278
     };
 
+    UNITY_UNROLL
     for( int i = 0; i < stepCount; i++ )
     {
         half2 texCoordOffset = gOffsets[i] * pixelOffset;
@@ -593,6 +594,45 @@ half DualKawaseBlur(Varyings input) : SV_Target
     return col;
 }
 
+// Dual Filtering
+// implementation based on Siggraph2015 "Bandwidth-Efficient Rendering" by Marius Bjørge
+
+half DualFilteringDownsample(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    half2 uv = input.uv;
+    half2 pixelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
+    half2 halfPixel = pixelSize * 0.5h;
+
+    half col = 4.0h * SAMPLE_BASEMAP_R(uv);
+    col += SAMPLE_BASEMAP_R(uv - halfPixel);
+    col += SAMPLE_BASEMAP_R(uv + halfPixel);
+    col += SAMPLE_BASEMAP_R(uv + half2(halfPixel.x, -halfPixel.y));
+    col += SAMPLE_BASEMAP_R(uv - half2(halfPixel.x, -halfPixel.y));
+
+    return col * 0.125h;  // * 1/8
+}
+
+half DualFilteringUpsample(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    half2 uv = input.uv;
+    half2 pixelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
+    half2 halfPixel = pixelSize * 0.5h;
+
+    half col = SAMPLE_BASEMAP_R(uv + half2(-pixelSize.x, 0.0h));
+    col += 2.0h * SAMPLE_BASEMAP_R(uv + half2(-halfPixel.x, halfPixel.y));
+    col += SAMPLE_BASEMAP_R(uv + half2(0.0h, pixelSize.y));
+    col += 2.0h * SAMPLE_BASEMAP_R(uv + half2(halfPixel.x, halfPixel.y));
+    col += SAMPLE_BASEMAP_R(uv + half2(pixelSize.x, 0.0h));
+    col += 2.0h * SAMPLE_BASEMAP_R(uv + half2(halfPixel.x, -halfPixel.y));
+    col += SAMPLE_BASEMAP_R(uv + half2(0.0h, -pixelSize.y));
+    col += 2.0h * SAMPLE_BASEMAP_R(uv + half2(-halfPixel.x, -halfPixel.y));
+
+    return 1.0h - (col * 0.083h); // * 1/12
+}
 
 
 #endif //UNIVERSAL_SSAO_INCLUDED

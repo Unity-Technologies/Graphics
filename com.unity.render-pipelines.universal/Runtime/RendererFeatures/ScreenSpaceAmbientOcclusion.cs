@@ -38,7 +38,8 @@ namespace UnityEngine.Rendering.Universal
             Bilateral,
             Gaussian,
             Kawase,
-            DualKawase
+            DualKawase,
+            DualFiltering
         }
     }
 
@@ -157,6 +158,8 @@ namespace UnityEngine.Rendering.Universal
             // if downsapling is enabled, use an additional RT at full resolution to perform upsampling in the final blur pass
             private RenderTargetIdentifier m_SSAOTexture4Target = new RenderTargetIdentifier(s_SSAOTexture4ID, 0, CubemapFace.Unknown, -1);
 
+            private RenderTargetIdentifier m_SSAOTexture5Target = new RenderTargetIdentifier(s_SSAOTexture5ID, 0, CubemapFace.Unknown, -1);
+
             private RenderTextureDescriptor m_Descriptor;
 
             // Constants
@@ -173,6 +176,8 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
             private static readonly int s_SSAOTexture4ID = Shader.PropertyToID("_SSAO_OcclusionTexture4");
 
+            private static readonly int s_SSAOTexture5ID = Shader.PropertyToID("_SSAO_OcclusionTexture5");
+
             private enum ShaderPasses
             {
                 AO = 0,
@@ -186,6 +191,8 @@ namespace UnityEngine.Rendering.Universal
                 Upsample = 8,
                 KawaseBlur = 9,
                 DualKawaseBlur = 10,
+                DualFilteringDownsample = 11,
+                DualFilteringUpsample = 12
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -303,6 +310,20 @@ namespace UnityEngine.Rendering.Universal
                     ConfigureClear(ClearFlag.None, Color.white);
                 }
 
+                if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.DualFiltering)
+                {
+                    m_Descriptor.width = cameraTargetDescriptor.width;
+                    m_Descriptor.height = cameraTargetDescriptor.height;
+                    m_Descriptor.width /= downsampleDivider * 2;
+                    m_Descriptor.height /= downsampleDivider * 2;
+
+                    cmd.GetTemporaryRT(s_SSAOTexture5ID, m_Descriptor, FilterMode.Bilinear);
+
+                    // Configure targets and clear color
+                    ConfigureTarget(s_SSAOTexture5ID);
+                    ConfigureClear(ClearFlag.None, Color.white);
+                }
+
             }
 
             /// <inheritdoc/>
@@ -323,7 +344,12 @@ namespace UnityEngine.Rendering.Universal
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
 
-                    if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Kawase || m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.DualKawase)
+                    if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.DualFiltering)
+                    {
+                        RenderAndSetBaseMap(cmd, m_SSAOTexture1Target, m_SSAOTexture5Target, ShaderPasses.DualFilteringDownsample);
+                        RenderAndSetBaseMap(cmd, m_SSAOTexture5Target, m_SSAOTexture2Target, ShaderPasses.DualFilteringUpsample);
+                    }
+                    else if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Kawase || m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.DualKawase)
                     {
                         ShaderPasses shaderPass = (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.Kawase) ? ShaderPasses.KawaseBlur : ShaderPasses.DualKawaseBlur;
                         if (m_CurrentSettings.SinglePassBlur)
@@ -424,6 +450,9 @@ namespace UnityEngine.Rendering.Universal
 
                 if (blurFinalUpsample)
                     cmd.ReleaseTemporaryRT(s_SSAOTexture4ID);
+
+                if (m_CurrentSettings.BlurType == ScreenSpaceAmbientOcclusionSettings.BlurTypes.DualFiltering)
+                    cmd.ReleaseTemporaryRT(s_SSAOTexture5ID);
             }
         }
     }

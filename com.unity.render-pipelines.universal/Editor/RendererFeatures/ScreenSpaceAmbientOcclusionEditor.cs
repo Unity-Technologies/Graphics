@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.Universal
             m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength,m_DirectLightingStrength.floatValue, 0f, 1f);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
-            m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount,m_SampleCount.intValue, 4, 20);
+            m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount,m_SampleCount.intValue, 1, 20);
         }
     }
 }
