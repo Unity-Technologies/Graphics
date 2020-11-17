@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [8.3.1] - 2020-07-23
 
 ### Added
-- New operator : Sample Signed distance field
 - New WorldToViewportPoint operator
 - New ViewportToWorldPoint operator
 
