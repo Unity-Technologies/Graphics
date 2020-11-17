@@ -170,12 +170,13 @@ namespace UnityEngine.Rendering.Universal
 #endif
             if (xrEnabled && xrSupported)
             {
-                // Disable vsync on the main display when rendering to a XR device
-                // XRTODO: Quest provider has a bug where vSyncCount must be 1, otherwise app is locked to 30fps
-                if (Application.platform == RuntimePlatform.Android)
-                    QualitySettings.vSyncCount = 1;
-                else
-                    QualitySettings.vSyncCount = 0;
+                // Disable vsync on the main display when rendering to a XR device.
+                QualitySettings.vSyncCount = 0;
+                // On Android and iOS, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
+                // Set targetFrameRate to XR refresh rate (round up)
+                float frameRate = 120.0f;
+                frameRate = display.TryGetDisplayRefreshRate(out float refreshRate)? refreshRate : frameRate;
+                Application.targetFrameRate = Mathf.CeilToInt(frameRate);
 
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
             }
