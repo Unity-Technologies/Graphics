@@ -55,6 +55,6 @@ After you capture a frame, RenderDoc can display pixels with a NaN/Inf value as 
 ![](Images/Post-processingPropagatingNaNsRenderDoc.png)
 
 
-Now that it is easier to see the NaN/Inf values, you can start to look for them. If they are still not obvious, you can look at the bloom dispatches to see where bloom propagates the NaN/Inf pixels from, then pinpoint the exact pixel/s responsible. Taking the example images in the [propagating NaNs/Infs section](#Propagating-NaNs/Infs), you can see by how bloom expands the NaN/Inf values that the source is around the center of the screen, on the sphere's Material.
+Now that it is easier to see the NaN/Inf values, you can start to look for them. If they are still not obvious, you can look at the bloom dispatches to see where bloom propagates the NaN/Inf pixels from, then pinpoint the exact pixel/s responsible. Taking the example images in the [propagating NaNs/Infs section](#propagating-nans/infs), you can see by how bloom expands the NaN/Inf values that the source is around the center of the screen, on the sphere's Material.
 
 After you find which Materials/shaders produce the NaNs/Infs, you can then debug them to find out which operation actually causes the invalid values.

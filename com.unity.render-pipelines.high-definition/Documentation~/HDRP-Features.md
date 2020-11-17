@@ -231,11 +231,9 @@ HDRP uses multiple methods to calculate shadows:
 
 To decrease aliasing for the main cascade shadow maps, you can apply different filters to them, like PCF or PCSS.
 
-For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](Shadows-in-HDRP.md#FilteringQualities).
+For punctual and area light shadows, HDRP allows for dynamic resolution based on how much screen the light covers. HDRP rescales the content of the shadow atlas when it would be otherwise full.  For more information on the filtering algorithms that HDRP uses, see the [filtering qualities documentation](HDRP-Asset.md#filtering-qualities).
 
 In the advanced settings of the shadow maps, there is also the possibility to apply a tint on the shadow or the penumbra of the shadow.
-
-<a name="SkyOverview"></a>
 
 ### Sky 
 
@@ -250,8 +248,6 @@ In HDRP, you set up the sky inside a [Volume](Volumes.md), so you can change sky
 
 HDRP is able to handle multiple skies seen by different Cameras.
 
-<a name="FogOverview"></a>
-om
 ### Fog
 
 ![](Images/HDRPFeatures-Fog.png)
