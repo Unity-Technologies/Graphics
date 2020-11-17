@@ -14,6 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int kMaxSubdivisionLevels = 15; // 4 bits
         private  const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
 
+        [System.Serializable]
         public struct Brick
         {
             public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
