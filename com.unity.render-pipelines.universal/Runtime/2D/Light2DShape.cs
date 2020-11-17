@@ -26,5 +26,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             get { return m_ShapePath; }
             internal set { m_ShapePath = value; }
         }
+
+        internal void SetShapePath(Vector3[] path)
+        {
+            m_ShapePath = path;
+        }
     }
 }
