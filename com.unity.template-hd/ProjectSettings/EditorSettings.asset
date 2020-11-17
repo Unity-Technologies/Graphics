@@ -23,8 +23,11 @@ EditorSettings:
   m_CachingShaderPreprocessor: 0
   m_EnterPlayModeOptionsEnabled: 0
   m_EnterPlayModeOptions: 3
+  m_GameObjectNamingDigits: 1
+  m_GameObjectNamingScheme: 0
+  m_AssetNamingUsesSpace: 1
   m_UseLegacyProbeSampleCount: 0
-  m_SerializeInlineMappingsOnOneLine: 0
+  m_SerializeInlineMappingsOnOneLine: 1
   m_DisableCookiesInLightmapper: 0
   m_AssetPipelineMode: 1
   m_CacheServerMode: 0

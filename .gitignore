@@ -30,6 +30,7 @@
 *.sublime-workspace
 *.suo
 *.userprefs
+*.log
 .npmrc
 ShaderGraph/DebugOutput.meta
 ShaderGraph/DebugOutput/**

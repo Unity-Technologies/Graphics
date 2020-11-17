@@ -1,3 +1,5 @@
+*       text=auto
+
 # Unity assets are always serialized using lf endings
 LightingData.asset binary
 *.unitypackage filter=lfs diff=lfs merge=lfs -text
