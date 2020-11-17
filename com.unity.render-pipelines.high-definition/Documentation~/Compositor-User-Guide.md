@@ -10,7 +10,7 @@ Many compositing operations require an alpha channel. To properly use all featur
 - Set the color buffer format for Rendering to 16-bit half float (R16G16B16A16)
 - Set the buffer format for post-processing to 16-bit half float (R16G16B16A16)
 
-Both buffer format options are in the [HDRP Asset](HDRP-Asset). If the compositor detects a buffer format without an alpha channel, it displays a warning. For more information, seen [Alpha Output](Alpha-Output).
+Both buffer format options are in the [HDRP Asset](HDRP-Asset). If the compositor detects a buffer format without an alpha channel, it displays a warning. For more information, seen [Alpha Output](Alpha-Output.md).
 
 ## Layer Types
 The Graphics Compositor tool typically handles two types of layers: 

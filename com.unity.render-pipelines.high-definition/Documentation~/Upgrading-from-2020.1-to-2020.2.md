@@ -214,9 +214,9 @@ The signature of the Execute function has changed to simplify the parameters, no
 
 The CustomPassContext contains all the parameters of the old `Execute` function, but also all the available Render Textures as well as a MaterialPropertyBlock unique to the custom pass instance.
 
-This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.cs) class which contains functions to speed up the development of your custom passes.
+This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html) class which contains functions to speed up the development of your custom passes.
 
-For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.cs).
+For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html).
 
 To upgrade your custom pass, replace the original execute function prototype with the new one. To do this, replace:
 

@@ -46,7 +46,7 @@ To find the root cause of a NaN/Inf, HDRP includes a debug mode which displays p
 This helps you to see if there are actually NaNs/Infs on screen and which material causes them. However, if you need more information, such as which particular draw call causes the issue, you can use frame debugging tools such as [RenderDoc](https://renderdoc.org/). For information on how to use RenderDoc to capture frames in Unity, see [RenderDoc integration](https://docs.unity3d.com/Manual/RenderDocIntegration.html).
 
 A common situation that leads to NaNs is when a mesh is imported with ill-defined normals, like normals equal to the zero vector.
-To find these normals, you can use one of the normal visualization modes in the [**Material** panel](Render-Pipeline-Debug-Window.html#material-panel) of the Render Pipeline Debug window.
+To find these normals, you can use one of the normal visualization modes in the [Material panel](Render-Pipeline-Debug-Window.md#material-panel) of the Render Pipeline Debug window.
 
 #### RenderDoc
 
