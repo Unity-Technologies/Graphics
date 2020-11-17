@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volument component creation via script.
 - Fixed shadow resolution settings level in the light explorer.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
+- Fixed issue with exposure history being uninitialized on second frame.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
