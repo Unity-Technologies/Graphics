@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    /// <summary>Decal Surface Options material UI block.</summary>
+    /// <summary>The UI block that represents the surface options for decal materials.</summary>
     public class DecalSurfaceOptionsUIBlock : MaterialUIBlock
     {
         internal class Styles
@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty affectsEmission = new MaterialProperty();
 
         /// <summary>
-        /// Construct a Decal surface options material UI Block.
+        /// Constructs a DecalSurfaceOptionsUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         public DecalSurfaceOptionsUIBlock(ExpandableBit expandableBit)

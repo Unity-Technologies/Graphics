@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Refraction material UI Block
+    /// The UI block that represents refraction properties.
     /// </summary>
     public class RefractionUIBlock : MaterialUIBlock
     {
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
         int m_LayerCount;
 
         /// <summary>
-        /// Construct a Refraction material UI Block.
+        /// Constructs a RefractionUIBlock based on the parameters.
         /// </summary>
         /// <param name="layerCount">Current layer index. For non-layered shader, indicate 1.</param>
         public RefractionUIBlock(int layerCount)

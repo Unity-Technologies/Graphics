@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
         /// <summary>
-        /// Construct Decal Surface Inputs material UI block
+        /// Constructs a DecalSurfaceInputsUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state</param>
         public DecalSurfaceInputsUIBlock(ExpandableBit expandableBit)

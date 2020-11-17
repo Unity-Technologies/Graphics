@@ -12,53 +12,53 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Surface Option properties in the material inspector.
+    /// The UI block that represents surface option properties for materials.
     /// </summary>
     public class SurfaceOptionUIBlock : MaterialUIBlock
     {
         /// <summary>
-        /// Surface Option features, allow you to hide certain parts of the UI.
+        /// Options for surface option features. This allows you to display or hide certain parts f the UI.
         /// </summary>
         [Flags]
         public enum Features
         {
-            /// <summary>Display the minimum surface option fields.</summary>
+            /// <summary>Displays the minimum surface option fields.</summary>
             None                        = 0,
-            /// <summary>Display the surface field.</summary>
+            /// <summary>Displays the surface field.</summary>
             Surface                     = 1 << 0,
-            /// <summary>Display the blend mode field.</summary>
+            /// <summary>Displays the blend mode field.</summary>
             BlendMode                   = 1 << 1,
-            /// <summary>Display the double sided field.</summary>
+            /// <summary>Displays the double sided field.</summary>
             DoubleSided                 = 1 << 2,
-            /// <summary>Display the alpha cutoff field.</summary>
+            /// <summary>Displays the alpha cutoff field.</summary>
             AlphaCutoff                 = 1 << 3,
-            /// <summary>Display the alpha cutoff threshold field.</summary>
+            /// <summary>Displays the alpha cutoff threshold field.</summary>
             AlphaCutoffThreshold        = 1 << 4,
-            /// <summary>Display the alpha cutoff shadow treshold field.</summary>
+            /// <summary>Displays the alpha cutoff shadow treshold field.</summary>
             AlphaCutoffShadowThreshold  = 1 << 5,
-            /// <summary>Display the double sided normal mode field.</summary>
+            /// <summary>Displays the double sided normal mode field.</summary>
             DoubleSidedNormalMode       = 1 << 6,
-            /// <summary>Display the back then front rendering field.</summary>
+            /// <summary>Displays the back then front rendering field.</summary>
             BackThenFrontRendering      = 1 << 7,
-            /// <summary>Display the receive ssr field.</summary>
+            /// <summary>Displays the receive ssr field.</summary>
             ReceiveSSR                  = 1 << 8,
-            /// <summary>Display the receive decal field.</summary>
+            /// <summary>Displays the receive decal field.</summary>
             ReceiveDecal                = 1 << 9,
-            /// <summary>Display the show after post process field.</summary>
+            /// <summary>Displays the show after post process field.</summary>
             ShowAfterPostProcessPass    = 1 << 10,
-            /// <summary>Display the alpha to mask field.</summary>
+            /// <summary>Displays the alpha to mask field.</summary>
             AlphaToMask                 = 1 << 11,
-            /// <summary>Display the show pre pass and post pass fields.</summary>
+            /// <summary>Displays the show pre pass and post pass fields.</summary>
             ShowPrePassAndPostPass      = 1 << 12,
-            /// <summary>Display the depth offset field.</summary>
+            /// <summary>Displays the depth offset field.</summary>
             ShowDepthOffsetOnly         = 1 << 13,
-            /// <summary>Display the preserve specular lighting field.</summary>
+            /// <summary>Displays the preserve specular lighting field.</summary>
             PreserveSpecularLighting    = 1 << 14,
-            /// <summary>Display all the Unlit Surface Option fields.</summary>
+            /// <summary>Displays all the Unlit Surface Option fields.</summary>
             Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold| AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
-            /// <summary>Display all the Lit Surface Option fields field.</summary>
+            /// <summary>Displays all the Lit Surface Option fields field.</summary>
             Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
-            /// <summary>Display all the fields.</summary>
+            /// <summary>Displays all the fields.</summary>
             All                         = ~0,
         }
 
@@ -297,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition
         int         m_LayerCount;
 
         /// <summary>
-        /// Construct a surface option material UI block.
+        /// Constructs a SurfaceOptionUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit used for the foldout state.</param>
         /// <param name="layerCount">Number of layers available in the shader.</param>
@@ -421,7 +421,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw all the surface option GUI.
+        /// Draws the entire Surface Options GUI.
         /// </summary>
         protected void DrawSurfaceOptionGUI()
         {
@@ -451,7 +451,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw the Alpha Cutoff GUI (enable, treshold, shadow treshold, prepass cutoff, postpass cutoff)
+        /// Draws the Alpha Cutoff GUI.
         /// </summary>
         protected void DrawAlphaCutoffGUI()
         {
@@ -520,7 +520,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw the Double Sided GUI (enable, normal mode)
+        /// Draws the Double Sided GUI.
         /// </summary>
         protected void DrawDoubleSidedGUI()
         {
@@ -538,7 +538,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw the Surface GUI (suraface type, opaque options + transparent options)
+        /// Draws the Surface GUI.
         /// </summary>
         protected void DrawSurfaceGUI()
         {
@@ -789,7 +789,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw Lit Surface Options (material type, enable raytracing, receive decals, receive SSR, geometric specular AA, displacement)
+        /// Draws the Lit Surface Options GUI.
         /// </summary>
         protected void DrawLitSurfaceOptions()
         {

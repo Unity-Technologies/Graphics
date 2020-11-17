@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Tessellation Options Material UI Block.
+    /// The UI block that represents Tessellation Option properties for materials.
     /// </summary>
     public class TessellationOptionsUIBlock : MaterialUIBlock
     {
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
         ExpandableBit m_ExpandableBit;
 
         /// <summary>
-        /// Construct the tessellation options material UI block.
+        /// Constructs a TessellationOptionsUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit used to store the foldout state</param>
         public TessellationOptionsUIBlock(ExpandableBit expandableBit)
@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw the tesselation GUI
+        /// Draws the Tessellation Options GUI.
         /// </summary>
         protected void DrawTesselationGUI()
         {

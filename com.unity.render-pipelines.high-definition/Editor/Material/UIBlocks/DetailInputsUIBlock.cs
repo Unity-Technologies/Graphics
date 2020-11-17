@@ -11,15 +11,15 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Detail Inputs material UI Block
+    /// The UI block that represents detail inputs for materials.
     /// </summary>
     public class DetailInputsUIBlock : MaterialUIBlock
     {
-        /// <summary>Detail Inputs material UI Block features.</summary>
+        /// <summary>Options for DetailInputsUIBlock features.</summary>
         [Flags]
         public enum Features
         {
-            /// <summary>Display the standard Detail Inputs UI.</summary>
+            /// <summary>Displays the standard detail inputs UI.</summary>
             None                = 0,
             /// <summary>Replaces the header by a sub-header. This is useful for layered material UI</summary>
             SubHeader           = 1 << 1,
@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
         bool        isLayeredLit => m_LayerCount > 1;
 
         /// <summary>
-        /// Construct a Detail Inputs material UI block.
+        /// Constructs a DetailInputsUIBlock base on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index to store the foldout state.</param>
         /// <param name="layerCount">Number of layers in the shader.</param>

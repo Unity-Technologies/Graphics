@@ -10,21 +10,21 @@ using System.Linq;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Emission material UI block.
+    /// The UI block that displays emission properties for materials.
     /// </summary>
     public class EmissionUIBlock : MaterialUIBlock
     {
-        /// <summary>Feature of the Emission block, used to control which field is visible.</summary>
+        /// <summary>Options for emission block features. Use this to control which fields are visible.</summary>
         [Flags]
         public enum Features
         {
-            /// <summary>Show the minimal emission fields.</summary>
+            /// <summary>Shows the minimal emission fields.</summary>
             None                = 0,
-            /// <summary>Show the enable emission for GI field.</summary>
+            /// <summary>Shows the enable emission for GI field.</summary>
             EnableEmissionForGI = 1 << 0,
-            /// <summary>Show the multiply with base field.</summary>
+            /// <summary>Shows the multiply with base field.</summary>
             MultiplyWithBase    = 1 << 1,
-            /// <summary>Show all the fields.</summary>
+            /// <summary>Shows all the fields.</summary>
             All                 = ~0
         }
 
@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Features    m_Features;
 
         /// <summary>
-        /// Construct an emission material UI block.
+        /// Constructs an EmissionUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="features">Features of the block.</param>

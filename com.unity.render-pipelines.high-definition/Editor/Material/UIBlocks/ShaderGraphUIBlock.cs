@@ -10,8 +10,8 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// ShaderGraph material UI block.
-    /// This class will display every non-hidden properties inside a shader and thus it can also be used on non-shadergraph shaders.
+    /// The UI block that represents Shader Graph material properties.
+    /// This UI block displays every non-hidden property inside a shader. You can also use this with non-shadergraph shaders.
     /// </summary>
     public class ShaderGraphUIBlock : MaterialUIBlock
     {
@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Features    m_Features;
 
         /// <summary>
-        /// Construct the ShaderGraph material UI block.
+        /// Constructs a ShaderGraphUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="features">Features enabled in the block.</param>
@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw the material properties
+        /// Draws the material properties.
         /// </summary>
         /// <param name="properties">List of Material Properties to draw</param>
         protected void PropertiesDefaultGUI(MaterialProperty[] properties)
@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw the Shadow Matte settings (Only available on Unlit materials)
+        /// Draws the Shadow Matte settings. This is only available for Unlit materials.
         /// </summary>
         protected void DrawShadowMatteToggle()
         {
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Draw the built-in exposed diffusion profile when a material have sub-surface scattering or transmission.
+        /// Draw the built-in exposed Diffusion Profile when a material uses sub-surface scattering or transmission.
         /// </summary>
         protected void DrawDiffusionProfileUI()
         {

@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Distortion material UI Block.
+    /// The UI block that displays distortion properties for materials.
     /// </summary>
     public class DistortionUIBlock : MaterialUIBlock
     {

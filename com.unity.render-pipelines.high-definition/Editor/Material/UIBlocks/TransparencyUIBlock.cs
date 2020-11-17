@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Transparency material UI Block.
+    /// The UI block that represents Transparency properties for materials.
     /// </summary>
     public class TransparencyUIBlock : MaterialUIBlock
     {
@@ -18,13 +18,13 @@ namespace UnityEditor.Rendering.HighDefinition
         [Flags]
         public enum Features
         {
-            /// <summary>Hide all the fields.</summary>
+            /// <summary>Hides all the fields.</summary>
             None        = 0,
-            /// <summary>Display the distortion fields.</summary>
+            /// <summary>Displays the distortion fields.</summary>
             Distortion  = 1 << 0,
-            /// <summary>Display the refraction fields.</summary>
+            /// <summary>Displays the refraction fields.</summary>
             Refraction  = 1 << 1,
-            /// <summary>Display all the fields.</summary>
+            /// <summary>Displays all the fields.</summary>
             All         = ~0
         }
 
@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialUIBlockList m_TransparencyBlocks;
 
         /// <summary>
-        /// Construct the Transparency material UI Block.
+        /// Constructs a TransparencyUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="features">Features of the Transparency block.</param>

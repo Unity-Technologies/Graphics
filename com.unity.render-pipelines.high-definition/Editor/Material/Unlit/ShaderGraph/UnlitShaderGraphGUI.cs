@@ -8,7 +8,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Common GUI for Unlit ShaderGraphs
+    /// The UI block that represents common properties for unlit Shader Graphs.
     /// </summary>
     public class UnlitShaderGraphGUI : HDShaderGUI
     {
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Sets up the keywords and passes for an Unlit Shader Graph material.
+        /// Sets up the keywords and passes for the Unlit Shader Graph material you pass in.
         /// </summary>
         /// <param name="material">The target material.</param>
         public static void SetupUnlitKeywordsAndPass(Material material)

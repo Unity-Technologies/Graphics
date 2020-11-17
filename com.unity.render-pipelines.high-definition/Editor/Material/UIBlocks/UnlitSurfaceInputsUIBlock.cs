@@ -6,7 +6,7 @@ using UnityEngine.Rendering.HighDefinition;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Unlit Surface Inputs material UI Block
+    /// The UI block that represents surface inputs for unlit materials.
     /// </summary>
     public class UnlitSurfaceInputsUIBlock : MaterialUIBlock
     {
@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kColorMap = "_UnlitColorMap";
 
         /// <summary>
-        /// Construct an Unlit Surface Inputs material UI Block.
+        /// Constructs an UnlitSurfaceInputsUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         public UnlitSurfaceInputsUIBlock(ExpandableBit expandableBit)

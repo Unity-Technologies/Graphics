@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Layering Options material UI Block.
+    /// The UI block that represents layering options for materials.
     /// </summary>
     public class LayeringOptionsUIBlock : MaterialUIBlock
     {
@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kOpacityAsDensity = "_OpacityAsDensity";
 
         /// <summary>
-        /// Construct a Layering Option material UI Block.
+        /// Constructs a LayeringOptionsUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the foldout state.</param>
         /// <param name="layerIndex">Current layer index. For non-layered shader, indicate 0.</param>

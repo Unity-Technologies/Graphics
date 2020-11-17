@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // It will allow to display our common parameters + setup keyword correctly for them
 
         /// <summary>
-        /// Setup the keywords and passes for a material.
+        /// Sets up the keywords and passes for the material you pass in as a parameter.
         /// </summary>
         /// <param name="material">Target material.</param>
         protected abstract void SetupMaterialKeywordsAndPass(Material material);

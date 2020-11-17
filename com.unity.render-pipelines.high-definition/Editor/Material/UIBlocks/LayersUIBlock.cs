@@ -11,7 +11,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Layers material UI Block
+    /// The UI block that represents layer options for materials.
     /// </summary>
     public class LayersUIBlock : MaterialUIBlock
     {

@@ -11,7 +11,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Material Layer list ui block. Used in the Layered Lit shader.
+    /// The UI block that represents a material layer list. The Layered Lit shader uses this UI block.
     /// </summary>
     public class LayerListUIBlock : MaterialUIBlock
     {
@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Construct the material layer list ui block.
+        /// Constructs a LayerListUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index used to store the state of the foldout</param>
         public LayerListUIBlock(ExpandableBit expandableBit)

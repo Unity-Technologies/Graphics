@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [Flags]
         public enum Features
         {
-            /// <summary>Don't display any fields.</summary>
+            /// <summary>Hide all the fields in the block.</summary>
             None                    = 0,
             /// <summary>Display the instancing field.</summary>
             Instancing              = 1 << 0,

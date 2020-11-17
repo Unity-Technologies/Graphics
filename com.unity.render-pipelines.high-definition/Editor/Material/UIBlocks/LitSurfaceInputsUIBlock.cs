@@ -11,27 +11,27 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition
 {
     /// <summary>
-    /// Lit surface inputs material UI block.
+    /// The UI block that represents lit surface input properties.
     /// This block is shared for Lit and Layered surface inputs + tesselation variants.
     /// </summary>
     public class LitSurfaceInputsUIBlock : MaterialUIBlock
     {
-        /// <summary>Lit Surface Inputs Features.</summary>
+        /// <summary>Options for lit surface input features.</summary>
         public enum Features
         {
             /// <summary>Minimal Lit Surface Inputs fields.</summary>
             None            = 0,
-            /// <summary>Coat Mask fields.</summary>
+            /// <summary>Displays Coat Mask fields.</summary>
             CoatMask        = 1 << 0,
-            /// <summary>Height Map fields.</summary>
+            /// <summary>Displays the height Map fields.</summary>
             HeightMap       = 1 << 1,
-            /// <summary>Layer Options fields.</summary>
+            /// <summary>Displays the layer Options fields.</summary>
             LayerOptions    = 1 << 2,
-            /// <summary>Show the foldout header as a SubHeader.</summary>
+            /// <summary>Displays the foldout header as a SubHeader.</summary>
             SubHeader       = 1 << 3,
-            /// <summary>Show the default surface inputs.</summary>
+            /// <summary>Displays the default surface inputs.</summary>
             Standard        = 1 << 4,
-            /// <summary>Show Everything with a header.</summary>
+            /// <summary>Displays everything with a header.</summary>
             All             = ~0 ^ SubHeader // By default we don't want a sub-header
         }
 
@@ -262,7 +262,7 @@ namespace UnityEditor.Rendering.HighDefinition
         bool        isLayeredLit => m_LayerCount > 1;
 
         /// <summary>
-        /// Construct a Lit Surface Inputs material UI block.
+        /// Constructs a LitSurfaceInputsUIBlock based on the parameters.
         /// </summary>
         /// <param name="expandableBit">Bit index to store the foldout state.</param>
         /// <param name="layerCount">Number of layers in the shader.</param>
