@@ -3,9 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-// Force enable fog fragment shader evaluation
-#define _FOG_FRAGMENT 1
-
 struct Attributes
 {
     float4 positionOS    : POSITION;
@@ -69,17 +66,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    half fogFactor = 0.0;
-#if defined(_FOG_FRAGMENT)
-    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.posWS, 1.0)).z);
-        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
-    #endif
-#else
-    fogFactor = input.fogFactorAndVertexLight.x;
-#endif
-
-    inputData.fogCoord = fogFactor;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.posWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);

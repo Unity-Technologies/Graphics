@@ -220,6 +220,25 @@ real ComputeFogIntensity(real fogFactor)
     return fogIntensity;
 }
 
+// Force enable fog fragment shader evaluation
+#define _FOG_FRAGMENT 1
+real InitializeInputDataFog(float4 positionWS, real vertFogFactor)
+{
+    half fogFactor = 0.0;
+#if defined(_FOG_FRAGMENT)
+    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        // Compiler eliminates unused math --> matrix.column_z * vec
+        float viewZ = -(mul(UNITY_MATRIX_V, positionWS).z);
+        // View Z is 0 at camera pos, remap 0 to near plane.
+        //float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+    #endif
+#else
+    fogFactor = vertFogFactor;
+#endif
+    return fogFactor;
+}
+
 half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
 {
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
