@@ -438,6 +438,27 @@ namespace UnityEngine.Rendering.Universal
             return m_Renderers[index];
         }
 
+        /// <summary>
+        /// Returns a renderer data from the current pipeline asset
+        /// </summary>
+        /// <param name="index">Index to the renderer data. If invalid index is passed, the default renderer is returned instead.</param>
+        /// <returns></returns>
+        public ScriptableRendererData GetRendererData(int index)
+        {
+            if (index == -1)
+            {
+                return m_RendererDataList[m_DefaultRendererIndex];
+            }
+
+            if (index >= m_RendererDataList.Length || index < 0 || m_RendererDataList[index] == null)
+            {
+                Debug.LogWarning($"Renderer data at index {index.ToString()} is missing.", this);
+                return null;
+            }
+
+            return m_RendererDataList[index];
+        }
+
         internal ScriptableRendererData scriptableRendererData
         {
             get
