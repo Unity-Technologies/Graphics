@@ -15,6 +15,9 @@
 // Tile size of this compute
 #define VOLUMETRIC_CLOUDS_TILE_SIZE 8
 
+#define ANVIL_BIAS 0.01
+#define MOTION_DISTORTION 0.1
+
 #pragma enable_d3d11_debug_symbols
 
 // Input textures
@@ -127,7 +130,7 @@ CloudCoverageData GetCloudCoverageData(float3 positionWS)
     // Convert the position into dome space
     float2 normalizedPosition = saturate(positionWS.xz / _CloudDomeSize * 0.5 + 0.5);
     // Read the data from the texture
-    float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_repeat_sampler, float2(normalizedPosition.x, normalizedPosition.y), 0.0);
+    float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_clamp_sampler, float2(normalizedPosition.x, normalizedPosition.y), 0.0);
     CloudCoverageData data;
     // TODO: Fix this
     data.coverage = cloudMapData.x * 0.4;
@@ -203,12 +206,16 @@ void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProp
     // Evaluate the cloud coverage data for this position
     CloudCoverageData cloudCoverageData = GetCloudCoverageData(positionWS);
 
+    // Evaluate the normalized height of the position within the cloud volume
+    properties.height = saturate((positionWS.y - _LowestCloudAltitude) / (_HighestCloudAltitude - _LowestCloudAltitude));
+
     // If this region of space has no cloud coverage, exit right away
     if (cloudCoverageData.coverage == 0.0)
     	return;
 
     // Evaluate the coordinates at which the noise will be sampled
     float3 noiseSamplingCoordinates = positionWS.xzy * 0.0001 + _WindDirection * _Time * 0.01;    
+    noiseSamplingCoordinates += properties.height * _WindDirection * MOTION_DISTORTION;
 
     // Read the low frequency Perlin-Worley and Worley noises
     float4 lowFrequencyNoises = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, noiseSamplingCoordinates, 0.0);
@@ -217,14 +224,14 @@ void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProp
     // Remap the perlin-worley noise with the worley fbm
     float base_cloud = remap(lowFrequencyNoises.x, -(1.0 - lowFreqFBm), 1.0, 0.0, 1.0);
 
-    // Evaluate the normalized height of the position within the cloud volume
-    properties.height = saturate((positionWS.y - _LowestCloudAltitude) / (_HighestCloudAltitude - _LowestCloudAltitude));
-
     // Evaluate the density by the height-base density gradient of the cloud that we are handeling
     float densityHeightGradient = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), 0.0).x;
 	
     // Apply the height function to the base cloud shape
     base_cloud *= densityHeightGradient;
+
+    // apply anvil deformations
+    cloudCoverageData.coverage = pow(cloudCoverageData.coverage, remap(properties.height, 0.7, 0.8, 1.0, lerp(1.0, 0.5, ANVIL_BIAS)));
 
 	// Rmap the base cloud with the coverage
     properties.density = remap(base_cloud, cloudCoverageData.coverage, 1.0, 0.0, 1.0);
