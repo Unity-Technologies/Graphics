@@ -1,0 +1,545 @@
+fileFormatVersion: 2
+guid: 5663b188ae489204989b2bbeef2b4490
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: BRAKE CALIPER 5_Part14
+    100002: BRAKE CALIPER 5_Part28
+    100004: BRAKE CALIPER 5_Part3
+    100006: BRAKE CALIPER 5_Part30
+    100008: BRAKE DISC 1_Part29
+    100010: BRAKE DISC 1_Part34
+    100012: BRAKE DISC 2_Part3
+    100014: BRAKE DISC 4_Part9
+    100016: CHASSIS
+    100018: DOOR_LH
+    100020: DOOR_LH.EXT
+    100022: DOOR_LH.INT
+    100024: DOOR_RH
+    100026: DOOR_RH.EXT
+    100028: DOOR_RH.INT
+    100030: ENGINE
+    100032: EXT Tire Profile_Part122
+    100034: EXT Tire Profile_Part183
+    100036: EXT Tire Slick surface_Part105
+    100038: EXT Tire Slick surface_Part194
+    100040: EXTERIOR
+    100042: EXTERIOR.001
+    100044: GCC18_V01_ASM_181113_GEN_0804.wire
+    100046: INTERIOR
+    100048: INTERIOR.001
+    100050: RIM Felge_Part1
+    100052: RIM Felge_Part2
+    100054: RIM Felge_Part3
+    100056: RIM Felge_Part4
+    100058: RIM Felge_Part5
+    100060: RIM Felge_Part6
+    100062: RIM1 COLOR 2_Part40
+    100064: RIM1 COLOR 2_Part45
+    100066: RIM1 COLOR 2_Part48
+    100068: RIM1 COLOR 2_Part58
+    100070: RIM2 Aviera_Part6
+    100072: RIM2 Aviera_Part8
+    100074: RIM2 Aviera_Part9
+    100076: RIM2 Chrome valve_Part2
+    100078: SPOILER
+    100080: SUS_FL
+    100082: SUS_FR
+    100084: SUS_RL
+    100086: SUS_RR
+    100088: //RootNode
+    100090: WHEEL_FL
+    100092: WHEEL_FL_MASTER
+    100094: WHEEL_FR
+    100096: WHEEL_FR_MASTER
+    100098: WHEEL_RL
+    100100: WHEEL_RL_MASTER
+    100102: WHEEL_RR
+    100104: WHEEL_RR_MASTER
+    400000: BRAKE CALIPER 5_Part14
+    400002: BRAKE CALIPER 5_Part28
+    400004: BRAKE CALIPER 5_Part3
+    400006: BRAKE CALIPER 5_Part30
+    400008: BRAKE DISC 1_Part29
+    400010: BRAKE DISC 1_Part34
+    400012: BRAKE DISC 2_Part3
+    400014: BRAKE DISC 4_Part9
+    400016: CHASSIS
+    400018: DOOR_LH
+    400020: DOOR_LH.EXT
+    400022: DOOR_LH.INT
+    400024: DOOR_RH
+    400026: DOOR_RH.EXT
+    400028: DOOR_RH.INT
+    400030: ENGINE
+    400032: EXT Tire Profile_Part122
+    400034: EXT Tire Profile_Part183
+    400036: EXT Tire Slick surface_Part105
+    400038: EXT Tire Slick surface_Part194
+    400040: EXTERIOR
+    400042: EXTERIOR.001
+    400044: GCC18_V01_ASM_181113_GEN_0804.wire
+    400046: INTERIOR
+    400048: INTERIOR.001
+    400050: RIM Felge_Part1
+    400052: RIM Felge_Part2
+    400054: RIM Felge_Part3
+    400056: RIM Felge_Part4
+    400058: RIM Felge_Part5
+    400060: RIM Felge_Part6
+    400062: RIM1 COLOR 2_Part40
+    400064: RIM1 COLOR 2_Part45
+    400066: RIM1 COLOR 2_Part48
+    400068: RIM1 COLOR 2_Part58
+    400070: RIM2 Aviera_Part6
+    400072: RIM2 Aviera_Part8
+    400074: RIM2 Aviera_Part9
+    400076: RIM2 Chrome valve_Part2
+    400078: SPOILER
+    400080: SUS_FL
+    400082: SUS_FR
+    400084: SUS_RL
+    400086: SUS_RR
+    400088: //RootNode
+    400090: WHEEL_FL
+    400092: WHEEL_FL_MASTER
+    400094: WHEEL_FR
+    400096: WHEEL_FR_MASTER
+    400098: WHEEL_RL
+    400100: WHEEL_RL_MASTER
+    400102: WHEEL_RR
+    400104: WHEEL_RR_MASTER
+    2100000: InteriorLeather
+    2100002: Chrom_matt#2
+    2100004: Chrom_matt#4
+    2100006: GCC_Black
+    2100008: Shader#32
+    2100010: imported#4
+    2100012: RedLights
+    2100014: aa
+    2100016: felge01#2
+    2100018: GCC_Black_glas
+    2100020: phong7#3
+    2100022: imported#5
+    2100024: phong2
+    2100026: phong6#2
+    2100028: phong7#2
+    2100030: TF_dark#5
+    2100032: abgedreht01#3
+    2100034: DefaultShader#11
+    2100036: Shader#37
+    2100038: Shader#36
+    2100040: Shader#16
+    2100042: Shader#29
+    2100044: Shader#21
+    2100046: CAS_Body#4
+    2100048: jETS#2
+    2100050: Chrom_matt#3
+    2100052: Black#2
+    2100054: HMI
+    2100056: Carpet
+    2100058: Caliperred
+    2100060: sattel
+    2100062: frontkopiert#2
+    2100064: felge01#4
+    2100066: DefaultShader#36
+    2100068: bolts#2
+    2100070: Chrom_matt#5
+    2100072: Tire
+    2100074: BRAKES
+    2100076: C5_04_04_04
+    2100078: MatteBlack
+    2100080: HMI2
+    2300000: BRAKE CALIPER 5_Part14
+    2300002: BRAKE CALIPER 5_Part28
+    2300004: BRAKE CALIPER 5_Part3
+    2300006: BRAKE CALIPER 5_Part30
+    2300008: BRAKE DISC 1_Part29
+    2300010: BRAKE DISC 1_Part34
+    2300012: BRAKE DISC 2_Part3
+    2300014: BRAKE DISC 4_Part9
+    2300016: CHASSIS
+    2300018: DOOR_LH.EXT
+    2300020: DOOR_LH.INT
+    2300022: DOOR_RH.EXT
+    2300024: DOOR_RH.INT
+    2300026: ENGINE
+    2300028: EXT Tire Profile_Part122
+    2300030: EXT Tire Profile_Part183
+    2300032: EXT Tire Slick surface_Part105
+    2300034: EXT Tire Slick surface_Part194
+    2300036: EXTERIOR
+    2300038: EXTERIOR.001
+    2300040: INTERIOR
+    2300042: INTERIOR.001
+    2300044: RIM Felge_Part1
+    2300046: RIM Felge_Part2
+    2300048: RIM Felge_Part3
+    2300050: RIM Felge_Part4
+    2300052: RIM Felge_Part5
+    2300054: RIM Felge_Part6
+    2300056: RIM1 COLOR 2_Part40
+    2300058: RIM1 COLOR 2_Part45
+    2300060: RIM1 COLOR 2_Part48
+    2300062: RIM1 COLOR 2_Part58
+    2300064: RIM2 Aviera_Part6
+    2300066: RIM2 Aviera_Part8
+    2300068: RIM2 Aviera_Part9
+    2300070: RIM2 Chrome valve_Part2
+    2300072: SPOILER
+    3300000: BRAKE CALIPER 5_Part14
+    3300002: BRAKE CALIPER 5_Part28
+    3300004: BRAKE CALIPER 5_Part3
+    3300006: BRAKE CALIPER 5_Part30
+    3300008: BRAKE DISC 1_Part29
+    3300010: BRAKE DISC 1_Part34
+    3300012: BRAKE DISC 2_Part3
+    3300014: BRAKE DISC 4_Part9
+    3300016: CHASSIS
+    3300018: DOOR_LH.EXT
+    3300020: DOOR_LH.INT
+    3300022: DOOR_RH.EXT
+    3300024: DOOR_RH.INT
+    3300026: ENGINE
+    3300028: EXT Tire Profile_Part122
+    3300030: EXT Tire Profile_Part183
+    3300032: EXT Tire Slick surface_Part105
+    3300034: EXT Tire Slick surface_Part194
+    3300036: EXTERIOR
+    3300038: EXTERIOR.001
+    3300040: INTERIOR
+    3300042: INTERIOR.001
+    3300044: RIM Felge_Part1
+    3300046: RIM Felge_Part2
+    3300048: RIM Felge_Part3
+    3300050: RIM Felge_Part4
+    3300052: RIM Felge_Part5
+    3300054: RIM Felge_Part6
+    3300056: RIM1 COLOR 2_Part40
+    3300058: RIM1 COLOR 2_Part45
+    3300060: RIM1 COLOR 2_Part48
+    3300062: RIM1 COLOR 2_Part58
+    3300064: RIM2 Aviera_Part6
+    3300066: RIM2 Aviera_Part8
+    3300068: RIM2 Aviera_Part9
+    3300070: RIM2 Chrome valve_Part2
+    3300072: SPOILER
+    4300000: INTERIOR.001
+    4300002: ENGINE
+    4300004: SPOILER
+    4300006: CHASSIS
+    4300008: EXTERIOR
+    4300010: INTERIOR
+    4300012: EXTERIOR.001
+    4300014: BRAKE CALIPER 5_Part28
+    4300016: RIM Felge_Part4
+    4300018: RIM1 COLOR 2_Part58
+    4300020: RIM2 Aviera_Part6
+    4300022: EXT Tire Profile_Part183
+    4300024: BRAKE DISC 1_Part29
+    4300026: BRAKE CALIPER 5_Part14
+    4300028: RIM Felge_Part2
+    4300030: RIM1 COLOR 2_Part48
+    4300032: RIM2 Chrome valve_Part2
+    4300034: EXT Tire Slick surface_Part105
+    4300036: BRAKE DISC 1_Part34
+    4300038: BRAKE CALIPER 5_Part30
+    4300040: RIM Felge_Part3
+    4300042: RIM Felge_Part6
+    4300044: RIM1 COLOR 2_Part40
+    4300046: RIM2 Aviera_Part8
+    4300048: EXT Tire Profile_Part122
+    4300050: BRAKE DISC 4_Part9
+    4300052: BRAKE CALIPER 5_Part3
+    4300054: RIM Felge_Part5
+    4300056: RIM Felge_Part1
+    4300058: RIM1 COLOR 2_Part45
+    4300060: RIM2 Aviera_Part9
+    4300062: EXT Tire Slick surface_Part194
+    4300064: BRAKE DISC 2_Part3
+    4300066: DOOR_LH.EXT
+    4300068: DOOR_LH.INT
+    4300070: DOOR_RH.EXT
+    4300072: DOOR_RH.INT
+    9500000: //RootNode
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BRAKES
+    second: {fileID: 2100000, guid: 2854a5a2b37369a47a80cefd407d4bc2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Black#2
+    second: {fileID: 2100000, guid: aefc923b6dd45f04f881adfd1f50508d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: C5_04_04_04
+    second: {fileID: 2100000, guid: bd63a0fac249ee84793bacfff9058009, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: CAS_Body#4
+    second: {fileID: 2100000, guid: e284526a436ae3a45811bf65d781fba3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Caliperred
+    second: {fileID: 2100000, guid: 16effdc242126d34eaa4121f4470e0df, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Carpet
+    second: {fileID: 2100000, guid: 4e71a53d88d08fc47ac5c26eb42ca5b1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Chrom_matt#2
+    second: {fileID: 2100000, guid: 4afde72f4f804774baed7d76c48ab7d3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Chrom_matt#3
+    second: {fileID: 2100000, guid: 1caf84ffd8dc9ce46bfdde6b30abfd84, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Chrom_matt#4
+    second: {fileID: 2100000, guid: d0f4df110bc488245a05a9189235463f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Chrom_matt#5
+    second: {fileID: 2100000, guid: e6007c5b42d9fff418eb8c7413dcd713, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DefaultShader#11
+    second: {fileID: 2100000, guid: 4e57a0f0a8a4f29459465dce590f33ba, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: DefaultShader#36
+    second: {fileID: 2100000, guid: 13622931c6feebe4c9c55f9061eefc6a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GCC_Black
+    second: {fileID: 2100000, guid: a736868f6c183e5468bd9c84db813959, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GCC_Black_glas
+    second: {fileID: 2100000, guid: 5dc1256e434319b49bfe509e23c512c0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HMI
+    second: {fileID: 2100000, guid: dace6ac27abf3c649a759a244780227b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: InteriorLeather
+    second: {fileID: 2100000, guid: 5184b4f7fe7f5a94f9b98ee550831cbb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RedLights
+    second: {fileID: 2100000, guid: d1e89a9db2cc3e74b95c5c74cf32e187, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shader#16
+    second: {fileID: 2100000, guid: 99d935c965724d14ba0773be4c6e3ac7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shader#21
+    second: {fileID: 2100000, guid: 42646d2a1ff0f5b4aba467e9bad2cf43, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shader#29
+    second: {fileID: 2100000, guid: d281db7b5b34156488f67afdd21cc8b5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shader#32
+    second: {fileID: 2100000, guid: cdd19463848e9c0498a72e131a73dc72, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shader#36
+    second: {fileID: 2100000, guid: 8bd756983bfcf08478a9c6b2be47b300, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Shader#37
+    second: {fileID: 2100000, guid: acc0ffa5ee6c5de4fad465188dec6413, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: TF_dark#5
+    second: {fileID: 2100000, guid: fb8fad7937a33f144876a64aa7ad5ec0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tire
+    second: {fileID: 2100000, guid: c8eaf64824eb34442989a51c544c4adf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: aa
+    second: {fileID: 2100000, guid: 2f7af832c385531489616ffc404234c8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: abgedreht01#3
+    second: {fileID: 2100000, guid: 3b5cc3b03beaf9147873182f44864b0e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bolts#2
+    second: {fileID: 2100000, guid: 20b0bfe9804e19c489189a4bf414fb15, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: felge01#2
+    second: {fileID: 2100000, guid: 878c345db97e6d4499b5edd16d193fe5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: felge01#4
+    second: {fileID: 2100000, guid: 5e3b8cb3aa261e448aeab067657b685b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: frontkopiert#2
+    second: {fileID: 2100000, guid: b5b3d5ab506358742a2cd88b1def55b9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: imported#4
+    second: {fileID: 2100000, guid: 0db8f37bdb42fe849ac973880117badb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: imported#5
+    second: {fileID: 2100000, guid: 19bd0cad449e0204d91e357b5753fec9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: jETS#2
+    second: {fileID: 2100000, guid: e62e533fb52ad6b4f87450e6e4e53aac, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: phong2
+    second: {fileID: 2100000, guid: 09cf6540fb3a98c47accf0dc8109a417, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: phong6#2
+    second: {fileID: 2100000, guid: cfe7caee0a4f3804aae6b14954c5c7e9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: phong7#2
+    second: {fileID: 2100000, guid: 8229d0c379d80a047a72d7b95f7d1dce, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: phong7#3
+    second: {fileID: 2100000, guid: b5d980cba714add4eb4d2f052831abcd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sattel
+    second: {fileID: 2100000, guid: 92b59ce967d28194ebca4e5bdca5a20c, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 0.001
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 0
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

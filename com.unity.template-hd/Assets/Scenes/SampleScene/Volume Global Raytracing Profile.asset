@@ -15,8 +15,8 @@ MonoBehaviour:
   active: 1
   m_AdvancedMode: 0
   enable:
-    m_OverrideState: 1
-    m_Value: 1
+    m_OverrideState: 0
+    m_Value: 0
   layerMask:
     m_OverrideState: 0
     m_Value:
@@ -68,7 +68,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42ef2681fa3dc8c4fa031f044e68c63f, type: 3}
   m_Name: GlobalIllumination
   m_EditorClassIdentifier: 
-  active: 0
+  active: 1
   m_AdvancedMode: 0
   quality:
     m_OverrideState: 1
@@ -82,15 +82,15 @@ MonoBehaviour:
     min: 0
     max: 1
   m_RaySteps:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 32
     min: 16
     max: 128
   m_FullResolutionSS:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   m_FilterRadius:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 5
     min: 2
     max: 8
@@ -104,7 +104,7 @@ MonoBehaviour:
       m_Bits: 4294967295
   mode:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 1
   sampleCount:
     m_OverrideState: 1
     m_Value: 1
@@ -117,16 +117,16 @@ MonoBehaviour:
     max: 31
   m_RayLength:
     m_OverrideState: 1
-    m_Value: 20
+    m_Value: 50
     min: 0.01
   m_ClampValue:
     m_OverrideState: 1
-    m_Value: 10
+    m_Value: 5
     min: 0.001
     max: 10
   m_FullResolution:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   m_UpscaleRadius:
     m_OverrideState: 1
     m_Value: 4
@@ -136,11 +136,11 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   m_HalfResolutionDenoiser:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   m_DenoiserRadius:
-    m_OverrideState: 0
-    m_Value: 0.6
+    m_OverrideState: 1
+    m_Value: 0.66
     min: 0.001
     max: 1
   m_SecondDenoiserPass:
@@ -260,7 +260,7 @@ MonoBehaviour:
   - {fileID: -1536409865279758520}
   - {fileID: -3884635811236973832}
   - {fileID: -6382068893477564681}
-  - {fileID: 2902098638182066567}
+  - {fileID: 3222714606241892998}
   - {fileID: 8152162069762170485}
 --- !u!114 &613563888497867621
 MonoBehaviour:
@@ -331,7 +331,7 @@ MonoBehaviour:
     max: 1
   m_SmoothnessFadeStart:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
     min: 0
     max: 1
   m_RayMaxIterations:
@@ -339,30 +339,30 @@ MonoBehaviour:
     m_Value: 64
   m_RayLength:
     m_OverrideState: 1
-    m_Value: 40
+    m_Value: 25
     min: 0.01
   m_ClampValue:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 10
     min: 0.001
     max: 10
   m_UpscaleRadius:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 2
     min: 2
     max: 6
   m_FullResolution:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   m_Denoise:
     m_OverrideState: 1
     m_Value: 1
   m_DenoiserRadius:
     m_OverrideState: 1
-    m_Value: 6
+    m_Value: 2
     min: 1
     max: 32
---- !u!114 &2902098638182066567
+--- !u!114 &3222714606241892998
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -382,13 +382,13 @@ MonoBehaviour:
     min: 0
     max: 0.1
   extendShadowCulling:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   extendCameraCulling:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0
   directionalShadowRayLength:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1000
     min: 0.01
 --- !u!114 &8152162069762170485
@@ -430,6 +430,6 @@ MonoBehaviour:
     max: 10
   maximumIntensity:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 5
     min: 0
     max: 100
