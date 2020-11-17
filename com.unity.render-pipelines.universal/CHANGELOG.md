@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Bloom in Gamma color-space now more closely matches Linear color-space, this will mean project using Bloom and Gamma color-space may need to adjust Bloom Intensity to match previous look.
+- Autodesk Interactive Shader Graph files and folders containing them were renamed. The new file paths do not have spaces.
 
 ### Fixed
 - Removed the warning about mis-matched vertex streams when creating a default Particle System. [case 1285272](https://issuetracker.unity3d.com/issues/particles-urp-default-material-shows-warning-in-inspector)
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing materials to be upgraded multiple times.
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
 - Fixed Deferred renderer on some Android devices by forcing accurate GBuffer normals. [case 1288042]
+- Fixed an issue where MSAA did not work in Editor Game View on Windows with Vulkan.
 
 ## [10.2.0] - 2020-10-19
 

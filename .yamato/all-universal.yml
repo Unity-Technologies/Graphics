@@ -18,6 +18,7 @@ All_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
+<<<<<<< HEAD
       -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_trunk
@@ -28,6 +29,8 @@ All_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_trunk
          rerun: on-new-revision
+=======
+>>>>>>> master
       -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_trunk
          rerun: on-new-revision
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
@@ -43,6 +46,7 @@ All_Universal_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
+<<<<<<< HEAD
       -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION
@@ -53,6 +57,8 @@ All_Universal_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
+=======
+>>>>>>> master
       -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_CUSTOM-REVISION

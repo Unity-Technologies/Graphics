@@ -14,17 +14,13 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
-        f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
-        f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
-        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
          set /p GIT_REVISIONDATE=<revdate.tmp
          echo %GIT_REVISIONDATE%
          del revdate.tmp
-        utr {" ".join(utr_args)}'''),
-        f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
+         utr {" ".join(utr_args)}''')
         ]
     
     extra_cmds = extra_perf_cmd(project_folder)
@@ -111,7 +107,8 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
 
 def extra_perf_cmd(project_folder):   
     perf_list = [
-        f'git clone https://github.com/Unity-Technologies/BoatAttack.git -b master TestProjects/{project_folder}'
+        f'git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/{project_folder}',
+        f'cd TestProjects/{project_folder} && git checkout %BOAT_ATTACK_REVISION%'
         ]
     return perf_list
 
