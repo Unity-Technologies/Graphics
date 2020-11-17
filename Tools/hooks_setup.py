@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-# Installs the hooks in the current repository.
+# Use this script (python hooks_setup.py) to install git hooks from https://github.cds.internal.unity3d.com/theo-penavaire/gfx-automation-tools.
+
 # run_cmd function taken from https://github.com/Unity-Technologies/dots/blob/master/Tools/CI/util/subprocess_helpers.py
 
 import subprocess, logging, os, json, sys
@@ -20,7 +21,7 @@ def run_cmd(cmd, cwd=None):
     if isinstance(cmd, str):
         cmd = cmd.split()
     assert isinstance(cmd, list), 'cmd must be of list type, but was "{}"'.format(type(cmd))
-    logging.info("  Running: {0} (cwd: {1})".format(' '.join(cmd), cwd))
+    logging.info("  Running: {0}".format(' '.join(cmd)))
     return subprocess.check_output(cmd, cwd=cwd, universal_newlines=True).rstrip()
 
 
@@ -44,7 +45,10 @@ def replace_shebangs():
 
 
 def install_precommit():
-    run_cmd('pip install pre-commit')
+    try:
+        run_cmd('pip3 install pre-commit')
+    except:
+        print('Pip3 is required in order to run the formatting tools. Please install pip3 and retry installing the hooks.', file=sys.stderr)
 
 
 def install_hooks():
@@ -57,7 +61,10 @@ def install_hooks():
 # (used for code formatting)
 def config_perl(config):
     try:
-        perl_path = run_cmd('where perl')
+        if sys.platform == "win32" or sys.platform == "cygwin":
+            perl_path = run_cmd('where perl')
+        else:
+            perl_path = run_cmd('which perl')
         config['perl'] = perl_path
         return config
     except subprocess.CalledProcessError as e:
