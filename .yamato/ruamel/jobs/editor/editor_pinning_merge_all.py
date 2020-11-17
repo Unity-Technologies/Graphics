@@ -22,7 +22,7 @@ class Editor_PinningMergeAllJob():
                 continue
 
             dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], abv)}')
-            editor_cmd.append(f'pipenv run python3 .yamato/ruamel/editor_pinning/merge_green_project_revisions.py --revision $GIT_REVISION --target-branch { target_branch } --track {editor["track"]} --jobid $YAMATO_JOB_ID --apikey $YAMATO-KEY')
+            editor_cmd.append(f'pipenv run python3 .yamato/ruamel/editor_pinning/merge_green_project_revisions.py --revision $GIT_REVISION --target-branch { target_branch } --track {editor["track"]} --jobid $YAMATO_JOB_ID --apikey $YAMATO_KEY')
         
         
         commands = [

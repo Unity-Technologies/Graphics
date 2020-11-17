@@ -136,7 +136,7 @@ editor-pinning-merge-all:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_green_project_revisions.py --revision $GIT_REVISION --target-branch master --track trunk --jobid $YAMATO_JOB_ID --apikey $YAMATO-KEY
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_green_project_revisions.py --revision $GIT_REVISION --target-branch master --track trunk --jobid $YAMATO_JOB_ID --apikey $YAMATO_KEY
 editor-pinning-merge-all-abv:
     name: Merge all [ABV] [CI]
     triggers:
@@ -164,4 +164,4 @@ editor-pinning-merge-all-abv:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_green_project_revisions.py --revision $GIT_REVISION --target-branch master --track trunk --jobid $YAMATO_JOB_ID --apikey $YAMATO-KEY
+      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_green_project_revisions.py --revision $GIT_REVISION --target-branch master --track trunk --jobid $YAMATO_JOB_ID --apikey $YAMATO_KEY
