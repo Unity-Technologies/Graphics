@@ -102,8 +102,9 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 5;
-        [SerializeField] int k_AssetPreviousVersion = 5;
+        const int k_MaxAssetVersion = 6;
+        [SerializeField] int k_AssetVersion = k_MaxAssetVersion;
+        [SerializeField] int k_AssetPreviousVersion = k_MaxAssetVersion;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
@@ -285,8 +286,8 @@ namespace UnityEngine.Rendering.Universal
             if (m_RendererDataList == null)
                 m_RendererDataList = new ScriptableRendererData[1];
 
-            // If no data we can't create pipeline instance
-            if (m_RendererDataList[0] == null)
+            // If no default data we can't create pipeline instance
+            if (m_RendererDataList[m_DefaultRendererIndex] == null)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if(k_AssetPreviousVersion != k_AssetVersion)
@@ -869,7 +870,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         static void UpgradeAsset(UniversalRenderPipelineAsset asset)
         {
-            if(asset.k_AssetPreviousVersion < 5)
+            if(asset.k_AssetPreviousVersion < k_MaxAssetVersion)
             {
                 if (asset.m_RendererType == RendererType.ForwardRenderer)
                 {
@@ -885,7 +886,7 @@ namespace UnityEngine.Rendering.Universal
                     asset.m_RendererData = null; // Clears the old renderer
                 }
 
-                asset.k_AssetPreviousVersion = 5;
+                asset.k_AssetPreviousVersion = k_MaxAssetVersion;
             }
         }
 #endif
