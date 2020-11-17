@@ -19,13 +19,13 @@ Note: If you already installed the git hooks (before November 2020), you need to
 
 ### Available hooks
 
+A description of the hooks we currently have is available on the [hooks' library repository](https://github.cds.internal.unity3d.com/theo-penavaire/gfx-automation-tools#available-git-hooks).
 
-| Title | Stage | Description | Requirements |
-| ----- | ----- | ----------- | ------------ |
-| `format-code` | pre-commit | Reformats the code for Unity code convention compliance | Python 3.5, hooks-config.json file (which maps the path to Perl and unity-meta on each developer's machine) |
-| `check-shader-includes` | pre-commit | Compare the case sensitivity of the shader includes in the code files to the actual files in the filesystem. Generate a log if it differs. | Python >= 3.5 |
-| `file-extension-to-lowercase` | pre-commit | Convert all file extensions from uppercase to lowercase, preventing case issues on Linux | Python >= 3.5 |
-| `check-branch-name` | pre-push | Ensure the current branch is following the convention ([see Branch name convention section](#check-branch-name---Branch-name-convention)) | Python >= 3.5 |
+For this repository we have enabled:
+- format-code
+- check-shader-includes
+- file-extension-to-lowercase
+- check-branch-name
 
 ### check-branch-name - Branch name convention
 
