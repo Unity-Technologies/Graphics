@@ -130,7 +130,7 @@ CloudCoverageData GetCloudCoverageData(float3 positionWS)
     float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_repeat_sampler, float2(normalizedPosition.x, normalizedPosition.y), 0.0);
     CloudCoverageData data;
     // TODO: Fix this
-    data.coverage = min(0.5, cloudMapData.x * 0.4);
+    data.coverage = cloudMapData.x * 0.4;
     data.cloudType = cloudMapData.w;
     return data;
 }
@@ -208,7 +208,7 @@ void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProp
     	return;
 
     // Evaluate the coordinates at which the noise will be sampled
-    float3 noiseSamplingCoordinates = positionWS.xzy * 0.0002 + float3(1.0,1.0, 1.0) * _Time * 0.04;    
+    float3 noiseSamplingCoordinates = positionWS.xzy * 0.0001 + _WindDirection * _Time * 0.01;    
 
     // Read the low frequency Perlin-Worley and Worley noises
     float4 lowFrequencyNoises = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, noiseSamplingCoordinates, 0.0);

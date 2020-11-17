@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SilverIntensity;
         SerializedDataParameter m_SilverSpread;
         SerializedDataParameter m_GlobalLightProbeDimmer;
+        SerializedDataParameter m_WindRotation;
 
         public override void OnEnable()
         {
@@ -40,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SilverIntensity = Unpack(o.Find(x => x.silverIntensity));
             m_SilverSpread = Unpack(o.Find(x => x.silverSpread));
             m_GlobalLightProbeDimmer = Unpack(o.Find(x => x.globalLightProbeDimmer));
+            m_WindRotation = Unpack(o.Find(x => x.windRotation));
         }
 
         public override void OnInspectorGUI()
@@ -58,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_SilverIntensity);
             PropertyField(m_SilverSpread);
             PropertyField(m_GlobalLightProbeDimmer);
+            PropertyField(m_WindRotation);
         }
     }
 }

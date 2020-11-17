@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 _SunDirection;
         public int _AccumulationFrameIndex;
 
+        public Vector3 _WindDirection;
+        public float _Padding1;
+
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
     }
@@ -91,6 +94,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluate the ambient probe data
             SetPreconvolvedAmbientLightProbe(ref cb, hdCamera, settings);
+
+            float theta = settings.windRotation.value * Mathf.PI * 2.0f;
+            cb._WindDirection = new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0.0f);
         }
 
         struct VolumetricCloudsParameters

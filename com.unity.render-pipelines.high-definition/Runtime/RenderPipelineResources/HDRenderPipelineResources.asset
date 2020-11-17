@@ -232,7 +232,7 @@ MonoBehaviour:
     rankingTile256SPP: {fileID: 2800000, guid: 1e604a266c415cd46b36d97cd9220aa8, type: 3}
     scramblingTile256SPP: {fileID: 2800000, guid: 882fb55d7b3e7c94598a318df9376e32, type: 3}
     worleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8, type: 3}
-    worleyNoise32RGB: {fileID: 11700000, guid: 682a6d1955dc3244ea6cf312ad2fe742, type: 3}
+    worleyNoise32RGB: {fileID: 11700000, guid: 6bf82734d2918bf45a48df01dbaab67f, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

@@ -21,6 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter silverIntensity = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
         public ClampedFloatParameter silverSpread = new ClampedFloatParameter(0.0f, 0.0f, 2.0f);
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter windRotation = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+
         public VolumetricClouds()
         {
             displayName = "Volumetric Clouds (Preview)";

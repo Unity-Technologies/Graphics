@@ -21,6 +21,8 @@ CBUFFER_START(ShaderVariablesClouds)
     float3 _SunLightColor;
     float3 _SunDirection;
     int _AccumulationFrameIndex;
+    float3 _WindDirection;
+    float _Padding1;
     float4 _AmbientProbeCoeffs[7];
 CBUFFER_END
 
