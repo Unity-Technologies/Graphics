@@ -75,8 +75,16 @@ VFX_VARYING_PS_INPUTS vert(vs_input i)
 	float4 csPos = TransformPositionVFXToClip(vPos);
 	o.VFX_VARYING_POSCS = csPos;
 	
-	float3 normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX, i.normal)));
-	#ifdef VFX_VARYING_NORMAL // TODO Should use inverse transpose
+	// TODO This is needed only if in local space (to handle non uniform scale) or if scale attributes are stored/written (no way to know atm)
+	float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+		attributes.axisX,
+		attributes.axisY,
+		attributes.axisZ,
+		float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+		size3);
+			
+	float3 normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));
+	#ifdef VFX_VARYING_NORMAL
 	o.VFX_VARYING_NORMAL = normalWS;
 	#endif
 	#ifdef VFX_VARYING_TANGENT

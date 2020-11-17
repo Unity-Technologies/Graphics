@@ -283,7 +283,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void OnModified(VFXObject obj)
+        private void OnModified(VFXObject obj, bool uiChange)
         {
             if (!isOutput && (m_ExprSlots == null || m_ValueExpr == null))
             {

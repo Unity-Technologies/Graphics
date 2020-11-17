@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SubsurfaceScattering,
         SsrTracing,
         SsrReprojection,
+        SsrAccumulate,
         PrepareForTransparentSsr,
 
         // SSGI
@@ -116,6 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
+        RaytracingDebugCluster,
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
@@ -135,6 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingIndirectDiffuseEvaluation,
         RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        RaytracingIndirectDiffuseAdjustWeight,
+
         // RTSSS
         RaytracingSSS,
         RaytracingSSSTrace,
@@ -158,11 +162,15 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,
+        RenderCachedPunctualShadowMaps,
         RenderDirectionalShadowMaps,
         RenderAreaShadowMaps,
+        RenderCachedAreaShadowMaps,
         RenderEVSMShadowMaps,
         RenderEVSMShadowMapsBlur,
         RenderEVSMShadowMapsCopyToAtlas,
+        BlitPunctualMixedCachedShadowMaps,
+        BlitAreaMixedCachedShadowMaps,
 
         // Profile sampler for tile pass
         LightLoopPushGlobalParameters,
@@ -190,7 +198,6 @@ namespace UnityEngine.Rendering.HighDefinition
         UpsampleLowResTransparent,
 
         // Post-processing
-        GuardBandClear,
         AlphaCopy,
         StopNaNs,
         FixedExposure,

@@ -1,50 +1,54 @@
 # Static Shader Analysis
+The **Static Shader Analysis** asset analyzes compiled shader byte code. This analysis is per GPU program, per shader variant, and platform-specific. By default, the Static Shader Analysis asset performs the analysis and uploads the measurements to the performance database. If you run a local analysis, the Static Shader Analysis asset doesn’t upload the measurements.
 
-## Overview
+Note that this is not a regression test. If a failure occurs, this means the analysis failed to execute.
+<a name="set-up"></a>
+## Set up 
 
-Static shader analysis is the analysis of the compiled shader byte code. This analysis is per gpu program (so per shader variant) and is specific per platform.
+Before you use Static Shader Analysis, make sure you have all the packages required for testing on your chosen platform:
 
-You will probably have to add additional packages to support the platform you intend to analyze for.
+1. Download the packages for each platform you intend to analyze for.
+2. Add all of the packages from [Scriptable Render Pipeline extension packages](https://github.cds.internal.unity3d.com/unity/com.unity.render-pipelines.nda) to your manifest.
 
-We use the Unity Test Runner to execute the static analysis, it will send the analysis measurements to the performance database.
+<a name="defining-static-shader-analysis"></a>
+## Defining static shader analysis
+You can define Static Shader Analysis in the **Static Analysis Tests** asset.
 
-_Important note: It is not a regression tests, we only use the test to execute the analysis and upload the measurements. A failure means that the analysis failed to execute_
+<a name="shared-filters"></a>
+### Shared filters
 
-## Defining static analysis
+A shared filter is a convenient way to reuse one or more filters across multiple asset definitions. Define a shared filter in the Static Analysis Tests asset’s **Filters** section.
 
-Analysis are defined in an `EditorShaderStaticAnalysisAsset`, it looks like this:
+![](Images/EditorShaderStaticAnalysisAsset_Filters.png)
 
-![Editor shader static analysis asset](Images/EditorShaderStaticAnalysisAsset.png)
+| Property             | Description                                                  |
+| -------------------- | ------------------------------------------------------------ |
+| **Name**             | Use this field to name the filter. You can then use this name to reference this filter from the asset definition of the same name. |
+| **Category**         | [Use this field to define the category this filter is in. You can create a new category or use the name of an existing category. For more information, see](https://docs.google.com/document/d/1LEU9hsXGabyV38Y7PW45YZ7_PAawox7iBcuL72SkVmU/edit#heading=h.1naa96lgrkyu) [Test classification](https://docs.google.com/document/d/1LEU9hsXGabyV38Y7PW45YZ7_PAawox7iBcuL72SkVmU/edit#heading=h.1naa96lgrkyu). |
+| **Keyword filter**   | Use this field to define which keywords you want to filter into or out of your analysis results. For example, `A&B`. A more complex example:`A&B&C|A&B&D|E` |
+| **Pass Name Filter** | Use this field to define which pass names you want to filter into or out of your analysis results. Use **+** to include a pass name, or - to exclude a pass name. For example:<br>- **+GBuffer** analyzes only the GBuffer pass<br>- **\-META,Shadow** analyzes all passes except META and Shadow. |
 
-To define an analysis, you will need to add an "Asset Definition".
+<a name="asset-definitions"></a>
+## Asset definitions
 
-### Asset Definition
-![Asset definition](Images/AssetDefinition.png)
+**Asset Definitions** defines a test involving an asset, such as a shader or material, in the **Static Analysis Tests** asset. Give each property in the **Asset Definitions** section a value.
 
-| **Property** | **Description** |
-| --- | --- |
-| **Asset Alias** | An alias for the asset. Use it to filter the reported metric. |
-| **Asset Category** | The category for the asset. Use it to filter the reported metric. |
-| **Test Name** | The name of the test. Use it to filter the reported metric. |
-| **Filter** | A filter to use to select the shader passes and variant to analyse. (See below) |
-| **Filter.Filter Type** | The type of the filter. Use `Reference` and fill the filter name in `Reference Name` to use the shared filter. Or use `Definition` and define the filter below. |
-| **Include in Targets** | The analysis will be performed for the selected platforms. |
+| Property               |                    | Description                                                  |
+| ---------------------- | ------------------ | ------------------------------------------------------------ |
+| **Asset Alias**        |                    | An alias for the asset. Use it to filter the reported metric. |
+| **Asset Category**     |                    | The category for the asset. Use it to filter the reported metric. |
+| **Test Name**          |                    | The name of the test. Use it to filter the reported metric.  |
+| **Filter**             |                    | This filter selects the [shader passes](##shared-filters) and which variant to analyse. |
+|                        | **Filter Type**    | The type of the filter.                                      |
+|                        | **Reference Name** | Enter your filter name to use the shared filter.             |
+|                        | **Definition**     | Defines the filter.                                          |
+| **Include in Targets** |                    | Unity performs the analysis for the selected platforms.      |
+|                        | **Size**           | Defines how many platforms to include.                       |
+|                        | **Element 0**      | Defines which platforms are included.                        |
 
-### Shared Filter
+<a name="running-static-shader-analysis"></a>
+## Running static shader analysis
 
-You can define shared filter so you can reuse it across multiple asset definitions.
+You can run Static Shader Analysis from the [Unity Test Runner](https://docs.unity3d.com/2017.4/Documentation/Manual/testing-editortestsrunner.html).
 
-![Filter](Images/GPUProgramFilter.png)
-
-| **Property** | **Description** |
-| --- | --- |
-| **Name** | The name of the filter, use this name to reference a filter. |
-| **Category** | The category of the filter. |
-| **Keyword filter** | A keyword filter. For instance `A&B|A&C` will include all variants with keyword A and keyword B or C. |
-| **Pass Name Filter** | A pass name filter. Use `+` to include, or `-` to exclude. For instance: `+GBuffer` will analyze only the GBuffer pass, or `-META,Shadow` will analyze all passes except META and Shadow. |
-
-## Executing static analysis
-
-Static analysis will appear in the test runner and you can execute them like a standard editor unit test.
-
-_Note: The test only appears in the test runner for the supported platforms, you will require the additional platform package._
+A Static Shader Analysis entry only appears in the Test Runner for supported platforms. If an entry does not appear in the Test Runner window, this usually means you don’t have the platform package installed for your chosen platform. You need to install the platform package to use the automated static shader analysis process.

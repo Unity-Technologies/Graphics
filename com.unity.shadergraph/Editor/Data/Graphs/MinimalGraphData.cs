@@ -51,9 +51,15 @@ namespace UnityEditor.ShaderGraph
 
         // gather all asset dependencies declared by nodes in the given (shadergraph or shadersubgraph) asset
         // by reading the source file from disk, and doing a minimal parse
-        public static void GatherMinimalDependenciesFromFile(string assetPath, AssetCollection assetCollection)
+        // returns true if it successfully gathered the dependencies, false if there was an error
+        public static bool GatherMinimalDependenciesFromFile(string assetPath, AssetCollection assetCollection)
         {
-            var textGraph = File.ReadAllText(assetPath, Encoding.UTF8);
+            var textGraph = FileUtilities.SafeReadAllText(assetPath);
+
+            // if we can't read the file, no dependencies can be gathered
+            if (string.IsNullOrEmpty(textGraph))
+                return false;
+
             var entries = MultiJsonInternal.Parse(textGraph);
 
             if (string.IsNullOrWhiteSpace(entries[0].type))
@@ -81,6 +87,8 @@ namespace UnityEditor.ShaderGraph
                     instance.GetSourceAssetDependencies(assetCollection);
                 }
             }
+
+            return true;
         }
     }
 }

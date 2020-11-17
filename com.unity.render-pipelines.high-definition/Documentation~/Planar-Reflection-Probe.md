@@ -59,8 +59,10 @@ The following properties control the method that the Planar Reflection Probe use
 | **Clipping Planes - Far**  | The furthest point relative to the Planar Reflection Probe that it  captures reflections. |
 | **Probe Layer Mask**       | Acts as a culling mask for environment lights (light from other Planar Reflection Probes and Reflection Probes). This Planar Reflection Probe ignores all Reflection Probes that are on Layers not included in this Layer mask, so use this property to ignore certain Reflection Probes when rendering this one. |
 | **Custom Frame Settings**  | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
-| **Resolution**             | Sets the resolution for the probe camera. |
+| **Resolution**             | Set the resolution of this Planar Reflection Probe. Use the drop-down to select which quality mode to derive the resolution from. If you select Custom, set the resolution, measured in pixels, in the input field. A higher resolution increases the fidelity of planar reflection at the cost of GPU performance and memory usage, so if you experience any performance issues, try using a lower value. |
+| **Rough Reflections**      | Disable the checkbox to tell HDRP to use this Planar Reflection Probe as a mirror. If you do this, the receiving surface must be perfectly smooth or the reflection result is not accurate. If you want perfect reflection, disabling this option can be useful because it means HDRP does not need to process rough refraction and thus decreases the resource intensity of the effect.|
 | **Mirror Position**        | Offsets the position of the mirror from the Transform Position. This is only available in **Advanced** mode. |
+| **Range Compression Factor**  | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated. |
 
 ### Render Settings
 
@@ -84,3 +86,9 @@ You can use Scene view gizmos to visually customize specific properties.
 | ![](Images/ReflectionProbeGizmo4.png) | **Mirror Position**                   | Changes the behavior of the Move Tool so that it alters the **Mirror** **Position** property, rather than the **Position** of the **Transform**. |
 | ![](Images/ReflectionProbeGizmo5.png) | **Mirror Rotation**                   | Changes the behavior of the Rotate Tool so that it alters the **Mirror Rotation** property, rather than the **Rotation** of the **Transform**. |
 | ![](Images/ReflectionProbeGizmo6.png) | **Chrome Gizmo**.                     | Displays a chrome quad to preview the probe's texture in the scene. |
+
+## Best practices
+
+If you use a Planar Reflection Probe as a mirror (i.e its influence volume overlap a GameObject with a Material that has its smoothness and metallic properties set to 1) it is best practice to disable the **Rough Refraction** property to decrease the resource intensity.
+If a receiving surface isn't a perfect mirror and the **Rough Reflection** option is disabled, the surface still renders smooth, but the result is physically incorrect.
+

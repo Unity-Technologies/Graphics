@@ -151,6 +151,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTitle;
         }
 
         public bool FindPort(SlotReference slotRef, out ShaderPort port)
@@ -440,7 +442,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node is SubGraphNode subGraphNode && subGraphNode.asset != null)
                 title = subGraphNode.asset.name;
             else
-                title = node.name;
+            {
+                if (node.sgVersion < node.latestVersion)
+                {
+                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    {
+                        title = node.name + $" (Deprecated V{node.sgVersion})";
+                    }
+                    else
+                    {
+                        title = node.name + $" (Deprecated)";
+                    }
+                }
+                else
+                {
+                    title = node.name;
+                }
+            }
         }
 
         void UpdateShaderPortsForSlots(bool inputSlots, List<MaterialSlot> allSlots, ShaderPort[] slotShaderPorts)
@@ -568,6 +586,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var slot in slots)
                 AddShaderPortForSlot(slot);
+            // Make sure the visuals are properly updated to reflect port list
+            RefreshPorts();
         }
 
         void OnEdgeDisconnected(Port obj)
@@ -704,6 +724,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
                 m_PreviewRenderData = null;
             }
+            ShaderGraphPreferences.onAllowDeprecatedChanged -= UpdateTitle;
         }
     }
 }

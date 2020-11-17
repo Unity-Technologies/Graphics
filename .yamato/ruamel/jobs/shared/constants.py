@@ -17,19 +17,20 @@ GITHUB_CDS_URL = 'https://github.cds.internal.unity3d.com'
 DEFAULT_TIMEOUT = 1200
 
 
+
 def get_editor_revision(editor, platform_os):
     if str(editor['track']).lower()=='custom-revision':
-        return VAR_CUSTOM_REVISION
+        return f'-u {VAR_CUSTOM_REVISION}'
     elif str(editor['track']).lower()=='trunk':
-        return editor["revisions"][f"{editor['track']}_latest_internal"][platform_os]["revision"]
+        return '-u {{editor_versions.' + f"{str(editor['track']).replace('.','_')}_latest_internal.{platform_os}.revision" + '}}'
     else:
-        return editor["revisions"][f"{editor['track']}_staging"][platform_os]["revision"]
+        return '-u {{editor_versions.' + f"{str(editor['track']).replace('.','_')}_staging.{platform_os}.revision" + '}}'
 
 def get_unity_downloader_cli_cmd(editor, platform_os, cd=False, git_root=False):
     '''Returns the revision used by unity-downloader-cli. 
     For custom revision, refers to --source-file flag. If cd, then revision file path is prepended by ../../; if git_root, then its prepended by ~/Graphics/.
     For normal tracks (not custom revision), retrieves the editor revision from latest_editor_versions file'''
-    if str(editor["track"]).lower() == 'custom-revision':
+    if not editor["editor_pinning"]:
         if cd:
             return f'--source-file ../../{PATH_UNITY_REVISION}'
         elif git_root:
@@ -37,7 +38,7 @@ def get_unity_downloader_cli_cmd(editor, platform_os, cd=False, git_root=False):
         else:
             return f'--source-file {PATH_UNITY_REVISION}'
     else:
-        return f'-u {get_editor_revision(editor, platform_os)}'
+        return get_editor_revision(editor, platform_os)
 
 def get_timeout(test_platform, os_name, build=False):
     '''Returns default timeout if testplatform does not specify otherwise.

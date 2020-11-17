@@ -42,11 +42,20 @@ Pass
     $VaryingsMeshToPS.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
     $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
     $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
-    $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
+    
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
+
+    $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
+    $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
+
     $splice(GraphDefines)
 
     $splice(HybridV1InjectedBuiltinProperties)
+
+    // -- Properties used by ScenePickingPass
+    #ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+    #endif
 
     // Includes
     $splice(PreGraphIncludes)
@@ -82,11 +91,11 @@ Pass
     // --------------------------------------------------
     // Build Surface Data
 
-    void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, out DecalSurfaceData surfaceData)
+    void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
             float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-            float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f);
+            float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
             float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
             float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
             fragInputs.texCoord0.xy = fragInputs.texCoord0.xy * scale + offset;
@@ -97,6 +106,10 @@ Pass
             fragInputs.tangentToWorld[2].xyz = TransformObjectToWorldDir(float3(0, 1, 0));
             fragInputs.tangentToWorld[1].xyz = TransformObjectToWorldDir(float3(0, 0, 1));
         #else
+            #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+            LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+            #endif
+
             float fadeFactor = 1.0;
         #endif
 

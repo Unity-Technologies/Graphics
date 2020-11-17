@@ -221,8 +221,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Grab the material for the current sub-mesh
                     Material currentMaterial = materialArray[meshIdx];
 
-                    // The material is transparent if either it has the requested keyword or is in the transparent queue range
-                    if (currentMaterial != null)
+                    // Make sure that the material is both non-null and non-decal
+                    if (currentMaterial != null && !DecalSystem.IsDecalMaterial(currentMaterial))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
                         && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
-                        // aggregate the transparency info
+                        // Aggregate the transparency info
                         materialIsOnlyTransparent &= subMeshTransparentArray[meshIdx];
                         hasTransparentSubMaterial |= subMeshTransparentArray[meshIdx];
 
@@ -549,8 +549,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check if the amount of materials being tracked has changed
             m_MaterialsDirty |= (matCount != m_MaterialCRCs.Count);
 
-            // build the acceleration structure
-            m_CurrentRAS.Build();
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                m_CurrentRAS.Build(hdCamera.camera.transform.position);
+            else
+                m_CurrentRAS.Build();
 
             // tag the structures as valid
             m_ValidRayTracingState = true;

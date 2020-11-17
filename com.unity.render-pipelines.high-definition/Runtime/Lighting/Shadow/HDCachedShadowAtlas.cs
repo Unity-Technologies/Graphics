@@ -24,6 +24,14 @@ namespace UnityEngine.Rendering.HighDefinition
             internal Vector4 offsetInAtlas;                          // When is registered xy is the offset in the texture atlas, in UVs, the zw is the entry offset in the C# representation.
         }
 
+        // We need an extra struct to track differences in the light transform
+        // since we don't have such a callback (a-la invalidate) for those.
+        struct CachedTransform
+        {
+            internal Vector3 position;
+            internal Vector3 angles; // Only for area and spot
+        }
+
         private int m_AtlasResolutionInSlots;       // Atlas Resolution / m_MinSlotSize
 
         private bool m_NeedOptimalPacking = true;   // Whenever this is set to true, the pending lights are sorted before insertion. 
@@ -38,6 +46,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Dictionary<int, CachedShadowRecord> m_RecordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
                                                                                         // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
 
+        private Dictionary<int, CachedTransform> m_TransformCaches;
         private List<CachedShadowRecord> m_TempListForPlacement;
 
 
@@ -53,7 +62,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TempListForPlacement = new List<CachedShadowRecord>(s_InitialCapacity);
 
             m_RegisteredLightDataPendingPlacement = new Dictionary<int, HDAdditionalLightData>(s_InitialCapacity);
-            m_RecordsPendingPlacement = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity); 
+            m_RecordsPendingPlacement = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity);
+
+            m_TransformCaches = new Dictionary<int, CachedTransform>(s_InitialCapacity / 2);
 
             m_ShadowType = type;
         }
@@ -61,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public override void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
             base.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            m_IsACacheForShadows = true;
 
             m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, m_MinSlotSize);
             m_AtlasSlots = new List<bool>(m_AtlasResolutionInSlots * m_AtlasResolutionInSlots);
@@ -77,7 +89,20 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         // ------------------------------------------------------------------------------------------
 
+        // ------------------------------------------------------------------------------------------
+        //          Functions for mixed cached shadows that need to live in cached atlas
+        // ------------------------------------------------------------------------------------------
 
+        public void AddBlitRequestsForUpdatedShadows(HDDynamicShadowAtlas dynamicAtlas)
+        {
+            foreach (var request in m_ShadowRequests)
+            {
+                if(request.shouldRenderCachedComponent) // meaning it has been updated this time frame
+                {
+                    dynamicAtlas.AddRequestToPendingBlitFromCache(request);
+                }
+            }
+        }
 
         // ------------------------------------------------------------------------------------------
         //          Functions to access and deal with the C# representation of the atlas 
@@ -183,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.legacyLight.useViewFrustumForShadowCasterCull = false;
 #endif
                 lightData.lightIdxForCachedShadows = GetNextLightIdentifier();
-
+                RegisterTransformCacheSlot(lightData);
                 m_RegisteredLightDataPendingPlacement.Add(lightData.lightIdxForCachedShadows, lightData);
                 m_CanTryPlacement = true;
             }
@@ -192,6 +217,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void EvictLight(HDAdditionalLightData lightData)
         {
             m_RegisteredLightDataPendingPlacement.Remove(lightData.lightIdxForCachedShadows);
+            RemoveTransformFromCache(lightData);
 
             int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
 
@@ -220,6 +246,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        internal void RegisterTransformCacheSlot(HDAdditionalLightData lightData)
+        {
+            if (lightData.lightIdxForCachedShadows >= 0 && lightData.updateUponLightMovement && !m_TransformCaches.ContainsKey(lightData.lightIdxForCachedShadows))
+            {
+                CachedTransform transform;
+                transform.position = lightData.transform.position;
+                transform.angles = lightData.transform.eulerAngles;
+                m_TransformCaches.Add(lightData.lightIdxForCachedShadows, transform);
+            }
+        }
+
+        internal void RemoveTransformFromCache(HDAdditionalLightData lightData)
+        {
+            m_TransformCaches.Remove(lightData.lightIdxForCachedShadows);
+        }
+
 
         // ------------------------------------------------------------------------------------------
 
@@ -513,8 +556,45 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogWarning("Trying to render a cached shadow map that doesn't have a slot in the atlas yet.");
             }
 
-            request.atlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
+            request.cachedAtlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
             request.resolution = new Vector2(record.viewportSize, record.viewportSize);
+        }
+
+        internal bool NeedRenderingDueToTransformChange(HDAdditionalLightData lightData, HDLightType lightType)
+        {
+            bool needUpdate = false;
+
+            if (m_TransformCaches.TryGetValue(lightData.lightIdxForCachedShadows, out CachedTransform cachedTransform))
+            {
+                float positionThreshold = lightData.cachedShadowTranslationUpdateThreshold;
+                Vector3 positionDiffVec = cachedTransform.position - lightData.transform.position;
+                float positionDiff = Vector3.Dot(positionDiffVec, positionDiffVec);
+                if (positionDiff > positionThreshold * positionThreshold)
+                {
+                    needUpdate = true;
+                }
+                if(lightType != HDLightType.Point)
+                {
+                    float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
+                    Vector3 angleDiff = cachedTransform.angles - lightData.transform.eulerAngles;
+                    // Any angle difference 
+                    if (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold)
+                    {
+                        needUpdate = true;
+                    }
+                }
+
+                if (needUpdate)
+                {
+                    // Update the record (CachedTransform is a struct, so we remove old one and replace with a new one)
+                    m_TransformCaches.Remove(lightData.lightIdxForCachedShadows);
+                    cachedTransform.position = lightData.transform.position;
+                    cachedTransform.angles = lightData.transform.eulerAngles;
+                    m_TransformCaches.Add(lightData.lightIdxForCachedShadows, cachedTransform);
+                }
+            }
+
+            return needUpdate;
         }
 
         // ------------------------------------------------------------------------------------------

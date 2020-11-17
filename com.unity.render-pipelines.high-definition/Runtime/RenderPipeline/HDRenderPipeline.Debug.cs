@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_SupportProbeVolume || debugParameters.debugDisplaySettings.data.lightingDebugSettings.probeVolumeDebugMode == ProbeVolumeDebugMode.None)
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<DebugOverlayPassData>("RenderProbeVolumeDebugOverlay", out var passData))
+            using (var builder = renderGraph.AddRenderPass<DebugLightLoopOverlayPassData>("RenderProbeVolumeDebugOverlay", out var passData))
             {
                 passData.debugParameters = debugParameters;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
@@ -507,11 +507,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle transparentRendererList;
             public Material debugGBufferMaterial;
             public FrameSettings frameSettings;
+
+            public Texture clearColorTexture;
+            public RenderTexture clearDepthTexture;
+            public bool clearDepth;
         }
 
         TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+
             var output = renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
@@ -557,9 +562,20 @@ namespace UnityEngine.Rendering.HighDefinition
                             rendererConfiguration: m_CurrentRendererConfigurationBakedLighting,
                             stateBlock: m_DepthStateOpaque)));
 
+                    passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
+                    passData.clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera
+                    passData.clearDepth = hdCamera.clearDepth;
+
                     builder.SetRenderFunc(
                     (DebugViewMaterialData data, RenderGraphContext context) =>
                     {
+                        // If we are doing camera stacking, then we want to clear the debug color and depth buffer using the data from the previous camera on the stack
+                        // Note: Ideally here we would like to draw directly on the same buffers as the previous camera, but currently the compositor is not using 
+                        // Texture Arrays so this would not work. We might need to revise this in the future. 
+                        if (data.clearColorTexture != null)
+                        {
+                            HDUtils.BlitColorAndDepth(context.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
+                        }
                         DrawOpaqueRendererList(context, data.frameSettings, data.opaqueRendererList);
                         DrawTransparentRendererList(context, data.frameSettings, data.transparentRendererList);
                     });
