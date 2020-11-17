@@ -86,6 +86,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
         int                                 m_CurrentFrameIndex;
+        int                                 m_ExecutionCount;
 
         RTHandle                            m_CurrentBackbuffer;
 
@@ -138,6 +139,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void BeginRenderGraph(int executionCount)
         {
+            m_ExecutionCount = executionCount;
             ResourceHandle.NewFrame(executionCount);
         }
 
@@ -357,7 +359,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void UpdateSharedResourceLastFrameIndex(int type, int index)
         {
-            m_RenderGraphResources[type].resourceArray[index].sharedResourceLastFrameUsed = m_CurrentFrameIndex;
+            m_RenderGraphResources[type].resourceArray[index].sharedResourceLastFrameUsed = m_ExecutionCount;
         }
 
         void ManageSharedRenderGraphResources()
@@ -370,14 +372,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     var resource = m_RenderGraphResources[type].resourceArray[i];
                     bool isCreated = resource.IsCreated();
                     // Alloc if needed.
-                    if (resource.sharedResourceLastFrameUsed == m_CurrentFrameIndex && !isCreated)
+                    if (resource.sharedResourceLastFrameUsed == m_ExecutionCount && !isCreated)
                     {
                         // Here we want the resource to have the name given by users because we know that it won't be reused at all.
                         // So no need for an automatic generic name.
                         resource.CreateGraphicsResource(resource.GetName());
                     }
                     // Release if not used anymore.
-                    else if (isCreated && ((resource.sharedResourceLastFrameUsed + kSharedResourceLifetime) < m_CurrentFrameIndex))
+                    else if (isCreated && ((resource.sharedResourceLastFrameUsed + kSharedResourceLifetime) < m_ExecutionCount))
                     {
                         resource.ReleaseGraphicsResource();
                     }
