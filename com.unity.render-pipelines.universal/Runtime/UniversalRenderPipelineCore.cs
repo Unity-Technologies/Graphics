@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
     {
         public bool supportsMainLightShadows;
-        [Obsolete("Obsolete, this feature will be supported by 'RendererFeature' in the future")]
+        [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
         public bool requiresScreenSpaceShadowResolve;
         public int mainLightShadowmapWidth;
         public int mainLightShadowmapHeight;

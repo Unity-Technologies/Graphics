@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
         BeforeRenderingPrePasses = 150,
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Obsolete, to match the capital from 'Prepass' to 'PrePass'")]
+        [Obsolete("Obsolete, to match the capital from 'Prepass' to 'PrePass' (UnityUpgradable) -> BeforeRenderingPrePasses")]
         BeforeRenderingPrepasses = 151,
 
         /// <summary>
