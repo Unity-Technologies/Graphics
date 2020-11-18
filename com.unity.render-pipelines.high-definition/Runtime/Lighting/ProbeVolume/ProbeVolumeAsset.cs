@@ -4,8 +4,23 @@ using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal class ProbeVolumeAsset : ScriptableObject
+    public class ProbeVolumeAsset : ScriptableObject
     {
+        [Serializable]
+        internal enum AssetVersion
+        {
+            First,
+            AddProbeVolumesAtlasEncodingModes,
+            PV2,
+            Max,
+            Current = Max - 1
+        }
+
+        [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
+        [SerializeField] public int Version { get => m_Version; }
+        [SerializeField] public SphericalHarmonicsL1[] probes;
+        [SerializeField] public ProbeBrickIndex.Brick[] bricks;
+
 #if UNITY_EDITOR
         // Debug only: Uncomment out if you want to manually create a probe volume asset and type in data into the inspector.
         // This is not a user facing workflow we are supporting.
@@ -46,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return assetFileName;
         }
 
-        internal static ProbeVolumeAsset CreateAsset(int id = -1)
+        public static ProbeVolumeAsset CreateAsset(int id = -1)
         {
             ProbeVolumeAsset asset = ScriptableObject.CreateInstance<ProbeVolumeAsset>();
             string assetFileName = GetFileName(id);
