@@ -1,7 +1,7 @@
 {
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "4ea4616e4581427ea9529479eaf564bc",
-    "m_Version": 2,
+    "m_SGVersion": 2,
     "m_Properties": [
         {
             "m_Id": "1cd96718c5744fc191dbead606342d5d"

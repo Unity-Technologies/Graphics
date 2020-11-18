@@ -203,6 +203,17 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator Check_VFXRenderer_DefaultRenderingLayerNames()
+        {
+            //The content of default rendering layer names is retrieved by reflection.
+            var layerNames = VisualEffectEditor.RendererEditor.s_DefaultRenderingLayerNames;
+            Assert.IsNotNull(layerNames);
+            Assert.IsTrue(layerNames.Length != 0);
+            Assert.IsFalse(layerNames.Any(o => string.IsNullOrEmpty(o)));
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator CreateComponent_And_Graph_Modify_It_To_Generate_Expected_Exception()
         {
             var graph = CreateGraph_And_System();
@@ -1285,32 +1296,28 @@ namespace UnityEditor.VFX.Test
                 var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
                 vfxComponent.ResetOverride(currentName);
 
+                var baseValue = GetValue_A_Type(parameter.model.type);
+                object currentValue = null;
+                if (bindingModes)
+                    currentValue = fnGet_UsingBindings(type, vfxComponent, currentName);
+                else
+                    currentValue = fnGet_UsingSerializedProperty(type, vfxComponent, currentName);
+                if (type == VFXValueType.ColorGradient)
                 {
-#if CASE_1206890_HAS_BEEN_FIXED
-                    var baseValue = GetValue_B_Type(parameter.model.type);
-                    object currentValue = null;
-                    if (bindingModes)
-                        currentValue = fnGet_UsingBindings(type, vfxComponent, currentName);
-                    else
-                        currentValue = fnGet_UsingSerializedProperty(type, vfxComponent, currentName);
-                    if (type == VFXValueType.ColorGradient)
-                    {
-                        Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
-                    }
-                    else if (type == VFXValueType.Curve)
-                    {
-                        Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
-                    }
-                    else if (bindingModes && parameter.model.type == typeof(Color))
-                    {
-                        Color col = (Color)baseValue;
-                        Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), currentValue);
-                    }
-                    else
-                    {
-                        Assert.AreEqual(baseValue, currentValue);
-                    }
-#endif
+                    Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
+                }
+                else if (type == VFXValueType.Curve)
+                {
+                    Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
+                }
+                else if (parameter.model.type == typeof(Color))
+                {
+                    Color col = (Color)baseValue;
+                    Assert.AreEqual(new Vector4(col.r, col.g, col.b, col.a), currentValue);
+                }
+                else
+                {
+                    Assert.AreEqual(baseValue, currentValue);
                 }
 
                 if (!bindingModes)

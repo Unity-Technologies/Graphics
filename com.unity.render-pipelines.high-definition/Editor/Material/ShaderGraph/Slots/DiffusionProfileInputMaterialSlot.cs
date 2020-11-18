@@ -146,9 +146,9 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // We need to warn the user that we can't upgrade the diffusion profile but this upgrade code
                 // does not work currently :(
-                // Debug.LogError("Failed to upgrade the diffusion profile slot value, reseting to default value: " + hdAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry] +
+                // Debug.LogError("Failed to upgrade the diffusion profile slot value, reseting to default value: " + HDRenderPipeline.defaultAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry] +
                 //     "\nTo remove this message save the shader graph with the new diffusion profile reference");
-                // m_DiffusionProfileAsset = hdAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry];
+                // m_DiffusionProfileAsset = HDRenderPipeline.defaultAsset.diffusionProfileSettingsList[m_DiffusionProfile.selectedEntry];
                 m_Version = 1;
                 // Sometimes the view is created after we upgrade the slot so we need to update it's value
                 view?.UpdateSlotValue();
@@ -157,11 +157,12 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorApplication.update -= UpgradeIfNeeded;
         }
 
-        public void GetSourceAssetDependencies(List<string> paths)
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {
-            if(diffusionProfile != null)
+            if ((diffusionProfile != null) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(diffusionProfile, out string guid, out long localId))
             {
-                paths.Add(AssetDatabase.GetAssetPath(diffusionProfile));
+                // diffusion profile is a ScriptableObject, so this is an artifact dependency
+                assetCollection.AddAssetDependency(new GUID(guid), AssetCollection.Flags.ArtifactDependency | AssetCollection.Flags.IncludeInExportPackage);
             }
         }
     }

@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         // Debug only: Uncomment out if you want to manually create a probe volume asset and type in data into the inspector.
         // This is not a user facing workflow we are supporting.
-        // [UnityEditor.MenuItem("Assets/Create/Experimental/ProbeVolume", false, 204)]
+        // [UnityEditor.MenuItem("Assets/Create/Experimental/Probe Volume", false, 204)]
         // protected static void CreateAssetFromMenu()
         // {
         //     CreateAsset();

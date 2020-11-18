@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
             renderPassEvent = evt;
             overrideCameraTarget = true;
 
@@ -166,7 +167,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 renderingData.cameraData.xr.StopSinglePass(cmd);
 
                 // Render the lut
-                Blit(cmd, m_InternalLut.id, m_InternalLut.id, material);
+                cmd.Blit(null, m_InternalLut.id, material);
 
                 renderingData.cameraData.xr.StartSinglePass(cmd);
             }

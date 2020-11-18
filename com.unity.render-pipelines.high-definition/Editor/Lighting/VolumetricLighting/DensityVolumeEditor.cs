@@ -79,6 +79,12 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected|GizmoType.Active)]
         static void DrawGizmosSelected(DensityVolume densityVolume, GizmoType gizmoType)
         {
+            if (s_BlendBox == null || s_BlendBox.Equals(null)
+                || s_ShapeBox == null || s_ShapeBox.Equals(null))
+                return;
+
+            Debug.Log(gizmoType);
+
             using (new Handles.DrawingScope(Matrix4x4.TRS(densityVolume.transform.position, densityVolume.transform.rotation, Vector3.one)))
             {
                 // Blend box

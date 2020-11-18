@@ -14,13 +14,23 @@ UTR_INSTALL_URL = 'https://artifactory.internal.unity3d.com/core-automation/tool
 UNITY_DOWNLOADER_CLI_URL = 'https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple'
 VAR_CUSTOM_REVISION = '$CUSTOM_REVISION'
 GITHUB_CDS_URL = 'https://github.cds.internal.unity3d.com'
+DEFAULT_TIMEOUT = 1200
+
 
 
 def get_editor_revision(editor, platform_os):
-    return VAR_CUSTOM_REVISION if str(editor['track']).lower()=='custom-revision' else editor["revisions"][f"{editor['track']}_latest_internal"][platform_os]["revision"]
+    if str(editor['track']).lower()=='custom-revision':
+        return f'-u {VAR_CUSTOM_REVISION}'
+    elif str(editor['track']).lower()=='trunk':
+        return '-u {{editor_versions.' + f"{str(editor['track']).replace('.','_')}_latest_internal.{platform_os}.revision" + '}}'
+    else:
+        return '-u {{editor_versions.' + f"{str(editor['track']).replace('.','_')}_staging.{platform_os}.revision" + '}}'
 
 def get_unity_downloader_cli_cmd(editor, platform_os, cd=False, git_root=False):
-    if str(editor["track"]).lower() == 'custom-revision':
+    '''Returns the revision used by unity-downloader-cli. 
+    For custom revision, refers to --source-file flag. If cd, then revision file path is prepended by ../../; if git_root, then its prepended by ~/Graphics/.
+    For normal tracks (not custom revision), retrieves the editor revision from latest_editor_versions file'''
+    if not editor["editor_pinning"]:
         if cd:
             return f'--source-file ../../{PATH_UNITY_REVISION}'
         elif git_root:
@@ -28,4 +38,20 @@ def get_unity_downloader_cli_cmd(editor, platform_os, cd=False, git_root=False):
         else:
             return f'--source-file {PATH_UNITY_REVISION}'
     else:
-        return f'-u {get_editor_revision(editor, platform_os)}'
+        return get_editor_revision(editor, platform_os)
+
+def get_timeout(test_platform, os_name, build=False):
+    '''Returns default timeout if testplatform does not specify otherwise.
+    If testplatform has timeout specified as single integer, then returns this for all possible os.
+    If testplatform has timeout specified per os, then returns timeout value specified for this os 
+    OR default timeout if os-specific not present.'''
+    key = 'timeout' if not build else 'timeout_build'
+
+    if not test_platform.get(key):
+        return DEFAULT_TIMEOUT
+    else:
+        if type(test_platform[key]) == int:
+            return test_platform[key]
+        else:
+            timeout_attr = dict(test_platform[key])
+            return DEFAULT_TIMEOUT if not timeout_attr.get(os_name) else timeout_attr.get(os_name)

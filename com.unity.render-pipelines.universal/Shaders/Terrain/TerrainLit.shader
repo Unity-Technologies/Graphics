@@ -70,7 +70,8 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
@@ -98,6 +99,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
+            ColorMask 0
 
             HLSLPROGRAM
             #pragma target 2.0

@@ -284,6 +284,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         ? s_FovLastValue
                         : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
                 }
+                else if (s_FovChanged && isPhysicalCamera && !p.projectionMatrixMode.hasMultipleDifferentValues)
+                {
+                    // If we have a physical camera, we should also update the focal length here, because the
+                    // Drawer_PhysicalCamera will not be executed if the physical camera fold-out is closed
+                    cam.verticalFOV.floatValue = fovAxisVertical
+                        ? s_FovLastValue
+                        : Camera.HorizontalToVerticalFieldOfView(s_FovLastValue, (p.serializedObject.targetObjects[0] as Camera).aspect);
+
+                    float sensorLength = cam.fovAxisMode.intValue == 0 ? cam.sensorSize.vector2Value.y : cam.sensorSize.vector2Value.x;
+                    float focalLengthVal = Camera.FieldOfViewToFocalLength(s_FovLastValue, sensorLength);
+                    cam.focalLength.floatValue = EditorGUILayout.FloatField(focalLengthContent, focalLengthVal);
+                }
 
                 EditorGUILayout.Space();
             }
@@ -405,10 +417,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 using (new EditorGUI.PropertyScope(horizontal.rect, focalLengthContent, cam.focalLength))
                 using (var checkScope = new EditorGUI.ChangeCheckScope())
                 {
+                    bool isPhysical = p.projectionMatrixMode.intValue == (int)ProjectionMatrixMode.PhysicalPropertiesBased;
+                    // We need to update the focal length if the camera is physical and the FoV has changed.
+                    bool focalLengthIsDirty = (s_FovChanged && isPhysical);
+
                     float sensorLength = cam.fovAxisMode.intValue == 0 ? cam.sensorSize.vector2Value.y : cam.sensorSize.vector2Value.x;
-                    float focalLengthVal = s_FovChanged ? Camera.FieldOfViewToFocalLength(s_FovLastValue, sensorLength) : cam.focalLength.floatValue;
+                    float focalLengthVal = focalLengthIsDirty ? Camera.FieldOfViewToFocalLength(s_FovLastValue, sensorLength) : cam.focalLength.floatValue;
                     focalLengthVal = EditorGUILayout.FloatField(focalLengthContent, focalLengthVal);
-                    if (checkScope.changed || s_FovChanged)
+                    if (checkScope.changed || focalLengthIsDirty)
                         cam.focalLength.floatValue = focalLengthVal;
                 }
 

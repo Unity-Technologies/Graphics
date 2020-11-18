@@ -20,6 +20,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
             #pragma multi_compile SHOW_LIGHT_CATEGORIES SHOW_FEATURE_VARIANTS
             #pragma multi_compile _ IS_DRAWPROCEDURALINDIRECT
+            #pragma multi_compile _ DISABLE_TILE_MODE
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -39,9 +40,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
             // the deferred shader will require to use multicompile.
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
-#if (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && defined(USE_CLUSTERED_LIGHTLIST)
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
-#endif
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
@@ -213,27 +211,10 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint mask = 1u << category;
                     if (mask & _ViewTilesFlags)
                     {
-                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                        if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                        {
-                        #if defined(USE_CLUSTERED_LIGHTLIST)
-                            // If evaluating probe volumes during material pass, their data is only avaibile in clustered.
-                            // To accurately reflect this, if a user has selected to view the count inside of the tiled list,
-                            // the count should be zero.
-                            uint start;
-                            uint count;
-                            ProbeVolumeGetCountAndStart(posInput, start, count);
-                            n += count;
-                        #endif
-                        }
-                        else
-                    #endif
-                        {
-                            uint start;
-                            uint count;
-                            GetCountAndStart(posInput, category, start, count);
-                            n += count;
-                        }
+                        uint start;
+                        uint count;
+                        GetCountAndStart(posInput, category, start, count);
+                        n += count;
                     }
                 }
                 if (n == 0)
@@ -244,6 +225,24 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                 float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
+#ifdef DISABLE_TILE_MODE
+                // Tile debug mode is not supported in MSAA (only cluster)
+                int maxLights = 32;
+                const int textSize = 23;
+                const int text[textSize] = {'N', 'o', 't', ' ', 's', 'u', 'p', 'p', 'o', 'r', 't', 'e', 'd', ' ', 'w', 'i', 't', 'h', ' ', 'M', 'S', 'A', 'A'};
+                if (input.positionCS.y < DEBUG_FONT_TEXT_HEIGHT)
+                {
+                    float4 result2 = float4(.1,.1,.1,.9);
+
+                    uint2 unormCoord = input.positionCS.xy;
+                    float3 textColor = float3(0.5f, 0.5f, 0.5f);
+                    uint2 textLocation = uint2(0, 0);
+                    for (int i = 0; i < textSize; i++)
+                        DrawCharacter(text[i], textColor, unormCoord, textLocation, result2.rgb, 1, text[i] >= 97 ? 7 : 10);
+
+                    result = AlphaBlend(result, result2);
+                }
+#else
                 // Tile overlap counter
                 if (n >= 0)
                 {
@@ -271,19 +270,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint start;
                     uint count;
 
-                #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                    if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                    {
-                    #if defined(USE_CLUSTERED_LIGHTLIST)
-                        ProbeVolumeGetCountAndStart(mousePosInput, start, count);
-                        n += count;
-                    #endif
-                    }
-                    else
-                #endif
-                    {
-                        GetCountAndStart(mousePosInput, category, start, count);
-                    }
+                    GetCountAndStart(mousePosInput, category, start, count);
 
                     float4 result2 = float4(.1,.1,.1,.9);
                     int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
@@ -296,18 +283,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     }
                     else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
-                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
-                        if (category == LIGHTCATEGORY_PROBE_VOLUME)
-                        {
-                        #if defined(USE_CLUSTERED_LIGHTLIST)
-                            n = ProbeVolumeFetchIndex(start, lightListIndex);
-                        #endif
-                        }
-                        else
-                    #endif
-                        {
-                            n = FetchIndex(start, lightListIndex);
-                        }
+                        n = FetchIndex(start, lightListIndex);
                     }
 
                     if (n >= 0)
@@ -320,6 +296,7 @@ Shader "Hidden/HDRP/DebugViewTiles"
 
                     result = AlphaBlend(result, result2);
                 }
+#endif
 #endif
 
                 return result;
