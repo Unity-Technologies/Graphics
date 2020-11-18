@@ -4,9 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-// Force enable fog fragment shader evaluation
-#define _FOG_FRAGMENT 1
-
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
 {
     output = (InputData)0;
@@ -30,17 +27,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
     output.viewDirectionWS = viewDirWS;
 
-    half fogFactor = 0.0;
-#if defined(_FOG_FRAGMENT)
-    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.positionWS.xyz, 1.0)).z);
-        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
-    #endif
-#else
-    fogFactor = (half)input.positionWS.w;
-#endif
-
-    output.fogCoord = fogFactor;
+    output.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
@@ -127,16 +114,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 
     half3 result = albedo.rgb + emission;
 
-    half fogFactor = 0.0;
-#if defined(_FOG_FRAGMENT)
-    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.positionWS.xyz, 1.0)).z);
-        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
-    #endif
-#else
-    fogFactor = (half)input.positionWS.w;
-#endif
-
+    half fogFactor = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     result = MixFog(result, fogFactor);
     albedo.a = OutputAlpha(albedo.a, _Surface);
 

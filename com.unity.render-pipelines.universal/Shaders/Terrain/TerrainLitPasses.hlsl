@@ -38,9 +38,6 @@ struct Attributes
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
-// Force enable fog fragment shader evaluation
-#define _FOG_FRAGMENT 1
-
 struct Varyings
 {
     float4 uvMainAndLM              : TEXCOORD0; // xy: control, zw: lightmap
@@ -108,17 +105,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
-    half fogFactor = 0.0;
-#if defined(_FOG_FRAGMENT)
-    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-        float viewZ = abs(mul(UNITY_MATRIX_V, float4(IN.positionWS, 1.0)).z);
-        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
-    #endif
-#else
-    fogFactor = IN.fogFactorAndVertexLight.x;
-#endif
-
-    input.fogCoord = fogFactor;
+    input.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactorAndVertexLight.x);
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);

@@ -112,8 +112,9 @@ Shader "Universal Render Pipeline/Unlit"
                 half fogFactor = 0.0;
             #if defined(_FOG_FRAGMENT)
                 #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-                    float viewZ = abs(input.fogCoord);
-                    fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+                    float viewZ = -input.fogCoord;
+                    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+                    fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
                 #endif
             #else
                 fogFactor = input.fogCoord;
@@ -262,8 +263,9 @@ Shader "Universal Render Pipeline/Unlit"
                 half fogFactor = 0.0;
             #if defined(_FOG_FRAGMENT)
                 #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-                    float viewZ = abs(input.fogCoord);
-                    fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+                    float viewZ = -input.fogCoord;
+                    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+                    fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
                 #endif
             #else
                 fogFactor = input.fogCoord;

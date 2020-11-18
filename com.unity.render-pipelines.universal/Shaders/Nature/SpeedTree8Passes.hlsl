@@ -4,9 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
-// Force enable fog fragment shader evaluation
-#define _FOG_FRAGMENT 1
-
 struct SpeedTreeVertexInput
 {
     float4 vertex       : POSITION;
@@ -329,16 +326,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    half fogFactor = 0.0;
-#if defined(_FOG_FRAGMENT)
-    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
-        float viewZ = abs(mul(UNITY_MATRIX_V, float4(input.interpolated.positionWS, 1.0)).z);
-        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
-    #endif
-#else
-    fogFactor = input.interpolated.fogFactorAndVertexLight.x;
-#endif
-    inputData.fogCoord = fogFactor;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.interpolated.positionWS, 1.0), input.interpolated.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.interpolated.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);

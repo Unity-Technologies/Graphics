@@ -195,9 +195,9 @@ real ComputeFogFactorZ0ToFar(float z)
     #endif
 }
 
-real ComputeFogFactor(float z)
+real ComputeFogFactor(float zPositionCS)
 {
-    float clipZ_0Far = UNITY_Z_0_FAR_FROM_CLIPSPACE(z);
+    float clipZ_0Far = UNITY_Z_0_FAR_FROM_CLIPSPACE(zPositionCS);
     return ComputeFogFactorZ0ToFar(clipZ_0Far);
 }
 
@@ -230,8 +230,8 @@ real InitializeInputDataFog(float4 positionWS, real vertFogFactor)
         // Compiler eliminates unused math --> matrix.column_z * vec
         float viewZ = -(mul(UNITY_MATRIX_V, positionWS).z);
         // View Z is 0 at camera pos, remap 0 to near plane.
-        //float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
-        fogFactor = ComputeFogFactorZ0ToFar(viewZ);
+        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+        fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
     #endif
 #else
     fogFactor = vertFogFactor;
