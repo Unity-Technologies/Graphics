@@ -55,6 +55,7 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
+  m_ImportDependencies: []
   m_GraphVersion: 4
   m_saved: 1
   m_SubgraphDependencies: []
@@ -73,7 +74,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
-  systemInfos: []
   categories: []
   uiBounds:
     serializedVersion: 2
@@ -107,6 +107,7 @@ MonoBehaviour:
   m_InputFlowSlot: []
   m_OutputFlowSlot:
   - link: []
+  m_SuitableContexts: 14
 --- !u!114 &5
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,6 +397,12 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The color of the particle.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0

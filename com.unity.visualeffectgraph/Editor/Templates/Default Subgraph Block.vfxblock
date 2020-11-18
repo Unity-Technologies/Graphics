@@ -90,6 +90,7 @@ MonoBehaviour:
   m_InputFlowSlot: []
   m_OutputFlowSlot:
   - link: []
+  m_SuitableContexts: 14
 --- !u!114 &5
 MonoBehaviour:
   m_ObjectHideFlags: 0

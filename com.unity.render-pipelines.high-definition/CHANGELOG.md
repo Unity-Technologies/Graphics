@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
 - Fixed issue with diffusion profile not being updated upon reset of the editor. 
 - Fixed Amplitude -> Min/Max parametrization conversion
+- VFX : Debug material view were rendering pink for albedo. (case 1290752)
 - Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
 - Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
 - Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.

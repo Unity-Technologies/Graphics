@@ -72,6 +72,30 @@ namespace UnityEditor.VFX
             return true;
         }
 
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is VFXPropertyAttribute other))
+                return false;
+
+            return m_Type == other.m_Type && m_Min == other.m_Min && m_Max == other.m_Max && m_Tooltip == other.m_Tooltip && m_Regex == other.m_Regex && m_RegexMaxLength == other.m_RegexMaxLength;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = (int)m_Type;
+
+            hashCode += 23 * m_Min.GetHashCode();
+            hashCode += 23 * m_Max.GetHashCode();
+            if(m_Tooltip != null)
+                hashCode += 23 * m_Tooltip.GetHashCode();
+            if (m_Regex != null)
+                hashCode += 23 * m_Regex.GetHashCode();
+            hashCode += 23 * m_RegexMaxLength;
+
+            return hashCode;
+        }
+
         public static VFXExpression ApplyToExpressionGraph(VFXPropertyAttribute[] attributes, VFXExpression exp)
                 {
             if (attributes != null)
