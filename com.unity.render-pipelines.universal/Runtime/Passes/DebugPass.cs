@@ -17,8 +17,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         bool m_IsMobileOrSwitch;
         Rect m_PixelRect;
         FullScreenDebugMode m_FullScreenDebugMode;
-        float m_NearPlane;
-        float m_FarPlane;
 
         public DebugPass(RenderPassEvent evt, Material blitMaterial)
         {
@@ -33,8 +31,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <param name="colorHandle"></param>
         /// <param name="clearBlitTarget"></param>
         /// <param name="pixelRect"></param>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetIdentifier colorIdentifier, FullScreenDebugMode fullScreenDebugMode,
-            float nearPlane, float farPlane, bool clearBlitTarget = false, Rect pixelRect = new Rect())
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetIdentifier colorIdentifier,
+                          FullScreenDebugMode fullScreenDebugMode, bool clearBlitTarget, Rect pixelRect)
         {
             m_Source = colorIdentifier;
             m_TargetDimension = baseDescriptor.dimension;
@@ -42,8 +40,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_IsMobileOrSwitch = Application.isMobilePlatform || Application.platform == RuntimePlatform.Switch;
             m_PixelRect = pixelRect;
             m_FullScreenDebugMode = fullScreenDebugMode;
-            m_NearPlane = nearPlane;
-            m_FarPlane = farPlane;
         }
 
         /// <inheritdoc/>
@@ -55,11 +51,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
             }
 
-            bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
+            bool requiresSRGBConversion = Display.main.requiresSrgbBlitToBackbuffer;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-            if (requiresSRGBConvertion)
+            if (requiresSRGBConversion)
                 cmd.EnableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
             else
                 cmd.DisableShaderKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
@@ -88,8 +84,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 cmd.SetGlobalTexture("_BlitTex", m_Source);
                 cmd.SetGlobalInt("_DebugMode", (int)m_FullScreenDebugMode);
-                cmd.SetGlobalFloat("_NearPlane", m_NearPlane);
-                cmd.SetGlobalFloat("_FarPlane", m_FarPlane);
 
                 // TODO: Final blit pass should always blit to backbuffer. The first time we do we don't need to Load contents to tile.
                 // We need to keep in the pipeline of first render pass to each render target to properly set load/store actions.
@@ -103,7 +97,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(m_PixelRect != Rect.zero ? m_PixelRect : cameraData.camera.pixelRect);
+                cmd.SetViewport(m_PixelRect == Rect.zero ? camera.pixelRect : m_PixelRect);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                 cmd.SetViewProjectionMatrices(camera.worldToCameraMatrix, camera.projectionMatrix);
             }

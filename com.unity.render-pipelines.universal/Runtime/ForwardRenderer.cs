@@ -615,8 +615,7 @@ namespace UnityEngine.Rendering.Universal
                         break;
                 }
 
-                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, fullScreenDebugMode,
-                    renderingData.cameraData.camera.nearClipPlane, renderingData.cameraData.camera.farClipPlane, false, pixelRect);
+                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, fullScreenDebugMode, false, pixelRect);
                 EnqueuePass(m_DebugPass);
             }
 
