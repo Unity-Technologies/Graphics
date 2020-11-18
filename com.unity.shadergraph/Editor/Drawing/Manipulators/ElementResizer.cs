@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // If Style.left is NaNpx it results in scaling towards the left
                 // This is due to how the WindowDockingLayout code affects GraphSubWindows
                 resizedTarget.style.left = newLayoutLeft;
-                resizedTarget.style.width = Mathf.Min(m_MaxSize.x, Mathf.Max(m_MinSize.x, newWidth));
+                resizedTarget.style.width = Mathf.Clamp(newWidth, m_MinSize.x, m_MaxSize.x);
             }
             else if ((direction & ResizableElement.Resizer.Left) != 0)
             {
@@ -127,22 +127,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                     delta = -m_MaxSize.x + m_StartSize.x;
                 }
 
-                // Same clamping as above on the left as well
                 var newWidth = -delta + m_StartSize.x;
-                var parentLeftBoundary = parentRootPosition.x;
                 var targetToLeftBoundaryDelta = delta + m_StartPosition.x;
-                if (!canResizePastParentBounds && (targetRootPosition.x < parentLeftBoundary))
+                if (!canResizePastParentBounds)
                 {
-                    // New width should max out at whatever starting size was plus the distance to the left boundary
-                    newWidth = m_StartSize.x + m_StartPosition.x - parentLeftBoundary;
-                    resizedTarget.style.right = (parentRootPosition.x + resizedBase.layout.width) - (targetRootPosition.x + newWidth);
+                    // This ensures that the left side of the resizing target never can get pushed past the parent boundary even if mouse is moving really fast
+                    targetToLeftBoundaryDelta = Mathf.Clamp(targetToLeftBoundaryDelta, 2.5f, targetToLeftBoundaryDelta);
+
+                    // Clamps width to max out at left edge of parent window
+                    if(Mathf.Approximately(targetToLeftBoundaryDelta, 2.5f))
+                        newWidth = (m_StartPosition.x + m_StartSize.x);
                 }
-                // This ensures that the left side of the resizing target never can get pushed past the parent boundary even if mouse is moving really fast
-                targetToLeftBoundaryDelta = Mathf.Clamp(targetToLeftBoundaryDelta, 2.5f, targetToLeftBoundaryDelta);
 
                 resizedTarget.style.left = targetToLeftBoundaryDelta;
-                resizedTarget.style.width = newWidth;
+                resizedTarget.style.width = Mathf.Clamp(newWidth, m_MinSize.x, m_MaxSize.x);
             }
+
             if ((direction & ResizableElement.Resizer.Bottom) != 0)
             {
                 var parentBottomBoundary = parentRootPosition.y + resizedBase.layout.height;
@@ -173,20 +173,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                     delta = -m_MaxSize.y + m_StartSize.y;
                 }
 
-                // Same clamping as above on the top as well
                 var newHeight = -delta + m_StartSize.y;
-                var parentTopBoundary = parentRootPosition.y;
-                if (!canResizePastParentBounds && targetRootPosition.y < parentTopBoundary)
+                var targetToTopBoundaryDelta = m_StartPosition.y + delta;
+                if (!canResizePastParentBounds)
                 {
-                    // Clamps height to max out at top of parent window
-                    //newHeight = m_StartSize.y + (m_StartPosition.y - parentTopBoundary);
                     // This ensures that the top of the resizing target never can get pushed past the parent boundary even if mouse is moving really fast
-                    //targetToTopBoundaryDelta = Mathf.Clamp(targetToTopBoundaryDelta, 2.5f, targetToTopBoundaryDelta);
-                }
-                var targetToBottomBoundaryDelta = (parentTopBoundary + resizedBase.layout.height) - (m_StartPosition.y + newHeight);
+                    targetToTopBoundaryDelta = Mathf.Clamp(targetToTopBoundaryDelta, 2.5f, targetToTopBoundaryDelta);
 
-                //resizedTarget.style.top = targetToBottomBoundaryDelta;
-                resizedTarget.style.height = newHeight;
+                    // Clamps height to max out at top edge of parent window
+                    if (Mathf.Approximately(targetToTopBoundaryDelta, 2.5f))
+                        newHeight = (m_StartPosition.y + m_StartSize.y);
+                }
+
+                resizedTarget.style.top = targetToTopBoundaryDelta;
+                resizedTarget.style.height = Mathf.Clamp(newHeight, m_MinSize.y, m_MaxSize.y);
             }
             e.StopPropagation();
         }

@@ -11,7 +11,7 @@ ResizableElement
 
 ResizableElement #right
 {
-    width: 4px;
+    width: 3px;
     flex-direction: column;
     align-items: stretch;
 }
@@ -61,7 +61,7 @@ ResizableElement #middle #middle-center
 
 ResizableElement #middle #bottom-resize
 {
-    height: 12px;
+    height: 3px;
     cursor: resize-vertical;
 }
 
