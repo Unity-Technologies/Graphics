@@ -1,0 +1,213 @@
+﻿using System;
+using UnityEditor.ShaderGraph.Drawing.Interfaces;
+using UnityEditor.ShaderGraph.Drawing.Views;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace UnityEditor.ShaderGraph.Drawing
+{
+   class ElementResizer : Manipulator
+    {
+        public readonly ResizableElement.Resizer direction;
+
+        public readonly VisualElement resizedElement;
+
+        public ElementResizer(VisualElement resizedElement, ResizableElement.Resizer direction)
+        {
+            this.direction = direction;
+            this.resizedElement = resizedElement;
+        }
+
+        protected override void RegisterCallbacksOnTarget()
+        {
+            target.RegisterCallback<MouseDownEvent>(OnMouseDown);
+            target.RegisterCallback<MouseUpEvent>(OnMouseUp);
+        }
+
+        protected override void UnregisterCallbacksFromTarget()
+        {
+            target.UnregisterCallback<MouseDownEvent>(OnMouseDown);
+            target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
+        }
+
+        Vector2 m_StartMouse;
+        Vector2 m_StartSize;
+
+        Vector2 m_MinSize;
+        Vector2 m_MaxSize;
+
+        Vector2 m_StartPosition;
+
+        bool m_DragStarted = false;
+
+        void OnMouseDown(MouseDownEvent e)
+        {
+            if (e.button == 0 && e.clickCount == 1)
+            {
+                VisualElement resizedTarget = resizedElement.parent;
+                if (resizedTarget != null)
+                {
+                    VisualElement resizedBase = resizedTarget.parent;
+                    if (resizedBase != null)
+                    {
+                        target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
+                        e.StopPropagation();
+                        target.CaptureMouse();
+                        m_StartMouse = resizedBase.WorldToLocal(e.mousePosition);
+                        m_StartSize = new Vector2(resizedTarget.resolvedStyle.width, resizedTarget.resolvedStyle.height);
+                        m_StartPosition = new Vector2(resizedTarget.resolvedStyle.left, resizedTarget.resolvedStyle.top);
+
+                        bool minWidthDefined = resizedTarget.resolvedStyle.minWidth != StyleKeyword.Auto;
+                        bool maxWidthDefined = resizedTarget.resolvedStyle.maxWidth != StyleKeyword.None;
+                        bool minHeightDefined = resizedTarget.resolvedStyle.minHeight != StyleKeyword.Auto;
+                        bool maxHeightDefined = resizedTarget.resolvedStyle.maxHeight != StyleKeyword.None;
+                        m_MinSize = new Vector2(
+                            minWidthDefined ? resizedTarget.resolvedStyle.minWidth.value : Mathf.NegativeInfinity,
+                            minHeightDefined ? resizedTarget.resolvedStyle.minHeight.value : Mathf.NegativeInfinity);
+                        m_MaxSize = new Vector2(
+                            maxWidthDefined ? resizedTarget.resolvedStyle.maxWidth.value : Mathf.Infinity,
+                            maxHeightDefined ? resizedTarget.resolvedStyle.maxHeight.value : Mathf.Infinity);
+
+                        m_DragStarted = false;
+                    }
+                }
+            }
+        }
+
+        void OnMouseMove(MouseMoveEvent e)
+        {
+            VisualElement resizedTarget = resizedElement.parent;
+            VisualElement resizedBase = resizedTarget.parent;
+
+            // Top left position of the parent visual element
+            var parentRootPosition = resizedBase.worldBound;
+            // Top left of the target visual element for resizing
+            var targetRootPosition = resizedTarget.worldBound;
+            var canResizePastParentBounds = false;
+
+            Vector2 mousePos = resizedBase.WorldToLocal(e.mousePosition);
+
+            if (!m_DragStarted)
+            {
+                if (resizedTarget is IResizable resizable)
+                {
+                    resizable.OnStartResize();
+                    canResizePastParentBounds = resizable.CanResizePastParentBounds();
+                }
+                m_DragStarted = true;
+            }
+
+            if ((direction & ResizableElement.Resizer.Right) != 0)
+            {
+                var newLayoutLeft = targetRootPosition.x - parentRootPosition.x;
+                var newWidth = m_StartSize.x + mousePos.x - m_StartMouse.x;
+                var parentRightBoundary = parentRootPosition.x + resizedBase.layout.width;
+                var targetToRightBoundaryDelta = parentRightBoundary - targetRootPosition.x;
+
+                // Also ensure resizing does not happen past edge of parent views boundaries if the target does not allow it
+                if (!canResizePastParentBounds && (targetRootPosition.x + newWidth) > parentRightBoundary)
+                    newWidth = targetToRightBoundaryDelta;
+
+                // When resizing to right, make sure to calculate and set the target elements Style.left before resizing to ensure correct resizing behavior
+                // If Style.left is NaNpx it results in scaling towards the left
+                // This is due to how the WindowDockingLayout code affects GraphSubWindows
+                resizedTarget.style.left = newLayoutLeft;
+                resizedTarget.style.width = Mathf.Min(m_MaxSize.x, Mathf.Max(m_MinSize.x, newWidth));
+            }
+            else if ((direction & ResizableElement.Resizer.Left) != 0)
+            {
+                float delta = mousePos.x - m_StartMouse.x;
+
+                if (m_StartSize.x - delta < m_MinSize.x)
+                {
+                    delta = -m_MinSize.x + m_StartSize.x;
+                }
+                else if (m_StartSize.x - delta > m_MaxSize.x)
+                {
+                    delta = -m_MaxSize.x + m_StartSize.x;
+                }
+
+                // Same clamping as above on the left as well
+                var newWidth = -delta + m_StartSize.x;
+                var parentLeftBoundary = parentRootPosition.x;
+                var targetToLeftBoundaryDelta = delta + m_StartPosition.x;
+                if (!canResizePastParentBounds && (targetRootPosition.x < parentLeftBoundary))
+                {
+                    // New width should max out at whatever starting size was plus the distance to the left boundary
+                    newWidth = m_StartSize.x + m_StartPosition.x - parentLeftBoundary;
+                    resizedTarget.style.right = (parentRootPosition.x + resizedBase.layout.width) - (targetRootPosition.x + newWidth);
+                }
+                // This ensures that the left side of the resizing target never can get pushed past the parent boundary even if mouse is moving really fast
+                targetToLeftBoundaryDelta = Mathf.Clamp(targetToLeftBoundaryDelta, 2.5f, targetToLeftBoundaryDelta);
+
+                resizedTarget.style.left = targetToLeftBoundaryDelta;
+                resizedTarget.style.width = newWidth;
+            }
+            if ((direction & ResizableElement.Resizer.Bottom) != 0)
+            {
+                var parentBottomBoundary = parentRootPosition.y + resizedBase.layout.height;
+                var delta = mousePos.y - m_StartMouse.y;
+                var newHeight = m_StartSize.y + delta;
+                var targetToTopBoundaryDelta = targetRootPosition.y - parentRootPosition.y;
+                var targetToBottomBoundaryDelta = parentBottomBoundary - targetRootPosition.y;
+                // Same clamping as above on the bottom as well
+                if (!canResizePastParentBounds && (targetRootPosition.y + newHeight) > parentBottomBoundary)
+                    newHeight = targetToBottomBoundaryDelta;
+
+                // When resizing to bottom, make sure to calculate and set the target elements Style.top before resizing to ensure correct resizing behavior
+                // If Style.top is NaNpx it results in scaling towards the bottom
+                // This is due to how the WindowDockingLayout code affects GraphSubWindows
+                resizedTarget.style.top = targetToTopBoundaryDelta;
+                resizedTarget.style.height = Mathf.Clamp(newHeight, m_MinSize.y, m_MaxSize.y);
+            }
+            else if ((direction & ResizableElement.Resizer.Top) != 0)
+            {
+                float delta = mousePos.y - m_StartMouse.y;
+
+                if (m_StartSize.y - delta < m_MinSize.y)
+                {
+                    delta = -m_MinSize.y + m_StartSize.y;
+                }
+                else if (m_StartSize.y - delta > m_MaxSize.y)
+                {
+                    delta = -m_MaxSize.y + m_StartSize.y;
+                }
+
+                // Same clamping as above on the top as well
+                var newHeight = -delta + m_StartSize.y;
+                var parentTopBoundary = parentRootPosition.y;
+                if (!canResizePastParentBounds && targetRootPosition.y < parentTopBoundary)
+                {
+                    // Clamps height to max out at top of parent window
+                    //newHeight = m_StartSize.y + (m_StartPosition.y - parentTopBoundary);
+                    // This ensures that the top of the resizing target never can get pushed past the parent boundary even if mouse is moving really fast
+                    //targetToTopBoundaryDelta = Mathf.Clamp(targetToTopBoundaryDelta, 2.5f, targetToTopBoundaryDelta);
+                }
+                var targetToBottomBoundaryDelta = (parentTopBoundary + resizedBase.layout.height) - (m_StartPosition.y + newHeight);
+
+                //resizedTarget.style.top = targetToBottomBoundaryDelta;
+                resizedTarget.style.height = newHeight;
+            }
+            e.StopPropagation();
+        }
+
+        void OnMouseUp(MouseUpEvent e)
+        {
+            if (e.button == 0)
+            {
+                VisualElement resizedTarget = resizedElement.parent;
+                if (resizedTarget.style.width != m_StartSize.x || resizedTarget.style.height != m_StartSize.y)
+                {
+                    if (resizedTarget is IResizable resizable)
+                    {
+                        resizable.OnResized();
+                    }
+                }
+                target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
+                target.ReleaseMouse();
+                e.StopPropagation();
+            }
+        }
+    }
+
+}

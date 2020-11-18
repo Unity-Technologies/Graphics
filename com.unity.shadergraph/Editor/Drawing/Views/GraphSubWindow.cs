@@ -11,13 +11,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         // This needs to be something that each subclass defines on its own
         // if they all use the same they'll be stacked on top of each other at SG window creation
-        WindowDockingLayout m_DefaultLayout =new WindowDockingLayout
+        WindowDockingLayout m_DefaultLayout = new WindowDockingLayout
         {
             dockingTop = true,
             dockingLeft = false,
             verticalOffset = 8,
             horizontalOffset = 8,
         };
+
+        // Used to cache the window docking layout between resizing operations as it interferes with window resizing operations
+        private IStyle cachedWindowDockingStyle;
+
         WindowDockingLayout windowDockingLayout { get; set; }
 
         protected VisualElement m_MainContainer;
@@ -203,7 +207,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         void BuildManipulators()
         {
             m_Dragger = new Dragger { clampToParentEdges = true };
-            RegisterCallback<MouseUpEvent>(OnMoved);
+            RegisterCallback<MouseUpEvent>(OnMoveEnd);
             this.AddManipulator(m_Dragger);
 
             var resizeElement = this.Q<ResizableElement>();
@@ -222,10 +226,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         public void OnStartResize()
         {
+            cachedWindowDockingStyle = this.style;
         }
 
         public void OnResized()
         {
+            this.style.left = cachedWindowDockingStyle.left;
+            this.style.right = cachedWindowDockingStyle.right;
+            this.style.bottom = cachedWindowDockingStyle.bottom;
+            this.style.top = cachedWindowDockingStyle.top;
+
             windowDockingLayout.size = layout.size;
             SerializeLayout();
         }
@@ -241,7 +251,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
                 windowDockingLayout.size = layout.size;
             }
-            
+
             windowDockingLayout.ApplySize(this);
             windowDockingLayout.ApplyPosition(this);
         }
@@ -253,16 +263,27 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             EditorUserSettings.SetConfigValue(layoutKey, serializedLayout);
         }
 
-        void OnMoved(MouseUpEvent upEvent)
+        void OnMoveEnd(MouseUpEvent upEvent)
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
             windowDockingLayout.ClampToParentWindow();
 
+            // TODO: Dragger does some weird stuff when moving a graph sub window thats larger than screen bounds as it clamps it by offsetting the layout,
+            // but because the windows larger than the graph window, the offsetting behavior pushes it out of the screen and basically moves the window out of bounds
+            // Need to either prevent windows from being resized past window bounds, or adjust for the Grabber behavior somehow
+
             SerializeLayout();
+        }
+
+        public bool CanResizePastParentBounds()
+        {
+            return false;
         }
 
         void OnWindowResize(MouseUpEvent upEvent)
         {
+
+
         }
     }
 #endregion
