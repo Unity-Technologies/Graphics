@@ -102,6 +102,14 @@ def config_hooks():
         json.dump(config, config_file_w, indent=4, sort_keys=True)
 
 
+def check_ssh_access():
+    try:
+      result = run_cmd('git ls-remote git@github.cds.internal.unity3d.com:theo-penavaire/gfx-automation-tools.git HEAD')
+    except:
+        print('You must register an SSH key with github.cds. Please visit https://github.cds.internal.unity3d.com/settings/keys and reinstall the hooks after uploading the key.', file=sys.stderr)
+        exit(1)
+
+
 def main():
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     install_git_lfs()
@@ -109,6 +117,9 @@ def main():
     install_precommit()
     install_hooks()
     config_hooks()
+    check_ssh_access()
+    print('Successfully installed the git hooks. Thank you!')
+    return 0
 
 
 if __name__ == "__main__":
