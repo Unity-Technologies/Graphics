@@ -37,7 +37,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
+                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -97,7 +97,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=2700 --testfilter=Medium
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=2700 --testfilter=Medium
     artifacts:
         logs:
             paths:
@@ -186,7 +186,7 @@ URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2cpp_Li
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
+                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -249,7 +249,7 @@ Build_URP_Performance_BoatAttack_Android_Vulkan_performance_playmode_runtime_il2
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=2700 --testfilter=Medium
+                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=2700 --testfilter=Medium
     artifacts:
         logs:
             paths:
