@@ -4178,6 +4178,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             var parameters = PrepareFullScreenDebugParameters(hdCamera, cullResults);
+
+            var colorBuffer = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
+
+            // [case 1273223] When the camera is stacked on top of another one, we need to clear the debug view RT using the data from the previous camera in the stack
+            var clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
+            var clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera
+            if (clearColorTexture)
+            {
+                CoreUtils.SetRenderTarget(cmd, colorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa));
+                HDUtils.BlitColorAndDepth(cmd, clearColorTexture, clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !hdCamera.clearDepth);
+            }
+
             RenderFullScreenDebug(  parameters,
                                     msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer,
                                     m_SharedRTManager.GetDepthStencilBuffer(msaa),
