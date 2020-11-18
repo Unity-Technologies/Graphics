@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public sealed override string name { get { return m_Subgraph != null ? m_Subgraph.name : "Empty Subgraph Operator"; } }
+        public sealed override string name { get { return m_Subgraph != null ? ObjectNames.NicifyVariableName(m_Subgraph.name) : "Empty Subgraph Operator"; } }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {

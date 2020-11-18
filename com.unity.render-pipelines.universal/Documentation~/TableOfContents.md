@@ -1,5 +1,7 @@
 * [Universal Render Pipeline](index.md)
 * [Requirements](requirements)
+* [What's new](whats-new/urp-whats-new.md)
+  * [URP 10](whats-new/urp-whats-new-10.md)
 * [Features]()
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
 * [Getting started](InstallingAndConfiguringURP.md)
@@ -11,6 +13,8 @@
   * [Renderer Feature](urp-renderer-feature.md)
     * [How to add a Renderer Feature](urp-renderer-feature-how-to-add.md)
 * [Upgrade guides](upgrade-guides.md)
+  * [Upgrading to URP 11.0.x](upgrade-guide-11-0-x.md)
+  * [Upgrading to URP 10.1.x](upgrade-guide-10-1-x.md)
   * [Upgrading to URP 10.0.x](upgrade-guide-10-0-x.md)
   * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
   * [Upgrading to URP 8.2.0](upgrade-guide-8-2-0.md)
@@ -36,6 +40,7 @@
   * [Camera component reference](camera-component-reference.md)
 
 * [Post-processing](integration-with-post-processing.md)
+  * [How to configure](integration-with-post-processing.md#post-proc-how-to)
   * [Volumes](Volumes.md)
     * [Volume Profile](VolumeProfile.md)
     * [Volume Overrides](VolumeOverrides.md)
@@ -76,6 +81,7 @@
     * [URP unlit shader with color input](writing-shaders-urp-unlit-color.md)
     * [Drawing a texture](writing-shaders-urp-unlit-texture.md)
     * [Visualizing normal vectors](writing-shaders-urp-unlit-normals.md)
+  * [URP ShaderLab Pass tags](urp-shaders/urp-shaderlab-pass-tags.md)
 
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)
@@ -101,3 +107,4 @@
 * [Building for consoles](Building-For-Consoles.md)
   
 * [Frequently asked questions (FAQ)](faq.md)
+* [Known issues](known-issues.md)

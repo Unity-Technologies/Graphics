@@ -602,6 +602,8 @@ namespace UnityEditor.VFX.UI
                             blockUI = InstantiateBlock(blockController);
                             m_BlockContainer.Add(blockUI);
                             m_BlockContainer.Insert(prevBlock == null ? 0 : m_BlockContainer.IndexOf(prevBlock) + 1, blockUI);
+                            //Refresh error can only be called after the block has been instanciated
+                            blockController.model.RefreshErrors(controller.viewController.graph);
                         }
                         prevBlock = blockUI;
                     }
@@ -752,6 +754,15 @@ namespace UnityEditor.VFX.UI
 
             if (!(desc.model is VFXAbstractParticleOutput))
                 return false;
+
+            foreach( var links in controller.model.inputFlowSlot.Select((t,i)=>new { index = i, links = t.link }))
+            {
+                foreach (var link in links.links)
+                {
+                    if (!VFXContext.CanLink(link.context, (VFXContext)desc.model, links.index, link.slotIndex))
+                        return false;
+                }
+            }
 
             return (desc.model as VFXContext).contextType == VFXContextType.Output;
         }

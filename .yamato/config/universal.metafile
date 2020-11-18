@@ -3,57 +3,105 @@ project:
   folder: UniversalGraphicsTest
 test_platforms:
   - type: Standalone
-    timeout:
-      OSX_Metal: 2400
-    timeout_build:
-      Android: 2700
-      iOS: 1800
-      Win: 2000
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
+      - [iPhone_Metal]: --timeout=1800
   - type: playmode
   - type: editmode
   - type: playmode
     name: playmode_XR
-    extra_utr_flags:
-      - --extra-editor-arg="-xr-tests" 
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-tests"
 platforms:
   - name: Win
     apis:
-      - DX11
-      - DX12
-      - Vulkan
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: OSX
     apis:
-      - Metal
-      - OpenGLCore
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: playmode_XR
+          - name: Standalone
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis:
-      - Vulkan
-      - OpenGLCore
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Android
     apis:
-      - Vulkan
-      - OpenGLES3
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
   - name: iPhone
     apis:
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - Standalone
         - editmode
         - playmode
         - playmode_XR
-    - platform: OSX
-      api: Metal
-      test_platforms:
-        # - Standalone
-        - playmode
-    - platform: OSX
-      api: OpenGLCore
-      test_platforms:
-        - editmode
+#    - platform: OSX
+#      api: Metal
+#      build_config: mono
+#      color_space: Linear
+#      test_platforms:
+#        # - Standalone
+#        - playmode
+#    - platform: OSX
+#      api: OpenGLCore
+#      build_config: mono
+#      color_space: Linear
+#      test_platforms:
+#        - editmode
     - project: Universal_Stereo
       all: true
     - project: Universal_Hybrid
