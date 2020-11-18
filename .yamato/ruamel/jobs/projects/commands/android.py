@@ -101,16 +101,20 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
             if str_in_list == False:
                 testfilter = f'--testfilter={q}'
                 utr_args.append(testfilter)
+                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args] 
                 utr_command = f'utr {" ".join(utr_args)}'
                 utr_commands.append(utr_command)
             else:
                 utr_args.pop()
                 testfilter = f'--testfilter={q}'
                 utr_args.append(testfilter)
+                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args]
                 utr_command = f'        utr {" ".join(utr_args)}'
                 utr_commands.append(utr_command)
+                
 
-
+    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
+    
     utr_string = ''
     if len(utr_commands) > 0:
         utr_string = "\n".join(utr_commands)
