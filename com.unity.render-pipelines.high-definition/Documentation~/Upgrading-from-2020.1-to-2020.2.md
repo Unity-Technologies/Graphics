@@ -243,3 +243,8 @@ This change can affect you if you had multiple HDRP asset setup as **Quality Set
 
 We recommend to put all the diffusion profiles used in your project in the HDRP Asset assigned in the **Graphics Settings** before upgrading. This operation will prevent any issue after the upgrade regarding lost diffusion profile in the project.
 
+## Post Processing
+
+Previously, in the Motion Blur volume component the camera rotation clamp was always active such that by default the part of the motion vector derived from camera rotation was clamped differently. This can create confusion due to changes in motion vectors that are relative to camera. 
+
+From 2020.2, the camera rotation clamp option is not the default, but needs to be selected as an option under the **Camera Clamp Mode** setting. Moreover, additional clamping controls on camera influence on motion blur are available under the same setting. 
