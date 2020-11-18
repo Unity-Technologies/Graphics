@@ -98,7 +98,6 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     if len(quality_levels) > 0:
         for q in quality_levels:
             str_in_list = any('testfilter' in string for string in utr_args)
-            print(str_in_list)
             if str_in_list == False:
                 testfilter = f'--testfilter={q}'
                 utr_args.append(testfilter)
@@ -106,10 +105,9 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
                 utr_commands.append(utr_command)
             else:
                 utr_args.pop()
-                print(utr_args)
                 testfilter = f'--testfilter={q}'
                 utr_args.append(testfilter)
-                utr_command = f'utr {" ".join(utr_args)}'
+                utr_command = f'        utr {" ".join(utr_args)}'
                 utr_commands.append(utr_command)
 
 
