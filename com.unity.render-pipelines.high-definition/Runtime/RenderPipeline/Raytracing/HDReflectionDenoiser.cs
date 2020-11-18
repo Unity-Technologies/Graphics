@@ -128,6 +128,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.noisyToOutputSignal);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._HistoryBuffer, reflDenoiserResources.historySignal);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
+            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraDepthTexture, reflDenoiserResources.depthBuffer);
+
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer0);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, reflDenoiserResources.motionVectorBuffer);
