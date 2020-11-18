@@ -109,24 +109,11 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
                 testfilter = f'--testfilter={q}'
                 utr_args.append(testfilter)
                 utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args]
-                utr_command = f'        utr {" ".join(utr_args)}'
+                utr_command = f'utr {" ".join(utr_args)}'
                 utr_commands.append(utr_command)
                 
 
     utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
-    
-    utr_string = ''
-    if len(utr_commands) > 0:
-        utr_string = "\n".join(utr_commands)
-    else:
-        utr_string = utr_string + f'utr {" ".join(utr_args)}'
-    
-    git_utr_string =         pss(f'''
-         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-         set /p GIT_REVISIONDATE=<revdate.tmp
-         echo %GIT_REVISIONDATE%
-         del revdate.tmp
-         {utr_string}''')
 
     base = [ 
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
@@ -134,7 +121,31 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
         f'NetSh Advfirewall set allprofiles state off'
         ]
-    base.append(git_utr_string)
+    
+    git_utr_string = ''
+    utr_string = ''
+    if len(utr_commands) > 0:
+        for cmd in utr_commands:
+            git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {cmd}''')
+            base.append(git_utr_string)
+    else:
+        utr_string = utr_string + f'utr {" ".join(utr_args)}'
+    
+        git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {utr_string}''')
+        base.append(git_utr_string)
+
+
+    
     
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
