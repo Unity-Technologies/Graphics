@@ -377,59 +377,25 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
 //         }
 //     }
 
-// #if SHADEROPTIONS_AREA_LIGHTS
-//     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
-//     {
-//         uint lightCount, lightStart;
+#if SHADEROPTIONS_AREA_LIGHTS
+    if (featureFlags & LIGHTFEATUREFLAGS_AREA)
+    {
+        LightData lightData;
 
-//     #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-//         GetCountAndStart(posInput, LIGHTCATEGORY_AREA, lightStart, lightCount);
-//     #else
-//         lightCount = _AreaLightCount;
-//         lightStart = _PunctualLightCount;
-//     #endif
+        i = 0;
 
-//         // COMPILER BEHAVIOR WARNING!
-//         // If rectangle lights are before line lights, the compiler will duplicate light matrices in VGPR because they are used differently between the two types of lights.
-//         // By keeping line lights first we avoid this behavior and save substantial register pressure.
-//         // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
+        while (TryLoadAreaLightData(i, tile, zBin, lightData))
+        {
+            if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
+            {
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
+            }
 
-//         if (lightCount > 0)
-//         {
-//             i = 0;
-
-//             uint      last      = lightCount - 1;
-//             LightData lightData = FetchLight(lightStart, i);
-
-//             while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
-//             {
-//                 lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
-//                 lightData.cookieMode = COOKIEMODE_NONE;  // Enforce constant propagation
-
-//                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-//                 {
-//                     DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-//                     AccumulateDirectLighting(lighting, aggregateLighting);
-//                 }
-
-//                 lightData = FetchLight(lightStart, min(++i, last));
-//             }
-
-//             while (i <= last) // GPULIGHTTYPE_RECTANGLE
-//             {
-//                 lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
-
-//                 if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-//                 {
-//                     DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-//                     AccumulateDirectLighting(lighting, aggregateLighting);
-//                 }
-
-//                 lightData = FetchLight(lightStart, min(++i, last));
-//             }
-//         }
-//     }
-// #endif
+            i++;
+        }
+    }
+#endif
 
 // #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
 //     bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
