@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added documentation for LODs not being supported by ray tracing.
 - Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
 - Added anamorphism support for phsyical DoF, switched to blue noise sampling and fixed tiling artifacts.
+- Added fresnel0 and world space position output in the AOV API. Rendering is now done in the format of the output buffer.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
