@@ -176,28 +176,28 @@ namespace UnityEditor.VFX
                     VFXDeviceTarget.GPU,
                     VFXExpression.Flags.PerSpawn);
 
+                if (m_ExpressionsData.Any(kvp => kvp.Value.usage == VFXDeviceTarget.None))
+                    throw new InvalidOperationException("Unexpected VFXDeviceTarget.None usage");
+
                 var sortedList = m_ExpressionsData.Where(kvp =>
                 {
                     var exp = kvp.Key;
-
-                    if (kvp.Value.usage == VFXDeviceTarget.None)
-                        throw new InvalidOperationException("Unexpected unknown VFXDeviceTarget usage" + exp);
 
                     //Remove per element expression from flattened data
                     if (exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
                         return false;
 
                     //Remove constant if value only used by GPU (it will be automatically patched in generated source code)
-                    if (    options.HasFlag(VFXExpressionContextOption.ConstantFolding)
-                        &&  kvp.Value.usage == VFXDeviceTarget.GPU //then, only GPU
-                        &&  kvp.Value.depth == 0 //If depth == 0, no other expression relies on this
-                        &&  exp.Is(VFXExpression.Flags.Constant)
-                        &&  VFXExpression.IsTypeConstantFoldable(exp.valueType) //Texture will be not patched in generated source code.
+                    if (options.HasFlag(VFXExpressionContextOption.ConstantFolding)
+                        && kvp.Value.usage == VFXDeviceTarget.GPU //then, only GPU
+                        && kvp.Value.depth == 0 //If depth == 0, no other expression relies on this
+                        && exp.Is(VFXExpression.Flags.Constant)
+                        && VFXExpression.IsTypeConstantFoldable(exp.valueType) //Texture will be not patched in generated source code.
                         )
                         return false;
 
                     return true;
-                }).ToArray(); //TODOPAUL : remove this to array
+                });
 
                 var expressionPerSpawn = sortedList.Where(o => o.Key.Is(VFXExpression.Flags.PerSpawn));
                 var expressionNotPerSpawn = sortedList.Where(o => !o.Key.Is(VFXExpression.Flags.PerSpawn));
@@ -206,8 +206,8 @@ namespace UnityEditor.VFX
                 //It's more convenient for two reasons :
                 // - Reduces process chunk for ComputePreProcessExpressionForSpawn
                 // - Allows to determine the maximum index of expression while processing main expression evaluation
-                sortedList = expressionNotPerSpawn.OrderByDescending(o => o.Value.depth).ToArray(); //TODOPAUL : remove this to array, only for debug
-                sortedList = sortedList.Concat(expressionPerSpawn.OrderByDescending(o => o.Value.depth)).ToArray(); //TODOPAUL : remove this to array, only for debug
+                sortedList = expressionNotPerSpawn.OrderByDescending(o => o.Value.depth);
+                sortedList = sortedList.Concat(expressionPerSpawn.OrderByDescending(o => o.Value.depth));
 
                 m_FlattenedExpressions = sortedList.Select(o => o.Key).ToList();
                 // update index in expression data
