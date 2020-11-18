@@ -1,12 +1,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
 
-#if (defined(COARSE_BINNING) || defined(FINE_BINNING))
-	// TODO: we don't need both tile buffers in the same shader, so perhaps just declare one?
-	StructuredBuffer<uint> _CoarseTileBuffer;
-	StructuredBuffer<uint> _FineTileBuffer;
-	StructuredBuffer<uint> _zBinBuffer;
-#endif
+// It appears that, due to our include structure, we have to always declare these.
+StructuredBuffer<uint> _CoarseTileBuffer;
+StructuredBuffer<uint> _FineTileBuffer;
+StructuredBuffer<uint> _zBinBuffer;
 
 #ifdef USE_INDIRECT
     StructuredBuffer<uint> g_TileFeatureFlags;

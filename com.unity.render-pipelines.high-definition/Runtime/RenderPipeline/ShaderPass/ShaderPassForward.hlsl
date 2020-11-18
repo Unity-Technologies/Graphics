@@ -125,6 +125,9 @@ void Frag(PackedVaryingsToPS packedInput,
     float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
 
+    uint tile = ComputeTileIndex(posInput.positionSS);
+    uint zBin = ComputeZBinIndex(posInput.linearDepth);
+
     SurfaceData surfaceData;
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
@@ -212,7 +215,7 @@ void Frag(PackedVaryingsToPS packedInput,
             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
 #endif
             LightLoopOutput lightLoopOutput;
-            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+            LightLoop(V, posInput, tile, zBin, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
             // Alias
             float3 diffuseLighting = lightLoopOutput.diffuseLighting;
