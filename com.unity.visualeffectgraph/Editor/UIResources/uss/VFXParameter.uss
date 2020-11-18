@@ -150,7 +150,7 @@ VFXParameterUI.node > #node-border > #title > #pill > #exposed-icon
 
 VFXParameterUI.node.exposed > #node-border > #title > #pill > #exposed-icon
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/exposed-dot.png");
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/exposed-dot.png");
     width: 6px;
     height: 6px;
 }

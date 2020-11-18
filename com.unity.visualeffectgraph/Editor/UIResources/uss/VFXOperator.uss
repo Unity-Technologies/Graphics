@@ -13,7 +13,7 @@ VFXOperatorUI #title #edit
 
 VFXOperatorUI #title #edit #icon
 {
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/EditStolen.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/EditStolen.png");
     width: 15px;
     height: 14px;
     align-self: center;
