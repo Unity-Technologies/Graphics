@@ -947,7 +947,7 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 60
+  WaitFrames: 0
 --- !u!1 &1119303810
 GameObject:
   m_ObjectHideFlags: 0
