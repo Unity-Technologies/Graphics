@@ -63,6 +63,14 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowResult shadowResult = new ShadowResult();
             BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
 
+            // Set the default color buffer format for full screen debug rendering
+            GraphicsFormat fullScreenDebugFormat = GraphicsFormat.R16G16B16A16_SFloat;
+            if (aovRequest.isValid)
+            {
+                // If we are going to output AOVs, then override the debug format from the user-provided buffers
+                aovRequest.OverrideBufferFormatForAOVs(ref fullScreenDebugFormat, aovBuffers);
+            }
+
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.IsFullScreenDebugPassEnabled())
             {
                 // Stop Single Pass is after post process.
@@ -97,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightingBuffers.ambientOcclusionBuffer = m_AmbientOcclusionSystem.Render(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_FrameCount, m_DepthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
-                PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
+                PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.ScreenSpaceAmbientOcclusion, fullScreenDebugFormat);
 
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
@@ -132,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         lightingBuffers.ssgiLightingBuffer = m_RenderGraph.defaultResources.blackTextureXR;
                         break;
                 }
-                PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ssgiLightingBuffer, FullScreenDebugMode.ScreenSpaceGlobalIllumination);
+                PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ssgiLightingBuffer, FullScreenDebugMode.ScreenSpaceGlobalIllumination, fullScreenDebugFormat);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingClusterState())
                 {
@@ -195,7 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We push the motion vector debug texture here as transparent object can overwrite the motion vector texture content.
                 if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
-                    PushFullScreenDebugTexture(m_RenderGraph, prepassOutput.resolvedMotionVectorsBuffer, FullScreenDebugMode.MotionVectors);
+                    PushFullScreenDebugTexture(m_RenderGraph, prepassOutput.resolvedMotionVectorsBuffer, FullScreenDebugMode.MotionVectors, fullScreenDebugFormat);
 
                 // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 // Transparent objects may write to the depth and motion vectors buffers.
@@ -228,8 +236,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderDistortion(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.resolvedDepthBuffer, currentColorPyramid, distortionBuffer);
                 }
 
-                PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker);
-                PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer);
+                PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.NanTracker, fullScreenDebugFormat);
+                PushFullScreenDebugTexture(m_RenderGraph, colorBuffer, FullScreenDebugMode.WorldSpacePosition, fullScreenDebugFormat);
+                PushFullScreenLightingDebugTexture(m_RenderGraph, colorBuffer, fullScreenDebugFormat);
 
                 if (m_SubFrameManager.isRecording && m_SubFrameManager.subFrameCount > 1)
                 {
@@ -262,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 GenerateDebugImageHistogram(m_RenderGraph, hdCamera, postProcessDest);
             }
-            PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest);
+            PushFullScreenExposureDebugTexture(m_RenderGraph, postProcessDest, fullScreenDebugFormat);
 
             RenderCustomPass(m_RenderGraph, hdCamera, postProcessDest, prepassOutput, customPassCullingResults, CustomPassInjectionPoint.AfterPostProcess, aovRequest, aovCustomPassBuffers);
 
@@ -282,7 +291,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 colorPickerTexture,
                                                 gpuLightListOutput,
                                                 shadowResult,
-                                                cullingResults);
+                                                cullingResults,
+                                                fullScreenDebugFormat);
 
                 StopXRSinglePass(m_RenderGraph, hdCamera);
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -201,9 +202,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal int GetBufferIndex(AOVBuffers aovBufferId)
+        internal void OverrideBufferFormatForAOVs(ref GraphicsFormat format, List<RTHandle> aovBuffers)
         {
-            return Array.IndexOf(m_RequestedAOVBuffers, aovBufferId);
+            var index = Array.IndexOf(m_RequestedAOVBuffers, AOVBuffers.Color);
+            if (index < 0)
+            {
+                index = Array.IndexOf(m_RequestedAOVBuffers, AOVBuffers.Output);
+            }
+            if (index >= 0)
+            {
+                format = aovBuffers[index].rt.graphicsFormat;
+            }
         }
 
         class PushCameraTexturePassData
