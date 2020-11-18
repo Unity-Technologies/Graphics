@@ -50,7 +50,15 @@ namespace UnityEditor.ShaderGraph
 
         public CustomFunctionNode()
         {
-            name = "Custom Function";
+            UpdateNodeName();
+        }
+
+        void UpdateNodeName()
+        {
+            if ((functionName == defaultFunctionName) || (functionName == null))
+                name = "Custom Function";
+            else
+                name = functionName;
         }
 
         public override bool hasPreview => true;
@@ -72,7 +80,11 @@ namespace UnityEditor.ShaderGraph
         public string functionName
         {
             get => m_FunctionName;
-            set => m_FunctionName = value;
+            set
+            {
+                m_FunctionName = value;
+                UpdateNodeName();
+            }
         }
 
         public static string defaultFunctionName => k_DefaultFunctionName;
@@ -350,6 +362,7 @@ namespace UnityEditor.ShaderGraph
         {
             base.OnAfterDeserialize();
             functionSource = UpgradeFunctionSource(functionSource);
+            UpdateNodeName();
         }
     }
 }
