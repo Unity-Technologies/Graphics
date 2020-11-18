@@ -86,7 +86,12 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
                 utr_args.pop()
                 testfilter = f'--testfilter={q}'
                 utr_args.append(testfilter)
-                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args]
+                tail = ''
+                for arg in utr_args:
+                    if 'players' in arg:
+                        #stripped = arg.split('players', 1)[0]
+                        head, sep, tail = arg.partition('players')
+                utr_args = [arg.replace(tail, q) for arg in utr_args]
                 utr_command = f'utr {" ".join(utr_args)}'
                 utr_commands.append(utr_command)
     
@@ -155,7 +160,12 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
                 utr_args.pop()
                 testfilter = f'--testfilter={q}'
                 utr_args.append(testfilter)
-                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args]
+                tail = ''
+                for arg in utr_args:
+                    if 'players' in arg:
+                        #stripped = arg.split('players', 1)[0]
+                        head, sep, tail = arg.partition('players')
+                utr_args = [arg.replace(tail, q) for arg in utr_args]
                 utr_command = f'utr {" ".join(utr_args)}'
                 utr_commands.append(utr_command)
                 
