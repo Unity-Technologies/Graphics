@@ -24,4 +24,5 @@ class Formatting_Job():
         job.set_agent(metafile['formatting_agent'])
         job.add_commands(commands)
         job.set_timeout(metafile['timeout'])
+        job.set_trigger_on_expression(f'pull_request.target eq "{metafile["target_branch"]}" AND NOT pull_request.draft')
         return job

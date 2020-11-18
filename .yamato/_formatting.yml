@@ -18,3 +18,5 @@ formatting:
       -  hg clone -u stable http://hg-mirror-slo.hq.unity3d.com/unity-extra/unity-meta ~/unity-meta
       -  perl ~/unity-meta/Tools/Format/format.pl --hgroot $(pwd) --dry-run .
     timeout: 1
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft
