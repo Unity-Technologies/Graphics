@@ -325,8 +325,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal bool HasDepthPrepass { get; set; }
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
-        //
-        internal bool AccurateGbufferNormals { get; set; }
+        // Not all platforms support R8G8B8A8_SNorm, so we need to check for the support and force accurate GBuffer normals and relevant shader variants
+		private  bool m_AccurateGbufferNormals;
+        internal bool AccurateGbufferNormals
+		{
+			get { return m_AccurateGbufferNormals; }
+			set { m_AccurateGbufferNormals = value || !RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render); }
+		}
         // true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
         internal bool TiledDeferredShading { get; set; }
         // We browse all visible lights and found the mixed lighting setup every frame.
