@@ -50,13 +50,57 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     scripting_backend = build_config["scripting_backend"]
     api_level = build_config["api_level"]
 
+    quality_levels = []
+
+    for utr_arg in utr_args:
+        if ';' in utr_arg:
+            test_filters = utr_arg.split('=')
+            quality_level = test_filters[1][1:-1]
+            quality_levels = quality_level.split(';')
+            utr_args.remove(utr_arg)
+
+    utr_commands = []
+
+    if len(quality_levels) > 0:
+        for q in quality_levels:
+            str_in_list = any('testfilter' in string for string in utr_args)
+            if str_in_list == False:
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args] 
+                utr_command = f'./utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+            else:
+                utr_args.pop()
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args]
+                utr_command = f'        ./utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+
+    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
+
     base = [
         f'curl -s {UTR_INSTALL_URL} --output utr',
-        f'chmod +x ./utr',
-        pss(f'''
-         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-        ./utr {" ".join(utr_args)}''')
+        f'chmod +x ./utr'
      ]
+
+    
+    git_utr_string = ''
+    utr_string = ''
+    if len(utr_commands) > 0:
+        for cmd in utr_commands:
+            git_utr_string =        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        {cmd}''')
+            base.append(git_utr_string)
+    else:
+        utr_string = utr_string + f'./utr {" ".join(utr_args)}'
+        git_utr_string =        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        {utr_string}''')
+        base.append(git_utr_string)
+    
      
     return base
 
@@ -91,19 +135,8 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
                 utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args]
                 utr_command = f'        ./utr {" ".join(utr_args)}'
                 utr_commands.append(utr_command)
-                
 
     utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
-    
-    utr_string = ''
-    if len(utr_commands) > 0:
-        utr_string = "\n".join(utr_commands)
-    else:
-        utr_string = utr_string + f'./utr {" ".join(utr_args)}'
-
-    git_utr_string =        pss(f'''
-         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-        {utr_string}''')
 
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
@@ -111,7 +144,22 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr'
      ]
-    base.append(git_utr_string)
+    
+    git_utr_string = ''
+    utr_string = ''
+    if len(utr_commands) > 0:
+        for cmd in utr_commands:
+            git_utr_string =        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        {cmd}''')
+            base.append(git_utr_string)
+    else:
+        utr_string = utr_string + f'./utr {" ".join(utr_args)}'
+        git_utr_string =        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        {utr_string}''')
+        base.append(git_utr_string)
+    
 
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
