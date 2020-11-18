@@ -644,7 +644,7 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.4
     min: 0
     max: 4
   directLightingStrength:
@@ -958,19 +958,19 @@ MonoBehaviour:
     max: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.046875
+    m_Value: 0.14
   cascadeShadowSplit1:
     m_OverrideState: 1
-    m_Value: 0.140625
+    m_Value: 0.5228571
   cascadeShadowSplit2:
     m_OverrideState: 1
-    m_Value: 0.375
+    m_Value: 0.7128572
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.6666667
+    m_Value: 0.095918365
   cascadeShadowBorder1:
     m_OverrideState: 1
-    m_Value: 0.33333334
+    m_Value: 0.31826922
   cascadeShadowBorder2:
     m_OverrideState: 1
     m_Value: 0.13333334

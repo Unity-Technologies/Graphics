@@ -23,7 +23,7 @@ Material:
   m_Name: GCC_Black_glas
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ENABLE_FOG_ON_TRANSPARENT _MATERIAL_FEATURE_IRIDESCENCE _NORMALMAP_TANGENT_SPACE
-    _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT _TRANSPARENT_WRITES_MOTION_VEC
+    _REFRACTION_SPHERE _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -322,7 +322,7 @@ Material:
     - _LobeMix: 0
     - _MaterialFeaturesShow: 1
     - _MaterialID: 3
-    - _Metallic: 0
+    - _Metallic: 0.067
     - _MetallicMapChannel: 0
     - _MetallicMapShow: 0
     - _MetallicMapUV: 0
@@ -414,7 +414,7 @@ Material:
     - _TransparentDepthPostpassEnable: 0
     - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
-    - _TransparentWritingMotionVec: 1
+    - _TransparentWritingMotionVec: 0
     - _TransparentZWrite: 0
     - _UVBase: 0
     - _UVDetail: 0
