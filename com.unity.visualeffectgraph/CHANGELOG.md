@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [11.0.0] - 2020-10-21
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
+- Unexpected compilation with sample gradient which could lead to a crash [Case 1284358](https://issuetracker.unity3d.com/product/unity/issues/guid/1284358/)
 
 ## [10.2.0] - 2020-10-19
 ### Added
