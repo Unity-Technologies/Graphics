@@ -847,6 +847,14 @@ namespace UnityEditor.VFX
                         uniformMappings.Add(new VFXMapping(name, expressionGraph.GetFlattenedIndex(texture)));
                 }
 
+                //Early check (ease debug of potential invalid compilation
+                var invalidMapping = uniformMappings.Where(o => o.index == -1);
+                if (invalidMapping.Any())
+                {
+                    var aggregate = invalidMapping.Select(o => o.name).Aggregate((a, b) => a + ", " + b);
+                    throw new InvalidOperationException("Cannot retrieve correct uniform mapping for : " + aggregate);
+                }
+
                 // Retrieve all cpu mappings at context level (-1)
                 var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(exp.name, expressionGraph.GetFlattenedIndex(exp.exp))).ToArray();
 
