@@ -83,14 +83,21 @@ namespace UnityEditor.ShaderGraph
                     break;
                 case 1:
                 default:
-                    registry.ProvideVariable(GetVariableName(), s =>
+                    if (generationMode == GenerationMode.Preview)
                     {
-                        s.AppendLine("$precision3 {0} = {1}(IN.{2});",
-                            GetVariableName(),
-                            functionName,
-                            space.ToVariableName(InterpolatorType.ViewDirection)
-                            );
-                    });
+                        registry.ProvideVariable(GetVariableName(), s => s.AppendLine("$precision3 {0} = normalize(IN.{1});", GetVariableName(), space.ToVariableName(InterpolatorType.ViewDirection)));
+                    }
+                    else
+                    {
+                        registry.ProvideVariable(GetVariableName(), s =>
+                        {
+                            s.AppendLine("$precision3 {0} = {1}(IN.{2});",
+                                GetVariableName(),
+                                functionName,
+                                space.ToVariableName(InterpolatorType.ViewDirection)
+                                );
+                        });
+                    }
                     break;
             }
         }
