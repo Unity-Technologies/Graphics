@@ -29,7 +29,15 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Low
+      -  |5-
+
+                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -170,7 +178,15 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --timeout=1200
+                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Low
+      -  |5-
+
+                 set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                 utr --architecture=ARM64 --artifacts_path=test-results --performance-project-id=BoatAttack --platform=Android --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
