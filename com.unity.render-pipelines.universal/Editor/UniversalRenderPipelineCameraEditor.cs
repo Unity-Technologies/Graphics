@@ -1092,13 +1092,28 @@ namespace UnityEditor.Rendering.Universal
                 return;
             }
 
-            Undo.SetCurrentGroupName("Remove Universal Camera");
-            var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-            if (additionalCameraData)
+            var isAssetEditing = EditorUtility.IsPersistent(camera);
+            try
             {
-                Undo.DestroyObjectImmediate(additionalCameraData);
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StartAssetEditing();
+                }
+                Undo.SetCurrentGroupName("Remove Universal Camera");
+                var additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
+                if (additionalCameraData != null)
+                {
+                    Undo.DestroyObjectImmediate(additionalCameraData);
+                }
+                Undo.DestroyObjectImmediate(camera);
             }
-            Undo.DestroyObjectImmediate(camera);
+            finally
+            {
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+            }
         }
     }
 }
