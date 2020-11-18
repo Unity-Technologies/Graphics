@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,12 +36,17 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Diffusion Profile
-      m_Description: "We can change the Subsurface Scattering behavior using Diffusion
-        Profile. By default Unity comes with Foliage and Skin.\n\n1) In the <i>Project</i>
-        window open <b>Settings->DiffusionProfiles</b> folder\n2) Open <b>Bamboo
-        Leaves</b> \n3) Go to <i>Inspector</i> window and play around with values
-        to get different results\n\n"
+      Title:
+        m_Untranslated: Diffusion Profile
+      Text:
+        m_Untranslated: "We can change the Subsurface Scattering behavior using Diffusion
+          Profile. By default Unity comes with Foliage and Skin.\n\n1) In the <i>Project</i>
+          window open <b>Settings->DiffusionProfiles</b> folder\n2) Open <b>Bamboo
+          Leaves</b> \n3) Go to <i>Inspector</i> window and set <b>Scatering Distance</b>
+          to pink to change the color\n4) Set the <b>Transmission tin</b> from white
+          to black\n\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -68,13 +77,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

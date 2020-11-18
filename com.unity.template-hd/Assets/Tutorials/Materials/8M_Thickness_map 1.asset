@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,12 +36,20 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Thickness map
-      m_Description: "1) In the <i>Hierarchy</i> window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>
-        \n2) Select <b>Geometry_Bamboo_A_LOD0</b> gameobject\n3) Go to <i>Inspector</i>
-        window -> expand the <i>Bamboo_Leaf_A Material</i>\n4) Remove the  <b>Thickness
-        Map</b> or set it to None\n\nYou can see that leaves are the same thickness
-        everythere. \nNow bring back the Texture using (Ctrl+z / Cmd+z).\n"
+      Title:
+        m_Untranslated: Thickness map
+      Text:
+        m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>
+          \n2) Select <b>Geometry_Bamboo_A_LOD0</b> gameobject\n3) Go to <i>Inspector</i>
+          window -> expand the <i>Bamboo_Leaf_A Material</i>\n4) Remove the  <b>Thickness
+          Map</b> or set it to None\n\nThe tree leaf and the branch are equally thin
+          in engine since they both are made using 1 polygon. In real life its not
+          the case. So with the help of thickness map here, we can define that the
+          branch should absorb more light compared to the paper thin leaves. Changing
+          to none would remove this effect.\nNow bring back the Texture using (Ctrl+z
+          / Cmd+z).\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -68,13 +80,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

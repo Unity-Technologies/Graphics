@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,21 +36,26 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Tessellation displacement
-      m_Description: "Notice that it uses HDRP/LitTesselation. It allowed to render
-        more detailed geometry without the need to create a model that contains a
-        lot of vertices.\n\nSelect the Bamboo by doing this: \n1) In the <i>Hierarchy</i>
-        window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>\n2)
-        Select <b>Geometry_Bamboo_A_LOD0</b> gameobject\n3) Go to <i>Inspector</i>
-        window -> expand the <i>Bamboo_A Material</i>\n4) Select <b>Displacement
-        Mode</b> - Alternate between <b>None</b> and <b>Tessellation displacement</b> 
-        \n5) Notice the silhouette difference between them.\n6) Activate <b>\u201CShaded
-        wireframe\u201D</b> mode in the <i>scene</i> view toolbar\n7) Play around
-        with <b>Tessellation factor</b> and see the change in triangle density\r\n\nTessellation
-        Displacement will displace the mesh\u2019s surface according to the Height
-        Map.\r\nTune the \u201CFade start\u201D and \u201CFade end\u201D distances
-        to optimize the effect and prevent the rendering of triangles too far from
-        the object, as it becomes unnoticeable and wasteful in terms of performance.\r\n\n\n"
+      Title:
+        m_Untranslated: Tessellation displacement
+      Text:
+        m_Untranslated: "Notice that <i>Material</i> uses HDRP/LitTesselation. Material
+          is allowed to render more detailed geometry without the need to create
+          a model that contains a lot of vertices.\n\n1) Activate <b>\u201CShaded
+          wireframe\u201D</b> mode in the <i>scene</i> view toolbar\n2) In the <i>Hierarchy</i>
+          window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>\n3)
+          Select <b>Geometry_Bamboo_A_LOD0</b> gameobject\n4) Go to <i>Inspector</i>
+          window -> expand the <i>Bamboo_A Material</i>\n5) Select <b>Displacement
+          Mode</b> - Alternate between <b>None</b> and <b>Tessellation displacement</b> 
+          \n6) Notice the silhouette difference between them.\n7) Set the <b>Tessellation
+          factor</b> to 3 and back to see the change in triangle density\r\n\nTessellation
+          Displacement will displace the mesh\u2019s surface according to the Height
+          Map.\r\nTune the \u201CFade start\u201D and \u201CFade end\u201D distances
+          to optimize the effect and prevent the rendering of triangles too far from
+          the object, as it becomes unnoticeable and wasteful in terms of performance.\r\nSee
+          the change in triangle density.\n\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -77,13 +86,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []
