@@ -125,7 +125,7 @@ namespace UnityEditor.VFX.Test
             TestExpressionGraph(
                 null,
                 (g) => {
-                    BasicTest(g.exp, 3, 3, 3);
+                    BasicTest(g.exp, 3, 3, 0 /* no flattened expression here */);
                     var context = (VFXContext)g.vfx[0];
                     CheckExpressionValue(g.exp, context.GetInputSlot(0), 1.0f);
                     CheckExpressionValue(g.exp, context[0].GetInputSlot(0), 2.0f);
