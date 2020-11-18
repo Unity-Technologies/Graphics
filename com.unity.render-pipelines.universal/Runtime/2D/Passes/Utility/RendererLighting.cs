@@ -482,7 +482,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 else
                     cmd.SetRenderTarget(pass.rendererData.normalsRenderTarget.Identifier(), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
-                cmd.ClearRenderTarget(false, true, k_NormalClearColor);
+                cmd.ClearRenderTarget(true, true, k_NormalClearColor);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
