@@ -3,7 +3,7 @@
     "description": "Configuration files for the High Definition Render Pipeline.",
     "version": "8.3.1",
     "unity": "2020.1",
-    "unityRelease": "0b15",
+    "unityRelease": "14f1",
     "displayName": "High Definition RP Config",
     "dependencies": {
         "com.unity.render-pipelines.core": "8.2.0"

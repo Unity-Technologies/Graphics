@@ -727,6 +727,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
 
+                // When update is not requested and the context is already valid (ie: already computed at least once),
+                // we need to early out in two cases:
+                // - updateMode is "OnDemand" in which case we never update unless explicitly requested
+                // - updateMode is "Realtime" in which case we only update if the time threshold for realtime update is passed.
+                if (IsCachedContextValid(skyContext) && !updateRequired)
+                {
+                    if (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.OnDemand)
+                        return;
+                    else if (skyContext.skySettings.updateMode.value == EnvironmentUpdateMode.Realtime && skyContext.currentUpdateTime < skyContext.skySettings.updatePeriod.value)
+                        return;
+                }
+
                 int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;
 
@@ -745,6 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateSkyEnvironment)))
                     {
+                        // Debug.Log("Update Sky Lighting");
                         RenderSkyToCubemap(skyContext);
 
                         if (updateAmbientProbe)
@@ -823,7 +836,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
                 m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
-                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired || m_UpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
                 m_StaticSkyUpdateRequired = false;
             }
 
@@ -1059,8 +1072,18 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_StandardSkyboxMaterial == null)
                 m_StandardSkyboxMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.skyboxCubemapPS);
 
-            // At the start of baking we need to update the GI system with the static lighting sky in order for lightmaps and probes to be baked with it.
+            // It is possible that HDRP hasn't rendered any frame when clicking the bake lighting button.
+            // This can happen when baked lighting debug are used for example and no other window with HDRP is visible.
+            // This will result in the static lighting cubemap not being up to date with what the user put in the Environment Lighting panel.
+            // We detect this here (basically we just check if the skySetting in the currently processed m_StaticLightingSky is the same as the one the user set).
+            // And issue a warning if applicable.
             var staticLightingSky = GetStaticLightingSky();
+            if (staticLightingSky != null && staticLightingSky.skySettings != m_StaticLightingSky.skySettings)
+            {
+                Debug.LogWarning("Static Lighting Sky is not ready for baking. Please make sure that at least one frame has been rendered with HDRP before baking. For example you can achieve this by having Scene View visible with Draw Mode set to Shaded.");
+            }
+
+            // At the start of baking we need to update the GI system with the static lighting sky in order for lightmaps and probes to be baked with it.
             if (m_StaticLightingSky.skySettings != null && IsCachedContextValid(m_StaticLightingSky))
             {
                 var renderingContext = m_CachedSkyContexts[m_StaticLightingSky.cachedSkyRenderingContextId].renderingContext;
