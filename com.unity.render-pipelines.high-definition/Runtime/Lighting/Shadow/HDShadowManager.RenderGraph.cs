@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cachedShadowManager.areaShadowAtlas.AddBlitRequestsForUpdatedShadows(m_AreaLightShadowAtlas);
                 }
 
-                BlitCachedShadows(renderGraph, ref result);
+                BlitCachedShadows(renderGraph);
 
                 result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Punctual Lights Shadows rendering");
                 result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Directional Light Shadows rendering");
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDDynamicShadowAtlas.ShadowBlitParameters shadowBlitParameters;
         }
 
-        internal void BlitCachedShadows(RenderGraph renderGraph, ref ShadowResult shadowResult)
+        internal void BlitCachedShadows(RenderGraph renderGraph)
         {
             if (m_Atlas.HasPendingBlitsRequests())
             {
@@ -111,8 +111,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.shadowBlitParameters = m_Atlas.PrepareShadowBlitParameters(cachedShadowManager.punctualShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock);
 
-                    passData.sourceCachedAtlas = builder.ReadTexture(shadowResult.cachedPunctualShadowResult);
-                    passData.atlasTexture = builder.WriteTexture(shadowResult.punctualShadowResult);
+                    passData.sourceCachedAtlas = builder.ReadTexture(cachedShadowManager.punctualShadowAtlas.GetOutputTexture(renderGraph));
+                    passData.atlasTexture = builder.WriteTexture(m_Atlas.GetOutputTexture(renderGraph));
 
                     builder.SetRenderFunc(
                     (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
@@ -128,8 +128,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.shadowBlitParameters = m_AreaLightShadowAtlas.PrepareShadowBlitParameters(cachedShadowManager.areaShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock);
 
-                    passData.sourceCachedAtlas = builder.ReadTexture(shadowResult.cachedAreaShadowResult);
-                    passData.atlasTexture = builder.WriteTexture(shadowResult.areaShadowResult);
+                    passData.sourceCachedAtlas = builder.ReadTexture(cachedShadowManager.areaShadowAtlas.GetOutputTexture(renderGraph));
+                    passData.atlasTexture = builder.WriteTexture(m_AreaLightShadowAtlas.GetOutputTexture(renderGraph));
 
                     builder.SetRenderFunc(
                     (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
@@ -143,26 +143,65 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class HDShadowAtlas
     {
+        bool m_UseSharedTexture;
         protected TextureHandle m_Output;
 
-        protected void InitializeRenderGraphOutput(RenderGraph renderGraph)
+
+        public TextureDesc GetShadowMapTextureDesc()
+        {
+            return new TextureDesc(width, height)
+                { filterMode = m_FilterMode, depthBufferBits = m_DepthBufferBits, isShadowMap = true, name = m_Name };
+        }
+
+        TextureDesc GetMomentAtlasDesc(string name)
+        {
+            return new TextureDesc(width / 2, height / 2)
+                { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true };
+        }
+
+        TextureDesc GetImprovedMomentAtlasDesc()
+        {
+            return new TextureDesc(width, height)
+                { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = m_MomentName, enableRandomWrite = true };
+        }
+
+        TextureDesc GetAtlasDesc()
+        {
+            switch (m_BlurAlgorithm)
+            {
+                case (BlurAlgorithm.None):
+                    return GetShadowMapTextureDesc();
+                case BlurAlgorithm.EVSM:
+                    return GetMomentAtlasDesc(m_MomentName);
+                case BlurAlgorithm.IM:
+                    return GetImprovedMomentAtlasDesc();
+            }
+
+            return default;
+        }
+
+        public TextureHandle GetOutputTexture(RenderGraph renderGraph)
+        {
+            if (m_UseSharedTexture)
+            {
+                Debug.Assert(m_Output.IsValid());
+                return m_Output; // Should always be valid.
+            }
+            else
+            {
+                renderGraph.CreateTextureIfInvalid(GetAtlasDesc(), ref m_Output);
+                return m_Output;
+            }
+        }
+
+        protected void InitializeRenderGraphOutput(RenderGraph renderGraph, bool useSharedTexture)
         {
             // TODO RENDERGRAPH remove null tests when we have only one path. RenderGraph should always be present.
             if (renderGraph != null)
             {
-                if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
-                {
-                    m_Output = renderGraph.CreateSharedTexture(GetMomentAtlasDesc(m_MomentName));
-                }
-                else if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
-                {
-                    m_Output = renderGraph.CreateSharedTexture(new TextureDesc(width, height)
-                        { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = m_MomentName, enableRandomWrite = true });
-                }
-                else
-                {
-                    m_Output = renderGraph.CreateSharedTexture(GetShadowMapTextureDesc(false));
-                }
+                m_UseSharedTexture = useSharedTexture;
+                if (m_UseSharedTexture) // Else it's created on the fly like a regular render graph texture.
+                    m_Output = renderGraph.CreateSharedTexture(GetAtlasDesc());
             }
         }
 
@@ -172,13 +211,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 renderGraph.ReleaseSharedTexture(m_Output);
             }
-        }
-
-
-        public TextureDesc GetShadowMapTextureDesc(bool clearBuffer = false)
-        {
-            return new TextureDesc(width, height)
-                { filterMode = m_FilterMode, depthBufferBits = m_DepthBufferBits, isShadowMap = true, name = m_Name, clearBuffer = clearBuffer };
         }
 
         class RenderShadowsPassData
@@ -193,12 +225,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ShadowDrawingSettings shadowDrawSettings;
 
             public bool isRenderingOnACache;
-        }
-
-        TextureDesc GetMomentAtlasDesc(string name)
-        {
-            return new TextureDesc(width / 2, height / 2)
-                    { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true };
         }
 
         internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
@@ -218,14 +244,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (passData.parameters.blurAlgorithm == BlurAlgorithm.EVSM)
                 {
-                    passData.atlasTexture = builder.WriteTexture(renderGraph.CreateTexture(GetShadowMapTextureDesc(passData.parameters.debugClearAtlas)));
-                    passData.momentAtlasTexture1 = builder.WriteTexture(m_Output);
+                    passData.atlasTexture = builder.WriteTexture(renderGraph.CreateTexture(GetShadowMapTextureDesc()));
+                    passData.momentAtlasTexture1 = builder.WriteTexture(GetOutputTexture(renderGraph));
                     passData.momentAtlasTexture2 = builder.WriteTexture(renderGraph.CreateTexture(GetMomentAtlasDesc(m_MomentCopyName)));
                 }
                 else if (passData.parameters.blurAlgorithm == BlurAlgorithm.IM)
                 {
-                    passData.atlasTexture = builder.WriteTexture(renderGraph.CreateTexture(GetShadowMapTextureDesc(passData.parameters.debugClearAtlas)));
-                    passData.momentAtlasTexture1 = builder.WriteTexture(m_Output);
+                    passData.atlasTexture = builder.WriteTexture(renderGraph.CreateTexture(GetShadowMapTextureDesc()));
+                    passData.momentAtlasTexture1 = builder.WriteTexture(GetOutputTexture(renderGraph));
                     passData.intermediateSummedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
                                                     { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true }));
                     passData.summedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
@@ -233,9 +259,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    passData.atlasTexture = builder.WriteTexture(m_Output);
+                    passData.atlasTexture = builder.WriteTexture(GetOutputTexture(renderGraph));
                 }
-
 
                 builder.SetRenderFunc(
                 (RenderShadowsPassData data, RenderGraphContext context) =>
@@ -261,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 });
 
-                return m_Output;
+                return GetOutputTexture(renderGraph);
             }
         }
     }
