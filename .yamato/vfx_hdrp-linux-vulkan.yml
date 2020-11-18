@@ -49,7 +49,7 @@ Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
         players:
             paths:
-              -  "players*/**"
+              -  "players/**"
 VFX_HDRP_Linux_Vulkan_playmode_mono_Linear_trunk:
     name: VFX_HDRP on Linux_Vulkan_playmode_mono_Linear on version trunk
     agent:
@@ -136,7 +136,7 @@ Build_VFX_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_HDRP/Logs/*.log"
         players:
             paths:
-              -  "players*/**"
+              -  "players/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:linux
          rerun: always

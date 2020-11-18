@@ -54,7 +54,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
         players:
             paths:
-              -  "players*/**"
+              -  "players/**"
 HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk:
     name: HDRP_DXR on Win_DX12_playmode_mono_Linear on version trunk
     agent:
@@ -181,7 +181,7 @@ Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
         players:
             paths:
-              -  "players*/**"
+              -  "players/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
