@@ -329,6 +329,10 @@ namespace UnityEditor
             {
                 Rect rect;
                 LightAnchor firstAnchor = (targets[0] as LightAnchor);
+
+
+                SynchronizeOnTransformSingle(SceneView.lastActiveSceneView.camera, firstAnchor);
+
                 float distance = firstAnchor.distance;
                 bool upIsWorldSpace = firstAnchor.upIsWorldSpace;
                 bool useGameViewCamera = firstAnchor.useGameViewCamera;
@@ -351,10 +355,24 @@ namespace UnityEditor
                 var projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up);
                 projectOnGround.Normalize();
 
-                float yaw   = Vector3.SignedAngle(axes.forward, projectOnGround, axes.up);
+                float yaw = Vector3.SignedAngle(axes.forward, projectOnGround, axes.up);
                 var yawedRight = Quaternion.AngleAxis(yaw, axes.up) * axes.right;
                 float pitch = Vector3.SignedAngle(projectOnGround, worldAnchorToLight, yawedRight);
-                float roll  = firstAnchor.transform.rotation.eulerAngles.z;
+                float roll = firstAnchor.transform.rotation.eulerAngles.z;
+
+                //var viewToWorld = Camera.main.cameraToWorldMatrix;
+                var viewToWorld = SceneView.lastActiveSceneView.camera.cameraToWorldMatrix;
+                if (firstAnchor.upIsWorldSpace)
+                {
+                    var viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
+                    var worldTilt = Quaternion.FromToRotation(Vector3.up, viewUp);
+                    viewToWorld = viewToWorld * Matrix4x4.Rotate(worldTilt);
+                }
+
+                var up = Vector3.Normalize(viewToWorld * Vector3.up);
+                var right = Vector3.Normalize(viewToWorld * Vector3.right);
+                var forward = Vector3.Normalize(viewToWorld * Vector3.forward);
+
                 //rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
                 //rect = EditorGUI.IndentedRect(rect);
                 //yaw = EditorGUI.FloatField(rect, "Yaw", yaw);
