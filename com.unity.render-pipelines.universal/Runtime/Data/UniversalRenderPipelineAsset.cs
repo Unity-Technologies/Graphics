@@ -870,7 +870,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         static void UpgradeAsset(UniversalRenderPipelineAsset asset)
         {
-            if(asset.k_AssetPreviousVersion < k_MaxAssetVersion)
+            if(asset.k_AssetPreviousVersion < 5)
             {
                 if (asset.m_RendererType == RendererType.ForwardRenderer)
                 {
@@ -886,7 +886,7 @@ namespace UnityEngine.Rendering.Universal
                     asset.m_RendererData = null; // Clears the old renderer
                 }
 
-                asset.k_AssetPreviousVersion = k_MaxAssetVersion;
+                asset.k_AssetPreviousVersion = 5;
             }
         }
 #endif
