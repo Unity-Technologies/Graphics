@@ -32,8 +32,6 @@ Shader "Hidden/HDRP/Deferred"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
