@@ -7,8 +7,8 @@
 
 ---
 
-Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_trunk:
-    name: Universal_Hybrid on Android_OpenGLES3_Standalone_mono_apiNet2_Linear on version trunk
+Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk:
+    name: Universal_Hybrid on Android_OpenGLES3_Standalone_mono_Linear on version trunk
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -23,7 +23,11 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -31,10 +35,10 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_trunk:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk
+      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk:
-    name: Build Universal_Hybrid on Android_OpenGLES3_mono_apiNet2_Linear_Player on version trunk
+Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk:
+    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -52,7 +56,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/UniversalHybridTest --timeout=1800
+                  utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/UniversalHybridTest --timeout=2700
     artifacts:
         logs:
             paths:
@@ -61,8 +65,8 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_trunk:
         players:
             paths:
               -  "players/**"
-Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Android_OpenGLES3_Standalone_mono_apiNet2_Linear on version CUSTOM-REVISION
+Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Android_OpenGLES3_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -78,7 +82,11 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_CUSTOM-REVISIO
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --extra-editor-arg="-colorspace=Linear" --platform=Android --player-load-path=players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --timeout=1200
+                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+                  set /p GIT_REVISIONDATE=<revdate.tmp
+                  echo %GIT_REVISIONDATE%
+                  del revdate.tmp
+                 utr --architecture=ARM64 --artifacts_path=test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --reruncount=2 --suite=playmode --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -88,10 +96,10 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_apiNet2_Linear_CUSTOM-REVISIO
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:android
          rerun: always
-      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Android_OpenGLES3_mono_apiNet2_Linear_Player on version CUSTOM-REVISION
+Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -110,7 +118,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Player_mono_apiNet2_Linear_CUSTOM-REVIS
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  utr --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/UniversalHybridTest --timeout=1800
+                  utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testproject=./TestProjects/UniversalHybridTest --timeout=2700
     artifacts:
         logs:
             paths:
