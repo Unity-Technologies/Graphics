@@ -33,6 +33,17 @@ namespace UnityEditor.VFX.Test
             public override VFXDataType compatibleData          { get { return VFXDataType.Particle; } }
         }
 
+        private class BlockTestWithTexture : VFXBlock
+        {
+            public class InputProperties
+            {
+                public Texture2D texture;
+            }
+
+            public override VFXContextType compatibleContexts { get { return VFXContextType.All; } }
+            public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
+        }
+
         private struct Graphs
         {
             public VFXGraph vfx;
@@ -191,17 +202,39 @@ namespace UnityEditor.VFX.Test
                 g =>
                 {
                     var context = (VFXContext)g.vfx[0];
-                    var slot = context.children.First().GetInputSlot(0);
+                    var block = context.children.OfType<Block.SetAttribute>().FirstOrDefault();
+                    Assert.IsNotNull(block);
+                    var slot = block.GetInputSlot(0);
                     var exp = g.exp.GPUExpressionsToReduced[slot.GetExpression()];
-                    //TODOPAUL : improve this test, it doesn't cover correctly this behavior
                     if (constantFolding)
-                    {
                         Assert.AreEqual(-1, g.exp.GetFlattenedIndex(exp));
-                    }
                     else
-                    {
                         Assert.AreNotEqual(-1, g.exp.GetFlattenedIndex(exp));
-                    }
+                },
+                constantFolding ? VFXExpressionContextOption.ConstantFolding : VFXExpressionContextOption.Reduction
+            );
+        }
+
+        [Test]
+        public void Check_GPU_Constant_Skip_Rule_WithTexture([ValueSource("s_Check_GPU_Constant_Skip_Rule")] bool constantFolding)
+        {
+            TestExpressionGraph(
+                g =>
+                {
+                    var context = (VFXContext)g[0];
+                    var attrib = ScriptableObject.CreateInstance<BlockTestWithTexture>();
+                    context.AddChild(attrib);
+                },
+
+                g =>
+                {
+                    var context = (VFXContext)g.vfx[0];
+                    var block = context.children.OfType<BlockTestWithTexture>().FirstOrDefault();
+                    Assert.IsNotNull(block);
+                    var slot = block.GetInputSlot(0);
+                    Assert.AreEqual("texture", slot.name.ToLowerInvariant());
+                    var exp = g.exp.GPUExpressionsToReduced[slot.GetExpression()];
+                    Assert.AreNotEqual(-1, g.exp.GetFlattenedIndex(exp)); //Can't skip texture for GPU, whatever the mode is.
                 },
                 constantFolding ? VFXExpressionContextOption.ConstantFolding : VFXExpressionContextOption.Reduction
             );
@@ -240,16 +273,29 @@ namespace UnityEditor.VFX.Test
                 g =>
                 {
                     var context = (VFXContext)g.vfx[0];
-                    var slot = context.children.First().GetInputSlot(0);
-                    var exp = g.exp.GPUExpressionsToReduced[slot.GetExpression()];
-                    //TODOPAUL : improve this test, it doesn't cover correctly this behavior
+                    var block = context.children.OfType<Block.SetAttribute>().FirstOrDefault();
+                    Assert.IsNotNull(block);
+                    var slot = block.GetInputSlot(0);
+                    Assert.AreEqual("color", slot.name.ToLowerInvariant());
+                    var reduced = g.exp.GPUExpressionsToReduced[slot.GetExpression()];
+                    //Can't reduce directly since it depend of a CPU expression
+                    Assert.IsInstanceOf<VFXExpressionAdd>(slot.GetExpression());
+                    Assert.IsInstanceOf<VFXExpressionAdd>(reduced);
+
                     if (constantFolding)
                     {
-                        Assert.AreEqual(-1, g.exp.GetFlattenedIndex(exp));
+                        var reducedIndex = g.exp.GetFlattenedIndex(reduced);
+                        //Can't reduce directly since it depend of a CPU expression
+                        Assert.AreNotEqual(-1, reducedIndex);
+
+                        //Verify if all parent are correctly in flattened index
+                        var parentExpressions = VFXExpressionHelperTests.CollectParentExpression(reduced).ToArray();
+                        foreach (var parent in parentExpressions)
+                            Assert.AreNotEqual(-1, parent);
                     }
                     else
                     {
-                        Assert.AreNotEqual(-1, g.exp.GetFlattenedIndex(exp));
+                        Assert.AreNotEqual(-1, g.exp.GetFlattenedIndex(reduced));
                     }
                 },
                 constantFolding ? VFXExpressionContextOption.ConstantFolding : VFXExpressionContextOption.Reduction
