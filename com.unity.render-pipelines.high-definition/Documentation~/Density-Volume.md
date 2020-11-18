@@ -34,16 +34,15 @@ To create a Density Volume, right click in the Hierarchy and select __Rendering 
 
 ## Creating a Density Mask Texture
 
-1. In image-editing software of your choice, prepare a grayscale 2D texture with values between 0 and 1 and of size 1024x32. This size describes a 3D texture of size 32x32x32 with 32 slices laid out one after another.
-2. Import this texture into the Unity Editor and set the Texture Import Settings:
+1. In image-editing software of your choice, prepare a grayscale flipbook texture and [import it as a 3D texture](https://docs.unity3d.com/2020.2/Documentation/Manual/class-Texture3D.html). For example, a texture of size 1024x32 describes a 3D texture of size 32x32x32 with 32 slices laid out one after another.
 
-2.1. Set the __Texture Type__ to __Single Channel__.
+2. Additionnaly, in the Texture Import Settings:
+    1. Set the __Texture Type__ to __Single Channel__.
 
-2.2. Set the __Channel__ to __Alpha__.
+    2. Set the __Channel__ to __Alpha__.
 
-2.3. Enable the __Read/Write Enabled__ checkbox.
+    3. (Optionnal) Set the __Alpha Source__ to __From Gray Scale__.
 
-3. Navigate to __Window > Rendering > Density Volume Texture Tool__.
-4. Drag and drop your texture into the __Slice Texture__ field and set the __Texture Slice Size__ to 32.
-5. Click __Create 3D Texture__ and the tool generates another texture with a different format that you can use as a Density Mask.
-6. Open a Density Volume component and assign the texture you just generated to the __Texture__ field in the __Density Mask Texture__ section.
+    4. Click Apply.
+
+3. Open a Density Volume component and assign the texture you just imported to the __Texture__ field in the __Density Mask Texture__ section.

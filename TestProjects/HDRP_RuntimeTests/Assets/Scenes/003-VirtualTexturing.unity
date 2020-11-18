@@ -3748,15 +3748,20 @@ MonoBehaviour:
     TargetWidth: 1024
     TargetHeight: 1024
     PerPixelCorrectnessThreshold: 0.0005
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
     AverageCorrectnessThreshold: 0.0005
+    IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
+    ActiveImageTests: 1
+    ActivePixelTests: 7
   doBeforeTest:
     m_PersistentCalls:
       m_Calls: []
   captureFramerate: 0
-  waitFrames: 20
+  waitFrames: 60
   xrCompatible: 1
   xrThresholdMultiplier: 1
   renderGraphCompatible: 1

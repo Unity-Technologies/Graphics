@@ -5,8 +5,8 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel FilterVolumetricLightingX FilterVolumetricLighting=FilterVolumetricLightingX LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ
-#pragma kernel FilterVolumetricLightingY FilterVolumetricLighting=FilterVolumetricLightingY LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ VERTICAL_PASS
+#pragma kernel FilterVolumetricLighting
+
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -15,17 +15,62 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricLighting.cs.hlsl"
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-RW_TEXTURE3D(float4, _VBufferFilteringInput);
-RW_TEXTURE3D(float4, _VBufferFilteringOutput);
+RW_TEXTURE3D(float4, _VBufferLighting);
 
 
-#define SIGMA_FILTER 2.0
-#define GROUP_SIZE_1D                      8
+#define GAUSSIAN_SIGMA 1.0
+#define GROUP_SIZE_1D_XY 8
+#define GROUP_SIZE_1D_Z 1
+
+#define FILTER_SIZE_1D (GROUP_SIZE_1D_XY + 2) // With a 8x8 group, we have a 10x10 working area 
+#define LDS_SIZE FILTER_SIZE_1D * FILTER_SIZE_1D
+
+// TODO: May use 1 uint for 2 pixels
+groupshared float gs_cacheR[LDS_SIZE];
+groupshared float gs_cacheG[LDS_SIZE];
+groupshared float gs_cacheB[LDS_SIZE];
+groupshared float gs_cacheA[LDS_SIZE];
+
+float4 GetSample(uint index)
+{
+    float4 outVal;
+    outVal.r = gs_cacheR[index];
+    outVal.g = gs_cacheG[index];
+    outVal.b = gs_cacheB[index];
+    outVal.a = gs_cacheA[index];
+
+    return outVal;
+}
+
+void PrefetchData(uint groupIndex, uint2 groupOrigin, uint sliceIndex)
+{
+    int2 originXY = groupOrigin - int2(1, 1);
+
+    for (int i = 0; i < 2; ++i)
+    {
+        uint sampleID = i + (groupIndex * 2);
+        int offsetX = sampleID % FILTER_SIZE_1D;
+        int offsetY = sampleID / FILTER_SIZE_1D;
+
+        int3 sampleCoord = int3(clamp(originXY.x + offsetX, 0, _VBufferViewportSize.x - 1),
+                                clamp(originXY.y + offsetY, 0, _VBufferViewportSize.y - 1),
+                                sliceIndex);
+
+        float4 sampleVal = _VBufferLighting[sampleCoord];
+
+        int LDSIndex = offsetX + offsetY * FILTER_SIZE_1D;
+        gs_cacheR[LDSIndex] = sampleVal.r;
+        gs_cacheG[LDSIndex] = sampleVal.g;
+        gs_cacheB[LDSIndex] = sampleVal.b;
+        gs_cacheA[LDSIndex] = sampleVal.a;
+    }
+}
 
 float Gaussian(float radius, float sigma)
 {
@@ -33,58 +78,55 @@ float Gaussian(float radius, float sigma)
     return exp(-(v*v));
 }
 
-[numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
+[numthreads(GROUP_SIZE_1D_XY, GROUP_SIZE_1D_XY, GROUP_SIZE_1D_Z)]
 void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
+                                int   groupIndex       : SV_GroupIndex,
                                 uint2 groupId          : SV_GroupID,
                                 uint2 groupThreadId    : SV_GroupThreadID)
 {
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
     // Compute the coordinate that this thread needs to process
-    uint2 currentCoord  = groupId * GROUP_SIZE_1D + groupThreadId;
+    uint2 currentCoord  = groupId * GROUP_SIZE_1D_XY + groupThreadId;
+    uint currentSlice = dispatchThreadId.z;
 
-    // Compute the half size of the slices, used to define the filtering radius
-    uint halfSliceCount = _VBufferSliceCount / 2;
+    // Compute the output voxel coordinate
+    uint3 voxelCoord = uint3(currentCoord, currentSlice);
 
-    // Loop through the slices that this thread needs to process
-    for (uint currentSlice = 0; currentSlice < _VBufferSliceCount; currentSlice++)
+    if (groupIndex < 50)
     {
-        // Compute the output voxel coordinate
-        uint3 voxelCoord = uint3(currentCoord, currentSlice + _VBufferSliceCount * unity_StereoEyeIndex);
+        // Load 2 values per thread.
+        PrefetchData(groupIndex, groupId * GROUP_SIZE_1D_XY, voxelCoord.z);
+    }
 
-        // Values used for accumulation
-        float sumW = 0.0;
-        float4 value = float4(0.0, 0.0, 0.0, 0.0);
-        #ifdef VERTICAL_PASS
-        int3 vec = int3(0, 1, 0);
-        #else
-        int3 vec = int3(1, 0, 0);
-        #endif
+    // Make sure all values are loaded in LDS by now.
+    GroupMemoryBarrierWithGroupSync();
 
-        // Compute the radius for this slice
-        int radius =  currentSlice > halfSliceCount ? 2 : 1;
-        // Loop through the values required for our kernel
-        for (int idx = -radius; idx <= radius; ++idx)
+    // Values used for accumulation
+    float sumW = 0.0;
+    float4 value = float4(0.0, 0.0, 0.0, 0.0);
+
+    const int radius = 1;
+
+    for (int idx = -radius; idx <= radius; ++idx)
+    {
+        for (int idx2 = -radius; idx2 <= radius; ++idx2)
         {
             // Compute the next tapping coordinate
-            int3 tapCoord = int3(voxelCoord.x, voxelCoord.y, voxelCoord.z) + vec * idx;
-            // Tap the value we should be tapping from
-            float4 currentValue = _VBufferFilteringInput[tapCoord];
-            // Compute the weight for this tap
-            float weight = Gaussian(abs(idx), SIGMA_FILTER);
+            const int3 tapCoord = int3(voxelCoord.x, voxelCoord.y, voxelCoord.z) + int3(idx2, idx, 0);
 
-            // If this is outside of the image, force the weight to 0
-            #ifdef VERTICAL_PASS
-            if (tapCoord.y < 0.0 || tapCoord.y >= _VBufferViewportSize.y) weight = 0;
-            #else
-            if (tapCoord.x < 0.0|| tapCoord.x >= _VBufferViewportSize.x) weight = 0;
-            #endif
+            // Tap from LDS
+            int2 tapAddress = (groupThreadId + 1) + int2(idx2, idx);
+            uint ldsTapAddress = uint(tapAddress.x) % FILTER_SIZE_1D + tapAddress.y * FILTER_SIZE_1D;
+            float4 currentValue = GetSample(ldsTapAddress);
+
+            // Compute the weight for this tap
+            float weight = Gaussian(length(int2(idx, idx2)), GAUSSIAN_SIGMA);
 
             // Accumulate the value and weight
             value += currentValue * weight;
             sumW += weight;
         }
-        // Normalize and output
-        _VBufferFilteringOutput[voxelCoord] = value / sumW;
+
     }
+
+    _VBufferLighting[voxelCoord] = value / sumW;
 }

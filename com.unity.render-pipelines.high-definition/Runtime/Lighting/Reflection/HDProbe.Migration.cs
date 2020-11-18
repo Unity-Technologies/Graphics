@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
             AddReflectionFrameSetting,
             /// <summary>Version Step</summary>
             AddFrameSettingDirectSpecularLighting,
+            /// <summary>Version Step</summary>
+            PlanarResolutionScalability,
         }
 
         /// <summary>

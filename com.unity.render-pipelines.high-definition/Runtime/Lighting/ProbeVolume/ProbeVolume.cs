@@ -566,7 +566,7 @@ namespace UnityEngine.Rendering.HighDefinition
     } // class ProbeVolumeArtistParameters
 
     [ExecuteAlways]
-    [AddComponentMenu("Light/Experimental/Probe Volume")]
+    //[AddComponentMenu("Light/Experimental/Probe Volume")]
     internal class ProbeVolume : MonoBehaviour
     {
 #if UNITY_EDITOR
@@ -742,7 +742,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void OnValidate()
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
             ProbeVolumeSettingsKey bakeKeyCurrent = ComputeProbeVolumeSettingsKeyFromProbeVolume(this);
@@ -973,7 +973,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static bool ShouldDrawGizmos(ProbeVolume probeVolume)
         {
-            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+            if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return false;
 
             UnityEditor.SceneView sceneView = UnityEditor.SceneView.currentDrawingSceneView;

@@ -6,15 +6,15 @@ from .project_publish import Project_PublishJob
 
 class Project_PublishJob_DryRun():
     
-    def __init__(self, package, agent, platforms, target_editor):
+    def __init__(self, package, agent, platforms, editor_tracks):
         self.package_id = package["id"]
         self.job_id = projectcontext_job_id_publish_dry(package["id"])
-        self.yml = self.get_job_definition(package, agent, platforms, target_editor)
+        self.yml = self.get_job_definition(package, agent, platforms, editor_tracks)
 
     
-    def get_job_definition(self, package, agent, platforms, target_editor):
+    def get_job_definition(self, package, agent, platforms, editor_tracks):
         
-        job = Project_PublishJob(package, agent, platforms, target_editor)
+        job = Project_PublishJob(package, agent, platforms, editor_tracks)
         job.yml['commands'][-1] += ' --dry-run'
         job.yml['name'] += ' [dry run]'
 
