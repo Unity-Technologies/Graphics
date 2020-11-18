@@ -806,6 +806,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Return all black textures for default values.
                 var blackTexture = renderGraph.defaultResources.blackTextureXR;
+                output.depthPyramidTexture = blackTexture;
                 output.dbuffer.dBufferCount = use4RTs ? 4 : 3;
                 for (int i = 0; i < output.dbuffer.dBufferCount; ++i)
                     output.dbuffer.mrt[i] = blackTexture;
