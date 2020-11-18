@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
+- Fixed an issue where the horizontal scrollbar at the bottom of the graph inspector window could not be used due to the resizing widget always taking priority over it
+- Fixed an issue where the graph inspector window could be resized past the edges of the shader graph view
+- Fixed an issue where resizing the graph inspector window sometimes had unexpected results
 
 ## [10.3.0] - 2020-11-06
 
