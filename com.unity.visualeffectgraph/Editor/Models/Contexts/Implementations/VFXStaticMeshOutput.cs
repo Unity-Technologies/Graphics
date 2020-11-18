@@ -183,34 +183,31 @@ namespace UnityEditor.VFX
         {
             var meshData = (VFXDataMesh)GetData();
 
-            switch (target)
+            if (target == VFXDeviceTarget.CPU || target == VFXDeviceTarget.GPU)
             {
-                case VFXDeviceTarget.GPU:
+                var mapper = new VFXExpressionMapper();
+
+                //Should register every input slot to CPU & GPU, the static mesh output is fully setup by a CPU System. N.B. : 0/1/2 are CPU only.
+                for (int i = 3; i < GetNbInputSlots(); ++i)
                 {
-                    var mapper = new VFXExpressionMapper();
-                    for (int i = 2; i < GetNbInputSlots(); ++i)
-                    {
-                        VFXExpression exp = GetInputSlot(i).GetExpression();
-                        VFXProperty prop = GetInputSlot(i).property;
+                    VFXExpression exp = GetInputSlot(i).GetExpression();
+                    VFXProperty prop = GetInputSlot(i).property;
 
-                        // As there's not shader generation here, we need expressions that can be evaluated on CPU
-                        if (exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
-                            throw new InvalidOperationException(string.Format("Expression for slot {0} must be evaluable on CPU: {1}", prop.name, exp));
+                    // As there's not shader generation here, we need expressions that can be evaluated on CPU
+                    if (exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
+                        throw new InvalidOperationException(string.Format("Expression for slot {0} must be evaluable on CPU: {1}", prop.name, exp));
 
-                        // needs to convert to srgb as color are linear in vfx graph
-                        // This should not be performed for colors with the attribute [HDR] and be performed for vector4 with the attribute [Gamma]
-                        // But property attributes cannot seem to be accessible from C# :(
-                        if (prop.type == typeof(Color))
-                            exp = VFXOperatorUtility.LinearToGamma(exp);
+                    // needs to convert to srgb as color are linear in vfx graph
+                    // This should not be performed for colors with the attribute [HDR] and be performed for vector4 with the attribute [Gamma]
+                    // But property attributes cannot seem to be accessible from C# :(
+                    if (prop.type == typeof(Color))
+                        exp = VFXOperatorUtility.LinearToGamma(exp);
 
-                        mapper.AddExpression(exp, prop.name, -1);
-                    }
-                    return mapper;
+                    mapper.AddExpression(exp, prop.name, -1);
                 }
 
-                case VFXDeviceTarget.CPU:
+                if (target == VFXDeviceTarget.CPU) //CPU only expression, not used by the shader
                 {
-                    var mapper = new VFXExpressionMapper();
                     mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
                     mapper.AddExpression(GetInputSlot(1).GetExpression(), "transform", -1);
                     mapper.AddExpression(GetInputSlot(2).GetExpression(), "subMeshMask", -1);
@@ -244,13 +241,10 @@ namespace UnityEditor.VFX
                             }
                         }
                     }
-
-                    return mapper;
                 }
-
-                default:
-                    return null;
+                return mapper;
             }
+            return null;
         }
 
         public override IEnumerable<VFXMapping> additionalMappings

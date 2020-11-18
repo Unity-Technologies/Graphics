@@ -189,10 +189,12 @@ namespace UnityEditor.VFX
 
                     //Remove constant if value only used by GPU (it will be automatically patched in generated source code)
                     if (    options.HasFlag(VFXExpressionContextOption.ConstantFolding)
-                        &&  kvp.Value.usage == VFXDeviceTarget.GPU //aka only GPU
-                        &&  exp.Is(VFXExpression.Flags.Constant))
-                        if (!m_ExpressionsData.Any(e => e.Key.parents.Contains(exp))) //TODOPAUL : replace this condition, it's actually !end expression, check m_GPUExpressionsToReduced
-                            return true; //Fail on 007_MeshSampling
+                        &&  kvp.Value.usage == VFXDeviceTarget.GPU //then, only GPU
+                        &&  kvp.Value.depth == 0 //If depth == 0, no other expression relies on this
+                        &&  exp.Is(VFXExpression.Flags.Constant)
+                        &&  VFXExpression.IsTypeConstantFoldable(exp.valueType) //Texture will be not patched in generated source code.
+                        )
+                        return false;
 
                     return true;
                 }).ToArray(); //TODOPAUL : remove this to array
