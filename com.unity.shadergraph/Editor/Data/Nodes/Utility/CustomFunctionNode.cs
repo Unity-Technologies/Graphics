@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             if ((functionName == defaultFunctionName) || (functionName == null))
                 name = "Custom Function";
             else
-                name = functionName;
+                name = functionName + " (Custom Function)";
         }
 
         public override bool hasPreview => true;
