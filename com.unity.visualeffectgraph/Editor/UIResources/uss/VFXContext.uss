@@ -160,7 +160,7 @@ VFXContextUI #footer #title-label
 
 VFXContextUI #title #icon
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Execution.png");
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Execution.png");
     margin-right: 6px;
 }
 
@@ -189,17 +189,17 @@ VFXContextUI > #node-border > #inside > #contents > #settings
 
 VFXContextUI #header-space.spaceLocal
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/title-local.png");
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/title-local.png");
 }
 
 VFXContextUI #header-space.spaceWorld
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/title-world.png");
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/title-world.png");
 }
 
 VFXContextUI #footer #icon
 {
-    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/Execution.png");
+    --unity-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/Execution.png");
 }
 
 VFXContextUI #block-container {

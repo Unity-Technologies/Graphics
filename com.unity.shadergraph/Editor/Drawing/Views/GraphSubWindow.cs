@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -194,8 +194,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         protected void HideWindow()
         {
             this.style.visibility = Visibility.Hidden;
-            this.m_ScrollView.showVertical = false;
-            this.m_ScrollView.showHorizontal = false;
+            this.m_ScrollView.verticalScrollerVisibility = ScrollerVisibility.Hidden;
+            this.m_ScrollView.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
             contentContainer.Clear();
             contentContainer.MarkDirtyRepaint();
         }
@@ -241,7 +241,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
                 windowDockingLayout.size = layout.size;
             }
-            
+
             windowDockingLayout.ApplySize(this);
             windowDockingLayout.ApplyPosition(this);
         }
