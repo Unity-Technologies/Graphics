@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (fabricData.subsurfaceScattering)
                 descriptor.passes.Add(HDShaderPasses.GenerateRaytracingSubsurface());
- 
+
             return descriptor;
         }
 
@@ -74,8 +74,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(EnergyConservingSpecular,             fabricData.energyConservingSpecular);
 
             context.AddField(SpecularAA, lightingData.specularAA &&
-                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
-                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
+                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
+                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            fabricData.transmission);
 
             // Fabric Silk
-            if(fabricData.materialType == FabricData.MaterialType.Silk)
+            if (fabricData.materialType == FabricData.MaterialType.Silk)
             {
                 BlockFieldDescriptor tangentBlock;
                 switch (lightingData.normalDropOffSpace)

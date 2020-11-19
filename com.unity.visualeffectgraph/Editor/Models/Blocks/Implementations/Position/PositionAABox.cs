@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionAABox : PositionBase
     {
-        public override string name { get { return string.Format(base.name, "AABox"); ; } }
+        public override string name { get { return string.Format(base.name, "AABox");; } }
 
         public class InputProperties
         {
@@ -60,7 +60,6 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXNamedExpression(volumeXZ, "volumeXZ");
                     yield return new VFXNamedExpression(volumeYZ, "volumeYZ");
                     yield return new VFXNamedExpression(cumulativeVolumes, "cumulativeVolumes");
-
                 }
             }
         }
@@ -179,13 +178,12 @@ float3 outPos = cube * 0.5f;
 
         public override void Sanitize(int version)
         {
-            if(version < 5)
+            if (version < 5)
             {
                 // SANITIZE : if older version, ensure position composition is overwrite.
                 compositionPosition = AttributeCompositionMode.Overwrite;
             }
             base.Sanitize(version);
         }
-
     }
 }

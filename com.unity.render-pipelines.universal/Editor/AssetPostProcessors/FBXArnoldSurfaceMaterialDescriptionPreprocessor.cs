@@ -99,7 +99,6 @@ namespace UnityEditor.Rendering.Universal
                 {
                     material.SetFloat("_OPACITY", opacity);
                 }
-
             }
             else
             {
@@ -110,7 +109,7 @@ namespace UnityEditor.Rendering.Universal
                 material.shader = shader;
             }
 
-            
+
             foreach (var clip in clips)
             {
                 clip.ClearCurves();
@@ -225,7 +224,6 @@ namespace UnityEditor.Rendering.Universal
             remapPropertyFloatOrTexture3DsMax(description, material, "specular_IOR", "_SPECULAR_IOR");
 
             remapPropertyTexture(description, material, "normal_camera", "_NORMAL_MAP");
-
         }
 
         static void SetMaterialTextureProperty(string propertyName, Material material,
