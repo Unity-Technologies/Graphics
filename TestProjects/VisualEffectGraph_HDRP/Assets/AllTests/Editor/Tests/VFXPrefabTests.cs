@@ -244,6 +244,56 @@ namespace UnityEditor.VFX.Test
             quadOutput.LinkFrom(basicInitialize);
         }
 
+        //Cover issue from 1285787
+        [UnityTest]
+        public IEnumerator Create_Prefab_And_Verify_Empty_Override()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            const int systemCount = 3;
+            for (int i = 0; i < systemCount; ++i)
+            {
+                Add_Valid_System(graph);
+            }
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var mainObject = MakeTemporaryGameObject();
+            GameObject prefabInstanceObject;
+            {
+                var tempVFX = mainObject.AddComponent<VisualEffect>();
+                tempVFX.visualEffectAsset = graph.visualEffectResource.asset;
+
+                GameObject newGameObject;
+                MakeTemporaryPrebab(mainObject, out newGameObject, out prefabInstanceObject);
+                GameObject.DestroyImmediate(mainObject);
+
+                mainObject = PrefabUtility.InstantiatePrefab(prefabInstanceObject) as GameObject;
+            }
+            yield return null;
+
+            Assert.IsNotNull(mainObject.GetComponent<VisualEffect>());
+            var properties = PrefabUtility.GetPropertyModifications(mainObject);
+            //Filter out transform properties & GameObject.m_Name
+            properties = properties.Where(o =>
+            {
+                if (o.target is UnityEngine.Transform)
+                    return false;
+
+                if (o.target is GameObject && o.propertyPath == "m_Name")
+                    return false;
+
+                return true;
+            }).ToArray();
+
+            var logMessage = string.Empty;
+            if (properties.Any())
+            {
+                logMessage = properties.Select(o => string.Format("{0} at {1} : {2}", o.target, o.propertyPath, o.value))
+                                       .Aggregate((a, b) => a + "\n" + b);
+            }
+
+            Assert.AreEqual(0, properties.Length, logMessage);
+        }
+
         //Cover regression from 1213773
         [UnityTest]
         public IEnumerator Create_Prefab_Switch_To_Empty_VisualEffectAsset()
