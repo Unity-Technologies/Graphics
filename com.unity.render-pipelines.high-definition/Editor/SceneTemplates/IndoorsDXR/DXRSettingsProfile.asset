@@ -19,9 +19,16 @@ MonoBehaviour:
     m_Value: 0.001
     min: 0
     max: 0.1
-  extendCulling:
+  extendShadowCulling:
     m_OverrideState: 0
     m_Value: 0
+  extendCameraCulling:
+    m_OverrideState: 0
+    m_Value: 0
+  directionalShadowRayLength:
+    m_OverrideState: 0
+    m_Value: 1000
+    min: 0.01
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32,7 +39,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: DXR Settings Profile
+  m_Name: DXRSettingsProfile
   m_EditorClassIdentifier: 
   components:
   - {fileID: 2761618898094082810}
@@ -57,6 +64,9 @@ MonoBehaviour:
   enabled:
     m_OverrideState: 0
     m_Value: 1
+  usedAlgorithm:
+    m_OverrideState: 0
+    m_Value: 0
   rayTracing:
     m_OverrideState: 1
     m_Value: 1
@@ -71,6 +81,11 @@ MonoBehaviour:
   screenFadeDistance:
     m_OverrideState: 0
     m_Value: 0.1
+    min: 0
+    max: 1
+  accumulationFactor:
+    m_OverrideState: 0
+    m_Value: 0.75
     min: 0
     max: 1
   layerMask:
@@ -108,7 +123,6 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 10
     min: 0.001
-    max: 50
   m_ClampValue:
     m_OverrideState: 0
     m_Value: 1
