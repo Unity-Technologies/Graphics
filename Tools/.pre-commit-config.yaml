@@ -5,6 +5,5 @@ repos:
     hooks:
       - id: file-extension-to-lowercase
       - id: check-shader-includes
-      - id: format-code
       - id: check-branch-name
         stages: [push]
