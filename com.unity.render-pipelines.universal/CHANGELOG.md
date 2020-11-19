@@ -8,11 +8,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
-
+- Added _CameraSortingLayerTexture global shader variable and related parameters
+- Added preset shapes for creating a freeform light
+- Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
+- Added 2D Renderer Asset Preset for creating a Universal Renderer Asset
+  
 ### Changed
+- Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
+- Optimized 2D Renderer performance by rendering the normal buffer at the same lower resolution as the light buffers.
+- Improved Light2D UI/UX
+- Improved 2D Menu layout
+- Deprecated Light2D Parametric Light
+- Deprecated Light2D point light cookie
+- Renamed Light2D point light to spot light
+- 2D Renderer: The per Blend Style render texture scale setting was replaced by a global scale setting for all Blend Styles.
+- Optimized 2D Renderer performance by using a tiny light texture for layer/blend style pairs for which no light is rendered.
+- Reorgnized the settings in 2D Renderer Data Inspector.
+- FallOff Lookup Texture is now part of 2D RenderData.
+- Creating a Shadow Caster 2D will use try and use sprite and physics bounds as the default shape
+- Deleting all points in a Shadow Caster will cause the shape to use the bounds.
+- Improved Geometry for Smooth Falloff of 2D Shape Lights.
+- Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
 - Bloom in Gamma color-space now more closely matches Linear color-space, this will mean project using Bloom and Gamma color-space may need to adjust Bloom Intensity to match previous look.
+- Autodesk Interactive Shader Graph files and folders containing them were renamed. The new file paths do not have spaces.
 
 ### Fixed
+- Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
+- Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
+- Fixed an issue where null reference exception was thrown when creating a 2D Renderer Data asset while scripts are compiling. [case 1263040](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-error-is-thrown-on-creating-2d-renderer-asset)
+- Fixed an issue where no preview would show for the lit sprite master node in shadergraph
+- Fixed an issue where no shader was generated for unlit sprite shaders in shadergraph
+- Fixed an issue where Sprite-Lit-Default shader's Normal Map property wasn't affected by Tiling or Offset. [case 1270850](https://issuetracker.unity3d.com/issues/sprite-lit-default-shaders-normal-map-and-mask-textures-are-not-affected-by-tiling-and-offset-values)
 - Removed the warning about mis-matched vertex streams when creating a default Particle System. [case 1285272](https://issuetracker.unity3d.com/issues/particles-urp-default-material-shows-warning-in-inspector)
 - Fixed latest mockHMD renderviewport scale doesn't fill whole view after scaling. [case 1286161] (https://issuetracker.unity3d.com/issues/xr-urp-renderviewportscale-doesnt-fill-whole-view-after-scaling)
 - Fixed camera renders black in XR when user sets invalid MSAA value.
@@ -31,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue causing materials to be upgraded multiple times.
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
 - Fixed Deferred renderer on some Android devices by forcing accurate GBuffer normals. [case 1288042]
+- Fixed an issue where MSAA did not work in Editor Game View on Windows with Vulkan.
 
 ## [10.2.0] - 2020-10-19
 

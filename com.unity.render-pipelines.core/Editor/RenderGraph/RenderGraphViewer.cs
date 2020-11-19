@@ -111,8 +111,19 @@ public class RenderGraphViewer : EditorWindow
 
         var topRowElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.TopRowElement");
         topRowElement.style.minHeight = passNamesContainerHeight;
+
     }
 
+    void LastRenderPassLabelChanged(GeometryChangedEvent evt)
+    {
+        var label = evt.currentTarget as Label;
+        Vector2 textSize = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 10, VisualElement.MeasureMode.Undefined);
+        float textWidth = Mathf.Max(kRenderPassWidth, textSize.x);
+
+        // Keep a margin on the right of the container to avoid label being clipped.
+        var viewerContainer = m_GraphViewerElement.Q<VisualElement>("GraphViewer.ViewerContainer");
+        viewerContainer.style.marginRight = Mathf.Max(viewerContainer.style.marginRight.value.value, (textWidth - kRenderPassWidth));
+    }
 
     void UpdateResourceLifetimeColor(int passIndex, StyleColor colorRead, StyleColor colorWrite)
     {
@@ -164,7 +175,7 @@ public class RenderGraphViewer : EditorWindow
             VisualElement passElement = m_PassElementsInfo[consumer].pass;
             if (passElement != null)
             {
-                VisualElement passButton = passElement.Q("PassCell");
+                VisualElement passButton = passElement.Q("RenderPass.Cell");
                 passButton.style.backgroundColor = colorRead;
             }
         }
@@ -178,7 +189,7 @@ public class RenderGraphViewer : EditorWindow
             VisualElement passElement = m_PassElementsInfo[producer].pass;
             if (passElement != null)
             {
-                VisualElement passButton = passElement.Q("PassCell");
+                VisualElement passButton = passElement.Q("RenderPass.Cell");
                 passButton.style.backgroundColor = colorWrite;
             }
         }
@@ -215,13 +226,14 @@ public class RenderGraphViewer : EditorWindow
     VisualElement CreateRenderPass(string name, int index, bool culled)
     {
         var container = new VisualElement();
+        container.name = "RenderPass";
         container.style.width = kRenderPassWidth;
         container.style.overflow = Overflow.Visible;
         container.style.flexDirection = FlexDirection.ColumnReverse;
         container.style.minWidth = kRenderPassWidth;
 
         var cell = new Button();
-        cell.name = "PassCell";
+        cell.name = "RenderPass.Cell";
         cell.style.marginBottom = 0.0f;
         cell.style.marginLeft = 0.0f;
         cell.style.marginRight = 0.0f;
@@ -237,6 +249,7 @@ public class RenderGraphViewer : EditorWindow
         container.Add(cell);
 
         var label = new Label(name);
+        label.name = "RenderPass.Label";
         label.transform.rotation = Quaternion.Euler(new Vector3(0.0f, 0.0f, -45.0f));
         container.Add(label);
 
@@ -247,21 +260,24 @@ public class RenderGraphViewer : EditorWindow
 
     void ResourceNamesContainerChanged(GeometryChangedEvent evt)
     {
+        var label = evt.currentTarget as Label;
+        float textWidth = label.MeasureTextSize(label.text, 0, VisualElement.MeasureMode.Undefined, 10, VisualElement.MeasureMode.Undefined).x;
+
         var cornerElement = m_GraphViewerElement.Q<VisualElement>("GraphViewer.Corner");
-        cornerElement.style.width = Mathf.Max(evt.newRect.width, cornerElement.style.width.value.value);
-        cornerElement.style.minWidth = Mathf.Max(evt.newRect.width, cornerElement.style.minWidth.value.value);
+        cornerElement.style.width = Mathf.Max(textWidth, cornerElement.style.width.value.value);
+        cornerElement.style.minWidth = Mathf.Max(textWidth, cornerElement.style.minWidth.value.value);
 
         // We need to make sure all resource types have the same width
         m_GraphViewerElement.Query("GraphViewer.Resources.ResourceNames").Build().ForEach((elem) =>
         {
-            elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
-            elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
+            elem.style.width = Mathf.Max(textWidth, elem.style.width.value.value);
+            elem.style.minWidth = Mathf.Max(textWidth, elem.style.minWidth.value.value);
         });
 
         m_GraphViewerElement.Query("GraphViewer.Resources.ResourceTypeName").Build().ForEach((elem) =>
         {
-            elem.style.width = Mathf.Max(evt.newRect.width, elem.style.width.value.value);
-            elem.style.minWidth = Mathf.Max(evt.newRect.width, elem.style.minWidth.value.value);
+            elem.style.width = Mathf.Max(textWidth, elem.style.width.value.value);
+            elem.style.minWidth = Mathf.Max(textWidth, elem.style.minWidth.value.value);
         });
     }
 
@@ -269,6 +285,9 @@ public class RenderGraphViewer : EditorWindow
     {
         var label = new Label(name);
         label.style.height = kResourceHeight;
+        label.style.overflow = Overflow.Hidden;
+        label.style.textOverflow = TextOverflow.Ellipsis;
+        label.style.unityTextOverflowPosition = TextOverflowPosition.End;
         if (imported)
             label.style.color = m_ImportedResourceColor;
         else
@@ -388,6 +407,7 @@ public class RenderGraphViewer : EditorWindow
 
         int passIndex = 0;
         finalPassCount = 0;
+        int lastValidPassIndex = -1;
         foreach (var pass in debugData.passList)
         {
             if ((pass.culled && !m_Filter.HasFlag(Filter.CulledPasses)) || !pass.generateDebugData)
@@ -401,8 +421,15 @@ public class RenderGraphViewer : EditorWindow
                 m_PassElementsInfo[passIndex].remap = finalPassCount;
                 passNamesElement.Add(passElement);
                 finalPassCount++;
+                lastValidPassIndex = passIndex;
             }
             passIndex++;
+        }
+
+        if (lastValidPassIndex > 0)
+        {
+            var label = m_PassElementsInfo[lastValidPassIndex].pass.Q<Label>("RenderPass.Label");
+            label.RegisterCallback<GeometryChangedEvent>(LastRenderPassLabelChanged);
         }
 
         topRowElement.Add(passNamesElement);
@@ -421,7 +448,6 @@ public class RenderGraphViewer : EditorWindow
         resourceNamesContainer.style.flexDirection = FlexDirection.Column;
         resourceNamesContainer.style.overflow = Overflow.Hidden;
         resourceNamesContainer.style.alignItems = Align.FlexEnd;
-        resourceNamesContainer.RegisterCallback<GeometryChangedEvent>(ResourceNamesContainerChanged);
 
         var resourcesLifeTimeElement = new VisualElement();
         resourcesLifeTimeElement.name = "GraphViewer.Resources.ResourceLifeTime";
@@ -475,13 +501,16 @@ public class RenderGraphViewer : EditorWindow
         m_PassElementsInfo.Resize(debugData.passList.Count);
 
         var horizontalScrollView = new ScrollView(ScrollViewMode.Horizontal);
+        horizontalScrollView.name = "GraphViewer.HorizontalScrollView";
 
         var graphViewerElement = new VisualElement();
+        graphViewerElement.name = "GraphViewer.ViewerContainer";
         graphViewerElement.style.flexDirection = FlexDirection.Column;
 
         var topRowElement = CreateTopRowWithPasses(debugData, out int finalPassCount);
 
         var resourceScrollView = new ScrollView(ScrollViewMode.Vertical);
+        resourceScrollView.name = "GraphViewer.ResourceScrollView";
 
         // Has to match RenderGraphModule.RenderGraphResourceType order.
         Filter[] resourceFilterFlags = { Filter.Textures, Filter.ComputeBuffers };
@@ -497,6 +526,7 @@ public class RenderGraphViewer : EditorWindow
                 resourceNameLabel.style.unityTextAlign = TextAnchor.MiddleRight;
                 resourceNameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
                 resourceNameLabel.style.fontSize = 13;
+                resourceNameLabel.RegisterCallback<GeometryChangedEvent>(ResourceNamesContainerChanged);
                 resourceScrollView.Add(resourceNameLabel);
                 resourceScrollView.Add(resourceViewerElement);
 
@@ -538,6 +568,7 @@ public class RenderGraphViewer : EditorWindow
 
         m_GraphViewerElement = new VisualElement();
         m_GraphViewerElement.name = "GraphViewer";
+        m_GraphViewerElement.style.marginLeft = 20.0f; // Margin on the left of resource labels.
         m_GraphViewerElement.style.flexDirection = FlexDirection.Column;
 
         RebuildGraphViewerUI();
