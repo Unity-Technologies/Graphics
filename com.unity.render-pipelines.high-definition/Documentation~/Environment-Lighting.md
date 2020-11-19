@@ -34,7 +34,7 @@ HDRP also allows you to implement your own sky types that display a background a
 
 ## Lighting environment
 
-The **Environment (HDRP)** is a section in the Lighting window that allows you to specify which sky to use for indirect ambient light. To open the window, select **Window > Rendering > Lighting > Environment**.
+The **Environment (HDRP)** is a section in the [Lighting window](https://docs.unity3d.com/Manual/lighting-window.html) that allows you to specify which sky to use for indirect ambient light in HDRP. To open the window, select **Window > Rendering > Lighting > Environment**.
 
 ![](Images/EnvironmentLighting1.png)
 
