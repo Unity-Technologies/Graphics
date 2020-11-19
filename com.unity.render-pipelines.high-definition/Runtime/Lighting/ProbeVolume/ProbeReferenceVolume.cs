@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Index.Clear();
         }
 
+#if UNITY_EDITOR
         public void CreateBricks(List<Volume> volumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
         {
             Profiler.BeginSample("CreateBricks");
@@ -297,6 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             Profiler.EndSample();
         }
+#endif
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
         public void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
@@ -331,7 +333,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             Profiler.EndSample();
         }
-
 
         // Runtime API starts here
         public void AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
