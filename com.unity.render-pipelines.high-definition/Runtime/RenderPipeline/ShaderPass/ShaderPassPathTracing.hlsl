@@ -75,7 +75,10 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 
 #ifndef SHADER_UNLIT
 
-    // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
+    // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
+    GetCurrentIntersectionGeometricNormal(attributeData, bsdfData.geomNormalWS);
+
+    // Compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 shadingPosition = fragInput.positionRWS;
 
     // Get current path throughput
