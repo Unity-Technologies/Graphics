@@ -190,7 +190,7 @@ namespace  UnityEditor.VFX.UI
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
 
-            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/" + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/" + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
             titleContent.image = icon;
         }
 
@@ -285,10 +285,10 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            if (VFXViewModicationProcessor.assetMoved)
+            if (VFXViewModificationProcessor.assetMoved)
             {
                 graphView.AssetMoved();
-                VFXViewModicationProcessor.assetMoved = false;
+                VFXViewModificationProcessor.assetMoved = false;
             }
             titleContent.text = filename;
 

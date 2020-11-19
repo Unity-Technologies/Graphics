@@ -34,11 +34,11 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
 
         // Angle fade is disabled if decal layers isn't enabled for consistency with DBuffer Decal
         // The test against _EnableDecalLayers is done here to refresh realtime as AngleFade is cached data and need a decal refresh to be updated.
-        if (angleFade.x > 0.0f && _EnableDecalLayers) // if angle fade is enabled
+        if (angleFade.y < 0.0f && _EnableDecalLayers) // if angle fade is enabled
         {
-            float dotAngle = 1.0 - dot(vtxNormal, decalData.normalToWorld[2].xyz);
-            // See equation in DecalSystem.cs - simplified to a madd here
-            float angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+            float dotAngle = dot(vtxNormal, decalData.normalToWorld[2].xyz);
+            // See equation in DecalSystem.cs - simplified to a madd mul add here
+            float angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
             fadeFactor *= angleFadeFactor;
         }
 
@@ -101,20 +101,20 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float  lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution, 0.5);
 
                 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleMask, lodMask);
-                src.z *= decalData.scalingMBAndAngle.y; // Blue channel (opacity)
+                src.z *= decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
-                src.x *= decalData.scalingMBAndAngle.x; // Metal
+                src.x = lerp(decalData.scalingBAndRemappingM.z, decalData.scalingBAndRemappingM.w, src.x); // Remap Metal
                 src.y = lerp(decalData.remappingAOS.x, decalData.remappingAOS.y, src.y); // Remap AO
                 #endif
                 src.z = lerp(decalData.remappingAOS.z, decalData.remappingAOS.w, src.w); // Remap Smoothness
             }
             else
             {
-                src.z = decalData.scalingMBAndAngle.y; // Blue channel (opacity)
+                src.z = decalData.scalingBAndRemappingM.y; // Blue channel (opacity)
                 maskMapBlend *= src.z; // store before overwriting with smoothness
                 #ifdef DECALS_4RT
-                src.x = decalData.scalingMBAndAngle.x; // Metal
+                src.x = decalData.scalingBAndRemappingM.z; // Metal
                 src.y = decalData.remappingAOS.x; // AO
                 #endif
                 src.z = decalData.remappingAOS.z; // Smoothness

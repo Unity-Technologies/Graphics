@@ -6,7 +6,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-        #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
+        #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeAtlas.hlsl"
         #endif
@@ -60,7 +60,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
             float4 Frag(Varyings input) : SV_Target
             {
-            #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED
+            #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
 
                 // Layout Z slices horizontally in debug view UV space.
                 float3 uvw;
