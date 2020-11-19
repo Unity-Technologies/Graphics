@@ -14,7 +14,7 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    
+
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
     #if defined(VARYINGS_NEED_NORMAL_WS)
@@ -53,11 +53,11 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_NORMAL_WS
-    output.normalWS = normalWS;			// normalized in TransformObjectToWorldNormal()
+    output.normalWS = normalWS;         // normalized in TransformObjectToWorldNormal()
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_WS
-    output.tangentWS = tangentWS;		// normalized in TransformObjectToWorldDir()
+    output.tangentWS = tangentWS;       // normalized in TransformObjectToWorldDir()
 #endif
 
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
@@ -116,4 +116,3 @@ Varyings BuildVaryings(Attributes input)
 
     return output;
 }
-

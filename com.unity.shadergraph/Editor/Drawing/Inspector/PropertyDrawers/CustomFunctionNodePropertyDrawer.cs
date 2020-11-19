@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -37,7 +37,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (CustomFunctionNode) actualObject,
+                (CustomFunctionNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }

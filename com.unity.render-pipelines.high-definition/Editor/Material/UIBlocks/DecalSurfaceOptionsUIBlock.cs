@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!perChannelMask && (affectsMetal != null || affectsAO != null))
             {
                 EditorGUILayout.HelpBox("Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals. There is a performance cost of enabling this option.",
-                                        MessageType.Info);
+                    MessageType.Info);
             }
         }
     }

@@ -41,7 +41,7 @@
 #elif PROBE_VOLUMES_ACCUMULATE_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
         ZERO_INITIALIZE(ProbeVolumeSphericalHarmonicsL2, coefficients);
 #endif
-    
+
 
 #if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
     if (weightHierarchy >= 1.0) { return; }
@@ -107,7 +107,7 @@
                 float3 obbExtents;
                 float3 obbCenter;
                 ProbeVolumeComputeOBBBoundsToFrame(s_probeVolumeBounds, obbFrame, obbExtents, obbCenter);
-                
+
                 // Note: When normal bias is > 0, bounds using in tile / cluster assignment are conservatively dilated CPU side to handle worst case normal bias.
                 float3 samplePositionWS = normalWS * s_probeVolumeData.normalBiasWS + posInput.positionWS;
 

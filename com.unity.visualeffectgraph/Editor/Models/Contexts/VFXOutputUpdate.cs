@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
             FrustumCulling  = 1 << 6 | IndirectDraw,
         }
 
-        public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) { }
+        public VFXOutputUpdate() : base(VFXContextType.Filter, VFXDataType.Particle, VFXDataType.Particle) {}
         public override string name => "OutputUpdate";
 
         private VFXAbstractParticleOutput m_Output;
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
             if (features == Features.None)
                 throw new InvalidOperationException("This additional update context has no feature set");
 
-            
+
             if (target == VFXDeviceTarget.GPU)
             {
                 var expressionMapper = m_Output.GetExpressionMapper(target);
@@ -102,7 +102,7 @@ namespace UnityEditor.VFX
                 var exp = GetExpressionsFromSlots(m_Output);
 
                 if (HasFeature(Features.LOD))
-                {     
+                {
                     var lodExp = exp.FirstOrDefault(e => e.name == VFXMultiMeshHelper.lodName);
                     var ratioExp = lodExp.exp * VFXValue.Constant(new Vector4(0.01f, 0.01f, 0.01f, 0.01f));
                     expressionMapper.AddExpression(ratioExp, VFXMultiMeshHelper.lodName, -1);

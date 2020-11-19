@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     $precision2 uv = ScreenPosition.xy * _ScreenParams.xy;
     $precision DITHER_THRESHOLDS[16] =
