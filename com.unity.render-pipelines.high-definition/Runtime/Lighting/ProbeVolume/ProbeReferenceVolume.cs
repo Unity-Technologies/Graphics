@@ -104,6 +104,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public void Invalidate() => id = 0;
             public static bool operator ==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
             public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
+            public override bool Equals(object obj) 
+            {
+                if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+                {
+                    return false;
+                }
+                else
+                {
+                    RegId p = (RegId)obj;
+                    return p == this;
+                }
+            }
+            public override int GetHashCode() => id;
         }
 
         private int m_id = 0;
