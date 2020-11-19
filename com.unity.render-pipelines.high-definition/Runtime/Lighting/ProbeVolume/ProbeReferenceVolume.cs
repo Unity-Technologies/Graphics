@@ -135,7 +135,21 @@ namespace UnityEngine.Rendering.HighDefinition
         // index related
         Texture3D indexTex;
 
-        public ProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
+        static private ProbeReferenceVolume _instance = null;
+
+        public static ProbeReferenceVolume instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new ProbeReferenceVolume(64, 1024 * 1024 * 1024, new Vector3Int(1024, 64, 1024));
+                }
+                return _instance;
+            }
+        }
+
+        private ProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
         {
             Profiler.BeginSample("Create Reference volume");
             m_Transform.posWS = Vector3.zero;
