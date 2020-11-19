@@ -28,7 +28,7 @@ MonoBehaviour:
       m_Icons:
         m_Items: []
       m_Image: {fileID: 0}
-      m_Video: {fileID: 32900000, guid: 3fd928b951eaaa3459eaf7c9e1f0af4a, type: 3}
+      m_Video: {fileID: 32900000, guid: 54ad44a7038a44d40b1f154c0e15c34a, type: 3}
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
