@@ -254,7 +254,7 @@ namespace UnityEditor.VFX.UI
 
             var discoveredTemplates = System.IO.Directory.GetFiles(directory).Where(t => Path.GetExtension(t) == VisualEffectResource.Extension).Select(t => t.Replace("\\", "/"));
 
-            var templateDescriptors = discoveredTemplates.Select(t => new Descriptor() { modelDescriptor = t, category = menuCategory.Replace("\\", "/"), name = System.IO.Path.GetFileNameWithoutExtension(t) });
+            var templateDescriptors = discoveredTemplates.Select(t => new Descriptor() { modelDescriptor = t, category = menuCategory.Replace("\\", "/"), name = ObjectNames.NicifyVariableName(System.IO.Path.GetFileNameWithoutExtension(t)) });
 
             descriptors = descriptors.Concat(templateDescriptors);
         }
