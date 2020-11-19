@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref in the volume component list when there is no volume components in the project.
 - Fixed for light loop scalarization not happening. 
 - Fixed issues that lead to cookie atlas to be updated every frame even if cached data was valid.
+- Fixed an issue with opaque material using a shader graph with Transparent SurfaceType selected. FPTL was not working for this case.
 
 ### Changed
 - Remove MSAA debug mode when renderpipeline asset has no MSAA
