@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph  
 - Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
 - Fix multiple undos [Case 1262133](https://issuetracker.unity3d.com/product/unity/issues/guid/1262133/)
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [8.2.0] - 2020-07-08
 

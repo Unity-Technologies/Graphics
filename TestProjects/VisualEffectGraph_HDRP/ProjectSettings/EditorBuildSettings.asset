@@ -30,6 +30,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/008_AssetBundle.unity
     guid: 3144ec9758afdcf4482416ecbc5c193c
   - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/Shadergraph/Shadow/102_ShadergraphShadow.unity
+    guid: b5fab92e71d9dd747b87a111d703bd95
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/06_LineOutput.unity
     guid: ad1aa14fb546a3744b989a07c0415a94
   - enabled: 1
