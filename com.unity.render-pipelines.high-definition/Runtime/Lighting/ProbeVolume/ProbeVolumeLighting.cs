@@ -12,6 +12,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public bool IsValid() { return index != null && L0 != null && L1_R != null && L1_G != null && L1_B != null; }
             public void Clear() { index = null; L0 = L1_R = L1_G = L1_B = null; }
+
+            public void Cleanup()
+            {
+                CoreUtils.SafeRelease(index);
+                CoreUtils.Destroy(L0);
+                CoreUtils.Destroy(L1_R);
+                CoreUtils.Destroy(L1_G);
+                CoreUtils.Destroy(L1_B);
+
+                L0 = null;
+                L1_R = null;
+                L1_G = null;
+                L1_B = null;
+            }
         }
 
         APVRuntimeResources m_APVResources = new APVRuntimeResources();

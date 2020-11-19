@@ -23,6 +23,19 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int width  { get { return TexL0.width; } }
             internal int height { get { return TexL0.height; } }
             internal int depth  { get { return TexL0.depth; } }
+
+            internal void Cleanup()
+            {
+                CoreUtils.Destroy(TexL0);
+                CoreUtils.Destroy(TexL1_R);
+                CoreUtils.Destroy(TexL1_G);
+                CoreUtils.Destroy(TexL1_B);
+
+                TexL0 = null;
+                TexL1_R = null;
+                TexL1_G = null;
+                TexL1_B = null;
+            }
         }
 
         internal const int kBrickCellCount = 3;
@@ -232,6 +245,11 @@ namespace UnityEngine.Rendering.HighDefinition
             width  = 1024;
             height = 1024;
             depth  = kBrickProbeCountPerDim;
+        }
+
+        internal void Cleanup()
+        {
+            m_Pool.Cleanup();
         }
     }
 }

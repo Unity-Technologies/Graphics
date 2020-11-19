@@ -493,5 +493,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             Profiler.EndSample();
         }
+
+        internal void Cleanup()
+        {
+            m_Index.Cleanup();
+            m_Pool.Cleanup();
+        }
     }
 }

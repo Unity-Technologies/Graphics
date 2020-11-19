@@ -813,6 +813,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DestroySSSBuffers();
             m_SharedRTManager.Cleanup();
+            m_APVResources.Cleanup();
 
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);

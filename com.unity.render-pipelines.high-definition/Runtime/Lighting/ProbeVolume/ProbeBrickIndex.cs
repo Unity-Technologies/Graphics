@@ -663,5 +663,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr) { rr.index = m_IndexBuffer; }
+
+        internal void Cleanup()
+        {
+            CoreUtils.SafeRelease(m_IndexBuffer);
+            m_IndexBuffer = null;
+        }
     }
 }
