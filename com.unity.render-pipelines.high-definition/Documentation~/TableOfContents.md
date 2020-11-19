@@ -84,6 +84,10 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering)
     * [Diffusion Profile](Diffusion-Profile)
   * Shader List
+    * 3DSMaxPhysicalMaterial
+      * [PhysicalMaterial3DsMax](3ds-physical-shader)
+    * ArnoldStandardSurface
+      * [ArnoldStandardSurface](arnold-standard-surface-shader) 
     * Autodesk Interactive
       * [Autodesk Interactive Shader](Autodesk-Interactive-Shader)
       * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked)
