@@ -262,50 +262,50 @@ namespace UnityEngine.Rendering.HighDefinition
                 this.currentRenderTarget = ReadRenderTargets(builder, targets);
 
                 builder.SetRenderFunc(
-                (ExecutePassData data, RenderGraphContext ctx) =>
-                {
-                    var customPass = data.customPass;
-
-                    ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
-                    if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
-
-                    if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess))
-                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
-
-                    if (!customPass.isSetup)
+                    (ExecutePassData data, RenderGraphContext ctx) =>
                     {
-                        customPass.Setup(ctx.renderContext, ctx.cmd);
-                        customPass.isSetup = true;
-                        // TODO RENDERGRAPH: We still need to allocate this otherwise it would be null when switching off render graph (because isSetup stays true).
-                        // We can remove the member altogether when we remove the non render graph code path.
-                        customPass.userMaterialPropertyBlock = new MaterialPropertyBlock();
-                    }
+                        var customPass = data.customPass;
 
-                    customPass.SetCustomPassTarget(ctx.cmd);
+                        ctx.cmd.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)customPass.injectionPoint);
+                        if (customPass.currentRenderTarget.colorBufferRG.IsValid() && customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, customPass.currentRenderTarget.colorBufferRG);
 
-                    var outputColorBuffer = customPass.currentRenderTarget.colorBufferRG;
+                        if (customPass.currentRenderTarget.motionVectorBufferRG.IsValid() && (customPass.injectionPoint == CustomPassInjectionPoint.BeforePostProcess || customPass.injectionPoint == CustomPassInjectionPoint.AfterPostProcess))
+                            ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, customPass.currentRenderTarget.motionVectorBufferRG);
 
-                    // Create the custom pass context:
-                    CustomPassContext customPassCtx = new CustomPassContext(
-                        ctx.renderContext, ctx.cmd, data.hdCamera,
-                        data.cullingResult,
-                        outputColorBuffer,
-                        customPass.currentRenderTarget.depthBufferRG,
-                        customPass.currentRenderTarget.normalBufferRG,
-                        customPass.currentRenderTarget.customColorBuffer,
-                        customPass.currentRenderTarget.customDepthBuffer,
-                        ctx.renderGraphPool.GetTempMaterialPropertyBlock()
+                        if (!customPass.isSetup)
+                        {
+                            customPass.Setup(ctx.renderContext, ctx.cmd);
+                            customPass.isSetup = true;
+                            // TODO RENDERGRAPH: We still need to allocate this otherwise it would be null when switching off render graph (because isSetup stays true).
+                            // We can remove the member altogether when we remove the non render graph code path.
+                            customPass.userMaterialPropertyBlock = new MaterialPropertyBlock();
+                        }
+
+                        customPass.SetCustomPassTarget(ctx.cmd);
+
+                        var outputColorBuffer = customPass.currentRenderTarget.colorBufferRG;
+
+                        // Create the custom pass context:
+                        CustomPassContext customPassCtx = new CustomPassContext(
+                            ctx.renderContext, ctx.cmd, data.hdCamera,
+                            data.cullingResult,
+                            outputColorBuffer,
+                            customPass.currentRenderTarget.depthBufferRG,
+                            customPass.currentRenderTarget.normalBufferRG,
+                            customPass.currentRenderTarget.customColorBuffer,
+                            customPass.currentRenderTarget.customDepthBuffer,
+                            ctx.renderGraphPool.GetTempMaterialPropertyBlock()
                         );
 
-                    customPass.isExecuting = true;
-                    customPass.Execute(customPassCtx);
-                    customPass.isExecuting = false;
+                        customPass.isExecuting = true;
+                        customPass.Execute(customPassCtx);
+                        customPass.isExecuting = false;
 
-                    // Set back the camera color buffer if we were using a custom buffer as target
-                    if (customPass.targetDepthBuffer != TargetBuffer.Camera)
-                        CoreUtils.SetRenderTarget(ctx.cmd, outputColorBuffer);
-                });
+                        // Set back the camera color buffer if we were using a custom buffer as target
+                        if (customPass.targetDepthBuffer != TargetBuffer.Camera)
+                            CoreUtils.SetRenderTarget(ctx.cmd, outputColorBuffer);
+                    });
             }
         }
 
@@ -331,8 +331,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // if MSAA is enabled and the current injection point is before transparent.
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             msaa &= injectionPoint == CustomPassInjectionPoint.BeforePreRefraction
-                 || injectionPoint == CustomPassInjectionPoint.BeforeTransparent
-                 || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;
+                || injectionPoint == CustomPassInjectionPoint.BeforeTransparent
+                || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;
 
             return msaa;
         }
@@ -395,7 +395,7 @@ namespace UnityEngine.Rendering.HighDefinition
         protected virtual void Execute(CustomPassContext ctx)
         {
 #pragma warning disable CS0618 // Member is obsolete
-                Execute(ctx.renderContext, ctx.cmd, ctx.hdCamera, ctx.cullingResults);
+            Execute(ctx.renderContext, ctx.cmd, ctx.hdCamera, ctx.cullingResults);
 #pragma warning restore CS0618
         }
 

@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         [SerializeField]
         private ScreenSpaceType m_ScreenSpaceType = ScreenSpaceType.Default;
 

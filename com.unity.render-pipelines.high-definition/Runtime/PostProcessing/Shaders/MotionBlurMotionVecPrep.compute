@@ -40,9 +40,9 @@ float2 GetDeltaNDCVec(float4 positionWS, float4 prevPosWS, float4x4 currM, float
 
     clipWP.xy /= clipWP.w;
     clipPrevWP.xy /= clipPrevWP.w;
-    
+
     float2 outDeltaVec = (clipWP.xy - clipPrevWP.xy);
-    outDeltaVec *= 0.5f; 
+    outDeltaVec *= 0.5f;
 
 #if UNITY_UV_STARTS_AT_TOP
     outDeltaVec.y = -outDeltaVec.y;
@@ -55,7 +55,7 @@ float2 GetDeltaNDCVec(float4 positionWS, float4 prevPosWS, float4x4 currM, float
 // Prep motion vectors so that the velocity due to rotation is clamped more lightly
 // A bit of code duplication but keeping separate make it clearer.
 
-#ifdef NO_SPECIAL_CLAMP 
+#ifdef NO_SPECIAL_CLAMP
 
 float2 ComputeMotionVec(PositionInputs posInput, float2 sampledMotionVec)
 {
@@ -135,7 +135,7 @@ float2 ComputeMotionVec(PositionInputs posInput, float2 sampledMotionVec)
 
 #else
 
-#error 
+#error
 
 #endif
 
@@ -146,7 +146,7 @@ void MotionVecPreppingCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float3 motionVecAndDepth = 0.0f;
     float4 motionVecBufferSample = LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, dispatchThreadId.xy);
-    // if we have a value > 1.0f, it means we have selected the "no motion option", hence we force motionVec 0. 
+    // if we have a value > 1.0f, it means we have selected the "no motion option", hence we force motionVec 0.
     bool forceNoMotion = PixelSetAsNoMotionVectors(motionVecBufferSample);
 
     float2 motionVec;

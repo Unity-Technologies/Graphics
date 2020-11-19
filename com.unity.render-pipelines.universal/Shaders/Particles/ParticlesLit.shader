@@ -119,7 +119,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
-	    // ------------------------------------------------------------------
+        // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
         {

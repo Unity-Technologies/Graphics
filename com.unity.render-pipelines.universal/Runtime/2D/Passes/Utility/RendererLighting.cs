@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
-            while(lightIndex < lights.Count)
+            while (lightIndex < lights.Count)
             {
                 var remainingLights = (uint)lights.Count - lightIndex;
                 var batchedLights = 0;
@@ -260,7 +260,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
 
                 // Release all of the temporary shadow textures
-                for (var releaseIndex = shadowLightCount-1; releaseIndex >= 0; releaseIndex--)
+                for (var releaseIndex = shadowLightCount - 1; releaseIndex >= 0; releaseIndex--)
                     ShadowRendering.ReleaseShadowRenderTexture(cmd, releaseIndex);
 
                 lightIndex += batchedLights;
@@ -281,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Break up light rendering into batches for the purpose of shadow casting
             var lightIndex = 0;
-            while(lightIndex < lights.Count)
+            while (lightIndex < lights.Count)
             {
                 var remainingLights = (uint)lights.Count - lightIndex;
                 var batchedLights = 0;
@@ -528,7 +528,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         i,
                         cmd,
                         layerToRender,
-                            identifier,
+                        identifier,
                         pass.rendererData.lightCullResult.visibleLights
                     );
                 }

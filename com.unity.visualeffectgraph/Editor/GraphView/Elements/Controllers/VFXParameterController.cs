@@ -132,6 +132,7 @@ namespace UnityEditor.VFX.UI
             expanded = false;
             NotifyChange(ExpandedChange);
         }
+
         void IPropertyRMProvider.StartLiveModification() { m_Parameter.viewController.errorRefresh = false; }
         void IPropertyRMProvider.EndLiveModification() { m_Parameter.viewController.errorRefresh = true; }
 
@@ -230,8 +231,8 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-        void IPropertyRMProvider.StartLiveModification() { }
-        void IPropertyRMProvider.EndLiveModification() { }
+        void IPropertyRMProvider.StartLiveModification() {}
+        void IPropertyRMProvider.EndLiveModification() {}
     }
 
     class VFXMinMaxParameterController : IPropertyRMProvider
@@ -333,8 +334,9 @@ namespace UnityEditor.VFX.UI
         {
             throw new NotImplementedException();
         }
-        void IPropertyRMProvider.StartLiveModification() { }
-        void IPropertyRMProvider.EndLiveModification() { }
+
+        void IPropertyRMProvider.StartLiveModification() {}
+        void IPropertyRMProvider.EndLiveModification() {}
     }
     class VFXParameterController : VFXController<VFXParameter>, IPropertyRMProvider, IGizmoController, IGizmoable
     {
@@ -406,6 +408,7 @@ namespace UnityEditor.VFX.UI
                 return;
             NotifyChange(ValueChanged);
         }
+
         IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
 
         Dictionary<string, VFXSubParameterController> m_ChildrenByPath = new Dictionary<string, VFXSubParameterController>();
@@ -747,10 +750,10 @@ namespace UnityEditor.VFX.UI
                         value = maxValue;
                     }
                 }
-                else if(valueFilter == VFXValueFilter.Enum)
+                else if (valueFilter == VFXValueFilter.Enum)
                 {
                     if ((uint)value >= model.enumValues.Count)
-                        value = (uint)(model.enumValues.Count -1);
+                        value = (uint)(model.enumValues.Count - 1);
                 }
 
                 Undo.RecordObject(slot, "VFXSlotValue"); // The slot value is stored on the master slot, not necessarly my own slot
@@ -920,7 +923,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (valueFilter == VFXValueFilter.Range)
                     return new VFXPropertyAttributes(new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)));
-                else if( valueFilter == VFXValueFilter.Enum)
+                else if (valueFilter == VFXValueFilter.Enum)
                     return new VFXPropertyAttributes(new EnumAttribute(model.enumValues.ToArray()));
                 return new VFXPropertyAttributes();
             }

@@ -1,4 +1,3 @@
-﻿
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class TabbedView : VisualElement
 {
-    public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> { }
+    public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> {}
 
     private const string k_styleName = "TabbedView";
     private const string s_UssClassName = "unity-tabbed-view";
@@ -44,11 +43,11 @@ public class TabbedView : VisualElement
     {
         m_Tabs.Add(tabButton);
         m_TabContent.Add(tabButton);
-        
+
         tabButton.OnClose += RemoveTab;
         tabButton.OnSelect += Activate;
 
-        if(activate)
+        if (activate)
         {
             Activate(tabButton);
         }
@@ -59,24 +58,24 @@ public class TabbedView : VisualElement
         int index = m_Tabs.IndexOf(tabButton);
 
         // If this tab is the active one make sure we deselect it first...
-        if(m_ActiveTab == tabButton)
+        if (m_ActiveTab == tabButton)
         {
             DeselectTab(tabButton);
             m_ActiveTab = null;
         }
-        
+
         m_Tabs.RemoveAt(index);
         m_TabContent.Remove(tabButton);
 
         tabButton.OnClose -= RemoveTab;
         tabButton.OnSelect -= Activate;
-        
+
         // If we closed the active tab AND we have any tabs left - active the next valid one...
-        if((m_ActiveTab == null) && m_Tabs.Any())
+        if ((m_ActiveTab == null) && m_Tabs.Any())
         {
             int clampedIndex = Mathf.Clamp(index, 0, m_Tabs.Count - 1);
             TabButton tabToActivate = m_Tabs[clampedIndex];
-                
+
             Activate(tabToActivate);
         }
     }
@@ -87,12 +86,12 @@ public class TabbedView : VisualElement
         for (int i = 0; i < m_Content.childCount; ++i)
         {
             VisualElement element = m_Content[i];
-            
+
             if (element is TabButton button)
             {
                 m_Content.Remove(element);
 
-                if(button.Target == null)
+                if (button.Target == null)
                 {
                     string targetId = button.TargetId;
 
@@ -115,7 +114,7 @@ public class TabbedView : VisualElement
         else if (m_TabContent.childCount > 0)
         {
             m_ActiveTab = (TabButton)m_TabContent[0];
-            
+
             SelectTab(m_ActiveTab);
         }
     }
@@ -135,10 +134,10 @@ public class TabbedView : VisualElement
         Remove(target);
         tabButton.Deselect();
     }
-    
+
     public void Activate(TabButton button)
     {
-        if(m_ActiveTab != null)
+        if (m_ActiveTab != null)
         {
             DeselectTab(m_ActiveTab);
         }
