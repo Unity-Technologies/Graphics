@@ -47,8 +47,6 @@
 #define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 #endif
 
-
-
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)

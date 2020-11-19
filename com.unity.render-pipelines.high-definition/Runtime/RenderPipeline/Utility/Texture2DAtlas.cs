@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
         protected GraphicsFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<int, Vector4> m_AllocationCache = new Dictionary<int, Vector4>();
-        private Dictionary<int, uint> m_IsGPUTextureUpToDate = new Dictionary<int, uint>();
+        private Dictionary<int, int> m_IsGPUTextureUpToDate = new Dictionary<int, int>();
         private Dictionary<int, int> m_TextureHashes = new Dictionary<int, int>();
 
         static readonly Vector4 fullScaleOffset = new Vector4(1, 1, 0, 0);
@@ -243,7 +243,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false) => m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? 2u : 1u;
+        protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false)
+        {
+            m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? 2 : 1;
+        }
 
         protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = 0;
 
@@ -297,6 +300,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
+#if UNITY_EDITOR
+                hash = hash * 23 + texture.imageContentsHash.GetHashCode();
+#endif
+                hash = hash * 23 + texture.GetInstanceID().GetHashCode();
                 hash = hash * 23 + texture.graphicsFormat.GetHashCode();
                 hash = hash * 23 + texture.wrapMode.GetHashCode();
                 hash = hash * 23 + texture.width.GetHashCode();
@@ -318,16 +325,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update the render texture if needed
             if (rt != null)
             {
-                uint updateCount;
+                int updateCount;
                 if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = rt.updateCount;
+                    m_IsGPUTextureUpToDate[key] = updateCount;
                     if (rt.updateCount != updateCount)
                         return true;
                 }
                 else
                 {
-                    m_IsGPUTextureUpToDate[key] = rt.updateCount;
+                    m_IsGPUTextureUpToDate[key] = (int)rt.updateCount;
                 }
             }
             // In case the texture settings/import settings have changed, we need to update it
