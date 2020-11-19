@@ -6,7 +6,7 @@ LightingSettings:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Lighting Settings 1 Draft
+  m_Name: LightingSettings2Medium
   serializedVersion: 3
   m_GIWorkflowMode: 1
   m_EnableBakedLightmaps: 1
@@ -18,8 +18,8 @@ LightingSettings:
   m_UsingShadowmask: 0
   m_BakeBackend: 2
   m_LightmapMaxSize: 1024
-  m_BakeResolution: 10
-  m_Padding: 2
+  m_BakeResolution: 40
+  m_Padding: 5
   m_TextureCompression: 1
   m_AO: 0
   m_AOMaxDistance: 1
@@ -40,13 +40,13 @@ LightingSettings:
   m_FinalGatherFiltering: 1
   m_PVRCulling: 0
   m_PVRSampling: 1
-  m_PVRDirectSampleCount: 25
-  m_PVRSampleCount: 100
-  m_PVREnvironmentSampleCount: 25
+  m_PVRDirectSampleCount: 50
+  m_PVRSampleCount: 250
+  m_PVREnvironmentSampleCount: 50
   m_PVREnvironmentReferencePointCount: 2048
-  m_LightProbeSampleCountMultiplier: 4
-  m_PVRBounces: 3
-  m_PVRMinBounces: 1
+  m_LightProbeSampleCountMultiplier: 6
+  m_PVRBounces: 4
+  m_PVRMinBounces: 2
   m_PVREnvironmentMIS: 0
   m_PVRFilteringMode: 2
   m_PVRDenoiserTypeDirect: 1
