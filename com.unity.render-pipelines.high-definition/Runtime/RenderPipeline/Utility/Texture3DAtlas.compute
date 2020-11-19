@@ -9,10 +9,14 @@ RWTexture3D<float4> _Dst3DTexture;
 float3              _DstOffset;
 float               _SrcMip;
 float               _AlphaOnlyTexture;
+uint                _SrcSize;
 
 [numthreads(8,8,8)]
 void Copy(uint3 id : SV_DispatchThreadID)
 {
+    if (any(id >= _SrcSize))
+        return;
+
     float4 value = LOAD_TEXTURE3D_LOD(_Src3DTexture, id, _SrcMip);
 
     if (_AlphaOnlyTexture)
@@ -21,7 +25,6 @@ void Copy(uint3 id : SV_DispatchThreadID)
         _Dst3DTexture[id + _DstOffset] = value;
 }
 
-uint                _SrcSize;
 float3              _SrcScale;
 float3              _SrcOffset;
 SAMPLER(s_linear_clamp_sampler);

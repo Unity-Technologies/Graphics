@@ -76,6 +76,7 @@ float ComputeFadeFactor(float3 coordNDC, float dist,
 
 float4 SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
 {
+    // TODO: compute max LOD from the current volume size
     float maxLod         = 5; //_VolumeMaskDimensions.w;
     // TODO: expose the LoD bias parameter.
     float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, volumeData.maskResolution);
@@ -97,12 +98,6 @@ float4 SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterND
     float3 voxelCenterUVW = frac(voxelCenterNDC * volumeData.textureTiling + volumeData.textureScroll);
     voxelCenterUVW = clamp(voxelCenterUVW, halfTexelSize, 1 - halfTexelSize);
 
-    // float atlasWidth   = _VolumeMaskDimensions.x;
-    // float atlasHeight  = _VolumeMaskDimensions.y;
-    // float atlasDepth   = _VolumeMaskDimensions.z;
-    // TODO: compute max LOD from the current volume size
-
-    // Apply volume atlas offset
     // And then a scale depending on the atlas resolution.
     // Note that the z coordinate is never scaled or offseted because we don't store textures in thsi direction.
     voxelCenterUVW /= _VolumeMaskDimensions.xyz / volumeData.maskResolution;

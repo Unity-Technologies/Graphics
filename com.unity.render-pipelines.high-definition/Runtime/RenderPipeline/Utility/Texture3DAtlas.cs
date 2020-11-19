@@ -99,7 +99,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_GenerateMipKernel;
         Vector3Int m_KernelGroupSize;
 
-        bool m_updateAtlas = false;
         int m_MaxElementSize = 0;
         int m_MaxElementCount = 0;
         bool m_HasMipMaps = false;
@@ -394,8 +393,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     GenerateMip(cmd, element.texture, Vector3Int.zero, 0, m_Atlas, element.position, 1);
 
                     MipGenerationSwapData source = new MipGenerationSwapData{ target = m_Atlas, offset = element.position, mipOffset = 0};
-                     // m_MipMapGenerationTemp is allocated in quater res to save memory so we need to apply a mip offset when writing to it  .
-                    MipGenerationSwapData destination = new MipGenerationSwapData{ target = m_MipMapGenerationTemp, offset = Vector3Int.zero, mipOffset = -2};
+                    // m_MipMapGenerationTemp is allocated in quater res to save memory so we need to apply a mip offset when writing to it.
+                    int tempMipOffset = (int)Mathf.Log((m_MipMapGenerationTemp.width / (element.size >> 2)), 2);
+                    MipGenerationSwapData destination = new MipGenerationSwapData{ target = m_MipMapGenerationTemp, offset = Vector3Int.zero, mipOffset = tempMipOffset - 2};
 
                     for (int i = 2; i < mipMapCount; i++)
                     {
@@ -411,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 2; i < mipMapCount; i += 2)
                     {
                         var mipPos = new Vector3Int((int)element.position.x >> i, (int)element.position.y >> i, (int)element.position.z >> i);
-                        CopyMip(cmd, m_MipMapGenerationTemp, i - 2, m_Atlas, mipPos, i);
+                        CopyMip(cmd, m_MipMapGenerationTemp, i - 2 + tempMipOffset, m_Atlas, mipPos, i);
                     }
                 }
             }
@@ -441,6 +441,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeFloatParam(m_Texture3DAtlasCompute, HDShaderIDs._AlphaOnlyTexture, alphaOnly ? 1 : 0);
 
             int mipMapSize = (int)source.width >> sourceMip; // We assume that the texture is POT
+            cmd.SetComputeIntParam(m_Texture3DAtlasCompute, HDShaderIDs._SrcSize, mipMapSize);
+
             cmd.DispatchCompute(
                 m_Texture3DAtlasCompute,
                 m_CopyKernel,
@@ -456,14 +458,22 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector3 offset = new Vector3(sourceOffset.x / (float)source.width, sourceOffset.y / (float)source.height, sourceOffset.z / (float)GetTextureDepth(source));
             Vector3Int dstOffset = new Vector3Int(destinationOffset.x >> destinationMip, destinationOffset.y >> destinationMip, destinationOffset.z >> destinationMip);
 
-            Vector3Int sourceTextureMipSize = new Vector3Int(source.width >> (sourceMip + 1), source.height >> (sourceMip + 1), GetTextureDepth(source) >> (sourceMip + 1));
+            Vector3Int minSourceSize = new Vector3Int(Mathf.Min(source.width, destination.width), Mathf.Min(source.height, destination.height), Mathf.Min(GetTextureDepth(source), GetTextureDepth(destination)));
+            // Vector3Int sourceTextureMipSize = new Vector3Int(minSourceSize.x >> sourceMip, minSourceSize.y >> sourceMip, minSourceSize.z >> sourceMip);
             Vector3Int destinationTextureMipSize = new Vector3Int(destination.width >> destinationMip, destination.height >> destinationMip, GetTextureDepth(destination) >> destinationMip);
 
-            Vector3 scale = new Vector3(
-                Mathf.Min(destinationTextureMipSize.x / (float)sourceTextureMipSize.x, 1),
-                Mathf.Min(destinationTextureMipSize.y / (float)sourceTextureMipSize.y, 1),
-                Mathf.Min(destinationTextureMipSize.z / (float)sourceTextureMipSize.y, 1)
-            );
+            Vector3 scale = Vector3.one;
+            
+            Vector3Int sourceMipSize = new Vector3Int(source.width >> (sourceMip + 1), source.height >> (sourceMip + 1), GetTextureDepth(source) >> (sourceMip + 1));
+            Vector3Int destinationMipSize = new Vector3Int(destination.width >> destinationMip, destination.height >> destinationMip, GetTextureDepth(destination) >> destinationMip);
+            // if (source.width > destination.width)
+            // {
+            scale = new Vector3(
+                    Mathf.Min((float)destinationMipSize.x / sourceMipSize.x, 1),
+                    Mathf.Min((float)destinationMipSize.y / sourceMipSize.y, 1),
+                    Mathf.Min((float)destinationMipSize.z / sourceMipSize.z, 1)
+                );
+            // }
 
             cmd.SetComputeTextureParam(m_Texture3DAtlasCompute, m_GenerateMipKernel, HDShaderIDs._Src3DTexture, source);
             cmd.SetComputeVectorParam(m_Texture3DAtlasCompute, HDShaderIDs._SrcScale, scale);
@@ -473,7 +483,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(m_Texture3DAtlasCompute, m_GenerateMipKernel, HDShaderIDs._Dst3DTexture, destination, destinationMip);
             cmd.SetComputeVectorParam(m_Texture3DAtlasCompute, HDShaderIDs._DstOffset, (Vector3)dstOffset);
 
-            int mipMapSize = GetTextureDepth(destination) >> destinationMip; // We assume that the texture is POT
+            // This is not correct when the atlas is the destination, we can compute it using the min of mip source size and dest mip side.
+            int mipMapSize = Mathf.Min(GetTextureDepth(source) >> (sourceMip + 1), GetTextureDepth(destination) >> (destinationMip));
             cmd.SetComputeIntParam(m_Texture3DAtlasCompute, HDShaderIDs._SrcSize, mipMapSize);
 
             bool alphaOnly = (source is Texture3D t) && t.format == TextureFormat.Alpha8;
