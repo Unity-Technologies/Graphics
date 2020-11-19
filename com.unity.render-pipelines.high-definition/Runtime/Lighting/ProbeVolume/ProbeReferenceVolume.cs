@@ -348,48 +348,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Runtime API starts here
-        public void AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
-        {
-            Profiler.BeginSample("AddBricks");
-            m_TmpSrcChunks.Clear();
-            m_TmpDstChunks.Clear();
-
-            // calculate the number of chunks necessary
-            int chunk_size = m_Pool.GetChunkSize();
-            m_Pool.Allocate((bricks.Count + chunk_size - 1) / chunk_size, m_TmpDstChunks);
-
-            // fill m_TmpSrcChunks
-            m_TmpSrcChunks.Capacity = m_TmpDstChunks.Count;
-            Chunk c;
-            c.x = 0;
-            c.y = 0;
-            c.z = 0;
-
-            // currently this code assumes that the texture width is a multiple of the allocation chunk size
-            for (int i = 0; i < m_TmpDstChunks.Count; i++)
-            {
-                m_TmpSrcChunks.Add(c);
-                c.x += chunk_size * ProbeBrickPool.kBrickProbeCountPerDim;
-                if (c.x >= dataloc.width)
-                {
-                    c.x = 0;
-                    c.y += ProbeBrickPool.kBrickProbeCountPerDim;
-                    if (c.y >= dataloc.height)
-                    {
-                        c.y = 0;
-                        c.z += ProbeBrickPool.kBrickProbeCountPerDim;
-                    }
-                }
-            }
-
-            // Update the pool and index and ignore any potential frame latency related issues
-            m_Pool.Update(dataloc, m_TmpSrcChunks, m_TmpDstChunks);
-            m_Index.AddBricks(bricks, m_TmpDstChunks, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
-            m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
-            Profiler.EndSample();
-        }
-
-        public RegId AddBricks2(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        public RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -433,7 +392,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Registry.Add(id, ch_list);
 
             // update the index
-            m_Index.AddBricks2(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+            m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
             m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
 
             Profiler.EndSample();
