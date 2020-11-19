@@ -1,7 +1,8 @@
 using System.IO;
-using UnityEditor.AssetImporters;
 using UnityEngine;
-using UnityEditor.Experimental.AssetImporters;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
 { 
@@ -37,6 +38,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(HDRenderPipelineAsset))
+                return;
+
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
             if (lowerCasePath == ".fbx")
             {

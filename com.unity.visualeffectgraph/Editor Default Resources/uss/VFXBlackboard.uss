@@ -1,6 +1,19 @@
-.blackboard *
+VFXBlackboard.blackboard
 {
     font-size: 11px;
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+}
+
+.blackboard > .mainContainer
+{
+    background-color: #2b2b2b;
+    border-color: #191919;
+    margin-left:6px;
+    margin-right:6px;
+    margin-top:6px;
+    margin-bottom:6px;
+    border-radius: 5px;
 }
 
 #vfx-properties

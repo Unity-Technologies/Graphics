@@ -5,9 +5,52 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [8.3.1] - 2020-07-23
+
+### Added
+- New WorldToViewportPoint operator
+- New ViewportToWorldPoint operator
+
 ### Fixed
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Handle correctly disabled alphaTreshold material slot in shaderGraph.
+- Fix for node window staying when clicking elsewhere
+- Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
+- Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
+- Normals with non uniform scales are correctly computed [Case 1246989](https://issuetracker.unity3d.com/product/unity/issues/guid/1246989/)
+- Fix exposed Texture2DArray and Cubemap types from shader graph not being taken into account in Output Mesh [Case 1265221](https://issuetracker.unity3d.com/product/unity/issues/guid/1265221/)
+- Optimize display of inspector when there is a lot of exposed VFX properties.
+- Correctly frame the whole graph, when opening the Visual Effect Editor
+- fix issue with multiselection and objectfields [Case 1250378](https://issuetracker.unity3d.com/issues/vfx-removing-texture-asset-while-multiediting-working-incorrectly)
+- GPU Evaluation of Construct Matrix
+- Random Per-Component on Set Attribute in Spawn Context [Case 1279294](https://issuetracker.unity3d.com/product/unity/issues/guid/1279294/)
+- Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
+- Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
+- Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
+- Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Forbid creation of context in VisualEffectSubgraphBlock through edge dropping. No context should be allowed.
+- Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
+- Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
+- Fix [Case 1219072](https://issuetracker.unity3d.com/product/unity/issues/guid/1219072/)
+- Fix [Case 1211372](https://issuetracker.unity3d.com/product/unity/issues/guid/1211372/)
+- Fix [Case 1262961](https://issuetracker.unity3d.com/product/unity/issues/guid/1262961/)
+- Fix [Case 1199540](https://issuetracker.unity3d.com/product/unity/issues/guid/1199540/)
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
+- Fix for VisualEffect prefab override window [Case 1242693](https://issuetracker.unity3d.com/product/unity/issues/guid/1242693/)
+- Fix edited operator being collapsed [Case 1270517](https://issuetracker.unity3d.com/product/unity/issues/guid/1270517/)
+- "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
+- Property Binder : Incorrect Destroy called from edit mode. [Case 1274790](https://issuetracker.unity3d.com/product/unity/issues/guid/1274790/)
+- Property Binder : Unexpected null reference exception while using terrain binder. [Case 1247230](https://issuetracker.unity3d.com/product/unity/issues/guid/1247230/)
+- Property Binder : HierarchyRoot null reference exception while using Hierarchy to Attribute Map. [Case 1274788](https://issuetracker.unity3d.com/product/unity/issues/guid/1274788/)
+- Property Binder : Properties window isn't always up to date. [Case 1248711](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Property Binder : Avoid Warning while building on Mobile "Presence of such handlers might impact performance on handheld devices." when building for Android" [Case 1279471](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fixed rare bug causing the vfx compilation to do nothing silently.
+- Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph  
+- Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
+- Fix multiple undos [Case 1262133](https://issuetracker.unity3d.com/product/unity/issues/guid/1262133/)
 - Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [8.2.0] - 2020-07-08

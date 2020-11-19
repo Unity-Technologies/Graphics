@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
         void OnEnable()
         {
             if (Resources.FindObjectsOfTypeAll<VFXResources>().Length > 1)
-                Debug.LogError("Having more than one VFXResources in you project is unsupported");
+                Debug.LogError("Having more than one VFXResources in your project is unsupported");
             s_Instance = this;
         }
 

@@ -50,3 +50,8 @@ You can use the following defines to include or exclude code from your scripts.
 * ENABLE_VR: The C++ side of the engine sets this define to indicate if the platform supports VR.
 * ENABLE_VR_MODULE: Unity sets this define if your Project includes the [built-in VR module com.unity.modules.vr](https://docs.unity3d.com/Manual/upm-ui-disable.html).
 * ENABLE_XR_MODULE: Unity sets this define if your Project includes the [built-in XR module com.unity.modules.xr](https://docs.unity3d.com/Manual/upm-ui-disable.html).
+
+## Known issues
+
+With single-pass rendering, some shaders external to HDRP (like TextMesh Pro) might only render on one eye.
+This issue has been resolved in the next version of HDRP (10.x and above).
