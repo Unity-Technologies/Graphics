@@ -364,17 +364,17 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
 // #undef EVALUATE_BSDF_ENV
 // #undef EVALUATE_BSDF_ENV_SKY
 
-//     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
-//     {
-//         for (i = 0; i < _DirectionalLightCount; ++i)
-//         {
-//             if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, builtinData.renderingLayers))
-//             {
-//                 DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightData[i], bsdfData, builtinData);
-//                 AccumulateDirectLighting(lighting, aggregateLighting);
-//             }
-//         }
-//     }
+    if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
+    {
+        for (i = 0; i < _DirectionalLightCount; ++i)
+        {
+            if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, builtinData.renderingLayers))
+            {
+                DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightData[i], bsdfData, builtinData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
+            }
+        }
+    }
 
 #if SHADEROPTIONS_AREA_LIGHTS
     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
