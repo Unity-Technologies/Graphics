@@ -90,7 +90,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             var count = cachedSortingLayers.Length;
             var needInit = s_LayerBatches == null;
-            s_LayerBatches ??= new LayerBatch[count];
+            if (s_LayerBatches is null)
+            {
+                s_LayerBatches = new LayerBatch[count];
+            }
 
 #if UNITY_EDITOR
             // we should fix. Make a non allocating version of this

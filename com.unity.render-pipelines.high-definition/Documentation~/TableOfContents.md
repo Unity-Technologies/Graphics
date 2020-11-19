@@ -35,6 +35,23 @@
       * [Screen Space Refraction](Override-Screen-Space-Refraction.md)
     * Material
       * [Diffusion Profile](Override-Diffusion-Profile.md)
+    * Post-processing
+      * [Bloom](Post-Processing-Bloom.md)
+      * [Channel Mixer](Post-Processing-Channel-Mixer.md)
+      * [Chromatic Aberration](Post-Processing-Chromatic-Aberration.md)
+      * [Color Adjustments](Post-Processing-Color-Adjustments.md)
+      * [Color Curves](Post-Processing-Color-Curves.md)
+      * [Depth of Field](Post-Processing-Depth-of-Field.md)
+      * [Film Grain](Post-Processing-Film-Grain.md)
+      * [Lens Distortion](Post-Processing-Lens-Distortion.md)
+      * [Lift, Gamma, Gain](Post-Processing-Lift-Gamma-Gain.md)
+      * [Motion Blur](Post-Processing-Motion-Blur.md)
+      * [Panini Projection](Post-Processing-Panini-Projection.md)
+      * [Shadows, Midtones, Highlights](Post-Processing-Shadows-Midtones-Highlights.md)
+      * [Split Toning](Post-Processing-Split-Toning.md)
+      * [Tonemapping](Post-Processing-Tonemapping.md)
+      * [Vignette](Post-Processing-Vignette.md)
+      * [White Balance](Post-Processing-White-Balance.md)
     * Shadowing
       * [Contact Shadows](Override-Contact-Shadows.md)
       * [Micro Shadows](Override-Micro-Shadows.md)
@@ -67,6 +84,10 @@
     * [Subsurface Scattering Materials](Subsurface-Scattering.md)
     * [Diffusion Profile](Diffusion-Profile.md)
   * Shader List
+    * 3DSMaxPhysicalMaterial
+      * [PhysicalMaterial3DsMax](3ds-physical-shader)
+    * ArnoldStandardSurface
+      * [ArnoldStandardSurface](arnold-standard-surface-shader) 
     * Autodesk Interactive
       * [Autodesk Interactive Shader](Autodesk-Interactive-Shader.md)
       * [Autodesk Interactive Masked Shader](Autodesk-Interactive-Shader-Masked.md)
@@ -120,26 +141,9 @@
   * [Alpha Output](Alpha-Output.md)
   * [Arbitrary Output Variables](AOVs.md)
   * [Multiframe Rendering and Accumulation](Accumulation.md)
-* Post-processing
-  * [Post-processing in HDRP](Post-Processing-Main.md)
+* [Post-processing](Post-Processing-Main.md)
   * [Effect Execution Order](Post-Processing-Execution-Order.md)
-  * Effect List
-    * [Bloom](Post-Processing-Bloom.md)
-    * [Channel Mixer](Post-Processing-Channel-Mixer.md)
-    * [Chromatic Aberration](Post-Processing-Chromatic-Aberration.md)
-    * [Color Adjustments](Post-Processing-Color-Adjustments.md)
-    * [Color Curves](Post-Processing-Color-Curves.md)
-    * [Depth of Field](Post-Processing-Depth-of-Field.md)
-    * [Film Grain](Post-Processing-Film-Grain.md)
-    * [Lens Distortion](Post-Processing-Lens-Distortion.md)
-    * [Lift, Gamma, Gain](Post-Processing-Lift-Gamma-Gain.md)
-    * [Motion Blur](Post-Processing-Motion-Blur.md)
-    * [Panini Projection](Post-Processing-Panini-Projection.md)
-    * [Shadows, Midtones, Highlights](Post-Processing-Shadows-Midtones-Highlights.md)
-    * [Split Toning](Post-Processing-Split-Toning.md)
-    * [Tonemapping](Post-Processing-Tonemapping.md)
-    * [Vignette](Post-Processing-Vignette.md)
-    * [White Balance](Post-Processing-White-Balance.md)
+  * [Effect List](post-processing-effect-list.md)
   * Authoring Lookup Textures
     * [Overview](Authoring-LUTs.md)
     * [Authoring in Adobe Photoshop](LUT-Authoring-Photoshop.md)
