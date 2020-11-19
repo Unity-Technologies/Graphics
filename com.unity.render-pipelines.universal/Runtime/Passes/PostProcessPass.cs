@@ -74,6 +74,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Option to use procedural draw instead of cmd.blit
         bool m_UseDrawProcedural;
 
+        // Use Fast conversions between SRGB and Linear
+        bool m_UseFastSRGBLinearConversion;
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -208,6 +211,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Tonemapping         = stack.GetComponent<Tonemapping>();
             m_FilmGrain           = stack.GetComponent<FilmGrain>();
             m_UseDrawProcedural   = renderingData.cameraData.xr.enabled;
+            m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
             if (m_IsFinalPass)
             {
@@ -420,13 +424,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-                if(renderingData.postProcessingData.useFastSRGBLinearConversion)
+                if(m_UseFastSRGBLinearConversion)
                 {
-                    Shader.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
-                }
-                else
-                {
-                    Shader.DisableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
+                    m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
                 // Done with Uber, blit it
@@ -744,6 +744,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             float maxRadius = GetMaxBokehRadiusInPixels(m_Descriptor.height);
             float rcpAspect = 1f / (wh / (float)hh);
 
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseFastSRGBLinearConversion, m_UseFastSRGBLinearConversion);
             cmd.SetGlobalVector(ShaderConstants._CoCParams, new Vector4(P, maxCoC, maxRadius, rcpAspect));
 
             // Prepare the bokeh kernel constant buffer
