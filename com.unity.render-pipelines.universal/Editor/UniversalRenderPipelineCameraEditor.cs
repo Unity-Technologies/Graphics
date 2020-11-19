@@ -841,7 +841,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_AdditionalCameraDataStopNaN, Styles.stopNaN);
                 showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataStopNaN.boolValue);
                 EditorGUILayout.PropertyField(m_AdditionalCameraDataDithering, Styles.dithering);
-                ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataStopNaN.boolValue);
+                ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataDithering.boolValue);
             }
         }
 
