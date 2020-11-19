@@ -498,8 +498,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     builtinData.bakeDiffuseLighting = uninitializedGI ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
 
     // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
-    // No need to branch internally on _EnableProbeVolumes uniform.
-    if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
+    // Even so, the bound resources might be invalid in some cases, so we still need to check on _EnableProbeVolumes.
+    if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME && _EnableProbeVolumes)
     {
         if (uninitializedGI)
         {

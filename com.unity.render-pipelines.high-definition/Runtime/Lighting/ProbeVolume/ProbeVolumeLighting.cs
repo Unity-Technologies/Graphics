@@ -2,6 +2,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
+        static private ComputeBuffer m_EmptyIndexBuffer = null;
+
         public struct APVRuntimeResources
         {
             public ComputeBuffer index;
@@ -15,12 +17,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Cleanup()
             {
+                CoreUtils.SafeRelease(m_EmptyIndexBuffer); // We free upon cleanup as it will be lazy-init again upon necessity.
                 CoreUtils.SafeRelease(index);
                 CoreUtils.Destroy(L0);
                 CoreUtils.Destroy(L1_R);
                 CoreUtils.Destroy(L1_G);
                 CoreUtils.Destroy(L1_B);
 
+                m_EmptyIndexBuffer = null;
+                index = null;
                 L0 = null;
                 L1_R = null;
                 L1_G = null;
@@ -34,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void ClearAPVRuntimeResources() { m_APVResources.Clear(); }
         private void BindAPVRuntimeResources(CommandBuffer cmdBuffer)
         {
-            if( m_APVResources.IsValid())
+            if(m_APVResources.IsValid())
             {
                 cmdBuffer.SetGlobalBuffer( HDShaderIDs._APVResIndex, m_APVResources.index);
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0   , m_APVResources.L0);
@@ -44,8 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                var cb = new ComputeBuffer(1, 4);
-                cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, cb);
+                // Lazy init the empty buffer
+                if (m_EmptyIndexBuffer == null)
+                {
+                    // Size doesn't really matter here, anything can be bound as long is a valid compute buffer.
+                    m_EmptyIndexBuffer = new ComputeBuffer(1, sizeof(uint), ComputeBufferType.Structured);
+                }
+
+                cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, m_EmptyIndexBuffer);
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0, TextureXR.GetBlackTexture3D());
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_R, TextureXR.GetBlackTexture3D());
                 cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_G, TextureXR.GetBlackTexture3D());
@@ -58,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_EnableProbeVolumes == 0)
                 return;
 
-            cb._EnableProbeVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) ? 1u : 0u;
+            cb._EnableProbeVolumes = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && m_APVResources.IsValid()) ? 1u : 0u;
         }
     }
 }
