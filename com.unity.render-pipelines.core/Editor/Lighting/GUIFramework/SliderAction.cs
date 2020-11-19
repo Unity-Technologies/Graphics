@@ -3,24 +3,48 @@ using UnityEngine;
 
 namespace UnityEditor
 {
+    /// <summary>
+    /// SliderAction implementation of a ClickAction
+    /// </summary>
     public class SliderAction : ClickAction
     {
         private SliderData m_SliderData;
 
+        /// <summary>
+        /// Action for OnSliderBegin
+        /// </summary>
         public Action<IGUIState, Control, Vector3> onSliderBegin;
+        /// <summary>
+        /// Action for OnSliderChanged
+        /// </summary>
         public Action<IGUIState, Control, Vector3> onSliderChanged;
+        /// <summary>
+        /// Action for OnSliderEnd
+        /// </summary>
         public Action<IGUIState, Control, Vector3> onSliderEnd;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="control">Control</param>
         public SliderAction(Control control) : base(control, 0, false)
         {
         }
 
+        /// <summary>
+        /// GetFinishedCondiction
+        /// </summary>
+        /// <param name="guiState">The GUIState</param>
+        /// <returns>true if finish condition are validated</returns>
         protected override bool GetFinishCondition(IGUIState guiState)
         {
             return guiState.eventType == EventType.MouseUp && guiState.mouseButton == 0;
         }
 
-
+        /// <summary>
+        /// On Trigger
+        /// </summary>
+        /// <param name="guiState">The GUI State</param>
         protected override void OnTrigger(IGUIState guiState)
         {
             base.OnTrigger(guiState);
@@ -34,6 +58,10 @@ namespace UnityEditor
                 onSliderBegin(guiState, hoveredControl, m_SliderData.position);
         }
 
+        /// <summary>
+        /// On Finished
+        /// </summary>
+        /// <param name="guiState">The GUI State</param>
         protected override void OnFinish(IGUIState guiState)
         {
             if (onSliderEnd != null)
@@ -43,6 +71,10 @@ namespace UnityEditor
             guiState.Repaint();
         }
 
+        /// <summary>
+        /// On Perform
+        /// </summary>
+        /// <param name="guiState">The GUIState</param>
         protected override void OnPerform(IGUIState guiState)
         {
             Vector3 newPosition;

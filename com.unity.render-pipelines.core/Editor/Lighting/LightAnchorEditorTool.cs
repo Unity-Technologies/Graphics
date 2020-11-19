@@ -7,6 +7,9 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor
 {
+    /// <summary>
+    /// LightAnchorEditorTool
+    /// </summary>
     [EditorTool("Light Anchor", typeof(LightAnchor))]
     public class LightAnchorEditorTool : EditorTool
     {
@@ -14,16 +17,26 @@ namespace UnityEditor
         Dictionary<UnityObject, SerializedObject> m_SerializedObjects = new Dictionary<UnityObject, SerializedObject>();
         Dictionary<UnityObject, LightAnchorHandles> m_LightAnchorHandles = new Dictionary<UnityObject, LightAnchorHandles>();
 
+        /// <summary>
+        /// Icon for LightAnchor Tool
+        /// </summary>
         public override GUIContent toolbarIcon
         {
             get { return m_IconContent; }
         }
-
+        /// <summary>
+        /// Checks whether the custom editor tool is available based on the state of the editor.
+        /// </summary>
+        /// <returns>Always return true</returns>
         public override bool IsAvailable()
         {
             return true;
         }
 
+        /// <summary>
+        /// Use this method to implement a custom editor tool.
+        /// </summary>
+        /// <param name="window">The window that is displaying the custom editor tool.</param>
         public override void OnToolGUI(EditorWindow window)
         {
             foreach (var target in targets)

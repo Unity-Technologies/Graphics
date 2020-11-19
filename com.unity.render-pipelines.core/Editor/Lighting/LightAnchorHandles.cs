@@ -3,28 +3,40 @@ using UnityEditor;
 
 namespace UnityEditor
 {
+    /// <summary>
+    /// LightAnchorHandles describes the Handles for the LightAnchorEditorTool
+    /// </summary>
     public class LightAnchorHandles
     {
         GUIState m_GUIState = new GUIState();
         GUISystem m_GUISystem;
 
+        /// <summary>
+        /// The light position
+        /// </summary>
         public Vector3 lightPosition { get; set; }
+        /// <summary>
+        /// The anchor position
+        /// </summary>
         public Vector3 anchorPosition { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public LightAnchorHandles()
         {
             m_GUISystem = new GUISystem(m_GUIState);
 
             var lightControl = new GenericControl("Light")
             {
-                position = (index) => lightPosition,
-                distance = (guiState, index) =>
+                getPosition = (index) => lightPosition,
+                getDistance = (guiState, index) =>
                 {
                     return guiState.DistanceToCircle(lightPosition, guiState.GetHandleSize(lightPosition) * 5f);
                 },
-                forward = (index) => GetForward(),
-                up = (index) => GetUp(),
-                right = (index) => GetRight(),
+                getForward = (index) => GetForward(),
+                getUp = (index) => GetUp(),
+                getRight = (index) => GetRight(),
                 onRepaint = (guiState, control, index) =>
                 {
                     Handles.color = Color.yellow;
@@ -69,6 +81,9 @@ namespace UnityEditor
             m_GUISystem.AddManipulator(anchorManipulator);
         }
 
+        /// <summary>
+        /// On GUI
+        /// </summary>
         public void OnGUI()
         {
             m_GUISystem.OnGUI();

@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace UnityEditor
 {
+    /// <summary>
+    /// GUI System
+    /// </summary>
     public class GUISystem
     {
         private readonly int kControlIDCheckHashCode = "ControlIDCheckHashCode".GetHashCode();
@@ -19,11 +22,19 @@ namespace UnityEditor
         private int m_ControlIDCheck = -1;
 #endif
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="guiState">The gui state</param>
         public GUISystem(IGUIState guiState)
         {
             m_GUIState = guiState;
         }
 
+        /// <summary>
+        /// Add control
+        /// </summary>
+        /// <param name="control">Control have to be added</param>
         public void AddControl(Control control)
         {
             if (control == null)
@@ -32,11 +43,19 @@ namespace UnityEditor
             m_Controls.Add(control);
         }
 
+        /// <summary>
+        /// Remove control
+        /// </summary>
+        /// <param name="control">Control have to be removed</param>
         public void RemoveControl(Control control)
         {
             m_Controls.Remove(control);
         }
 
+        /// <summary>
+        /// Add Action
+        /// </summary>
+        /// <param name="action">Action added</param>
         public void AddAction(GUIAction action)
         {
             if (action == null)
@@ -45,11 +64,19 @@ namespace UnityEditor
             m_Actions.Add(action);
         }
 
+        /// <summary>
+        /// Remove Action
+        /// </summary>
+        /// <param name="action">Action removed</param>
         public void RemoveAction(GUIAction action)
         {
             m_Actions.Remove(action);
         }
 
+        /// <summary>
+        /// Add Manipulator
+        /// </summary>
+        /// <param name="manipulator">Manipulator added</param>
         public void AddManipulator(HandlesManipulator manipulator)
         {
             if (manipulator == null)
@@ -58,11 +85,18 @@ namespace UnityEditor
             m_Manipulators.Add(manipulator);
         }
 
+        /// <summary>
+        /// Remove Manipulator
+        /// </summary>
+        /// <param name="manipulator">Manipulator removed</param>
         public void RemoveManipulator(HandlesManipulator manipulator)
         {
             m_Manipulators.Remove(manipulator);
         }
 
+        /// <summary>
+        /// On GUI
+        /// </summary>
         public void OnGUI()
         {
 #if GUIFRAMEWORK_CONTROL_ID_CHECK
@@ -140,6 +174,10 @@ namespace UnityEditor
                 m_GUIState.Repaint();
         }
 
+        /// <summary>
+        /// Is Mouse Move Event
+        /// </summary>
+        /// <returns>true, if mouse moved</returns>
         private bool IsMouseMoveEvent()
         {
             return m_GUIState.eventType == EventType.MouseMove || m_GUIState.eventType == EventType.MouseDrag;

@@ -6,12 +6,11 @@ using UnityEditor.EditorTools;
 using UnityEngine.Assertions;
 using UnityEngine.UIElements;
 
-#if LIGHTINGTOOL_GRAPHICS_RAYCASTER_1_2
-using Unity.IG.GraphicsRaycasting;
-#endif
-
 namespace UnityEditor
 {
+    /// <summary>
+    /// LightAnchorEditor represent the inspector for the LightAnchor
+    /// </summary>
     [CanEditMultipleObjects]
     [CustomEditor(typeof(LightAnchor))]
     public class LightAnchorEditor : Editor
@@ -46,6 +45,10 @@ namespace UnityEditor
             get { return target as LightAnchor; }
         }
 
+        /// <summary>
+        /// Code describing the Inspector
+        /// <returns>angle of rotation between -180 and 180</returns>
+        /// </summary>
         public override void OnInspectorGUI()
         {
             var camera = Camera.main;
