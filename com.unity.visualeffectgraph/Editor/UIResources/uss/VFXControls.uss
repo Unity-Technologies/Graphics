@@ -99,8 +99,8 @@ VFXStringFieldPushButton .unity-button
 
 VFX32BitField
 {
-    --bit-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/bitfield-bit.png");
-    --bit-bkgnd-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/bitfield-bkgnd.png");
+    --bit-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/bitfield-bit.png");
+    --bit-bkgnd-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/bitfield-bkgnd.png");
 }
 
 VFX32BitField > *

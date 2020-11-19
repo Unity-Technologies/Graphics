@@ -1408,7 +1408,7 @@ namespace UnityEditor.VFX
                 categoryHeader.border.right = 2;
 
                 //TODO change to editor resources calls
-                categoryHeader.normal.background = (Texture2D)AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/" + (EditorGUIUtility.isProSkin ? "VFX/cat-background-dark.png" : "VFX/cat-background-light.png"));
+                categoryHeader.normal.background = (Texture2D)AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + (EditorGUIUtility.isProSkin ? "/VFX/cat-background-dark.png" : "/VFX/cat-background-light.png"));
             }
         }
     }

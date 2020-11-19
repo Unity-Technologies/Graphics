@@ -81,12 +81,12 @@
 
 .spaceLocal
 {
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/spacelocal.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spacelocal.png");
 }
 
 .spaceWorld
 {
-    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor Default Resources/VFX/spaceworld.png");
+    background-image: url("project:///Packages/com.unity.visualeffectgraph/Editor/UIResources/VFX/spaceworld.png");
 }
 
 .propertyrm .unity-base-text-field *
