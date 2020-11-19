@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed probe volumes debug views.
 - Fixed issue displaying wrong debug mode in runtime debug menu UI.
+- Fixed useless editor repaint when using lod bias.
+- Fixed multi-editing with new light intensity slider.
 
 ## [10.2.0] - 2020-10-19
 
@@ -101,7 +103,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed picking for materials with depth offset.
 - Fixed issue with exposure history being uninitialized on second frame.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
-- Fixed multi-editing with new light intensity slider.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
