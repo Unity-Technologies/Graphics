@@ -46,8 +46,11 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_FalseBool;
         [SerializeField] private bool falseBool = false;
         List<Editor> m_Editors = new List<Editor>();
+
+        List<UniversalRenderPipelineAsset> rpAssets;
+
         //static int mField = 0;
-        static string[] options = {};
+        string[] options = {};
         private void OnEnable()
         {
             m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
@@ -58,7 +61,11 @@ namespace UnityEditor.Rendering.Universal
             m_RenderPipelineAssetsFoldout = new SavedBool($"{target.GetType()}.RenderPipelineAssetsFoldout", true);
             m_RenderPipeLineAssets = new List<ValueTuple<string,string>>();
             m_RenderPipelineAssetNames = new List<string>();
+            rpAssets = GetAllUniversalRenderPipelineAssets();
             FindAssignedRenderPipelineAssets();
+
+            //options = new string[]{};
+            //FindAssignedRenderPipelineAssets();
         }
 
         protected override void OnHeaderGUI()
@@ -115,7 +122,7 @@ namespace UnityEditor.Rendering.Universal
             // }
 
             m_RenderPipeLineAssets.Clear();
-            var rpAssets = GetAllUniversalRenderPipelineAssets();
+            //var rpAssets = GetAllUniversalRenderPipelineAssets();
             foreach (var asset in rpAssets)
             {
                 var path = AssetDatabase.GetAssetPath(asset);
@@ -167,7 +174,7 @@ namespace UnityEditor.Rendering.Universal
             {
 
                 List<string> names = new List<string>();
-                List<UniversalRenderPipelineAsset> rpAssets = GetAllUniversalRenderPipelineAssets();
+                //List<UniversalRenderPipelineAsset> rpAssets = GetAllUniversalRenderPipelineAssets();
                 foreach (var asset in rpAssets)
                 {
                     names.Add(asset.name);
@@ -180,7 +187,7 @@ namespace UnityEditor.Rendering.Universal
                 //     if ((mask & (1 << LayerMask.NameToLayer(names[c]))) != 0)
                 //         field |= 1 << c;
 
-                // LayerMask needs to be converted to be used in a MaskField...
+                // This needs to be on initialization
                 int field = 0;
                 for (int c = 0; c < names.Count; c++)
                     if (m_RenderPipelineAssetNames.Contains(names[c]))
@@ -198,26 +205,32 @@ namespace UnityEditor.Rendering.Universal
                 {
                     //AssignRendererToAsset()
                     Debug.Log(newMask);
-
-                    for (int c = 0; c < options.Length; c++)
-                    {
-                        if ((newMask.Data & (1 << c)) != 0)
-                        {
-                            Debug.Log(options[c]);
-                            // Assign the renderer to the data list
-                            AssignRendererToRPAsset(options[c]);
-                            FindAssignedRenderPipelineAssets();
-                        }
-                    }
+                    UpdateRendererDataLists(newMask);
                 }
             }
 
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
+        void UpdateRendererDataLists(BitVector32 mask)
+        {
+            for (int c = 0; c < options.Length; c++)
+            {
+                if ((mask.Data & (1 << c)) != 0)
+                {
+                    Debug.Log(options[c]);
+                    // Assign the renderer to the data list
+                    AssignRendererToRPAsset(options[c]);
+
+                }
+            }
+
+            FindAssignedRenderPipelineAssets();
+        }
+
         void AssignRendererToRPAsset(string rpName)
         {
-            List<UniversalRenderPipelineAsset> rpAssets = GetAllUniversalRenderPipelineAssets();
+
             foreach (var asset in rpAssets)
             {
                 if (asset.name == rpName)
