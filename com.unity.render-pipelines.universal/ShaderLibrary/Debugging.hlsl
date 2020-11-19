@@ -404,15 +404,15 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
             return true;
 
         case DEBUG_MATERIAL_ALPHA:
-            color.rgb = (1.0 - surfaceData.alpha).xxx;
+            color.rgb = surfaceData.alpha.rrr;
             return true;
 
         case DEBUG_MATERIAL_SMOOTHNESS:
-            color.rgb = surfaceData.smoothness.xxx;
+            color.rgb = surfaceData.smoothness.rrr;
             return true;
 
         case DEBUG_MATERIAL_OCCLUSION:
-            color.rgb = surfaceData.occlusion.xxx;
+            color.rgb = surfaceData.occlusion.rrr;
             return true;
 
         case DEBUG_MATERIAL_EMISSION:
@@ -430,7 +430,7 @@ bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData
             color.rgb = GetLODDebugColor().rgb;
             return true;
         case DEBUG_MATERIAL_METALLIC:
-            color.rgb = surfaceData.metallic.xxx;
+            color.rgb = surfaceData.metallic.rrr;
             return true;
 
         default:

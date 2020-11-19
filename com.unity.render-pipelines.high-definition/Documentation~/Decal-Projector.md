@@ -35,12 +35,13 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 | **Property**            | **Description**                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| **Size**                | The 3D size of the projector influence box, and thus the decal. The projector scales the decal to match the **X** and **Z** components of the **Size**. The Decal Projector component projects decals along the local y-axis. |
+| **Size**                | The size of the projector influence box, and thus the decal along the projected plane. The projector scales the decal to match the **Width** (along the local x-axis) and **Height** (along the local y-axis) components of the **Size**. |
+| **Projection Depth**    | The depth of the projector influence box. The projector scales the decal to match **Projection Depth**. The Decal Projector component projects decals along the local z-axis. |
 | **Material**            | The decal Material to project. The decal Material must use a HDRP/Decal Shader. |
 | **Decal Layer**         | The layer that specifies the Materials to project the decal onto. Any Mesh Renderers or Terrain that uses a matching Decal Layer receives the decal. |
 | **Draw Distance**       | The distance from the Camera to the Decal at which this projector stops projecting the decal and HDRP no longer renders the decal. |
 | **Start Fade**          | Use the slider to set the distance from the Camera at which the projector begins to fade out the decal. Scales from 0 to 1 and represents a percentage of the **Draw Distance**. A value of 0.9 begins fading the decal out at 90% of the **Draw Distance** and finished fading it out at the **Draw Distance**. |
-| **Start Angle Fade**    | Use the slider to set the angle from the Decal backward direction at which the projector begins to fade out the decal. Scales from 0 to 180 and represents an angle in degree. Only available if [Decal Layers](Decal.md) feature is enabled. |
+| **Angle Fade**          | Use the min-max slider to control the fade out range of the decal based on the angle between the Decal backward direction and the vertex normal of the receiving surface. Only available if [Decal Layers](Decal.md) feature is enabled. |
 | **End Angle Fade**      | Use the slider to set the angle from the Decal backward direction at which the projector stop to fade out the decal. Scales from 0 to 180 and represents an angle in degree. Only available if [Decal Layers](Decal.md) feature is enabled. |
 | **Tiling**              | Scales the decal Material along its UV axes.                 |
 | **Offset**              | Offsets the decal Material along its UV axes. Use this with the **UV Scale** when using a Material atlas for your decal. |

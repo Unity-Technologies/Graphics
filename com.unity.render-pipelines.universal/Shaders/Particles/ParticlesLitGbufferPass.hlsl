@@ -4,54 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
-struct AttributesParticle
-{
-    float4 vertex : POSITION;
-    float3 normal : NORMAL;
-    half4 color : COLOR;
-#if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-    float4 texcoords : TEXCOORD0;
-    float texcoordBlend : TEXCOORD1;
-#else
-    float2 texcoords : TEXCOORD0;
-#endif
-    float4 tangent : TANGENT;
-     UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-struct VaryingsParticle
-{
-    half4 color                     : COLOR;
-    float2 texcoord                 : TEXCOORD0;
-
-    float3 positionWS               : TEXCOORD1;
-
-#ifdef _NORMALMAP
-    float4 normalWS                 : TEXCOORD2;    // xyz: normal, w: viewDir.x
-    float4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: viewDir.y
-    float4 bitangentWS              : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
-#else
-    float3 normalWS                 : TEXCOORD2;
-    float3 viewDirWS                : TEXCOORD3;
-#endif
-
-#if defined(_FLIPBOOKBLENDING_ON)
-    float3 texcoord2AndBlend        : TEXCOORD5;
-#endif
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    float4 projectedPosition        : TEXCOORD6;
-#endif
-
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    float4 shadowCoord              : TEXCOORD7;
-#endif
-
-    float3 vertexSH                 : TEXCOORD8; // SH
-    float4 clipPos                  : SV_POSITION;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-    UNITY_VERTEX_OUTPUT_STEREO
-};
-
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
 {
     output = (InputData)0;
@@ -102,8 +54,8 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+    VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
     half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 #if !SHADER_HINT_NICE_QUALITY
@@ -172,6 +124,8 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
     return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color);

@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public MotionBlurParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+            public TextureHandle depthBuffer;
             public TextureHandle motionVecTexture;
             public TextureHandle preppedMotionVec;
             public TextureHandle minMaxTileVel;
@@ -431,18 +432,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // map rather than having to deal with all the implications of doing it before TAA
             if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
             {
+                // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
+                // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
+                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                {
+                    hdCamera.resetPostProcessingHistory = true;
+                }
+
                 var dofParameters = PrepareDoFParameters(hdCamera);
 
                 bool useHistoryMips = m_DepthOfField.physicallyBased;
                 GrabCoCHistory(hdCamera, out var prevCoC, out var nextCoC, useMips: useHistoryMips);
                 var prevCoCHandle = renderGraph.ImportTexture(prevCoC);
                 var nextCoCHandle = renderGraph.ImportTexture(nextCoC);
-
-                // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
-                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
-                {
-                    hdCamera.resetPostProcessingHistory = true;
-                }
 
                 using (var builder = renderGraph.AddRenderPass<DepthofFieldData>("Depth of Field", out var passData, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                 {
@@ -458,6 +460,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "DoF Destination");
                     passData.destination = builder.WriteTexture(dest);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
+                    passData.taaEnabled = taaEnabled;
 
                     if (!m_DepthOfField.physicallyBased)
                     {
@@ -531,8 +534,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             });
                         }
 
-                        passData.taaEnabled = taaEnabled;
-
                         passData.bokehNearKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.nearSampleCount * dofParameters.nearSampleCount, sizeof(uint)) { name = "Bokeh Near Kernel" });
                         passData.bokehFarKernel = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.farSampleCount * dofParameters.farSampleCount, sizeof(uint)) { name = "Bokeh Far Kernel" });
                         passData.bokehIndirectCmd = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(3 * 2, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "Bokeh Indirect Cmd" });
@@ -565,10 +566,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
 
+                        passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                        { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
+
                         builder.SetRenderFunc(
                         (DepthofFieldData data, RenderGraphContext ctx) =>
                         {
-                            DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.taaEnabled);
+                            DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.taaEnabled);
                         });
 
                         source = passData.destination;
@@ -580,15 +584,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (taaEnabled && m_DepthOfField.physicallyBased)
             {
                 bool postDof = true;
-                var taaParams = PrepareTAAParameters(hdCamera, postDof);
-
 
                 using (var builder = renderGraph.AddRenderPass<TemporalAntiAliasingData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
                 {
                     GrabTemporalAntialiasingHistoryTextures(hdCamera, out var prevHistory, out var nextHistory, postDof);
 
                     passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareTAAParameters(hdCamera);
+                    passData.parameters = PrepareTAAParameters(hdCamera, postDof);
                     passData.depthBuffer = builder.ReadTexture(depthBuffer);
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
                     passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
@@ -616,12 +618,21 @@ namespace UnityEngine.Rendering.HighDefinition
                                                                          data.nextHistory,
                                                                          data.prevMVLen,
                                                                          data.nextMVLen);
+
+                        // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                        m_IsDoFHisotoryValid = true;
                     });
 
                     source = passData.destination;
                 }
 
                 postDoFTAAEnabled = true;
+                
+            }
+            else
+            {
+                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                m_IsDoFHisotoryValid = false;
             }
 
             if (!postDoFTAAEnabled)
@@ -632,7 +643,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle MotionBlurPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle motionVectors, TextureHandle source)
+        TextureHandle MotionBlurPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle motionVectors, TextureHandle source)
         {
             if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
             {
@@ -642,6 +653,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareMotionBlurParameters(hdCamera);
 
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
+                    passData.depthBuffer = builder.ReadTexture(depthTexture);
 
                     Vector2 tileTexScale = new Vector2((float)passData.parameters.tileTargetSize.x / hdCamera.actualWidth, (float)passData.parameters.tileTargetSize.y / hdCamera.actualHeight);
 
@@ -674,6 +686,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         DoMotionBlur(data.parameters, ctx.cmd, data.source,
                                                                data.destination,
+                                                               data.depthBuffer,
                                                                data.motionVecTexture,
                                                                data.preppedMotionVec,
                                                                data.minMaxTileVel,
@@ -1017,7 +1030,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
-                source = MotionBlurPass(renderGraph, hdCamera, motionVectors, source);
+                source = MotionBlurPass(renderGraph, hdCamera, depthBuffer, motionVectors, source);
 
                 // Panini projection is done as a fullscreen pass after all depth-based effects are
                 // done and before bloom kicks in

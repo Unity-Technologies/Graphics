@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             ShowDoubleSidedNormal   = 1 << 0,
             All                     = ~0,
 
-            Unlit                   = All ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
+            Unlit                   = Lit ^ ShowDoubleSidedNormal, // hide double sided normal for unlit
             Lit                     = All,
         }
 
@@ -42,13 +42,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) => {
                 systemData.surfaceType = newValue;
-                systemData.TryChangeRenderingPass(systemData.renderingPass);
+                systemData.TryChangeRenderingPass(systemData.renderQueueType);
             });
 
             context.globalIndentLevel++;
             var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, enabledFeatures == Features.Unlit); // Show after post process for unlit shaders
-            var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderingPass) : HDRenderQueue.GetTransparentEquivalent(systemData.renderingPass);
+            var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderQueueType) : HDRenderQueue.GetTransparentEquivalent(systemData.renderQueueType);
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+
             context.AddProperty(renderingPassText, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
             {
                 registerUndo(renderingPassText);

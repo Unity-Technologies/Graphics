@@ -65,38 +65,23 @@ Shader "Hidden/Universal Render Pipeline/Debug/FullScreenDebug"
                 half4 col = SAMPLE_TEXTURE2D(_BlitTex, sampler_BlitTex, input.uv);
 
                 #ifdef _LINEAR_TO_SRGB_CONVERSION
-                    col = LinearToSRGB(col);
+                col = LinearToSRGB(col);
                 #endif
 
-                if (_DebugMode == DEBUG_MODE_DEPTH)
+                switch(_DebugMode)
                 {
-                    half linearDepth = _FarPlane / (_FarPlane - _NearPlane) * (1.0f - (_NearPlane / col.r));
-                    col.rgb = linearDepth.rrr;
-                    col.a = 1.0f;
-                    return col;
-                }
-                else if (_DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY)
-                {
-                    col.rgb = col.rrr;
-                    col.a = 1.0f;
-                    return col;
-                }
-                else if (_DebugMode == DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP)
-                {
-                    col.rgb = col.rrr;
-                    col.a = 1.0f;
-                    return col;
-                }
-                else if (_DebugMode == DEBUG_MODE_MAIN_LIGHT_SHADOW_MAP)
-                {
-                    col.rgb = col.rrr;
-                    col.a = 1.0f;
-                    return col;
-                }
-                else
-                {
-                    col.a = 1.0;
-                    return col;
+                    case DEBUG_MODE_DEPTH:    // NOTE: Depth is non-linear since linear depth leads to very little variance close to the camera.
+                    case DEBUG_MODE_MAIN_LIGHT_SHADOWS_ONLY:
+                    case DEBUG_MODE_ADDITIONAL_LIGHTS_SHADOW_MAP:
+                    case DEBUG_MODE_MAIN_LIGHT_SHADOW_MAP:
+                    {
+                        return half4(col.rrr, 1);
+                    }
+
+                    default:
+                    {
+                        return half4(col.rgb, 1);
+                    }
                 }
             }
             ENDHLSL
