@@ -262,6 +262,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightIndexToShadowParams = new Vector4[visibleLights.Length];
             }
 
+            // initialize _AdditionalShadowParams
+            Vector4 defaultShadowParams = new Vector4(0 /*shadowStrength*/, 0, 0, -1 /*perLightFirstShadowSliceIndex*/);
+            // shadowParams.x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights
+            // shadowParams.w is used in Lighting shader to find if Additional light casts shadows
+            for (int i = 0; i < visibleLights.Length; ++i)
+                m_AdditionalLightIndexToShadowParams[i] = defaultShadowParams;
+
             int validShadowCastingLightsCount = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
             int additionalLightIndex = -1;
@@ -289,8 +296,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 for(int perLightShadowSlice = 0; perLightShadowSlice < perLightShadowSlicesCount; ++perLightShadowSlice)
                 {
                     int globalShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
-
-                    bool isValidShadowSlice = false;
 
                     bool lightRangeContainsShadowCasters = renderingData.cullResults.GetShadowCasterBounds(visibleLightIndex, out var shadowCastersBounds);
                     if (lightRangeContainsShadowCasters)
@@ -321,7 +326,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Spot, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
-                                    isValidShadowSlice = true;
                                     isValidShadowCastingLight = true;
                                 }
                             }
@@ -349,19 +353,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                                     Vector4 shadowParams = new Vector4(shadowStrength, softShadows, LightTypeIdentifierInShadowParams_Point, perLightFirstShadowSliceIndex);
                                     m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = shadowTransform;
                                     m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;
-                                    isValidShadowSlice = true;
                                     isValidShadowCastingLight = true;
                                 }
                             }
                         }
-                    }
-
-                    if (!isValidShadowSlice)
-                    {
-                        Vector4 shadowParams = new Vector4(0 /*shadowStrength*/, 0, 0, -1 /*perLightFirstShadowSliceIndex*/);
-                        // shadowParams.x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights
-                        // shadowParams.w is used in Lighting shader to find if Additional light casts shadows
-                        m_AdditionalLightIndexToShadowParams[additionalLightIndex] = shadowParams;  
                     }
                 }
 
