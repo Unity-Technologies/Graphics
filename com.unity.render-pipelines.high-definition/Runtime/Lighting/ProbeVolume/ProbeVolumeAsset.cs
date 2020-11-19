@@ -22,14 +22,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] public ProbeBrickIndex.Brick[] bricks;
 
 #if UNITY_EDITOR
-        // Debug only: Uncomment out if you want to manually create a probe volume asset and type in data into the inspector.
-        // This is not a user facing workflow we are supporting.
-        // [UnityEditor.MenuItem("Assets/Create/Experimental/Probe Volume", false, 204)]
-        // protected static void CreateAssetFromMenu()
-        // {
-        //     CreateAsset();
-        // }
-
         internal static string GetFileName(int id = -1)
         {
             string assetName = "ProbeVolumeData";

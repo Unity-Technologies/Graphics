@@ -7,6 +7,14 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class ProbeReferenceVolume
     {
+        public struct Cell
+        {
+            public int index;
+            public Vector3Int position;
+            public List<Brick> bricks;
+            public Vector3[] probePositions;
+        }
+
         public struct Volume
         {
             public Vector3 Corner;
@@ -125,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_MaxSubdivision;
         private ProbeBrickPool m_Pool;
         private ProbeBrickIndex m_Index;
+        public List<Cell> cells = new List<Cell>();
         private List<Brick>[] m_TmpBricks = new List<Brick>[2];
         private List<BrickFlags> m_TmpFlags = new List<BrickFlags>();
         private List<Chunk> m_TmpSrcChunks = new List<Chunk>();
