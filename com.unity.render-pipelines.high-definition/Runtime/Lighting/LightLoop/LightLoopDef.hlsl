@@ -148,20 +148,23 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 
 #if (defined(COARSE_BINNING) || defined(FINE_BINNING))
 
-bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData data)
+// Internal. Do not call directly.
+uint TryFindEntityIndex(inout uint i, uint tile, uint zBin, uint category, out uint entityIndex)
 {
+    entityIndex = UINT16_MAX;
+
     bool b = false;
     uint n = TILE_ENTRY_LIMIT;
 
     // This part (1) is loop-invariant. These values do not depend on the value of 'i'.
     // They will only be computed once per category, not once per function call.
-    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
+    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, category, unity_StereoEyeIndex);
     const uint tileRangeData         = TILE_BUFFER[tileBufferHeaderIndex]; // {last << 16 | first}
     const bool isTileEmpty           = tileRangeData == UINT16_MAX;
 
     if (!isTileEmpty) // Avoid wasted work
     {
-        const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
+        const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, category, unity_StereoEyeIndex);
         const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
 
         const uint2 tileEntityIndexRange = uint2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
@@ -169,7 +172,7 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
 
         if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange)) // Avoid wasted work
         {
-            const uint tileBufferBodyIndex = ComputeTileBufferBodyIndex(tile, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, unity_StereoEyeIndex);
+            const uint tileBufferBodyIndex = ComputeTileBufferBodyIndex(tile, category, unity_StereoEyeIndex);
 
             // The part (2) below will be actually executed during every function call.
             while (i < n)
@@ -185,7 +188,7 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
                 }
                 else if (tileEntityIndex <= zBinEntityIndexRange.y)
                 {
-                    data = _PunctualLightData[tileEntityIndex];
+                    entityIndex = tileEntityIndex;
 
                     b = true; // Found a valid index
                     break;    // Avoid incrementing 'i' further
@@ -201,57 +204,46 @@ bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData 
     return b;
 }
 
-bool TryLoadAreaLightData(inout uint i, uint tile, uint zBin, out LightData data)
+bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData data)
 {
-    bool b = false;
-    uint n = TILE_ENTRY_LIMIT;
+    bool success = false;
 
-    // This part (1) is loop-invariant. These values do not depend on the value of 'i'.
-    // They will only be computed once per category, not once per function call.
-    const uint tileBufferHeaderIndex = ComputeTileBufferHeaderIndex(tile, BOUNDEDENTITYCATEGORY_AREA_LIGHT, unity_StereoEyeIndex);
-    const uint tileRangeData         = TILE_BUFFER[tileBufferHeaderIndex]; // {last << 16 | first}
-    const bool isTileEmpty           = tileRangeData == UINT16_MAX;
-
-    if (!isTileEmpty) // Avoid wasted work
+    uint entityIndex;
+    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, entityIndex))
     {
-        const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, unity_StereoEyeIndex);
-        const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
-
-        const uint2 tileEntityIndexRange = uint2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
-        const uint2 zBinEntityIndexRange = uint2(zBinRangeData & UINT16_MAX, zBinRangeData >> 16);
-
-        if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange)) // Avoid wasted work
-        {
-            const uint tileBufferBodyIndex = ComputeTileBufferBodyIndex(tile, BOUNDEDENTITYCATEGORY_AREA_LIGHT, unity_StereoEyeIndex);
-
-            // The part (2) below will be actually executed during every function call.
-            while (i < n)
-            {
-                uint tileEntityPair  = TILE_BUFFER[tileBufferBodyIndex + (i / 2)];        // 16-bit indices
-                uint tileEntityIndex = BitFieldExtract(tileEntityPair, 16 * (i & 1), 16); // First Lo, then Hi bits
-
-                // Entity indices are stored in the ascending order.
-                // We can distinguish 3 cases:
-                if (tileEntityIndex < zBinEntityIndexRange.x)
-                {
-                    i++; // Skip this entity; continue the (linear) search
-                }
-                else if (tileEntityIndex <= zBinEntityIndexRange.y)
-                {
-                    data = _AreaLightData[tileEntityIndex];
-
-                    b = true; // Found a valid index
-                    break;    // Avoid incrementing 'i' further
-                }
-                else // if (zBinEntityIndexRange.y < tileEntityIndex)
-                {
-                    break;    // Avoid incrementing 'i' further
-                }
-            }
-        }
+        success = true;
+        data    = _PunctualLightData[entityIndex];
     }
 
-    return b;
+    return success;
+}
+
+bool TryLoadAreaLightData(inout uint i, uint tile, uint zBin, out LightData data)
+{
+    bool success = false;
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_AREA_LIGHT, entityIndex))
+    {
+        success = true;
+        data    = _AreaLightData[entityIndex];
+    }
+
+    return success;
+}
+
+bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
+{
+    bool success = false;
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_DECAL, entityIndex))
+    {
+        success = true;
+        data    = _DecalData[entityIndex];
+    }
+
+    return success;
 }
 
 #else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))

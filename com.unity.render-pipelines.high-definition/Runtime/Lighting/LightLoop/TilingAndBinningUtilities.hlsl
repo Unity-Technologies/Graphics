@@ -200,7 +200,7 @@ uint ComputeTileIndex(uint2 pixelCoord)
                                uint3(TILE_BUFFER_DIMS, BOUNDEDENTITYCATEGORY_COUNT));
 }
 
-// Internal. Do not use.
+// Internal. Do not call directly.
 uint ComputeTileBufferHeaderIndex(uint tile, uint category, uint eye, uint2 tileBufferDims)
 {
     uint eyeCatOffset = IndexFromCoordinate(uint4(0, 0, category, eye),
@@ -216,7 +216,7 @@ uint ComputeTileBufferHeaderIndex(uint tile, uint category, uint eye)
     return ComputeTileBufferHeaderIndex(tile, category, eye, TILE_BUFFER_DIMS);
 }
 
-// Internal. Do not use.
+// Internal. Do not call directly.
 uint ComputeTileBufferBodyIndex(uint tile, uint category, uint eye, uint2 tileBufferDims, uint tileEntryLimit)
 {
     // TODO: may want to precompute this.

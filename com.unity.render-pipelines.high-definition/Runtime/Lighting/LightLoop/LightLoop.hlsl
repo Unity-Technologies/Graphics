@@ -232,10 +232,9 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
-        LightData lightData;
-
         i = 0;
 
+        LightData lightData;
         while (TryLoadPunctualLightData(i, tile, zBin, lightData))
         {
             if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
@@ -380,10 +379,9 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
 #if SHADEROPTIONS_AREA_LIGHTS
     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
     {
-        LightData lightData;
-
         i = 0;
 
+        LightData lightData;
         while (TryLoadAreaLightData(i, tile, zBin, lightData))
         {
             if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))

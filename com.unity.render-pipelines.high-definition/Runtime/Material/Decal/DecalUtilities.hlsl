@@ -155,27 +155,9 @@ void EvalDecalMask( PositionInputs posInput, float3 positionRWSDdx, float3 posit
     }
 }
 
-#if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP) // forward transparent using clustered decals
-DecalData FetchDecal(uint start, uint i)
-{
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    int j = FetchIndex(start, i);
-#else
-    int j = start + i;
-#endif
-    return _DecalData[j];
-}
-
-DecalData FetchDecal(uint index)
-{
-    return _DecalData[index];
-}
-#endif
-
 DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 {
 #if defined(_SURFACE_TYPE_TRANSPARENT) && defined(HAS_LIGHTLOOP)  // forward transparent using clustered decals
-    uint decalCount, decalStart;
     DBufferType0 DBuffer0 = float4(0.0, 0.0, 0.0, 1.0);
     DBufferType1 DBuffer1 = float4(0.5, 0.5, 0.5, 1.0);
     DBufferType2 DBuffer2 = float4(0.0, 0.0, 0.0, 1.0);
@@ -185,17 +167,8 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
     float2 DBuffer3 = float2(1.0, 1.0);
 #endif
 
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
-
-    // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-    uint decalStartLane0;
-    bool fastPath = IsFastPath(decalStart, decalStartLane0);
-
-#else // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    decalCount = _DecalCount;
-    decalStart = 0;
-#endif
+    uint tile = ComputeTileIndex(posInput.positionSS);
+    uint zBin = ComputeZBinIndex(posInput.linearDepth);
 
     float3 positionRWS = posInput.positionWS;
 
@@ -205,38 +178,18 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 
     uint decalLayerMask = GetMeshRenderingDecalLayer();
 
-    // Scalarized loop. All decals that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the ones relevant to current thread/pixel are processed.
-    // For clarity, the following code will follow the convention: variables starting with s_ are wave uniform (meant for scalar register),
-    // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
-    // This will perform more loads than it is supposed to, however, the benefits should offset the downside, especially given that decal data accessed should be largely coherent
-    // Note that the above is valid only if wave intriniscs are supported.
-    uint v_decalListOffset = 0;
-    uint v_decalIdx = decalStart;
-    while (v_decalListOffset < decalCount)
+    DecalData decalData;
+
+    uint i = 0;
+
+    while (TryLoadDecalData(i, tile, zBin, decalData))
     {
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        v_decalIdx = FetchIndex(decalStart, v_decalListOffset);
-#else
-        v_decalIdx = decalStart + v_decalListOffset;
-#endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
-        uint s_decalIdx = ScalarizeElementIndex(v_decalIdx, fastPath);
-        if (s_decalIdx == -1)
-            break;
-
-        DecalData s_decalData = FetchDecal(s_decalIdx);
-        bool isRejected = (s_decalData.decalLayerMask & decalLayerMask) == 0;
-
-        // If current scalar and vector decal index match, we process the decal. The v_decalListOffset for current thread is increased.
-        // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-        // end up with a unique v_decalIdx value that is smaller than s_decalIdx hence being stuck in a loop. All the active lanes will not have this problem.
-        if (s_decalIdx >= v_decalIdx)
+        if ((decalData.decalLayerMask & decalLayerMask) != 0)
         {
-            v_decalListOffset++;
-            if (!isRejected)
-                EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
+            EvalDecalMask(posInput, positionRWSDdx, positionRWSDdy, decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
         }
 
+        i++;
     }
 #else // Opaque - used DBuffer
     FETCH_DBUFFER(DBuffer, _DBufferTexture, int2(posInput.positionSS.xy));
