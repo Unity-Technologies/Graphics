@@ -813,10 +813,12 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawPostProcessing(UniversalRenderPipelineAsset rpAsset)
         {
-            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+            // We want to show post processing warning only once and below the first option
+            // This way we will avoid cluttering the camera UI
+            bool showPostProcessWarning = rpAsset.postProcessData == null;
 
-            bool isPostProcessingEnabled = rpAsset.postProcessData == null && m_AdditionalCameraDataRenderPostProcessing.boolValue;
-            GUI.enabled = !isPostProcessingEnabled;
+            EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+            showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataRenderPostProcessing.boolValue);
 
             // Draw Final Post-processing
             DrawIntPopup(m_AdditionalCameraDataAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);
@@ -834,14 +836,21 @@ namespace UnityEditor.Rendering.Universal
                         EditorGUILayout.HelpBox("Sub-pixel Morphological Anti-Aliasing isn't supported on GLES2 platforms.", MessageType.Warning);
                     EditorGUI.indentLevel--;
                 }
+                showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && selectedAntialiasing != AntialiasingMode.None);
 
                 EditorGUILayout.PropertyField(m_AdditionalCameraDataStopNaN, Styles.stopNaN);
+                showPostProcessWarning &= !ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataStopNaN.boolValue);
                 EditorGUILayout.PropertyField(m_AdditionalCameraDataDithering, Styles.dithering);
+                ShowPostProcessingWarning(showPostProcessWarning && m_AdditionalCameraDataStopNaN.boolValue);
             }
+        }
 
-            GUI.enabled = true;
-            if (isPostProcessingEnabled)
-                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+        private bool ShowPostProcessingWarning(bool condition)
+        {
+            if (!condition)
+                return false;
+            EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+            return true;
         }
 
         bool DrawLayerMask(SerializedProperty prop, ref LayerMask mask, GUIContent style)
