@@ -4,7 +4,7 @@
     * [My first Shader Graph](First-Shader-Graph) 
     * [Shader Graph Window](Shader-Graph-Window)  
         * [Blackboard](Blackboard)  
-        * [Master Preview](Master-Preview) 
+        * [Main Preview](Main-Preview) 
         * [Graph Inspector](Internal-Inspector.md)
     * [Create Node Menu](Create-Node-Menu)
     * [Graph Settings Menu](Graph-Settings-Menu.md)
