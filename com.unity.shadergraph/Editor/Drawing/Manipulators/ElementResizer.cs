@@ -83,35 +83,36 @@ namespace UnityEditor.ShaderGraph.Drawing
             var parentRootPosition = resizedBase.worldBound;
             // Top left of the target visual element for resizing
             var targetRootPosition = resizedTarget.worldBound;
-            var canResizePastParentBounds = false;
+            var canResizePastParentBounds = ((IResizable) resizedTarget).CanResizePastParentBounds();
 
             Vector2 mousePos = resizedBase.WorldToLocal(e.mousePosition);
 
             if (!m_DragStarted)
             {
-                if (resizedTarget is IResizable resizable)
-                {
-                    resizable.OnStartResize();
-                    canResizePastParentBounds = resizable.CanResizePastParentBounds();
-                }
+                var resizable = (IResizable)resizedTarget;
+                resizable.OnStartResize();
                 m_DragStarted = true;
             }
 
             if ((direction & ResizableElement.Resizer.Right) != 0)
             {
-                var newLayoutLeft = targetRootPosition.x - parentRootPosition.x;
                 var newWidth = m_StartSize.x + mousePos.x - m_StartMouse.x;
                 var parentRightBoundary = parentRootPosition.x + resizedBase.layout.width;
-                var targetToRightBoundaryDelta = parentRightBoundary - targetRootPosition.x;
-
                 // Also ensure resizing does not happen past edge of parent views boundaries if the target does not allow it
-                if (!canResizePastParentBounds && (targetRootPosition.x + newWidth) > parentRightBoundary)
-                    newWidth = targetToRightBoundaryDelta;
+                if (!canResizePastParentBounds)
+                {
+                    if ((targetRootPosition.x + newWidth) > parentRightBoundary)
+                    {
+                        var targetToRightBoundaryDelta = parentRightBoundary - targetRootPosition.x;
+                        newWidth = targetToRightBoundaryDelta;
+                    }
+                    var newLayoutLeft = targetRootPosition.x - parentRootPosition.x;
+                    // When resizing to right, make sure to calculate and set the target elements Style.left before resizing to ensure correct resizing behavior
+                    // If Style.left is NaNpx it results in scaling towards the left
+                    // This is due to how the WindowDockingLayout code affects GraphSubWindows
+                    resizedTarget.style.left = newLayoutLeft;
+                }
 
-                // When resizing to right, make sure to calculate and set the target elements Style.left before resizing to ensure correct resizing behavior
-                // If Style.left is NaNpx it results in scaling towards the left
-                // This is due to how the WindowDockingLayout code affects GraphSubWindows
-                resizedTarget.style.left = newLayoutLeft;
                 resizedTarget.style.width = Mathf.Clamp(newWidth, m_MinSize.x, m_MaxSize.x);
             }
             else if ((direction & ResizableElement.Resizer.Left) != 0)
@@ -129,6 +130,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var newWidth = -delta + m_StartSize.x;
                 var targetToLeftBoundaryDelta = delta + m_StartPosition.x;
+
                 if (!canResizePastParentBounds)
                 {
                     // This ensures that the left side of the resizing target never can get pushed past the parent boundary even if mouse is moving really fast
@@ -137,28 +139,37 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Clamps width to max out at left edge of parent window
                     if(Mathf.Approximately(targetToLeftBoundaryDelta, 2.5f))
                         newWidth = (m_StartPosition.x + m_StartSize.x);
+
+                    newWidth = Mathf.Clamp(newWidth, m_MinSize.x, m_MaxSize.x);
                 }
 
                 resizedTarget.style.left = targetToLeftBoundaryDelta;
-                resizedTarget.style.width = Mathf.Clamp(newWidth, m_MinSize.x, m_MaxSize.x);
+                resizedTarget.style.width = newWidth;
             }
 
             if ((direction & ResizableElement.Resizer.Bottom) != 0)
             {
-                var parentBottomBoundary = parentRootPosition.y + resizedBase.layout.height;
                 var delta = mousePos.y - m_StartMouse.y;
                 var newHeight = m_StartSize.y + delta;
-                var targetToTopBoundaryDelta = targetRootPosition.y - parentRootPosition.y;
-                var targetToBottomBoundaryDelta = parentBottomBoundary - targetRootPosition.y;
-                // Same clamping as above on the bottom as well
-                if (!canResizePastParentBounds && (targetRootPosition.y + newHeight) > parentBottomBoundary)
-                    newHeight = targetToBottomBoundaryDelta;
 
-                // When resizing to bottom, make sure to calculate and set the target elements Style.top before resizing to ensure correct resizing behavior
-                // If Style.top is NaNpx it results in scaling towards the bottom
-                // This is due to how the WindowDockingLayout code affects GraphSubWindows
-                resizedTarget.style.top = targetToTopBoundaryDelta;
-                resizedTarget.style.height = Mathf.Clamp(newHeight, m_MinSize.y, m_MaxSize.y);
+                var parentBottomBoundary = parentRootPosition.y + resizedBase.layout.height;
+                if (!canResizePastParentBounds)
+                {
+                    if ((targetRootPosition.y + newHeight) > parentBottomBoundary)
+                    {
+                        var targetToBottomBoundaryDelta = parentBottomBoundary - targetRootPosition.y;
+                        newHeight = targetToBottomBoundaryDelta;
+                    }
+                    var targetToTopBoundaryDelta = targetRootPosition.y - parentRootPosition.y;
+                    // When resizing to bottom, make sure to calculate and set the target elements Style.top before resizing to ensure correct resizing behavior
+                    // If Style.top is NaNpx it results in scaling towards the bottom
+                    // This is due to how the WindowDockingLayout code affects GraphSubWindows
+                    resizedTarget.style.top = targetToTopBoundaryDelta;
+
+                    newHeight = Mathf.Clamp(newHeight, m_MinSize.y, m_MaxSize.y);
+                }
+
+                resizedTarget.style.height = newHeight;
             }
             else if ((direction & ResizableElement.Resizer.Top) != 0)
             {
@@ -183,10 +194,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Clamps height to max out at top edge of parent window
                     if (Mathf.Approximately(targetToTopBoundaryDelta, 2.5f))
                         newHeight = (m_StartPosition.y + m_StartSize.y);
+
+                    newHeight = Mathf.Clamp(newHeight, m_MinSize.y, m_MaxSize.y);
                 }
 
                 resizedTarget.style.top = targetToTopBoundaryDelta;
-                resizedTarget.style.height = Mathf.Clamp(newHeight, m_MinSize.y, m_MaxSize.y);
+                resizedTarget.style.height = newHeight;
             }
             e.StopPropagation();
         }

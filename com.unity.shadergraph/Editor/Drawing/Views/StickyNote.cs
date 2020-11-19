@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
+using IResizable = UnityEditor.ShaderGraph.Drawing.Interfaces.IResizable;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
