@@ -5,35 +5,17 @@ using UnityEngine.Rendering.Universal;
 
 public class GradientFogRendererFeature : ScriptableRendererFeature
 {
-    [Serializable]
-    public class GradientFogSettings
-    {
-        public float startDistance;
-        public float endDistance;
-        public Color nearColor;
-        public Color midColor;
-        public Color farColor;
-    }
-    
     class GradientFogPass : ScriptableRenderPass
     {
-        
         private Material fogMaterial;
-        //public GradientFogVolume volume;
-        public GradientFogSettings settings;
-
-        private RenderTargetIdentifier source { get; set; }
-        private RenderTargetHandle m_TempTex;
 
         public GradientFogPass()
         {
-            m_TempTex.Init("_TempTex");
             fogMaterial = new Material(Shader.Find("Shader Graphs/GradientFogGraph"));
         }
 
-        public void Setup(RenderTargetIdentifier cameraColorTarget)
+        public void Setup()
         {
-            //source = cameraColorTarget;
             GradientFogVolume volume = VolumeManager.instance.stack.GetComponent<GradientFogVolume>();
             
             fogMaterial.SetFloat("_StartDist", volume.nearDistance.value);
@@ -41,14 +23,6 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
             fogMaterial.SetColor("_NearCol", volume.nearColor.value);
             fogMaterial.SetColor("_MidCol", volume.midColor.value);
             fogMaterial.SetColor("_FarCol", volume.farColor.value);
-            
-            /*
-            fogMaterial.SetFloat("_StartDist", settings.startDistance);
-            fogMaterial.SetFloat("_EndDist", settings.endDistance);
-            fogMaterial.SetColor("_NearCol", settings.nearColor);
-            fogMaterial.SetColor("_MidCol", settings.midColor);
-            fogMaterial.SetColor("_FarCol", settings.farColor);
-            */
         }
         
         // This method is called before executing the render pass.
@@ -67,16 +41,8 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Gradient Fog");
-
-            RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
             
-            opaqueDesc.depthBufferBits = 0;
-            
-            cmd.GetTemporaryRT(m_TempTex.id, opaqueDesc);
-            
-            
-            Blit(cmd, source, m_TempTex.Identifier(), fogMaterial);
-            Blit(cmd, m_TempTex.Identifier(), "_CameraColorTexture");
+            Blit(cmd, "null", "_CameraColorTexture", fogMaterial);
             
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -85,18 +51,14 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
         /// Cleanup any allocated resources that were created during the execution of this render pass.
         public override void FrameCleanup(CommandBuffer cmd)
         {
-            cmd.ReleaseTemporaryRT(m_TempTex.id);
         }
     }
 
     GradientFogPass m_GradientFogPass;
-    public GradientFogSettings settings = new GradientFogSettings();
 
     public override void Create()
     {
         m_GradientFogPass = new GradientFogPass();
-        //m_GradientFogPass.volume = VolumeManager.instance.stack.GetComponent<GradientFogVolume>();;
-        m_GradientFogPass.settings = settings;
 
         // Configures where the render pass should be injected.
         m_GradientFogPass.renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
@@ -106,8 +68,7 @@ public class GradientFogRendererFeature : ScriptableRendererFeature
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        var src = "null";//renderer.cameraColorTarget;
-        m_GradientFogPass.Setup(src);
+        m_GradientFogPass.Setup();
         renderer.EnqueuePass(m_GradientFogPass);
     }
 }
