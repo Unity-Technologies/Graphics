@@ -204,6 +204,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void OverrideBufferFormatForAOVs(ref GraphicsFormat format, List<RTHandle> aovBuffers)
         {
+            if (m_RequestedAOVBuffers == null || aovBuffers.Count == 0)
+            {
+                return;
+            }
+
             var index = Array.IndexOf(m_RequestedAOVBuffers, AOVBuffers.Color);
             if (index < 0)
             {
