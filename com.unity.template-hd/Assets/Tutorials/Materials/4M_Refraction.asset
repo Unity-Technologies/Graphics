@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: 291314cf660f5b047bacb4dafc9ae4ef, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -42,7 +42,7 @@ MonoBehaviour:
         m_Untranslated: "The High Definition Render Pipeline (HDRP) uses a refraction
           algorithm to simulate light deviation and absorption within Materials.\n\nSelect
           the glass by following the steps: \n1) In the <i>Hierarchy</i> window expand
-          <b>Props->Room 3->RoundTable_01->RoundTable_01_LOD0</b> \n2) Select <b>RoundTable_GLass_01_LOD0</b>
+          <b>Props->Room 3->RoundTable_01->RoundTable_01_LOD0</b> \n2) Select <b>RoundTable_GLass_01_LOD00</b>
           gameobject\n3) Go to <i>Inspector</i> window -> expand the <i>Glass Dark_Mat 
           Material</i>\n4) The <b>Surface Type</b> must be set to <b>Transparent</b>.
           This exposes the <b>Transparency Inputs</b> section in the <i>Inspector</i>.\n5)

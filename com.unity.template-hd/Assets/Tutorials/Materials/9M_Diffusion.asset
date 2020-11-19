@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
-    - m_Type: 6
+    - m_Type: 7
       Title:
         m_Untranslated: 
       Text:
@@ -28,7 +28,7 @@ MonoBehaviour:
       m_Icons:
         m_Items: []
       m_Image: {fileID: 0}
-      m_Video: {fileID: 0}
+      m_Video: {fileID: 32900000, guid: 3fd928b951eaaa3459eaf7c9e1f0af4a, type: 3}
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
@@ -42,9 +42,10 @@ MonoBehaviour:
         m_Untranslated: "We can change the Subsurface Scattering behavior using Diffusion
           Profile. By default Unity comes with Foliage and Skin.\n\n1) In the <i>Project</i>
           window open <b>Settings->DiffusionProfiles</b> folder\n2) Open <b>Bamboo
-          Leaves</b> \n3) Go to <i>Inspector</i> window and set <b>Scatering Distance</b>
-          to pink to change the color\n4) Set the <b>Transmission tin</b> from white
-          to black\n\n"
+          Leaves</b> \n3) Go to <i>Inspector</i> window and decrease the <b>Transmission
+          tin</b> color intensity slider to -1.8 and back\n\nThe intensity slider
+          allows us to quickly adjust the amount of light passing through materials
+          that are sharing this Diffusion profile.\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -39,21 +39,21 @@ MonoBehaviour:
       Title:
         m_Untranslated: Tessellation displacement
       Text:
-        m_Untranslated: "Notice that <i>Material</i> uses HDRP/LitTesselation. Material
-          is allowed to render more detailed geometry without the need to create
-          a model that contains a lot of vertices.\n\n1) Activate <b>\u201CShaded
-          wireframe\u201D</b> mode in the <i>scene</i> view toolbar\n2) In the <i>Hierarchy</i>
-          window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>\n3)
-          Select <b>Geometry_Bamboo_A_LOD0</b> gameobject\n4) Go to <i>Inspector</i>
-          window -> expand the <i>Bamboo_A Material</i>\n5) Select <b>Displacement
-          Mode</b> - Alternate between <b>None</b> and <b>Tessellation displacement</b> 
-          \n6) Notice the silhouette difference between them.\n7) Set the <b>Tessellation
-          factor</b> to 3 and back to see the change in triangle density\r\n\nTessellation
-          Displacement will displace the mesh\u2019s surface according to the Height
-          Map.\r\nTune the \u201CFade start\u201D and \u201CFade end\u201D distances
-          to optimize the effect and prevent the rendering of triangles too far from
-          the object, as it becomes unnoticeable and wasteful in terms of performance.\r\nSee
-          the change in triangle density.\n\n"
+        m_Untranslated: "Tessellation allowes us to render more detailed geometry
+          without the need to create a model that contains a lot of vertices.\n\n1)
+          Activate <b>\u201CShaded wireframe\u201D</b> mode in the <i>scene</i> view
+          toolbar\n2) In the <i>Hierarchy</i> window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>\n3)
+          Select <b>Geometry_Bamboo_A_LOD00</b> gameobject\n4) Go to <i>Inspector</i>
+          window -> expand the <i>Bamboo_A Material</i>. Notice that it uses HDRP/LitTesselation\n5)
+          Set the <b>Displacement Mode</b> to <b>None</b> and back\n6) Notice the
+          silhouette difference between them.\n7) Set the <b>Tessellation factor</b>
+          to 3 and back to see the change in triangle density\r\n\nPerformance tip:\nTune
+          the \"Fade start\" and \"Fade end\" distances to optimize the effect and
+          prevent the rendering of triqangles too far from the object, as it becomes
+          unnoticeable and wasteful in terms of the performance. \n \nTessellation
+          Displacement will procedurally increase the polygon count and the Height
+          map in the materials Surface Inputs will displace the newly created polygons
+          resulting in higher model detail.\n\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
