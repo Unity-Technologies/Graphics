@@ -17118,7 +17118,7 @@ MonoBehaviour:
     distanceFadeStart: 50
     distanceFadeEnd: 60
     textureIndex: 0
-    textureOffset: {x: -0, y: -24.712252, z: 0}
+    textureOffset: {x: -0, y: -0.57038766, z: 0}
 --- !u!1001 &1504255721
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17816,7 +17816,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6590801325530588700, guid: e56208414d15c724cb0e1a693aa73912, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6590801325532122354, guid: e56208414d15c724cb0e1a693aa73912, type: 3}
       propertyPath: m_ConnectedAnchor.x
