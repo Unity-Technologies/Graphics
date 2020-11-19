@@ -48,7 +48,7 @@ Shader "Hidden/Light2D-Shape"
             half    _FalloffDistance;
 
 #ifdef SPRITE_LIGHT
-            TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
+            TEXTURE2D(_CookieTex);          // This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
 #else
             half    _FalloffIntensity;

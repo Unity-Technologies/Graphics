@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent[] transmissionModeOptions = new GUIContent[2]
             {
                 new GUIContent("Thick Object",      "Choose this mode for thick objects. For performance reasons, transmitted light ignores occlusion (shadows)."),
-                new GUIContent("Thin Object",  		"Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface.")
+                new GUIContent("Thin Object",       "Choose this mode for thin objects, such as paper or leaves. Transmitted light reuses the shadowing state of the surface.")
             };
             public readonly GUIContent   profileMinMaxThickness = new GUIContent("Thickness Remap Values (Min-Max)", "Shows the values of the thickness remap below (in millimeters).");
             public readonly GUIContent   profileThicknessRemap  = new GUIContent("Thickness Remap (Min-Max)", "Remaps the thickness parameter from [0, 1] to the desired range (in millimeters).");

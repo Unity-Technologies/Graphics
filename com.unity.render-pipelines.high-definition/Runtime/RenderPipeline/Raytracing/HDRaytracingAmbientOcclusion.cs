@@ -54,10 +54,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("{0}_AmbientOcclusionHistoryBuffer{1}", viewName, frameIndex));
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("{0}_AmbientOcclusionHistoryBuffer{1}", viewName, frameIndex));
         }
-
 
         static public void SetDefaultAmbientOcclusionTexture(CommandBuffer cmd)
         {
@@ -191,7 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: All the push-debug stuff should be centralized somewhere
             (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, outputTexture, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
-
         }
 
         static public void TraceAO(CommandBuffer cmd, AmbientOcclusionTraceParameters aoTraceParameters, AmbientOcclusionTraceResources aoTraceResources)
@@ -273,7 +271,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the textures and the params
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, outputTexture);
-
         }
     }
 }

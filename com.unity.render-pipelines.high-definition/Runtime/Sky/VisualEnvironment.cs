@@ -60,6 +60,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Sky Ambient Mode parameter.</param>
         /// <param name="overrideState">Initial override value.</param>
         public SkyAmbientModeParameter(SkyAmbientMode value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 }
