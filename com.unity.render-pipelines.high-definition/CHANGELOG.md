@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue displaying wrong debug mode in runtime debug menu UI.
 - Fixed useless editor repaint when using lod bias.
 - Fixed multi-editing with new light intensity slider.
+- Fixed issue with density volumes flickering when editing shape box.
 
 ## [10.2.0] - 2020-10-19
 
