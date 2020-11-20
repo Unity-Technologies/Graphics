@@ -17,7 +17,7 @@ Shader "Universal Render Pipeline/Simple Lit"
         [HideInInspector] _BumpScale("Scale", Float) = 1.0
         [NoScaleOffset] _BumpMap("Normal Map", 2D) = "bump" {}
 
-        _EmissionColor("Emission Color", Color) = (0,0,0)
+        [HDR] _EmissionColor("Emission Color", Color) = (0,0,0)
         [NoScaleOffset]_EmissionMap("Emission Map", 2D) = "white" {}
 
         // Blending state
@@ -41,11 +41,15 @@ Shader "Universal Render Pipeline/Simple Lit"
         [HideInInspector] _Shininess("Smoothness", Float) = 0.0
         [HideInInspector] _GlossinessSource("GlossinessSource", Float) = 0.0
         [HideInInspector] _SpecSource("SpecularHighlights", Float) = 0.0
+
+        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "SimpleLit" "IgnoreProjector" = "True" "ShaderModel"="4.5"}
         LOD 300
 
         Pass
@@ -59,7 +63,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles glcore
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -79,11 +83,13 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
@@ -108,10 +114,11 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             ZWrite On
             ZTest LEqual
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             // -------------------------------------
@@ -141,20 +148,9 @@ Shader "Universal Render Pipeline/Simple Lit"
             ZTest LEqual
             Cull[_Cull]
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a SimpleLit material.
-            Stencil {
-                Ref 64       // 0b01000000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
 
             // -------------------------------------
             // Material Keywords
@@ -173,7 +169,8 @@ Shader "Universal Render Pipeline/Simple Lit"
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
-            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             // -------------------------------------
             // Unity defined keywords
@@ -184,6 +181,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #pragma vertex LitPassVertexSimple
             #pragma fragment LitPassFragmentSimple
@@ -204,7 +202,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -225,6 +223,38 @@ Shader "Universal Render Pipeline/Simple Lit"
             ENDHLSL
         }
 
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            ENDHLSL
+        }
+
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {
@@ -234,7 +264,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -255,7 +285,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             Tags{ "RenderType" = "Transparent" "Queue" = "Transparent" }
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
@@ -271,7 +301,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True" "ShaderModel"="2.0"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "SimpleLit" "IgnoreProjector" = "True" "ShaderModel"="2.0"}
         LOD 300
 
         Pass
@@ -305,11 +335,14 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
@@ -329,6 +362,7 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             ZWrite On
             ZTest LEqual
+            ColorMask 0
             Cull[_Cull]
 
             HLSLPROGRAM
@@ -370,6 +404,37 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+            ENDHLSL
+        }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma only_renderers gles gles3 glcore
+            #pragma target 2.0
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
             ENDHLSL
         }
 

@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     static class HDFields
     {
-#region Tags
+        #region Tags
         public const string kMaterial = "Material";
         public const string kDots = "Dots";
         public const string kSpecular = "Specular";
@@ -12,9 +12,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public const string kDistortion = "Distortion";
         public const string kShaderPass = "ShaderPass";
         public const string kSubShader = "SubShader";
-#endregion
+        #endregion
 
-#region Fields
+        #region Fields
         // Material
         public static FieldDescriptor Anisotropy =              new FieldDescriptor(kMaterial, "Anisotropy", "_MATERIAL_FEATURE_TRANSMISSION 1");
         public static FieldDescriptor Iridescence =             new FieldDescriptor(kMaterial, "Iridescence", "_MATERIAL_FEATURE_TRANSMISSION 1");
@@ -48,29 +48,20 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor SpecularOcclusionCustom = new FieldDescriptor(string.Empty, "SpecularOcclusionCustom", "_SPECULAR_OCCLUSION_CUSTOM 1");
 
         // Misc
-        public static FieldDescriptor DoAlphaTest =             new FieldDescriptor(string.Empty, "DoAlphaTest", "_DO_ALPHA_TEST 1");
         public static FieldDescriptor DoAlphaTestShadow =       new FieldDescriptor(string.Empty, "DoAlphaTestShadow", "_DO_ALPHA_TEST_SHADOW 1");
         public static FieldDescriptor DoAlphaTestPrepass =      new FieldDescriptor(string.Empty, "DoAlphaTestPrepass", "_DO_ALPHA_TEST_PREPASS 1");
-        public static FieldDescriptor DoAlphaTestPostpass =     new FieldDescriptor(string.Empty, "DoAlphaTestPostpass", "_DO_ALPHA_TEST_POSTPASS 1");
-        public static FieldDescriptor AlphaFog =                new FieldDescriptor(string.Empty, "AlphaFog", "_ENABLE_FOG_ON_TRANSPARENT 1");
-        public static FieldDescriptor BlendPreserveSpecular =   new FieldDescriptor(Fields.kBlendMode, "PreserveSpecular", "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1");
-        public static FieldDescriptor DisableDecals =           new FieldDescriptor(string.Empty, "DisableDecals", "_DISABLE_DECALS 1");
-        public static FieldDescriptor DisableSSR =              new FieldDescriptor(string.Empty, "DisableSSR", "_DISABLE_SSR 1");
-        public static FieldDescriptor DisableSSRTransparent =   new FieldDescriptor(string.Empty, "DisableSSRTransparent", "_DISABLE_SSR_TRANSPARENT 1");
         public static FieldDescriptor BentNormal =              new FieldDescriptor(string.Empty, "BentNormal", "_BENT_NORMAL 1");
         public static FieldDescriptor AmbientOcclusion =        new FieldDescriptor(string.Empty, "AmbientOcclusion", "_AMBIENT_OCCLUSION 1");
         public static FieldDescriptor CoatMask =                new FieldDescriptor(string.Empty, "CoatMask", "_COAT_MASK 1");
-        public static FieldDescriptor Tangent =                 new FieldDescriptor(string.Empty, "Tangent", "_TANGENT 1");
         public static FieldDescriptor LightingGI =              new FieldDescriptor(string.Empty, "LightingGI", "_LIGHTING_GI 1");
         public static FieldDescriptor BackLightingGI =          new FieldDescriptor(string.Empty, "BackLightingGI", "_BACK_LIGHTING_GI 1");
         public static FieldDescriptor DepthOffset =             new FieldDescriptor(string.Empty, "DepthOffset", "_DEPTH_OFFSET 1");
-        public static FieldDescriptor TransparentWritesMotionVec = new FieldDescriptor(string.Empty, "TransparentWritesMotionVec", "_WRITE_TRANSPARENT_MOTION_VECTOR 1");
         public static FieldDescriptor TransparentBackFace =     new FieldDescriptor(string.Empty, "TransparentBackFace", string.Empty);
         public static FieldDescriptor TransparentDepthPrePass = new FieldDescriptor(string.Empty, "TransparentDepthPrePass", string.Empty);
         public static FieldDescriptor TransparentDepthPostPass = new FieldDescriptor(string.Empty, "TransparentDepthPostPass", string.Empty);
         public static FieldDescriptor RayTracing =              new FieldDescriptor(string.Empty, "RayTracing", string.Empty);
         public static FieldDescriptor Unlit =                   new FieldDescriptor(string.Empty, "Unlit", string.Empty);
 
-#endregion
+        #endregion
     }
 }

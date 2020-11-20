@@ -471,7 +471,23 @@ namespace UnityEditor.VFX.UI
 
                     var linkedParameter = outputs.FirstOrDefault(t => t.sourceNode is VFXParameterNodeController);
                     if (linkedParameter != null)
+                    {
                         newTargetParamController.exposedName = (linkedParameter.sourceNode as VFXParameterNodeController).parentController.exposedName;
+                        {
+                            VFXParameter originalParameter = (linkedParameter.sourceNode as VFXParameterNodeController).parentController.model;
+
+                            newTargetParameter.valueFilter = originalParameter.valueFilter;
+                            if (originalParameter.valueFilter == VFXValueFilter.Range)
+                            {
+                                newTargetParameter.min = originalParameter.min;
+                                newTargetParameter.max = originalParameter.max;
+                            }
+                            else if (originalParameter.valueFilter == VFXValueFilter.Enum)
+                            {
+                                newTargetParameter.enumValues = originalParameter.enumValues.ToList();
+                            }
+                        }
+                    }
                     else
                         newTargetParamController.exposedName = newSourceInputs[i].name;
 
@@ -526,7 +542,7 @@ namespace UnityEditor.VFX.UI
                         ctx.RecreateCopy();
                         ctx.ResyncSlots(true);
                     }
-
+                    m_SourceNodeController.model.Invalidate(VFXModel.InvalidationCause.kSettingChanged); // call to resync slots
                     m_SourceNodeController.ApplyChanges();
                     //Link all the outputs to the matching input of the subgraph
                     foreach (var output in outputs)

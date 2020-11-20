@@ -5,54 +5,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-struct AttributesParticle
-{
-    float4 vertex : POSITION;
-    float3 normal : NORMAL;
-    half4 color : COLOR;
-#if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-    float4 texcoords : TEXCOORD0;
-    float texcoordBlend : TEXCOORD1;
-#else
-    float2 texcoords : TEXCOORD0;
-#endif
-    float4 tangent : TANGENT;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-struct VaryingsParticle
-{
-    half4 color                     : COLOR;
-    float2 texcoord                 : TEXCOORD0;
-
-    float3 positionWS               : TEXCOORD1;
-
-#ifdef _NORMALMAP
-    float4 normalWS                 : TEXCOORD2;    // xyz: normal, w: viewDir.x
-    float4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: viewDir.y
-    float4 bitangentWS              : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
-#else
-    float3 normalWS                 : TEXCOORD2;
-    float3 viewDirWS                : TEXCOORD3;
-#endif
-
-#if defined(_FLIPBOOKBLENDING_ON)
-    float3 texcoord2AndBlend        : TEXCOORD5;
-#endif
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    float4 projectedPosition        : TEXCOORD6;
-#endif
-
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    float4 shadowCoord              : TEXCOORD7;
-#endif
-
-    float3 vertexSH                 : TEXCOORD8; // SH
-    float4 clipPos                  : SV_POSITION;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-    UNITY_VERTEX_OUTPUT_STEREO
-};
-
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
 {
     output = (InputData)0;
@@ -87,33 +39,27 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.fogCoord = 0; // not used for deferred shading
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
+    output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+    output.shadowMask = half4(1, 1, 1, 1);
 }
 
 inline void InitializeParticleSimpleLitSurfaceData(VaryingsParticle input, out SurfaceData outSurfaceData)
 {
     outSurfaceData = (SurfaceData)0;
 
-    float2 uv = input.texcoord;
-    float3 blendUv = float3(0, 0, 0);
-#if defined(_FLIPBOOKBLENDING_ON)
-    blendUv = input.texcoord2AndBlend;
-#endif
+    ParticleParams particleParams;
+    InitParticleParams(input, particleParams);
 
-    float4 projectedPosition = float4(0,0,0,0);
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    projectedPosition = input.projectedPosition;
-#endif
-
-    outSurfaceData.normalTS = SampleNormalTS(uv, blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-    half4 albedo = SampleAlbedo(uv, blendUv, _BaseColor, input.color, projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
+    outSurfaceData.normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+    half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), particleParams);
     outSurfaceData.albedo = AlphaModulate(albedo.rgb, albedo.a);
     outSurfaceData.alpha = albedo.a;
 #if defined(_EMISSION)
-    outSurfaceData.emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), uv, blendUv) * _EmissionColor.rgb;
+    outSurfaceData.emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv) * _EmissionColor.rgb;
 #else
     outSurfaceData.emission = half3(0, 0, 0);
 #endif
-    half4 specularGloss = SampleSpecularSmoothness(uv, blendUv, albedo.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
+    half4 specularGloss = SampleSpecularSmoothness(particleParams.uv, particleParams.blendUv, albedo.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
     outSurfaceData.specular = specularGloss.rgb;
     outSurfaceData.smoothness = specularGloss.a;
 
@@ -157,13 +103,18 @@ VaryingsParticle ParticlesLitGBufferVertex(AttributesParticle input)
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
 
     output.positionWS.xyz = vertexInput.positionWS.xyz;
+    output.positionWS.w = 0;
     output.clipPos = vertexInput.positionCS;
-    output.color = input.color;
+    output.color = GetParticleColor(input.color);
 
-    output.texcoord = input.texcoords.xy;
-#ifdef _FLIPBOOKBLENDING_ON
-    output.texcoord2AndBlend.xy = input.texcoords.zw;
-    output.texcoord2AndBlend.z = input.texcoordBlend;
+#if defined(_FLIPBOOKBLENDING_ON)
+    #if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+        GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+    #else
+        GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
+    #endif
+#else
+    GetParticleTexcoords(output.texcoord, input.texcoords.xy);
 #endif
 
 #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
@@ -189,7 +140,7 @@ FragmentOutput ParticlesLitGBufferFragment(VaryingsParticle input)
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
+    half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
 
     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
 

@@ -17,12 +17,20 @@ float4 _BaseColor;
 float3 _EmissiveColor;
 float _EmissiveExposureWeight;
 float _DecalMeshDepthBias;
+float _MetallicRemapMin;
+float _MetallicRemapMax;
 float _SmoothnessRemapMin;
 float _SmoothnessRemapMax;
 float _AORemapMin;
 float _AORemapMax;
-float _MetallicScale;
 float _DecalMaskMapBlueScale;
 
+float _Smoothness;
+float _AO;
+float _Metallic;
+
+#ifdef SCENEPICKINGPASS
+    float4 _SelectionID;
+#endif
 
 #endif

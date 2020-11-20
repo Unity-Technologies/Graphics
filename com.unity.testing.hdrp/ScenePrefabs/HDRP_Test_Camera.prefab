@@ -172,6 +172,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   hasPersistentHistory: 0
+  exposureTarget: {fileID: 0}
   m_RenderingPathCustomFrameSettings:
     bitDatas:
       data1: 70005818916701
@@ -209,6 +210,8 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     AverageCorrectnessThreshold: 0.0001
     UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0
   doBeforeTest:
     m_PersistentCalls:
       m_Calls: []
@@ -216,6 +219,7 @@ MonoBehaviour:
   waitFrames: 0
   xrCompatible: 1
   xrThresholdMultiplier: 1
+  renderGraphCompatible: 1
   checkMemoryAllocation: 1
   renderPipelineAsset: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
     type: 2}
@@ -233,7 +237,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   renderer: {fileID: 131257220995741923}
   camera: {fileID: 20109210616973140}
-  testSettings: {fileID: 114995348509370400}
   screenSize: 0.8
   nearPlaneOffset: 0.001
   extend: {x: 4, y: 1.8}
@@ -327,7 +330,7 @@ TextMesh:
   m_Anchor: 4
   m_Alignment: 0
   m_TabSize: 4
-  m_FontSize: 1
+  m_FontSize: 0
   m_FontStyle: 0
   m_RichText: 0
   m_Font: {fileID: 12800000, guid: 306d620c715872046bf76568b7f382d4, type: 3}
@@ -348,4 +351,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   D3D11: 0
   D3D12: 0
-  VukanWindows: 0
+  VulkanWindows: 0
+  Metal: 0
+  VulkanLinux: 0

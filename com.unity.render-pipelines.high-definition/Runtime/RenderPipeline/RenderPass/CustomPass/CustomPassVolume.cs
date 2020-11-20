@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using System.Linq;
 using System;
 
@@ -49,6 +49,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <value>The fade value that should be applied to the custom pass effect</value>
         public float fadeValue { get; private set; }
 
+#if UNITY_EDITOR
+        [System.NonSerialized]
+        bool visible = true;
+#endif
+
         // The current active custom pass volume is simply the smallest overlapping volume with the trigger transform
         static HashSet<CustomPassVolume>    m_ActivePassVolumes = new HashSet<CustomPassVolume>();
         static List<CustomPassVolume>       m_OverlappingPassVolumes = new List<CustomPassVolume>();
@@ -73,21 +78,56 @@ namespace UnityEngine.Rendering.HighDefinition
             customPasses.RemoveAll(c => c is null);
             GetComponents(m_Colliders);
             Register(this);
+
+#if UNITY_EDITOR
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateCustomPassVolumeVisibility;
+            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateCustomPassVolumeVisibility;
+#endif
         }
 
-        void OnDisable() => UnRegister(this);
+        void OnDisable()
+        {
+            UnRegister(this);
+#if UNITY_EDITOR
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateCustomPassVolumeVisibility;
+#endif
+        }
 
         void OnDestroy() => CleanupPasses();
 
-        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
+#if UNITY_EDITOR
+        void UpdateCustomPassVolumeVisibility()
         {
-            bool executed = false;
+            visible = !UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject);
+        }
+
+#endif
+
+        bool IsVisible(HDCamera hdCamera)
+        {
+#if UNITY_EDITOR
+            // Scene visibility
+            if (hdCamera.camera.cameraType == CameraType.SceneView && !visible)
+                return false;
+#endif
 
             // We never execute volume if the layer is not within the culling layers of the camera
             if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
                 return false;
 
+            return true;
+        }
+
+        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
+        {
+            bool executed = false;
+
+            if (!IsVisible(hdCamera))
+                return false;
+
             Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
+            if (injectionPoint == CustomPassInjectionPoint.AfterPostProcess)
+                Shader.SetGlobalTexture(HDShaderIDs._AfterPostProcessColorBuffer, targets.cameraColorBuffer);
 
             foreach (var pass in customPasses)
             {
@@ -101,12 +141,30 @@ namespace UnityEngine.Rendering.HighDefinition
             return executed;
         }
 
+        internal bool Execute(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in CustomPass.RenderTargets targets)
+        {
+            bool executed = false;
+
+            if (!IsVisible(hdCamera))
+                return false;
+
+            foreach (var pass in customPasses)
+            {
+                if (pass != null && pass.WillBeExecuted(hdCamera))
+                {
+                    pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, targets, this);
+                    executed = true;
+                }
+            }
+
+            return executed;
+        }
+
         internal bool WillExecuteInjectionPoint(HDCamera hdCamera)
         {
             bool executed = false;
 
-            // We never execute volume if the layer is not within the culling layers of the camera
-            if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
+            if (!IsVisible(hdCamera))
                 return false;
 
             foreach (var pass in customPasses)
@@ -227,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: cache the results per camera in the HDRenderPipeline so it's not executed twice per camera
             Update(hdCamera);
 
-            // For each injection points, we gather the culling results for 
+            // For each injection points, we gather the culling results for
             hdCamera.camera.TryGetCullingParameters(out var cullingParameters);
 
             // By default we don't want the culling to return any objects
@@ -372,6 +430,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
 #endif
     }
 }

@@ -6,16 +6,16 @@ using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
-    class ShadowCaster2DShapeTool : PathEditorTool<ScriptablePath>
+    class ShadowCaster2DShapeTool : PathEditorTool<ShadowCasterPath>
     {
         const string k_ShapePath = "m_ShapePath";
- 
+
         protected override IShape GetShape(Object target)
         {
             return (target as ShadowCaster2D).shapePath.ToPolygon(false);
         }
 
-        protected override void SetShape(ScriptablePath shapeEditor, SerializedObject serializedObject)
+        protected override void SetShape(ShadowCasterPath shapeEditor, SerializedObject serializedObject)
         {
             serializedObject.Update();
 

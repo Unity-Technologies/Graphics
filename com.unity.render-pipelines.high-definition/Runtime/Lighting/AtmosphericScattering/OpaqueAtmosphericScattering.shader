@@ -63,12 +63,11 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float2 positionSS  = input.positionCS.xy;
             float3 V           = GetSkyViewDirWS(positionSS);
             float  depth       = LoadCameraDepth(positionSS);
-            float3 surfColor   = LOAD_TEXTURE2D_X(_ColorTexture, (int2)positionSS).rgb;
 
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
 
-            return float4(volColor, volOpacity.x);
+            return float4(volColor, 1.0 - volOpacity.x);
         }
 
         float4 FragMSAA(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
@@ -77,12 +76,11 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float2 positionSS  = input.positionCS.xy;
             float3 V           = GetSkyViewDirWS(positionSS);
             float  depth       = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, (int2)positionSS, sampleIndex).x;
-            float3 surfColor   = LOAD_TEXTURE2D_X_MSAA(_ColorTextureMS, (int2)positionSS, sampleIndex).rgb;
 
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
 
-            return float4(volColor, volOpacity.x);
+            return float4(volColor, 1.0 - volOpacity.x);
         }
 
         float4 FragPBRFog(Varyings input) : SV_Target
@@ -120,7 +118,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         Pass
         {
             Cull Off    ZWrite Off
-            Blend One OneMinusSrcAlpha // Premultiplied alpha
+            Blend One SrcAlpha // Premultiplied alpha
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM
@@ -133,7 +131,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         Pass
         {
             Cull Off    ZWrite Off
-            Blend One OneMinusSrcAlpha // Premultiplied alpha
+            Blend One SrcAlpha // Premultiplied alpha
             ZTest Less  // Required for XR occlusion mesh optimization
 
             HLSLPROGRAM

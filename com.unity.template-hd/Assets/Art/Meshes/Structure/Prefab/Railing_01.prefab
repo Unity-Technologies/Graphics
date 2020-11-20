@@ -21,6 +21,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -7882814271437808017, guid: b6b88a1ea8b8326409893560e5e6fac7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: -4601346743412605432, guid: b6b88a1ea8b8326409893560e5e6fac7, type: 3}
+      propertyPath: m_ReceiveGI
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: b6b88a1ea8b8326409893560e5e6fac7, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -68,6 +76,14 @@ PrefabInstance:
     - target: {fileID: -927199367670048503, guid: b6b88a1ea8b8326409893560e5e6fac7, type: 3}
       propertyPath: m_Name
       value: Railing_01
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: b6b88a1ea8b8326409893560e5e6fac7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 4766990047325988284, guid: b6b88a1ea8b8326409893560e5e6fac7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4666976426291595848, guid: b6b88a1ea8b8326409893560e5e6fac7, type: 3}

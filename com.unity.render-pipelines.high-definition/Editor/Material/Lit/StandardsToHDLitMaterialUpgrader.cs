@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Convert _Metallic value from Gamma to Linear, or set to 1 if a map is used
                 float metallicValue = Mathf.Pow(srcMaterial.GetFloat("_Metallic"), 2.2f);
-                dstMaterial.SetFloat("_Metallic", hasMetallic? 1f : metallicValue);
+                dstMaterial.SetFloat("_Metallic", hasMetallic ? 1f : metallicValue);
             }
 
             // Occlusion
@@ -130,11 +130,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 Texture2D maskMap;
 
                 TextureCombiner maskMapCombiner = new TextureCombiner(
-                        metallicMap, 0,                                                     // R: Metallic from red
-                        occlusionMap, 1,                                                    // G: Occlusion from green
-                        detailMaskMap, 3,                                                   // B: Detail Mask from alpha
-                        smoothnessMap, (srcMaterial.shader.name == Standard_Rough) ? -4 : 3 // A: Smoothness Texture from inverse greyscale for roughness setup, or alpha
-                        );
+                    metallicMap, 0,                                                         // R: Metallic from red
+                    occlusionMap, 1,                                                        // G: Occlusion from green
+                    detailMaskMap, 3,                                                       // B: Detail Mask from alpha
+                    smoothnessMap, (srcMaterial.shader.name == Standard_Rough) ? -4 : 3     // A: Smoothness Texture from inverse greyscale for roughness setup, or alpha
+                );
 
                 string maskMapPath = AssetDatabase.GetAssetPath(srcMaterial);
                 maskMapPath = maskMapPath.Remove(maskMapPath.Length - 4) + "_MaskMap.png";
@@ -164,11 +164,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 Texture2D detailMap;
                 TextureCombiner detailCombiner = new TextureCombiner(
-                        TextureCombiner.GetTextureSafe(srcMaterial, "_DetailAlbedoMap", Color.grey), 4, // Albedo (overlay)
-                        TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", Color.grey), 1, // Normal Y
-                        TextureCombiner.midGrey, 1,                                                     // Smoothness
-                        TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", Color.grey), 0  // Normal X
-                        );
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailAlbedoMap", Color.grey), 4,     // Albedo (overlay)
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", Color.grey), 1,     // Normal Y
+                    TextureCombiner.midGrey, 1,                                                         // Smoothness
+                    TextureCombiner.GetTextureSafe(srcMaterial, "_DetailNormalMap", Color.grey), 0      // Normal X
+                );
                 string detailMapPath = AssetDatabase.GetAssetPath(srcMaterial);
                 detailMapPath = detailMapPath.Remove(detailMapPath.Length - 4) + "_DetailMap.png";
                 detailMap = detailCombiner.Combine(detailMapPath);
@@ -185,14 +185,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     dstMaterial.SetFloat("_BlendMode", 0);
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 1);
-                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, 0, false);
+                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, 0, false, true);
                     break;
                 case 1: // Cutout
                     dstMaterial.SetFloat("_SurfaceType", 0);
                     dstMaterial.SetFloat("_BlendMode", 0);
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 1);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 1);
-                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, 0, true);
+                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, 0, true, true);
                     break;
                 case 2: // Fade -> Alpha with depth prepass + Disable preserve specular
                     dstMaterial.SetFloat("_SurfaceType", 1);
@@ -200,25 +200,25 @@ namespace UnityEditor.Rendering.HighDefinition
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 0);
                     dstMaterial.SetFloat("_TransparentDepthPrepassEnable", 1);
-                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Transparent, 0, false);
+                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Transparent, 0, false, true);
                     break;
                 case 3: // Transparent -> Alpha
                     dstMaterial.SetFloat("_SurfaceType", 1);
                     dstMaterial.SetFloat("_BlendMode", 0);
                     dstMaterial.SetFloat("_AlphaCutoffEnable", 0);
                     dstMaterial.SetFloat("_EnableBlendModePreserveSpecularLighting", 1);
-                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Transparent, 0, false);
+                    dstMaterial.renderQueue = HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Transparent, 0, false, true);
                     break;
             }
 
             Color hdrEmission = srcMaterial.GetColor("_EmissionColor");
 
             // Get the _EMISSION keyword of the Standard shader
-            if ( !srcMaterial.IsKeywordEnabled("_EMISSION") )
+            if (!srcMaterial.IsKeywordEnabled("_EMISSION"))
                 hdrEmission = Color.black;
 
             // Emission toggle of Particle Standard Surface
-            if( srcMaterial.HasProperty("_EmissionEnabled") )
+            if (srcMaterial.HasProperty("_EmissionEnabled"))
                 if (srcMaterial.GetFloat("_EmissionEnabled") == 0)
                     hdrEmission = Color.black;
 

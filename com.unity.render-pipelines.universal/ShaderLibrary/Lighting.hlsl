@@ -25,7 +25,6 @@
         // Otherwise evaluate SH fully per-pixel
 #endif
 
-
 #ifdef LIGHTMAP_ON
     #define DECLARE_LIGHTMAP_OR_SH(lmName, shName, index) float2 lmName : TEXCOORD##index
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT) OUT.xy = lightmapUV.xy * lightmapScaleOffset.xy + lightmapScaleOffset.zw;
@@ -35,6 +34,12 @@
     #define OUTPUT_LIGHTMAP_UV(lightmapUV, lightmapScaleOffset, OUT)
     #define OUTPUT_SH(normalWS, OUT) OUT.xyz = SampleSHVertex(normalWS)
 #endif
+
+// Renamed -> LIGHTMAP_SHADOW_MIXING
+#if !defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK)
+    #define _MIXED_LIGHTING_SUBTRACTIVE
+#endif
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
@@ -103,12 +108,7 @@ Light GetMainLight()
 {
     Light light;
     light.direction = _MainLightPosition.xyz;
-    // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
-    light.distanceAttenuation = unity_LightData.z;
-#if defined(LIGHTMAP_ON) || defined(_MIXED_LIGHTING_SUBTRACTIVE)
-    // unity_ProbesOcclusion.x is the mixed light probe occlusion data
-    light.distanceAttenuation *= unity_ProbesOcclusion.x;
-#endif
+    light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
 
@@ -122,6 +122,13 @@ Light GetMainLight(float4 shadowCoord)
     return light;
 }
 
+Light GetMainLight(float4 shadowCoord, float3 positionWS, half4 shadowMask)
+{
+    Light light = GetMainLight();
+    light.shadowAttenuation = MainLightShadow(shadowCoord, positionWS, shadowMask, _MainLightOcclusionProbes);
+    return light;
+}
+
 // Fills a light struct given a perObjectLightIndex
 Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 {
@@ -131,13 +138,11 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
-    half4 lightOcclusionProbeInfo = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
-    half4 lightOcclusionProbeInfo = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
@@ -151,24 +156,8 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     Light light;
     light.direction = lightDirection;
     light.distanceAttenuation = attenuation;
-    light.shadowAttenuation = AdditionalLightRealtimeShadow(perObjectLightIndex, positionWS);
+    light.shadowAttenuation = 1.0;
     light.color = color;
-
-    // In case we're using light probes, we can sample the attenuation from the `unity_ProbesOcclusion`
-#if defined(LIGHTMAP_ON) || defined(_MIXED_LIGHTING_SUBTRACTIVE)
-    // First find the probe channel from the light.
-    // Then sample `unity_ProbesOcclusion` for the baked occlusion.
-    // If the light is not baked, the channel is -1, and we need to apply no occlusion.
-
-    // probeChannel is the index in 'unity_ProbesOcclusion' that holds the proper occlusion value.
-    int probeChannel = lightOcclusionProbeInfo.x;
-
-    // lightProbeContribution is set to 0 if we are indeed using a probe, otherwise set to 1.
-    half lightProbeContribution = lightOcclusionProbeInfo.y;
-
-    half probeOcclusionValue = unity_ProbesOcclusion[probeChannel];
-    light.distanceAttenuation *= max(probeOcclusionValue, lightProbeContribution);
-#endif
 
     return light;
 }
@@ -231,6 +220,21 @@ Light GetAdditionalLight(uint i, float3 positionWS)
 {
     int perObjectLightIndex = GetPerObjectLightIndex(i);
     return GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+}
+
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
+{
+    int perObjectLightIndex = GetPerObjectLightIndex(i);
+    Light light = GetAdditionalPerObjectLight(perObjectLightIndex, positionWS);
+
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+    half4 occlusionProbeChannels = _AdditionalLightsBuffer[perObjectLightIndex].occlusionProbeChannels;
+#else
+    half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
+#endif
+    light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, shadowMask, occlusionProbeChannels);
+
+    return light;
 }
 
 int GetAdditionalLightsCount()
@@ -458,6 +462,30 @@ half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
 //                      Global Illumination                                  //
 ///////////////////////////////////////////////////////////////////////////////
 
+// Ambient occlusion
+TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
+SAMPLER(sampler_ScreenSpaceOcclusionTexture);
+
+struct AmbientOcclusionFactor
+{
+    half indirectAmbientOcclusion;
+    half directAmbientOcclusion;
+};
+
+half SampleAmbientOcclusion(float2 normalizedScreenSpaceUV)
+{
+    float2 uv = UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV);
+    return SAMPLE_TEXTURE2D_X(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture, uv).x;
+}
+
+AmbientOcclusionFactor GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpaceUV)
+{
+    AmbientOcclusionFactor aoFactor;
+    aoFactor.indirectAmbientOcclusion = SampleAmbientOcclusion(normalizedScreenSpaceUV);
+    aoFactor.directAmbientOcclusion = lerp(1.0, aoFactor.indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+    return aoFactor;
+}
+
 // Samples SH L0, L1 and L2 terms
 half3 SampleSH(half3 normalWS)
 {
@@ -480,7 +508,7 @@ half3 SampleSH(half3 normalWS)
 half3 SampleSHVertex(half3 normalWS)
 {
 #if defined(EVALUATE_SH_VERTEX)
-    return max(half3(0, 0, 0), SampleSH(normalWS));
+    return SampleSH(normalWS);
 #elif defined(EVALUATE_SH_MIXED)
     // no max since this is only L2 contribution
     return SHEvalLinearL2(normalWS, unity_SHBr, unity_SHBg, unity_SHBb, unity_SHC);
@@ -498,12 +526,28 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
     return L2Term;
 #elif defined(EVALUATE_SH_MIXED)
     half3 L0L1Term = SHEvalLinearL0L1(normalWS, unity_SHAr, unity_SHAg, unity_SHAb);
-    return max(half3(0, 0, 0), L2Term + L0L1Term);
+    half3 res = L2Term + L0L1Term;
+#ifdef UNITY_COLORSPACE_GAMMA
+    res = LinearToSRGB(res);
+#endif
+    return max(half3(0, 0, 0), res);
 #endif
 
     // Default: Evaluate SH fully per-pixel
     return SampleSH(normalWS);
 }
+
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+#define LIGHTMAP_NAME unity_Lightmaps
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapsInd
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmaps
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV, unity_LightmapIndex.x
+#else
+#define LIGHTMAP_NAME unity_Lightmap
+#define LIGHTMAP_INDIRECTION_NAME unity_LightmapInd
+#define LIGHTMAP_SAMPLER_NAME samplerunity_Lightmap
+#define LIGHTMAP_SAMPLE_EXTRA_ARGS lightmapUV
+#endif
 
 // Sample baked lightmap. Non-Direction and Directional if available.
 // Realtime GI is not supported.
@@ -522,12 +566,12 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     // the compiler will optimize the transform away.
     half4 transformCoords = half4(1, 1, 0, 0);
 
-#ifdef DIRLIGHTMAP_COMBINED
-    return SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
-        TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
-        lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
+#if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
+    return SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+        TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
+        LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, normalWS, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
-    return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
+    return SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, transformCoords, encodedLightmap, decodeInstructions);
 #else
     return half3(0.0, 0.0, 0.0);
 #endif
@@ -536,22 +580,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // We either sample GI from baked lightmap or from probes.
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
-#ifdef UNITY_DOTS_SHADER
-half3 HackSampleSH(half3 normalWS)
-{
-    // Hack SH so that is is valid for hybrid V1
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = float4(-0.02611f, -0.11903f, -0.02472f, 0.55319f);
-    SHCoefficients[1] = float4(-0.04123, 0.0369, -0.03903, 0.62641);
-    SHCoefficients[2] = float4(-0.06967, 0.23016, -0.06596, 0.81901);
-    SHCoefficients[3] = float4(-0.02041, -0.01933, 0.07292, 0.05023);
-    SHCoefficients[4] = float4(-0.03278, -0.03104, 0.0992, 0.07219);
-    SHCoefficients[5] = float4(-0.05806, -0.05496, 0.10764, 0.09859);
-    SHCoefficients[6] = float4(0.07564, 0.10311, 0.11301, 1.00);
-    return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
-}
-#define SAMPLE_GI(lmName, shName, normalWSName) HackSampleSH(normalWSName);
-#elif defined(LIGHTMAP_ON)
+#if defined(LIGHTMAP_ON)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
@@ -563,10 +592,11 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 
-#if !defined(UNITY_USE_NATIVE_HDR)
-    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#else
+//TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
+#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
     half3 irradiance = encodedIrradiance.rgb;
+#else
+    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 #endif
 
     return irradiance * occlusion;
@@ -638,11 +668,17 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI)
 {
-#if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
+#if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
 #endif
+}
+
+// Backwards compatiblity
+void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+{
+    MixRealtimeAndBakedGI(light, normalWS, bakedGI);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -781,9 +817,24 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
 #endif
 
-    Light mainLight = GetMainLight(inputData.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    half4 shadowMask = inputData.shadowMask;
+#elif !defined (LIGHTMAP_ON)
+    half4 shadowMask = unity_ProbesOcclusion;
+#else
+    half4 shadowMask = half4(1, 1, 1, 1);
+#endif
 
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
+
+    #if defined(_SCREEN_SPACE_OCCLUSION)
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+        mainLight.color *= aoFactor.directAmbientOcclusion;
+        surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
+    #endif
+
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
@@ -796,7 +847,10 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+        #if defined(_SCREEN_SPACE_OCCLUSION)
+            light.color *= aoFactor.directAmbientOcclusion;
+        #endif
         color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                          light,
                                          inputData.normalWS, inputData.viewDirectionWS,
@@ -831,8 +885,24 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
-    Light mainLight = GetMainLight(inputData.shadowCoord);
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
+    // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
+#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+    half4 shadowMask = inputData.shadowMask;
+#elif !defined (LIGHTMAP_ON)
+    half4 shadowMask = unity_ProbesOcclusion;
+#else
+    half4 shadowMask = half4(1, 1, 1, 1);
+#endif
+
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
+
+    #if defined(_SCREEN_SPACE_OCCLUSION)
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+        mainLight.color *= aoFactor.directAmbientOcclusion;
+        inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
+    #endif
+
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
@@ -842,7 +912,10 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     uint pixelLightCount = GetAdditionalLightsCount();
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
-        Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
+        Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask);
+        #if defined(_SCREEN_SPACE_OCCLUSION)
+            light.color *= aoFactor.directAmbientOcclusion;
+        #endif
         half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, specularGloss, smoothness);

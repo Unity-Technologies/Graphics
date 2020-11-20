@@ -1,7 +1,11 @@
 using System.IO;
 using Unity.Collections;
 using UnityEditor;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -278,7 +282,7 @@ namespace UnityEditor.Rendering
 
                     // Since a type B luminaire is turned on its side, rotate it to make its polar axis horizontal.
                     float longitude = Mathf.Atan2(sinV, cosU * cosV) * Mathf.Rad2Deg; // in range [-180..+180] degrees
-                    float latitude = Mathf.Asin(-sinU * cosV) * Mathf.Rad2Deg;       // in range [-90..+90] degrees
+                    float latitude = Mathf.Asin(-sinU * cosV) * Mathf.Rad2Deg;        // in range [-90..+90] degrees
 
                     float horizontalAnglePosition = m_iesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
                     float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
@@ -349,7 +353,7 @@ namespace UnityEditor.Rendering
 
                     float rayLengthSquared = u * u + v * v + 1;
 
-                    float longitude = Mathf.Atan(u) * Mathf.Rad2Deg;                                // in range [-90..+90] degrees
+                    float longitude = Mathf.Atan(u) * Mathf.Rad2Deg;                               // in range [-90..+90] degrees
                     float latitude = Mathf.Asin(v / Mathf.Sqrt(rayLengthSquared)) * Mathf.Rad2Deg; // in range [-90..+90] degrees
 
                     float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
@@ -387,7 +391,7 @@ namespace UnityEditor.Rendering
                     float rayLengthSquared = u * u + v * v + 1;
 
                     // Since a type B luminaire is turned on its side, U and V are flipped.
-                    float longitude = Mathf.Atan(v) * Mathf.Rad2Deg;                                // in range [-90..+90] degrees
+                    float longitude = Mathf.Atan(v) * Mathf.Rad2Deg;                               // in range [-90..+90] degrees
                     float latitude = Mathf.Asin(u / Mathf.Sqrt(rayLengthSquared)) * Mathf.Rad2Deg; // in range [-90..+90] degrees
 
                     float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
@@ -425,7 +429,7 @@ namespace UnityEditor.Rendering
                     float uvLength = Mathf.Sqrt(u * u + v * v);
 
                     float longitude = ((Mathf.Atan2(v, u) - k_HalfPi + k_TwoPi) % k_TwoPi) * Mathf.Rad2Deg; // in range [0..360] degrees
-                    float latitude = Mathf.Atan(uvLength) * Mathf.Rad2Deg;                                 // in range [0..90] degrees
+                    float latitude = Mathf.Atan(uvLength) * Mathf.Rad2Deg;                                  // in range [0..90] degrees
 
                     float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
                     float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);

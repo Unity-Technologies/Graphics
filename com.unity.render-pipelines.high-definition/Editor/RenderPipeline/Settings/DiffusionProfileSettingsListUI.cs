@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void CreateReorderableList(SerializedProperty parameter)
         {
             m_Property = parameter;
-            m_DiffusionProfileList = new ReorderableList(parameter.serializedObject, parameter);
+            m_DiffusionProfileList = new ReorderableList(parameter.serializedObject, parameter, true, true, true, true);
 
             m_DiffusionProfileList.drawHeaderCallback = (rect) => {
                 EditorGUI.LabelField(rect, m_ListName);
@@ -61,10 +61,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (parameter.arraySize >= DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
                 {
                     Debug.LogError("Limit of 15 diffusion profiles reached.");
-                    return ;
+                    return;
                 }
 
                 parameter.InsertArrayElementAtIndex(parameter.arraySize);
+                parameter.serializedObject.ApplyModifiedProperties();
             };
         }
     }

@@ -64,10 +64,11 @@ namespace UnityEditor.Rendering.HighDefinition
             { ShaderID.TerrainLit, TerrainLitGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.AxF, AxFGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.SG_Unlit, HDUnlitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Lit, HDLitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Hair, HairGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Fabric, FabricGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_StackLit, StackLitGUI.SetupMaterialKeywordsAndPass },
+            { ShaderID.SG_Lit, LitShaderGraphGUI.SetupMaterialKeywordsAndPass },
+            { ShaderID.SG_Hair, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
+            { ShaderID.SG_Fabric, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
+            { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
+            { ShaderID.SG_Decal, DecalGUI.SetupMaterialKeywordsAndPass },
             // no entry for ShaderID.SG_Decal
             // no entry for ShaderID.SG_Eye
         };
@@ -86,9 +87,12 @@ namespace UnityEditor.Rendering.HighDefinition
             MaterialResetter resetter;
 
             // If we send a non HDRP material we don't throw an exception, the return type already handles errors.
-            try {
+            try
+            {
                 k_MaterialResetters.TryGetValue(GetShaderEnumFromShader(material.shader), out resetter);
-            } catch {
+            }
+            catch
+            {
                 return false;
             }
 
@@ -109,11 +113,11 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The list of shader preprocessor</returns>
         internal static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
             => UnityEngine.Rendering.CoreUtils
-                .GetAllTypesDerivedFrom<BaseShaderPreprocessor>()
-                .Select(Activator.CreateInstance)
-                .Cast<BaseShaderPreprocessor>()
-                .OrderByDescending(spp => spp.Priority)
-                .ToList();
+            .GetAllTypesDerivedFrom<BaseShaderPreprocessor>()
+            .Select(Activator.CreateInstance)
+            .Cast<BaseShaderPreprocessor>()
+            .OrderByDescending(spp => spp.Priority)
+            .ToList();
 
         internal static bool IsHDRPShader(Shader shader, bool upgradable = false)
         {
@@ -141,9 +145,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
                 HDMetadata obj;
-                if(!shader.TryGetMetadataOfType<HDMetadata>(out obj))
+                if (!shader.TryGetMetadataOfType<HDMetadata>(out obj))
                     throw new ArgumentException("Unknown shader");
-                
+
                 return obj.shaderID == ShaderID.SG_Unlit;
             }
             else
@@ -169,9 +173,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Throw exception if no metadata is found
                 // This case should be handled by the Target
                 HDMetadata obj;
-                if(!shader.TryGetMetadataOfType<HDMetadata>(out obj))
+                if (!shader.TryGetMetadataOfType<HDMetadata>(out obj))
                     throw new ArgumentException("Unknown shader");
-                
+
                 return obj.shaderID;
             }
             else

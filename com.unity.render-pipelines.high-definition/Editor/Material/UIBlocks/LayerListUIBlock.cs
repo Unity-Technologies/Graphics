@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public LayerListUIBlock(Expandable expandableBit)
         {
             m_ExpandableBit = expandableBit;
-            m_WithUV = new bool[]{ true, true, true, true };
+            m_WithUV = new bool[] { true, true, true, true };
         }
 
         public override void LoadMaterialProperties()
@@ -178,6 +178,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     resetRect.x -= 12;
                     resetRect.width = 50;
                     EditorGUI.LabelField(resetRect, Styles.resetButtonIcon);
+                }
+
+                if (m_MaterialLayers[layerIndex] != null && m_MaterialLayers[layerIndex].shader != null)
+                {
+                    var shaderName = m_MaterialLayers[layerIndex].shader.name;
+                    if (shaderName != "HDRP/Lit" && shaderName != "HDRP/LitTessellation")
+                        EditorGUILayout.HelpBox("Selected material is not an HDRP Lit Material. Some properties may not be correctly imported.", MessageType.Info);
                 }
             }
 

@@ -55,12 +55,12 @@ Shader "Hidden/HDRP/CombineLighting"
             }
 
             Cull   Off
-            ZTest  Less	   // Required for XR occlusion mesh optimization
+            ZTest  Less    // Required for XR occlusion mesh optimization
             ZWrite Off
             Blend  One One // Additive
 
             HLSLPROGRAM
-            
+
             float4 Frag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

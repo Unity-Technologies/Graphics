@@ -69,7 +69,7 @@ void InitSphericalQuad(LightData areaLightData, float3 positionWS, out SphQuad s
     float halfHeight = areaLightData.size.y * 0.5;
 
     // Compute the world space position of the center of the lightlight
-    float3 areaLightPosWS = GetAbsolutePositionWS(areaLightData.positionRWS);
+    float3 areaLightPosWS = areaLightData.positionRWS;
 
     // Let's first compute the position of the rectangle's corners in world space
     float3 v0 = areaLightPosWS + areaLightData.right *  halfWidth + areaLightData.up *  halfHeight;
@@ -86,13 +86,13 @@ void InitSphericalQuad(LightData areaLightData, float3 positionWS, out SphQuad s
 bool InitSphericalQuad(LightData areaLightData, float3 positionWS, float3 normalWS, inout SphQuad squad)
 {
     ZERO_INITIALIZE(SphQuad, squad);
-    
+
     // Dimension of the area light
     float halfWidth  = areaLightData.size.x * 0.5;
     float halfHeight = areaLightData.size.y * 0.5;
 
     // Compute the world space position of the center of the lightlight
-    float3 areaLightPosWS = GetAbsolutePositionWS(areaLightData.positionRWS);
+    float3 areaLightPosWS = areaLightData.positionRWS;
 
     // Let's first compute the position of the rectangle's corners in world space
     float3 v0 = areaLightPosWS + areaLightData.right *  halfWidth + areaLightData.up *  halfHeight;
@@ -106,7 +106,7 @@ bool InitSphericalQuad(LightData areaLightData, float3 positionWS, float3 normal
     {
         return false;
     }
-        
+
     float3 ex = v1 - v0;
     float3 ey = v3 - v0;
 

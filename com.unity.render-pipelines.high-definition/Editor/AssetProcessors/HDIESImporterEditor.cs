@@ -3,7 +3,11 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -107,23 +111,23 @@ namespace UnityEditor.Rendering.HighDefinition
         public override bool HasPreviewGUI()
         {
             return iesImporterEditor.CommonHasPreviewGUI(
-                    delegate (Camera camera)
-                    {
-                        SetupRenderPipelinePreviewCamera(camera);
-                    },
-                    delegate (Light light)
-                    {
-                        SetupRenderPipelinePreviewLight(light);
-                    },
-                    delegate (MeshRenderer wallRenderer)
-                    {
-                        SetupRenderPipelinePreviewWallRenderer(wallRenderer);
-                    },
-                    delegate (MeshRenderer floorRenderer)
-                    {
-                        SetupRenderPipelinePreviewFloorRenderer(floorRenderer);
-                    }
-                );
+                delegate(Camera camera)
+                {
+                    SetupRenderPipelinePreviewCamera(camera);
+                },
+                delegate(Light light)
+                {
+                    SetupRenderPipelinePreviewLight(light);
+                },
+                delegate(MeshRenderer wallRenderer)
+                {
+                    SetupRenderPipelinePreviewWallRenderer(wallRenderer);
+                },
+                delegate(MeshRenderer floorRenderer)
+                {
+                    SetupRenderPipelinePreviewFloorRenderer(floorRenderer);
+                }
+            );
         }
 
         /// <summary>
@@ -143,10 +147,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
             iesImporterEditor.CommonOnPreviewGUI(r, background, target as IESImporter,
-                                    delegate (Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp)
-                                    {
-                                        SetupRenderPipelinePreviewLightIntensity(light, useIESMaximumIntensityProp, iesMaximumIntensityUnitProp, iesMaximumIntensityProp);
-                                    });
+                delegate(Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp)
+                {
+                    SetupRenderPipelinePreviewLightIntensity(light, useIESMaximumIntensityProp, iesMaximumIntensityUnitProp, iesMaximumIntensityProp);
+                });
         }
 
         /// <summary>

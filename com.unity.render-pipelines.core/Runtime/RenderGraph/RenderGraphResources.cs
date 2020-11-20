@@ -11,39 +11,91 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         Count
     }
 
-    // Can't have a default constructor with handle = -1 hence the ugly IsValid implementation (where m_IsValid will be false by default).
     internal struct ResourceHandle
     {
-        bool m_IsValid;
+        // Note on handles validity.
+        // PassData classes used during render graph passes are pooled and because of that, when users don't fill them completely,
+        // they can contain stale handles from a previous render graph execution that could still be considered valid if we only checked the index.
+        // In order to avoid using those, we incorporate the execution index in a 16 bits hash to make sure the handle is coming from the current execution.
+        // If not, it's considered invalid.
+        // We store this validity mask in the upper 16 bits of the index.
+        const uint kValidityMask = 0xFFFF0000;
+        const uint kIndexMask = 0xFFFF;
 
-        public int index { get; private set; }
+        uint m_Value;
+
+        static uint s_CurrentValidBit = 1 << 16;
+
+        public int index { get { return (int)(m_Value & kIndexMask); } }
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
 
         internal ResourceHandle(int value, RenderGraphResourceType type)
         {
-            index = value;
+            Debug.Assert(value <= 0xFFFF);
+            m_Value = ((uint)value & kIndexMask) | s_CurrentValidBit;
             this.type = type;
-            m_IsValid = true;
         }
 
         public static implicit operator int(ResourceHandle handle) => handle.index;
-        public bool IsValid() => m_IsValid;
-    }
+        public bool IsValid()
+        {
+            var validity = m_Value & kValidityMask;
+            return validity != 0 && validity == s_CurrentValidBit;
+        }
 
-    // BEHOLD C# COPY PASTA
-    // Struct can't be inherited and can't have default member values or constructor
-    // Hence the copy paste and the ugly IsValid implementation.
+        static public void NewFrame(int executionIndex)
+        {
+            // Scramble frame count to avoid collision when wrapping around.
+            s_CurrentValidBit = (uint)(((executionIndex >> 16) ^ (executionIndex & 0xffff) * 58546883) << 16);
+            // In case the current valid bit is 0, even though perfectly valid, 0 represents an invalid handle, hence we'll
+            // trigger an invalid state incorrectly. To account for this, we actually skip 0 as a viable s_CurrentValidBit and
+            // start from 1 again.
+            if (s_CurrentValidBit == 0)
+            {
+                s_CurrentValidBit = 1 << 16;
+            }
+        }
+    }
 
     /// <summary>
     /// Texture resource handle.
     /// </summary>
-    [DebuggerDisplay("Texture ({handle})")]
+    [DebuggerDisplay("Texture ({handle.index})")]
     public struct TextureHandle
     {
+        private static TextureHandle s_NullHandle = new TextureHandle();
+
+        /// <summary>
+        /// Returns a null texture handle
+        /// </summary>
+        /// <returns>A null texture handle.</returns>
+        public static TextureHandle nullHandle { get { return s_NullHandle; } }
+
         internal ResourceHandle handle;
 
         internal TextureHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture); }
+
+        /// <summary>
+        /// Cast to RTHandle
+        /// </summary>
+        /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a RTHandle.</returns>
+        public static implicit operator RTHandle(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+
+        /// <summary>
+        /// Cast to RenderTargetIdentifier
+        /// </summary>
+        /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a RenderTargetIdentifier.</returns>
+        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : default(RenderTargetIdentifier);
+
+        /// <summary>
+        /// Cast to RenderTexture
+        /// </summary>
+        /// <param name="texture">Input TextureHandle.</param>
+        /// <returns>Resource as a RenderTexture.</returns>
+        public static implicit operator RenderTexture(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -55,12 +107,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// <summary>
     /// Compute Buffer resource handle.
     /// </summary>
-    [DebuggerDisplay("ComputeBuffer ({handle})")]
+    [DebuggerDisplay("ComputeBuffer ({handle.index})")]
     public struct ComputeBufferHandle
     {
+        private static ComputeBufferHandle s_NullHandle = new ComputeBufferHandle();
+
+        /// <summary>
+        /// Returns a null compute buffer handle
+        /// </summary>
+        /// <returns>A null compute buffer handle.</returns>
+        public static ComputeBufferHandle nullHandle { get { return s_NullHandle; } }
+
         internal ResourceHandle handle;
 
         internal ComputeBufferHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer); }
+
+        /// <summary>
+        /// Cast to ComputeBuffer
+        /// </summary>
+        /// <param name="buffer">Input ComputeBufferHandle</param>
+        /// <returns>Resource as a Compute Buffer.</returns>
+        public static implicit operator ComputeBuffer(ComputeBufferHandle buffer) => buffer.IsValid() ? RenderGraphResourceRegistry.current.GetComputeBuffer(buffer) : null;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -84,6 +151,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="handle">Renderer List handle to convert.</param>
         /// <returns>The integer representation of the handle.</returns>
         public static implicit operator int(RendererListHandle handle) { return handle.handle; }
+
+        /// <summary>
+        /// Cast to RendererList
+        /// </summary>
+        /// <param name="rendererList">Input RendererListHandle.</param>
+        /// <returns>Resource as a RendererList.</returns>
+        public static implicit operator RendererList(RendererListHandle rendererList) => rendererList.IsValid() ? RenderGraphResourceRegistry.current.GetRendererList(rendererList) : RendererList.nullRendererList;
 
         /// <summary>
         /// Return true if the handle is valid.
@@ -306,6 +380,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 hashCode = hashCode * 23 + (isShadowMap ? 1 : 0);
                 hashCode = hashCode * 23 + (bindTextureMS ? 1 : 0);
                 hashCode = hashCode * 23 + (useDynamicScale ? 1 : 0);
+#if UNITY_2020_2_OR_NEWER
+                hashCode = hashCode * 23 + (fastMemoryDesc.inFastMemory ? 1 : 0);
+#endif
             }
 
             return hashCode;
@@ -368,5 +445,4 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return hashCode;
         }
     }
-
 }

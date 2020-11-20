@@ -55,8 +55,8 @@ void BlendSubSurfaceData(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Blend and we are done
     _DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(lerp(_DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)].xyz * albedo * GetInverseCurrentExposureMultiplier()
-    																	, _SubSurfaceLightingBuffer[COORD_TEXTURE2D_X(currentCoord)].xyz
-    																	, sssData.subsurfaceMask), 1.0);
+                                                                        , _SubSurfaceLightingBuffer[COORD_TEXTURE2D_X(currentCoord)].xyz
+                                                                        , sssData.subsurfaceMask), 1.0);
 }
 
 // The buffer of indirect diffuse lighting that shall be used

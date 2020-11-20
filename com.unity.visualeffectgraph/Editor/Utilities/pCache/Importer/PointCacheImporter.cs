@@ -5,7 +5,12 @@ using System.IO;
 using System.Text;
 using System.Globalization;
 using UnityEngine;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
+
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
@@ -151,7 +156,7 @@ namespace UnityEditor.Experimental.VFX.Utility
                         switch (prop.PropertyType)
                         {
                             case "byte":
-                                val = Mathf.Clamp01(((int)pcache.buckets[idx][i]) / 256.0f);
+                                val = Mathf.Clamp01(((byte)pcache.buckets[idx][i]) / 255.0f);
                                 break;
                             case "float":
                                 val = ((float)pcache.buckets[idx][i]);
@@ -173,7 +178,6 @@ namespace UnityEditor.Experimental.VFX.Utility
                 foreach (var kvp in surfaces)
                 {
                     kvp.Value.Apply();
-                    kvp.Value.hideFlags = HideFlags.HideInHierarchy;
                     ctx.AddObjectToAsset(kvp.Key.Name, kvp.Value);
                     cache.surfaces[k] = kvp.Value;
                     k++;

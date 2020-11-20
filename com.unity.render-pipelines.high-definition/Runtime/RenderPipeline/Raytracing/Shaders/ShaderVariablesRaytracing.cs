@@ -21,8 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _RaytracingCameraNearPlane;
         // Angle of a pixel (used for texture filtering)
         public float _RaytracingPixelSpreadAngle;
-        // Flag that tracks if only diffuse lighting should be computed
-        public uint _RaytracingDiffuseRay;
         // Ray traced reflection Data
         public float _RaytracingReflectionMinSmoothness;
         public float _RaytracingReflectionSmoothnessFadeStart;

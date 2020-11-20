@@ -9,7 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: DecalPuddle_Mat
   m_Shader: {fileID: 4800000, guid: 1d64af84bdc970c4fae0c1e06dd95b73, type: 3}
-  m_ShaderKeywords: _ALBEDOCONTRIBUTION _COLORMAP _MASKMAP _NORMALMAP
+  m_ShaderKeywords: _COLORMAP _MATERIAL_AFFECTS_ALBEDO _MATERIAL_AFFECTS_MASKMAP
+    _MATERIAL_AFFECTS_NORMAL
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -21,13 +22,8 @@ Material:
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - DBufferMesh_M
-  - DBufferMesh_AO
-  - DBufferMesh_MAO
-  - DBufferMesh_MAOS
-  - DBufferMesh_MS
-  - DBufferMesh_AOS
-  - Mesh_Emissive
+  - DecalProjectorForwardEmissive
+  - DecalMeshForwardEmissive
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -80,11 +76,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
-        m_Texture: {fileID: 2800000, guid: c07d9d955bf975e49bba3d0cba4905eb, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 24442725c4a38a2468160720f5e21cf7, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMapOS:
@@ -116,12 +112,18 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AO: 1
     - _AORemapMax: 0
     - _AORemapMin: 0
     - _ATDistance: 1
     - _AddPrecomputedVelocity: 0
+    - _AffectAO: 0
+    - _AffectAlbedo: 1
+    - _AffectEmission: 0
+    - _AffectMetal: 0
+    - _AffectNormal: 1
+    - _AffectSmoothness: 1
     - _AlbedoAffectEmissive: 0
-    - _AlbedoMode: 1
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaCutoffPostpass: 0.5
@@ -136,6 +138,11 @@ Material:
     - _CullModeForward: 2
     - _Cutoff: 0.5
     - _DecalBlend: 1
+    - _DecalColorMask0: 15
+    - _DecalColorMask1: 15
+    - _DecalColorMask2: 3
+    - _DecalColorMask3: 0
+    - _DecalLayerMaskFromDecal: 1
     - _DecalMaskMapBlueScale: 1
     - _DecalMeshDepthBias: 0
     - _DecalStencilRef: 16
@@ -167,7 +174,6 @@ Material:
     - _DoubleSidedNormalMode: 1
     - _DrawOrder: 0
     - _DstBlend: 0
-    - _Emissive: 0
     - _EmissiveColorMode: 1
     - _EmissiveExposureWeight: 1
     - _EmissiveIntensity: 1
@@ -190,15 +196,12 @@ Material:
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
     - _LinkDetailsWithBase: 1
-    - _MaskBlendMode: 4
-    - _MaskBlendSrc: 1
-    - _MaskmapAO: 0
-    - _MaskmapMetal: 0
-    - _MaskmapSmoothness: 1
+    - _MaskBlendSrc: 0
     - _MaterialID: 1
     - _Metallic: 0
-    - _MetallicScale: 1
-    - _NormalBlendSrc: 1
+    - _MetallicRemapMax: 1
+    - _MetallicRemapMin: 0
+    - _NormalBlendSrc: 0
     - _NormalMapSpace: 0
     - _NormalScale: 1
     - _PPDLodThreshold: 5
@@ -209,9 +212,9 @@ Material:
     - _ReceivesSSR: 1
     - _RefractionModel: 0
     - _SSRefractionProjectionModel: 0
-    - _Smoothness: 0.5
+    - _Smoothness: 1
     - _SmoothnessRemapMax: 1
-    - _SmoothnessRemapMin: 0
+    - _SmoothnessRemapMin: 1
     - _SpecularAAScreenSpaceVariance: 0.1
     - _SpecularAAThreshold: 0.2
     - _SpecularOcclusionMode: 1
@@ -243,6 +246,7 @@ Material:
     - _UVBase: 0
     - _UVDetail: 0
     - _UVEmissive: 0
+    - _Unity_Identify_HDRP_Decal: 1
     - _UseEmissiveIntensity: 0
     - _UseShadowThreshold: 0
     - _ZTestDepthEqualForOpaque: 3
@@ -251,7 +255,7 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.11764706, g: 0.11764706, b: 0.11764706, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
@@ -281,4 +285,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 11

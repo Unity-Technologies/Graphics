@@ -224,28 +224,28 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             needLinearToSRGB = true;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL:
-            result = surfacedata.normalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL_VIEW_SPACE:
-            result = surfacedata.normalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.normalWS)? surfacedata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_GEOMETRIC_NORMAL:
-            result = surfacedata.geomNormalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = surfacedata.geomNormalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.geomNormalWS)? surfacedata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_NORMAL:
-            result = surfacedata.coatNormalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.coatNormalWS)? surfacedata.coatNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_NORMAL_VIEW_SPACE:
-            result = surfacedata.coatNormalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.coatNormalWS)? surfacedata.coatNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_BENT_NORMAL:
-            result = surfacedata.bentNormalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.bentNormalWS)? surfacedata.bentNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_BENT_NORMAL_VIEW_SPACE:
-            result = surfacedata.bentNormalWS * 0.5 + 0.5;
+            result = IsNormalized(surfacedata.bentNormalWS)? surfacedata.bentNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_SMOOTHNESS_A:
             result = surfacedata.perceptualSmoothnessA.xxx;
@@ -349,28 +349,28 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = bsdfdata.ambientOcclusion.xxx;
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_WS:
-            result = bsdfdata.normalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.normalWS)? bsdfdata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_VIEW_SPACE:
-            result = bsdfdata.normalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.normalWS)? bsdfdata.normalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_GEOMETRIC_NORMAL:
-            result = bsdfdata.geomNormalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.geomNormalWS)? bsdfdata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = bsdfdata.geomNormalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.geomNormalWS)? bsdfdata.geomNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_NORMAL:
-            result = bsdfdata.coatNormalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.coatNormalWS)? bsdfdata.coatNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_NORMAL_VIEW_SPACE:
-            result = bsdfdata.coatNormalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.coatNormalWS)? bsdfdata.coatNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_BENT_NORMAL:
-            result = bsdfdata.bentNormalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.bentNormalWS)? bsdfdata.bentNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_BENT_NORMAL_VIEW_SPACE:
-            result = bsdfdata.bentNormalWS * 0.5 + 0.5;
+            result = IsNormalized(bsdfdata.bentNormalWS)? bsdfdata.bentNormalWS * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_PERCEPTUAL_ROUGHNESS_A:
             result = bsdfdata.perceptualRoughnessA.xxx;

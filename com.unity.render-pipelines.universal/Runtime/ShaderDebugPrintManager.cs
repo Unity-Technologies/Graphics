@@ -122,19 +122,19 @@ namespace UnityEngine.Rendering.Universal
 
                 unsafe // Need to do ugly casts via pointers
                 {
-                    uint* ptr = (uint*) data.GetUnsafePtr();
+                    uint* ptr = (uint*)data.GetUnsafePtr();
                     for (int i = 1; i < count;)
                     {
-                        DebugValueType type = (DebugValueType) (data[i] & 0x0f);
+                        DebugValueType type = (DebugValueType)(data[i] & 0x0f);
                         if ((data[i] & TypeHasTag) == TypeHasTag)
                         {
                             uint tagEncoded = data[i + 1];
                             i++;
                             for (int j = 0; j < 4; j++)
                             {
-                                char c = (char) (tagEncoded & 255);
+                                char c = (char)(tagEncoded & 255);
                                 // skip '\0', for low-level output (avoid string termination)
-                                if (c == 0) 
+                                if (c == 0)
                                     continue;
                                 outputLine += c;
                                 tagEncoded >>= 8;
@@ -150,57 +150,57 @@ namespace UnityEngine.Rendering.Universal
                                 i += 2;
                                 break;
                             case DebugValueType.TypeInt:
-                                int valueInt = *(int*) &ptr[i + 1];
+                                int valueInt = *(int*)&ptr[i + 1];
                                 outputLine += valueInt;
                                 i += 2;
                                 break;
                             case DebugValueType.TypeFloat:
-                                float valueFloat = *(float*) &ptr[i + 1];
+                                float valueFloat = *(float*)&ptr[i + 1];
                                 outputLine += valueFloat;
                                 i += 2;
                                 break;
                             case DebugValueType.TypeUint2:
-                                uint2 valueUint2 = *(uint2*) &ptr[i + 1];
+                                uint2 valueUint2 = *(uint2*)&ptr[i + 1];
                                 outputLine += valueUint2;
                                 i += 3;
                                 break;
                             case DebugValueType.TypeInt2:
-                                int2 valueInt2 = *(int2*) &ptr[i + 1];
+                                int2 valueInt2 = *(int2*)&ptr[i + 1];
                                 outputLine += valueInt2;
                                 i += 3;
                                 break;
                             case DebugValueType.TypeFloat2:
-                                float2 valueFloat2 = *(float2*) &ptr[i + 1];
+                                float2 valueFloat2 = *(float2*)&ptr[i + 1];
                                 outputLine += valueFloat2;
                                 i += 3;
                                 break;
                             case DebugValueType.TypeUint3:
-                                uint3 valueUint3 = *(uint3*) &ptr[i + 1];
+                                uint3 valueUint3 = *(uint3*)&ptr[i + 1];
                                 outputLine += valueUint3;
                                 i += 4;
                                 break;
                             case DebugValueType.TypeInt3:
-                                int3 valueInt3 = *(int3*) &ptr[i + 1];
+                                int3 valueInt3 = *(int3*)&ptr[i + 1];
                                 outputLine += valueInt3;
                                 i += 4;
                                 break;
                             case DebugValueType.TypeFloat3:
-                                float3 valueFloat3 = *(float3*) &ptr[i + 1];
+                                float3 valueFloat3 = *(float3*)&ptr[i + 1];
                                 outputLine += valueFloat3;
                                 i += 4;
                                 break;
                             case DebugValueType.TypeUint4:
-                                uint4 valueUint4 = *(uint4*) &ptr[i + 1];
+                                uint4 valueUint4 = *(uint4*)&ptr[i + 1];
                                 outputLine += valueUint4;
                                 i += 5;
                                 break;
                             case DebugValueType.TypeInt4:
-                                int4 valueInt4 = *(int4*) &ptr[i + 1];
+                                int4 valueInt4 = *(int4*)&ptr[i + 1];
                                 outputLine += valueInt4;
                                 i += 5;
                                 break;
                             case DebugValueType.TypeFloat4:
-                                float4 valueFloat4 = *(float4*) &ptr[i + 1];
+                                float4 valueFloat4 = *(float4*)&ptr[i + 1];
                                 outputLine += valueFloat4;
                                 i += 5;
                                 break;
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering.Universal
                                 i += 2;
                                 break;
                             default:
-                                i = (int) count; // Cannot handle the rest if there is an unknown type
+                                i = (int)count;  // Cannot handle the rest if there is an unknown type
                                 break;
                         }
 
@@ -256,6 +256,7 @@ namespace UnityEngine.Rendering.Universal
             r.MiddleDown = Input.GetAxis("Fire3") > 0.5f;
             return r;
         }
+
         public string Log()
         {
             return $"Mouse: {Pos.x}x{Pos.y}  Btns: Left:{LeftDown} Right:{RightDown} Middle:{MiddleDown} ";
