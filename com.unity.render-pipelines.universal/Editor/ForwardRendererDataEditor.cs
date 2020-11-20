@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.Space();
 
             // PostProcessData was moved into Universal Render Pipeline asset.
-            // We keep this for backward compatibility if user still has PostProcessData in Renderer. 
+            // We keep this for backward compatibility if user still has PostProcessData in Renderer.
             if (m_PostProcessData.objectReferenceValue != null)
             {
                 EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title

@@ -250,7 +250,7 @@ namespace UnityEditor.VFX.UI
             Array.Sort(subDirectories, (x, y) => String.Compare(x, y, true));
 
             foreach (var subDirectory in subDirectories)
-                AddTemplatesFromDirectory(subDirectory, subDirectory.Replace(directory,menuCategory), ref descriptors);
+                AddTemplatesFromDirectory(subDirectory, subDirectory.Replace(directory, menuCategory), ref descriptors);
 
             var discoveredTemplates = System.IO.Directory.GetFiles(directory).Where(t => Path.GetExtension(t) == VisualEffectResource.Extension).Select(t => t.Replace("\\", "/"));
 

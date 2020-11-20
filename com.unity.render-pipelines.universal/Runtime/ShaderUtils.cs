@@ -84,6 +84,7 @@ namespace UnityEngine.Rendering.Universal
             Debug.LogError("Trying to access universal shader GUID out of bounds: (" + id + ": " + index + ")");
             return "";
         }
+
 #endif
     }
 }

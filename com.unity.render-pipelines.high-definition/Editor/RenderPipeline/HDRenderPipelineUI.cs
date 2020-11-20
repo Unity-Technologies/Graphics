@@ -127,24 +127,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.Select(
                     (serialized, owner) => serialized.defaultFrameSettings,
                     FrameSettingsUI.InspectorInnerbox(withOverride: false)
-                    )
+                )
                 ),
             CED.Conditional(
                 (serialized, owner) => k_ExpandedState[Expandable.BakedOrCustomProbeFrameSettings],
                 CED.Select(
                     (serialized, owner) => serialized.defaultBakedOrCustomReflectionFrameSettings,
                     FrameSettingsUI.InspectorInnerbox(withOverride: false)
-                    )
+                )
                 ),
             CED.Conditional(
                 (serialized, owner) => k_ExpandedState[Expandable.RealtimeProbeFrameSettings],
                 CED.Select(
                     (serialized, owner) => serialized.defaultRealtimeReflectionFrameSettings,
                     FrameSettingsUI.InspectorInnerbox(withOverride: false)
-                    )
+                )
                 ),
             CED.Group((serialized, owner) => EditorGUILayout.EndVertical())
-            );
+        );
 
         static public void ApplyChangedDisplayedFrameSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
@@ -299,7 +299,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // We need to clamp the values to the resolution
                 int atlasResolution = serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.intValue;
                 int numLevels = serialized.renderPipelineSettings.planarReflectionResolution.values.arraySize;
-                for(int levelIdx = 0; levelIdx < numLevels; ++levelIdx)
+                for (int levelIdx = 0; levelIdx < numLevels; ++levelIdx)
                 {
                     SerializedProperty levelValue = serialized.renderPipelineSettings.planarReflectionResolution.values.GetArrayElementAtIndex(levelIdx);
                     levelValue.intValue = Mathf.Min(levelValue.intValue, atlasResolution);
@@ -314,13 +314,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen, Styles.maxPlanarReflectionOnScreen);
             }
-            
+
             EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen, Styles.maxEnvContent);
             if (EditorGUI.EndChangeCheck())
-               serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue, 1, HDRenderPipeline.k_MaxEnvLightsOnScreen);
+                serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxEnvLightsOnScreen.intValue, 1, HDRenderPipeline.k_MaxEnvLightsOnScreen);
         }
 
         static void Drawer_SectionSky(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -362,7 +362,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ++EditorGUI.indentLevel;
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots, Styles.maxScreenSpaceShadowSlots);
-                    serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots.intValue = Mathf.Max(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots.intValue, 4);
+                serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots.intValue = Mathf.Max(serialized.renderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots.intValue, 4);
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat, Styles.screenSpaceShadowFormat);
                 --EditorGUI.indentLevel;
             }
@@ -373,7 +373,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_ShowDirectionalLightSection)
             {
                 ++EditorGUI.indentLevel;
-                    EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.directionalShadowPrecisionContent);
+                EditorGUILayout.IntPopup(serialized.renderPipelineSettings.hdShadowInitParams.directionalShadowMapDepthBits, Styles.shadowBitDepthNames, Styles.shadowBitDepthValues, Styles.directionalShadowPrecisionContent);
                 serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionDirectional.ValueGUI<int>(Styles.directionalLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxDirectionalShadowMapResolution, Styles.maxShadowResolution);
                 --EditorGUI.indentLevel;
@@ -401,7 +401,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
 
                 ++EditorGUI.indentLevel;
-                // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default. 
+                // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default.
                 if (serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue == 0)
                 {
                     serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue = 2048;
@@ -438,7 +438,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
                 --EditorGUI.indentLevel;
-
             }
         }
 
@@ -582,7 +581,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.renderPipelineSettings.postProcessSettings.lutSize.intValue = Mathf.Clamp(serialized.renderPipelineSettings.postProcessSettings.lutSize.intValue, GlobalPostProcessSettings.k_MinLutSize, GlobalPostProcessSettings.k_MaxLutSize);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.lutFormat, Styles.lutFormat);
-			EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.bufferFormat, Styles.bufferFormat);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.postProcessSettings.bufferFormat, Styles.bufferFormat);
         }
 
         static void Drawer_SectionXRSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
@@ -908,7 +907,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-
         static void Drawer_SectionRenderingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.colorBufferFormat, Styles.colorBufferFormatContent);
@@ -1057,7 +1055,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionMaterialUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.availableMaterialQualityLevels);
-            var v = EditorGUILayout.EnumPopup(Styles.materialQualityLevelContent, (MaterialQuality) serialized.defaultMaterialQualityLevel.intValue);
+            var v = EditorGUILayout.EnumPopup(Styles.materialQualityLevelContent, (MaterialQuality)serialized.defaultMaterialQualityLevel.intValue);
             serialized.defaultMaterialQualityLevel.intValue = (int)(object)v;
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDistortion, Styles.supportDistortion);

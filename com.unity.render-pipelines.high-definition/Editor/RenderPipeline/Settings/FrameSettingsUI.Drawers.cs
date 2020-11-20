@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static MaterialQualityMode Into(this MaterialQuality quality)
         {
-            if (quality == (MaterialQuality) 0)
+            if (quality == (MaterialQuality)0)
                 return MaterialQualityMode.FromQualitySettings;
             switch (quality)
             {
@@ -64,58 +64,58 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static Rect lastBoxRect;
         internal static CED.IDrawer Inspector(bool withOverride = true) => CED.Group(
-                CED.Group((serialized, owner) =>
-                {
-                    lastBoxRect = EditorGUILayout.BeginVertical("box");
+            CED.Group((serialized, owner) =>
+            {
+                lastBoxRect = EditorGUILayout.BeginVertical("box");
 
-                    // Add dedicated scope here and on each FrameSettings field to have the contextual menu on everything
-                    Rect rect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
-                    using (new SerializedFrameSettings.TitleDrawingScope(rect, FrameSettingsUI.frameSettingsHeaderContent, serialized))
-                    {
-                        EditorGUI.LabelField(rect, FrameSettingsUI.frameSettingsHeaderContent, EditorStyles.boldLabel);
-                    }
-                }),
-                InspectorInnerbox(withOverride),
-                CED.Group((serialized, owner) =>
+                // Add dedicated scope here and on each FrameSettings field to have the contextual menu on everything
+                Rect rect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+                using (new SerializedFrameSettings.TitleDrawingScope(rect, FrameSettingsUI.frameSettingsHeaderContent, serialized))
                 {
-                    EditorGUILayout.EndVertical();
-                    using (new SerializedFrameSettings.TitleDrawingScope(lastBoxRect, FrameSettingsUI.frameSettingsHeaderContent, serialized))
-                    {
-                        //Nothing to draw.
-                        //We just want to have a big blue bar at left that match the whole framesetting box.
-                        //This is because framesettings will be considered as one bg block from prefab point
-                        //of view as there is no way to separate it bit per bit in serialization and Prefab
-                        //override API rely on SerializedProperty.
-                    }
-                })
-            );
+                    EditorGUI.LabelField(rect, FrameSettingsUI.frameSettingsHeaderContent, EditorStyles.boldLabel);
+                }
+            }),
+            InspectorInnerbox(withOverride),
+            CED.Group((serialized, owner) =>
+            {
+                EditorGUILayout.EndVertical();
+                using (new SerializedFrameSettings.TitleDrawingScope(lastBoxRect, FrameSettingsUI.frameSettingsHeaderContent, serialized))
+                {
+                    //Nothing to draw.
+                    //We just want to have a big blue bar at left that match the whole framesetting box.
+                    //This is because framesettings will be considered as one bg block from prefab point
+                    //of view as there is no way to separate it bit per bit in serialization and Prefab
+                    //override API rely on SerializedProperty.
+                }
+            })
+        );
 
         //separated to add enum popup on default frame settings
         internal static CED.IDrawer InspectorInnerbox(bool withOverride = true) => CED.Group(
-                CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(206, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
-                    ),
-                CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(206, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
-                    ),
-                CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(206, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
-                    ),
-                CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
-                    CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
-                    ),
-                CED.Group((serialized, owner) =>
+            CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                CED.Group(206, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
+                ),
+            CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                CED.Group(206, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
+                ),
+            CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                CED.Group(206, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
+                ),
+            CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+                CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
+                ),
+            CED.Group((serialized, owner) =>
+            {
+                RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
+                if (hdrpSettings.supportRayTracing)
                 {
-                    RenderPipelineSettings hdrpSettings = GetHDRPAssetFor(owner).currentPlatformRenderPipelineSettings;
-                    if (hdrpSettings.supportRayTracing)
-                    {
-                        bool rtEffectUseAsync = (serialized.IsEnabled(FrameSettingsField.SSRAsync) ?? false) || (serialized.IsEnabled(FrameSettingsField.SSAOAsync) ?? false)
+                    bool rtEffectUseAsync = (serialized.IsEnabled(FrameSettingsField.SSRAsync) ?? false) || (serialized.IsEnabled(FrameSettingsField.SSAOAsync) ?? false)
                         //|| (serialized.IsEnabled(FrameSettingsField.ContactShadowsAsync) ?? false) // Contact shadow async is not visible in the UI for now and defaults to true.
-                        ;
-                        if (rtEffectUseAsync)
-                            EditorGUILayout.HelpBox("Asynchronous execution of Raytracing effects is not supported. Asynchronous Execution will be forced to false for them", MessageType.Warning);
-                    }
-                }));
+                    ;
+                    if (rtEffectUseAsync)
+                        EditorGUILayout.HelpBox("Asynchronous execution of Raytracing effects is not supported. Asynchronous Execution will be forced to false for them", MessageType.Warning);
+                }
+            }));
 
         static HDRenderPipelineAsset GetHDRPAssetFor(Editor owner)
         {
@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 });
 
-            bool clearGBufferEnablable = (hdrpAssetSupportDeferred && (defaultDeferredUsed || frameSettingsOverrideToDeferred)) ||(hdrpAssetIsDeferred);
+            bool clearGBufferEnablable = (hdrpAssetSupportDeferred && (defaultDeferredUsed || frameSettingsOverrideToDeferred)) || (hdrpAssetIsDeferred);
             area.AmmendInfo(FrameSettingsField.ClearGBuffers,
                 overrideable: () => clearGBufferEnablable,
                 overridedDefaultValue: clearGBufferEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.ClearGBuffers),
@@ -248,7 +248,7 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
 
             area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => (frameSettingType != FrameSettingsRenderType.CustomOrBakedReflection &&
-                                                                                frameSettingType != FrameSettingsRenderType.RealtimeReflection));
+                frameSettingType != FrameSettingsRenderType.RealtimeReflection));
 
             area.AmmendInfo(
                 FrameSettingsField.LODBiasMode,
@@ -335,7 +335,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 customGetter: () => serialized.sssQualityMode.GetEnumValue<SssQualityMode>(),
                 customSetter: v  => serialized.sssQualityMode.SetEnumValue((SssQualityMode)v),
                 customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
-                                       && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false),
+                && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false),
                 hasMixedValues: serialized.sssQualityMode.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.SssQualityLevel,
@@ -343,8 +343,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 customGetter:       () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.sssQualityLevel.intValue, // 3 levels
                 customSetter:       v  => serialized.sssQualityLevel.intValue = Math.Max(0, Math.Min((int)v, 2)),    // Levels 0-2
                 customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
-                                       && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
-                                       && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings),
+                && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings),
                 hasMixedValues: serialized.sssQualityLevel.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.SssCustomSampleBudget,
@@ -352,8 +352,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 customGetter:       () => serialized.sssCustomSampleBudget.intValue,
                 customSetter:       v  => serialized.sssCustomSampleBudget.intValue = Math.Max(1, Math.Min((int)v, (int)DefaultSssSampleBudgetForQualityLevel.Max)),
                 customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
-                                       && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
-                                       && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
+                && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
+                && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
                 hasMixedValues: serialized.sssCustomSampleBudget.hasMultipleDifferentValues
             );
 

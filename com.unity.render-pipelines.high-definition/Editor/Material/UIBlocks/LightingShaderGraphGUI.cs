@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 receiveSSR = material.HasProperty(kReceivesSSRTransparent) ? material.GetFloat(kReceivesSSRTransparent) != 0 : false;
             else
                 receiveSSR = material.HasProperty(kReceivesSSR) ? material.GetFloat(kReceivesSSR) != 0 : false;
-            bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0: false;
+            bool useSplitLighting = material.HasProperty(kUseSplitLighting) ? material.GetInt(kUseSplitLighting) != 0 : false;
             BaseLitGUI.SetupStencil(material, receiveSSR, useSplitLighting);
 
             if (material.HasProperty(kAddPrecomputedVelocity))

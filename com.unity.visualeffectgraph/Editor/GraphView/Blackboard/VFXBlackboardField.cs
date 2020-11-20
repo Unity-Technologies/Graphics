@@ -66,7 +66,7 @@ namespace  UnityEditor.VFX.UI
             else
                 icon = null;
 
-            if( (!controller.isOutput && !controller.model.outputSlots.Any(t=>t.HasLink(true))) || (controller.isOutput && !controller.model.inputSlots.Any(t => t.HasLink(true))))
+            if ((!controller.isOutput && !controller.model.outputSlots.Any(t => t.HasLink(true))) || (controller.isOutput && !controller.model.inputSlots.Any(t => t.HasLink(true))))
                 AddToClassList("unused");
             else
                 RemoveFromClassList("unused");
