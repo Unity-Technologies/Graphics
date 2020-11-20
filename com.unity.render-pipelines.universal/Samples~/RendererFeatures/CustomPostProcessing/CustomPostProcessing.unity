@@ -5786,7 +5786,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4ff5db759ae448d8ac814f3e483e200, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pipelineAsset: {fileID: 11400000, guid: 2869832a1bffc474fac49f0bc344cfad, type: 2}
+  pipelineAsset: {fileID: 11400000, guid: 3e5879f704cd64501b1ec1f64a4c574e, type: 2}
 --- !u!1 &1055162812
 GameObject:
   m_ObjectHideFlags: 0
