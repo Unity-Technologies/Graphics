@@ -162,7 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             SetupLayersMappingKeywords(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
-                                    : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
+                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
             if (material.HasProperty(kAddPrecomputedVelocity))
@@ -370,6 +370,5 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialImporter.userData = JsonUtility.ToJson(layersGUID);
         }
-
     }
 } // namespace UnityEditor

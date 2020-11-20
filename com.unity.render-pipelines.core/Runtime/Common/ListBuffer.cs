@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     /// <typeparam name="T">The type of the data stored in the list.</typeparam>
     public unsafe struct ListBuffer<T>
-        where T: unmanaged
+        where T : unmanaged
     {
         private T* m_BufferPtr;
         private int m_Capacity;
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
         /// <param name="copyCount">The number of item to copy.</param>
         public unsafe void CopyTo(T* dstBuffer, int startDstIndex, int copyCount)
         {
-            UnsafeUtility.MemCpy( dstBuffer + startDstIndex,  m_BufferPtr,
+            UnsafeUtility.MemCpy(dstBuffer + startDstIndex,  m_BufferPtr,
                 UnsafeUtility.SizeOf<T>() * copyCount);
         }
 
@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering
             if (other.Count + Count >= other.m_Capacity)
                 return false;
 
-            UnsafeUtility.MemCpy( other.m_BufferPtr + other.Count, m_BufferPtr, UnsafeUtility.SizeOf<T>() * Count);
+            UnsafeUtility.MemCpy(other.m_BufferPtr + other.Count, m_BufferPtr, UnsafeUtility.SizeOf<T>() * Count);
             *other.m_CountPtr += Count;
             return true;
         }
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering
             if (count + Count > m_Capacity)
                 return false;
 
-            UnsafeUtility.MemCpy( m_BufferPtr + Count, srcPtr, UnsafeUtility.SizeOf<T>() * count);
+            UnsafeUtility.MemCpy(m_BufferPtr + Count, srcPtr, UnsafeUtility.SizeOf<T>() * count);
             *m_CountPtr += count;
             return true;
         }

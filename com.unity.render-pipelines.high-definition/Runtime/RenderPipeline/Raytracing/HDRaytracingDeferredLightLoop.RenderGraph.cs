@@ -38,39 +38,39 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary buffers
                 passData.gbuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, enableRandomWrite = true, name = "GBuffer0" });
+                    { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, enableRandomWrite = true, name = "GBuffer0" });
                 passData.gbuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer1" });
+                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer1" });
                 passData.gbuffer2 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer2" });
+                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "GBuffer2" });
                 passData.gbuffer3 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = Builtin.GetLightingBufferFormat(), enableRandomWrite = true, name = "GBuffer3" });
+                    { colorFormat = Builtin.GetLightingBufferFormat(), enableRandomWrite = true, name = "GBuffer3" });
                 passData.distanceBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" });
+                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Distance Buffer" });
 
                 // Output buffers
                 passData.rayCountTexture = builder.WriteTexture(builder.ReadTexture(rayCountTexture));
                 passData.litBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Deferred Lighting Result" }));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Deferred Lighting Result" }));
 
                 builder.SetRenderFunc(
-                (DeferredLightingRTRPassData data, RenderGraphContext ctx) =>
-                {
-                    // We need to fill the structure that holds the various resources
-                    DeferredLightingRTResources rtrDirGenResources = new DeferredLightingRTResources();
-                    rtrDirGenResources.directionBuffer = data.directionBuffer;
-                    rtrDirGenResources.depthStencilBuffer = data.depthStencilBuffer;
-                    rtrDirGenResources.normalBuffer = data.normalBuffer;
-                    rtrDirGenResources.skyTexture = data.skyTexture;
-                    rtrDirGenResources.gbuffer0 = data.gbuffer0;
-                    rtrDirGenResources.gbuffer1 = data.gbuffer1;
-                    rtrDirGenResources.gbuffer2 = data.gbuffer2;
-                    rtrDirGenResources.gbuffer3 = data.gbuffer3;
-                    rtrDirGenResources.distanceBuffer = data.distanceBuffer;
-                    rtrDirGenResources.rayCountTexture = data.rayCountTexture;
-                    rtrDirGenResources.litBuffer = data.litBuffer;
-                    RenderRaytracingDeferredLighting(ctx.cmd, data.parameters, rtrDirGenResources);
-                });
+                    (DeferredLightingRTRPassData data, RenderGraphContext ctx) =>
+                    {
+                        // We need to fill the structure that holds the various resources
+                        DeferredLightingRTResources rtrDirGenResources = new DeferredLightingRTResources();
+                        rtrDirGenResources.directionBuffer = data.directionBuffer;
+                        rtrDirGenResources.depthStencilBuffer = data.depthStencilBuffer;
+                        rtrDirGenResources.normalBuffer = data.normalBuffer;
+                        rtrDirGenResources.skyTexture = data.skyTexture;
+                        rtrDirGenResources.gbuffer0 = data.gbuffer0;
+                        rtrDirGenResources.gbuffer1 = data.gbuffer1;
+                        rtrDirGenResources.gbuffer2 = data.gbuffer2;
+                        rtrDirGenResources.gbuffer3 = data.gbuffer3;
+                        rtrDirGenResources.distanceBuffer = data.distanceBuffer;
+                        rtrDirGenResources.rayCountTexture = data.rayCountTexture;
+                        rtrDirGenResources.litBuffer = data.litBuffer;
+                        RenderRaytracingDeferredLighting(ctx.cmd, data.parameters, rtrDirGenResources);
+                    });
 
                 return passData.litBuffer;
             }

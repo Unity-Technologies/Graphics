@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
-{    
+{
     [Title("UV", "Triplanar")]
     class TriplanarNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent, IMayRequireBitangent
     {
@@ -35,7 +35,6 @@ namespace UnityEditor.ShaderGraph
             name = "Triplanar";
             UpdateNodeAfterDeserialization();
         }
-
 
         [SerializeField]
         private TextureType m_TextureType = TextureType.Default;

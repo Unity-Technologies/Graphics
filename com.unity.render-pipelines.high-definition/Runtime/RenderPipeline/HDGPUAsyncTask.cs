@@ -87,8 +87,7 @@ namespace UnityEngine.Rendering
 
         public void End(CommandBuffer cmd, HDCamera hdCamera)
         {
-            EndWithPostWork(cmd, hdCamera, (_1, _2) => { });
+            EndWithPostWork(cmd, hdCamera, (_1, _2) => {});
         }
     }
-
 }

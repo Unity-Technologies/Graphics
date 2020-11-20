@@ -245,7 +245,7 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
     PositionInputs posInput = GetPositionInput(fullResCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 #else
     PositionInputs posInput = GetPositionInput(currentCoord, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-#endif 
+#endif
 
     // Compute the view direction (world space)
     float3 viewWS = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
@@ -273,8 +273,8 @@ void TRACE_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 // Input hit point texture that holds the NDC position if an intersection was found
 TEXTURE2D_X(_IndirectDiffuseHitPointTexture);
 // Depth buffer of the previous frame (full resolution)
-TEXTURE2D_X(_HistoryDepthTexture); 
-// Output indirect diffuse texture 
+TEXTURE2D_X(_HistoryDepthTexture);
+// Output indirect diffuse texture
 RW_TEXTURE2D_X(float4, _IndirectDiffuseTexture0RW);
 RW_TEXTURE2D_X(float4, _IndirectDiffuseTexture1RW);
 
@@ -342,9 +342,9 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
     float2 prevFrameUV  = prevFrameNDC * _ColorPyramidUvScaleAndLimitPrevFrame.xy;
 
     // If the previous value to read was out of screen, this is invalid, needs a fallback
-    if ((prevFrameUV.x < 0) 
-        || (prevFrameUV.x > _ColorPyramidUvScaleAndLimitPrevFrame.z) 
-        || (prevFrameUV.y < 0) 
+    if ((prevFrameUV.x < 0)
+        || (prevFrameUV.x > _ColorPyramidUvScaleAndLimitPrevFrame.z)
+        || (prevFrameUV.y < 0)
         || (prevFrameUV.y > _ColorPyramidUvScaleAndLimitPrevFrame.w))
         invalid = true;
 
@@ -415,7 +415,7 @@ void ConvertYCoCgToRGBUtil(float4 inYSH, float2 inCoCg, float3 inNormal, out flo
     outColor = max(outColor, 0.0);
 }
 
-TEXTURE2D_X(_IndirectDiffuseTexture1); 
+TEXTURE2D_X(_IndirectDiffuseTexture1);
 
 [numthreads(INDIRECT_DIFFUSE_TILE_SIZE, INDIRECT_DIFFUSE_TILE_SIZE, 1)]
 void CONVERT_YCOCG_TO_RGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -454,7 +454,7 @@ void CONVERT_YCOCG_TO_RGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
 
     // Convert the signal back to a color
     float3 color;
-    float4 ySH = _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)]; 
+    float4 ySH = _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)];
     float3 cocgB = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture1, currentCoord).xyz;
     ConvertYCoCgToRGBUtil(ySH, cocgB.xy, normalData.normalWS, color);
 
@@ -462,7 +462,7 @@ void CONVERT_YCOCG_TO_RGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
     color = color / (1.0 - color);
 
     // The mulitplication is wrong, but with all the approximations that we need to compensate a bit
-    // the fact that the signal was significantly attenuated (due to blurring in tonemapped space to reduce the blobbyness). 
+    // the fact that the signal was significantly attenuated (due to blurring in tonemapped space to reduce the blobbyness).
     // This has been experimentally tested. However, it needs more testing and potetially reverted if found more harmful than useful
     color *= (lerp(2.5, 1.0, cocgB.z));
 
