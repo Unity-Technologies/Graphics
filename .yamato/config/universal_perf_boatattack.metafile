@@ -62,6 +62,8 @@ platforms:
   - name: Win
     apis:
       - name: DX11
+      - name: DX12
+      - name: Vulkan
     build_configs:
       - name: mono
     color_spaces:
@@ -71,6 +73,7 @@ platforms:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
+        model: rtx2080
       standalone_build:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -79,6 +82,7 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
+        model: rtx2080
   - name: Android
     apis: 
       - name: Vulkan
@@ -138,6 +142,22 @@ all:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - performance_playmode_runtime
+        - performance_playmode_editor
+        - performance_build_editmode
+    - platform: Win
+      api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
