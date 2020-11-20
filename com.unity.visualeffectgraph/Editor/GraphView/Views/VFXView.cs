@@ -364,19 +364,19 @@ namespace UnityEditor.VFX.UI
 
         public static StyleSheet LoadStyleSheet(string text)
         {
-            string path = string.Format("{0}/Editor Default Resources/uss/{1}.uss", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            string path = string.Format("{0}/uss/{1}.uss", VisualEffectAssetEditorUtility.editorResourcesPath, text);
             return AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
         }
 
         public static VisualTreeAsset LoadUXML(string text)
         {
-            string path = string.Format("{0}/Editor Default Resources/uxml/{1}.uxml", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            string path = string.Format("{0}/uxml/{1}.uxml", VisualEffectAssetEditorUtility.editorResourcesPath, text);
             return AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
         }
 
         public static Texture2D LoadImage(string text)
         {
-            string path = string.Format("{0}/Editor Default Resources/VFX/{1}.png", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            string path = string.Format("{0}/VFX/{1}.png", VisualEffectAssetEditorUtility.editorResourcesPath, text);
             return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 

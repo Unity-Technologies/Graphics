@@ -1351,7 +1351,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateShaderVariablesXRCB(HDCamera hdCamera, CommandBuffer cmd)
         {
-            hdCamera.xr.UpdateBuiltinStereoMatrices(cmd);
+            hdCamera.xr.UpdateBuiltinStereoMatrices(cmd, hdCamera);
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
         }
