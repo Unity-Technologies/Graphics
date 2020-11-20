@@ -206,20 +206,42 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
 
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_LIGHT_DETAIL)
     {
-        surfaceData.albedo = half3(1.0h, 1.0h, 1.0h);
-        surfaceData.metallic = 0.0;
-        surfaceData.specular = half3(0.0h, 0.0h, 0.0h);
-        surfaceData.smoothness = 0.0;
-        surfaceData.occlusion = 0.0;
-        surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
-        surfaceData.clearCoatMask       = 0;
+        surfaceData.albedo = half3(1, 1, 1);
+        surfaceData.emission = half3(0, 0, 0);
+        surfaceData.specular = half3(0, 0, 0);
+        surfaceData.occlusion = 1;
+        surfaceData.clearCoatMask = 0;
         surfaceData.clearCoatSmoothness = 1;
+        surfaceData.metallic = 0;
+        surfaceData.smoothness = 0;
+        changed = true;
+    }
+    else if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
+    {
+        surfaceData.albedo = half3(0, 0, 0);
+        surfaceData.emission = half3(0, 0, 0);
+        surfaceData.occlusion = 1;
+        surfaceData.clearCoatMask = 0;
+        surfaceData.clearCoatSmoothness = 1;
+        if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
+        {
+            surfaceData.specular = half3(1, 1, 1);
+            surfaceData.metallic = 0;
+            surfaceData.smoothness = 1;
+        }
+        else if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
+        {
+            surfaceData.specular = half3(0, 0, 0);
+            surfaceData.metallic = 1;
+            surfaceData.smoothness = 0;
+        }
         changed = true;
     }
 
     if (_DebugLightingIndex == DEBUG_LIGHTING_LIGHT_ONLY || _DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
     {
-        half3 normalTS = half3(0.0h, 0.0h, 1.0h);
+        half3 normalTS = half3(0, 0, 1);
+
         #if defined(_NORMALMAP)
         inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
         #else
@@ -230,21 +252,6 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
         changed = true;
     }
 
-    if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS)
-    {
-        surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
-        surfaceData.smoothness = 1.0;
-        surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
-        changed = true;
-    }
-
-    if (_DebugLightingIndex == DEBUG_LIGHTING_REFLECTIONS_WITH_SMOOTHNESS)
-    {
-        surfaceData.albedo = half3(0.0h, 0.0h, 0.0h);
-        surfaceData.metallic = 1.0;
-        surfaceData.emission = half3(0.0h, 0.0h, 0.0h);
-        changed = true;
-    }
     return changed;
 }
 
