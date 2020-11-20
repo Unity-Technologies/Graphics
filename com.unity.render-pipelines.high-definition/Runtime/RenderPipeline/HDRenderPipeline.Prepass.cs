@@ -434,8 +434,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle[]      gbufferRT = new TextureHandle[RenderGraph.kMaxMRTCount];
             public TextureHandle        depthBuffer;
             public DBufferOutput        dBuffer;
-            public bool                 needProbeVolumeLightLists;
-            public ComputeBufferHandle  probeVolumeBigTile;
         }
 
         struct GBufferOutput
@@ -513,17 +511,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ctx.cmd.SetGlobalTexture(HDShaderIDs._DBufferTexture[i], dBufferOutput.mrt[i]);
         }
 
-        static void BindProbeVolumeGlobalData(in FrameSettings frameSettings, GBufferPassData data, in RenderGraphContext ctx)
-        {
-            if (!data.needProbeVolumeLightLists)
-                return;
-
-            if (frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-                ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, data.probeVolumeBigTile);
-            // int useDepthBuffer = 0;
-            // cmd.SetGlobalInt(HDShaderIDs.g_isLogBaseBufferEnabled, useDepthBuffer);
-        }
-
         // RenderGBuffer do the gbuffer pass. This is only called with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque alpha tested and we don't need to do it anymore
         // during Gbuffer pass. This is handled in the shader and the depth test (equal and no depth write) is done here.
         void RenderGBuffer(RenderGraph renderGraph, TextureHandle sssBuffer, TextureHandle vtFeedbackBuffer, ref PrepassOutput prepassOutput, CullingResults cull, HDCamera hdCamera)
@@ -549,7 +536,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (GBufferPassData data, RenderGraphContext context) =>
                 {
-                    BindProbeVolumeGlobalData(data.frameSettings, data, context);
                     BindDBufferGlobalData(data.dBuffer, context);
                     DrawOpaqueRendererList(context, data.frameSettings, data.rendererList);
                 });

@@ -8,8 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [Reload(new[]
         {
-            "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
-            "Runtime/RenderPipelineResources/Foliage Diffusion Profile.asset"
+            "Runtime/RenderPipelineResources/SkinDiffusionProfile.asset",
+            "Runtime/RenderPipelineResources/FoliageDiffusionProfile.asset"
         })]
         [SerializeField]
         internal DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
