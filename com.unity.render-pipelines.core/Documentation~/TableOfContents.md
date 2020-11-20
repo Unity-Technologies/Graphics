@@ -13,7 +13,7 @@
   * [RTHandle fundamentals](rthandle-system-fundamentals.md)
   * [Using the RTHandle system](rthandle-system-using.md)
 
-
 * [Look Dev](Look-Dev)
-  
   * [Environment Library](Look-Dev-Environment-Library)
+  
+* [View Lighting Tool](View-Lighting-Tool)
