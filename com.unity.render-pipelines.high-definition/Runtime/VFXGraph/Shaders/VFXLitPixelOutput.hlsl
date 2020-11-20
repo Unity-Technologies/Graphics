@@ -93,7 +93,7 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
     VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
 
     float3 posRWS = VFXGetPositionRWS(i);
-	PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
+    PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
 
     return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
 }
@@ -104,13 +104,13 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
 float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, const SurfaceData surfaceData, float3 emissiveColor, float opacity)
 {
-	uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
+    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
     float3 posRWS = VFXGetPositionRWS(i);
-	float4 posSS = i.VFX_VARYING_POSCS;
-	PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+    float4 posSS = i.VFX_VARYING_POSCS;
+    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
 
     PreLightData preLightData = (PreLightData)0;
-	BSDFData bsdfData = (BSDFData)0;
+    BSDFData bsdfData = (BSDFData)0;
     bsdfData = ConvertSurfaceDataToBSDFData(posSS.xy, surfaceData);
 
     preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);

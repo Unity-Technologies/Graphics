@@ -8,8 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public SkyRenderer  skyRenderer { get; private set; }
         public int          cachedSkyRenderingContextId = -1;
 
-        CloudSettings          	m_CloudSettings;
-        public CloudRenderer	cloudRenderer { get; private set; }
+        CloudSettings           m_CloudSettings;
+        public CloudRenderer    cloudRenderer { get; private set; }
 
         public int          skyParametersHash = -1;
         public float        currentUpdateTime = 0.0f;
@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return m_CloudSettings; }
             set
             {
-				if (cloudRenderer != null && (value == null || value.GetCloudRendererType() != cloudRenderer.GetType()))
+                if (cloudRenderer != null && (value == null || value.GetCloudRendererType() != cloudRenderer.GetType()))
                 {
                     cloudRenderer.Cleanup();
                     cloudRenderer = null;

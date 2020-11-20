@@ -206,6 +206,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>CloudLayerRenderer type.</returns>
         public override Type GetCloudRendererType() { return typeof(CloudLayerRenderer); }
-
     }
 }

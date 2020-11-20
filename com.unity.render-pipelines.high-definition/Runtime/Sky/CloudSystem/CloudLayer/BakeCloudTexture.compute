@@ -56,7 +56,7 @@ float SampleCloudMap(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), float2 uv,
 {
     float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, uv, 0);
 
-	float4 clouds = cloudLayerColor * weights;
+    float4 clouds = cloudLayerColor * weights;
     return max(max(clouds.r, clouds.g), max(clouds.b, clouds.a));
 }
 

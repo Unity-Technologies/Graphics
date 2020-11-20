@@ -134,7 +134,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.DrawFullScreen(cmd, m_CloudLayerMaterial, m_PropertyBlock, renderForCubemap ? 0 : 1);
         }
 
-
         class PrecomputationCache
         {
             class RefCountedData

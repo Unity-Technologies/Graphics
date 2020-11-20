@@ -180,41 +180,41 @@ namespace UnityEngine.Rendering.HighDefinition
         private int InitComponentFromProfile<T>(T component, T componentFromProfile, Type type)
             where T : VolumeComponent
         {
-                // The static lighting sky is a Volume Component that lives outside of the volume system (we just grab a component from a profile)
-                // As such, it may contain values that are not actually overridden
-                // For example, user overrides a value, change it, and disable overrides. In this case the volume still contains the old overridden value
-                // In this case, we want to use values only if they are still overridden, so we create a volume component with default values and then copy the overridden values from the profile.
-                // Also, a default profile might be set in the HDRP project settings, this volume is applied by default to all the scene so it should also be taken into account here.
+            // The static lighting sky is a Volume Component that lives outside of the volume system (we just grab a component from a profile)
+            // As such, it may contain values that are not actually overridden
+            // For example, user overrides a value, change it, and disable overrides. In this case the volume still contains the old overridden value
+            // In this case, we want to use values only if they are still overridden, so we create a volume component with default values and then copy the overridden values from the profile.
+            // Also, a default profile might be set in the HDRP project settings, this volume is applied by default to all the scene so it should also be taken into account here.
 
-                var newParameters = component.parameters;
-                var profileParameters = componentFromProfile.parameters;
+            var newParameters = component.parameters;
+            var profileParameters = componentFromProfile.parameters;
 
-                var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
-                T defaultComponent = null;
-                if (defaultVolume.sharedProfile != null) // This can happen with old projects.
-                    defaultVolume.sharedProfile.TryGet(type, out defaultComponent);
-                var defaultParameters = defaultComponent != null ? defaultComponent.parameters : null; // Can be null if the profile does not contain the component.
+            var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
+            T defaultComponent = null;
+            if (defaultVolume.sharedProfile != null)     // This can happen with old projects.
+                defaultVolume.sharedProfile.TryGet(type, out defaultComponent);
+            var defaultParameters = defaultComponent != null ? defaultComponent.parameters : null;     // Can be null if the profile does not contain the component.
 
-                // Seems to inexplicably happen sometimes on domain reload.
-                if (profileParameters == null)
-                    return 0;
+            // Seems to inexplicably happen sometimes on domain reload.
+            if (profileParameters == null)
+                return 0;
 
-                int parameterCount = newParameters.Count;
-                // Copy overridden parameters.
-                for (int i  = 0; i < parameterCount; ++i)
+            int parameterCount = newParameters.Count;
+            // Copy overridden parameters.
+            for (int i  = 0; i < parameterCount; ++i)
+            {
+                if (profileParameters[i].overrideState == true)
                 {
-                    if (profileParameters[i].overrideState == true)
-                    {
-                        newParameters[i].SetValue(profileParameters[i]);
-                    }
-                    // Fallback to the default profile if values are overridden in there.
-                    else if (defaultParameters != null && defaultParameters[i].overrideState == true)
-                    {
-                        newParameters[i].SetValue(defaultParameters[i]);
-                    }
+                    newParameters[i].SetValue(profileParameters[i]);
                 }
+                // Fallback to the default profile if values are overridden in there.
+                else if (defaultParameters != null && defaultParameters[i].overrideState == true)
+                {
+                    newParameters[i].SetValue(defaultParameters[i]);
+                }
+            }
 
-                return componentFromProfile.GetHashCode();
+            return componentFromProfile.GetHashCode();
         }
 
         void UpdateCurrentStaticLightingSky()

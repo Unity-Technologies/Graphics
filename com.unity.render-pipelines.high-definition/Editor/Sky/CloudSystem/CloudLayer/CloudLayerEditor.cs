@@ -78,7 +78,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowsOpacity = Unpack(o.Find(x => x.shadowsOpacity));
             m_ShadowsTiling = Unpack(o.Find(x => x.shadowsTiling));
 
-            m_Layers = new CloudMapParameter[] {
+            m_Layers = new CloudMapParameter[]
+            {
                 UnpackCloudMap(o.Find(x => x.layerA)),
                 UnpackCloudMap(o.Find(x => x.layerB))
             };

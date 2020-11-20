@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="builtinParams">Engine parameters that you can use to render the clouds.</param>
         /// <param name="renderForCubemap">Pass in true if you want to render the clouds into a cubemap for lighting. This is useful when the cloud renderer needs a different implementation in this case.</param>
-        public virtual void PreRenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap) { }
+        public virtual void PreRenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap) {}
 
         /// <summary>
         /// Whether the PreRenderClouds step is required.

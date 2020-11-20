@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
                     && !t.IsAbstract
-                    );
+                );
 
             // Store them
             foreach (var type in types)
@@ -179,7 +179,6 @@ namespace UnityEditor.Rendering
             OnEnable();
         }
 
-
         void GetFields(object o, List<(FieldInfo, SerializedProperty)> infos, SerializedProperty prop = null)
         {
             if (o == null)
@@ -194,7 +193,7 @@ namespace UnityEditor.Rendering
                 {
                     if ((field.GetCustomAttributes(typeof(HideInInspector), false).Length == 0) &&
                         ((field.GetCustomAttributes(typeof(SerializeField), false).Length > 0) ||
-                        (field.IsPublic && field.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0)))
+                         (field.IsPublic && field.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0)))
                         infos.Add((field, prop == null ?
                             serializedObject.FindProperty(field.Name) : prop.FindPropertyRelative(field.Name)));
                 }
@@ -220,18 +219,18 @@ namespace UnityEditor.Rendering
 
             m_Parameters = fields
                 .Select(t => {
-                    var name = "";
-                    var order = 0;
-                    var attr = (DisplayInfoAttribute[])t.Item1.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                    if (attr.Length != 0)
-                    {
-                        name = attr[0].name;
-                        order = attr[0].order;
-                    }
+                var name = "";
+                var order = 0;
+                var attr = (DisplayInfoAttribute[])t.Item1.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                if (attr.Length != 0)
+                {
+                    name = attr[0].name;
+                    order = attr[0].order;
+                }
 
-                    var parameter = new SerializedDataParameter(t.Item2);
-                    return (new GUIContent(name), order, parameter);
-                })
+                var parameter = new SerializedDataParameter(t.Item2);
+                return (new GUIContent(name), order, parameter);
+            })
                 .OrderBy(t => t.order)
                 .ToList();
         }

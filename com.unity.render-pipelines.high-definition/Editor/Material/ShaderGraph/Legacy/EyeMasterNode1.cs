@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public const int LightingSlotId = 15;
         public const int BackLightingSlotId = 16;
         public const int DepthOffsetSlotId = 17;
-         public const int VertexNormalSlotID = 18;
+        public const int VertexNormalSlotID = 18;
         public const int VertexTangentSlotID = 19;
 
         [Flags]
