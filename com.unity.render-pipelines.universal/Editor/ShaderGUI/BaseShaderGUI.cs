@@ -196,7 +196,8 @@ namespace UnityEditor
             EditorGUI.BeginChangeCheck();
 
             m_SurfaceOptionsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_SurfaceOptionsFoldout.value, Styles.SurfaceOptions);
-            if(m_SurfaceOptionsFoldout.value){
+            if (m_SurfaceOptionsFoldout.value)
+            {
                 DrawSurfaceOptions(material);
                 EditorGUILayout.Space();
             }
@@ -298,7 +299,7 @@ namespace UnityEditor
             }
         }
 
-        public virtual void DrawAdditionalFoldouts(Material material){}
+        public virtual void DrawAdditionalFoldouts(Material material) {}
 
         public virtual void DrawBaseProperties(Material material)
         {
@@ -398,7 +399,7 @@ namespace UnityEditor
             SetupMaterialBlendMode(material);
 
             // Receive Shadows
-            if(material.HasProperty("_ReceiveShadows"))
+            if (material.HasProperty("_ReceiveShadows"))
                 CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat("_ReceiveShadows") == 0.0f);
 
             // Emission
@@ -425,7 +426,7 @@ namespace UnityEditor
                 throw new ArgumentNullException("material");
 
             bool alphaClip = false;
-            if(material.HasProperty("_AlphaClip"))
+            if (material.HasProperty("_AlphaClip"))
                 alphaClip = material.GetFloat("_AlphaClip") >= 0.5;
 
             if (alphaClip)
@@ -439,52 +440,52 @@ namespace UnityEditor
 
             if (material.HasProperty("_Surface"))
             {
-                SurfaceType surfaceType = (SurfaceType) material.GetFloat("_Surface");
+                SurfaceType surfaceType = (SurfaceType)material.GetFloat("_Surface");
                 if (surfaceType == SurfaceType.Opaque)
                 {
                     if (alphaClip)
                     {
-                        material.renderQueue = (int) RenderQueue.AlphaTest;
+                        material.renderQueue = (int)RenderQueue.AlphaTest;
                         material.SetOverrideTag("RenderType", "TransparentCutout");
                     }
                     else
                     {
-                        material.renderQueue = (int) RenderQueue.Geometry;
+                        material.renderQueue = (int)RenderQueue.Geometry;
                         material.SetOverrideTag("RenderType", "Opaque");
                     }
 
-                    material.renderQueue += material.HasProperty("_QueueOffset") ? (int) material.GetFloat("_QueueOffset") : 0;
-                    material.SetFloat("_SrcBlend", (float) UnityEngine.Rendering.BlendMode.One);
-                    material.SetFloat("_DstBlend", (float) UnityEngine.Rendering.BlendMode.Zero);
+                    material.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
+                    material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                    material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
                     material.SetFloat("_ZWrite", 1.0f);
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
                 else
                 {
-                    BlendMode blendMode = (BlendMode) material.GetFloat("_Blend");
+                    BlendMode blendMode = (BlendMode)material.GetFloat("_Blend");
 
                     // Specific Transparent Mode Settings
                     switch (blendMode)
                     {
                         case BlendMode.Alpha:
-                            material.SetFloat("_SrcBlend", (float) UnityEngine.Rendering.BlendMode.SrcAlpha);
-                            material.SetFloat("_DstBlend", (float) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                             break;
                         case BlendMode.Premultiply:
-                            material.SetFloat("_SrcBlend", (float) UnityEngine.Rendering.BlendMode.One);
-                            material.SetFloat("_DstBlend", (float) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                             break;
                         case BlendMode.Additive:
-                            material.SetFloat("_SrcBlend", (float) UnityEngine.Rendering.BlendMode.SrcAlpha);
-                            material.SetFloat("_DstBlend", (float) UnityEngine.Rendering.BlendMode.One);
+                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
                             material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                             break;
                         case BlendMode.Multiply:
-                            material.SetFloat("_SrcBlend", (float) UnityEngine.Rendering.BlendMode.DstColor);
-                            material.SetFloat("_DstBlend", (float) UnityEngine.Rendering.BlendMode.Zero);
+                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.DstColor);
+                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
                             material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                             material.EnableKeyword("_ALPHAMODULATE_ON");
                             break;
@@ -494,7 +495,7 @@ namespace UnityEditor
                     material.SetOverrideTag("RenderType", "Transparent");
                     material.SetFloat("_ZWrite", 0.0f);
                     material.renderQueue = (int)RenderQueue.Transparent;
-                    material.renderQueue += material.HasProperty("_QueueOffset") ? (int) material.GetFloat("_QueueOffset") : 0;
+                    material.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
                     material.SetShaderPassEnabled("ShadowCaster", false);
                 }
             }
@@ -609,7 +610,7 @@ namespace UnityEditor
                     return properties[index];
             }
             if (propertyIsMandatory)
-                throw new ArgumentException("Could not find MaterialProperty: '" + propertyName + "', Num properties: " + (object) properties.Length);
+                throw new ArgumentException("Could not find MaterialProperty: '" + propertyName + "', Num properties: " + (object)properties.Length);
             return null;
         }
 

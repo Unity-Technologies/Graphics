@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
                     && !t.IsAbstract
-                    );
+                );
 
             // Map them to their corresponding component type
             foreach (var editorType in editorTypes)
@@ -127,9 +127,9 @@ namespace UnityEditor.Rendering
             // Dumb hack to make sure the serialized object is up to date on undo (else there'll be
             // a state mismatch when this class is used in a GameObject inspector).
             if (m_SerializedObject != null
-                 && !m_SerializedObject.Equals(null)
-                 && m_SerializedObject.targetObject != null
-                 && !m_SerializedObject.targetObject.Equals(null))
+                && !m_SerializedObject.Equals(null)
+                && m_SerializedObject.targetObject != null
+                && !m_SerializedObject.targetObject.Equals(null))
             {
                 m_SerializedObject.Update();
                 m_SerializedObject.ApplyModifiedProperties();
@@ -235,14 +235,14 @@ namespace UnityEditor.Rendering
 
                     CoreEditorUtils.DrawSplitter();
                     bool displayContent = CoreEditorUtils.DrawHeaderToggle(
-                            title,
-                            editor.baseProperty,
-                            editor.activeProperty,
-                            pos => OnContextClick(pos, editor.target, id),
-                            editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
-                            () => editor.isInAdvancedMode ^= true,
-                            documentationURL
-                            );
+                        title,
+                        editor.baseProperty,
+                        editor.activeProperty,
+                        pos => OnContextClick(pos, editor.target, id),
+                        editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
+                        () => editor.isInAdvancedMode ^= true,
+                        documentationURL
+                    );
 
                     if (displayContent)
                     {
@@ -292,7 +292,7 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, (m_Editors.Count -1) - id));
+                menu.AddItem(EditorGUIUtility.TrTextContent("Move to Bottom"), false, () => MoveComponent(id, (m_Editors.Count - 1) - id));
                 menu.AddItem(EditorGUIUtility.TrTextContent("Move Down"), false, () => MoveComponent(id, 1));
             }
 
@@ -481,7 +481,6 @@ namespace UnityEditor.Rendering
             }
             m_SerializedObject.ApplyModifiedProperties();
         }
-
 
         static bool CanPaste(VolumeComponent targetComponent)
         {

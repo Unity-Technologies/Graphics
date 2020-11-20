@@ -3,13 +3,13 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal static class Fields
     {
-#region Tags
+        #region Tags
         public const string kFeatures = "features";
         public const string kSurfaceType = "SurfaceType";
         public const string kBlendMode = "BlendMode";
-#endregion
+        #endregion
 
-#region Fields
+        #region Fields
         // These are core Fields shared between URP and HDRP etc.
         public static FieldDescriptor GraphVertex =           new FieldDescriptor(kFeatures, "graphVertex", "FEATURES_GRAPH_VERTEX");
         public static FieldDescriptor GraphPixel =            new FieldDescriptor(kFeatures, "graphPixel", "FEATURES_GRAPH_PIXEL");
@@ -20,6 +20,6 @@ namespace UnityEditor.ShaderGraph
         public static FieldDescriptor IsPreview =             new FieldDescriptor(string.Empty, "isPreview", "SHADERGRAPH_PREVIEW");
         public static FieldDescriptor LodCrossFade =          new FieldDescriptor(string.Empty, "LodCrossFade", "_LODCROSSFADE 1"); // HD only
         public static FieldDescriptor AlphaToMask =           new FieldDescriptor(string.Empty, "AlphaToMask", "_ALPHATOMASK_ON 1"); // HD only
-#endregion
+        #endregion
     }
 }

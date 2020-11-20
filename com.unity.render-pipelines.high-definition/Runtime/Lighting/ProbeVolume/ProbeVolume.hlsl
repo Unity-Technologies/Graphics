@@ -133,9 +133,9 @@ void ProbeVolumeComputeOBBBoundsToFrame(OrientedBBox probeVolumeBounds, out floa
 {
     obbFrame = float3x3(probeVolumeBounds.right, probeVolumeBounds.up, cross(probeVolumeBounds.right, probeVolumeBounds.up));
     obbExtents = float3(probeVolumeBounds.extentX, probeVolumeBounds.extentY, probeVolumeBounds.extentZ);
-    obbCenter = probeVolumeBounds.center; 
+    obbCenter = probeVolumeBounds.center;
 }
-                
+
 
 void ProbeVolumeComputeTexel3DAndWeight(
     float weightHierarchy,
@@ -353,7 +353,7 @@ float3 ProbeVolumeEvaluateSphericalHarmonicsL0(float3 normalWS, ProbeVolumeSpher
 #ifdef DEBUG_DISPLAY
     if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
     {
-        float3 debugColors = coefficients.data[0].rgb; 
+        float3 debugColors = coefficients.data[0].rgb;
         return debugColors;
     }
     else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
@@ -375,7 +375,7 @@ float3 ProbeVolumeEvaluateSphericalHarmonicsL1(float3 normalWS, ProbeVolumeSpher
 #ifdef DEBUG_DISPLAY
     if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
     {
-        float3 debugColors = coefficients.data[0].rgb; 
+        float3 debugColors = coefficients.data[0].rgb;
         return debugColors;
     }
     else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
@@ -397,7 +397,7 @@ float3 ProbeVolumeEvaluateSphericalHarmonicsL2(float3 normalWS, ProbeVolumeSpher
 #ifdef DEBUG_DISPLAY
     if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
     {
-        float3 debugColors = coefficients.data[0].rgb; 
+        float3 debugColors = coefficients.data[0].rgb;
         return debugColors;
     }
     else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)

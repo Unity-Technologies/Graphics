@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ShowPrePassAndPostPass      = 1 << 12,
             ShowDepthOffsetOnly         = 1 << 13,
             PreserveSpecularLighting    = 1 << 14,
-            Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold| AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
+            Unlit                       = Surface | BlendMode | DoubleSided | AlphaCutoff | AlphaCutoffThreshold | AlphaCutoffShadowThreshold | AlphaToMask | BackThenFrontRendering | ShowAfterPostProcessPass | ShowPrePassAndPostPass | ShowDepthOffsetOnly,
             Lit                         = All ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass ^ ShowDepthOffsetOnly, // Lit can't be display in after postprocess pass
             All                         = ~0,
         }
@@ -410,7 +410,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
             bool showAlphaClipThreshold = true;
-            
+
             bool isShaderGraph = AreMaterialsShaderGraphs();
             if (isShaderGraph)
                 showAlphaClipThreshold = GetShaderDefaultFloatValue(kAlphaCutoffEnabled) > 0.0f;

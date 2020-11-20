@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Note: we can't call this code inside the HDAdditionalReflectionData, thus why we don't wrap it in Reset() function
             EditorUtility.CopySerialized(HDUtils.s_DefaultHDAdditionalReflectionData, reflectionProbeAdditionalData);
         }
+
         #endregion
 
         protected override void OnEnable()

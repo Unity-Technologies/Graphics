@@ -99,10 +99,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.Space();
 
                 PropertyField(m_MeteringMode);
-                if(m_MeteringMode.value.intValue == (int)MeteringMode.MaskWeighted)
+                if (m_MeteringMode.value.intValue == (int)MeteringMode.MaskWeighted)
                     PropertyField(m_WeightTextureMask);
 
-                if (m_MeteringMode.value.intValue == (int) MeteringMode.ProceduralMask)
+                if (m_MeteringMode.value.intValue == (int)MeteringMode.ProceduralMask)
                 {
                     EditorGUILayout.Space();
                     EditorGUILayout.LabelField("Procedural Mask", EditorStyles.miniLabel);
@@ -158,7 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_Compensation);
 
-                if(mode == (int)ExposureMode.AutomaticHistogram)
+                if (mode == (int)ExposureMode.AutomaticHistogram)
                 {
                     EditorGUILayout.Space();
                     EditorGUILayout.LabelField("Histogram", EditorStyles.miniLabel);
@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             // Default unity field
                             m_TargetMidGray.value.intValue = EditorGUILayout.Popup(EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."),
-                                                                                    m_TargetMidGray.value.intValue, s_MidGrayNames);
+                                m_TargetMidGray.value.intValue, s_MidGrayNames);
                         }
                     }
                 }

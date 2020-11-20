@@ -120,7 +120,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         CTYPE sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).CTYPE_SWIZZLE;
         float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
-    
+
         #if NEAR
         {
             float weight = saturate(1.0 - (sampCoC - samp0CoC));
