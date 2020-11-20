@@ -100,7 +100,7 @@ HDRP_Win_Vulkan_editmode_mono_Linear_2020.2:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -124,10 +124,10 @@ HDRP_Win_Vulkan_Standalone_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_mono_Linear_2020.2
+      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Standalone_mono_Linear_2020.2
          rerun: on-new-revision
-Build_HDRP_Win_Vulkan_Player_mono_Linear_2020.2:
-    name: Build HDRP on Win_Vulkan_mono_Linear_Player on version 2020.2
+Build_HDRP_Win_Vulkan_Standalone_mono_Linear_2020.2:
+    name: Build HDRP on Win_Vulkan_mono_Linear_Standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
@@ -259,7 +259,7 @@ HDRP_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
+                  cd TestProjects/HDRP_Tests && utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --reruncount=2 --scripting-backend=Mono2x --suite=editor --testproject=.
     artifacts:
         logs:
             paths:
@@ -289,10 +289,10 @@ HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Win_Vulkan_Player_mono_Linear_CUSTOM-REVISION:
-    name: Build HDRP on Win_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
+Build_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build HDRP on Win_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable

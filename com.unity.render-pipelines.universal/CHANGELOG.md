@@ -4,6 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.3.0] - 2020-11-16
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Added
+
+### Changed
+
+### Fixed
+- Transparent Lit ShaderGraph using Additive blending will now properly fade with alpha [1270344]
 
 ## [10.2.0] - 2020-10-19
 
@@ -37,6 +48,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Light Explorer was grabbing the URP asset in Graphics Settings rather than the currently active.
 - Fixed an issue where the scene view camera ignored the pipeline assets HDR setting. [case 1284369](https://issuetracker.unity3d.com/issues/urp-scene-view-camera-ignores-pipeline-assets-hdr-settings-when-main-camera-uses-pipeline-settings)
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
+- Fixed an issue with upgrading material set to cutout didn't properly set alpha clipping. [case 1235516](https://issuetracker.unity3d.com/issues/urp-upgrade-material-utility-does-not-set-the-alpha-clipping-when-material-was-using-a-shader-with-rendering-mode-set-to-cutout)
+- Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
 
 ## [10.1.0] - 2020-10-12
 ### Added

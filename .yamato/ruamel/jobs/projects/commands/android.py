@@ -14,13 +14,13 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
-        f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
-        f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
-        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-        utr {" ".join(utr_args)}'''),
-        f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         utr {" ".join(utr_args)}''')
         ]
     
     extra_cmds = extra_perf_cmd(project_folder)
@@ -44,6 +44,10 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
         utr {" ".join(utr_args)}'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
@@ -66,6 +70,10 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
         utr {" ".join(utr_args)}'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
@@ -99,7 +107,8 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
 
 def extra_perf_cmd(project_folder):   
     perf_list = [
-        f'git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/{project_folder}'
+        f'git clone https://github.com/Unity-Technologies/BoatAttack.git -b %BOAT_ATTACK_BRANCH% TestProjects/{project_folder}',
+        f'cd TestProjects/{project_folder} && git checkout %BOAT_ATTACK_REVISION%'
         ]
     return perf_list
 
@@ -121,8 +130,7 @@ def install_unity_config(project_folder):
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .',
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .',
-        
-		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.test.metadata-manager@0.1.2-preview\" --project-path .',        
+             
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git\"  --project-path .',        
 		f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-config project add dependency \"unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git\" --project-path .',	
 		

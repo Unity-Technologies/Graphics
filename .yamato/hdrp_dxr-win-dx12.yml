@@ -25,10 +25,10 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_DXR_Tests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_mono_Linear_2020.2
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_2020.2
          rerun: on-new-revision
-Build_HDRP_DXR_Win_DX12_Player_mono_Linear_2020.2:
-    name: Build HDRP_DXR on Win_DX12_mono_Linear_Player on version 2020.2
+Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_2020.2:
+    name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_build_Player on version 2020.2
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
@@ -151,10 +151,10 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:windows
          rerun: always
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Player_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_DXR_Win_DX12_Player_mono_Linear_CUSTOM-REVISION:
-    name: Build HDRP_DXR on Win_DX12_mono_Linear_Player on version CUSTOM-REVISION
+Build_HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build HDRP_DXR on Win_DX12_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: graphics-foundation/win10-dxr:stable
