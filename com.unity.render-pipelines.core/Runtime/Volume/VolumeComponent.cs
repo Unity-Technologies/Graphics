@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Linq;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering
 {
@@ -74,8 +75,8 @@ namespace UnityEngine.Rendering
         public ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
 #pragma warning disable 414
-        [SerializeField]
-        bool m_AdvancedMode = false; // Editor-only
+        [SerializeField, FormerlySerializedAs("m_AdvancedMode")]
+        bool m_ShowAdditionalProperties = false; // Editor-only
 #pragma warning restore 414
 
         /// <summary>

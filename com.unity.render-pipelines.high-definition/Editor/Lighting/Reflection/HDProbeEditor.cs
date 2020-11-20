@@ -96,14 +96,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDProbeUI.Drawer<TProvider>.DrawInfluenceSettings,
                     HDProbeUI.Drawer_DifferentShapeError
                     ),
-                CoreEditorDrawer<TSerialized>.AdvancedFoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState,
-                    (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
-                    (s, o) => s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
+                CoreEditorDrawer<TSerialized>.AdditionalPropertiesFoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState,
+                    (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsShowAdditionalProperties),
+                    (s, o) => s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsShowAdditionalProperties),
                     CoreEditorDrawer<TSerialized>.Group(
                         DrawAdditionalCaptureSettings,
                         HDProbeUI.Drawer<TProvider>.DrawCaptureSettings
                         ),
-                    HDProbeUI.Drawer<TProvider>.DrawAdvancedCaptureSettings
+                    HDProbeUI.Drawer<TProvider>.DrawCaptureSettingsAdditionalProperties
                     ),
                 CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
                     HDProbeUI.Drawer<TProvider>.DrawCustomSettings),

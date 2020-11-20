@@ -97,24 +97,24 @@ namespace UnityEditor.Rendering
         /// </summary>
         public SerializedProperty activeProperty { get; internal set; }
 
-        SerializedProperty m_AdvancedMode;
+        SerializedProperty m_ShowAdditionalProperties;
 
         /// <summary>
         /// Override this property if your editor makes use of the "More Options" feature.
         /// </summary>
-        public virtual bool hasAdvancedMode => false;
+        public virtual bool hasAdditionalProperties => false;
 
         /// <summary>
         /// Checks if the editor currently has the "More Options" feature toggled on.
         /// </summary>
-        public bool isInAdvancedMode
+        public bool showAdditionalProperties
         {
-            get => m_AdvancedMode != null && m_AdvancedMode.boolValue;
+            get => m_ShowAdditionalProperties != null && m_ShowAdditionalProperties.boolValue;
             internal set
             {
-                if (m_AdvancedMode != null)
+                if (m_ShowAdditionalProperties != null)
                 {
-                    m_AdvancedMode.boolValue = value;
+                    m_ShowAdditionalProperties.boolValue = value;
                     serializedObject.ApplyModifiedProperties();
                 }
             }
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering
             m_Inspector = inspector;
             serializedObject = new SerializedObject(target);
             activeProperty = serializedObject.FindProperty("active");
-            m_AdvancedMode = serializedObject.FindProperty("m_AdvancedMode");
+            m_ShowAdditionalProperties = serializedObject.FindProperty("m_ShowAdditionalProperties");
             OnEnable();
         }
 

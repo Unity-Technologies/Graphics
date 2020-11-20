@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly string[] s_MidGrayNames = { "Grey 12.5%", "Grey 14.0%", "Grey 18.0%" };
 
-        public override bool hasAdvancedMode => true;
+        public override bool hasAdditionalProperties => true;
 
         public override void OnEnable()
         {
@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
                     PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
 
-                    if (isInAdvancedMode)
+                    if (showAdditionalProperties)
                     {
                         PropertyField(m_ProceduralMinIntensity);
                         PropertyField(m_ProceduralMaxIntensity);
@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
                 }
 
-                if (isInAdvancedMode)
+                if (showAdditionalProperties)
                 {
                     EditorGUILayout.Space();
 

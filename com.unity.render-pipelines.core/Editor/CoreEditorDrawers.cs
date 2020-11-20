@@ -501,10 +501,11 @@ namespace UnityEditor.Rendering
         /// <param name="advancedContent"> The content of the foldout header only visible if advanced mode is active and if foldout is expended. </param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
+        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
         public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, IDrawer normalContent, IDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
         {
-            return AdvancedFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent.Draw, advancedContent.Draw, options);
+            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent.Draw, advancedContent.Draw, options);
         }
 
         /// <summary> Helper to draw a foldout with an advanced switch on it. </summary>
@@ -519,10 +520,11 @@ namespace UnityEditor.Rendering
         /// <param name="advancedContent"> The content of the foldout header only visible if advanced mode is active and if foldout is expended. </param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
+        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
         public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, ActionDrawer normalContent, IDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
         {
-            return AdvancedFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent, advancedContent.Draw, options);
+            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent, advancedContent.Draw, options);
         }
 
         /// <summary> Helper to draw a foldout with an advanced switch on it. </summary>
@@ -537,10 +539,11 @@ namespace UnityEditor.Rendering
         /// <param name="advancedContent"> The content of the foldout header only visible if advanced mode is active and if foldout is expended. </param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
+        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
         public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, IDrawer normalContent, ActionDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
         {
-            return AdvancedFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent.Draw, advancedContent, options);
+            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent.Draw, advancedContent, options);
         }
 
         /// <summary> Helper to draw a foldout with an advanced switch on it. </summary>
@@ -555,12 +558,85 @@ namespace UnityEditor.Rendering
         /// <param name="advancedContent"> The content of the foldout header only visible if advanced mode is active and if foldout is expended. </param>
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
-        public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, ActionDrawer normalContent, ActionDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent)
+        [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
+        public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isShowingAdditionalProperties, SwitchEnabler switchAdditionalProperties, ActionDrawer normalContent, ActionDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
         {
-            return FoldoutGroup(foldoutTitle, foldoutMask, foldoutState, options, isAdvanced, switchAdvanced,
+            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isShowingAdditionalProperties, switchAdditionalProperties, normalContent, additionalContent, options);
+        }
+
+        /// <summary> Helper to draw a foldout with additional properties. </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <typeparam name="TState"></typeparam>
+        /// <param name="foldoutTitle">Title wanted for this foldout header</param>
+        /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
+        /// <param name="foldoutState">The ExpandedState describing the component</param>
+        /// <param name="isShowingAdditionalProperties"></param>
+        /// <param name="switchAdditionalProperties"></param>
+        /// <param name="normalContent"> The content of the foldout header always visible if expended. </param>
+        /// <param name="additionalContent">The content of the foldout header only visible if additional properties are shown and if foldout is expanded.</param>
+        /// <param name="options">Drawing options</param>
+        /// <returns>A IDrawer object</returns>
+        public static IDrawer AdditionalPropertiesFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isShowingAdditionalProperties, SwitchEnabler switchAdditionalProperties, IDrawer normalContent, IDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+            where TEnum : struct, IConvertible
+        {
+            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isShowingAdditionalProperties, switchAdditionalProperties, normalContent.Draw, additionalContent.Draw, options);
+        }
+
+        /// <summary> Helper to draw a foldout with additional properties. </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <typeparam name="TState"></typeparam>
+        /// <param name="foldoutTitle">Title wanted for this foldout header</param>
+        /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
+        /// <param name="foldoutState">The ExpandedState describing the component</param>
+        /// <param name="isShowingAdditionalProperties"></param>
+        /// <param name="switchAdditionalProperties"></param>
+        /// <param name="normalContent"> The content of the foldout header always visible if expended. </param>
+        /// <param name="additionalContent">The content of the foldout header only visible if additional properties are shown and if foldout is expanded.</param>
+        /// <param name="options">Drawing options</param>
+        /// <returns>A IDrawer object</returns>
+        public static IDrawer AdditionalPropertiesFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isShowingAdditionalProperties, SwitchEnabler switchAdditionalProperties, ActionDrawer normalContent, IDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+            where TEnum : struct, IConvertible
+        {
+            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isShowingAdditionalProperties, switchAdditionalProperties, normalContent, additionalContent.Draw, options);
+        }
+
+        /// <summary> Helper to draw a foldout with additional properties. </summary>>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <typeparam name="TState"></typeparam>
+        /// <param name="foldoutTitle">Title wanted for this foldout header</param>
+        /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
+        /// <param name="foldoutState">The ExpandedState describing the component</param>
+        /// <param name="isShowingAdditionalProperties"></param>
+        /// <param name="switchAdditionalProperties"></param>
+        /// <param name="normalContent"> The content of the foldout header always visible if expended. </param>
+        /// <param name="additionalContent">The content of the foldout header only visible if additional properties are shown and if foldout is expanded.</param>
+        /// <param name="options">Drawing options</param>
+        /// <returns>A IDrawer object</returns>
+        public static IDrawer AdditionalPropertiesFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isShowingAdditionalProperties, SwitchEnabler switchAdditionalProperties, IDrawer normalContent, ActionDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+            where TEnum : struct, IConvertible
+        {
+            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isShowingAdditionalProperties, switchAdditionalProperties, normalContent.Draw, additionalContent, options);
+        }
+
+        /// <summary> Helper to draw a foldout with additional properties. </summary>
+        /// <typeparam name="TEnum">Type of the mask used</typeparam>
+        /// <typeparam name="TState">Type of the persistent state</typeparam>
+        /// <param name="foldoutTitle">Title wanted for this foldout header</param>
+        /// <param name="foldoutMask">Bit mask (enum) used to define the boolean saving the state in ExpandedState</param>
+        /// <param name="foldoutState">The ExpandedState describing the component</param>
+        /// <param name="isShowingAdditionalProperties">Delegate allowing to check if additional properties are shown.</param>
+        /// <param name="switchAdditionalProperties"></param>
+        /// <param name="normalContent"> The content of the foldout header always visible if expended. </param>
+        /// <param name="additionalContent">The content of the foldout header only visible if additional properties are shown and if foldout is expanded.</param>
+        /// <param name="options">Drawing options</param>
+        /// <returns>A IDrawer object</returns>
+        public static IDrawer AdditionalPropertiesFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isShowingAdditionalProperties, SwitchEnabler switchAdditionalProperties, ActionDrawer normalContent, ActionDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+            where TEnum : struct, IConvertible
+        {
+            return FoldoutGroup(foldoutTitle, foldoutMask, foldoutState, options, isShowingAdditionalProperties, switchAdditionalProperties,
                 normalContent,
-                Conditional((serialized, owner) => isAdvanced(serialized, owner) && foldoutState[foldoutMask], advancedContent).Draw
+                Conditional((serialized, owner) => isShowingAdditionalProperties(serialized, owner) && foldoutState[foldoutMask], additionalContent).Draw
             );
         }
     }

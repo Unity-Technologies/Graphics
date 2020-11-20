@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D m_ReadBackTexture;
-        public override bool hasAdvancedMode => true;
+        public override bool hasAdditionalProperties => true;
 
         public override void OnEnable()
         {
@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             base.CommonSkySettingsGUI();
 
-            if (isInAdvancedMode)
+            if (showAdditionalProperties)
             {
                 PropertyField(m_EnableBackplate, new GUIContent("Backplate", "Enable the projection of the bottom of the CubeMap on a plane with a given shape ('Disc', 'Rectangle', 'Ellispe', 'Infinite')"));
                 EditorGUILayout.Space();

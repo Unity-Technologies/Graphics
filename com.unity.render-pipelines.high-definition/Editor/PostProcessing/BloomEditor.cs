@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_Anamorphic;
 
-        public override bool hasAdvancedMode => true;
+        public override bool hasAdditionalProperties => true;
 
         public override void OnEnable()
         {
@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
             PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
 
-            if (isInAdvancedMode)
+            if (showAdditionalProperties)
             {
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
 

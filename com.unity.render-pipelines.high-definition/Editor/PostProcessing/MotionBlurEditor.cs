@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DepthCmpScale;
         SerializedDataParameter m_CameraMotionBlur;
 
-        public override bool hasAdvancedMode => true;
+        public override bool hasAdditionalProperties => true;
 
         public override void OnEnable()
         {
@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            bool advanced = isInAdvancedMode;
+            bool advanced = showAdditionalProperties;
 
             PropertyField(m_Intensity);
 

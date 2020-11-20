@@ -239,8 +239,8 @@ namespace UnityEditor.Rendering
                         editor.baseProperty,
                         editor.activeProperty,
                         pos => OnContextClick(pos, editor, id),
-                        editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
-                        () => editor.isInAdvancedMode ^= true,
+                        editor.hasAdditionalProperties ? () => editor.showAdditionalProperties : (Func<bool>)null,
+                        () => editor.showAdditionalProperties ^= true,
                         documentationURL
                     );
 
@@ -304,8 +304,8 @@ namespace UnityEditor.Rendering
             menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
             menu.AddSeparator(string.Empty);
-            if (targetEditor.hasAdvancedMode)
-                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.isInAdvancedMode, () => targetEditor.isInAdvancedMode ^= true);
+            if (targetEditor.hasAdditionalProperties)
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.showAdditionalProperties, () => targetEditor.showAdditionalProperties ^= true);
             else
                 menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
 

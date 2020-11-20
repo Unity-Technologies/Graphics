@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static GUIContent s_EnableVolumetricFog = new GUIContent("Volumetric Fog", "When enabled, activates volumetric fog.");
         static GUIContent s_DepthExtentLabel = new GUIContent("Volumetric Fog Distance", "Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer. The lower the distance is, the higher the fog quality is.");
 
-        public override bool hasAdvancedMode => true;
+        public override bool hasAdditionalProperties => true;
 
         public override void OnEnable()
         {
@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_Tint);
 
-                    if (isInAdvancedMode)
+                    if (showAdditionalProperties)
                     {
                         PropertyField(m_MipFogNear);
                         PropertyField(m_MipFogFar);
@@ -133,7 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DepthExtent, s_DepthExtentLabel);
                     PropertyField(m_DenoisingMode);
 
-                    if (isInAdvancedMode)
+                    if (showAdditionalProperties)
                     {
                         PropertyField(m_SliceDistributionUniformity);
 
