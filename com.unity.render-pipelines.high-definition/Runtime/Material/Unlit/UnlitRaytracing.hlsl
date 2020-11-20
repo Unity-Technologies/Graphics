@@ -8,7 +8,7 @@ void FitToStandardLit( SurfaceData surfaceData
 {
 
     ZERO_INITIALIZE(StandardBSDFData, outStandardlit);
-    
+
     // Output is not to be lit
     outStandardlit.emissiveAndBaked = surfaceData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor;
     outStandardlit.isUnlit = 1;

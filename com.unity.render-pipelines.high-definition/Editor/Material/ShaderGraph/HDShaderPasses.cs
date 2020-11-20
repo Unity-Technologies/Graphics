@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class HDShaderPasses
     {
-#region Distortion Pass
+        #region Distortion Pass
 
         public static PassDescriptor GenerateDistortionPass(bool supportLighting)
         {
@@ -71,10 +71,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
+        #endregion
 
-#endregion
-
-#region Scene Picking Pass
+        #region Scene Picking Pass
 
         public static PassDescriptor GenerateScenePicking()
         {
@@ -108,9 +107,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-#endregion
+        #endregion
 
-#region Scene Selection Pass
+        #region Scene Selection Pass
 
         public static PassDescriptor GenerateSceneSelection(bool supportLighting)
         {
@@ -150,9 +149,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-#endregion
+        #endregion
 
-#region Shadow Caster Pass
+        #region Shadow Caster Pass
 
         static public PassDescriptor GenerateShadowCaster(bool supportLighting)
         {
@@ -199,9 +198,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-#endregion
+        #endregion
 
-#region META pass
+        #region META pass
 
         public static PassDescriptor GenerateMETA(bool supportLighting)
         {
@@ -245,9 +244,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-#endregion
+        #endregion
 
-#region Depth Forward Only
+        #region Depth Forward Only
 
         public static PassDescriptor GenerateDepthForwardOnlyPass(bool supportLighting)
         {
@@ -269,7 +268,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             RenderStateCollection GenerateRenderState()
             {
-                var renderState = new RenderStateCollection{ CoreRenderStates.DepthOnly };
+                var renderState = new RenderStateCollection { CoreRenderStates.DepthOnly };
 
                 if (!supportLighting)
                 {
@@ -323,9 +322,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-#endregion
+        #endregion
 
-#region Motion Vectors
+        #region Motion Vectors
 
         public static PassDescriptor GenerateMotionVectors(bool supportLighting, bool supportForward)
         {
@@ -356,8 +355,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // if (supportForward)
                 // {
                 //     defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
-                // }                    
-                
+                // }
+
                 return defines;
             }
 
@@ -365,7 +364,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var renderState = new RenderStateCollection();
                 renderState.Add(CoreRenderStates.MotionVectors);
-    
+
                 if (!supportLighting)
                 {
                     // Caution: When using MSAA we have motion vector, normal and depth buffer bind.
@@ -401,15 +400,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
+        #endregion
 
-#endregion
-
-#region Forward Only
+        #region Forward Only
 
         public static PassDescriptor GenerateForwardOnlyPass(bool supportLighting)
         {
             return new PassDescriptor
-            { 
+            {
                 // Definition
                 displayName = "ForwardOnly",
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
@@ -465,19 +463,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
                 else
                     includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
- 
+
                 return includes;
             }
         }
 
-#endregion
+        #endregion
 
-#region Back then front pass
+        #region Back then front pass
 
         public static PassDescriptor GenerateBackThenFront(bool supportLighting)
         {
             return new PassDescriptor
-            { 
+            {
                 // Definition
                 displayName = "TransparentBackface",
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
@@ -522,9 +520,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-#endregion
+        #endregion
 
-#region Transparent Depth Prepass
+        #region Transparent Depth Prepass
 
         public static PassDescriptor GenerateTransparentDepthPrepass(bool supportLighting)
         {
@@ -538,23 +536,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 validPixelBlocks = supportLighting ?
                     new BlockFieldDescriptor[]
-                    {
-                        BlockFields.SurfaceDescription.Alpha,
-                        HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
-                        BlockFields.SurfaceDescription.AlphaClipThreshold,
-                        HDBlockFields.SurfaceDescription.DepthOffset,
-                        BlockFields.SurfaceDescription.NormalTS,
-                        BlockFields.SurfaceDescription.NormalWS,
-                        BlockFields.SurfaceDescription.NormalOS,
-                        BlockFields.SurfaceDescription.Smoothness,
-                    } :
-                    new BlockFieldDescriptor[]
-                    {
-                        BlockFields.SurfaceDescription.Alpha,
-                        HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
-                        BlockFields.SurfaceDescription.AlphaClipThreshold,
-                        HDBlockFields.SurfaceDescription.DepthOffset,
-                    },
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                    BlockFields.SurfaceDescription.NormalTS,
+                    BlockFields.SurfaceDescription.NormalWS,
+                    BlockFields.SurfaceDescription.NormalOS,
+                    BlockFields.SurfaceDescription.Smoothness,
+                } :
+                new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                },
 
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
@@ -632,9 +630,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.color,
         };
 
-#endregion
+        #endregion
 
-#region Transparent Depth Postpass
+        #region Transparent Depth Postpass
 
         public static PassDescriptor GenerateTransparentDepthPostpass(bool supportLighting)
         {
@@ -695,9 +693,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-#endregion
+        #endregion
 
-#region Lit DepthOnly
+        #region Lit DepthOnly
 
         public static PassDescriptor GenerateLitDepthOnly()
         {
@@ -735,9 +733,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.WriteNormalBuffer },
         };
 
-#endregion
+        #endregion
 
-#region GBuffer
+        #region GBuffer
 
         public static PassDescriptor GenerateGBuffer()
         {
@@ -791,9 +789,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }) },
         };
 
-#endregion
+        #endregion
 
-#region Lit Forward
+        #region Lit Forward
 
         public static PassDescriptor GenerateLitForward()
         {
@@ -831,9 +829,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kPassForward, IncludeLocation.Postgraph },
         };
 
-#endregion
+        #endregion
 
-#region Lit Raytracing Prepass
+        #region Lit Raytracing Prepass
 
         public static PassDescriptor GenerateLitRaytracingPrepass()
         {
@@ -873,9 +871,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Note: we use default ZTest LEqual so if the object have already been render in depth prepass, it will re-render to tag stencil
         };
 
-#endregion
+        #endregion
 
-#region Raytracing Indirect
+        #region Raytracing Indirect
 
         public static PassDescriptor GenerateRaytracingIndirect(bool supportLighting)
         {
@@ -931,9 +929,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
-#endregion
+        #endregion
 
-#region Raytracing Visibility
+        #region Raytracing Visibility
 
         public static PassDescriptor GenerateRaytracingVisibility(bool supportLighting)
         {
@@ -984,9 +982,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Defines.raytracingRaytraced },
         };
 
-#endregion
+        #endregion
 
-#region Raytracing Forward
+        #region Raytracing Forward
 
         public static PassDescriptor GenerateRaytracingForward(bool supportLighting)
         {
@@ -1042,7 +1040,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-
         public static DefineCollection RaytracingForwardDefines = new DefineCollection
         {
             { Defines.shadowLow },
@@ -1050,9 +1047,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
-#endregion
+        #endregion
 
-#region Raytracing GBuffer
+        #region Raytracing GBuffer
 
         public static PassDescriptor GenerateRaytracingGBuffer(bool supportLighting)
         {
@@ -1087,7 +1084,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We want to have the normal buffer include if this is a gbuffer and unlit shader
                 if (!supportLighting)
                     includes.Add(CoreIncludes.kNormalBuffer, IncludeLocation.Pregraph);
-                    
+
                 // If this is the gbuffer sub-shader, we want the standard lit data
                 includes.Add(CoreIncludes.kStandardLit, IncludeLocation.Pregraph);
 
@@ -1111,9 +1108,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Defines.raytracingRaytraced },
         };
 
-#endregion
+        #endregion
 
-#region Path Tracing
+        #region Path Tracing
 
         public static PassDescriptor GeneratePathTracing(bool supportLighting)
         {
@@ -1172,9 +1169,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
-#endregion
+        #endregion
 
-#region Raytracing Subsurface
+        #region Raytracing Subsurface
 
         public static PassDescriptor GenerateRaytracingSubsurface()
         {
@@ -1229,9 +1226,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Defines.raytracingRaytraced },
         };
 
-#endregion
+        #endregion
 
-#region FullScreen Debug
+        #region FullScreen Debug
 
         public static PassDescriptor GenerateFullScreenDebug()
         {
@@ -1270,9 +1267,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ZTest(ZTest.LEqual) },
         };
 
-#endregion
+        #endregion
 
-#region Define Utility
+        #region Define Utility
 
         public static class Defines
         {
@@ -1286,7 +1283,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
         }
 
-#endregion
-
+        #endregion
     }
 }

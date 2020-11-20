@@ -465,13 +465,13 @@ float SnapToTexel(float f)
 float4 SampleGradient(float2 gradientData, float u)
 {
     float2 uv = float2(HalfTexelOffset(saturate(u)), gradientData.x);
-	if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
+    if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
     return bakedTexture.SampleLevel(samplerbakedTexture, uv, 0);
 }
 
 float4 SampleGradient(float gradientData, float u)
 {
-	return SampleGradient(float2(gradientData, 0.0f), u);
+    return SampleGradient(float2(gradientData, 0.0f), u);
 }
 
 float SampleCurve(float4 curveData, float u)

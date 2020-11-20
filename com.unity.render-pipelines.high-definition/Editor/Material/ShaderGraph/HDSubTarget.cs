@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         internal static MigrationDescription<ShaderGraphVersion, HDSubTarget> migrationSteps => MigrationDescription.New(
             Enum.GetValues(typeof(ShaderGraphVersion)).Cast<ShaderGraphVersion>().Select(
                 version => MigrationStep.New(version, (HDSubTarget t) => t.MigrateTo(version))
-            ).ToArray()
+                ).ToArray()
         );
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
                 subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
-            
+
             var passes = subShaderDescriptor.passes.ToArray();
             PassCollection finalPasses = new PassCollection();
             for (int i = 0; i < passes.Length; i++)
@@ -167,8 +167,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
 
                 // Add keywords from subshaders:
-                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection{ passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
-                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection{ passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
+                passDescriptor.keywords = passDescriptor.keywords == null ? new KeywordCollection() : new KeywordCollection { passDescriptor.keywords }; // Duplicate keywords to avoid side effects (static list modification)
+                passDescriptor.defines = passDescriptor.defines == null ? new DefineCollection() : new DefineCollection { passDescriptor.defines }; // Duplicate defines to avoid side effects (static list modification)
                 CollectPassKeywords(ref passDescriptor);
 
                 // Set default values for HDRP "surface" passes:
@@ -214,8 +214,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (needsUpdate)
                     systemData.materialNeedsUpdateHash = hash;
 
-                return new HDSaveContext{ updateMaterials = needsUpdate };
+                return new HDSaveContext { updateMaterials = needsUpdate };
             }
-        } 
+        }
     }
 }

@@ -187,7 +187,7 @@ float4 AxfSampleTexture2D(TEXTURE2D_PARAM(textureName, samplerName), float4 scal
     bool useLod = lodBiasOrGrad == 1;
     bool useBias = lodBiasOrGrad == 2;
     bool useGrad = lodBiasOrGrad == 3;
-    bool useCachedDdxDdy = false;    
+    bool useCachedDdxDdy = false;
 #ifdef AXF_REUSE_SCREEN_DDXDDY
     useCachedDdxDdy = false;
 #endif
@@ -195,19 +195,19 @@ float4 AxfSampleTexture2D(TEXTURE2D_PARAM(textureName, samplerName), float4 scal
 #ifdef _MAPPING_TRIPLANAR
     float4 val = 0;
 
-    val += uvMapping.triplanarWeights.x 
+    val += uvMapping.triplanarWeights.x
            * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), lodOrBias.x)
            : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), lodOrBias.x)
            : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), triDdx[0], triDdy[0])
            : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset),  scaleOffset.xy * uvMapping.ddxZY, scaleOffset.xy * uvMapping.ddyZY)
            : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset)) );
-    val += uvMapping.triplanarWeights.y 
+    val += uvMapping.triplanarWeights.y
            * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), lodOrBias.y)
            : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), lodOrBias.y)
            : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), triDdx[1], triDdy[1])
            : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset),  scaleOffset.xy * uvMapping.ddxXZ, scaleOffset.xy * uvMapping.ddyXZ)
            : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset)) );
-    val += uvMapping.triplanarWeights.z 
+    val += uvMapping.triplanarWeights.z
            * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), lodOrBias.z)
            : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), lodOrBias.z)
            : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), triDdx[2], triDdy[2])
@@ -235,7 +235,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
     bool useLod = lodBiasOrGrad == 1;
     bool useBias = lodBiasOrGrad == 2;
     bool useGrad = lodBiasOrGrad == 3;
-    bool useCachedDdxDdy = false;    
+    bool useCachedDdxDdy = false;
 #ifdef AXF_REUSE_SCREEN_DDXDDY
     useCachedDdxDdy = true;
 #endif
@@ -482,7 +482,7 @@ float2 AxFGetRoughnessFromSpecularLobeTexture(float2 specularLobe)
     // http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
     // http://simonstechblog.blogspot.com/2011/12/microfacet-brdf.html
 
-    // We thus have 
+    // We thus have
     //     roughnessBeckmann = sqrt(2) * rsqrt(exp2(abs(specularLobe.xy)) + 2);
     //     shiniExp = 2 * rcp(max(0.0001,(roughnessBeckmann*roughnessBeckmann))) - 2;
 
@@ -591,7 +591,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float perceptualRoughness = RoughnessToPerceptualRoughness(GetScalarRoughness(surfaceData.specularLobe));
 
-    //TODO 
+    //TODO
 //#if defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
     // Note: we use normalWS as it will always exist and be equal to clearcoatNormalWS if there's no coat
     // (otherwise we do SO with the base lobe, might be wrong depending on way AO is computed, will be wrong either way with a single non-lobe specific value)
@@ -607,8 +607,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Finalize tangent space
     surfaceData.tangentWS = uvMapping.vertexTangentWS;
     // TODOTODO:
-    // This is crappy: anisotropy rotation don't mix triplanar style like scalar values because of what it represents. That's why in HDRP we use 
-    // tangent space tangent vector maps and triplanar sample those as we do normals in the surface gradients framework! 
+    // This is crappy: anisotropy rotation don't mix triplanar style like scalar values because of what it represents. That's why in HDRP we use
+    // tangent space tangent vector maps and triplanar sample those as we do normals in the surface gradients framework!
     // Better to rebuild a gradient in the proper space from each rotation, combine those gradients as normals and resolve here.
     if (HasAnisotropy())
     {
@@ -666,7 +666,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // No back lighting with AxF
     InitBuiltinData(posInput, alpha, surfaceData.normalWS, surfaceData.normalWS, input.texCoord1, input.texCoord2, builtinData);
-    
+
 #ifdef _ALPHATEST_ON
     // Used for sharpening by alpha to mask
     builtinData.alphaClipTreshold = _AlphaCutoff;

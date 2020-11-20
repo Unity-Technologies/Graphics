@@ -14,10 +14,10 @@ namespace UnityEditor.VFX
         public OpaqueRenderQueue opaqueRenderQueue = OpaqueRenderQueue.Default;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue particles are drawn. This is useful for drawing particles behind refractive surfaces like frosted glass, for performance gains by rendering them in low resolution, or to draw particles after post processing so they are not affected by effects such as Depth of Field.")]
-        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;       
+        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;
 
         // Caps
-        public override bool supportsExposure { get { return true; } } 
+        public override bool supportsExposure { get { return true; } }
         public override bool supportsMotionVector
         {
             get
@@ -51,7 +51,7 @@ namespace UnityEditor.VFX
             base.OnSettingModified(setting);
             // Reset to default if render queue is invalid
             if (setting.name == "transparentRenderQueue")
-            {               
+            {
                 if (!supportsQueueSelection || (isLit && transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing))
                     transparentRenderQueue = TransparentRenderQueue.Default;
             }
@@ -80,7 +80,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        
+
         public override string GetBlendModeStr()
         {
             bool isOffscreen = transparentRenderQueue == TransparentRenderQueue.LowResolution || transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing;
@@ -120,9 +120,9 @@ namespace UnityEditor.VFX
 
         //TODO : extend & factorize this method
         public static void GetStencilStateForPasses(bool receiveDecals, bool receiveSSR, bool useObjectVelocity, bool hasSubsurfaceScattering,
-                                                       out int stencilWriteMask, out int stencilRef,
-                                                       out int stencilWriteMaskGBuffer, out int stencilRefGBuffer,
-                                                       out int stencilWriteMaskDistortion, out int stencilRefDistortion)
+            out int stencilWriteMask, out int stencilRef,
+            out int stencilWriteMaskGBuffer, out int stencilRefGBuffer,
+            out int stencilWriteMaskDistortion, out int stencilRefDistortion)
         {
             stencilWriteMask = 0;
             stencilRef = 0;
@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
             stencilRef |= useObjectVelocity ? (int)StencilUsage.ObjectMotionVector : 0;
 
             stencilRefGBuffer = (int)StencilUsage.RequiresDeferredLighting;
-            if(hasSubsurfaceScattering)
+            if (hasSubsurfaceScattering)
                 stencilRefGBuffer |= (int)StencilUsage.SubsurfaceScattering;
 
             stencilWriteMaskGBuffer = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
@@ -149,8 +149,8 @@ namespace UnityEditor.VFX
             int stencilGBufferWriteMask, stencilRefGBuffer;
             int stencilWriteMaskDistortion, stencilRefDistortion;
             GetStencilStateForPasses(false, false, true, false, out stencilWriteMask, out stencilRef,
-                                                                   out stencilGBufferWriteMask, out stencilRefGBuffer,
-                                                                   out stencilWriteMaskDistortion, out stencilRefDistortion);
+                out stencilGBufferWriteMask, out stencilRefGBuffer,
+                out stencilWriteMaskDistortion, out stencilRefDistortion);
             var stencilForMV = new VFXShaderWriter();
             stencilForMV.WriteFormat("Stencil\n{{\n WriteMask {0}\n Ref {1}\n Comp Always\n Pass Replace\n}}", stencilWriteMask, stencilRef);
             yield return new KeyValuePair<string, VFXShaderWriter>("${VFXStencilMotionVector}", stencilForMV);

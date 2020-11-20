@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-
     partial class InfluenceVolumeUI
     {
         // We need to provide gamma values to the Gizmos and Handle because they are translated back to linear

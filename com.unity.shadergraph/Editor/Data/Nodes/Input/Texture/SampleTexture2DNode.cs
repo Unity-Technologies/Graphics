@@ -42,7 +42,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         [SerializeField]
         private TextureType m_TextureType = TextureType.Default;
 
@@ -110,10 +109,10 @@ namespace UnityEditor.ShaderGraph
 
             var id = GetSlotValue(TextureInputId, generationMode);
             var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE2D({1}, {2}, {3});"
-                    , GetVariableNameForSlot(OutputSlotRGBAId)
-                    , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
-                    , uvName);
+                , GetVariableNameForSlot(OutputSlotRGBAId)
+                , id
+                , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
+                , uvName);
 
             sb.AppendLine(result);
 
