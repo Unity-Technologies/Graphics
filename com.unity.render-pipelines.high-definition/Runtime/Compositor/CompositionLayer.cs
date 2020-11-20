@@ -227,13 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_LayerName = layerID;
             }
 
-            // Compositor output layers (that allocate the render targets) also need a reference camera, just to get the reference pixel width/height
-            // Note: Movie & image layers are rendered at the output resolution (and not the movie/image resolution). This is required to have post-processing effects like film grain at full res.
-            if (m_Camera == null)
-            {
-                m_Camera = CompositionManager.GetSceneCamera();
-            }
-
             var compositor = CompositionManager.GetInstance();
 
             // Create a new camera if necessary or use the one specified by the user

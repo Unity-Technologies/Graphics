@@ -107,9 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_InputLayers.Count > 0)
+                if (m_OutputCamera)
                 {
-                    return m_InputLayers[0].aspectRatio;
+                    return (float)m_OutputCamera.pixelWidth / m_OutputCamera.pixelHeight;
                 }
                 return 1.0f;
             }
@@ -837,7 +837,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     return camera;
                 }
             }
-            Debug.LogWarning("Camera not found");
+
             return null;
         }
 
