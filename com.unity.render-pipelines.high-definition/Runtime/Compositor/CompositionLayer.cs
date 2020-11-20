@@ -523,14 +523,17 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             // Copy/update the camera data (but preserve the camera depth/draw-order [case 1264552])
             var drawOrder = m_LayerCamera.depth;
-            m_LayerCamera.CopyFrom(m_Camera);
-            m_LayerCamera.depth = drawOrder;
-
-            var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
-            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraDataOrig)
+            if (m_Camera)
             {
-                cameraDataOrig.CopyTo(cameraData);
+                m_LayerCamera.CopyFrom(m_Camera);
+                m_LayerCamera.depth = drawOrder;
+
+                var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
+                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                if (cameraDataOrig)
+                {
+                    cameraDataOrig.CopyTo(cameraData);
+                }
             }
         }
 
