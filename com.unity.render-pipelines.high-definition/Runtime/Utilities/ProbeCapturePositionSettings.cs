@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // If reference position and proxy position is exactly the same, we end up in some degeneracies triggered
             // by engine code when computing culling parameters. This is an extremely rare case, but can happen
             // in editor when focusing on the planar probe. So if that happens, we offset them 0.1 mm apart.
-            if(Vector3.Distance(result.proxyPosition, referencePosition) < 1e-4f)
+            if (Vector3.Distance(result.proxyPosition, referencePosition) < 1e-4f)
             {
                 referencePosition += new Vector3(1e-4f, 1e-4f, 1e-4f);
             }

@@ -4,7 +4,7 @@
 
 #define WAVE_SIZE                   64u
 
-#ifdef MOTION_VEC_PREPPING 
+#ifdef MOTION_VEC_PREPPING
 RW_TEXTURE2D_X(float3, _MotionVecAndDepth);
 #else
 TEXTURE2D_X(_MotionVecAndDepth);

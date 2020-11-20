@@ -741,7 +741,7 @@ namespace UnityEditor.VFX.UI
                                 p.min = parameter.min.Get();
                                 p.max = parameter.max.Get();
                             }
-                            else if( parameter.valueFilter == VFXValueFilter.Enum)
+                            else if (parameter.valueFilter == VFXValueFilter.Enum)
                             {
                                 p.enumValues = parameter.enumValue.ToList();
                             }

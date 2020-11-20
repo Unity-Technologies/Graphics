@@ -4,14 +4,14 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     #ifdef _NORMALMAP
 
         #if _NORMAL_DROPOFF_TS
-        	// IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+            // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
             float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
             float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
             inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS.xyz));
         #elif _NORMAL_DROPOFF_OS
-        	inputData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+            inputData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
         #elif _NORMAL_DROPOFF_WS
-        	inputData.normalWS = surfaceDescription.NormalWS;
+            inputData.normalWS = surfaceDescription.NormalWS;
         #endif
     #else
         inputData.normalWS = input.normalWS;

@@ -2,15 +2,15 @@ Shader "HDRP/Decal"
 {
     Properties
     {
-		_BaseColor("_BaseColor", Color) = (1,1,1,1)
+        _BaseColor("_BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _MaskMap("MaskMap", 2D) = "white" {}
         _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
-		[HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
-		[HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
-		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
-		[HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
+        [HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
+        [HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
+        [HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0
+        [HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
         [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         // Used only to serialize the LDR and HDR emissive color in the material UI,
         // in the shader only the _EmissiveColor should be used
@@ -49,11 +49,11 @@ Shader "HDRP/Decal"
         [HideInInspector] _DecalStencilRef("_DecalStencilRef", Int) = 16
         [HideInInspector] _DecalStencilWriteMask("_DecalStencilWriteMask", Int) = 16
 
-		// Decal color masks
+        // Decal color masks
         [HideInInspector]_DecalColorMask0("_DecalColorMask0", Int) = 0
         [HideInInspector]_DecalColorMask1("_DecalColorMask1", Int) = 0
-		[HideInInspector]_DecalColorMask2("_DecalColorMask2", Int) = 0
-		[HideInInspector]_DecalColorMask3("_DecalColorMask3", Int) = 0
+        [HideInInspector]_DecalColorMask2("_DecalColorMask2", Int) = 0
+        [HideInInspector]_DecalColorMask3("_DecalColorMask3", Int) = 0
 
         // TODO: Remove when name garbage is solve (see IsHDRenderPipelineDecal)
         // This marker allow to identify that a Material is a HDRP/Decal
@@ -74,7 +74,7 @@ Shader "HDRP/Decal"
     #pragma shader_feature_local _NORMALMAP
     #pragma shader_feature_local _EMISSIVEMAP
 
-	#pragma shader_feature_local _MATERIAL_AFFECTS_ALBEDO
+    #pragma shader_feature_local _MATERIAL_AFFECTS_ALBEDO
     #pragma shader_feature_local _MATERIAL_AFFECTS_NORMAL
     #pragma shader_feature_local _MATERIAL_AFFECTS_MASKMAP
 
@@ -103,10 +103,10 @@ Shader "HDRP/Decal"
         // DecalSubTarget.cs  - class SubShaders
         // Caution: passes stripped in builds (like the scene picking pass) need to be put last to have consistent indices
 
-		Pass // 0
-		{
-			Name "DBufferProjector"
-			Tags{"LightMode" = "DBufferProjector"} // Metalness
+        Pass // 0
+        {
+            Name "DBufferProjector"
+            Tags{"LightMode" = "DBufferProjector"} // Metalness
 
             Stencil
             {
@@ -116,35 +116,35 @@ Shader "HDRP/Decal"
                 Pass Replace
             }
 
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
-			ZWrite Off
-			ZTest Greater
+            // back faces with zfail, for cases when camera is inside the decal volume
+            Cull Front
+            ZWrite Off
+            ZTest Greater
 
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
+            // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+            Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+            Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+            Blend 3 Zero OneMinusSrcColor
 
             ColorMask [_DecalColorMask0]
             ColorMask [_DecalColorMask1] 1
             ColorMask [_DecalColorMask2] 2
             ColorMask [_DecalColorMask3] 3
 
-			HLSLPROGRAM
+            HLSLPROGRAM
 
             #pragma multi_compile DECALS_3RT DECALS_4RT
-			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
+            #define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
-			ENDHLSL
-		}
+            ENDHLSL
+        }
 
         Pass // 1
         {
@@ -180,10 +180,10 @@ Shader "HDRP/Decal"
             ENDHLSL
         }
 
-		Pass // 2
-		{
-			Name "DBufferMesh"
-			Tags{"LightMode" = "DBufferMesh"}
+        Pass // 2
+        {
+            Name "DBufferMesh"
+            Tags{"LightMode" = "DBufferMesh"}
 
             Stencil
             {
@@ -193,13 +193,13 @@ Shader "HDRP/Decal"
                 Pass Replace
             }
 
-			ZWrite Off
-			ZTest LEqual
+            ZWrite Off
+            ZTest LEqual
 
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+            // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+            Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+            Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
             Blend 3 Zero OneMinusSrcColor
 
             ColorMask [_DecalColorMask0]
@@ -207,22 +207,22 @@ Shader "HDRP/Decal"
             ColorMask [_DecalColorMask2] 2
             ColorMask [_DecalColorMask3] 3
 
-			HLSLPROGRAM
+            HLSLPROGRAM
 
             #pragma multi_compile DECALS_3RT DECALS_4RT
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+            #define SHADERPASS SHADERPASS_DBUFFER_MESH
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalProperties.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
-			#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
 
-			ENDHLSL
-		}
+            ENDHLSL
+        }
 
         Pass // 3
         {
@@ -287,12 +287,12 @@ Shader "HDRP/Decal"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/ShaderPass/DecalSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDecal.hlsl"
-            
+
             #pragma editor_sync_compilation
 
             ENDHLSL
         }
 
-	}
+    }
     CustomEditor "Rendering.HighDefinition.DecalUI"
 }
