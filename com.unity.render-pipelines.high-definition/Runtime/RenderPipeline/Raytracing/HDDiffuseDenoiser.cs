@@ -182,16 +182,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.outputBuffer = builder.WriteTexture(outputBuffer);
 
                 builder.SetRenderFunc(
-                (DiffuseDenoiserPassData data, RenderGraphContext ctx) =>
-                {
-                    DiffuseDenoiserResources ddResources = new DiffuseDenoiserResources();
-                    ddResources.depthStencilBuffer = data.depthStencilBuffer;
-                    ddResources.normalBuffer = data.normalBuffer;
-                    ddResources.noisyBuffer = data.noisyBuffer;
-                    ddResources.intermediateBuffer = data.intermediateBuffer;
-                    ddResources.outputBuffer = data.outputBuffer;
-                    DenoiseBuffer(ctx.cmd, data.parameters, ddResources);
-                });
+                    (DiffuseDenoiserPassData data, RenderGraphContext ctx) =>
+                    {
+                        DiffuseDenoiserResources ddResources = new DiffuseDenoiserResources();
+                        ddResources.depthStencilBuffer = data.depthStencilBuffer;
+                        ddResources.normalBuffer = data.normalBuffer;
+                        ddResources.noisyBuffer = data.noisyBuffer;
+                        ddResources.intermediateBuffer = data.intermediateBuffer;
+                        ddResources.outputBuffer = data.outputBuffer;
+                        DenoiseBuffer(ctx.cmd, data.parameters, ddResources);
+                    });
                 return passData.outputBuffer;
             }
         }

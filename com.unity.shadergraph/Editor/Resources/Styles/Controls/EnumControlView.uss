@@ -12,7 +12,7 @@ EnumControlView {
 }
 
 .unity-base-field__input {
-	margin-left: 0;
+    margin-left: 0;
 }
 
 EnumControlView > Label {

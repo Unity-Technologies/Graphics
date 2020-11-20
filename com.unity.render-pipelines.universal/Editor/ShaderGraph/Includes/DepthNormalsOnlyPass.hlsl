@@ -1,4 +1,4 @@
-#ifndef SG_DEPTH_ONLY_PASS_INCLUDED
+﻿#ifndef SG_DEPTH_ONLY_PASS_INCLUDED
 #define SG_DEPTH_ONLY_PASS_INCLUDED
 
 PackedVaryings vert(Attributes input)
