@@ -147,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 throw new ArgumentOutOfRangeException("Cannot be used without using the constructor with a capacity initializer.");
             if (withOverride & GUI.enabled)
                 OverridesHeaders();
-            for (int i = 0; i< fields.Count; ++i)
+            for (int i = 0; i < fields.Count; ++i)
                 DrawField(fields[i], withOverride);
         }
 
@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // MixedValueState is handled by style for small tickbox for strange reason
                 //EditorGUI.showMixedValue = mixedValue;
-                bool modifiedValue = EditorGUI.Toggle(overrideRect, overrideTooltip, originalValue, mixedValue? CoreEditorStyles.smallMixedTickbox : CoreEditorStyles.smallTickbox);
+                bool modifiedValue = EditorGUI.Toggle(overrideRect, overrideTooltip, originalValue, mixedValue ? CoreEditorStyles.smallMixedTickbox : CoreEditorStyles.smallTickbox);
                 //EditorGUI.showMixedValue = false;
 
                 if (originalValue ^ modifiedValue)
@@ -202,7 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel = currentIndent;
             }
 
-            using(new SerializedFrameSettings.TitleDrawingScope(labelRect, field.label, serializedFrameSettings))
+            using (new SerializedFrameSettings.TitleDrawingScope(labelRect, field.label, serializedFrameSettings))
             {
                 HDEditorUtils.HandlePrefixLabelWithIndent(lineRect, labelRect, field.label);
             }
@@ -295,7 +295,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             default:
                                 throw new ArgumentException("Unknown FrameSettingsFieldAttribute");
                         }
-
                     }
                 }
                 EditorGUI.showMixedValue = false;
@@ -379,6 +378,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public FrameSettingsNotFoundInGroupException(string message)
             : base(message)
-        { }
+        {}
     }
 }

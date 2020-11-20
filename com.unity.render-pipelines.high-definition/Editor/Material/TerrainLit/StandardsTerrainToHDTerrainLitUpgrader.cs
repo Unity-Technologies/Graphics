@@ -5,7 +5,6 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class StandardsTerrainToHDTerrainLitUpgrader : MaterialUpgrader
     {
-		
         public StandardsTerrainToHDTerrainLitUpgrader(string sourceShaderName, string destShaderName, MaterialFinalizer finalizer = null)
         {
             RenameShader(sourceShaderName, destShaderName, finalizer);

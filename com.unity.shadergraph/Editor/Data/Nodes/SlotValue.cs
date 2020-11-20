@@ -138,11 +138,11 @@ namespace UnityEditor.ShaderGraph
                     {ConcreteSlotValueType.Vector3, validVectors},
                     {ConcreteSlotValueType.Vector4, validVectors},
                     {ConcreteSlotValueType.Matrix2, new List<SlotValueType>()
-                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2}},
+                     {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2}},
                     {ConcreteSlotValueType.Matrix3, new List<SlotValueType>()
-                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3}},
+                     {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3}},
                     {ConcreteSlotValueType.Matrix4, new List<SlotValueType>()
-                        {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3, SlotValueType.Matrix4}},
+                     {SlotValueType.Dynamic, SlotValueType.DynamicMatrix, SlotValueType.Matrix2, SlotValueType.Matrix3, SlotValueType.Matrix4}},
                     {ConcreteSlotValueType.Texture2D, new List<SlotValueType>() {SlotValueType.Texture2D}},
                     {ConcreteSlotValueType.Texture3D, new List<SlotValueType>() {SlotValueType.Texture3D}},
                     {ConcreteSlotValueType.Texture2DArray, new List<SlotValueType>() {SlotValueType.Texture2DArray}},
@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph
                 };
             }
 
-            if(s_ValidConversions.TryGetValue(outputType, out s_ValidSlotTypes))
+            if (s_ValidConversions.TryGetValue(outputType, out s_ValidSlotTypes))
             {
                 return s_ValidSlotTypes.Contains(inputType);
             }

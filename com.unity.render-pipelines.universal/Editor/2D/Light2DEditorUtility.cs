@@ -8,40 +8,40 @@ namespace UnityEditor.Experimental.Rendering.Universal
     internal static class Light2DEditorUtility
     {
         static Material s_TexCapMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Internal-GUITexture"));
-        
+
         static internal void GUITextureCap(int controlID, Texture texture, Vector3 position, Quaternion rotation, float size, EventType eventType, bool isAngleHandle)
         {
             switch (eventType)
             {
                 case (EventType.Layout):
-                    {
-                        Vector2 size2 = Vector2.one * size * 0.5f;
-                        if (isAngleHandle)
-                            size2.x = 0.0f;
+                {
+                    Vector2 size2 = Vector2.one * size * 0.5f;
+                    if (isAngleHandle)
+                        size2.x = 0.0f;
 
-                        HandleUtility.AddControl(controlID, DistanceToRectangle(position, rotation, size2));
-                        break;
-                    }
+                    HandleUtility.AddControl(controlID, DistanceToRectangle(position, rotation, size2));
+                    break;
+                }
 
                 case (EventType.Repaint):
-                    {
-                        s_TexCapMaterial.mainTexture = texture;
-                        s_TexCapMaterial.SetPass(0);
+                {
+                    s_TexCapMaterial.mainTexture = texture;
+                    s_TexCapMaterial.SetPass(0);
 
-                        float w = texture.width;
-                        float h = texture.height;
-                        float max = Mathf.Max(w, h);
-                        Vector3 scale = new Vector2(w / max, h / max) * size * 0.5f;
+                    float w = texture.width;
+                    float h = texture.height;
+                    float max = Mathf.Max(w, h);
+                    Vector3 scale = new Vector2(w / max, h / max) * size * 0.5f;
 
-                        if (Camera.current == null)
-                            scale.y *= -1f;
+                    if (Camera.current == null)
+                        scale.y *= -1f;
 
-                        Matrix4x4 matrix = new Matrix4x4();
-                        matrix.SetTRS(position, rotation, scale);
+                    Matrix4x4 matrix = new Matrix4x4();
+                    matrix.SetTRS(position, rotation, scale);
 
-                        Graphics.DrawMeshNow(RenderingUtils.fullscreenMesh, matrix);
-                    }
-                    break;
+                    Graphics.DrawMeshNow(RenderingUtils.fullscreenMesh, matrix);
+                }
+                break;
             }
         }
 
@@ -99,7 +99,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             // try get the default
             Renderer2DData rendererData = pipelineAsset.scriptableRendererData as Renderer2DData;
-            if(rendererData == null)
+            if (rendererData == null)
             {
                 foreach (Camera camera in Camera.allCameras)
                 {
