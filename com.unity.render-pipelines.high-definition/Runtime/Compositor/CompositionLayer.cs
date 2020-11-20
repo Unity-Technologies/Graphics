@@ -159,6 +159,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
             if (newLayer.m_Type == LayerType.Image || newLayer.m_Type == LayerType.Video)
             {
+                if (newLayer.m_Camera == null)
+                    newLayer.m_Camera = CompositionManager.CreateCamera(layerName);
+
                 // Image and movie layers do not render any 3D objects
                 newLayer.m_OverrideCullingMask = true;
                 newLayer.m_CullingMask = 0;
