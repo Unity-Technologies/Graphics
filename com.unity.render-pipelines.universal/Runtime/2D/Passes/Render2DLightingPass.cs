@@ -104,7 +104,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return short.MinValue;
         }
 
-
         private int DrawLayerBatches(
             LayerBatch[] layerBatches,
             int batchCount,
@@ -315,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CommandBufferPool.Release(cmd);
 
                 Profiler.BeginSample("Render Sprites Unlit");
-                    context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
+                context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
                 Profiler.EndSample();
             }
 

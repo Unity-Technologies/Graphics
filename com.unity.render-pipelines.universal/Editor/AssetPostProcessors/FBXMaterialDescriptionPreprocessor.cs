@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering.Universal
                 material.SetFloat("_Surface", 0.0f);
             }
 
-            if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture!=null)
+            if (description.TryGetProperty("DiffuseColor", out textureProperty) && textureProperty.texture != null)
             {
                 Color diffuseColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
                 if (description.TryGetProperty("DiffuseFactor", out floatProperty))

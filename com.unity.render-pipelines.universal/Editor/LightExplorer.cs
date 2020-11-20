@@ -23,13 +23,13 @@ namespace UnityEditor
             public static readonly GUIContent[] ReflectionProbeModeTitles = { EditorGUIUtility.TrTextContent("Baked"), EditorGUIUtility.TrTextContent("Realtime"), EditorGUIUtility.TrTextContent("Custom") };
             public static readonly int[] ReflectionProbeModeValues = { (int)ReflectionProbeMode.Baked, (int)ReflectionProbeMode.Realtime, (int)ReflectionProbeMode.Custom };
             public static readonly GUIContent[] ReflectionProbeSizeTitles = { EditorGUIUtility.TrTextContent("16"),
-                                                                                EditorGUIUtility.TrTextContent("32"),
-                                                                                EditorGUIUtility.TrTextContent("64"),
-                                                                                EditorGUIUtility.TrTextContent("128"),
-                                                                                EditorGUIUtility.TrTextContent("256"),
-                                                                                EditorGUIUtility.TrTextContent("512"),
-                                                                                EditorGUIUtility.TrTextContent("1024"),
-                                                                                EditorGUIUtility.TrTextContent("2048") };
+                                                                              EditorGUIUtility.TrTextContent("32"),
+                                                                              EditorGUIUtility.TrTextContent("64"),
+                                                                              EditorGUIUtility.TrTextContent("128"),
+                                                                              EditorGUIUtility.TrTextContent("256"),
+                                                                              EditorGUIUtility.TrTextContent("512"),
+                                                                              EditorGUIUtility.TrTextContent("1024"),
+                                                                              EditorGUIUtility.TrTextContent("2048") };
             public static readonly int[] ReflectionProbeSizeValues = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
         }
 

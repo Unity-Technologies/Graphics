@@ -50,7 +50,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             set
             {
                 Clear();
-                foreach(var element in value)
+                foreach (var element in value)
                     Select(element, true);
             }
         }
@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             var changed = false;
 
-            if(EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
+            if (EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
                 return changed;
 
             if (select)
@@ -112,7 +112,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             T element = First(m_Selection);
 
-            if(EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
+            if (EqualityComparer<T>.Default.Equals(element, GetInvalidElement()))
                 element = First(m_TemporalSelection);
 
             return element;
@@ -120,7 +120,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         private T First(HashSet<T> set)
         {
-            if(set.Count == 0)
+            if (set.Count == 0)
                 return GetInvalidElement();
 
             using (var enumerator = set.GetEnumerator())

@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             get
             {
-                switch(enumType)
+                switch (enumType)
                 {
                     case EnumType.CSharpEnum:
                         return $"[Enum({m_CSharpEnumType.ToString()})]";
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             string valueString = NodeUtils.FloatToShaderValueShaderLabSafe(value);
 
-            switch(floatType)
+            switch (floatType)
             {
                 case FloatType.Slider:
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {valueString}";

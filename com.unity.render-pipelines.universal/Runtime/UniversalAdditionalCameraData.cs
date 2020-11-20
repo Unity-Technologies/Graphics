@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("requiresColorTexture"), SerializeField]
         bool m_RequiresColorTexture = false;
 
-        [HideInInspector] [SerializeField] float m_Version = 2;
+        [HideInInspector][SerializeField] float m_Version = 2;
 
         public float version => m_Version;
 

@@ -53,8 +53,8 @@ namespace UnityEditor.Rendering.HighDefinition
             base.OnEnable();
 
             m_CommonUIElementsMask = (uint)SkySettingsUIElement.UpdateMode
-                                   | (uint)SkySettingsUIElement.SkyIntensity
-                                   | (uint)SkySettingsUIElement.IncludeSunInBaking;
+                | (uint)SkySettingsUIElement.SkyIntensity
+                | (uint)SkySettingsUIElement.IncludeSunInBaking;
 
             var o = new PropertyFetcher<PhysicallyBasedSky>(serializedObject);
 
@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.LabelField("Planet");
 
             if (type == PhysicallyBasedSkyModel.EarthSimple)
-                    PropertyField(m_SeaLevel);
+                PropertyField(m_SeaLevel);
             else
             {
                 PropertyField(m_SphericalMode);

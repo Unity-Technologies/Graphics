@@ -96,17 +96,14 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
         protected virtual bool CanTrigger(IGUIState guiState) { return true; }
         protected virtual void OnTrigger(IGUIState guiState)
         {
-
         }
 
         protected virtual void OnPerform(IGUIState guiState)
         {
-
         }
 
         protected virtual void OnFinish(IGUIState guiState)
         {
-
         }
     }
 }

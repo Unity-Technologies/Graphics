@@ -88,7 +88,6 @@ namespace UnityEditor.ShaderGraph.Internal
                 name = referenceName,
                 vector4Value = propColor
             };
-
         }
 
         internal override ShaderInput Copy()

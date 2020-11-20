@@ -72,6 +72,7 @@ namespace UnityEditor.Rendering.Universal
             }
             return false;
         }
+
         protected void FindMaterialProperties(MaterialProperty[] props)
         {
             enableHeightBlend = FindProperty(kEnableHeightBlend, props, false);

@@ -6,7 +6,6 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
-
     [Title("Input", "Texture", "Texel Size")]
     class Texture2DPropertiesNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
@@ -24,7 +23,6 @@ namespace UnityEditor.ShaderGraph
             name = "Texel Size";
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {

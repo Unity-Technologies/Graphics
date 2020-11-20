@@ -19,8 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <c>false</c> if it has a single value.
         /// </summary>
         public bool hasMultipleValues => useOverride.hasMultipleDifferentValues
-                || useOverride.boolValue && @override.hasMultipleDifferentValues
-                || !useOverride.boolValue && level.hasMultipleDifferentValues;
+        || useOverride.boolValue && @override.hasMultipleDifferentValues
+        || !useOverride.boolValue && level.hasMultipleDifferentValues;
 
         public SerializedScalableSettingValue(SerializedProperty property)
         {
@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginProperty(levelRect, label, self.useOverride);
             {
                 EditorGUI.BeginChangeCheck();
-                var (level, useOverride) = LevelFieldGUI(
+                var(level, useOverride) = LevelFieldGUI(
                     levelRect,
                     GUIContent.none,
                     schema,

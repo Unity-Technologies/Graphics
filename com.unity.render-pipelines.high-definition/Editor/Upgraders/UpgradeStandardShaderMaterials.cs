@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (Terrain currentTerrain in terrainArray)
             {
-                if(currentTerrain.materialTemplate == LegacyDefaultTerrainMat)
+                if (currentTerrain.materialTemplate == LegacyDefaultTerrainMat)
                 {
                     currentTerrain.materialTemplate = HDRPTerrainMat;
                 }

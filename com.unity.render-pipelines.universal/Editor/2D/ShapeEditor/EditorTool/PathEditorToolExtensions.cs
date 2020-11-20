@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             var tangentMode = TangentMode.Linear;
             var targets = pathEditorTool.targets;
 
-            foreach(var target in targets)
+            foreach (var target in targets)
             {
                 var path = pathEditorTool.GetPath(target);
 
@@ -53,7 +53,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             else
                 tangentMode = GetNextTangentMode(tangentMode);
 
-            foreach(var target in targets)
+            foreach (var target in targets)
             {
                 var path = pathEditorTool.GetPath(target);
 
@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             var targets = pathEditorTool.targets;
 
-            foreach(var target in targets)
+            foreach (var target in targets)
             {
                 var path = pathEditorTool.GetPath(target);
 
@@ -104,5 +104,4 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             return (TangentMode)((((int)tangentMode) + 1) % Enum.GetValues(typeof(TangentMode)).Length);
         }
     }
-
 }

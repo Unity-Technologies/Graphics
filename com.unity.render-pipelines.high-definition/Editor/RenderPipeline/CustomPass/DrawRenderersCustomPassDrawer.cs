@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
             m_ShaderPassesList.drawElementCallback =
-            (Rect rect, int index, bool isActive, bool isFocused) =>
+                (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 var element = m_ShaderPassesList.serializedProperty.GetArrayElementAtIndex(index);
                 var propRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);

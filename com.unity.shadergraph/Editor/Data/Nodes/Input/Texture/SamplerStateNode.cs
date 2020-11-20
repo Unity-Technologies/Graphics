@@ -49,7 +49,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public override bool hasPreview { get { return false; } }
 
         private const int kOutputSlotId = 0;

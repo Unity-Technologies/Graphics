@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
         void Update()
         {
-            for (var i = m_RunningProcesses.Count - 1; i >= 0 ; --i)
+            for (var i = m_RunningProcesses.Count - 1; i >= 0; --i)
             {
                 var proc = m_RunningProcesses[i];
                 if (proc.process.HasExited)

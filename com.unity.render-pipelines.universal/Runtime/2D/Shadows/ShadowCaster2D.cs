@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-
     /// <summary>
     /// Class <c>ShadowCaster2D</c> contains properties used for shadow casting
     /// </summary>
@@ -68,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int layerCount = SortingLayer.layers.Length;
             int[] allLayers = new int[layerCount];
 
-            for(int layerIndex=0;layerIndex < layerCount;layerIndex++)
+            for (int layerIndex = 0; layerIndex < layerCount; layerIndex++)
             {
                 allLayers[layerIndex] = SortingLayer.layers[layerIndex].id;
             }
@@ -168,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (LightUtility.CheckForChange(m_CastsShadows, ref m_PreviousCastsShadows))
             {
-                if(m_CastsShadows)
+                if (m_CastsShadows)
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
@@ -181,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Awake();
             OnEnable();
         }
-#endif
 
+#endif
     }
 }

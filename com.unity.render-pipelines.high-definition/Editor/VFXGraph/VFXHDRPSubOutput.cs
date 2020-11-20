@@ -120,9 +120,9 @@ namespace UnityEditor.VFX
 
         //TODO : extend & factorize this method
         public static void GetStencilStateForPasses(bool receiveDecals, bool receiveSSR, bool useObjectVelocity, bool hasSubsurfaceScattering,
-                                                       out int stencilWriteMask, out int stencilRef,
-                                                       out int stencilWriteMaskGBuffer, out int stencilRefGBuffer,
-                                                       out int stencilWriteMaskDistortion, out int stencilRefDistortion)
+            out int stencilWriteMask, out int stencilRef,
+            out int stencilWriteMaskGBuffer, out int stencilRefGBuffer,
+            out int stencilWriteMaskDistortion, out int stencilRefDistortion)
         {
             stencilWriteMask = 0;
             stencilRef = 0;
@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
             stencilRef |= useObjectVelocity ? (int)StencilUsage.ObjectMotionVector : 0;
 
             stencilRefGBuffer = (int)StencilUsage.RequiresDeferredLighting;
-            if(hasSubsurfaceScattering)
+            if (hasSubsurfaceScattering)
                 stencilRefGBuffer |= (int)StencilUsage.SubsurfaceScattering;
 
             stencilWriteMaskGBuffer = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
@@ -149,8 +149,8 @@ namespace UnityEditor.VFX
             int stencilGBufferWriteMask, stencilRefGBuffer;
             int stencilWriteMaskDistortion, stencilRefDistortion;
             GetStencilStateForPasses(false, false, true, false, out stencilWriteMask, out stencilRef,
-                                                                   out stencilGBufferWriteMask, out stencilRefGBuffer,
-                                                                   out stencilWriteMaskDistortion, out stencilRefDistortion);
+                out stencilGBufferWriteMask, out stencilRefGBuffer,
+                out stencilWriteMaskDistortion, out stencilRefDistortion);
             var stencilForMV = new VFXShaderWriter();
             stencilForMV.WriteFormat("Stencil\n{{\n WriteMask {0}\n Ref {1}\n Comp Always\n Pass Replace\n}}", stencilWriteMask, stencilRef);
             yield return new KeyValuePair<string, VFXShaderWriter>("${VFXStencilMotionVector}", stencilForMV);
