@@ -28,7 +28,7 @@ RW_TEXTURE3D(float4, _VBufferLighting);
 #define GROUP_SIZE_1D_XY 8
 #define GROUP_SIZE_1D_Z 1
 
-#define FILTER_SIZE_1D (GROUP_SIZE_1D_XY + 2) // With a 8x8 group, we have a 10x10 working area 
+#define FILTER_SIZE_1D (GROUP_SIZE_1D_XY + 2) // With a 8x8 group, we have a 10x10 working area
 #define LDS_SIZE FILTER_SIZE_1D * FILTER_SIZE_1D
 
 // TODO: May use 1 uint for 2 pixels

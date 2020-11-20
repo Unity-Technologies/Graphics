@@ -122,15 +122,15 @@ void SampleBakedGI(
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
 
-    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)	
-    // The check need to be here to work with both regular shader and shader graph	
-    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and	
-    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior	
-    // Also this code only needs to be executed in the rasterization pipeline, otherwise it will lead to udnefined behaviors in ray tracing	
+    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)
+    // The check need to be here to work with both regular shader and shader graph
+    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and
+    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior
+    // Also this code only needs to be executed in the rasterization pipeline, otherwise it will lead to udnefined behaviors in ray tracing
 #if !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT) && (SHADERPASS != SHADERPASS_RAYTRACING_GBUFFER)
     if (_IndirectDiffuseMode == INDIRECTDIFFUSEMODE_RAYTRACE)
         return;
-#endif	
+#endif
 
     float3 positionRWS = posInputs.positionWS;
 

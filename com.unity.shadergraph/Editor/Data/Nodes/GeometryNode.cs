@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph
         private CoordinateSpace m_Space = CoordinateSpace.World;
 
         [PopupControl("Space")]
-        public PopupList spacePopup 
+        public PopupList spacePopup
         {
-            get 
+            get
             {
                 var names = validSpaces.Select(cs => cs.ToString().PascalToLabel()).ToArray();
                 return new PopupList(names, (int)m_Space);

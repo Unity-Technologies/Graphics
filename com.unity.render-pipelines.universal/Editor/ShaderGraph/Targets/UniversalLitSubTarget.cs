@@ -279,6 +279,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines = defines;
                 return result;
             }
+
             #endregion
 
             // SM 4.5, compute with dots instancing
@@ -606,7 +607,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
-
         }
 #endregion
 

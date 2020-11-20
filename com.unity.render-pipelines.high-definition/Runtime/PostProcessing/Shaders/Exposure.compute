@@ -112,7 +112,7 @@ void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThread
 
         if (gs_weights[0] > 0.0)
             avgLuminance /= (gs_weights[0] * 0.25);
-        
+
         UNITY_BRANCH
         switch (ParamEvaluateMode)
         {

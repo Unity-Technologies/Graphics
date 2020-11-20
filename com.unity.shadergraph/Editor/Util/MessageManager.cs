@@ -158,13 +158,13 @@ namespace UnityEditor.Graphing.Util
 
         public bool AnyError()
         {
-            foreach(var messages in m_Messages.Values)
+            foreach (var messages in m_Messages.Values)
             {
-                foreach(List<ShaderMessage> messageList in messages.Values)
+                foreach (List<ShaderMessage> messageList in messages.Values)
                 {
-                    foreach(var message in messageList)
+                    foreach (var message in messageList)
                     {
-                        if(message.severity == ShaderCompilerMessageSeverity.Error)
+                        if (message.severity == ShaderCompilerMessageSeverity.Error)
                         {
                             return true;
                         }

@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle dxr64bits = new ConfigStyle(
                 label: "Architecture 64 bits",
                 error: "To build your Project to a Unity Player, ray tracing requires that the build uses 64 bit architecture.");
-			public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
+            public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
                 label: "Static Batching",
                 error: "Static Batching is not supported!");
             public static readonly ConfigStyle dxrActivated = new ConfigStyle(
@@ -299,16 +299,18 @@ namespace UnityEditor.Rendering.HighDefinition
             container.Add(CreateTitle(Style.configurationTitle));
             container.Add(CreateTabbedBox(
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? new[] {
-                        (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
-                        (Style.hdrpVRConfigLabel, Style.hdrpVRConfigTooltip),
-                        (Style.hdrpDXRConfigLabel, Style.hdrpDXRConfigTooltip),
-                    }
-                    : new[] {
-                        (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
-                        //VR only supported on window
-                        //DXR only supported on window
-                    },
+                ? new[]
+                {
+                    (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
+                    (Style.hdrpVRConfigLabel, Style.hdrpVRConfigTooltip),
+                    (Style.hdrpDXRConfigLabel, Style.hdrpDXRConfigTooltip),
+                }
+                : new[]
+                {
+                    (Style.hdrpConfigLabel, Style.hdrpConfigTooltip),
+                    //VR only supported on window
+                    //DXR only supported on window
+                },
                 out m_BaseUpdatable));
 
             m_BaseUpdatable.Add(new FixAllButton(
@@ -430,10 +432,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         VisualElement CreateLargeButton(string title, Action action)
             => new Button(action)
-            {
-                text = title,
-                name = "LargeButton"
-            };
+        {
+            text = title,
+            name = "LargeButton"
+        };
 
         VisualElement CreateInstallConfigPackageArea()
         {
@@ -501,7 +503,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var hdrpAsset = HDRenderPipeline.currentAsset;
                 if (entry.displayAssetName && hdrpAsset != null)
                 {
-                    error += " (" + hdrpAsset.name +").";
+                    error += " (" + hdrpAsset.name + ").";
                 }
 
                 container.Add(new ConfigInfoLine(
@@ -549,7 +551,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         helpBox.kind = HelpBox.Kind.Info;
                         helpBox.text = String.Format(Style.hdrpVersionWithLocalPackage, packageInfo.version, version);
                     }
-                    else if(compatibleWithVersionCall && (new Version(packageInfo.version) < new Version(version)))
+                    else if (compatibleWithVersionCall && (new Version(packageInfo.version) < new Version(version)))
                     {
                         helpBox.kind = HelpBox.Kind.Warning;
                         helpBox.text = String.Format(Style.hdrpVersionNotLast, packageInfo.version, version);

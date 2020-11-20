@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Process SubShaders
             SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
-            for(int i = 0; i < subShaders.Length; i++)
+            for (int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
                 subShaders[i].renderType = target.renderType;
@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is UnlitMasterNode1 unlitMasterNode))
+            if (!(masterNode is UnlitMasterNode1 unlitMasterNode))
                 return false;
 
             // Set blockmap
@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return true;
         }
 
-#region SubShader
+        #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
@@ -164,9 +164,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
             }
         }
-#endregion
+        #endregion
 
-#region Pass
+        #region Pass
         static class UnlitPasses
         {
             public static PassDescriptor Forward = new PassDescriptor
@@ -258,9 +258,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {DebugShader, 1},
             };
         }
-#endregion
+        #endregion
 
-#region Keywords
+        #region Keywords
         static class UnlitKeywords
         {
             public static KeywordCollection Unlit = new KeywordCollection
@@ -270,9 +270,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.SampleGI },
             };
         }
-#endregion
+        #endregion
 
-#region Includes
+        #region Includes
         static class UnlitIncludes
         {
             const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
@@ -288,6 +288,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kUnlitPass, IncludeLocation.Postgraph },
             };
         }
-#endregion
+        #endregion
     }
 }

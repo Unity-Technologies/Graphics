@@ -118,7 +118,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     bentNormalWS = N;
 
     $BentNormal: GetNormalWS(fragInputs, surfaceDescription.BentNormal, bentNormalWS, doubleSidedConstants);
-        
+
     #ifdef DEBUG_DISPLAY
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {

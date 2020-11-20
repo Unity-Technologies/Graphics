@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
         }
+
 #endif
 
         [Serializable, ReloadGroup]

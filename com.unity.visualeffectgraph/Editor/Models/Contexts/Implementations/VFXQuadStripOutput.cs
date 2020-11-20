@@ -120,7 +120,7 @@ namespace UnityEditor.VFX
 
                         var axisZNode = CreateInstance<VFXAttributeParameter>();
                         axisZNode.SetSettingValue("attribute", "axisZ");
-                        axisZNode.position = model.position + new Vector2(-225,150); 
+                        axisZNode.position = model.position + new Vector2(-225, 150);
                         model.GetGraph().AddChild(axisZNode);
 
                         axisZNode.GetOutputSlot(0).Link(orientBlock.GetInputSlot(0));

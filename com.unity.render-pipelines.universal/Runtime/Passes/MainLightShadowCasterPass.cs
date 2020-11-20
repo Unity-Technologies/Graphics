@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             //To make the shadow fading fit into a single MAD instruction:
             //distanceCamToPixel2 * oneOverFadeDist + minusStartFade (single MAD)
             float startFade = m_MaxShadowDistance * 0.9f;
-            float oneOverFadeDist = 1/(m_MaxShadowDistance - startFade);
+            float oneOverFadeDist = 1 / (m_MaxShadowDistance - startFade);
             float minusStartFade = -startFade * oneOverFadeDist;
 
 

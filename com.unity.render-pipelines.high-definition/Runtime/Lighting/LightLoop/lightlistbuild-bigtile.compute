@@ -41,13 +41,13 @@ groupshared uint lightOffs;
 // Only usage of that constant.
 float GetLinearDepth(float2 pixXY, float zDptBufSpace, uint eyeIndex)    // 0 is near 1 is far
 {
-	float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[eyeIndex];
+    float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[eyeIndex];
 
 #ifdef USE_OBLIQUE_MODE
-	float2 res2 = mul(g_mInvScrProjection, float4(pixXY, zDptBufSpace, 1.0)).zw;
-	return res2.x / res2.y;
+    float2 res2 = mul(g_mInvScrProjection, float4(pixXY, zDptBufSpace, 1.0)).zw;
+    return res2.x / res2.y;
 #else
-	// for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
+    // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
     // however this function must also work for orthographic projection so we keep it like this.
     float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
     float m32 = g_mInvScrProjection[3].z, m33 = g_mInvScrProjection[3].w;
