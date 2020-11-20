@@ -247,122 +247,131 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
         }
     }
 
-//     // Define macro for a better understanding of the loop
-//     // TODO: this code is now much harder to understand...
-// #define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
-//         IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
-//         AccumulateIndirectLighting(lighting, aggregateLighting);
+    // Define macro for a better understanding of the loop
+    // TODO: this code is now much harder to understand...
+#define EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) \
+        IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
+        AccumulateIndirectLighting(lighting, aggregateLighting);
 
-// // Environment cubemap test lightlayers, sky don't test it
-// #define EVALUATE_BSDF_ENV(envLightData, TYPE, type) if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) }
+// Environment cubemap test lightlayers, sky don't test it
+#define EVALUATE_BSDF_ENV(envLightData, TYPE, type) if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) }
 
-//     // First loop iteration
-//     if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
-//     {
-//         float reflectionHierarchyWeight = 0.0; // Max: 1.0
-//         float refractionHierarchyWeight = _EnableSSRefraction ? 0.0 : 1.0; // Max: 1.0
+    // First loop iteration
+    if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
+    {
+        float reflectionHierarchyWeight = 0.0; // Max: 1.0
+        float refractionHierarchyWeight = _EnableSSRefraction ? 0.0 : 1.0; // Max: 1.0
 
-//         // Reflection / Refraction hierarchy is
-//         //  1. Screen Space Refraction / Reflection
-//         //  2. Environment Reflection / Refraction
-//         //  3. Sky Reflection / Refraction
+        // Reflection / Refraction hierarchy is
+        //  1. Screen Space Refraction / Reflection
+        //  2. Environment Reflection / Refraction
+        //  3. Sky Reflection / Refraction
 
-//         // Apply SSR.
-//     #if (defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR_TRANSPARENT)) || (!defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR))
-//         {
-//             IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
-//                                                                            reflectionHierarchyWeight);
-//             AccumulateIndirectLighting(indirect, aggregateLighting);
-//         }
-//     #endif
+        // Apply SSR.
+    #if (defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR_TRANSPARENT)) || (!defined(_SURFACE_TYPE_TRANSPARENT) && !defined(_DISABLE_SSR))
+        {
+            IndirectLighting indirect = EvaluateBSDF_ScreenSpaceReflection(posInput, preLightData, bsdfData,
+                                                                           reflectionHierarchyWeight);
+            AccumulateIndirectLighting(indirect, aggregateLighting);
+        }
+    #endif
 
-//         EnvLightData envLightData;
-//         if (envLightCount > 0)
-//         {
-//             envLightData = FetchEnvLight(envLightStart, 0);
-//         }
-//         else
-//         {
-//             envLightData = InitSkyEnvLightData(0);
-//         }
+        // Weight in the upper 20 bits, index in the lower 12 bits.
+        uint envLightWeightsAndIndices[MAX_REFLECTION_PROBES_PER_PIXEL];
+        ZERO_INITIALIZE_ARRAY(uint, envLightWeightsAndIndices, MAX_REFLECTION_PROBES_PER_PIXEL);
 
-//         if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
-//         {
-//             IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
-//             AccumulateIndirectLighting(lighting, aggregateLighting);
-//         }
+        i = 0;
 
-//         // Reflection probes are sorted by volume (in the increasing order).
-//         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
-//         {
-//             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
+        EnvLightData envLightData;
+        uint         envLightIndex;
+        while (TryLoadReflectionProbeData(i, tile, zBin, envLightData, envLightIndex))
+        {
+            uint weight         = 1048575 - envLightData.logVolume; // Small volume -> high weight
+            uint indexAndWeight = (weight << 12) | envLightIndex;
 
-//         #if SCALARIZE_LIGHT_LOOP
-//             if (fastPath)
-//             {
-//                 envLightStart = envStartFirstLane;
-//             }
-//         #endif
+            // Insertion sort. We retain at most MAX_REFLECTION_PROBES_PER_PIXEL probes (based on their weight).
+            for (uint j = 0; j < MAX_REFLECTION_PROBES_PER_PIXEL; j++)
+            {
+                if ((envLightWeightsAndIndices[j] >> 12) < weight)
+                {
+                    envLightWeightsAndIndices[j] = indexAndWeight;
+                    break;
+                }
+            }
 
-//             // Scalarized loop, same rationale of the punctual light version
-//             uint v_envLightListOffset = 0;
-//             uint v_envLightIdx = envLightStart;
-//             while (v_envLightListOffset < envLightCount)
-//             {
-//                 v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
-//                 uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
-//                 if (s_envLightIdx == -1)
-//                     break;
+            i++;
+        }
 
-//                 EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
+        // Do not index out of bounds.
+        uint envLightCount = min(i, MAX_REFLECTION_PROBES_PER_PIXEL);
 
-//                 // If current scalar and vector light index match, we process the light. The v_envLightListOffset for current thread is increased.
-//                 // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-//                 // end up with a unique v_envLightIdx value that is smaller than s_envLightIdx hence being stuck in a loop. All the active lanes will not have this problem.
-//                 if (s_envLightIdx >= v_envLightIdx)
-//                 {
-//                     v_envLightListOffset++;
-//                     if (reflectionHierarchyWeight < 1.0)
-//                     {
-//                         EVALUATE_BSDF_ENV(s_envLightData, REFLECTION, reflection);
-//                     }
-//                     // Refraction probe and reflection probe will process exactly the same weight. It will be good for performance to be able to share this computation
-//                     // However it is hard to deal with the fact that reflectionHierarchyWeight and refractionHierarchyWeight have not the same values, they are independent
-//                     // The refraction probe is rarely used and happen only with sphere shape and high IOR. So we accept the slow path that use more simple code and
-//                     // doesn't affect the performance of the reflection which is more important.
-//                     // We reuse LIGHTFEATUREFLAGS_SSREFRACTION flag as refraction is mainly base on the screen. Would be a waste to not use screen and only cubemap.
-//                     if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
-//                     {
-//                         EVALUATE_BSDF_ENV(s_envLightData, REFRACTION, refraction);
-//                     }
-//                 }
+        if (envLightCount > 0)
+        {
+            uint firstIndex = envLightWeightsAndIndices[0] & ((1 << 12) - 1);
 
-//             }
-//         }
+            envLightData = LoadReflectionProbeDataUnsafe(firstIndex);
+        }
+        else
+        {
+            envLightData = InitSkyEnvLightData(0);
+        }
 
-//         // Only apply the sky IBL if the sky texture is available
-//         if ((featureFlags & LIGHTFEATUREFLAGS_SKY) && _EnvLightSkyEnabled)
-//         {
-//             // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
-//             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
+        if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (_EnableSSRefraction > 0))
+        {
+            IndirectLighting lighting = EvaluateBSDF_ScreenspaceRefraction(context, V, posInput, preLightData, bsdfData, envLightData, refractionHierarchyWeight);
+            AccumulateIndirectLighting(lighting, aggregateLighting);
+        }
 
-//             // The sky data are generated on the fly so the compiler can optimize the code
-//             EnvLightData envLightSky = InitSkyEnvLightData(0);
+        // Reflection probes are sorted by volume (in the increasing order).
+        if (featureFlags & LIGHTFEATUREFLAGS_ENV)
+        {
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
 
-//             // Only apply the sky if we haven't yet accumulated enough IBL lighting.
-//             if (reflectionHierarchyWeight < 1.0)
-//             {
-//                 EVALUATE_BSDF_ENV_SKY(envLightSky, REFLECTION, reflection);
-//             }
+            for (i = 0; i < envLightCount; i++)
+            {
+                uint envLightIndex = envLightWeightsAndIndices[i] & ((1 << 12) - 1);
 
-//             if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
-//             {
-//                 EVALUATE_BSDF_ENV_SKY(envLightSky, REFRACTION, refraction);
-//             }
-//         }
-//     }
-// #undef EVALUATE_BSDF_ENV
-// #undef EVALUATE_BSDF_ENV_SKY
+                envLightData = LoadReflectionProbeDataUnsafe(envLightIndex);
+
+                if (reflectionHierarchyWeight < 1.0)
+                {
+                    EVALUATE_BSDF_ENV(envLightData, REFLECTION, reflection);
+                }
+                // Refraction probe and reflection probe will process exactly the same weight. It will be good for performance to be able to share this computation
+                // However it is hard to deal with the fact that reflectionHierarchyWeight and refractionHierarchyWeight have not the same values, they are independent
+                // The refraction probe is rarely used and happen only with sphere shape and high IOR. So we accept the slow path that use more simple code and
+                // doesn't affect the performance of the reflection which is more important.
+                // We reuse LIGHTFEATUREFLAGS_SSREFRACTION flag as refraction is mainly base on the screen. Would be a waste to not use screen and only cubemap.
+                if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
+                {
+                    EVALUATE_BSDF_ENV(envLightData, REFRACTION, refraction);
+                }
+            }
+        }
+
+        // Only apply the sky IBL if the sky texture is available
+        if ((featureFlags & LIGHTFEATUREFLAGS_SKY) && _EnvLightSkyEnabled)
+        {
+            // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
+
+            // The sky data are generated on the fly so the compiler can optimize the code
+            EnvLightData envLightSky = InitSkyEnvLightData(0);
+
+            // Only apply the sky if we haven't yet accumulated enough IBL lighting.
+            if (reflectionHierarchyWeight < 1.0)
+            {
+                EVALUATE_BSDF_ENV_SKY(envLightSky, REFLECTION, reflection);
+            }
+
+            if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
+            {
+                EVALUATE_BSDF_ENV_SKY(envLightSky, REFRACTION, refraction);
+            }
+        }
+    }
+#undef EVALUATE_BSDF_ENV
+#undef EVALUATE_BSDF_ENV_SKY
 
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {

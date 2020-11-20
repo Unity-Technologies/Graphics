@@ -132,6 +132,7 @@ struct LightData
 // PackingRules = Exact
 struct EnvLightData
 {
+    uint logVolume;
     uint lightLayers;
     float3 capturePositionRWS;
     int influenceShapeType;

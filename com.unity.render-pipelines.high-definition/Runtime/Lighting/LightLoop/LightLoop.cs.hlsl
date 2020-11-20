@@ -75,6 +75,7 @@
 #define COARSE_TILE_SIZE (64)
 #define FINE_TILE_SIZE (8)
 #define Z_BIN_COUNT (8192)
+#define MAX_REFLECTION_PROBES_PER_PIXEL (4)
 
 //
 // UnityEngine.Rendering.HighDefinition.ClusterDebugMode:  static fields
@@ -138,29 +139,37 @@ CBUFFER_END
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.FiniteLightBound
 //
-float3 GetBoxAxisX(FiniteLightBound value)
-{
-    return value.boxAxisX;
-}
-float3 GetBoxAxisY(FiniteLightBound value)
-{
-    return value.boxAxisY;
-}
-float3 GetBoxAxisZ(FiniteLightBound value)
-{
-    return value.boxAxisZ;
-}
 float3 GetCenter(FiniteLightBound value)
 {
     return value.center;
+}
+float GetRadius(FiniteLightBound value)
+{
+    return value.radius;
+}
+float3 GetBoxAxisX(FiniteLightBound value)
+{
+    return value.boxAxisX;
 }
 float GetScaleXY(FiniteLightBound value)
 {
     return value.scaleXY;
 }
-float GetRadius(FiniteLightBound value)
+float3 GetBoxAxisY(FiniteLightBound value)
 {
-    return value.radius;
+    return value.boxAxisY;
+}
+float Get__pad0__(FiniteLightBound value)
+{
+    return value.__pad0__;
+}
+float3 GetBoxAxisZ(FiniteLightBound value)
+{
+    return value.boxAxisZ;
+}
+float Get__pad1__(FiniteLightBound value)
+{
+    return value.__pad1__;
 }
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.LightVolumeData

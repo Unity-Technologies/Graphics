@@ -409,6 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_CoarseTileSize       = 64;
         public static int s_FineTileSize         = 8;
         public static int s_zBinCount            = 8192;
+        public static int s_MaxReflectionProbesPerPixel = 4;
     }
 
     [GenerateHLSL]
@@ -555,6 +556,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public HDProbe  hdProbe;
         public float    weight;
+        public uint     logVolume; // Used for sorting in the shader
     }
 
     public partial class HDRenderPipeline
@@ -2297,6 +2299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? probe.lightLayersAsUInt : uint.MaxValue;
+            envLightData.logVolume = processedProbe.logVolume;
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = processedProbe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.reflectionProbeIntensityMultiplier.value;
@@ -2996,6 +2999,17 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        static uint CalculateProbeLogVolume(Bounds bounds)	
+        {	
+            //Notes:	
+            // - 1+ term is to prevent having negative values in the log result	
+            // - 1000* is too keep 3 digit after the dot while we truncate the result later	
+            // - 1048575 is 2^20-1 as we pack the result on 20bit later	
+            float boxVolume = 8f* bounds.extents.x * bounds.extents.y * bounds.extents.z;	
+            uint  logVolume = (uint)Math.Max(0, Math.Min((int)(1000 * Mathf.Log(1 + boxVolume, 1.05f)), 1048575));	
+            return logVolume;	
+        }
+
         internal static void PreprocessReflectionProbeData(ref ProcessedProbeData processedData, VisibleReflectionProbe probe, HDCamera hdCamera)
         {
             var add = probe.reflectionProbe.GetComponent<HDAdditionalReflectionData>();
@@ -3008,13 +3022,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 add.influenceVolume.shape = InfluenceShape.Box;
             }
 
-            PreprocessProbeData(ref processedData, add, hdCamera);
+            PreprocessProbeData(ref processedData, add, probe.bounds, hdCamera);
         }
 
-        internal static void PreprocessProbeData(ref ProcessedProbeData processedData, HDProbe probe, HDCamera hdCamera)
+        internal static void PreprocessProbeData(ref ProcessedProbeData processedData, HDProbe probe, Bounds bounds, HDCamera hdCamera)
         {
-            processedData.hdProbe = probe;
-            processedData.weight = HDUtils.ComputeWeightedLinearFadeDistance(processedData.hdProbe.transform.position, hdCamera.camera.transform.position, processedData.hdProbe.weight, processedData.hdProbe.fadeDistance);
+            processedData.hdProbe   = probe;
+            processedData.weight    = HDUtils.ComputeWeightedLinearFadeDistance(processedData.hdProbe.transform.position, hdCamera.camera.transform.position, processedData.hdProbe.weight, processedData.hdProbe.fadeDistance);
+            processedData.logVolume = CalculateProbeLogVolume(bounds);
         }
 
         int PreprocessVisibleProbes(HDCamera hdCamera, CullingResults cullResults, HDProbeCullingResults hdProbeCullingResults, in AOVRequestData aovRequest)
@@ -3062,9 +3077,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                     }
 
-                    // Sorting by volume is no longer possible
-                    // var logVolume = CalculateProbeLogVolume(probe.bounds);
-
                     int xrViewCount = hdCamera.viewCount;
 
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
@@ -3087,13 +3099,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     var probe = hdProbeCullingResults.visibleProbes[planarProbeIndex];
 
                     ref ProcessedProbeData processedData = ref m_ProcessedPlanarProbeData[planarProbeIndex];
-                    PreprocessProbeData(ref processedData, probe, hdCamera);
+                    PreprocessProbeData(ref processedData, probe, probe.bounds, hdCamera);
 
                     if (!aovRequest.IsLightEnabled(probe.gameObject))
                         continue;
-
-                    // Sorting by volume is no longer possible
-                    // var logVolume = CalculateProbeLogVolume(probe.bounds);
 
                     int xrViewCount = hdCamera.viewCount;
 

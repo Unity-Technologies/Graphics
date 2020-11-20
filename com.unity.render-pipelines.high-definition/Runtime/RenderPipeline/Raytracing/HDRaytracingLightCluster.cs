@@ -583,7 +583,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
                 if (!probeData.HasValidRenderedData()) continue;
 
-                HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
+                // 'probeBounds' are required to compute the volume of the probe (for sorting in the shader).
+                // The existing ray tracing code does not appear to have any bounds. Below is a workaround.
+                // TODO: we should probably use the influence volume of the probe for sorting.
+                Bounds probeBounds = new Bounds(Vector3.zero, Vector3.one);
+
+                HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, probeBounds, hdCamera);
 
                 var envLightData = new EnvLightData();
                 m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);

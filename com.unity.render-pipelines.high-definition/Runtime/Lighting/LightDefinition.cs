@@ -204,6 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
     struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses
+        public uint logVolume;
         public uint lightLayers;
 
         // Proxy properties

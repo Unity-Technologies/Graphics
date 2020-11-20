@@ -232,6 +232,19 @@ bool TryLoadAreaLightData(inout uint i, uint tile, uint zBin, out LightData data
     return success;
 }
 
+bool TryLoadReflectionProbeData(inout uint i, uint tile, uint zBin, out EnvLightData data, out uint entityIndex)
+{
+    bool success = false;
+
+    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, entityIndex))
+    {
+        success = true;
+        data    = _ReflectionProbeData[entityIndex];
+    }
+
+    return success;
+}
+
 bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
 {
     bool success = false;
@@ -276,13 +289,17 @@ bool TryLoadAreaLightData(uint i, uint tile, uint zBin, out LightData data)
     return b;
 }
 
-bool TryLoadReflectionProbeData(uint i, uint tile, uint zBin, out EnvLightData data)
+bool TryLoadReflectionProbeData(uint i, uint tile, uint zBin, out EnvLightData data, out uint entityIndex)
 {
+    entityIndex = UINT16_MAX;
+
     bool b = false;
     uint n = _ReflectionProbeCount;
 
     if (i < n)
     {
+        entityIndex = i;
+
         data = _ReflectionProbeData[i];
         b    = true;
     }
@@ -321,6 +338,14 @@ bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
 // }
 
 #endif // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
+
+// This call performs no bounds-checking.
+// Only call this using the 'entityIndex' returned by TryLoadReflectionProbeData, and
+// only if the call to TryLoadReflectionProbeData succeeded.
+EnvLightData LoadReflectionProbeDataUnsafe(uint entityIndex)
+{
+    return _ReflectionProbeData[entityIndex];
+}
 
 // In the first 8 bits of the target we store the max fade of the contact shadows as a byte
 void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)
