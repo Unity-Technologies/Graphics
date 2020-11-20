@@ -243,7 +243,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 // - is not shared between layers
                 // - is not used in an mage/video layer (in this case the camera is not exposed at all, so it makes sense to let the compositor manage it)
                 // - it does not force-clear the RT (the first layer of a stack, even if disabled by the user), still clears the RT
-                bool shouldClear = !enabled && m_LayerPositionInStack == 0;
+                bool shouldClear = !enabled && m_LayerPositionInStack == 0 && m_Camera;
                 bool isImageOrVideo = (m_Type == LayerType.Image || m_Type == LayerType.Video);
                 if (!isImageOrVideo && !hasLayerOverrides && !shouldClear && !compositor.IsThisCameraShared(m_Camera))
                 {
@@ -608,15 +608,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 
         public void SetupClearColor()
         {
-            m_LayerCamera.enabled = true;
-            m_LayerCamera.cullingMask = 0;
-            var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
-            var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
+            if (m_LayerCamera && m_Camera)
+            {
+                m_LayerCamera.enabled = true;
+                m_LayerCamera.cullingMask = 0;
+                var cameraData = m_LayerCamera.GetComponent<HDAdditionalCameraData>();
+                var cameraDataOrig = m_Camera.GetComponent<HDAdditionalCameraData>();
 
-            cameraData.clearColorMode = cameraDataOrig.clearColorMode;
-            cameraData.clearDepth = true;
+                cameraData.clearColorMode = cameraDataOrig.clearColorMode;
+                cameraData.clearDepth = true;
 
-            m_ClearsBackGround = true;
+                m_ClearsBackGround = true;
+            }
         }
 
         public void AddInputFilter(CompositionFilter filter)
