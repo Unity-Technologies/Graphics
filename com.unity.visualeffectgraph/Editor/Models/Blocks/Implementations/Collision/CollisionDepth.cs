@@ -36,7 +36,6 @@ namespace UnityEditor.VFX.Block
                 manager.RegisterError("CollisionDepthUnavailableWithoutHDRP", VFXErrorType.Warning, "Depth collision is currently only supported in the High Definition Render Pipeline (HDRP).");
         }
 
-
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
