@@ -18,9 +18,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_CloudMap;
         SerializedDataParameter m_CloudLut;
         SerializedDataParameter m_ScatteringTint;
-        SerializedDataParameter m_Eccentricity;
-        SerializedDataParameter m_SilverIntensity;
-        SerializedDataParameter m_SilverSpread;
+        SerializedDataParameter m_EccentricityF;
+        SerializedDataParameter m_EccentricityB;
+        SerializedDataParameter m_PhaseFunctionBlend;
+        SerializedDataParameter m_PowderEffectIntensity;
+        SerializedDataParameter m_MultiScattering;
+        SerializedDataParameter m_DensityMultiplier;
         SerializedDataParameter m_GlobalLightProbeDimmer;
         SerializedDataParameter m_WindRotation;
 
@@ -37,12 +40,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CloudMap = Unpack(o.Find(x => x.cloudMap));
             m_CloudLut = Unpack(o.Find(x => x.cloudLut));
             m_ScatteringTint = Unpack(o.Find(x => x.scatteringTint));
-            m_Eccentricity = Unpack(o.Find(x => x.eccentricity));
-            m_SilverIntensity = Unpack(o.Find(x => x.silverIntensity));
-            m_SilverSpread = Unpack(o.Find(x => x.silverSpread));
+            m_EccentricityF = Unpack(o.Find(x => x.eccentricityF));
+            m_EccentricityB = Unpack(o.Find(x => x.eccentricityB));
+            m_PhaseFunctionBlend = Unpack(o.Find(x => x.phaseFunctionBlend));
+            m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
+            m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
+            m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
             m_GlobalLightProbeDimmer = Unpack(o.Find(x => x.globalLightProbeDimmer));
             m_WindRotation = Unpack(o.Find(x => x.windRotation));
         }
+        
 
         public override void OnInspectorGUI()
         {
@@ -56,9 +63,12 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_CloudMap);
             PropertyField(m_CloudLut);
             PropertyField(m_ScatteringTint);
-            PropertyField(m_Eccentricity);
-            PropertyField(m_SilverIntensity);
-            PropertyField(m_SilverSpread);
+            PropertyField(m_EccentricityF);
+            PropertyField(m_EccentricityB);
+            PropertyField(m_PhaseFunctionBlend);
+            PropertyField(m_PowderEffectIntensity);
+            PropertyField(m_MultiScattering);
+            PropertyField(m_DensityMultiplier);
             PropertyField(m_GlobalLightProbeDimmer);
             PropertyField(m_WindRotation);
         }

@@ -11,12 +11,14 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsManager.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
 // Tile size of this compute
 #define VOLUMETRIC_CLOUDS_TILE_SIZE 8
 
 #define ANVIL_BIAS 0.01
-#define MOTION_DISTORTION 0.1
+#define MOTION_DISTORTION 0.02
+#define NUM_MULTI_SCATTERING_OCTAVES 2
 
 #pragma enable_d3d11_debug_symbols
 
@@ -24,7 +26,7 @@
 TEXTURE2D_X(_CameraColorTexture);
 TEXTURE2D_X(_DepthTexture);
 Texture2D<float4> _CloudMapTexture;
-Texture2D<float> _CloudLutTexture;
+Texture2D<float2> _CloudLutTexture;
 Texture3D<float4> _Worley128RGBA;
 Texture3D<float3> _Worley32RGB;
 
@@ -79,7 +81,7 @@ CloudRay BuildRay(uint2 currentCoord)
 // Density remapping function
 float remap(float x, float low1, float high1, float low2, float high2)
 {
-    return low2 + (x - low1) / (high1 - low1) * (high2 - low2);
+    return low2 + (x - low1) * (high2 - low2) / (high1 - low1);
 }
 
 float2 IntersectAABB(float3 rayOrigin, float3 rayDir, float3 boxMin, float3 boxMax)
@@ -121,6 +123,8 @@ struct CloudCoverageData
 {
     // From a top down view, in what proportions this pixel has clouds
     float coverage;
+    // From a top down view, in what proportions this pixel has clouds
+    float rainClouds;
     // Value that allows us to request the cloudtype using the density
     float cloudType;
 };
@@ -129,12 +133,14 @@ CloudCoverageData GetCloudCoverageData(float3 positionWS)
 {
     // Convert the position into dome space
     float2 normalizedPosition = saturate(positionWS.xz / _CloudDomeSize * 0.5 + 0.5);
+    normalizedPosition = clamp(normalizedPosition, 0.001, 0.999);
     // Read the data from the texture
-    float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_clamp_sampler, float2(normalizedPosition.x, normalizedPosition.y), 0.0);
+    float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_clamp_sampler, float2(normalizedPosition), 0.0);
     CloudCoverageData data;
     // TODO: Fix this
-    data.coverage = cloudMapData.x * 0.4;
-    data.cloudType = cloudMapData.w;
+    data.coverage = cloudMapData.x;
+    data.rainClouds = cloudMapData.y;
+    data.cloudType = cloudMapData.z;
     return data;
 }
 
@@ -188,11 +194,19 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray)
 
 struct CloudProperties
 {
-	// Normalized float that tells is the "amount" of clouds that is at a given location
-	float density;
-	// Normalized value that tells us the height within the cloud volume (vertically)
-	float height;
+    // Normalized float that tells is the "amount" of clouds that is at a given location
+    float density;
+    // Normalized value that tells us the height within the cloud volume (vertically)
+    float height;
 };
+
+float3 SmoothThreshold(float3 value, float threshold, float edgeSize)
+{
+    value.r = smoothstep(threshold, threshold + edgeSize, value.r);
+    value.g = smoothstep(threshold, threshold + edgeSize, value.g);
+    value.b = smoothstep(threshold, threshold + edgeSize, value.b);
+    return value;
+}
 
 void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProperties properties)
 {
@@ -210,9 +224,45 @@ void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProp
     properties.height = saturate((positionWS.y - _LowestCloudAltitude) / (_HighestCloudAltitude - _LowestCloudAltitude));
 
     // If this region of space has no cloud coverage, exit right away
-    if (cloudCoverageData.coverage == 0.0)
-    	return;
+    if (cloudCoverageData.coverage <= 0.0)
+        return;
 
+#if 0
+    // Evaluate the density by the height-base density gradient of the cloud that we are handeling
+    float2 densityHeightGradient = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), 0.0).xy;
+
+    float4 lowFrequencyNoises = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, positionWS.xyz * 0.0001, 0.0);
+    // Read the low frequency Perlin-Worley and Worley noises
+    float lowFreqFBm = ( lowFrequencyNoises.y * 0.625 ) + ( lowFrequencyNoises.z * 0.25 ) + ( lowFrequencyNoises.w * 0.125);
+    float base_cloud = remap(lowFrequencyNoises.x, -(1.0 - lowFrequencyNoises.y), 1.0, 0.0, 1.0);
+
+    //properties.density = densityHeightGradient * lowFreqFBm;
+
+    float3 coord = float3(positionWS / 1000);
+    float4 noiseSample = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, coord, 0.0);
+
+    float noise = saturate(lowFrequencyNoises.r + lowFrequencyNoises.g + lowFrequencyNoises.b+ lowFrequencyNoises.a);
+
+    noise *= densityHeightGradient.r;
+    noise = SmoothThreshold(noise, 0.3, 0.5);
+    noise = saturate(noise - (1.0 - cloudCoverageData.coverage.r)) * cloudCoverageData.coverage.r;
+ 
+    //if (!cheapVersion)
+    {
+        coord = coord * 2.0;
+        float3 detail = 1.0 - SAMPLE_TEXTURE3D_LOD(_Worley32RGB, s_trilinear_repeat_sampler, coord, 0.0).xyz;
+        float detailValue = (detail.r + detail.g + detail.b) / 3.0;
+        detailValue *= smoothstep(1.0, 0.0, noise) * 0.5;
+        noise -= detailValue * densityHeightGradient.g;
+        noise = saturate(noise);
+    }        
+
+    properties.density = noise;
+    /*
+    noise = SmoothThreshold(noise, _SampleThreshold, _ErosionEdgeSize);
+    noise = saturate(noise - (1.0 - coverage.r)) * coverage.r;
+    */
+#elif 0
     // Evaluate the coordinates at which the noise will be sampled
     float3 noiseSamplingCoordinates = positionWS.xzy * 0.0001 + _WindDirection * _Time * 0.01;    
     noiseSamplingCoordinates += properties.height * _WindDirection * MOTION_DISTORTION;
@@ -222,18 +272,18 @@ void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProp
     float lowFreqFBm = ( lowFrequencyNoises.y * 0.625 ) + ( lowFrequencyNoises.z * 0.25 ) + ( lowFrequencyNoises.w * 0.125);
 
     // Remap the perlin-worley noise with the worley fbm
-    float base_cloud = remap(lowFrequencyNoises.x, -(1.0 - lowFreqFBm), 1.0, 0.0, 1.0);
+    float base_cloud = remap(lowFrequencyNoises.x, -(1.0 - lowFrequencyNoises.y), 1.0, 0.0, 1.0);
 
     // Evaluate the density by the height-base density gradient of the cloud that we are handeling
     float densityHeightGradient = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), 0.0).x;
-	
+    
     // Apply the height function to the base cloud shape
     base_cloud *= densityHeightGradient;
 
     // apply anvil deformations
     cloudCoverageData.coverage = pow(cloudCoverageData.coverage, remap(properties.height, 0.7, 0.8, 1.0, lerp(1.0, 0.5, ANVIL_BIAS)));
 
-	// Rmap the base cloud with the coverage
+    // Rmap the base cloud with the coverage
     properties.density = remap(base_cloud, cloudCoverageData.coverage, 1.0, 0.0, 1.0);
 
     // Multiply the result by the cloud coverage so that the smaller clouds are lighter and more esthetically pleasing
@@ -258,66 +308,101 @@ void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProp
         // Output the final density value
         properties.density = saturate(final_cloud);
     }
+#else
+
+    float2 densityHeightGradient = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), 0.0);
+
+    // Evaluate the coordinates at which the noise will be sampled
+    float3 noiseSamplingCoordinates = positionWS.xzy * 0.00007 + _WindDirection * _Time.y * 0.05;    
+    noiseSamplingCoordinates += properties.height * _WindDirection * MOTION_DISTORTION;
+
+    // Read the low frequency Perlin-Worley and Worley noises
+    float4 lowFrequencyNoises = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, noiseSamplingCoordinates, 0.0);
+    float lowFreqFBm = ( lowFrequencyNoises.y * 0.625 ) + ( lowFrequencyNoises.z * 0.25 ) + ( lowFrequencyNoises.w * 0.125);
+
+    // Remap the perlin-worley noise with the worley fbm
+    float base_cloud = remap(lowFrequencyNoises.x, 0.0, 1.0, -(1.0 - lowFreqFBm), 1.0);
+
+    // We want bigger clouds to have higher density than smaller ones
+    base_cloud += cloudCoverageData.cloudType * cloudCoverageData.cloudType;   
+    base_cloud = saturate(base_cloud);
+    
+    // Evaluate the density by the height-base density gradient of the cloud that we are handeling
+    
+    // Apply the height function to the base cloud shape
+    base_cloud *= densityHeightGradient.x;
+
+    // Rmap the base cloud with the coverage
+    //base_cloud = remap(base_cloud, 0.0, 1.0, cloudCoverageData.coverage, 1.0);
+
+    // Multiply the result by the cloud coverage so that the smaller clouds are lighter and more esthetically pleasing
+    base_cloud *= cloudCoverageData.coverage;
+
+    properties.density = base_cloud * (_DensityMultiplier * _DensityMultiplier);
+#endif
 }
 
 float HenyeyGreenstein(float cosAngle, float g)
 {
     // There is a mistake in the GPU Gem7 Paper, the result should be divided by 1/(4.PI)
     float g2 = g * g;
-    return (1.0 - g2) / (pow(1.0 + g2 - 2.0 * g * cosAngle, 1.5) * (4.0 * PI));
+    return (1.0 / (4.0 * PI)) * (1.0 - g2) / pow(1.0 + g2 - 2.0 * g * cosAngle, 1.5);
 }
 
-//Get the amount of light that reaches a sample point.
-float3 EvaluateLightRay(float3 positionWS, float phaseFunction, float mu, float3 sunDirection, float normalizedHeight, float density, float stepSize, float offset)
+float3 EvaluateSunLuminance(float3 position, EnvironmentLighting environmentLighting, float density, float powderEffect, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES])
 {
     // Compute the Ray to the limits of the cloud volume in the direction of the light
     float lightRayDistance = 0.0f;
     float distToStart = 0.0;
-    GetCloudVolumeIntersection(positionWS, sunDirection, distToStart, lightRayDistance);
+    GetCloudVolumeIntersection(position, environmentLighting.sunDirection, distToStart, lightRayDistance);
     
     // Compute the step of the light integration
     float stepL = lightRayDistance/(float)_NumLightSteps;
 
-    // Initialize the accumulation value for the light ray density
-    float lightRayDensity = 0.0;
-    
-    //Collect total density along light ray.
-    for(int j = 0; j < _NumLightSteps; j++)
+    // Initially the transmittance is one
+    float3 sunLightTransmittance[NUM_MULTI_SCATTERING_OCTAVES];
+    int o;
+    for(o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+        sunLightTransmittance[o] = 1.0;
+
+    // Collect total density along light ray.
+    for (int j = 0; j < _NumLightSteps; j++)
     {
         // Evaluate the current sample point
-        float3 currentSamplePoint = positionWS + sunDirection * (float)j * stepL;
+        float3 currentSamplePoint = position + environmentLighting.sunDirection * (float)j * stepL;
 
         // Get the cloud properties at the sample point
-        CloudProperties cloudProperties;
-        EvaluateCloudProperties(currentSamplePoint, false, cloudProperties);
+        CloudProperties lightRayCloudProperties;
+        EvaluateCloudProperties(currentSamplePoint, true, lightRayCloudProperties);
 
-        // Reduce density of clouds when looking towards the sun for more luminous clouds.
-        lightRayDensity += cloudProperties.density;
+        const float3 sigmaE = max(_ScatteringTint, float3(1e-6, 1e-6, 1e-6));
+
+        for(o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+            sunLightTransmittance[o] *= exp(- stepL * lightRayCloudProperties.density * sigmaE * pow(_MultiScattering, o));
     }
-
-    const float3 sigmaE = max(_ScatteringTint, float3(1e-6, 1e-6,1e-6));
-    float3 beersLaw = max(exp(-stepL * lightRayDensity * sigmaE), exp(-stepL * lightRayDensity * sigmaE * 0.2) * 0.75);
     
-    float depth_probability = lerp( 0.05 + pow( density, remap( normalizedHeight, 0.3, 0.85, 0.5, 2.0 )), 1.0, saturate( density / stepSize));
-    float vertical_probability = pow( remap( normalizedHeight, 0.07, 0.14, 0.1, 1.0 ), 0.8 );
-    float in_scatter_probability = depth_probability * vertical_probability;
+    float3 luminance = 0.0;
+    for(o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+         luminance += sunLightTransmittance[o] * environmentLighting.sunColor * powderEffect * phaseFunction[o] * pow(_MultiScattering, o);
 
-    // TODO: Phase function behaving in a weird way
-    return 2.0 * beersLaw * in_scatter_probability /* phaseFunction */;
+    return luminance;
 }
 
-float3 TraceVolumetricRay(float3 rayOrigin, float3 rayDirection, float maxRayLength,
-                            EnvironmentLighting environmentLighting, float offset,
-                            out float3 transmisttance)
-{    
-    // Initially everything is transmitted
-    transmisttance = 1.0;
+float PowderEffect(float cloudDensity, float cosAngle)
+{
+    float powderEffect = 1.0 - exp(-cloudDensity * 2.0);
+    powderEffect = saturate(powderEffect * _PowderEffectIntensity * 2.0);
+    return lerp(1.0, powderEffect, smoothstep(0.5, -0.5, cosAngle));
+}
 
+float4 TraceVolumetricRay(float3 rayOrigin, float3 rayDirection, float maxRayLength,
+                            EnvironmentLighting environmentLighting, float offset)
+{    
     // Determine if ray intersects bounding volume, if the ray does not intersect the cloud volume AABB, skip right away
     float startDistance = 0.0;
     float totalDistance = 0.0;
     if (!GetCloudVolumeIntersection(rayOrigin, rayDirection, startDistance, totalDistance))
-        return 0.0;
+        return float4(0.0, 0.0, 0.0, 1.0);
 
     // Clamp the travel distance to whatever is closer
     // - Sky Occluder
@@ -332,20 +417,28 @@ float3 TraceVolumetricRay(float3 rayOrigin, float3 rayDirection, float maxRayLen
     startDistance += stepS * offset;
     
     // Evaluate cos of the theta angle between the view and light vectors
-    const float3 viewVector = -rayDirection;
-    float cosAngle = dot(viewVector, environmentLighting.sunDirection);
+    float cosAngle = dot(rayDirection, environmentLighting.sunDirection);
 
     // Evaluate the phase function for our ray direction
-    const float phaseFunction = max(HenyeyGreenstein(_Eccentricity, cosAngle), _SilverIntensity * HenyeyGreenstein(1.0 - _SilverSpread, cosAngle));
+
+    float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES];
+    for(int o = 0; o < NUM_MULTI_SCATTERING_OCTAVES; ++o)
+    {
+        const float forwardP = HenyeyGreenstein(cosAngle, _EccentricityF * pow(_MultiScattering, o));
+        const float backwardsP = HenyeyGreenstein(cosAngle, -_EccentricityB * pow(_MultiScattering, o));
+        phaseFunction[o]= lerp(forwardP, backwardsP, _PhaseFunctionBlend);
+    }
 
     // Initialize the integration values
-    float3 colour = 0.0;
-    float currentDistance = startDistance;
-    float3 position = rayOrigin + startDistance * rayDirection;
+    float4 intScattTrans = float4(0.0, 0.0, 0.0, 1.0);
+    float3 initialPosition = rayOrigin + startDistance * rayDirection;
 
     // Do the ray march for every step that we can.
     for(int i = 0; i < _NumPrimarySteps; i++)
     {
+        // Compute the position of the current sample
+        float3 position = initialPosition + rayDirection * i * stepS;
+
         // Evaluate the density and height at the current ray marching point
         CloudProperties cloudProperties;
         EvaluateCloudProperties(position, false, cloudProperties);
@@ -353,40 +446,22 @@ float3 TraceVolumetricRay(float3 rayOrigin, float3 rayDirection, float maxRayLen
         // If the density is null, we can skip as there will be no contribution
         if (cloudProperties.density > 0.0)
         {
-            float3 luminance = environmentLighting.ambientTerm + environmentLighting.sunColor * EvaluateLightRay(position, phaseFunction, cosAngle, environmentLighting.sunDirection, cloudProperties.height, cloudProperties.density, stepS, offset);
-            // Evaluate the sampled transmittance
-	        const float3 sigmaE = max(_ScatteringTint, float3(1e-6, 1e-6,1e-6));
-	        float3 sampleSigmaE = sigmaE * cloudProperties.density;
-            float3 sampleTransmittance = exp(-sampleSigmaE * stepS);
+            const float3 clampedExtinction = max(cloudProperties.density, 0.0000001);
+            const float currentStepExtinction = exp(- cloudProperties.density * stepS);
 
-            // Beer-Lambert.
-            float3 sampleSigmaS = _ScatteringTint * cloudProperties.density;
+            float powder_effect = PowderEffect(cloudProperties.density, cosAngle);
+            const float3 sunLuminance = (EvaluateSunLuminance(position, environmentLighting, cloudProperties.density, powder_effect, phaseFunction) + environmentLighting.ambientTerm) * cloudProperties.density;
+            // THINK about multiplication with shadow map
 
-        	// Scale light contribution by density of the cloud.
-            luminance *= sampleSigmaS;
-
-            // Better energy conserving integration
-            // "From Physically based sky, atmosphere and cloud rendering in Frostbite" 5.6 by Sebastian Hillaire.
-            colour += transmisttance * (luminance - luminance * sampleTransmittance) / sampleSigmaE; 
-
-            //Attenuate the amount of light that reaches the camera.
-            transmisttance *= sampleTransmittance;  
-
-            // If ray combined transmittance is close to 0, nothing beyond this sample point is visible, so break early.
-            if(length(transmisttance) <= 0.001)
-            {
-                transmisttance = (0.0);
-                break;
-            }
-        }   
-
-        currentDistance += stepS;
-
-        // Step along ray.
-        position = rayOrigin + rayDirection * currentDistance;
+            const float3 luminance = sunLuminance;
+            const float3 integScatt = (luminance - luminance * currentStepExtinction) / clampedExtinction;
+            
+            intScattTrans.rgb += integScatt * intScattTrans.a;
+            intScattTrans.a *= currentStepExtinction; 
+        }
     }
 
-    return colour;
+    return intScattTrans;
 }
 
 [numthreads(VOLUMETRIC_CLOUDS_TILE_SIZE, VOLUMETRIC_CLOUDS_TILE_SIZE, 1)]
@@ -398,7 +473,7 @@ void RenderClouds(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThrea
     uint2 currentCoord = groupId * VOLUMETRIC_CLOUDS_TILE_SIZE + groupThreadId;
 
     // Grab the color value of the color buffer
-    float3 colorValue = LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord).xyz;
+    // float3 colorValue = LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord).xyz;
 
     // Build the ray we will use of the ray marching.
     CloudRay ray = BuildRay(currentCoord);
@@ -410,25 +485,47 @@ void RenderClouds(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThrea
     float offset = GetBNDSequenceSample(currentCoord, _AccumulationFrameIndex, 0);
     
     // Evaluate the cloud transmittance
-    float3 totalTransmittance = float3(1.0, 1.0, 1.0);
-    float3 finalColor = TraceVolumetricRay(ray.origin, ray.direction, ray.maxRayLength, environmentLight, offset, totalTransmittance); 
-
-    // Combine the result with the background color
-    finalColor += colorValue * totalTransmittance;
+    float4 finalColor = TraceVolumetricRay(ray.origin, ray.direction, ray.maxRayLength, environmentLight, offset); 
 
     // output the result
-    _VolumetricCloudsTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0);
+    _VolumetricCloudsTextureRW[COORD_TEXTURE2D_X(currentCoord)] = finalColor;
 }
 
 TEXTURE2D_X(_VolumetricCloudsTexture);
+TEXTURE2D_X(_HistoryVolumetricCloudsTexture);
 RW_TEXTURE2D_X(float4, _CameraColorTextureRW);
+RW_TEXTURE2D_X(float4, _HistoryVolumetricCloudsTextureRW);
 
 [numthreads(VOLUMETRIC_CLOUDS_TILE_SIZE, VOLUMETRIC_CLOUDS_TILE_SIZE, 1)]
 void CombineClouds(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-    // Compute the pixel position to process
     uint2 currentCoord = groupId * VOLUMETRIC_CLOUDS_TILE_SIZE + groupThreadId;
-    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, currentCoord);
+
+    // Compute the history tap coordinate for this pixel
+    float2 velocity = float2(0.0, 0.0);
+    DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, (float2)currentCoord), velocity);
+    float2 positionNDC = (currentCoord + 0.5) * _ScreenSize.zw;
+    float2 historyTapCoord = (float2)(positionNDC - velocity) * _ScreenSize.xy;
+
+    // Read the volumetric cloud value from the previous frame
+    float4 previousResult = SAMPLE_TEXTURE2D_X_LOD(_HistoryVolumetricCloudsTexture, s_linear_clamp_sampler, historyTapCoord * _ScreenSize.zw * _RTHandleScaleHistory.zw, 0);
+
+    // Read the volumetric cloud value produced by this frame
+    float4 currentResult = LOAD_TEXTURE2D_X(_VolumetricCloudsTexture, currentCoord);
+
+    // Accumuate both values
+    float accumulationFactor = 0.8;
+
+    if (historyTapCoord.x < 0.0 || historyTapCoord.x >= _ScreenSize.x || historyTapCoord.y < 0.0 || historyTapCoord.y >= _ScreenSize.y)
+        accumulationFactor = 0.0;
+
+    float4 cloudResult = accumulationFactor * previousResult + (1.0 - accumulationFactor) * currentResult;
+
+    // Read the current frame buffer
+    float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)];
+
+    // Combine everything and output the values
+    _CameraColorTextureRW[COORD_TEXTURE2D_X(currentCoord)] = currentColor * cloudResult.a + float4(cloudResult.rgb, 0.0);
+    _HistoryVolumetricCloudsTextureRW[COORD_TEXTURE2D_X(currentCoord)] = cloudResult;
 }

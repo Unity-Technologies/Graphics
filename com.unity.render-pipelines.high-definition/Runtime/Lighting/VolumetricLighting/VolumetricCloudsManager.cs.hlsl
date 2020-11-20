@@ -13,16 +13,18 @@ CBUFFER_START(ShaderVariablesClouds)
     int _NumPrimarySteps;
     int _NumLightSteps;
     float3 _ScatteringTint;
-    float _Eccentricity;
-    float _SilverIntensity;
-    float _SilverSpread;
-    float _Padding0;
+    float _EccentricityF;
+    float _EccentricityB;
+    float _PhaseFunctionBlend;
+    float _PowderEffectIntensity;
     int _ExposureSunColor;
     float3 _SunLightColor;
     float3 _SunDirection;
     int _AccumulationFrameIndex;
     float3 _WindDirection;
-    float _Padding1;
+    float _MultiScattering;
+    float _DensityMultiplier;
+    float3 _Padding;
     float4 _AmbientProbeCoeffs[7];
 CBUFFER_END
 
