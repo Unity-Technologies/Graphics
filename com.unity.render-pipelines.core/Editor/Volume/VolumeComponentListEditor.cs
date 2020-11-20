@@ -238,7 +238,7 @@ namespace UnityEditor.Rendering
                         title,
                         editor.baseProperty,
                         editor.activeProperty,
-                        pos => OnContextClick(pos, editor.target, id),
+                        pos => OnContextClick(pos, editor, id),
                         editor.hasAdvancedMode ? () => editor.isInAdvancedMode : (Func<bool>)null,
                         () => editor.isInAdvancedMode ^= true,
                         documentationURL
@@ -270,8 +270,9 @@ namespace UnityEditor.Rendering
             }
         }
 
-        void OnContextClick(Vector2 position, VolumeComponent targetComponent, int id)
+        void OnContextClick(Vector2 position, VolumeComponentEditor targetEditor, int id)
         {
+            var targetComponent = targetEditor.target;
             var menu = new GenericMenu();
 
             if (id == 0)
@@ -302,6 +303,12 @@ namespace UnityEditor.Rendering
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Reset"), false, () => ResetComponent(targetComponent.GetType(), id));
             menu.AddItem(EditorGUIUtility.TrTextContent("Remove"), false, () => RemoveComponent(id));
+            menu.AddSeparator(string.Empty);
+            if (targetEditor.hasAdvancedMode)
+                menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), targetEditor.isInAdvancedMode, () => targetEditor.isInAdvancedMode ^= true);
+            else
+                menu.AddDisabledItem(EditorGUIUtility.TrTextContent("Show Additional Properties"));
+
             menu.AddSeparator(string.Empty);
             menu.AddItem(EditorGUIUtility.TrTextContent("Copy Settings"), false, () => CopySettings(targetComponent));
 

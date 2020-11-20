@@ -464,9 +464,7 @@ namespace UnityEditor.Rendering
                 bool newExpended = expended;
                 if (isSubFoldout)
                 {
-                    newExpended = CoreEditorUtils.DrawSubHeaderFoldout(title, expended, isBoxed,
-                        isAdvanced == null ? (Func<bool>)null : () => isAdvanced(data, owner),
-                        switchAdvanced == null ? (Action)null : () => switchAdvanced(data, owner));
+                    newExpended = CoreEditorUtils.DrawSubHeaderFoldout(title, expended, isBoxed);
                 }
                 else
                 {

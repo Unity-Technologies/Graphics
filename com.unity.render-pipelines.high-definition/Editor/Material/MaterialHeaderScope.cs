@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (colorDot != default(Color))
                 title = "   " + title;
             expanded = subHeader
-                ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpended)
+                ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpended, false)
                 : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpended);
             if (colorDot != default(Color))
             {

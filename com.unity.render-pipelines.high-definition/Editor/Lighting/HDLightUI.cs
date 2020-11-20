@@ -77,6 +77,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 serialized.showAdditionalSettings.intValue &= ~(int)mask;
             }
+
+            serialized.serializedObject.ApplyModifiedProperties();
         }
 
         static void SwitchAdvanced(AdvancedMode mask, SerializedHDLight serialized, Editor owner)
@@ -89,6 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 serialized.showAdditionalSettings.intValue |= (int)mask;
             }
+
+            serialized.serializedObject.ApplyModifiedProperties();
         }
 
         static Action<GUIContent, SerializedProperty, LightEditor.Settings> SliderWithTexture;
