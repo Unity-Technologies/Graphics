@@ -9,13 +9,13 @@ namespace UnityEngine.Rendering.Universal
         static readonly Vector4[] s_NdcFrustum =
         {
             new Vector4(-1, 1,  -1, 1),
-            new Vector4( 1, 1,  -1, 1),
-            new Vector4( 1, -1, -1, 1),
+            new Vector4(1, 1,  -1, 1),
+            new Vector4(1, -1, -1, 1),
             new Vector4(-1, -1, -1, 1),
 
             new Vector4(-1, 1,  1, 1),
-            new Vector4( 1, 1,  1, 1),
-            new Vector4( 1, -1, 1, 1),
+            new Vector4(1, 1,  1, 1),
+            new Vector4(1, -1, 1, 1),
             new Vector4(-1, -1, 1, 1)
         };
 
@@ -23,13 +23,13 @@ namespace UnityEngine.Rendering.Universal
         private static readonly Vector4[] s_UnitCube =
         {
             new Vector4(-0.5f,  0.5f, -0.5f, 1),
-            new Vector4( 0.5f,  0.5f, -0.5f, 1),
-            new Vector4( 0.5f, -0.5f, -0.5f, 1),
+            new Vector4(0.5f,  0.5f, -0.5f, 1),
+            new Vector4(0.5f, -0.5f, -0.5f, 1),
             new Vector4(-0.5f, -0.5f, -0.5f, 1),
 
             new Vector4(-0.5f,  0.5f,  0.5f, 1),
-            new Vector4( 0.5f,  0.5f,  0.5f, 1),
-            new Vector4( 0.5f, -0.5f,  0.5f, 1),
+            new Vector4(0.5f,  0.5f,  0.5f, 1),
+            new Vector4(0.5f, -0.5f,  0.5f, 1),
             new Vector4(-0.5f, -0.5f,  0.5f, 1)
         };
 
@@ -40,18 +40,18 @@ namespace UnityEngine.Rendering.Universal
         private static readonly Vector4[] s_UnitSquare =
         {
             new Vector4(-0.5f, 0.5f, 0, 1),
-            new Vector4( 0.5f, 0.5f, 0, 1),
-            new Vector4( 0.5f,-0.5f, 0, 1),
-            new Vector4(-0.5f,-0.5f, 0, 1),
+            new Vector4(0.5f, 0.5f, 0, 1),
+            new Vector4(0.5f, -0.5f, 0, 1),
+            new Vector4(-0.5f, -0.5f, 0, 1),
         };
 
         private static Vector4[] MakeUnitSphere(int len)
         {
             Debug.Assert(len > 2);
-            var v = new Vector4[len*3];
+            var v = new Vector4[len * 3];
             for (int i = 0; i < len; i++)
             {
-                var f = i / (float) len;
+                var f = i / (float)len;
                 float c = Mathf.Cos(f * (float)(Math.PI * 2.0));
                 float s = Mathf.Sin(f * (float)(Math.PI * 2.0));
                 v[0 * len + i] = new Vector4(c, s, 0, 1);
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
             Vector4[] qMax = new Vector4[4];
             for (int i = 0; i < 4; i++)
             {
-                qMax[i] = Vector4.Lerp(f[i], f[4+i], splitMaxPct);
+                qMax[i] = Vector4.Lerp(f[i], f[4 + i], splitMaxPct);
             }
 
             // Draw Shadow far/max quad
@@ -128,12 +128,10 @@ namespace UnityEngine.Rendering.Universal
             Vector4[] q = new Vector4[4];
             for (int j = splitStart; j < splitCount; j++)
             {
-
                 float d = splitPct[j];
                 for (int i = 0; i < 4; i++)
                 {
                     q[i] = Vector4.Lerp(f[i], qMax[i], d);
-
                 }
 
                 // Draw
@@ -149,7 +147,7 @@ namespace UnityEngine.Rendering.Universal
         public static void DrawBox(Vector4 pos, Vector3 size, Color color)
         {
             Vector4[] v = s_UnitCube;
-            Vector4 sz = new Vector4(size.x, size. y, size.z, 1);
+            Vector4 sz = new Vector4(size.x, size.y, size.z, 1);
             for (int i = 0; i < 4; i++)
             {
                 var s = pos + Vector4.Scale(v[i], sz);
@@ -227,9 +225,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static void DrawAxes(Vector4 pos, float scale = 1.0f)
         {
-            Debug.DrawLine( pos, pos + new Vector4(scale,0,0), Color.red);
-            Debug.DrawLine( pos, pos + new Vector4(0,scale,0), Color.green);
-            Debug.DrawLine( pos, pos + new Vector4(0,0,scale), Color.blue);
+            Debug.DrawLine(pos, pos + new Vector4(scale, 0, 0), Color.red);
+            Debug.DrawLine(pos, pos + new Vector4(0, scale, 0), Color.green);
+            Debug.DrawLine(pos, pos + new Vector4(0, 0, scale), Color.blue);
         }
 
         public static void DrawAxes(Matrix4x4 transform, float scale = 1.0f)
@@ -239,9 +237,9 @@ namespace UnityEngine.Rendering.Universal
             Vector4 y = transform * new Vector4(0, scale, 0, 1);
             Vector4 z = transform * new Vector4(0, 0, scale, 1);
 
-            Debug.DrawLine( p, x, Color.red);
-            Debug.DrawLine( p, y, Color.green);
-            Debug.DrawLine( p, z, Color.blue);
+            Debug.DrawLine(p, x, Color.red);
+            Debug.DrawLine(p, y, Color.green);
+            Debug.DrawLine(p, z, Color.blue);
         }
 
         public static void DrawQuad(Matrix4x4 transform, Color color)
@@ -261,6 +259,7 @@ namespace UnityEngine.Rendering.Universal
             // Flip plane distance: Unity Plane distance is from plane to origin
             DrawPlane(new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, -plane.distance), scale, edgeColor, normalScale, normalColor);
         }
+
         public static void DrawPlane(Vector4 plane, float scale, Color edgeColor, float normalScale, Color normalColor)
         {
             Vector3 n = Vector3.Normalize(plane);
@@ -299,7 +298,7 @@ namespace UnityEngine.Rendering.Universal
                 Debug.DrawLine(s, e, edgeColor);
             }
 
-            Debug.DrawLine(n * d, n * (d+1*normalScale), normalColor);
+            Debug.DrawLine(n * d, n * (d + 1 * normalScale), normalColor);
         }
     }
 
@@ -352,7 +351,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (renderingData.cameraData.camera.cameraType == CameraType.Game && renderingData.cameraData.camera.name != "Preview Camera")
                 {
-                    var camPos = renderingData.cameraData.camera.cameraToWorldMatrix * new Vector4(0,0,0,1);
+                    var camPos = renderingData.cameraData.camera.cameraToWorldMatrix * new Vector4(0, 0, 0, 1);
                     var camFront = renderingData.cameraData.camera.cameraToWorldMatrix.GetColumn(2);
                     var shadowCascadesCount = renderingData.shadowData.mainLightShadowCascadesCount;
 
@@ -371,11 +370,11 @@ namespace UnityEngine.Rendering.Universal
                     }*/
 
                     // Origin
-                    if(m_Feature.drawOrigin)
+                    if (m_Feature.drawOrigin)
                     {
-                        Debug.DrawLine( Vector3.zero, new Vector3(1,0,0), Color.red);
-                        Debug.DrawLine( Vector3.zero, new Vector3(0,1,0), Color.green);
-                        Debug.DrawLine( Vector3.zero, new Vector3(0,0,1), Color.blue);
+                        Debug.DrawLine(Vector3.zero, new Vector3(1, 0, 0), Color.red);
+                        Debug.DrawLine(Vector3.zero, new Vector3(0, 1, 0), Color.green);
+                        Debug.DrawLine(Vector3.zero, new Vector3(0, 0, 1), Color.blue);
                     }
 
                     // Frustum
@@ -390,7 +389,7 @@ namespace UnityEngine.Rendering.Universal
                             var n = renderingData.cameraData.camera.nearClipPlane;
                             var s = renderingData.cameraData.maxShadowDistance;
                             var sMax = (s - n) / f;
-                            DebugCullingHelpers.DrawFrustumSplits(renderingData.cameraData.camera.cullingMatrix, sMax, renderingData.shadowData.mainLightShadowCascadesSplit, 0, shadowCascadesCount - 1, Color.gray );
+                            DebugCullingHelpers.DrawFrustumSplits(renderingData.cameraData.camera.cullingMatrix, sMax, renderingData.shadowData.mainLightShadowCascadesSplit, 0, shadowCascadesCount - 1, Color.gray);
                         }
                     }
 
@@ -428,7 +427,7 @@ namespace UnityEngine.Rendering.Universal
                             for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
                             {
                                 var shadowTransform = proj[cascadeIndex] * view[cascadeIndex];
-                                DebugCullingHelpers.DrawFrustum( shadowTransform, Color.white, Color.yellow, Color.black);
+                                DebugCullingHelpers.DrawFrustum(shadowTransform, Color.white, Color.yellow, Color.black);
                                 DebugCullingHelpers.DrawAxes(shadowTransform.inverse, 0.25f);
                             }
                         }
@@ -441,8 +440,8 @@ namespace UnityEngine.Rendering.Universal
                                 Vector4 s = shadowSplitData[cascadeIndex].cullingSphere;
                                 Vector3 c = s;
                                 float radius = s.w;
-                                DebugCullingHelpers.DrawSphere( c, radius, Color.white);
-                                DebugCullingHelpers.DrawPoint( c, 0.5f, Color.white);
+                                DebugCullingHelpers.DrawSphere(c, radius, Color.white);
+                                DebugCullingHelpers.DrawPoint(c, 0.5f, Color.white);
                             }
                         }
 
@@ -459,28 +458,28 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 var cascadeIndex = m_Feature.drawSingleCullingPlaneCascadeIndex;
 
-                                var pc = Color.Lerp(planeColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
-                                var nc = Color.Lerp(normalColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
+                                var pc = Color.Lerp(planeColor, Color.black, cascadeIndex / (float)shadowCascadesCount);
+                                var nc = Color.Lerp(normalColor, Color.black, cascadeIndex / (float)shadowCascadesCount);
                                 var ssd = shadowSplitData[cascadeIndex];
 
                                 var pi = m_Feature.drawSingleCullingPlaneIndex;
                                 {
                                     var p = ssd.GetCullingPlane(pi);
-                                    DebugCullingHelpers.DrawPlane(p,100.0f, pc, 5.0f, nc);
+                                    DebugCullingHelpers.DrawPlane(p, 100.0f, pc, 5.0f, nc);
                                 }
                             }
                             else
                             {
                                 for (int cascadeIndex = 0; cascadeIndex < shadowCascadesCount; ++cascadeIndex)
                                 {
-                                    var pc = Color.Lerp(planeColor,  Color.black, cascadeIndex / (float) shadowCascadesCount);
-                                    var nc = Color.Lerp(normalColor, Color.black, cascadeIndex / (float) shadowCascadesCount);
+                                    var pc = Color.Lerp(planeColor,  Color.black, cascadeIndex / (float)shadowCascadesCount);
+                                    var nc = Color.Lerp(normalColor, Color.black, cascadeIndex / (float)shadowCascadesCount);
                                     var ssd = shadowSplitData[cascadeIndex];
 
                                     for (int pi = 0; pi < ssd.cullingPlaneCount; pi++)
                                     {
                                         var p = ssd.GetCullingPlane(pi);
-                                        DebugCullingHelpers.DrawPlane(p,100.0f, pc, 5.0f, nc);
+                                        DebugCullingHelpers.DrawPlane(p, 100.0f, pc, 5.0f, nc);
                                     }
                                 }
                             }
@@ -502,11 +501,10 @@ namespace UnityEngine.Rendering.Universal
                             {
                                 renderingData.cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(li, out spotView[li], out spotProj[li], out spotShadowSplitData[li]);
                                 var shadowTransform = spotProj[li] * spotView[li];
-                                DebugCullingHelpers.DrawFrustum( shadowTransform, Color.white, Color.yellow, Color.black);
+                                DebugCullingHelpers.DrawFrustum(shadowTransform, Color.white, Color.yellow, Color.black);
                                 DebugCullingHelpers.DrawAxes(spotView[li].inverse, 0.5f);
                             }
                         }
-
                     }
 
                     // Visible lights
@@ -514,7 +512,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         foreach (var l in renderingData.lightData.visibleLights)
                         {
-                            Debug.DrawLine( camPos, l.localToWorldMatrix.GetColumn(3), Color.yellow);
+                            Debug.DrawLine(camPos, l.localToWorldMatrix.GetColumn(3), Color.yellow);
 
                             if (m_Feature.drawVisibleLightRadius)
                             {
@@ -569,11 +567,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-
-
             renderer.EnqueuePass(m_Pass);
         }
     }
-
-
 }

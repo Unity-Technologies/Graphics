@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.Universal
             m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
         }
+
         private void OnDisable()
         {
             ClearEditorsList();
@@ -199,7 +200,7 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
-            string name = (string) type;
+            string name = (string)type;
             ScriptableObject component = CreateInstance(name);
             if (component == null)
             {
