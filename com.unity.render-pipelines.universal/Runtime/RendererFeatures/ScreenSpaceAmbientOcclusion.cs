@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] internal int SampleCount = 6;
 
         [SerializeField] internal bool SinglePassBlur = false;
-        [SerializeField] internal bool FinalUpsample = true;
+        [SerializeField] internal UpsampleTypes FinalUpsample = UpsampleTypes.None;
         [SerializeField] internal BlurTypes BlurType = BlurTypes.Bilateral;
 
         // Enums
@@ -40,6 +40,13 @@ namespace UnityEngine.Rendering.Universal
             Kawase,
             DualKawase,
             DualFiltering
+        }
+
+        internal enum UpsampleTypes
+        {
+            None,
+            Bilateral,
+            BoxFilter
         }
     }
 
@@ -225,7 +232,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
                 int downsampleDivider = m_CurrentSettings.Downsample ? 2 : 1;
-                blurFinalUpsample = m_CurrentSettings.Downsample && m_CurrentSettings.FinalUpsample;
+                blurFinalUpsample = m_CurrentSettings.Downsample && (m_CurrentSettings.FinalUpsample != ScreenSpaceAmbientOcclusionSettings.UpsampleTypes.None);
 
                 // Update SSAO parameters in the material
                 Vector4 ssaoParams = new Vector4(
@@ -405,7 +412,13 @@ namespace UnityEngine.Rendering.Universal
 
                     // if we are downsampling, do an extra upsample pass
                     if (blurFinalUpsample)
-                        RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture4Target, ShaderPasses.Upsample);
+                    {
+                        if (m_CurrentSettings.FinalUpsample == ScreenSpaceAmbientOcclusionSettings.UpsampleTypes.BoxFilter)
+                            RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture4Target, ShaderPasses.Upsample);
+                        else if (m_CurrentSettings.FinalUpsample == ScreenSpaceAmbientOcclusionSettings.UpsampleTypes.Bilateral)
+                            RenderingUtils.Blit(cmd, m_SSAOTexture2Target, m_SSAOTexture4Target, blitMaterial);
+                    }
+
 
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, blurFinalUpsample ? m_SSAOTexture4Target: m_SSAOTexture2Target);

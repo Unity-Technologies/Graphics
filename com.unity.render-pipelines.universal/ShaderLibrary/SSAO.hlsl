@@ -434,7 +434,7 @@ half Upsample(Varyings input) : SV_Target
 //
 //    return (p1.r + p1.g + p1.b + p1.a) * 0.25h;
 //#else
-    half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
+    half2 texelSize = _SourceSize.zw * rcp(DOWNSAMPLE) * 0.5;
 
     half p1 = SAMPLE_BASEMAP_R(uv + half2(-1.0, -1.0) * texelSize);
     half p2 = SAMPLE_BASEMAP_R(uv + half2(-1.0, 1.0) * texelSize);
@@ -619,7 +619,7 @@ half DualFilteringUpsample(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half2 uv = input.uv;
-    half2 pixelSize = _SourceSize.zw * rcp(DOWNSAMPLE);
+    half2 pixelSize = _SourceSize.zw * rcp(DOWNSAMPLE) * 0.5;
     half2 halfPixel = pixelSize * 0.5h;
 
     half col = SAMPLE_BASEMAP_R(uv + half2(-pixelSize.x, 0.0h));
