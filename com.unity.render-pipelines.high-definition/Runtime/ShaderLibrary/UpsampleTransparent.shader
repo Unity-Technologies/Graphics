@@ -4,7 +4,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 
         #pragma target 4.5
         #pragma editor_sync_compilation
-        #pragma multi_compile_local BILINEAR NEAREST_DEPTH
+        #pragma multi_compile_local_fragment BILINEAR NEAREST_DEPTH
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
