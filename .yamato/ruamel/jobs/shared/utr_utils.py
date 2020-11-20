@@ -1,13 +1,13 @@
 from .constants import *
 
-def extract_flags(utr_flags, platform_name, api_name, build_config, color_space, project_folder):
+def extract_flags(utr_flags, platform_name, api_name, build_config, color_space, project_folder, utr_repeat_flags=[]):
     '''Given a list of utr flags (composed of flags under shared + project metafiles), filters out and returns flags relevant for this platform_api.
     If a flag is specified multiple times, the last value is taken, order being first shared metafile, then project metafile
     (inside the metafiles, the order in which flags are written is preserved). Thus, flags wtih [all] must be specified before api specific flags.  
     '''
     
     flags = []
-    for utr_flag in utr_flags:
+    for utr_flag in utr_flags + utr_repeat_flags:
         for platform_apis,flag in utr_flag.items():
 
             # if the flag is relevant for this platform + api
