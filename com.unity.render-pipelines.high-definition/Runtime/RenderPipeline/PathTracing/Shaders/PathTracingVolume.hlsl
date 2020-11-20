@@ -146,9 +146,9 @@ void ComputeVolumeScattering(inout PathIntersection pathIntersection : SV_RayPay
     RayDesc ray;
     ray.Origin = scatteringPosition;
     ray.TMin = 0.0;
-  
+
     PathIntersection nextPathIntersection;
-  
+
     // Light sampling
     if (computeDirect)
     {

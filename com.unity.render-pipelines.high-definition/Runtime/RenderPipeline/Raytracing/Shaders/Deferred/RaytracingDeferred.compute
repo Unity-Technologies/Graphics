@@ -60,7 +60,7 @@ void RAYTRACING_DEFERRED(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     if (LOAD_TEXTURE2D_X(_RaytracingDistanceBuffer, currentCoord).x < 0.0)
     {
-        float3 newSampleColor = clamp(LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp) 
+        float3 newSampleColor = clamp(LOAD_TEXTURE2D_X(_GBufferTexture3, currentCoord).rgb * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp)
                                 * (_RaytracingPreExposition ? 1.0 : GetInverseCurrentExposureMultiplier() );
         _RaytracingLitBufferRW[COORD_TEXTURE2D_X(currentCoord)] = float4(newSampleColor, 0.0);
         return;
@@ -182,7 +182,7 @@ void RaytracingDiffuseDeferred(uint3 dispatchThreadId : SV_DispatchThreadID, uin
 
     // Compute the prelight data
     PreLightData preLightData = GetPreLightData(viewWS, posInput, bsdfData);
-    
+
     // Evaluate lighting
     LightLoopOutput lightLoopOutput;
     LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, 0.0, 1.0, float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), lightLoopOutput);

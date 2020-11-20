@@ -27,7 +27,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return 2;
                 case MSAASamples.MSAA8x:
                     return 3;
-            };
+            }
+            ;
             return 0;
         }
 
@@ -65,7 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return clearColor;
         }
 
-
         // XR Specific
         class XRRenderingPassData
         {
@@ -81,10 +81,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
-                    (XRRenderingPassData data, RenderGraphContext context) =>
-                    {
-                        data.xr.StartSinglePass(context.cmd);
-                    });
+                        (XRRenderingPassData data, RenderGraphContext context) =>
+                        {
+                            data.xr.StartSinglePass(context.cmd);
+                        });
                 }
             }
         }
@@ -98,10 +98,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.xr = hdCamera.xr;
 
                     builder.SetRenderFunc(
-                    (XRRenderingPassData data, RenderGraphContext context) =>
-                    {
-                        data.xr.StopSinglePass(context.cmd);
-                    });
+                        (XRRenderingPassData data, RenderGraphContext context) =>
+                        {
+                            data.xr.StopSinglePass(context.cmd);
+                        });
                 }
             }
         }
@@ -120,10 +120,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.hdCamera = hdCamera;
 
                     builder.SetRenderFunc(
-                    (EndCameraXRPassData data, RenderGraphContext ctx) =>
-                    {
-                        data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera);
-                    });
+                        (EndCameraXRPassData data, RenderGraphContext ctx) =>
+                        {
+                            data.hdCamera.xr.EndCamera(ctx.cmd, data.hdCamera);
+                        });
                 }
             }
         }
@@ -148,10 +148,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.clearColor = GetColorBufferClearColor(hdCamera);
 
                     builder.SetRenderFunc(
-                    (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
-                    {
-                        data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, data.colorBuffer, data.depthBuffer);
-                    });
+                        (RenderOcclusionMeshesPassData data, RenderGraphContext ctx) =>
+                        {
+                            data.hdCamera.xr.RenderOcclusionMeshes(ctx.cmd, data.clearColor, data.colorBuffer, data.depthBuffer);
+                        });
                 }
             }
         }
@@ -173,10 +173,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.mipLevel = mipLevel;
                 passData.bilinear = bilinear;
                 builder.SetRenderFunc(
-                (BlitCameraTextureData data, RenderGraphContext ctx) =>
-                {
-                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.destination, data.mipLevel, data.bilinear);
-                });
+                    (BlitCameraTextureData data, RenderGraphContext ctx) =>
+                    {
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.destination, data.mipLevel, data.bilinear);
+                    });
             }
         }
     }

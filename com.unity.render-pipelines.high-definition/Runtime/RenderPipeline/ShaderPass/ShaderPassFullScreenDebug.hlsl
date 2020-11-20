@@ -44,7 +44,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     // Unused
     float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
-    
+
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz);
 
 #ifdef PLATFORM_SUPPORTS_PRIMITIVE_ID_IN_PIXEL_SHADER

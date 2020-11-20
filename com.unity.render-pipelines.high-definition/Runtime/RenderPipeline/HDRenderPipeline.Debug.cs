@@ -35,16 +35,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.transparencyLowResRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparencyLowResRL));
 
                     builder.SetRenderFunc(
-                    (TransparencyOverdrawPassData data, RenderGraphContext ctx) =>
-                    {
-                        RenderTransparencyOverdraw( data.parameters,
-                                                    data.output,
-                                                    data.depthBuffer,
-                                                    data.transparencyRL,
-                                                    data.transparencyAfterPostRL,
-                                                    data.transparencyLowResRL,
-                                                    ctx.renderContext, ctx.cmd);
-                    });
+                        (TransparencyOverdrawPassData data, RenderGraphContext ctx) =>
+                        {
+                            RenderTransparencyOverdraw(data.parameters,
+                                data.output,
+                                data.depthBuffer,
+                                data.transparencyRL,
+                                data.transparencyAfterPostRL,
+                                data.transparencyLowResRL,
+                                ctx.renderContext, ctx.cmd);
+                        });
 
                     transparencyOverdrawOutput = passData.output;
                 }
@@ -83,21 +83,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.clearDepth = hdCamera.clearDepth;
 
                 builder.SetRenderFunc(
-                (FullScreenDebugPassData data, RenderGraphContext ctx) =>
-                {
-                    CoreUtils.SetRenderTarget(ctx.cmd, data.output);
-                    if (data.clearColorTexture != null)
+                    (FullScreenDebugPassData data, RenderGraphContext ctx) =>
                     {
-                        HDUtils.BlitColorAndDepth(ctx.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
-                    }
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.output);
+                        if (data.clearColorTexture != null)
+                        {
+                            HDUtils.BlitColorAndDepth(ctx.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
+                        }
 
-                    RenderFullScreenDebug(  data.parameters,
-                                            data.output,
-                                            data.depthBuffer,
-                                            data.debugBuffer,
-                                            data.rendererList,
-                                            ctx.renderContext, ctx.cmd);
-                });
+                        RenderFullScreenDebug(data.parameters,
+                            data.output,
+                            data.depthBuffer,
+                            data.debugBuffer,
+                            data.rendererList,
+                            ctx.renderContext, ctx.cmd);
+                    });
 
                 fullscreenDebugOutput = passData.output;
                 fullscreenDebugBuffer = passData.debugBuffer;
@@ -130,13 +130,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passData.fullscreenBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(4, sizeof(uint)));
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "ResolveFullScreenDebug" }));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "ResolveFullScreenDebug" }));
 
                 builder.SetRenderFunc(
-                (ResolveFullScreenDebugPassData data, RenderGraphContext ctx) =>
-                {
-                    ResolveFullScreenDebug(data.debugParameters, ctx.renderGraphPool.GetTempMaterialPropertyBlock(), data.input, data.depthPyramid, data.output, data.fullscreenBuffer, ctx.cmd);
-                });
+                    (ResolveFullScreenDebugPassData data, RenderGraphContext ctx) =>
+                    {
+                        ResolveFullScreenDebug(data.debugParameters, ctx.renderGraphPool.GetTempMaterialPropertyBlock(), data.input, data.depthPyramid, data.output, data.fullscreenBuffer, ctx.cmd);
+                    });
 
                 return passData.output;
             }
@@ -159,10 +159,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "ResolveColorPickerDebug" }));
 
                 builder.SetRenderFunc(
-                (ResolveColorPickerDebugPassData data, RenderGraphContext ctx) =>
-                {
-                    ResolveColorPickerDebug(data.debugParameters, data.input, data.output, ctx.cmd);
-                });
+                    (ResolveColorPickerDebugPassData data, RenderGraphContext ctx) =>
+                    {
+                        ResolveColorPickerDebug(data.debugParameters, data.input, data.output, ctx.cmd);
+                    });
 
                 return passData.output;
             }
@@ -188,10 +188,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                 builder.SetRenderFunc(
-                (DebugOverlayPassData data, RenderGraphContext ctx) =>
-                {
-                    RenderSkyReflectionOverlay(data.debugParameters, ctx.cmd, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
-                });
+                    (DebugOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderSkyReflectionOverlay(data.debugParameters, ctx.cmd, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
+                    });
             }
         }
 
@@ -207,10 +207,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                 builder.SetRenderFunc(
-                (DebugOverlayPassData data, RenderGraphContext ctx) =>
-                {
-                    RenderRayCountOverlay(data.debugParameters, ctx.cmd);
-                });
+                    (DebugOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderRayCountOverlay(data.debugParameters, ctx.cmd);
+                    });
             }
         }
 
@@ -248,11 +248,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 builder.SetRenderFunc(
-                (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
-                {
-                    RenderLightLoopDebugOverlay(data.debugParameters, ctx.cmd, data.tileList, data.lightList, data.perVoxelLightList, data.dispatchIndirect, data.depthPyramidTexture);
-
-                });
+                    (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderLightLoopDebugOverlay(data.debugParameters, ctx.cmd, data.tileList, data.lightList, data.perVoxelLightList, data.dispatchIndirect, data.depthPyramidTexture);
+                    });
             }
         }
 
@@ -268,10 +267,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                 builder.SetRenderFunc(
-                (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
-                {
-                    RenderProbeVolumeDebugOverlay(data.debugParameters, ctx.cmd);
-                });
+                    (DebugLightLoopOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderProbeVolumeDebugOverlay(data.debugParameters, ctx.cmd);
+                    });
             }
         }
 
@@ -295,19 +294,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowTextures = HDShadowManager.ReadShadowResult(shadowResult, builder);
 
                 builder.SetRenderFunc(
-                (RenderShadowsDebugOverlayPassData data, RenderGraphContext ctx) =>
-                {
-                    var debugParams = data.debugParameters;
+                    (RenderShadowsDebugOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        var debugParams = data.debugParameters;
 
-                    var shadowAtlases = new HDShadowManager.ShadowDebugAtlasTextures();
-                    shadowAtlases.punctualShadowAtlas = data.shadowTextures.punctualShadowResult;
-                    shadowAtlases.cascadeShadowAtlas = data.shadowTextures.directionalShadowResult;
-                    shadowAtlases.areaShadowAtlas = data.shadowTextures.areaShadowResult;
-                    shadowAtlases.cachedPunctualShadowAtlas = data.shadowTextures.cachedPunctualShadowResult;
-                    shadowAtlases.cachedAreaShadowAtlas = data.shadowTextures.cachedAreaShadowResult;
+                        var shadowAtlases = new HDShadowManager.ShadowDebugAtlasTextures();
+                        shadowAtlases.punctualShadowAtlas = data.shadowTextures.punctualShadowResult;
+                        shadowAtlases.cascadeShadowAtlas = data.shadowTextures.directionalShadowResult;
+                        shadowAtlases.areaShadowAtlas = data.shadowTextures.areaShadowResult;
+                        shadowAtlases.cachedPunctualShadowAtlas = data.shadowTextures.cachedPunctualShadowResult;
+                        shadowAtlases.cachedAreaShadowAtlas = data.shadowTextures.cachedAreaShadowResult;
 
-                    RenderShadowsDebugOverlay(debugParams, shadowAtlases, ctx.cmd, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
-                });
+                        RenderShadowsDebugOverlay(debugParams, shadowAtlases, ctx.cmd, ctx.renderGraphPool.GetTempMaterialPropertyBlock());
+                    });
             }
         }
 
@@ -323,22 +322,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
 
                 builder.SetRenderFunc(
-                (DebugOverlayPassData data, RenderGraphContext ctx) =>
-                {
-                    DecalSystem.instance.RenderDebugOverlay(data.debugParameters.hdCamera, ctx.cmd, data.debugParameters.debugDisplaySettings, data.debugParameters.debugOverlay);
-                });
+                    (DebugOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        DecalSystem.instance.RenderDebugOverlay(data.debugParameters.hdCamera, ctx.cmd, data.debugParameters.debugDisplaySettings, data.debugParameters.debugOverlay);
+                    });
             }
         }
 
-        void RenderDebugOverlays(   RenderGraph                 renderGraph,
-                                    in DebugParameters          debugParameters,
-                                    TextureHandle               colorBuffer,
-                                    TextureHandle               depthBuffer,
-                                    TextureHandle               depthPyramidTexture,
-                                    in BuildGPULightListOutput  lightLists,
-                                    in ShadowResult             shadowResult)
+        void RenderDebugOverlays(RenderGraph                 renderGraph,
+            in DebugParameters          debugParameters,
+            TextureHandle               colorBuffer,
+            TextureHandle               depthBuffer,
+            TextureHandle               depthPyramidTexture,
+            in BuildGPULightListOutput  lightLists,
+            in ShadowResult             shadowResult)
         {
-
             RenderSkyReflectionOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderRayCountOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer);
             RenderLightLoopDebugOverlay(renderGraph, debugParameters, colorBuffer, depthBuffer, lightLists, depthPyramidTexture);
@@ -367,7 +365,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.parameters = s_lightVolumes.PrepareLightVolumeParameters(debugParameters.hdCamera, debugParameters.debugDisplaySettings.data.lightingDebugSettings, cullResults);
                 passData.lightCountBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat= GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeCount" });
+                    { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeCount" });
                 passData.colorAccumulationBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, clearBuffer = true, clearColor = Color.black, name = "LightVolumeColorAccumulation" });
                 passData.debugLightVolumesTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -376,24 +374,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(destination);
 
                 builder.SetRenderFunc(
-                (RenderLightVolumesPassData data, RenderGraphContext ctx) =>
-                {
-                    RenderTargetIdentifier[] mrt = ctx.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
-                    mrt[0] = data.lightCountBuffer;
-                    mrt[1] = data.colorAccumulationBuffer;
+                    (RenderLightVolumesPassData data, RenderGraphContext ctx) =>
+                    {
+                        RenderTargetIdentifier[] mrt = ctx.renderGraphPool.GetTempArray<RenderTargetIdentifier>(2);
+                        mrt[0] = data.lightCountBuffer;
+                        mrt[1] = data.colorAccumulationBuffer;
 
-                    DebugLightVolumes.RenderLightVolumes(   ctx.cmd,
-                                                            data.parameters,
-                                                            mrt, data.lightCountBuffer,
-                                                            data.colorAccumulationBuffer,
-                                                            data.debugLightVolumesTexture,
-                                                            data.depthBuffer,
-                                                            data.destination,
-                                                            ctx.renderGraphPool.GetTempMaterialPropertyBlock());
-                });
+                        DebugLightVolumes.RenderLightVolumes(ctx.cmd,
+                            data.parameters,
+                            mrt, data.lightCountBuffer,
+                            data.colorAccumulationBuffer,
+                            data.debugLightVolumesTexture,
+                            data.depthBuffer,
+                            data.destination,
+                            ctx.renderGraphPool.GetTempMaterialPropertyBlock());
+                    });
             }
         }
-
 
         class DebugImageHistogramData
         {
@@ -408,10 +405,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.source = builder.ReadTexture(source);
                 passData.parameters = m_PostProcessSystem.PrepareDebugImageHistogramParameters(hdCamera);
                 builder.SetRenderFunc(
-                (DebugImageHistogramData data, RenderGraphContext ctx) =>
-                {
-                    PostProcessSystem.GenerateDebugImageHistogram(data.parameters, ctx.cmd, data.source);
-                });
+                    (DebugImageHistogramData data, RenderGraphContext ctx) =>
+                    {
+                        PostProcessSystem.GenerateDebugImageHistogram(data.parameters, ctx.cmd, data.source);
+                    });
             }
         }
 
@@ -450,34 +447,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.histogramBuffer = debugParameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView ? m_PostProcessSystem.GetDebugImageHistogramBuffer() : m_PostProcessSystem.GetHistogramBuffer();
 
                 builder.SetRenderFunc(
-                (DebugExposureData data, RenderGraphContext ctx) =>
-                {
-                    RenderExposureDebug(data.debugParameters, data.colorBuffer, data.debugFullScreenTexture,
-                                        data.previousExposure,
-                                        data.currentExposure,
-                                        data.debugExposureData,
-                                        data.output,
-                                        data.customToneMapCurve,
-                                        data.lutSize,
-                                        data.proceduralMeteringParams1,
-                                        data.proceduralMeteringParams2,
-                                        data.histogramBuffer, ctx.cmd);
-
-                });
+                    (DebugExposureData data, RenderGraphContext ctx) =>
+                    {
+                        RenderExposureDebug(data.debugParameters, data.colorBuffer, data.debugFullScreenTexture,
+                            data.previousExposure,
+                            data.currentExposure,
+                            data.debugExposureData,
+                            data.output,
+                            data.customToneMapCurve,
+                            data.lutSize,
+                            data.proceduralMeteringParams1,
+                            data.proceduralMeteringParams2,
+                            data.histogramBuffer, ctx.cmd);
+                    });
 
                 return passData.output;
             }
         }
 
-        TextureHandle RenderDebug(  RenderGraph                 renderGraph,
-                                    HDCamera                    hdCamera,
-                                    TextureHandle               colorBuffer,
-                                    TextureHandle               depthBuffer,
-                                    TextureHandle               depthPyramidTexture,
-                                    TextureHandle               colorPickerDebugTexture,
-                                    in BuildGPULightListOutput  lightLists,
-                                    in ShadowResult             shadowResult,
-                                    CullingResults              cullResults)
+        TextureHandle RenderDebug(RenderGraph                 renderGraph,
+            HDCamera                    hdCamera,
+            TextureHandle               colorBuffer,
+            TextureHandle               depthBuffer,
+            TextureHandle               depthPyramidTexture,
+            TextureHandle               colorPickerDebugTexture,
+            in BuildGPULightListOutput  lightLists,
+            in ShadowResult             shadowResult,
+            CullingResults              cullResults)
         {
             // We don't want any overlay for these kind of rendering
             if (hdCamera.camera.cameraType == CameraType.Reflection || hdCamera.camera.cameraType == CameraType.Preview)
@@ -551,10 +547,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.outputColor = builder.WriteTexture(output);
 
                     builder.SetRenderFunc(
-                    (DebugViewMaterialData data, RenderGraphContext context) =>
-                    {
-                        HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
-                    });
+                        (DebugViewMaterialData data, RenderGraphContext context) =>
+                        {
+                            HDUtils.DrawFullScreen(context.cmd, data.debugGBufferMaterial, data.outputColor);
+                        });
                 }
             }
             else
@@ -581,18 +577,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.clearDepth = hdCamera.clearDepth;
 
                     builder.SetRenderFunc(
-                    (DebugViewMaterialData data, RenderGraphContext context) =>
-                    {
-                        // If we are doing camera stacking, then we want to clear the debug color and depth buffer using the data from the previous camera on the stack
-                        // Note: Ideally here we would like to draw directly on the same buffers as the previous camera, but currently the compositor is not using 
-                        // Texture Arrays so this would not work. We might need to revise this in the future. 
-                        if (data.clearColorTexture != null)
+                        (DebugViewMaterialData data, RenderGraphContext context) =>
                         {
-                            HDUtils.BlitColorAndDepth(context.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
-                        }
-                        DrawOpaqueRendererList(context, data.frameSettings, data.opaqueRendererList);
-                        DrawTransparentRendererList(context, data.frameSettings, data.transparentRendererList);
-                    });
+                            // If we are doing camera stacking, then we want to clear the debug color and depth buffer using the data from the previous camera on the stack
+                            // Note: Ideally here we would like to draw directly on the same buffers as the previous camera, but currently the compositor is not using
+                            // Texture Arrays so this would not work. We might need to revise this in the future.
+                            if (data.clearColorTexture != null)
+                            {
+                                HDUtils.BlitColorAndDepth(context.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
+                            }
+                            DrawOpaqueRendererList(context, data.frameSettings, data.opaqueRendererList);
+                            DrawTransparentRendererList(context, data.frameSettings, data.transparentRendererList);
+                        });
                 }
             }
 
@@ -644,13 +640,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
 
                 builder.SetRenderFunc(
-                (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
-                {
-                    if (data.mipIndex != -1)
-                        HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
-                    else
-                        HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
-                });
+                    (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
+                    {
+                        if (data.mipIndex != -1)
+                            HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
+                        else
+                            HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
+                    });
 
                 m_DebugFullScreenTexture = passData.output;
             }
@@ -686,23 +682,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.msaa = msaa;
                     passData.input = builder.ReadTexture(input);
                     passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
+                        { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugFullScreen" }), 0);
 
                     builder.SetRenderFunc(
-                    (PushFullScreenVTDebugPassData data, RenderGraphContext ctx) =>
-                    {
-                        CoreUtils.SetRenderTarget(ctx.cmd, data.output);
-                        data.material.SetTexture(data.msaa ? HDShaderIDs._BlitTextureMSAA : HDShaderIDs._BlitTexture, data.input);
-                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.material, data.msaa ? 1 : 0, MeshTopology.Triangles, 3, 1);
-                    });
+                        (PushFullScreenVTDebugPassData data, RenderGraphContext ctx) =>
+                        {
+                            CoreUtils.SetRenderTarget(ctx.cmd, data.output);
+                            data.material.SetTexture(data.msaa ? HDShaderIDs._BlitTextureMSAA : HDShaderIDs._BlitTexture, data.input);
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, data.material, data.msaa ? 1 : 0, MeshTopology.Triangles, 3, 1);
+                        });
 
                     m_DebugFullScreenTexture = passData.output;
-
                 }
 
                 m_FullScreenDebugPushed = true;
             }
         }
+
 #endif
 
         TextureHandle PushColorPickerDebugTexture(RenderGraph renderGraph, TextureHandle input)
@@ -714,10 +710,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "DebugColorPicker" }), 0);
 
                 builder.SetRenderFunc(
-                (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
-                {
-                    HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
-                });
+                    (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
+                    {
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output);
+                    });
 
                 return passData.output;
             }

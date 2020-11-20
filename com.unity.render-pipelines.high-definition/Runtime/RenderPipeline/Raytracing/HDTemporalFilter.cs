@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TemporalFilterArrayParameters PrepareTemporalFilterArrayParameters(HDCamera hdCamera, bool distanceBased, bool singleChannel, float historyValidity, int sliceIndex, Vector4 channelMask, Vector4 distanceChannelMask)
         {
             TemporalFilterArrayParameters tfaParams = new TemporalFilterArrayParameters();
-        
+
             // Set the camera parameters
             tfaParams.texWidth = hdCamera.actualWidth;
             tfaParams.texHeight = hdCamera.actualHeight;
@@ -280,8 +280,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TemporalFilterArrayResources PrepareTemporalFilterArrayResources(HDCamera hdCamera, RTHandle noisyBuffer, RTHandle distanceBuffer, RTHandle validationBuffer,
-                                                                        RTHandle historyBuffer, RTHandle validationHistoryBuffer, RTHandle distanceHistorySignal,
-                                                                        RTHandle outputBuffer, RTHandle outputDistanceSignal)
+            RTHandle historyBuffer, RTHandle validationHistoryBuffer, RTHandle distanceHistorySignal,
+            RTHandle outputBuffer, RTHandle outputDistanceSignal)
         {
             TemporalFilterArrayResources tfaResources = new TemporalFilterArrayResources();
 
@@ -424,8 +424,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TemporalFilterArrayParameters tfaParams = PrepareTemporalFilterArrayParameters(hdCamera, distanceBased, singleChannel, historyValidity, sliceIndex, channelMask, distanceChannelMask);
             TemporalFilterArrayResources tfaResources = PrepareTemporalFilterArrayResources(hdCamera, noisyBuffer, distanceBuffer, validationBuffer,
-                                                                                            historyBuffer, validationHistoryBuffer, distanceHistorySignal,
-                                                                                            outputBuffer, outputDistanceSignal);
+                historyBuffer, validationHistoryBuffer, distanceHistorySignal,
+                outputBuffer, outputDistanceSignal);
             ExecuteTemporalFilterArray(cmd, tfaParams, tfaResources);
         }
     }

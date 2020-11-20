@@ -109,7 +109,7 @@ void SPATIAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID , uint2 groupTh
                 || tapCoord.y < 0)
                 continue;
 #else
-            if (tapCoord.x >= _ScreenSize.x 
+            if (tapCoord.x >= _ScreenSize.x
                 || tapCoord.x < 0
                 || tapCoord.y >= _ScreenSize.y
                 || tapCoord.y < 0)
@@ -170,7 +170,7 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
 
     int2 centerCoord = dispatchThreadId.xy;
 
-    // Read the color as early as possible 
+    // Read the color as early as possible
     float4 color0 = LOAD_TEXTURE2D_X(_InputNoisyBuffer0, centerCoord);
     float4 color1 = LOAD_TEXTURE2D_X(_InputNoisyBuffer1, centerCoord);
 
@@ -186,7 +186,7 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, centerCoord).r;
     PositionInputs posInputs = GetPositionInput(centerCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 #endif
-    
+
     // Initialize the output buffer in case of an early exit.
     _OutputFilteredBuffer0[COORD_TEXTURE2D_X(centerCoord)] = color0;
     _OutputFilteredBuffer1[COORD_TEXTURE2D_X(centerCoord)] = float4(color1.xyz, 1.0);
@@ -208,12 +208,12 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
 #if HALF_RES
     historyTapCoord *= 0.5;
     // If the pixel was outside of the screen during the previous frame, invalidate the history
-    if (historyTapCoord.x >= _HalfScreenSize.x || historyTapCoord.x < 0 
+    if (historyTapCoord.x >= _HalfScreenSize.x || historyTapCoord.x < 0
         || historyTapCoord.y >= _HalfScreenSize.y || historyTapCoord.y < 0)
         return;
 #else
     // If the pixel was outside of the screen during the previous frame, invalidate the history
-    if (historyTapCoord.x >= _ScreenSize.x || historyTapCoord.x < 0 
+    if (historyTapCoord.x >= _ScreenSize.x || historyTapCoord.x < 0
         || historyTapCoord.y >= _ScreenSize.y || historyTapCoord.y < 0)
         return;
 #endif
