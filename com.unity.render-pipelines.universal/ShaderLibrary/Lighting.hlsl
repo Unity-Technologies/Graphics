@@ -1056,6 +1056,8 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 ////////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 {
+    half smoothness = exp2(10 * surfaceData.smoothness + 1);
+
     #if defined(_DEBUG_SHADER)
     DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
@@ -1098,7 +1100,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
         half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
 
         diffuseColor += LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
-        specularColor += LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
+        specularColor += LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
     }
 
     #if defined(_ADDITIONAL_LIGHTS)
@@ -1113,7 +1115,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
         	#endif
         	half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
         	diffuseColor += LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
-            specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
+            specularColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
     	}
     }
     #endif
