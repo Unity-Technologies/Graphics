@@ -83,7 +83,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 m_LightBlendStyles[i].name = "Blend Style " + i;
                 m_LightBlendStyles[i].blendMode = Light2DBlendStyle.BlendMode.Multiply;
-                m_LightBlendStyles[i].renderTextureScale = 0.5f;
             }
         }
 #endif

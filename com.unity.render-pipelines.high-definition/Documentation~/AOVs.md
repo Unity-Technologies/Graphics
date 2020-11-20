@@ -7,7 +7,7 @@ Here is an example of three AOVs, containing from left to right the Albedo, Norm
 ![](Images/aov_example.png)
 
 In HDRP, you can access and configure AOVs in the following ways:
-- Using the [HDRP Compositor tool](Compositor-Main).
+- Using the [HDRP Compositor tool](Compositor-Main.md).
 - Using the [Unity Recorder](https://docs.unity3d.com/Packages/com.unity.recorder@latest/index.html) and the [AOV Recorder](https://docs.unity3d.com/Packages/com.unity.aovrecorder@latest/index.html) packages.
 - Using the scripting API to set up a custom AOV request in any HDRP Camera in your Scene.
 
