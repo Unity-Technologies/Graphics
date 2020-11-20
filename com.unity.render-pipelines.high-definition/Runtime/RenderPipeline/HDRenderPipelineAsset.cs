@@ -31,7 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
-
         }
 
         void Reset() => OnValidate();
@@ -146,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal ref FrameSettings GetDefaultFrameSettings(FrameSettingsRenderType type)
         {
-            switch(type)
+            switch (type)
             {
                 case FrameSettingsRenderType.Camera:
                     return ref m_RenderingPathDefaultCameraFrameSettings;
@@ -433,6 +432,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
         }
+
 #endif
 
         /// <summary>

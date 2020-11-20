@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
                 // keep existing slots, don't modify them
                 return;
             }
-            switch(property.concreteShaderValueType)
+            switch (property.concreteShaderValueType)
             {
                 case ConcreteSlotValueType.Boolean:
                     AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
@@ -192,9 +192,9 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"SamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.Gradient:
-                if(generationMode == GenerationMode.Preview)
+                    if (generationMode == GenerationMode.Preview)
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.referenceName)};");
-                else
+                    else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
             }
@@ -202,7 +202,6 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            
             // TODO: I don't like this exception list being buried in PropertyNode.cs, should be something on the ShaderProperty themselves...
             if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&

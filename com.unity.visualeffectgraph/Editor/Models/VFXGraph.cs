@@ -16,7 +16,6 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
@@ -35,7 +34,7 @@ namespace UnityEditor.VFX
                     Debug.LogError("VisualEffectGraphResource without graph");
             }
         }
-        
+
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -651,7 +650,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void SetFlattenedParentToSubblocks( )
+        private void SetFlattenedParentToSubblocks()
         {
             foreach (var child in children.OfType<VFXContext>())
                 foreach (var block in child.children.OfType<VFXSubgraphBlock>())
@@ -760,11 +759,12 @@ namespace UnityEditor.VFX
                 }
             }
 
-            foreach(var child in children)
+            foreach (var child in children)
                 child.CheckGraphBeforeImport();
 
             SanitizeGraph();
         }
+
         public void CompileForImport()
         {
             if (!GetResource().isSubgraph)
@@ -809,7 +809,6 @@ namespace UnityEditor.VFX
                     PrepareSubgraphs();
 
                     compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
-
                 }
                 else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
                 {
@@ -910,6 +909,5 @@ namespace UnityEditor.VFX
         }
 
         private VisualEffectResource m_Owner;
-
     }
 }

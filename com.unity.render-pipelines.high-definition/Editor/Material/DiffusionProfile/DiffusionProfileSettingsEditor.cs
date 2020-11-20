@@ -155,7 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float r = obj.filterRadius;
             var   S = obj.shapeParam;
 
-            m_ProfileMaterial.SetFloat( HDShaderIDs._MaxRadius,  r);
+            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  r);
             m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
 
             // Draw the profile.

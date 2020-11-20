@@ -92,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false)
             {
@@ -143,7 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                             DenoiserGUI();
                                         }
                                     }
-                                        break;
+                                    break;
                                     case RayTracingMode.Quality:
                                     {
                                         PropertyField(m_RayLength, k_RayLengthText);
@@ -152,7 +151,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                         PropertyField(m_BounceCount);
                                         DenoiserGUI();
                                     }
-                                        break;
+                                    break;
                                 }
                             }
                         }
@@ -180,7 +179,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                             EditorGUI.indentLevel--;
                         }
-
                     }
                 }
 
@@ -192,7 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new HDEditorUtils.IndentScope())
                     using (new QualityScope(this))
                     {
-                        PropertyField(m_FullResolutionSS,EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                        PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
                         PropertyField(m_RaySteps);
                         PropertyField(m_FilterRadius);
                     }
@@ -201,6 +199,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)

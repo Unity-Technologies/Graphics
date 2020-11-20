@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_ScreenSpaceShadowsFilterCS;
 
         // Kernels
-            // Shared shadow kernels
+        // Shared shadow kernels
         int m_ClearShadowTexture;
         int m_OutputShadowTextureKernel;
         int m_OutputColorShadowTextureKernel;
@@ -77,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsFormat graphicsFormat = (GraphicsFormat)hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
             int numShadowSlices = Math.Max((int)Math.Ceiling(hdrp.m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
             return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat,
-                        enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("{0}_ShadowHistoryValidityBuffer{1}", viewName, frameIndex));
+                enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("{0}_ShadowHistoryValidityBuffer{1}", viewName, frameIndex));
         }
 
         static RTHandle ShadowHistoryDistanceBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GraphicsFormat graphicsFormat = (GraphicsFormat)hdPipelineAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
             int numShadowSlices = Math.Max((int)Math.Ceiling(hdrp.m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
             return rtHandleSystem.Alloc(Vector2.one, slices: numShadowSlices * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat,
-                        enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("{0}_ShadowHistoryDistanceBuffer{1}", viewName, frameIndex));
+                enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: string.Format("{0}_ShadowHistoryDistanceBuffer{1}", viewName, frameIndex));
         }
 
         RTHandle RequestShadowHistoryBuffer(HDCamera hdCamera)
@@ -125,25 +125,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (outputChannel)
                 {
                     case 0:
-                        {
-                            outputMask.Set(1.0f, 0.0f, 0.0f, 0.0f);
-                            break;
-                        }
+                    {
+                        outputMask.Set(1.0f, 0.0f, 0.0f, 0.0f);
+                        break;
+                    }
                     case 1:
-                        {
-                            outputMask.Set(0.0f, 1.0f, 0.0f, 0.0f);
-                            break;
-                        }
+                    {
+                        outputMask.Set(0.0f, 1.0f, 0.0f, 0.0f);
+                        break;
+                    }
                     case 2:
-                        {
-                            outputMask.Set(0.0f, 0.0f, 1.0f, 0.0f);
-                            break;
-                        }
+                    {
+                        outputMask.Set(0.0f, 0.0f, 1.0f, 0.0f);
+                        break;
+                    }
                     case 3:
-                        {
-                            outputMask.Set(0.0f, 0.0f, 0.0f, 1.0f);
-                            break;
-                        }
+                    {
+                        outputMask.Set(0.0f, 0.0f, 0.0f, 1.0f);
+                        break;
+                    }
                 }
             }
             else if (shadowType == ScreenSpaceShadowType.Area)
@@ -151,20 +151,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (outputChannel)
                 {
                     case 0:
-                        {
-                            outputMask.Set(1.0f, 1.0f, 0.0f, 0.0f);
-                            break;
-                        }
+                    {
+                        outputMask.Set(1.0f, 1.0f, 0.0f, 0.0f);
+                        break;
+                    }
                     case 1:
-                        {
-                            outputMask.Set(0.0f, 1.0f, 1.0f, 0.0f);
-                            break;
-                        }
+                    {
+                        outputMask.Set(0.0f, 1.0f, 1.0f, 0.0f);
+                        break;
+                    }
                     case 2:
-                        {
-                            outputMask.Set(0.0f, 0.0f, 1.0f, 1.0f);
-                            break;
-                        }
+                    {
+                        outputMask.Set(0.0f, 0.0f, 1.0f, 1.0f);
+                        break;
+                    }
                     default:
                         Debug.Assert(false);
                         break;
@@ -175,10 +175,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (outputChannel)
                 {
                     case 0:
-                        {
-                            outputMask.Set(1.0f, 1.0f, 1.0f, 0.0f);
-                            break;
-                        }
+                    {
+                        outputMask.Set(1.0f, 1.0f, 1.0f, 0.0f);
+                        break;
+                    }
                     default:
                         Debug.Assert(false);
                         break;

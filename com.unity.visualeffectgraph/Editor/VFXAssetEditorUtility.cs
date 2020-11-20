@@ -65,7 +65,7 @@ namespace UnityEditor
         [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
-            GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null,"Visual Effect"));
+            GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null, "Visual Effect"));
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
             var vfxComp = go.AddComponent<VisualEffect>();
 
@@ -140,10 +140,8 @@ VisualEffectResource:
             return resources == null || resources.Length == 0;
         }
 
-
         public static void CreateTemplateAsset(string pathName)
         {
-
             try
             {
                 var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);

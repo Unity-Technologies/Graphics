@@ -105,7 +105,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return sdResources;
         }
 
-
         static void ExecuteSimpleDenoiser(CommandBuffer cmd, SimpleDenoiserParameters sdParams, SimpleDenoiserResources sdResources)
         {
             // Evaluate the dispatch parameters
@@ -155,9 +154,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseBufferNoHistory(RenderGraph renderGraph, HDCamera hdCamera,
-                            TextureHandle depthBuffer, TextureHandle normalBuffer,
-                            TextureHandle noisyBuffer,
-                            int kernelSize, bool singleChannel)
+            TextureHandle depthBuffer, TextureHandle normalBuffer,
+            TextureHandle noisyBuffer,
+            int kernelSize, bool singleChannel)
         {
             using (var builder = renderGraph.AddRenderPass<SimpleDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
@@ -174,26 +173,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary buffers
                 passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
 
                 // Output buffer
                 passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" })));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" })));
 
 
                 builder.SetRenderFunc(
-                (SimpleDenoiserPassData data, RenderGraphContext ctx) =>
-                {
-                    SimpleDenoiserResources resources = new SimpleDenoiserResources();
-                    resources.depthStencilBuffer = data.depthStencilBuffer;
-                    resources.normalBuffer = data.normalBuffer;
-                    resources.noisyBuffer = data.noisyBuffer;
+                    (SimpleDenoiserPassData data, RenderGraphContext ctx) =>
+                    {
+                        SimpleDenoiserResources resources = new SimpleDenoiserResources();
+                        resources.depthStencilBuffer = data.depthStencilBuffer;
+                        resources.normalBuffer = data.normalBuffer;
+                        resources.noisyBuffer = data.noisyBuffer;
 
-                    resources.intermediateBuffer = data.intermediateBuffer;
+                        resources.intermediateBuffer = data.intermediateBuffer;
 
-                    resources.outputBuffer = data.outputBuffer;
-                    ExecuteSimpleDenoiser(ctx.cmd, data.parameters, resources);
-                });
+                        resources.outputBuffer = data.outputBuffer;
+                        ExecuteSimpleDenoiser(ctx.cmd, data.parameters, resources);
+                    });
                 return passData.outputBuffer;
             }
         }
