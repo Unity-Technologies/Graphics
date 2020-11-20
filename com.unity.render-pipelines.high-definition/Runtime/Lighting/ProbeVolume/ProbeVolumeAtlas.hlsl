@@ -124,7 +124,7 @@ void ProbeVolumeSwizzleAndNormalizeSphericalHarmonicsL2(inout ProbeVolumeSpheric
     // Now just need to perform final SH2 normalization:
     // Again, normalization from: https://www.ppsloan.org/publications/StupidSH36.pdf
     // Appendix A10 Shader/CPU code for Irradiance Environment Maps
-    
+
     // Normalize DC term:
     coefficients.data[0].w -= coefficients.data[3].z;
     coefficients.data[1].w -= coefficients.data[4].z;

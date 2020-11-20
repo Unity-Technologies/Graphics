@@ -51,7 +51,7 @@ The [Visual Environment](Override-Visual-Environment.md) override allows you to 
 
 ![](Images/GettingStarted3.png)
 
-For more information, see [Visual Environment](Override-Visual-Environment.md), [Sky overview](HDRP-Features.md#SkyOverview.md), and [Fog overview](HDRP-Features.md#FogOverview.md).
+For more information, see [Visual Environment](Override-Visual-Environment.md), [Sky overview](HDRP-Features.md#sky), and [Fog overview](HDRP-Features.md#fog).
 
 ## Materials and Shaders
 

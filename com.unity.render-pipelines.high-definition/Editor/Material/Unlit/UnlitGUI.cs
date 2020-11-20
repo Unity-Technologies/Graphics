@@ -48,7 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
-
         }
     }
 } // namespace UnityEditor

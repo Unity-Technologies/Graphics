@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering
                 else
                     cmd.EndSample(name);
 #else
-                    m_Cmd.EndSample(name);
+                m_Cmd.EndSample(name);
 #endif
             inlineSampler?.End();
         }
@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering
         public int inlineCpuSampleCount => 0;
 #endif
         // Keep the constructor private
-        ProfilingSampler() { }
+        ProfilingSampler() {}
     }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering
 
             m_Disposed = true;
         }
-}
+    }
 #else
     /// <summary>
     /// Scoped Profiling markers
@@ -285,7 +285,6 @@ namespace UnityEngine.Rendering
         /// <param name="sampler">Profiling Sampler to be used for this scope.</param>
         public ProfilingScope(CommandBuffer cmd, ProfilingSampler sampler)
         {
-
         }
 
         /// <summary>

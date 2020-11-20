@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ClusterCenterPosition = Shader.PropertyToID("_ClusterCenterPosition");
         public static readonly int _ClusterDimension = Shader.PropertyToID("_ClusterDimension");
 
-    // Temporary variables
+        // Temporary variables
         // This value is now fixed for every HDRP asset
         int m_NumLightsPerCell = 0;
 
@@ -82,7 +82,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDRaytracingLightCluster()
         {
-
         }
 
         public void Initialize(HDRenderPipeline renderPipeline)
@@ -370,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (currentEnvLight != null)
                 {
-                    if(currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
+                    if (currentEnvLight.influenceVolume.shape == InfluenceShape.Sphere)
                     {
                         m_LightVolumesCPUArray[lightIdx + indexOffset].shape = 0;
                         m_LightVolumesCPUArray[lightIdx + indexOffset].range = new Vector3(currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius, currentEnvLight.influenceVolume.sphereRadius);
@@ -520,7 +519,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 LightData lightData = new LightData();
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
                 // the workaround for this is simply to add an invalid light for that frame
-                if(additionalLightData == null)
+                if (additionalLightData == null)
                 {
                     m_LightDataCPUArray.Add(lightData);
                     continue;
@@ -730,18 +729,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.depthPyramid = builder.ReadTexture(depthStencilBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" }));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Light Cluster Debug Texture" }));
 
                 builder.SetRenderFunc(
-                (LightClusterDebugPassData data, RenderGraphContext ctx) =>
-                {
-                    // We need to fill the structure that holds the various resources
-                    LightClusterDebugResources resources = new LightClusterDebugResources();
-                    resources.depthStencilBuffer = data.depthStencilBuffer;
-                    resources.depthTexture = data.depthPyramid;
-                    resources.debugLightClusterTexture = data.outputBuffer;
-                    ExecuteLightClusterDebug(ctx.cmd, data.parameters, resources);
-                });
+                    (LightClusterDebugPassData data, RenderGraphContext ctx) =>
+                    {
+                        // We need to fill the structure that holds the various resources
+                        LightClusterDebugResources resources = new LightClusterDebugResources();
+                        resources.depthStencilBuffer = data.depthStencilBuffer;
+                        resources.depthTexture = data.depthPyramid;
+                        resources.debugLightClusterTexture = data.outputBuffer;
+                        ExecuteLightClusterDebug(ctx.cmd, data.parameters, resources);
+                    });
 
                 debugTexture = passData.outputBuffer;
             }
@@ -753,6 +752,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return m_LightCluster;
         }
+
         public ComputeBuffer GetLightDatas()
         {
             return m_LightDataGPUArray;
@@ -805,7 +805,6 @@ namespace UnityEngine.Rendering.HighDefinition
             maxClusterPos.Set(-float.MaxValue, -float.MaxValue, -float.MaxValue);
             punctualLightCount = 0;
             areaLightCount = 0;
-            return;
         }
 
         public void CullForRayTracing(HDCamera hdCamera, HDRayTracingLights rayTracingLights)
@@ -831,9 +830,9 @@ namespace UnityEngine.Rendering.HighDefinition
             EvaluateClusterVolume(hdCamera);
         }
 
-		public void BuildLightClusterBuffer(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
-		{
-			  // If there is no lights to process or no environment not the shader is missing
+        public void BuildLightClusterBuffer(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
+        {
+            // If there is no lights to process or no environment not the shader is missing
             if (totalLightCount == 0 || rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
                 return;
 
@@ -844,7 +843,7 @@ namespace UnityEngine.Rendering.HighDefinition
             BuildLightCluster(hdCamera, cmd);
         }
 
-        public void ReserveCookieAtlasSlots( HDRayTracingLights rayTracingLights)
+        public void ReserveCookieAtlasSlots(HDRayTracingLights rayTracingLights)
         {
             for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
             {

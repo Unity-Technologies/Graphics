@@ -183,7 +183,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // If the layerCount is 1, then it means that the property we're fetching is not from a layered material
             // thus it doesn't have a prefix
-            string[] prefixes = (layerCount > 1) ? new []{"0", "1", "2", "3"} : new []{""};
+            string[] prefixes = (layerCount > 1) ? new[] {"0", "1", "2", "3"} : new[] {""};
 
             for (int i = 0; i < layerCount; i++)
             {

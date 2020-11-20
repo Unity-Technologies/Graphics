@@ -103,7 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
 
-
     static class DebugLightHierarchyExtensions
     {
         public static bool IsEnabledFor(
@@ -188,7 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
         FinalImageHistogramView,
         /// <summary>Visualize the scene color weighted as the metering mode selected.</summary>
         MeteringWeighted,
-
     }
 
 
@@ -204,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeValidity
     }
 
-	/// <summary>
+    /// <summary>
     /// Probe Volume Atlas Slicing Modes.
     /// </summary>
     [GenerateHLSL]
@@ -223,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
         OctahedralDepth
     }
 
-	/// <summary>
+    /// <summary>
     /// Lighting Debug Settings.
     /// </summary>
     [Serializable]
@@ -266,13 +264,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
         /// <summary>Current Probe Volume Debug Mode.</summary>
         [SerializeField] internal ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
-		/// <summary>Current Probe Volume Atlas Slicing Mode.</summary>
+        /// <summary>Current Probe Volume Atlas Slicing Mode.</summary>
         [SerializeField] internal ProbeVolumeAtlasSliceMode probeVolumeAtlasSliceMode = ProbeVolumeAtlasSliceMode.IrradianceSH00;
-		/// <summary>The minimum display threshold for atlas slices.</summary>
+        /// <summary>The minimum display threshold for atlas slices.</summary>
         [SerializeField] internal float probeVolumeMinValue = 0.0f;
-		/// <summary>The maximum display threshold for atlas slices.</summary>
+        /// <summary>The maximum display threshold for atlas slices.</summary>
         [SerializeField] internal float probeVolumeMaxValue = 1.0f;
-		/// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
+        /// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
         public bool                 shadowDebugUseSelection = false;
         /// <summary>Index in the list of currently visible lights of the shadow map to display.</summary>
         public uint                 shadowMapIndex = 0;
@@ -375,10 +373,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {
-            return  debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
-                    debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
-                    debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
-                    debugLightingMode == DebugLightingMode.ProbeVolume;
+            return debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
+                debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
+                debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
+                debugLightingMode == DebugLightingMode.ProbeVolume;
         }
 
         internal static Vector4[] GetDefaultRenderingLayersColorPalette()

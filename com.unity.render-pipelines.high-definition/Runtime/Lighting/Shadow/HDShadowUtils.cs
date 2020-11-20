@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public static void ExtractPointLightData(VisibleLight visibleLight, Vector2 viewportSize, float nearPlane, float normalBiasMax, uint faceIndex, HDShadowFilteringQuality filteringQuality,
-                                                 out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
@@ -41,7 +41,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // TODO: box spot and pyramid spots with non 1 aspect ratios shadow are incorrectly culled, see when scriptable culling will be here
         public static void ExtractSpotLightData(SpotLightShape shape, float spotAngle, float nearPlane, float aspectRatio, float shapeWidth, float shapeHeight, VisibleLight visibleLight, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality,
-                                                out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
 
@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Currently area light shadows are not supported
         public static void ExtractRectangleAreaLightData(VisibleLight visibleLight, Vector3 shadowPosition, float areaLightShadowCone, float shadowNearPlane, Vector2 shapeSize, Vector2 viewportSize, float normalBiasMax, HDShadowFilteringQuality filteringQuality,
-                                                         out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
+            out Matrix4x4 view, out Matrix4x4 invViewProjection, out Matrix4x4 projection, out Matrix4x4 deviceProjection, out ShadowSplitData splitData)
         {
             Vector4 lightDir;
             float aspectRatio = shapeSize.x / shapeSize.y;
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 mat.m11 = e;
             }
 
-            mat.m22 = -(f + n)/(f - n);
+            mat.m22 = -(f + n) / (f - n);
             mat.m23 = -2 * f * n / (f - n);
             mat.m32 = -1;
 
@@ -265,7 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deviceProj = GL.GetGPUProjectionMatrix(proj, false);
             proj = GL.GetGPUProjectionMatrix(proj, true);
             InvertPerspective(ref deviceProj, ref view, out vpinverse);
-            return  CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
+            return CoreMatrixUtils.MultiplyPerspectiveMatrix(deviceProj, view);
         }
 
         static Matrix4x4 ExtractPointLightMatrix(VisibleLight vl, uint faceIdx, float nearPlane, float guardAngle, out Matrix4x4 view, out Matrix4x4 proj, out Matrix4x4 deviceProj, out Matrix4x4 vpinverse, out Vector4 lightDir, out ShadowSplitData splitData)

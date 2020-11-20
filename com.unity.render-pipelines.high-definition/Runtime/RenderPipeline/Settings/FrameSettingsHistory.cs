@@ -65,9 +65,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 => m_FrameSettingsHistory.debug = HDRenderPipeline.defaultAsset?.GetDefaultFrameSettings(FrameSettingsRenderType.Camera) ?? new FrameSettings();
 
             Action IDebugData.GetReset()
-                //caution: we actually need to retrieve the
-                //m_FrameSettingsHistory as it is a struct so no direct
-                // => m_FrameSettingsHistory.TriggerReset
+            //caution: we actually need to retrieve the
+            //m_FrameSettingsHistory as it is a struct so no direct
+            // => m_FrameSettingsHistory.TriggerReset
                 => () => m_FrameSettingsHistory.TriggerReset();
         }
         internal static IFrameSettingsHistoryContainer sceneViewFrameSettingsContainer = new MinimalHistoryContainer();
@@ -114,6 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
         }
+
         /// <summary>Same than FrameSettings.AggregateFrameSettings but keep history of agregation in a collection for DebugMenu.
         /// Aggregation is default with override of the renderer then sanitazed depending on supported features of hdrpasset. Then the DebugMenu override occurs.</summary>
         /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
@@ -130,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 additionalData,
                 ref defaultHdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
                 hdrpAsset.currentPlatformRenderPipelineSettings
-                );
+            );
 
         // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
         /// <summary>Same than FrameSettings.AggregateFrameSettings but keep history of agregation in a collection for DebugMenu.
@@ -220,7 +221,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Contrarily to other enum of DebugMenu, we do not need to stock index as
                 // it can be computed again with data in the dedicated debug section of history
                 getIndex = () => frameSettingsContainer.frameSettingsHistory.debug.IsEnabled(field) ? 1 : 0,
-                setIndex = (int a) => { },
+                setIndex = (int a) => {},
 
                 historyIndexGetter = new Func<int>[]
                 {
@@ -257,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             field.Key,
                             field.Value,
                             RetrieveEnumTypeByField(field.Key)
-                            ));
+                        ));
                         break;
                     case FrameSettingsFieldAttribute.DisplayType.Others: // for now, skip other display settings. Add them if needed
                         break;

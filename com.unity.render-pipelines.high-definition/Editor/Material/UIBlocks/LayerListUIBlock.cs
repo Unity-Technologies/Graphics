@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public LayerListUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
-            m_WithUV = new bool[]{ true, true, true, true };
+            m_WithUV = new bool[] { true, true, true, true };
         }
 
         /// <summary>

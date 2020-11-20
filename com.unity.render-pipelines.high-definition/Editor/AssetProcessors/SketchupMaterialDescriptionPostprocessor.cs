@@ -41,23 +41,23 @@ namespace UnityEditor.Rendering.HighDefinition
             TexturePropertyDescription textureProperty;
 
             material.SetShaderPassEnabled("DistortionVectors", false);
-            material.SetShaderPassEnabled("TransparentDepthPrepass",false);
+            material.SetShaderPassEnabled("TransparentDepthPrepass", false);
             material.SetShaderPassEnabled("TransparentDepthPostpass", false);
             material.SetShaderPassEnabled("TransparentBackface", false);
             material.SetShaderPassEnabled("MOTIONVECTORS", false);
 
-			if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture!=null)
+            if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture != null)
             {
                 SetMaterialTextureProperty("_BaseColorMap", material, textureProperty);
                 SetMaterialTextureProperty("_MainTex", material, textureProperty);
-				var color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                var color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
                 material.SetColor("_BaseColor", color);
                 material.SetColor("_Color", color);
             }
-			else if (description.TryGetProperty("DiffuseColor", out vectorProperty))
+            else if (description.TryGetProperty("DiffuseColor", out vectorProperty))
             {
-				Color diffuseColor = vectorProperty;
-				diffuseColor = PlayerSettings.colorSpace == ColorSpace.Linear ? diffuseColor.gamma : diffuseColor;
+                Color diffuseColor = vectorProperty;
+                diffuseColor = PlayerSettings.colorSpace == ColorSpace.Linear ? diffuseColor.gamma : diffuseColor;
                 material.SetColor("_BaseColor", diffuseColor);
                 material.SetColor("_Color", diffuseColor);
             }
@@ -90,4 +90,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-

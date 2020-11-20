@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         // Don't use ImGUI
-        public sealed override void OnInspectorGUI() { }
+        public sealed override void OnInspectorGUI() {}
     }
 
     class EnvironmentLibraryCreator : ProjectWindowCallback.EndNameEditAction

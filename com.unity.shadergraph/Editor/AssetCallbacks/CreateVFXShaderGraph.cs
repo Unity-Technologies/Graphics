@@ -10,13 +10,13 @@ namespace UnityEditor.ShaderGraph
         {
             var target = (VFXTarget)Activator.CreateInstance(typeof(VFXTarget));
 
-            var blockDescriptors = new [] 
-            { 
+            var blockDescriptors = new[]
+            {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Alpha,
             };
 
-            GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
         }
     }
 }
