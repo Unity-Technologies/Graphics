@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering.Universal
         private List<Rendering.AsyncGPUReadbackRequest> m_readbackRequests =
             new List<Rendering.AsyncGPUReadbackRequest>();
 
+        // Cache Action to avoid delegate allocation
+        private Action<AsyncGPUReadbackRequest> m_bufferReadCompleteAction;
+
         private int m_FrameCounter = 0;
         private bool m_FrameCleared = false;
 
@@ -57,6 +60,8 @@ namespace UnityEngine.Rendering.Universal
                 m_OutputBuffers.Add(new GraphicsBuffer(GraphicsBuffer.Target.Structured, MaxBufferElements, 4));
                 m_readbackRequests.Add(new Rendering.AsyncGPUReadbackRequest());
             }
+
+            m_bufferReadCompleteAction = BufferReadComplete;
         }
 
         public static ShaderDebugPrintManager Instance
@@ -229,7 +234,7 @@ namespace UnityEngine.Rendering.Universal
         public void EndFrame()
         {
             int index = m_FrameCounter % FramesInFlight;
-            m_readbackRequests[index] = Rendering.AsyncGPUReadback.Request(m_OutputBuffers[index], BufferReadComplete);
+            m_readbackRequests[index] = Rendering.AsyncGPUReadback.Request(m_OutputBuffers[index], m_bufferReadCompleteAction);
 
             m_FrameCounter++;
             m_FrameCleared = false;
