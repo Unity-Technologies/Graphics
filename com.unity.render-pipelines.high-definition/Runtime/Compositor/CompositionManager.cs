@@ -70,6 +70,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                         {
                             layer.camera.enabled = value;
                         }
+                        else
+                        {
+                            // The target texture was managed by the compositor, reset it so the user can se the camera output
+                            if (layer.camera && value == false)
+                                layer.camera.targetTexture = null;
+                        }
                     }
                 }
             }
