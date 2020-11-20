@@ -14,18 +14,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public RendererListHandle       transparentAfterPostprocessRL;
         }
 
-        TextureHandle RenderPostProcess(    RenderGraph     renderGraph,
-                                            PrepassOutput   prepassOutput,
-                                            TextureHandle   inputColor,
-                                            TextureHandle   backBuffer,
-                                            CullingResults  cullResults,
-                                            HDCamera        hdCamera)
+        TextureHandle RenderPostProcess(RenderGraph     renderGraph,
+            PrepassOutput   prepassOutput,
+            TextureHandle   inputColor,
+            TextureHandle   backBuffer,
+            CullingResults  cullResults,
+            HDCamera        hdCamera)
         {
             PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 
             TextureHandle afterPostProcessBuffer = renderGraph.defaultResources.blackTextureXR;
             TextureHandle dest = HDUtils.PostProcessIsFinalPass(parameters.hdCamera) ? backBuffer : renderGraph.CreateTexture(
-                        new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "Intermediate Postprocess buffer" });
+                new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "Intermediate Postprocess buffer" });
 
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
             {
@@ -41,10 +41,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.transparentAfterPostprocessRL = builder.UseRendererList(renderGraph.CreateRendererList(passData.parameters.transparentAfterPPDesc));
 
                     builder.SetRenderFunc(
-                    (AfterPostProcessPassData data, RenderGraphContext ctx) =>
-                    {
-                        RenderAfterPostProcess(data.parameters, data.opaqueAfterPostprocessRL, data.transparentAfterPostprocessRL, ctx.renderContext, ctx.cmd);
-                    });
+                        (AfterPostProcessPassData data, RenderGraphContext ctx) =>
+                        {
+                            RenderAfterPostProcess(data.parameters, data.opaqueAfterPostprocessRL, data.transparentAfterPostprocessRL, ctx.renderContext, ctx.cmd);
+                        });
 
                     afterPostProcessBuffer = passData.afterPostProcessBuffer;
                 }

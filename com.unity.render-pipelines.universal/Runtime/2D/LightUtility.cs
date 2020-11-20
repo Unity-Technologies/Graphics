@@ -11,13 +11,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class LightUtility
     {
-
         public static bool CheckForChange(Light2D.LightType a, ref Light2D.LightType b)
         {
             var changed = a != b;
             b = a;
             return changed;
         }
+
         public static bool CheckForChange(int a, ref int b)
         {
             var changed = a != b;
@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var tessVertices = tess.Vertices.Select(v =>
                 new LightMeshVertex() { position =  new float3(v.Position.X, v.Position.Y, 0), color = c });
 
-            foreach(var v in tessVertices)
+            foreach (var v in tessVertices)
                 vertices[VCount++] = v;
             foreach (var i in tessIndices)
                 indices[ICount++] = (ushort)(i + prevCount);
@@ -219,7 +219,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             for (var i = 0; i < shapePath.Length; ++i)
             {
                 var newPoint = new Vector2(shapePath[i].x, shapePath[i].y) * kClipperScale;
-                path.Add(new IntPoint((System.Int64) (newPoint.x), (System.Int64) (newPoint.y)));
+                path.Add(new IntPoint((System.Int64)(newPoint.x), (System.Int64)(newPoint.y)));
             }
             List<List<IntPoint>> solution = new List<List<IntPoint>>();
             ClipperOffset clipOffset = new ClipperOffset(2048.0f);
@@ -235,7 +235,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static Bounds GenerateShapeMesh(Light2D light, Vector3[] shapePath, float falloffDistance)
         {
-
             var ix = 0;
             var vcount = 0;
             var icount = 0;
@@ -243,8 +242,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var mesh = light.lightMesh;
 
             // todo Revisit this while we do Batching.
-            var meshInteriorColor = new Color(0.0f,0,0,1.0f);
-            var meshExteriorColor = new Color(0.0f,0,0,0.0f);
+            var meshInteriorColor = new Color(0.0f, 0, 0, 1.0f);
+            var meshExteriorColor = new Color(0.0f, 0, 0, 0.0f);
             var vertices = new NativeArray<LightMeshVertex>(shapePath.Length * 256, Allocator.Temp);
             var indices = new NativeArray<ushort>(shapePath.Length * 256, Allocator.Temp);
 
@@ -264,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             for (var i = 0; i < inputPointCount; ++i)
             {
                 var newPoint = new Vector2(inner[i].Position.X, inner[i].Position.Y) * kClipperScale;
-                var addPoint = new IntPoint((System.Int64) (newPoint.x),(System.Int64) (newPoint.y));
+                var addPoint = new IntPoint((System.Int64)(newPoint.x), (System.Int64)(newPoint.y));
                 addPoint.N = i; addPoint.D = -1;
                 path.Add(addPoint);
             }
@@ -282,7 +281,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var outPath = solution[0];
                 var minPath = (long)inputPointCount;
                 for (int i = 0; i < outPath.Count; ++i)
-                    minPath = (outPath[i].N != -1 ) ? Math.Min(minPath, outPath[i].N) : minPath;
+                    minPath = (outPath[i].N != -1) ? Math.Min(minPath, outPath[i].N) : minPath;
                 var containsStart = minPath == 0;
                 outPath = FixPivots(outPath, path);
 
@@ -353,7 +352,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return mesh.GetSubMesh(0).bounds;
         }
 
-
         public static Bounds GenerateParametricMesh(Light2D light, float radius, float falloffDistance, float angle, int sides)
         {
             var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
@@ -363,7 +361,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 sides = 4;
             }
 
-            if(sides == 4)
+            if (sides == 4)
             {
                 angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
             }
@@ -448,7 +446,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var uvs = sprite.uv;
             var mesh = light.lightMesh;
 
-            if(sprite == null)
+            if (sprite == null)
             {
                 mesh.Clear();
                 return new Bounds(Vector3.zero, Vector3.zero);
@@ -460,7 +458,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             var center = 0.5f * (sprite.bounds.min + sprite.bounds.max);
             var vertices = new NativeArray<LightMeshVertex>(srcIndices.Length, Allocator.Temp);
-            var color = new Color(0,0,0, 1);
+            var color = new Color(0, 0, 0, 1);
 
             for (var i = 0; i < srcVertices.Length; i++)
             {
@@ -483,7 +481,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return mesh.GetSubMesh(0).bounds;
         }
 
-
         public static int GetShapePathHash(Vector3[] path)
         {
             unchecked
@@ -503,7 +500,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return hashCode;
             }
         }
-
     }
 }
-

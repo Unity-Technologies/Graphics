@@ -125,22 +125,22 @@ namespace UnityEngine.Rendering.HighDefinition
             int bufferSizeY = numTilesRayBinY * binningTileSize;
 
             //  Resize the binning buffers if required
-                if (bufferSizeX * bufferSizeY > m_RayBinResult.count)
+            if (bufferSizeX * bufferSizeY > m_RayBinResult.count)
+            {
+                if (m_RayBinResult != null)
                 {
-                    if(m_RayBinResult != null)
-                    {
-                        CoreUtils.SafeRelease(m_RayBinResult);
-                        CoreUtils.SafeRelease(m_RayBinSizeResult);
-                        m_RayBinResult = null;
-                        m_RayBinSizeResult = null;
-                    }
-
-                    if (bufferSizeX * bufferSizeY > 0)
-                    {
-                        m_RayBinResult = new ComputeBuffer(bufferSizeX * bufferSizeY, sizeof(uint));
-                        m_RayBinSizeResult = new ComputeBuffer(numTilesRayBinX * numTilesRayBinY, sizeof(uint));
-                    }
+                    CoreUtils.SafeRelease(m_RayBinResult);
+                    CoreUtils.SafeRelease(m_RayBinSizeResult);
+                    m_RayBinResult = null;
+                    m_RayBinSizeResult = null;
                 }
+
+                if (bufferSizeX * bufferSizeY > 0)
+                {
+                    m_RayBinResult = new ComputeBuffer(bufferSizeX * bufferSizeY, sizeof(uint));
+                    m_RayBinSizeResult = new ComputeBuffer(numTilesRayBinX * numTilesRayBinY, sizeof(uint));
+                }
+            }
         }
 
         static void BinRays(CommandBuffer cmd, in DeferredLightingRTParameters config, RTHandle directionBuffer, int texWidth, int texHeight)

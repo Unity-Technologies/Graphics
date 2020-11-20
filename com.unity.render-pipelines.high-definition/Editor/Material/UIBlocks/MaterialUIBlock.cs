@@ -25,14 +25,14 @@ namespace UnityEditor.Rendering.HighDefinition
         internal enum Expandable : uint
         {
             // Standard
-            Base = 1<<0,
-            Input = 1<<1,
-            Tesselation = 1<<2,
-            Transparency = 1<<3,
+            Base = 1 << 0,
+            Input = 1 << 1,
+            Tesselation = 1 << 2,
+            Transparency = 1 << 3,
             // Free slot 4
-            Detail = 1<<5,
-            Emissive = 1<<6,
-            Advance = 1<<7,
+            Detail = 1 << 5,
+            Emissive = 1 << 6,
+            Advance = 1 << 7,
             Other = 1 << 8,
             ShaderGraph = 1 << 9,
 
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // If the layerCount is 1, then it means that the property we're fetching is not from a layered material
             // thus it doesn't have a prefix
-            string[] prefixes = (layerCount > 1) ? new []{"0", "1", "2", "3"} : new []{""};
+            string[] prefixes = (layerCount > 1) ? new[] {"0", "1", "2", "3"} : new[] {""};
 
             for (int i = 0; i < layerCount; i++)
             {
