@@ -34,11 +34,11 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
 
         // Angle fade is disabled if decal layers isn't enabled for consistency with DBuffer Decal
         // The test against _EnableDecalLayers is done here to refresh realtime as AngleFade is cached data and need a decal refresh to be updated.
-        if (angleFade.x > 0.0f && _EnableDecalLayers) // if angle fade is enabled
+        if (angleFade.y < 0.0f && _EnableDecalLayers) // if angle fade is enabled
         {
-            float dotAngle = 1.0 - dot(vtxNormal, decalData.normalToWorld[2].xyz);
-            // See equation in DecalSystem.cs - simplified to a madd here
-            float angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+            float dotAngle = dot(vtxNormal, decalData.normalToWorld[2].xyz);
+            // See equation in DecalSystem.cs - simplified to a madd mul add here
+            float angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
             fadeFactor *= angleFadeFactor;
         }
 
@@ -62,7 +62,7 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
                 float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
                 float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
                 float  lodDiffuse = ComputeTextureLOD(sampleDiffuseDdx, sampleDiffuseDdy, _DecalAtlasResolution, 0.5);
-               
+
                 src *= SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, sampleDiffuse, lodDiffuse);
             }
 

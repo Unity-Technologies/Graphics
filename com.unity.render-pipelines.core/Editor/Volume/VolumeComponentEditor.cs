@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering
                 .Where(
                     t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
                     && !t.IsAbstract
-                    );
+                );
 
             // Store them
             foreach (var type in types)
@@ -178,7 +178,6 @@ namespace UnityEditor.Rendering
             m_AdvancedMode = serializedObject.FindProperty("m_AdvancedMode");
             OnEnable();
         }
-
 
         class ParameterSorter : Comparer<(GUIContent displayName, int displayOrder, SerializedDataParameter param)>
         {
@@ -212,7 +211,7 @@ namespace UnityEditor.Rendering
                 .Where(t =>
                     (t.IsPublic && t.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0) ||
                     (t.GetCustomAttributes(typeof(SerializeField), false).Length > 0)
-                    )
+                )
                 .Where(t => t.GetCustomAttributes(typeof(HideInInspector), false).Length == 0)
                 .ToList();
 

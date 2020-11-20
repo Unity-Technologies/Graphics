@@ -119,7 +119,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     CTYPE color = 0.0;
     CTYPE inputColor = 0.0;
 
-    // Chromatic aberration    
+    // Chromatic aberration
     // Inspired by the method described in "Rendering Inside" [Playdead 2016]
     // https://twitter.com/pixelmager/status/717019757766123520
 #ifdef CHROMATIC_ABERRATION
@@ -177,7 +177,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
 
 #ifdef ENABLE_ALPHA
-        // Bloom should also spread in areas with zero alpha, so we save the image with bloom here to do the mixing at the end of the shader 
+        // Bloom should also spread in areas with zero alpha, so we save the image with bloom here to do the mixing at the end of the shader
         inputColor.xyz = color.xyz;
 #endif
     }

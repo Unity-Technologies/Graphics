@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.Block
 
                 VFXExpression theta = null;
                 if (spawnMode == SpawnMode.Random)
-                    theta = arcCircle_arc * new VFXExpressionRandom(true, new RandId(this,0));
+                    theta = arcCircle_arc * new VFXExpressionRandom(true, new RandId(this, 0));
                 else
                     theta = arcCircle_arc * arcSequencer;
 
@@ -59,15 +59,13 @@ namespace UnityEditor.VFX.Block
                     yield return allSlot.FirstOrDefault(o => o.name == "blendPosition");
                 if (compositionDirection == AttributeCompositionMode.Blend)
                     yield return base.parameters.FirstOrDefault(o => o.name == "blendDirection");
-
-
+                    
                 var eulerAngle = allSlot.FirstOrDefault(o => o.name == "ArcCircle_circle_angles").exp;
                 var center = allSlot.FirstOrDefault(o => o.name == "ArcCircle_circle_center").exp;
 
                 var oneF3 = VFXOperatorUtility.OneExpression[VFXValueType.Float3];
                 var transformMatrix = new VFXExpressionTRSToMatrix(center, eulerAngle, oneF3);
                 yield return new VFXNamedExpression(transformMatrix, "transformMatrix");
-
             }
         }
 

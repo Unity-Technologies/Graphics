@@ -33,10 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("{0}_IndirectDiffuseHistoryBuffer{1}", viewName, frameIndex));
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("{0}_IndirectDiffuseHistoryBuffer{1}", viewName, frameIndex));
         }
-        
+
         void RenderRayTracedIndirectDiffuse(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return parameters;
         }
-    
+
         static void AdjustRTIDWeight(CommandBuffer cmd, AdjustRTIDWeightParameters parameters, RTHandle indirectDiffuseTexture, RTHandle depthPyramid, RTHandle stencilBuffer)
         {
             // Input data
@@ -410,6 +410,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     DenoiseIndirectDiffuseBuffer(hdCamera, cmd, settings);
                 }
+            }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseAdjustWeight)))
+            {
+                // Upscale the indirect diffuse buffer
+                AdjustRTIDWeightParameters artidParamters = PrepareAdjustRTIDWeightParametersParameters(hdCamera);
+                AdjustRTIDWeight(cmd, artidParamters, m_IndirectDiffuseBuffer0, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetStencilBuffer());
             }
         }
 
@@ -547,13 +554,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 QualityRTIndirectDiffuseResources qrtidResources = PrepareQualityRTIndirectDiffuseResources(m_IndirectDiffuseBuffer0);
                 RenderQualityRayTracedIndirectDiffuse(cmd, qrtidParameters, qrtidResources);
             }
-           
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse)))
             {
                 if (giSettings.denoise)
                 {
                     DenoiseIndirectDiffuseBuffer(hdCamera, cmd, giSettings);
                 }
+            }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseAdjustWeight)))
+            {
+                // Upscale the indirect diffuse buffer
+                AdjustRTIDWeightParameters artidParamters = PrepareAdjustRTIDWeightParametersParameters(hdCamera);
+                AdjustRTIDWeight(cmd, artidParamters, m_IndirectDiffuseBuffer0, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetStencilBuffer());
             }
         }
 
@@ -566,12 +580,12 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
             RTHandle validationBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R0);
             // Evaluate the history validity
-            float historyValidity = EvaluateIndirectDiffuseHistoryValidity(hdCamera, settings.fullResolution, true);
+            float historyValidity0 = EvaluateIndirectDiffuseHistoryValidity0(hdCamera, settings.fullResolution, true);
             // Grab the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
 
             // Temporal denoising
-            TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
+            TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity0);
             TemporalFilterResources tfResources = temporalFilter.PrepareTemporalFilterResources(hdCamera, validationBuffer, m_IndirectDiffuseBuffer0, indirectDiffuseHistoryHF, intermediateBuffer1);
             HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
 
@@ -585,12 +599,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the second pass is requested, do it otherwise blit
             if (settings.secondDenoiserPass)
             {
+                float historyValidity1 = EvaluateIndirectDiffuseHistoryValidity1(hdCamera, settings.fullResolution, true);
+
                 // Grab the low frequency history buffer
                 RTHandle indirectDiffuseHistoryLF = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF)
                     ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedIndirectDiffuseLF, IndirectDiffuseHistoryBufferAllocatorFunction, 1);
 
                 // Run the temporal denoiser
-                tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity);
+                tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, false, historyValidity1);
                 tfResources = temporalFilter.PrepareTemporalFilterResources(hdCamera, validationBuffer, m_IndirectDiffuseBuffer0, indirectDiffuseHistoryLF, intermediateBuffer1);
                 HDTemporalFilter.DenoiseBuffer(cmd, tfParameters, tfResources);
 
@@ -598,10 +614,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, false, settings.denoiserRadius * 0.5f, settings.halfResolutionDenoiser, false);
                 ddResources = diffuseDenoiser.PrepareDiffuseDenoiserResources(intermediateBuffer1, intermediateBuffer, m_IndirectDiffuseBuffer0);
                 HDDiffuseDenoiser.DenoiseBuffer(cmd, ddParams, ddResources);
+
+                PropagateIndirectDiffuseHistoryValidity1(hdCamera, settings.fullResolution, true);
             }
 
             // Propagate the history
-            PropagateIndirectDiffuseHistoryValidity(hdCamera, settings.fullResolution, true);
+            PropagateIndirectDiffuseHistoryValidity0(hdCamera, settings.fullResolution, true);
         }
     }
 }

@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Texture 2D Asset")]
+    [HasDependencies(typeof(Minimal2d3dTextureAssetNode))]
     class Texture2DAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
@@ -18,7 +19,6 @@ namespace UnityEditor.ShaderGraph
             name = "Texture 2D Asset";
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -72,5 +72,21 @@ namespace UnityEditor.ShaderGraph
         }
 
         public int outputSlotId { get { return OutputSlotId; } }
+    }
+
+    // this is used for Texture2D AND Texture3D
+    class Minimal2d3dTextureAssetNode : IHasDependencies
+    {
+        [SerializeField]
+        private SerializableTexture m_Texture = null;
+
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            var guidString = m_Texture.guid;
+            if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out var guid))
+            {
+                assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+            }
+        }
     }
 }

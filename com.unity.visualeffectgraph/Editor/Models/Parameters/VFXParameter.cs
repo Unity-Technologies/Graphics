@@ -91,10 +91,10 @@ namespace UnityEditor.VFX
 
             set
             {
-                if( value != m_ValueFilter)
+                if (value != m_ValueFilter)
                 {
                     m_ValueFilter = value;
-                    switch(m_ValueFilter)
+                    switch (m_ValueFilter)
                     {
                         case VFXValueFilter.Default:
                             m_Max = m_Min = null;
