@@ -39,7 +39,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk:
       -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk
          rerun: on-new-revision
 Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_trunk:
-    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Player on version trunk
+    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -102,7 +102,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
       -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
 Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Player on version CUSTOM-REVISION
+    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable

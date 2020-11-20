@@ -28,7 +28,7 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
       -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk
          rerun: on-new-revision
 Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
-    name: Build ShaderGraph_Stereo on Win__mono_Linear_Player on version trunk
+    name: Build ShaderGraph_Stereo on Win__mono_Linear_Standalone_build_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -104,7 +104,7 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
       -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
 Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build ShaderGraph_Stereo on Win__mono_Linear_Player on version CUSTOM-REVISION
+    name: Build ShaderGraph_Stereo on Win__mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
