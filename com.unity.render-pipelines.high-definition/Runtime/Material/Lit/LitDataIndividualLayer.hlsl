@@ -135,7 +135,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
 
     // This can happen with object space normal map not being set, but we still want detail map.
     // If we are tangent space, _NORMALMAP_IDX is always defined if we have _DETAIL_MAP_IDX.
-    #if defined(_DETAIL_MAP_IDX)   
+    #if defined(_DETAIL_MAP_IDX)
         #ifdef SURFACE_GRADIENT
             normalTS += detailNormalTS * detailMask;
         #else
@@ -207,14 +207,14 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.baseColor = color.rgb;
     float alpha = color.a;
 #ifdef _DETAIL_MAP_IDX
-	
+
     // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
     // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
     // with a factor based on speed.
     // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
     float albedoDetailSpeed = saturate(abs(detailAlbedo) * ADD_IDX(_DetailAlbedoScale));
     float3 baseColorOverlay = lerp(sqrt(surfaceData.baseColor), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
-    baseColorOverlay *= baseColorOverlay;							   
+    baseColorOverlay *= baseColorOverlay;
     // Lerp with details mask
     surfaceData.baseColor = lerp(surfaceData.baseColor, saturate(baseColorOverlay), detailMask);
 #endif

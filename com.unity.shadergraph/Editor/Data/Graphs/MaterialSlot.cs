@@ -251,8 +251,8 @@ namespace UnityEditor.ShaderGraph
                 && otherSlot.owner != owner
                 && otherSlot.isInputSlot != isInputSlot
                 && ((isInputSlot
-                     ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType)
-                     : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType)));
+                    ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType)
+                    : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType)));
         }
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)

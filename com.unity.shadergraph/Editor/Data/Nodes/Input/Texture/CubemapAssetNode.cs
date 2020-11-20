@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new CubemapMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
@@ -77,7 +76,7 @@ namespace UnityEditor.ShaderGraph
     class MinimalCubemapAssetNode : IHasDependencies
     {
         [SerializeField]
-        private SerializableCubemap m_Cubemap;
+        private SerializableCubemap m_Cubemap = null;
 
         public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {
