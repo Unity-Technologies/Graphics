@@ -284,7 +284,6 @@ namespace UnityEngine.Rendering
             return count != result.Count;
         }
 
-
         /// <summary>
         /// A custom hashing function that Unity uses to compare the state of parameters.
         /// </summary>

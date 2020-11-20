@@ -34,14 +34,14 @@ namespace UnityEditor.Rendering.HighDefinition
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
                 uiBlocks.Initialize(materialEditor, props);
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().OnGUI();
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().OnGUI();
 
                 // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
                 DrawTerrainGUI(materialEditor);
 
-                uiBlocks.FetchUIBlock< SurfaceOptionUIBlock >().UpdateMaterialProperties(props);
-                uiBlocks.FetchUIBlock< AdvancedOptionsUIBlock >().OnGUI();
+                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
 
                 ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
             }
@@ -134,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
-                        : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
+                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
             // TODO: planar/triplannar support

@@ -152,12 +152,12 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             RayTracingPerformanceModeGUI();
                         }
-                            break;
+                        break;
                         case RayTracingMode.Quality:
                         {
                             RayTracingQualityModeGUI();
                         }
-                            break;
+                        break;
                     }
                 }
             }

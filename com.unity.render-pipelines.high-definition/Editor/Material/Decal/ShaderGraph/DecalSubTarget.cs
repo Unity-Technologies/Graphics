@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Emissive pass only have the emission keyword
             if (!(pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive] ||
-                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive]))
+                  pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive]))
             {
                 if (decalData.affectsAlbedo)
                     pass.keywords.Add(DecalDefines.Albedo);
@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(AffectsSmoothness,    decalData.affectsSmoothness);
             context.AddField(AffectsMaskMap,       decalData.affectsMaskmap);
             context.AddField(DecalDefault,         decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
-                                                                    decalData.affectsAO || decalData.affectsSmoothness );
+                decalData.affectsAO || decalData.affectsSmoothness);
             context.AddField(Fields.LodCrossFade, decalData.supportLodCrossFade);
         }
 
@@ -187,7 +187,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             void AddAffectsProperty(string referenceName)
             {
-                collector.AddShaderProperty(new BooleanShaderProperty{
+                collector.AddShaderProperty(new BooleanShaderProperty
+                {
                     overrideReferenceName = referenceName,
                     hidden = true,
                     value = true,
@@ -206,7 +207,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             void AddColorMaskProperty(string referenceName)
             {
-                collector.AddShaderProperty(new Vector1ShaderProperty{
+                collector.AddShaderProperty(new Vector1ShaderProperty
+                {
                     overrideReferenceName = referenceName,
                     floatType = FloatType.Integer,
                     hidden = true,
@@ -214,7 +216,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-#region SubShaders
+        #region SubShaders
         static class SubShaders
         {
             // Relies on the order shader passes are declared in DecalSystem.cs
@@ -364,9 +366,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = DecalIncludes.Default,
             };
         }
-#endregion
+        #endregion
 
-#region BlockMasks
+        #region BlockMasks
         static class DecalBlockMasks
         {
             public static BlockFieldDescriptor[] FragmentDefault = new BlockFieldDescriptor[]
@@ -399,9 +401,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.Emission,
             };
         }
-#endregion
+        #endregion
 
-#region RequiredFields
+        #region RequiredFields
         static class DecalRequiredFields
         {
             public static FieldCollection Mesh = new FieldCollection()
@@ -414,9 +416,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.FragInputs.texCoord0,
             };
         }
-#endregion
+        #endregion
 
-#region RenderStates
+        #region RenderStates
         static class DecalRenderStates
         {
             readonly static string s_DecalColorMask = "ColorMask [_DecalColorMask0]\n\tColorMask [_DecalColorMask1] 1\n\tColorMask [_DecalColorMask2] 2\n\tColorMask [_DecalColorMask3] 3";
@@ -479,9 +481,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { RenderState.ZTest(ZTest.LEqual) },
             };
         }
-#endregion
+        #endregion
 
-#region Pragmas
+        #region Pragmas
         static class DecalPragmas
         {
             public static PragmaCollection Instanced = new PragmaCollection
@@ -558,9 +560,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } };
         }
-#endregion
+        #endregion
 
-#region Includes
+        #region Includes
         static class DecalIncludes
         {
             const string kPacking = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl";
@@ -590,6 +592,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kPassDecal, IncludeLocation.Postgraph },
             };
         }
-#endregion
+        #endregion
     }
 }

@@ -238,13 +238,13 @@ namespace UnityEngine.Rendering.HighDefinition
             enableWrite[3] = true;
 
             #if ENABLE_VIRTUALTEXTURES
-                int index = 4;
-                RTFormat[index] = VTBufferManager.GetFeedbackBufferFormat();
-                gBufferUsage[index] = GBufferUsage.VTFeedback;
-                enableWrite[index] = false;
-                index++;
+            int index = 4;
+            RTFormat[index] = VTBufferManager.GetFeedbackBufferFormat();
+            gBufferUsage[index] = GBufferUsage.VTFeedback;
+            enableWrite[index] = false;
+            index++;
             #else
-                int index = 4;
+            int index = 4;
             #endif
 
             if (supportLightLayers)
@@ -263,7 +263,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 index++;
             }
         }
-
 
         //-----------------------------------------------------------------------------
         // Init precomputed texture

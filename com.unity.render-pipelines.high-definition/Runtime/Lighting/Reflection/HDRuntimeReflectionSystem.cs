@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var method = type.GetMethod("BuiltinUpdate", BindingFlags.Static | BindingFlags.NonPublic);
             BuiltinUpdate = method;
         }
+
         #endif
 
         static HDRuntimeReflectionSystem k_instance = new HDRuntimeReflectionSystem();

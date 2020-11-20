@@ -191,8 +191,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 historyValidity = 0.0f;
             else
 #endif
-                // We need to check if something invalidated the history buffers
-                historyValidity *= EvaluateHistoryValidity(hdCamera);
+            // We need to check if something invalidated the history buffers
+            historyValidity *= EvaluateHistoryValidity(hdCamera);
 
             return historyValidity;
         }
@@ -217,12 +217,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             temporalFilter.DenoiseBuffer(cmd, hdCamera, inoutBuffer, shadowHistoryArray,
-                                                        shadowHistoryValidityArray,
-                                                        velocityBuffer,
-                                                        intermediateBuffer,
-                                                        dirShadowIndex / 4, m_ShadowChannelMask0,
-                                                        distanceBuffer, shadowHistoryDistanceArray, intermediateDistanceBuffer, m_ShadowChannelMask1,
-                                                        true, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
+                shadowHistoryValidityArray,
+                velocityBuffer,
+                intermediateBuffer,
+                dirShadowIndex / 4, m_ShadowChannelMask0,
+                distanceBuffer, shadowHistoryDistanceArray, intermediateDistanceBuffer, m_ShadowChannelMask1,
+                true, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
 
             // Apply the spatial denoiser
             HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();

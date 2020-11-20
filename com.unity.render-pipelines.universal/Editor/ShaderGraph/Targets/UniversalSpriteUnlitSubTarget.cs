@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is SpriteUnlitMasterNode1 spriteUnlitMasterNode))
+            if (!(masterNode is SpriteUnlitMasterNode1 spriteUnlitMasterNode))
                 return false;
 
             // Set blockmap
@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return true;
         }
 
-#region SubShader
+        #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
@@ -159,9 +159,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
             };
         }
-#endregion
+        #endregion
 
-#region RequiredFields
+        #region RequiredFields
         static class SpriteUnlitRequiredFields
         {
             public static FieldCollection Unlit = new FieldCollection()
@@ -172,9 +172,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.texCoord0,
             };
         }
-#endregion
+        #endregion
 
-#region Includes
+        #region Includes
         static class SpriteUnlitIncludes
         {
             const string kSpriteUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/SpriteUnlitPass.hlsl";
@@ -190,6 +190,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kSpriteUnlitPass, IncludeLocation.Postgraph },
             };
         }
-#endregion
+        #endregion
     }
 }
