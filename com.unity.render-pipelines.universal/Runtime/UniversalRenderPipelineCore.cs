@@ -279,6 +279,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
+
+        // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
+        public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
     public struct PostProcessingData
