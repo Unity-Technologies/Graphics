@@ -123,9 +123,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_Camera != null)
+                var compositor = CompositionManager.GetInstance();
+                if (compositor != null && compositor.outputCamera != null)
                 {
-                    return (float)m_Camera.pixelWidth / m_Camera.pixelHeight;
+                    return (float)compositor.outputCamera.pixelWidth / compositor.outputCamera.pixelHeight;
                 }
                 return 1.0f;
             }
@@ -200,10 +201,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_Camera)
+                var compositor = CompositionManager.GetInstance();
+                if (compositor && compositor.outputCamera)
                 {
                     float resScale = EnumToScale(m_ResolutionScale);
-                    return (int)(resScale * m_Camera.pixelWidth);
+                    return (int)(resScale * compositor.outputCamera.pixelWidth);
                 }
                 return 0;
             }
@@ -212,10 +214,11 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_Camera)
+                var compositor = CompositionManager.GetInstance();
+                if (compositor && compositor.outputCamera)
                 {
                     float resScale = EnumToScale(m_ResolutionScale);
-                    return (int)(resScale * m_Camera.pixelHeight);
+                    return (int)(resScale * compositor.outputCamera.pixelHeight);
                 }
                 return 0;
             }
