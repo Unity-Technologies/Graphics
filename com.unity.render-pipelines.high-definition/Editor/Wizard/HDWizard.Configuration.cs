@@ -76,22 +76,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 new[] { qualityVariable },
                 Expression.Assign(qualityVariable, Expression.Call(getLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter)),
                 Expression.Convert(qualityVariable, typeof(LightmapEncodingQualityCopy))
-                );
+            );
             var setLightmapEncodingQualityForPlatformGroupBlock = Expression.Block(
                 new[] { qualityVariable },
                 Expression.Assign(qualityVariable, Expression.Convert(qualityParameter, lightEncodingQualityType)),
                 Expression.Call(setLightmapEncodingQualityForPlatformGroupInfo, buildTargetGroupParameter, qualityVariable)
-                );
+            );
             var getStaticBatchingBlock = Expression.Block(
                 new[] { staticBatchingVariable, dynamicBatchingVariable },
                 Expression.Call(getStaticBatchingInfo, buildTargetParameter, staticBatchingVariable, dynamicBatchingVariable),
                 Expression.Equal(staticBatchingVariable, Expression.Constant(1))
-                );
+            );
             var setStaticBatchingBlock = Expression.Block(
                 new[] { staticBatchingVariable, dynamicBatchingVariable },
                 Expression.Call(getStaticBatchingInfo, buildTargetParameter, staticBatchingVariable, dynamicBatchingVariable),
                 Expression.Call(setStaticBatchingInfo, buildTargetParameter, Expression.Convert(staticBatchingParameter, typeof(int)), dynamicBatchingVariable)
-                );
+            );
             var getLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Func<BuildTargetGroup, LightmapEncodingQualityCopy>>(getLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter);
             var setLightmapEncodingQualityForPlatformGroupLambda = Expression.Lambda<Action<BuildTargetGroup, LightmapEncodingQualityCopy>>(setLightmapEncodingQualityForPlatformGroupBlock, buildTargetGroupParameter, qualityParameter);
             var calculateSelectedBuildTargetLambda = Expression.Lambda<Func<BuildTarget>>(Expression.Call(null, calculateSelectedBuildTargetInfo));
@@ -295,7 +295,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload = true;
         }
 
-
         void CheckPersistentFixAll()
         {
             if (HDProjectSettings.wizardNeedToRunFixAllAgainAfterDomainReload)
@@ -344,6 +343,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Lumin) == LightmapEncodingQualityCopy.High
                 && GetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.WSA) == LightmapEncodingQualityCopy.High;
         }
+
         void FixLightmap(bool fromAsyncUnused)
         {
             SetLightmapEncodingQualityForPlatformGroup(BuildTargetGroup.Standalone, LightmapEncodingQualityCopy.High);
@@ -366,7 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsShadowmaskCorrect()
-            //QualitySettings.SetQualityLevel.set quality is too costy to be use at frame
+        //QualitySettings.SetQualityLevel.set quality is too costy to be use at frame
             => QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask;
         void FixShadowmask(bool fromAsyncUnused)
         {
@@ -387,7 +387,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             CreateOrLoad<HDRenderPipelineAsset>(fromAsync
                 ? () => m_Fixer.Stop()
-            : (Action)null,
+                : (Action)null,
                 asset => GraphicsSettings.renderPipelineAsset = asset);
         }
 
@@ -453,6 +453,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var profileList = HDRenderPipeline.defaultAsset?.diffusionProfileSettingsList;
             return IsHdrpAssetUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
         }
+
         void FixHdrpAssetDiffusionProfile(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
@@ -487,6 +488,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 && !hdAsset.defaultVolumeProfile.Equals(null)
                 && hdAsset.defaultVolumeProfile != hdAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
         }
+
         void FixDefaultVolumeProfileAssigned(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
@@ -535,10 +537,11 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsVRXRManagementPackageInstalledCorrect()
         {
             m_UsedPackageRetriever.ProcessAsync(
-                   k_XRanagementPackageName,
-                   (installed, info) => vrXRManagementInstalledCheck = installed);
+                k_XRanagementPackageName,
+                (installed, info) => vrXRManagementInstalledCheck = installed);
             return vrXRManagementInstalledCheck;
         }
+
         void FixVRXRManagementPackageInstalled(bool fromAsync)
         {
             if (fromAsync)
@@ -550,10 +553,11 @@ namespace UnityEditor.Rendering.HighDefinition
         bool IsVRLegacyHelpersCorrect()
         {
             m_UsedPackageRetriever.ProcessAsync(
-                   k_LegacyInputHelpersPackageName,
-                   (installed, info) => vrLegacyHelpersInstalledCheck = installed);
+                k_LegacyInputHelpersPackageName,
+                (installed, info) => vrLegacyHelpersInstalledCheck = installed);
             return vrLegacyHelpersInstalledCheck;
         }
+
         void FixVRLegacyHelpers(bool fromAsync)
         {
             if (fromAsync)
@@ -589,8 +593,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         buidTarget,
                         new[] { GraphicsDeviceType.Direct3D12 }
                             .Concat(
-                                PlayerSettings.GetGraphicsAPIs(buidTarget)
-                                    .Where(x => x != GraphicsDeviceType.Direct3D12))
+                            PlayerSettings.GetGraphicsAPIs(buidTarget)
+                                .Where(x => x != GraphicsDeviceType.Direct3D12))
                             .ToArray());
                 }
                 else
@@ -645,8 +649,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
             // IMPORTANT: We display the error only if we are D3D12 as the supportsRayTracing always return false in any other device even if OS/HW supports DXR.
-            // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12. 
-            if (!SystemInfo.supportsRayTracing && IsDXRDirect3D12Correct()) 
+            // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12.
+            if (!SystemInfo.supportsRayTracing && IsDXRDirect3D12Correct())
                 Debug.LogError("Your hardware and/or OS don't support DXR!");
             if (!HDProjectSettings.wizardNeedRestartAfterChangingToDX12 && PlayerSettings.GetGraphicsAPIs(CalculateSelectedBuildTarget()).FirstOrDefault() != GraphicsDeviceType.Direct3D12)
             {
@@ -720,10 +724,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsArchitecture64Bits()
             => EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64;
-		void FixArchitecture64Bits(bool fromAsyncUnused)
-		{
-			EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
-		}
+        void FixArchitecture64Bits(bool fromAsyncUnused)
+        {
+            EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64);
+        }
 
         bool IsDXRStaticBatchingCorrect()
             => !GetStaticBatching(CalculateSelectedBuildTarget());

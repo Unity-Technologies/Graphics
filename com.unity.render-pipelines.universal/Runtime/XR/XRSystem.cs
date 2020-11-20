@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.Universal
                 // On Android and iOS, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
                 // Set targetFrameRate to XR refresh rate (round up)
                 float frameRate = 120.0f;
-                frameRate = display.TryGetDisplayRefreshRate(out float refreshRate)? refreshRate : frameRate;
+                frameRate = display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
                 Application.targetFrameRate = Mathf.CeilToInt(frameRate);
 
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
@@ -227,24 +227,24 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        // Used for updating URP cameraData data struct with XRPass data. 
+        // Used for updating URP cameraData data struct with XRPass data.
         internal void UpdateCameraData(ref CameraData baseCameraData, in XRPass xr)
         {
             // Update cameraData viewport for XR
             Rect cameraRect = baseCameraData.camera.rect;
             Rect xrViewport = xr.GetViewport();
             baseCameraData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
-                                                cameraRect.y * xrViewport.height + xrViewport.y,
-                                                cameraRect.width * xrViewport.width,
-                                                cameraRect.height * xrViewport.height);
+                cameraRect.y * xrViewport.height + xrViewport.y,
+                cameraRect.width * xrViewport.width,
+                cameraRect.height * xrViewport.height);
             Rect camPixelRect = baseCameraData.pixelRect;
             baseCameraData.pixelWidth  = (int)System.Math.Round(camPixelRect.width + camPixelRect.x) - (int)System.Math.Round(camPixelRect.x);
             baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
             baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
 
             bool isDefaultXRViewport = (!(Math.Abs(xrViewport.x) > 0.0f || Math.Abs(xrViewport.y) > 0.0f ||
-                                            Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
-                                            Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
+                Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
+                Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
             baseCameraData.isDefaultViewport = baseCameraData.isDefaultViewport && isDefaultXRViewport;
 
             // Update cameraData cameraTargetDescriptor for XR. This descriptor is mainly used for configuring intermediate screen space textures
@@ -291,7 +291,6 @@ namespace UnityEngine.Rendering.Universal
                 xrPass.UpdateCullingParams(cullingPassId: renderPass.cullingPassIndex, cullingParams);
                 if (xrPass.singlePassEnabled)
                 {
-
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
                         renderPass.GetRenderParameter(cameraData.camera, renderParamIndex, out var renderParam);
@@ -409,7 +408,7 @@ namespace UnityEngine.Rendering.Universal
                             blitDesc.GetBlitParameter(i, out var blitParam);
 
                             Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
-                                                        new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
+                                new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
                             // Eye texture is always gamma corrected, use explicit sRGB read in shader if srcTex formats is not sRGB format. sRGB format will have implicit sRGB read so it is already handled.
@@ -544,6 +543,7 @@ namespace UnityEngine.Rendering.Universal
 
             return false;
         }
+
 #endif
     }
 }

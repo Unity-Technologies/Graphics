@@ -55,7 +55,6 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-
     using ClipInt = Int64;
     using Path = List<IntPoint>;
     using Paths = List<List<IntPoint>>;
@@ -358,7 +357,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             this.NX = 0; this.NY = 0;
             this.N = -1; this.D = 0;
         }
-        
+
         public IntPoint(double x, double y)
         {
             this.X = (ClipInt)x; this.Y = (ClipInt)y;
@@ -591,16 +590,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) ||
                     ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) ||
                     (((pt.X > linePt1.X) == (pt.X < linePt2.X)) &&
-                     ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) &&
-                     ((Int128.Int128Mul((pt.X - linePt1.X), (linePt2.Y - linePt1.Y)) ==
-                       Int128.Int128Mul((linePt2.X - linePt1.X), (pt.Y - linePt1.Y)))));
+                        ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) &&
+                        ((Int128.Int128Mul((pt.X - linePt1.X), (linePt2.Y - linePt1.Y)) ==
+                            Int128.Int128Mul((linePt2.X - linePt1.X), (pt.Y - linePt1.Y)))));
             else
                 return ((pt.X == linePt1.X) && (pt.Y == linePt1.Y)) ||
                     ((pt.X == linePt2.X) && (pt.Y == linePt2.Y)) ||
                     (((pt.X > linePt1.X) == (pt.X < linePt2.X)) &&
-                     ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) &&
-                     ((pt.X - linePt1.X) * (linePt2.Y - linePt1.Y) ==
-                      (linePt2.X - linePt1.X) * (pt.Y - linePt1.Y)));
+                        ((pt.Y > linePt1.Y) == (pt.Y < linePt2.Y)) &&
+                        ((pt.X - linePt1.X) * (linePt2.Y - linePt1.Y) ==
+                            (linePt2.X - linePt1.X) * (pt.Y - linePt1.Y)));
         }
 
         //------------------------------------------------------------------------------
@@ -3171,7 +3170,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     pivotPoint = (edge2.Curr.N > 0) ? edge2.Curr.N - 1 : 0;
                 }
             }
-            ip.D = 2; ip.N = isClamp ? pivotPoint : -1; 
+            ip.D = 2; ip.N = isClamp ? pivotPoint : -1;
 
             //nb: with very large coordinate values, it's possible for SlopesEqual() to
             //return false but for the edge.Dx value be equal due to double precision rounding.
@@ -3181,7 +3180,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 ip.X = TopX(edge1, ip.Y);
                 return;
             }
-            
+
             double b1, b2;
             if (edge1.Delta.X == 0)
             {
@@ -3602,9 +3601,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             IntPoint Pt, bool DiscardLeft)
         {
             Direction Dir1 = (op1.Pt.X > op1b.Pt.X ?
-                              Direction.dRightToLeft : Direction.dLeftToRight);
+                Direction.dRightToLeft : Direction.dLeftToRight);
             Direction Dir2 = (op2.Pt.X > op2b.Pt.X ?
-                              Direction.dRightToLeft : Direction.dLeftToRight);
+                Direction.dRightToLeft : Direction.dLeftToRight);
             if (Dir1 == Dir2) return false;
 
             //When DiscardLeft, we want Op1b to be on the Left of Op1, otherwise we
@@ -3800,7 +3799,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 op1b = op1.Next;
                 while ((op1b.Pt == op1.Pt) && (op1b != op1)) op1b = op1b.Next;
                 bool Reverse1 = ((op1b.Pt.Y > op1.Pt.Y) ||
-                                 !SlopesEqual(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange));
+                    !SlopesEqual(op1.Pt, op1b.Pt, j.OffPt, m_UseFullRange));
                 if (Reverse1)
                 {
                     op1b = op1.Prev;
@@ -3811,7 +3810,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 op2b = op2.Next;
                 while ((op2b.Pt == op2.Pt) && (op2b != op2)) op2b = op2b.Next;
                 bool Reverse2 = ((op2b.Pt.Y > op2.Pt.Y) ||
-                                 !SlopesEqual(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange));
+                    !SlopesEqual(op2.Pt, op2b.Pt, j.OffPt, m_UseFullRange));
                 if (Reverse2)
                 {
                     op2b = op2.Prev;
@@ -4741,8 +4740,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         for (int j = 1; j <= steps; j++)
                         {
                             m_destPoly.Add(new IntPoint(
-                                    Round(m_srcPoly[0].X + X * delta),
-                                    Round(m_srcPoly[0].Y + Y * delta)));
+                                Round(m_srcPoly[0].X + X * delta),
+                                Round(m_srcPoly[0].Y + Y * delta)));
                             double X2 = X;
                             X = X * m_cos - m_sin * Y;
                             Y = X2 * m_sin + Y * m_cos;
@@ -4754,8 +4753,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         for (int j = 0; j < 4; ++j)
                         {
                             m_destPoly.Add(new IntPoint(
-                                    Round(m_srcPoly[0].X + X * delta),
-                                    Round(m_srcPoly[0].Y + Y * delta)));
+                                Round(m_srcPoly[0].X + X * delta),
+                                Round(m_srcPoly[0].Y + Y * delta)));
                             if (X < 0) X = 1;
                             else if (Y < 0) Y = 1;
                             else X = -1;
@@ -4805,7 +4804,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     int k = 0;
                     for (int j = 1; j < len - 1; ++j)
                         OffsetPoint(j, ref k, node.m_jointype);
-                    
+
                     {
                         int j = len - 1;
                         k = len - 2;
@@ -4823,7 +4822,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     k = len - 1;
                     for (int j = k - 1; j > 0; --j)
                         OffsetPoint(j, ref k, node.m_jointype);
-                    
+
                     {
                         k = 1;
                         m_sinA = 0;
@@ -4962,7 +4961,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal void DoSquare(int j, int k)
         {
             double dx = Math.Tan(Math.Atan2(m_sinA,
-                        m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y) / 4);
+                m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y) / 4);
             var pt = new IntPoint(
                 Round(m_srcPoly[j].X + m_delta * (m_normals[k].X - m_normals[k].Y * dx)),
                 Round(m_srcPoly[j].Y + m_delta * (m_normals[k].Y + m_normals[k].X * dx)));
@@ -4991,7 +4990,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal void DoRound(int j, int k)
         {
             double a = Math.Atan2(m_sinA,
-                    m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y);
+                m_normals[k].X * m_normals[j].X + m_normals[k].Y * m_normals[j].Y);
             int steps = Math.Max((int)Round(m_StepsPerRad * Math.Abs(a)), 1);
 
             double X = m_normals[k].X, Y = m_normals[k].Y, X2;

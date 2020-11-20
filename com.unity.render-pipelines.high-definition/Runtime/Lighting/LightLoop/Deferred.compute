@@ -150,7 +150,7 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     {
         return;
     }
-    
+
     // This is required for camera stacking and other cases where we might have a valid depth value in the depth buffer, but the pixel was not covered by this camera
     uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, pixelCoord.xy));
     if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) == 0)

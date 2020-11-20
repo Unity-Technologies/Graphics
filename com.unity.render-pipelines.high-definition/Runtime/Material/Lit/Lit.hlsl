@@ -1013,7 +1013,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
             float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
             result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
-        }       
+        }
     case DEBUGVIEW_LIT_BSDFDATA_IOR:
         result = saturate((bsdfData.ior - 1.0) / 1.5).xxx;
         break;

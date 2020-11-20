@@ -70,29 +70,29 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0}({1} Texture, {2} Sampler, {3} UV, {4} Offset, {5} Strength, out {6} Out)", GetFunctionName(),
+                    FindInputSlot<MaterialSlot>(TextureInputId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(SamplerInputId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(UVInputId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(OffsetInputId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(StrengthInputId).concreteValueType.ToShaderString(),
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
+                using (s.BlockScope())
                 {
-                    s.AppendLine("void {0}({1} Texture, {2} Sampler, {3} UV, {4} Offset, {5} Strength, out {6} Out)", GetFunctionName(),
-                        FindInputSlot<MaterialSlot>(TextureInputId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(SamplerInputId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(UVInputId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(OffsetInputId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(StrengthInputId).concreteValueType.ToShaderString(),
-                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
-                    using (s.BlockScope())
-                    {
-                        s.AppendLine("Offset = pow(Offset, 3) * 0.1;");
-                        s.AppendLine("$precision2 offsetU = $precision2(UV.x + Offset, UV.y);");
-                        s.AppendLine("$precision2 offsetV = $precision2(UV.x, UV.y + Offset);");
+                    s.AppendLine("Offset = pow(Offset, 3) * 0.1;");
+                    s.AppendLine("$precision2 offsetU = $precision2(UV.x + Offset, UV.y);");
+                    s.AppendLine("$precision2 offsetV = $precision2(UV.x, UV.y + Offset);");
 
-                        s.AppendLine("$precision normalSample = Texture.Sample(Sampler, UV);");
-                        s.AppendLine("$precision uSample = Texture.Sample(Sampler, offsetU);");
-                        s.AppendLine("$precision vSample = Texture.Sample(Sampler, offsetV);");
+                    s.AppendLine("$precision normalSample = Texture.Sample(Sampler, UV);");
+                    s.AppendLine("$precision uSample = Texture.Sample(Sampler, offsetU);");
+                    s.AppendLine("$precision vSample = Texture.Sample(Sampler, offsetV);");
 
-                        s.AppendLine("$precision3 va = $precision3(1, 0, (uSample - normalSample) * Strength);");
-                        s.AppendLine("$precision3 vb = $precision3(0, 1, (vSample - normalSample) * Strength);");
-                        s.AppendLine("Out = normalize(cross(va, vb));");
-                    }
-                });
+                    s.AppendLine("$precision3 va = $precision3(1, 0, (uSample - normalSample) * Strength);");
+                    s.AppendLine("$precision3 vb = $precision3(0, 1, (vSample - normalSample) * Strength);");
+                    s.AppendLine("Out = normalize(cross(va, vb));");
+                }
+            });
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

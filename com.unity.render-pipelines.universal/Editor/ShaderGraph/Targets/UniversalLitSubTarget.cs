@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             SubShaderDescriptor[] subShaders = complexLit ? complexLitSubShaders : litSubShaders;
 
-            for(int i = 0; i < subShaders.Length; i++)
+            for (int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
                 subShaders[i].renderType = target.renderType;
@@ -103,8 +103,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(UniversalFields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World);
             context.AddField(UniversalFields.SpecularSetup,       workflowMode == WorkflowMode.Specular);
             context.AddField(UniversalFields.Normal,              descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
-                                                                             descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
-                                                                             descs.Contains(BlockFields.SurfaceDescription.NormalWS));
+                descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
+                descs.Contains(BlockFields.SurfaceDescription.NormalWS));
             // Complex Lit
 
             // Template Predicates
@@ -123,8 +123,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.CoatMask,           clearCoat );
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.CoatSmoothness,     clearCoat );
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.CoatMask,           clearCoat);
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -203,7 +203,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is PBRMasterNode1 pbrMasterNode))
+            if (!(masterNode is PBRMasterNode1 pbrMasterNode))
                 return false;
 
             m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
@@ -211,7 +211,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
-            switch(m_NormalDropOffSpace)
+            switch (m_NormalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
@@ -227,7 +227,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // PBRMasterNode adds/removes Metallic/Specular based on settings
             BlockFieldDescriptor specularMetallicBlock;
             int specularMetallicId;
-            if(m_WorkflowMode == WorkflowMode.Specular)
+            if (m_WorkflowMode == WorkflowMode.Specular)
             {
                 specularMetallicBlock = BlockFields.SurfaceDescription.Specular;
                 specularMetallicId = 3;
@@ -257,20 +257,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return true;
         }
 
-#region SubShader
+        #region SubShader
         static class SubShaders
         {
             // Overloads to do inline PassDescriptor modifications
             // NOTE: param order should match PassDescriptor field order for consistency
             #region PassVariant
-            private static PassDescriptor PassVariant( in PassDescriptor source, PragmaCollection pragmas )
+            private static PassDescriptor PassVariant(in PassDescriptor source, PragmaCollection pragmas)
             {
                 var result = source;
                 result.pragmas = pragmas;
                 return result;
             }
 
-            private static PassDescriptor PassVariant( in PassDescriptor source, BlockFieldDescriptor[] vertexBlocks, BlockFieldDescriptor[] pixelBlocks, PragmaCollection pragmas, DefineCollection defines )
+            private static PassDescriptor PassVariant(in PassDescriptor source, BlockFieldDescriptor[] vertexBlocks, BlockFieldDescriptor[] pixelBlocks, PragmaCollection pragmas, DefineCollection defines)
             {
                 var result = source;
                 result.validVertexBlocks = vertexBlocks;
@@ -279,6 +279,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 result.defines = defines;
                 return result;
             }
+
             #endregion
 
             // SM 4.5, compute with dots instancing
@@ -309,7 +310,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 generatesPreview = true,
                 passes = new PassCollection
                 {
-                    { PassVariant(LitPasses.ForwardOnly,     CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitDefines.ComplexLit ) },
+                    { PassVariant(LitPasses.ForwardOnly,     CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitDefines.ComplexLit) },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
@@ -353,9 +354,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 },
             };
         }
-#endregion
+        #endregion
 
-#region Passes
+        #region Passes
         static class LitPasses
         {
             public static PassDescriptor Forward = new PassDescriptor
@@ -520,9 +521,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = CoreIncludes.DepthNormalsOnly,
             };
         }
-#endregion
+        #endregion
 
-#region PortMasks
+        #region PortMasks
         static class LitBlockMasks
         {
             public static readonly BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
@@ -573,11 +574,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
-
         }
-#endregion
+        #endregion
 
-#region RequiredFields
+        #region RequiredFields
         static class LitRequiredFields
         {
             public static readonly FieldCollection Forward = new FieldCollection()
@@ -619,28 +619,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Attributes.uv2,                            //needed for meta vertex position
             };
         }
-#endregion
+        #endregion
 
-#region Defines
-static class LitDefines
-{
-    public static readonly KeywordDescriptor ClearCoat = new KeywordDescriptor()
-    {
-        displayName = "Clear Coat",
-        referenceName = "_CLEARCOAT 1",
-        type = KeywordType.Boolean,
-        definition = KeywordDefinition.ShaderFeature,
-        scope = KeywordScope.Local,
-    };
+        #region Defines
+        static class LitDefines
+        {
+            public static readonly KeywordDescriptor ClearCoat = new KeywordDescriptor()
+            {
+                displayName = "Clear Coat",
+                referenceName = "_CLEARCOAT 1",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
 
-    public static readonly DefineCollection ComplexLit = new DefineCollection()
-    {
-        {ClearCoat, 1},
-    };
-}
-#endregion
+            public static readonly DefineCollection ComplexLit = new DefineCollection()
+            {
+                {ClearCoat, 1},
+            };
+        }
+        #endregion
 
-#region Keywords
+        #region Keywords
         static class LitKeywords
         {
             public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
@@ -652,7 +652,7 @@ static class LitDefines
                 scope = KeywordScope.Global,
             };
 
-			public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
+            public static readonly KeywordDescriptor ScreenSpaceAmbientOcclusion = new KeywordDescriptor()
             {
                 displayName = "Screen Space Ambient Occlusion",
                 referenceName = "_SCREEN_SPACE_OCCLUSION",
@@ -691,9 +691,9 @@ static class LitDefines
                 { CoreKeywordDescriptors.SmoothnessChannel },
             };
         }
-#endregion
+        #endregion
 
-#region Includes
+        #region Includes
         static class LitIncludes
         {
             const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
@@ -752,6 +752,6 @@ static class LitDefines
                 { k2DPass, IncludeLocation.Postgraph },
             };
         }
-#endregion
+        #endregion
     }
 }
