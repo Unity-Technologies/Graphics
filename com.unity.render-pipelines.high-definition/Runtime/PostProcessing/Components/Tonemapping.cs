@@ -141,12 +141,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case Texture3D t:
                     valid |= t.width == t.height
-                          && t.height == t.depth;
+                        && t.height == t.depth;
                     break;
                 case RenderTexture rt:
                     valid |= rt.dimension == TextureDimension.Tex3D
-                          && rt.width == rt.height
-                          && rt.height == rt.volumeDepth;
+                        && rt.width == rt.height
+                        && rt.height == rt.volumeDepth;
                     break;
             }
 
@@ -165,6 +165,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) { }
+        public TonemappingModeParameter(TonemappingMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

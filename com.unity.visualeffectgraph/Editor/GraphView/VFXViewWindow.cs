@@ -232,7 +232,7 @@ namespace  UnityEditor.VFX.UI
         void OnFocus()
         {
             if (graphView != null) // OnFocus can be somehow called before OnEnable
-            graphView.OnFocus();
+                graphView.OnFocus();
         }
 
         public bool autoCompile {get; set; }
@@ -265,7 +265,6 @@ namespace  UnityEditor.VFX.UI
                         }
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
-
                             VFXGraph.explicitCompile = true;
                             graph.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
                             using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
@@ -275,7 +274,6 @@ namespace  UnityEditor.VFX.UI
                                 VFXGraph.compileReporter = null;
                             }
                             VFXGraph.explicitCompile = false;
-                        
                         }
                         else
                             graph.RecompileIfNeeded(true, true);

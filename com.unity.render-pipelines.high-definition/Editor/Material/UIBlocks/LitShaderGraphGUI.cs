@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public LitShaderGraphGUI()
         {
-            // Lit SG have refraction block 
+            // Lit SG have refraction block
             uiBlocks.Insert(1, new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency, TransparencyUIBlock.Features.Refraction));
         }
     }

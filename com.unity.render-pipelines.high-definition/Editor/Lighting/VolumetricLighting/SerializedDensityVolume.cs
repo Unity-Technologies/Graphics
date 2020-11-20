@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     size.vector3Value.x > 0.00001 ? 1f - ((size.vector3Value.x - editorUniformFade.floatValue) / size.vector3Value.x) : 0f,
                     size.vector3Value.y > 0.00001 ? 1f - ((size.vector3Value.y - editorUniformFade.floatValue) / size.vector3Value.y) : 0f,
                     size.vector3Value.z > 0.00001 ? 1f - ((size.vector3Value.z - editorUniformFade.floatValue) / size.vector3Value.z) : 0f
-                    );
+                );
             }
             m_SerializedObject.ApplyModifiedProperties();
         }

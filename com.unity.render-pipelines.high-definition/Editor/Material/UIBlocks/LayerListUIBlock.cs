@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public LayerListUIBlock(Expandable expandableBit)
         {
             m_ExpandableBit = expandableBit;
-            m_WithUV = new bool[]{ true, true, true, true };
+            m_WithUV = new bool[] { true, true, true, true };
         }
 
         public override void LoadMaterialProperties()
