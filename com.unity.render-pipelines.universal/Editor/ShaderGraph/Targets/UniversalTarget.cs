@@ -673,10 +673,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
     #endregion
 
-            public static readonly DefineCollection UseFragmentFog = new DefineCollection()
-            {
-                {CoreKeywordDescriptors.UseFragmentFog, 1},
-            };
+    public static readonly DefineCollection UseFragmentFog = new DefineCollection()
+    {
+        {CoreKeywordDescriptors.UseFragmentFog, 1},
+    };
 
     #region KeywordDescriptors
     // TODO: should these be renamed and moved to UniversalKeywordDescriptors/UniversalKeywords.cs ?
