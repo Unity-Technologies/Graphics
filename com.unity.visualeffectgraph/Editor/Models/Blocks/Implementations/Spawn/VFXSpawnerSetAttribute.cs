@@ -7,18 +7,10 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    class AttributeProviderSpawner : IStringProvider
-    {
-        public string[] GetAvailableString()
-        {
-            return VFXAttribute.AllIncludingVariadicExceptWriteOnly.Concat(new[] { "spawnCount" }).ToArray();
-        }
-    }
-
     [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProviderSpawner))]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.AllReadWritable.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
@@ -28,8 +20,6 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                if (attribute == "spawnCount") //spawnCount isn't listed in attribute but it belongs to attribute in spawner.
-                    return new VFXAttribute("spawnCount", VFXValueType.Float);
                 return VFXAttribute.Find(attribute);
             }
         }
