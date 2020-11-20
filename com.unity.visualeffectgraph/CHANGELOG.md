@@ -69,7 +69,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Output Event Handler Samples
 - Added ExposedProperty custom Property Drawer
 - Error display within the graph.
-- Warning using Depth Collision on unsupported scriptable render pipeline.
 
 ### Fixed
 - Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
