@@ -120,7 +120,7 @@ namespace UnityEditor
         {
             if (getUserData != null)
                 return getUserData(guiState);
-            
+
             return base.GetUserData(guiState, index);
         }
     }

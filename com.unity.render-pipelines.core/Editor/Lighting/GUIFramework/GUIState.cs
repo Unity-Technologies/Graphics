@@ -116,7 +116,7 @@ namespace UnityEditor
         {
             get
             {
-                return SceneView.currentDrawingSceneView == null || 
+                return SceneView.currentDrawingSceneView == null ||
                     SceneView.currentDrawingSceneView != null && SceneView.currentDrawingSceneView.in2DMode;
             }
         }

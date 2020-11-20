@@ -107,7 +107,7 @@ namespace UnityEditor
             else if (m_GUIState.eventType != EventType.Used && m_ControlIDCheck != controlIDCheck)
                 Debug.LogWarning("GetControlID at event " + m_GUIState.eventType + " returns a controlID different from the one in Layout event");
 #endif
-                
+
             var nearestLayoutData = LayoutData.zero;
 
             foreach (var manipulator in m_Manipulators)

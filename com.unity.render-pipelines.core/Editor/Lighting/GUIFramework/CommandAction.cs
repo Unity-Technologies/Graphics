@@ -50,7 +50,7 @@ namespace UnityEditor
             if (guiState.eventType == EventType.ExecuteCommand && guiState.commandName == m_CommandName)
             {
                 guiState.UseEvent();
-                
+
                 return true;
             }
 

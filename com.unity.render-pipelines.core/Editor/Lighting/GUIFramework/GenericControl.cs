@@ -132,7 +132,7 @@ namespace UnityEditor
             if (getPosition != null)
                 return getPosition(index);
 
-            return base.GetPosition(guiState,index);
+            return base.GetPosition(guiState, index);
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace UnityEditor
             if (getForward != null)
                 return getForward(index);
 
-            return base.GetForward(guiState,index);
+            return base.GetForward(guiState, index);
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace UnityEditor
             if (getUp != null)
                 return getUp(index);
 
-            return base.GetUp(guiState,index);
+            return base.GetUp(guiState, index);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace UnityEditor
             if (getRight != null)
                 return getRight(index);
 
-            return base.GetRight(guiState,index);
+            return base.GetRight(guiState, index);
         }
 
         /// <summary>
@@ -201,8 +201,8 @@ namespace UnityEditor
         {
             if (getUserData != null)
                 return getUserData(index);
-            
-            return base.GetUserData(guiState,index);
+
+            return base.GetUserData(guiState, index);
         }
     }
 }

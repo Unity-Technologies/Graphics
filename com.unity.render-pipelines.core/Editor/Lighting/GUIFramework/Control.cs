@@ -187,7 +187,6 @@ namespace UnityEditor
         /// <param name="guiState">The gui state</param>
         protected virtual void OnEndLayout(IGUIState guiState)
         {
-            
         }
 
         /// <summary>
@@ -197,7 +196,6 @@ namespace UnityEditor
         /// <param name="index">The index</param>
         protected virtual void OnRepaint(IGUIState guiState, int index)
         {
-            
         }
 
         /// <summary>

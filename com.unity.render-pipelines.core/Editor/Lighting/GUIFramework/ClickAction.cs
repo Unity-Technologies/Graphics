@@ -60,7 +60,7 @@ namespace UnityEditor
         protected override void OnTrigger(IGUIState guiState)
         {
             base.OnTrigger(guiState);
-            
+
             if (onClick != null)
                 onClick(guiState, hoveredControl);
 

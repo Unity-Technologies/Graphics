@@ -63,7 +63,7 @@ namespace UnityEditor
                 }
             }
 
-            // anchor is cached for it cannot be changed from the inspector, 
+            // anchor is cached for it cannot be changed from the inspector,
             // we have a dedicated editor tool to move the anchor
             var anchor = firstManipulator.anchorPosition;
 
@@ -228,7 +228,7 @@ namespace UnityEditor
                         if (yawChanged)
                             manipulator.yaw = m_Yaw;
                         if (pitchChanged)
-                        manipulator.pitch = m_Pitch;
+                            manipulator.pitch = m_Pitch;
                         if (rollChanged)
                             manipulator.roll = m_Roll;
                         if (distanceChanged)
@@ -257,7 +257,7 @@ namespace UnityEditor
             // Setup event to keep track of EditorTool state
             ToolManager.activeToolChanged += EditorToolsOnactiveToolChanged;
 
-            // Get a reference to the GameView 
+            // Get a reference to the GameView
             // TODO: This currently only works with a single Game View
             var gameViews = Resources.FindObjectsOfTypeAll<EditorWindow>()
                 .Where(w => w.GetType().FullName == "UnityEditor.GameView")
@@ -272,7 +272,7 @@ namespace UnityEditor
             m_ClickCatcher.RegisterCallback<MouseDownEvent>(OnMouseDown);
 
             // Determine if the editor tool is already active (this helps keep our state when swapping between
-            // different light objects directly, or after an assembly reload) 
+            // different light objects directly, or after an assembly reload)
             var anchorTools = Resources.FindObjectsOfTypeAll<LightAnchorEditorTool>()
                 .ToArray();
             if (anchorTools.Length > 0)

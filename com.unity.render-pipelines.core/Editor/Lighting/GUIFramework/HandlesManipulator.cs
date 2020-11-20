@@ -30,7 +30,7 @@ namespace UnityEditor
         {
             if (guiState.eventType == EventType.Layout)
                 m_Enabled = IsEnabled(guiState);
-            
+
             if (m_Enabled)
             {
                 if (onGui != null)

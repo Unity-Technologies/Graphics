@@ -118,7 +118,7 @@ namespace UnityEditor
         private void Repaint(IGUIState guiState)
         {
             Debug.Assert(guiState.eventType == EventType.Repaint);
-            
+
             if (onRepaint != null)
                 onRepaint(guiState, this);
         }
@@ -163,23 +163,22 @@ namespace UnityEditor
         /// <param name="guiState">The GUI State</param>
         protected virtual void OnTrigger(IGUIState guiState)
         {
-            
         }
+
         /// <summary>
         /// OnPerform
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         protected virtual void OnPerform(IGUIState guiState)
         {
-
         }
+
         /// <summary>
         /// OnFinish
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         protected virtual void OnFinish(IGUIState guiState)
         {
-            
         }
     }
 }
