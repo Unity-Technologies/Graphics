@@ -46,7 +46,7 @@ To find the root cause of a NaN/Inf, HDRP includes a debug mode which displays p
 This helps you to see if there are actually NaNs/Infs on screen and which material causes them. However, if you need more information, such as which particular draw call causes the issue, you can use frame debugging tools such as [RenderDoc](https://renderdoc.org/). For information on how to use RenderDoc to capture frames in Unity, see [RenderDoc integration](https://docs.unity3d.com/Manual/RenderDocIntegration.html).
 
 A common situation that leads to NaNs is when a mesh is imported with ill-defined normals, like normals equal to the zero vector.
-To find these normals, you can use one of the normal visualization modes in the [**Material** panel](Render-Pipeline-Debug-Window.html#material-panel) of the Render Pipeline Debug window.
+To find these normals, you can use one of the normal visualization modes in the [Material panel](Render-Pipeline-Debug-Window.md#material-panel) of the Render Pipeline Debug window.
 
 #### RenderDoc
 
@@ -55,6 +55,6 @@ After you capture a frame, RenderDoc can display pixels with a NaN/Inf value as 
 ![](Images/Post-processingPropagatingNaNsRenderDoc.png)
 
 
-Now that it is easier to see the NaN/Inf values, you can start to look for them. If they are still not obvious, you can look at the bloom dispatches to see where bloom propagates the NaN/Inf pixels from, then pinpoint the exact pixel/s responsible. Taking the example images in the [propagating NaNs/Infs section](#Propagating-NaNs/Infs), you can see by how bloom expands the NaN/Inf values that the source is around the center of the screen, on the sphere's Material.
+Now that it is easier to see the NaN/Inf values, you can start to look for them. If they are still not obvious, you can look at the bloom dispatches to see where bloom propagates the NaN/Inf pixels from, then pinpoint the exact pixel/s responsible. Taking the example images in the [propagating NaNs/Infs section](#propagating-nans/infs), you can see by how bloom expands the NaN/Inf values that the source is around the center of the screen, on the sphere's Material.
 
 After you find which Materials/shaders produce the NaNs/Infs, you can then debug them to find out which operation actually causes the invalid values.
