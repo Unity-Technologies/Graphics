@@ -939,15 +939,17 @@ half4 CalculateShadowMask(InputData inputData)
     return shadowMask;
 }
 
-half3 CalculateLightColor(Light mainLight, InputData inputData, SurfaceData surfaceData)
+half3 CalculateLightColor(Light light, InputData inputData, SurfaceData surfaceData)
 {
-    half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
-    half3 lightColor = LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
+    half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
+    half3 lightColor = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
 
     lightColor *= surfaceData.albedo;
 
     #if defined(_SPECGLOSSMAP) || defined(_SPECULAR_COLOR)
-    lightColor += LightingSpecular(attenuatedLightColor, mainLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), surfaceData.smoothness);
+    half smoothness = exp2(10 * surfaceData.smoothness + 1);
+
+    lightColor += LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
     #endif
 
     return lightColor;
@@ -1094,7 +1096,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     // Clear-coat calculation...
     BRDFData brdfDataClearCoat = CreateClearCoatBRDFData(surfaceData, brdfData);
     half4 shadowMask = CalculateShadowMask(inputData);
-        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask, aoFactor);
 
     // Calculate the color contributions of all possible types of lighting...
@@ -1104,24 +1106,24 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
     lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
-                                     inputData.bakedGI, surfaceData.occlusion,
-                                     inputData.normalWS, inputData.viewDirectionWS);
+                                              inputData.bakedGI, surfaceData.occlusion,
+                                              inputData.normalWS, inputData.viewDirectionWS);
     lightingData.mainLightColor = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                         mainLight,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
+                                                          mainLight,
+                                                          inputData.normalWS, inputData.viewDirectionWS,
+                                                          surfaceData.clearCoatMask, specularHighlightsOff);
 
     #if defined(_ADDITIONAL_LIGHTS)
-	    uint pixelLightCount = GetAdditionalLightsCount();
+	uint pixelLightCount = GetAdditionalLightsCount();
 
-    	for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    	{
+    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
+    {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask, aoFactor);
 
         lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
-    	}
+                                                                      inputData.normalWS, inputData.viewDirectionWS,
+                                                                      surfaceData.clearCoatMask, specularHighlightsOff);
+    }
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
@@ -1132,7 +1134,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 }
 
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
+                           half smoothness, half occlusion, half3 emission, half alpha)
 {
     SurfaceData surfaceData;
 
@@ -1152,7 +1154,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 
 //LWRP -> Universal Backwards Compatibility
 half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
+                             half smoothness, half occlusion, half3 emission, half alpha)
 {
     return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
 }
@@ -1162,8 +1164,6 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 ////////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 {
-    half smoothness = exp2(10 * surfaceData.smoothness + 1);
-
     #if defined(_DEBUG_SHADER)
     DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
@@ -1175,7 +1175,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #endif
 
     half4 shadowMask = CalculateShadowMask(inputData);
-        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
+    AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(inputData.normalizedScreenSpaceUV);
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask, aoFactor);
 
     // Calculate the color contributions of all possible types of lighting...
@@ -1188,14 +1188,14 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     lightingData.mainLightColor += CalculateLightColor(mainLight, inputData, surfaceData);
 
     #if defined(_ADDITIONAL_LIGHTS)
-	    uint pixelLightCount = GetAdditionalLightsCount();
+	uint pixelLightCount = GetAdditionalLightsCount();
 
-    	for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
-    	{
+    for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
+    {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS, shadowMask, aoFactor);
 
         lightingData.additionalLightsColor += CalculateLightColor(light, inputData, surfaceData);
-    	}
+    }
     #endif
 
     #if defined(_ADDITIONAL_LIGHTS_VERTEX)
@@ -1203,7 +1203,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #endif
 
     return CalculateFinalColor(lightingData, surfaceData.alpha);
-    }
+}
 
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS)
 {
