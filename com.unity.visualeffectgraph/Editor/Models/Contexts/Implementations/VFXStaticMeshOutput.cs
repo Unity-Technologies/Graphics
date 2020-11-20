@@ -49,6 +49,11 @@ namespace UnityEditor.VFX
             shader = ((VFXDataMesh)GetData()).shader;
         }
 
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            return VFXCoordinateSpace.Local;
+        }
+
         public override bool SetupCompilation()
         {
             shader = ((VFXDataMesh)GetData()).shader;
@@ -260,8 +265,10 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
-
+            ((VFXDataMesh)GetData()).RefreshShader(); // TODO This triggers an invalidate that is theorically not needed but require to fix a bug with shader graph dependency
             ResyncSlots(true);
+
+            Invalidate(InvalidationCause.kUIChangedTransient);
         }
     }
 }

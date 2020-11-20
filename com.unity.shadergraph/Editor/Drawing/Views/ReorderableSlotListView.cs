@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var concreteValueType = (ConcreteSlotValueType) EditorGUI.EnumPopup(
                     new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight),
                     GUIContent.none,
-                    oldSlot.concreteValueType,
+                    (ConcreteSlotValueTypePopupName)oldSlot.concreteValueType, // Force ConcreteSlotValueTypePopupName enum which match ConcreteSlotValueType to provide a friendly named in Popup
                     e => (AllowedTypeCallback == null) ? true : AllowedTypeCallback((ConcreteSlotValueType) e));
 
                 if(EditorGUI.EndChangeCheck())

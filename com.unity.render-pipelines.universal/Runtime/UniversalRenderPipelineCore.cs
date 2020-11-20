@@ -279,6 +279,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
+
+        // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
+        public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
     public struct PostProcessingData
@@ -337,7 +340,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _POINT = "_POINT";
         public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
-        public static readonly string _DEFERRED_SUBTRACTIVE_LIGHTING = "_DEFERRED_SUBTRACTIVE_LIGHTING";
+        public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
         public static readonly string _ALPHATEST_ON = "_ALPHATEST_ON";
         public static readonly string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
@@ -361,7 +364,7 @@ namespace UnityEngine.Rendering.Universal
         // directional lights to return 1.0 for both distance and angle attenuation
         static Vector4 k_DefaultLightAttenuation = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
         static Vector4 k_DefaultLightSpotDirection = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-        static Vector4 k_DefaultLightsProbeChannel = new Vector4(-1.0f, 1.0f, -1.0f, -1.0f);
+        static Vector4 k_DefaultLightsProbeChannel = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
 
@@ -416,11 +419,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
+#if UNITY_2021_1_OR_NEWER
+        void SortCameras(List<Camera> cameras)
+        {
+            if (cameras.Count > 1)
+                cameras.Sort(cameraComparison);
+        }
+#else
         void SortCameras(Camera[] cameras)
         {
             if (cameras.Length > 1)
                 Array.Sort(cameras, cameraComparison);
         }
+#endif
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isHdrEnabled, int msaaSamples, bool needsAlpha)
@@ -453,6 +464,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = camera.targetTexture.descriptor;
                 desc.width = camera.pixelWidth;
                 desc.height = camera.pixelHeight;
+                desc.graphicsFormat = isHdrEnabled ? desc.graphicsFormat : renderTextureFormatDefault;
                 // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
                 // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
                 // If this is fixed then we can implement debug statement to the user explaining why some
@@ -463,6 +475,11 @@ namespace UnityEngine.Rendering.Universal
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
+
+            // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
+            // replace the requested desc.msaaSamples value with the actual value the engine falls back to
+            desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
+
             return desc;
         }
 
@@ -627,16 +644,11 @@ namespace UnityEngine.Rendering.Universal
 
             Light light = lightData.light;
 
-            lightOcclusionProbeChannel = Vector4.zero;
             if (light != null && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                 0 <= light.bakingOutput.occlusionMaskChannel &&
                 light.bakingOutput.occlusionMaskChannel < 4)
             {
                 lightOcclusionProbeChannel[light.bakingOutput.occlusionMaskChannel] = 1.0f;
-            }
-            else
-            {
-                lightOcclusionProbeChannel.x = -1.0f; // Use -1 to say we have no mask
             }
         }
     }

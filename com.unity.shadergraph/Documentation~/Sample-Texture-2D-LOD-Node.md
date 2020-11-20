@@ -6,7 +6,9 @@ Samples a **Texture 2D** and returns a **Vector 4** color value for use in the s
 
 To use the **Sample Texture 2D LOD Node** to sample a normal map, set the **Type** dropdown parameter to **Normal**.
 
-This [Node](Node.md) is useful for sampling a **Texture** in the vertex [Shader Stage](Shader-Stage.md) as the [Sample Texture 2D Node](Sample-Texture-2D-Node.md) is unavailable in this [Shader Stage](Shader-Stage.md). 
+This [Node](Node.md) is useful for sampling a **Texture** in the vertex [Shader Stage](Shader-Stage.md) as the [Sample Texture 2D Node](Sample-Texture-2D-Node.md) is unavailable in this [Shader Stage](Shader-Stage.md).
+
+On platforms that do not support this operation, opaque black is returned instead.
 
 ## Ports
 
