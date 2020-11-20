@@ -52,7 +52,6 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
-
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         /// <summary>
         /// Sets up the keywords and passes for a Decal Shader Graph material.

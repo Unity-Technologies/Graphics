@@ -60,7 +60,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     // We load material properties at each frame because materials can be animated and to make undo/redo works
                     uiBlock.UpdateMaterialProperties(properties);
                     uiBlock.OnGUI();
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Debug.LogError(e);
                 }

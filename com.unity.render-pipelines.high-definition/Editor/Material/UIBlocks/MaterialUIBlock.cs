@@ -27,20 +27,20 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Standard
             ///<summary>Reserved Base Bit</summary>
-            Base = 1<<0,
+            Base = 1 << 0,
             ///<summary>Reserved Input Bit</summary>
-            Input = 1<<1,
+            Input = 1 << 1,
             ///<summary>Reserved Tessellation Bit</summary>
-            Tessellation = 1<<2,
+            Tessellation = 1 << 2,
             ///<summary>Reserved Transparency Bit</summary>
-            Transparency = 1<<3,
+            Transparency = 1 << 3,
             // Free slot 4
             ///<summary>Reserved Detail Bit</summary>
-            Detail = 1<<5,
+            Detail = 1 << 5,
             ///<summary>Reserved Emissive Bit</summary>
-            Emissive = 1<<6,
+            Emissive = 1 << 6,
             ///<summary>Reserved Advanced Bit</summary>
-            Advance = 1<<7,
+            Advance = 1 << 7,
             ///<summary>Reserved Other Bit</summary>
             Other = 1 << 8,
             ///<summary>Reserved ShaderGraph Bit</summary>
