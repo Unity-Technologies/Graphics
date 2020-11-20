@@ -130,7 +130,6 @@ namespace UnityEngine.Rendering.Universal
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
-            private RenderTargetIdentifier m_LightingTarget = new RenderTargetIdentifier(s_LightingID, 0, CubemapFace.Unknown, -1);
             private RenderTextureDescriptor m_Descriptor;
 
             // Constants
@@ -149,7 +148,6 @@ namespace UnityEngine.Rendering.Universal
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
-            private static readonly int s_LightingID = Shader.PropertyToID("_CameraColorTexture"); // (kc)
 
             private enum ShaderPasses
             {
@@ -157,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
                 BlurHorizontal = 1,
                 BlurVertical = 2,
                 BlurFinal = 3,
-                Apply = 4
+                AfterOpaque = 4
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -300,7 +298,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
-                ConfigureTarget(s_SSAOTexture2ID);
+                ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTarget : s_SSAOTexture2ID);
                 ConfigureClear(ClearFlag.None, Color.white);
             }
 
@@ -333,13 +331,18 @@ namespace UnityEngine.Rendering.Universal
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTexture2Target);
                     cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
-                }
 
-                // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
-                if (m_CurrentSettings.AfterOpaque)
-                {
-                    // (kc) add profiler tag
-                    RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_LightingTarget, ShaderPasses.Apply);
+                    // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
+                    if (m_CurrentSettings.AfterOpaque)
+                    {
+                        // This implicitely also bind depth attachment. Explicitely binding m_Renderer.cameraDepthTarget does not work.
+                        cmd.SetRenderTarget(
+                            m_Renderer.cameraColorTarget,
+                            RenderBufferLoadAction.Load,
+                            RenderBufferStoreAction.Store
+                        );
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, (int)ShaderPasses.AfterOpaque);
+                    }
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -374,7 +377,10 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 if (!m_CurrentSettings.AfterOpaque)
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
+                }
+
                 cmd.ReleaseTemporaryRT(s_SSAOTexture1ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture2ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture3ID);
