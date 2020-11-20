@@ -953,7 +953,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ScreenSpaceReflectionAlgorithm
                                 currentSSRAlgorithm = ScreenSpaceReflectionAlgorithm.Approximation; // Store current algorithm which help to know if we trigger to reset history SSR Buffers
 
-        ViewConstants[]         m_XRViewConstants;
+        internal ViewConstants[] m_XRViewConstants;
 
         // Recorder specific
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
