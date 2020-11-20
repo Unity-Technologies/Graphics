@@ -106,7 +106,7 @@ To make this section visible, disable **Earth Preset**.
 
 This sky type is a practical implementation of the method outlined in the paper [Precomputed Atmospheric Scattering](http://www-ljk.imag.fr/Publications/Basilic/com.lmc.publi.PUBLI_Article@11e7cdda2f7_f64b69/article.pdf) (Bruneton and Neyret, 2008).
 
-This technique assumes that you always view the Scene from above the surface of the planet. This means that if you go below the planet's surface, the sky renders black. Where the surface of the planet is depends on whether you enable or disable **Spherical Mode**:
+This technique assumes that you always view the Scene from above the surface of the planet. This means that if a camera goes below the planet's surface, the sky renders as it would do if the camera was at ground level. Where the surface of the planet is depends on whether you enable or disable **Spherical Mode**:
 
 * If you enable **Spherical Mode**, the **Planetary Radius** and **Planet Center Position** properties define where the surface is. In this mode, the surface is at the distance set in **Planetary Radius** away from the position set in **Planet Center Position**.
 * Otherwise, the **Sea Level** property defines where the surface is. In this mode, the surface stretches out infinitely on the xz plane and **Sea Level** sets its world space height.
