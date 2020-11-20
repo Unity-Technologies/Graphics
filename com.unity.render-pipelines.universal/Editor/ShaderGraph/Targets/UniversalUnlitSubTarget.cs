@@ -144,12 +144,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Overloads to do inline PassDescriptor modifications
             // NOTE: param order should match PassDescriptor struct field order for consistency
             #region PassVariant
-            private static PassDescriptor PassVariant( in PassDescriptor source, PragmaCollection pragmas )
+            private static PassDescriptor PassVariant(in PassDescriptor source, PragmaCollection pragmas)
             {
                 var result = source;
                 result.pragmas = pragmas;
                 return result;
             }
+
             #endregion
 
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
@@ -176,9 +177,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         generatesPreview = true,
                         passes = new PassCollection
                         {
-                            { PassVariant( UnlitPasses.Unlit, CorePragmas.DOTSForward )},
-                            { PassVariant( CorePasses.ShadowCaster , CorePragmas.DOTSInstanced )},
-                            { PassVariant( CorePasses.DepthOnly, CorePragmas.DOTSInstanced)},
+                            { PassVariant(UnlitPasses.Unlit, CorePragmas.DOTSForward)},
+                            { PassVariant(CorePasses.ShadowCaster , CorePragmas.DOTSInstanced)},
+                            { PassVariant(CorePasses.DepthOnly, CorePragmas.DOTSInstanced)},
                         },
                     };
                 }

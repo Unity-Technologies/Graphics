@@ -26,9 +26,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #endregion
 
 // Fields that act only as a condition for RenderState etc.
-#region ConditionalFields
-public static FieldDescriptor BlendAlphaPreserveSpecular = new FieldDescriptor(string.Empty, "Blend",       "");
-public static FieldDescriptor BlendAddPreserveSpecular   = new FieldDescriptor(string.Empty, "PreserveSpecular",       "");
+        #region ConditionalFields
+        public static FieldDescriptor BlendAlphaPreserveSpecular = new FieldDescriptor(string.Empty, "Blend",       "");
+        public static FieldDescriptor BlendAddPreserveSpecular   = new FieldDescriptor(string.Empty, "PreserveSpecular",       "");
 
 // A predicate is field that has a matching template command, for example: $<name> <content>
 // It is only used to enable/disable <content> in the tempalate
