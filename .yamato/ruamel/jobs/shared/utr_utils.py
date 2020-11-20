@@ -1,4 +1,17 @@
 from .constants import *
+import itertools
+
+def get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags"):
+    '''Returns a list with each element corresponding to list-of-utr-flags per each utr run within testplatform.
+    If UTR is called just once (no utr_repeat specified in metafile), list has length of 1.'''
+    utr_calls = []
+    if test_platform.get("utr_repeat"):
+        for utr_repeat in test_platform["utr_repeat"]:
+            utr_calls.append(extract_flags(test_platform[utr_flags_key], platform["name"], api["name"], build_config, color_space, project_folder, utr_repeat[utr_flags_key]))
+    else:
+        utr_calls.append(extract_flags(test_platform[utr_flags_key], platform["name"], api["name"], build_config, color_space, project_folder))
+    utr_calls = list(utr_calls for utr_calls,_ in itertools.groupby(utr_calls)) # removes duplicates which happen if repeated utr is specified but not for this platform+api
+    return utr_calls
 
 def extract_flags(utr_flags, platform_name, api_name, build_config, color_space, project_folder, utr_repeat_flags=[]):
     '''Given a list of utr flags (composed of flags under shared + project metafiles), filters out and returns flags relevant for this platform_api.

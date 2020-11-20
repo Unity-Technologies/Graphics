@@ -1,6 +1,6 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL, get_unity_downloader_cli_cmd, get_timeout
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ...shared.utr_utils import  extract_flags
+from ...shared.utr_utils import  get_repeated_utr_calls
 
 
 def _cmd_base(project_folder, platform, editor):
@@ -15,13 +15,7 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
         f'chmod +x ./utr'
      ]
 
-    utr_calls = []
-    if test_platform.get("utr_repeat"):
-        for utr_repeat in test_platform["utr_repeat"]:
-            utr_calls.append(extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder, utr_repeat["utr_flags"]))
-    else:
-        utr_calls.append(extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder))
-    
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     for utr_args in utr_calls:
         base.append(
         pss(f'''
@@ -41,13 +35,7 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
         f'chmod +x ./utr'
      ]
 
-    utr_calls = []
-    if test_platform.get("utr_repeat"):
-        for utr_repeat in test_platform["utr_repeat"]:
-            utr_calls.append(extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder, utr_repeat["utr_flags"]))
-    else:
-        utr_calls.append(extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder))
-    
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     for utr_args in utr_calls:
         base.append(
         pss(f'''
@@ -65,13 +53,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
         f'chmod +x ./utr'
      ]
 
-    utr_calls = []
-    if test_platform.get("utr_repeat"):
-        for utr_repeat in test_platform["utr_repeat"]:
-            utr_calls.append(extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder, utr_repeat["utr_flags"]))
-    else:
-        utr_calls.append(extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder))
-    
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
     for utr_args in utr_calls:
         base.append(
         pss(f'''
@@ -90,13 +72,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
         f'chmod +x ./utr'
      ]
     
-    utr_calls = []
-    if test_platform.get("utr_repeat"):
-        for utr_repeat in test_platform["utr_repeat"]:
-            utr_calls.append(extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder, utr_repeat["utr_flags_build"]))
-    else:
-        utr_calls.append(extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder))
-    
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags_build")
     for utr_args in utr_calls:
         base.append(
         pss(f'''
