@@ -141,7 +141,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         private void ForEach(Action<IEditablePath> action)
         {
-            foreach(var path in m_Paths)
+            foreach (var path in m_Paths)
             {
                 if (path == null)
                     continue;

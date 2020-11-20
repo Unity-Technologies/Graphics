@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             get { return m_GUIRect; }
         }
 
-        public RectSelector() : this(new GUISystem(new GUIState())) { }
+        public RectSelector() : this(new GUISystem(new GUIState())) {}
 
         public RectSelector(GUISystem guiSystem)
         {
