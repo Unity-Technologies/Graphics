@@ -1056,8 +1056,6 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 ////////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 {
-    half smoothness = exp2(10 * surfaceData.smoothness + 1);
-
     #if defined(_DEBUG_SHADER)
     DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
@@ -1076,7 +1074,6 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #else
     half4 shadowMask = half4(1, 1, 1, 1);
     #endif
-
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, shadowMask);
 
     #if defined(_SCREEN_SPACE_OCCLUSION)
@@ -1089,6 +1086,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 
     half3 diffuseColor = half3(0, 0, 0);
     half3 specularColor = half3(0, 0, 0);
+    half smoothness = exp2(10 * surfaceData.smoothness + 1);
 
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
     {
