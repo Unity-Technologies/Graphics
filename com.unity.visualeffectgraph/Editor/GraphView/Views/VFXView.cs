@@ -86,15 +86,13 @@ namespace UnityEditor.VFX.UI
                 {
                     bool can = draggedAnchor.controller.CanLink(overAnchor.controller);
 
-                    if( !can )
+                    if (!can)
                     {
-                        if( ! draggedAnchor.controller.CanLinkToNode(overAnchor.controller.sourceNode,null))
+                        if (!draggedAnchor.controller.CanLinkToNode(overAnchor.controller.sourceNode, null))
                             error = "The edge would create a loop in the operators";
                         else
                             error = "Link impossible for an unknown reason";
                     }
-
-                    
                 }
             }
             if (error == null)
@@ -309,7 +307,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
-
             UpdateSelectionWithNewNode();
             var groupNode = GetPickedGroupNode(mPos);
 
@@ -416,8 +413,8 @@ namespace UnityEditor.VFX.UI
             this.AddManipulator(new FreehandSelector());
 
             styleSheets.Add(LoadStyleSheet("VFXView"));
-            if( ! EditorGUIUtility.isProSkin)
-            { 
+            if (!EditorGUIUtility.isProSkin)
+            {
                 styleSheets.Add(LoadStyleSheet("VFXView-light"));
             }
             else
@@ -596,7 +593,7 @@ namespace UnityEditor.VFX.UI
         [NonSerialized]
         List<IconBadge> m_CompileBadges = new List<IconBadge>();
 
-        private void RegisterError(VFXModel model, VFXErrorOrigin errorOrigin,string error,VFXErrorType type, string description)
+        private void RegisterError(VFXModel model, VFXErrorOrigin errorOrigin, string error, VFXErrorType type, string description)
         {
             VisualElement target = null;
             VisualElement targetParent = null;
@@ -644,7 +641,7 @@ namespace UnityEditor.VFX.UI
                 badge.AttachTo(target, alignement);
 
 
-                if(errorOrigin == VFXErrorOrigin.Compilation)
+                if (errorOrigin == VFXErrorOrigin.Compilation)
                 {
                     m_CompileBadges.Add(badge);
                 }
@@ -657,14 +654,13 @@ namespace UnityEditor.VFX.UI
                         m_InvalidateBadges[model] = badges;
                     }
                     badges.Add(badge);
-
                 }
                 badge.AddManipulator(new Clickable(() =>
                 {
                     badge.Detach();
                     badge.RemoveFromHierarchy();
                 }));
-                badge.AddManipulator(new DownClickable(()=>
+                badge.AddManipulator(new DownClickable(() =>
                 {
                     GenericMenu menu = new GenericMenu();
                     menu.AddItem(EditorGUIUtility.TrTextContent("Hide"), false, () =>
@@ -690,7 +686,7 @@ namespace UnityEditor.VFX.UI
 
         private void ClearAllErrors(VFXModel model, VFXErrorOrigin errorOrigin)
         {
-            if (errorOrigin == VFXErrorOrigin.Compilation )
+            if (errorOrigin == VFXErrorOrigin.Compilation)
             {
                 foreach (var badge in m_CompileBadges)
                 {
@@ -701,7 +697,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if (!object.ReferenceEquals(model,null))
+                if (!object.ReferenceEquals(model, null))
                 {
                     List<IconBadge> badges;
                     if (m_InvalidateBadges.TryGetValue(model, out badges))
@@ -716,7 +712,6 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                     throw new InvalidOperationException("Can't clear in Invalidate mode without a model");
-
             }
         }
 
@@ -982,8 +977,6 @@ namespace UnityEditor.VFX.UI
 
         void FrameAfterAWhile()
         {
-
-
             var rectToFit = contentViewContainer.layout;
             var frameTranslation = Vector3.zero;
             var frameScaling = Vector3.one;
@@ -1374,7 +1367,7 @@ namespace UnityEditor.VFX.UI
 
             if (context != null)
             {
-                if(context.canHaveBlocks)
+                if (context.canHaveBlocks)
                     context.OnCreateBlock(point);
             }
             else
@@ -1383,7 +1376,7 @@ namespace UnityEditor.VFX.UI
                 if (edge != null)
                     VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, new VFXNodeProvider(controller, (d, v) => AddNodeOnEdge(d, v, edge.controller), null, new Type[] { typeof(VFXOperator) }));
                 else
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1428,21 +1421,21 @@ namespace UnityEditor.VFX.UI
         {
             OnCompile();
             var graphToSave = new HashSet<VFXGraph>();
-            GetGraphsRecursively(controller.graph,graphToSave);
+            GetGraphsRecursively(controller.graph, graphToSave);
 
-            foreach(var graph in graphToSave)
+            foreach (var graph in graphToSave)
             {
                 graph.GetResource().WriteAsset();
                 graph.OnSaved();
             }
         }
 
-        void GetGraphsRecursively(VFXGraph start,HashSet<VFXGraph> graphs)
+        void GetGraphsRecursively(VFXGraph start, HashSet<VFXGraph> graphs)
         {
             if (graphs.Contains(start))
                 return;
             graphs.Add(start);
-            foreach(var child in start.children)
+            foreach (var child in start.children)
             {
                 if (child is VFXSubgraphOperator ope)
                 {
@@ -1460,13 +1453,13 @@ namespace UnityEditor.VFX.UI
                         GetGraphsRecursively(graph, graphs);
                     }
                 }
-                else if( child is VFXContext ctx)
+                else if (child is VFXContext ctx)
                 {
-                    foreach( var block in ctx.children.Cast<VFXBlock>())
+                    foreach (var block in ctx.children.Cast<VFXBlock>())
                     {
-                        if( block is VFXSubgraphBlock subBlock)
+                        if (block is VFXSubgraphBlock subBlock)
                         {
-                            if( subBlock.subgraph!= null)
+                            if (subBlock.subgraph != null)
                             {
                                 var graph = subBlock.subgraph.GetResource().GetOrCreateGraph();
                                 GetGraphsRecursively(graph, graphs);
@@ -1489,7 +1482,6 @@ namespace UnityEditor.VFX.UI
             if (controller == null || parameterController == null) return;
 
             controller.AddVFXParameter(pos, parameterController, groupNode != null ? groupNode.controller : null);
-
         }
 
         public EventPropagation Resync()
@@ -1666,8 +1658,8 @@ namespace UnityEditor.VFX.UI
             else if (change.elementsToRemove != null)
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
-                
-                foreach( var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
+
+                foreach (var dataEdge in change.elementsToRemove.OfType<VFXDataEdge>())
                 {
                     RemoveElement(dataEdge);
                     dataEdges.Remove(dataEdge.controller);
@@ -1946,7 +1938,7 @@ namespace UnityEditor.VFX.UI
                     if (targetControllers[i] is VFXBlockController blkController)
                         AddToSelection((rootNodes[blkController.contextController] as VFXContextUI).GetAllBlocks().First(t => t.controller == blkController));
                     else
-                    AddToSelection(rootNodes[targetControllers[i]]);
+                        AddToSelection(rootNodes[targetControllers[i]]);
                 }
             }
 
@@ -1954,11 +1946,11 @@ namespace UnityEditor.VFX.UI
             return EventPropagation.Stop;
         }
 
-        public void AddToSelection(VFXModel model,int id)
+        public void AddToSelection(VFXModel model, int id)
         {
             VFXNodeController nodeController = controller.GetRootNodeController(model, id);
 
-            if( nodeController != null)
+            if (nodeController != null)
             {
                 AddToSelection(rootNodes[nodeController]);
             }
@@ -2189,7 +2181,7 @@ namespace UnityEditor.VFX.UI
                 {
                     evt.menu.AppendAction("Enter Subgraph", OnEnterSubgraph, e => DropdownMenuAction.Status.Normal, node.controller.model);
                 }
-                    evt.menu.AppendAction("Clear Ignored Errors",a=>node.controller.model.ClearIgnoredErrors(), node.controller.model.HasIgnoredErrors()?DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                evt.menu.AppendAction("Clear Ignored Errors", a => node.controller.model.ClearIgnoredErrors(), node.controller.model.HasIgnoredErrors() ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
             }
 
             if (evt.target is VFXDataEdge edge)
@@ -2399,7 +2391,7 @@ namespace UnityEditor.VFX.UI
                     float cpt = 0;
                     foreach (var row in rows)
                     {
-                        AddVFXParameter(mousePosition - new Vector2(50, 20) + cpt * new Vector2(0,40), row.controller, groupNode);
+                        AddVFXParameter(mousePosition - new Vector2(50, 20) + cpt * new Vector2(0, 40), row.controller, groupNode);
                         ++cpt;
                     }
                     e.StopPropagation();

@@ -157,13 +157,13 @@ namespace UnityEditor.Rendering.HighDefinition
             for (var index = 0; index < values.Length; ++index)
             {
                 // Let's first compute what is the width of the label of this scalable setting level
-				// We make sure that the label doesn't go beyond the space available for this scalable setting level
+                // We make sure that the label doesn't go beyond the space available for this scalable setting level
                 EditorGUIUtility.labelWidth = Mathf.Clamp(CalcPrefixLabelWidth(subLabels[index], (GUIStyle)null), 0, num);
-				
-				// Define the rectangle for the field
+
+                // Define the rectangle for the field
                 var fieldSlot = new Rect(position.x + pixelShift, position.y, num, position.height);
 
-				// Draw the right field depending on its type.
+                // Draw the right field depending on its type.
                 if (typeof(T) == typeof(int))
                     values[index] = (T)(object)EditorGUI.DelayedIntField(fieldSlot, subLabels[index], (int)(object)values[index]);
                 else if (typeof(T) == typeof(bool))

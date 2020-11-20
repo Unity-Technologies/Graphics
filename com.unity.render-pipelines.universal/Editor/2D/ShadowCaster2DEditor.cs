@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             using (new EditorGUI.DisabledScope(!HasRenderer()))  // Done to support multiedit
             {
-                EditorGUILayout.PropertyField(m_UseRendererSilhouette, Styles.shadowMode);  
+                EditorGUILayout.PropertyField(m_UseRendererSilhouette, Styles.shadowMode);
             }
 
             EditorGUILayout.PropertyField(m_CastsShadows, Styles.castsShadows);

@@ -382,7 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     testRow.Add(statusKO);
                 }
                 testRow.Add(fixer);
-                
+
                 Add(testRow);
                 HelpBox.Kind kind;
                 switch(messageType)
@@ -434,7 +434,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Warning,
                 Error
             }
-            
+
             readonly Label label;
             readonly Image icon;
 

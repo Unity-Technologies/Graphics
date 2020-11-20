@@ -153,7 +153,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.LogError("Allocation for requested AOVBuffers ID: " + bufferId.ToString() + " have fail. Please ensure the callback allocator do the correct allocation.");
                     }
                 }
-                    
+
             }
 
             if (m_CustomPassAOVBuffers != null)

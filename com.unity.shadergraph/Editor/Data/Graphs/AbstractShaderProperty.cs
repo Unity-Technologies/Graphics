@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return propertyType.ToString() + (sgVersion < latestVersion ? depString : "");
         }
     }
-    
+
     [Serializable]
     public abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {

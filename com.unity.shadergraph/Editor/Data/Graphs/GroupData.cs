@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class GroupData : JsonObject 
+    public class GroupData : JsonObject
     {
         [SerializeField]
         string m_Title;
@@ -35,4 +35,3 @@ namespace UnityEditor.ShaderGraph
 
     }
 }
-

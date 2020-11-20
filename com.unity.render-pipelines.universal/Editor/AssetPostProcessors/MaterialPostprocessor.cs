@@ -390,4 +390,3 @@ namespace UnityEditor.Rendering.Universal
     }
     #endregion
 }
-

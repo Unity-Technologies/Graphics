@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
             if (shader == null)
                 return;
-            
+
 
             material.shader = shader;
 
@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering.Universal
 
             RemapColorCurves(description, clips, "EmissiveColor", "_EmissionColor");
         }
-        
+
         static void RemapTransparencyCurves(MaterialDescription description, AnimationClip[] clips)
         {
             // For some reason, Opacity is never animated, we have to use TransparencyFactor and TransparentColor

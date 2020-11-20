@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(0.0f, 1.0f)]
         public float taaAntiFlicker = 0.5f;
 
-        /// <summary>Larger is this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount. 
+        /// <summary>Larger is this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount.
         /// Larger values can decrease ghosting but will also reintroduce aliasing on the aforementioned cases.</summary>
         [Range(0.0f, 1.0f)]
         public float taaMotionVectorRejection = 0.0f;

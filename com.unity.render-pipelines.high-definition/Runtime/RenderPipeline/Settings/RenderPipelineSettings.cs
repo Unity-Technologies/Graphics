@@ -276,7 +276,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Global Probe Volume settings.</summary>
         [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
-		/// <summary>Global light loop settings.</summary>
+        /// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>
         public HDShadowInitParameters hdShadowInitParams;

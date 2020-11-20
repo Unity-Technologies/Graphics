@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                         continue;
 
                     var point = path.GetPoint(i);
-                    
+
                     if (first)
                     {
                         first = false;

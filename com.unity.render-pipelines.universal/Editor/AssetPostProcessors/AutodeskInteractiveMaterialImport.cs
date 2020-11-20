@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal
             var pipelineAsset = GraphicsSettings.currentRenderPipeline;
             if (!pipelineAsset || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
                 return;
-           
+
             if (IsAutodeskInteractiveMaterial(description))
             {
                 float floatProperty;

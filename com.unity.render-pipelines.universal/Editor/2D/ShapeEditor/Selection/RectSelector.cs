@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         }
 
         public RectSelector() : this(new GUISystem(new GUIState())) { }
-        
+
         public RectSelector(GUISystem guiSystem)
         {
             m_GUISystem = guiSystem;

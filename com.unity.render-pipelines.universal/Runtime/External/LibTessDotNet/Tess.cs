@@ -1,5 +1,5 @@
 /*
-** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008) 
+** SGI FREE SOFTWARE LICENSE B (Version 2.0, Sept. 18, 2008)
 ** Copyright (C) 2011 Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -9,10 +9,10 @@
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 ** of the Software, and to permit persons to whom the Software is furnished to do so,
 ** subject to the following conditions:
-** 
+**
 ** The above copyright notice including the dates of first publication and either this
 ** permission notice or a reference to http://oss.sgi.com/projects/FreeB/ shall be
-** included in all copies or substantial portions of the Software. 
+** included in all copies or substantial portions of the Software.
 **
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 ** INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
@@ -20,7 +20,7 @@
 ** BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 ** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 ** OR OTHER DEALINGS IN THE SOFTWARE.
-** 
+**
 ** Except as contained in this notice, the name of Silicon Graphics, Inc. shall not
 ** be used in advertising or otherwise to promote the sale, use or other dealings in
 ** this Software without prior written authorization from Silicon Graphics, Inc.
@@ -281,23 +281,23 @@ namespace LibTessDotNet
         /// (what else would it do??)  The region must consist of a single
         /// loop of half-edges (see mesh.h) oriented CCW.  "Monotone" in this
         /// case means that any vertical line intersects the interior of the
-        /// region in a single interval.  
-        /// 
+        /// region in a single interval.
+        ///
         /// Tessellation consists of adding interior edges (actually pairs of
         /// half-edges), to split the region into non-overlapping triangles.
-        /// 
+        ///
         /// The basic idea is explained in Preparata and Shamos (which I don't
         /// have handy right now), although their implementation is more
         /// complicated than this one.  The are two edge chains, an upper chain
         /// and a lower chain.  We process all vertices from both chains in order,
         /// from right to left.
-        /// 
+        ///
         /// The algorithm ensures that the following invariant holds after each
         /// vertex is processed: the untessellated region consists of two
         /// chains, where one chain (say the upper) is a single edge, and
         /// the other chain is concave.  The left vertex of the single edge
         /// is always to the left of all vertices in the concave chain.
-        /// 
+        ///
         /// Each step consists of adding the rightmost unprocessed vertex to one
         /// of the two chains, and forming a fan of triangles from the rightmost
         /// of two chain endpoints.  Determining whether we can add each triangle
@@ -397,7 +397,7 @@ namespace LibTessDotNet
         /// winding numbers on all edges so that regions marked "inside" the
         /// polygon have a winding number of "value", and regions outside
         /// have a winding number of 0.
-        /// 
+        ///
         /// If keepOnlyBoundary is TRUE, it also deletes all edges which do not
         /// separate an interior region from an exterior one.
         /// </summary>

@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering
 
             foreach (var parameter in parameters)
             {
-                if(parameter != null)
+                if (parameter != null)
                     parameter.OnEnable();
                 else
                     Debug.LogWarning("Volume Component " + GetType().Name + " contains a null parameter; please make sure all parameters are initialized to a default value. Until this is fixed the null parameters will not be considered by the system.");
@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering
                     parameter.OnDisable();
             }
         }
+
         /// <summary>
         /// Interpolates a <see cref="VolumeComponent"/> with this component by an interpolation
         /// factor and puts the result back into the given <see cref="VolumeComponent"/>.
@@ -192,7 +193,7 @@ namespace UnityEngine.Rendering
                     // This method won't be called a lot but this is sub-optimal, fix me
                     var innerParams = (ReadOnlyCollection<VolumeParameter>)
                         t.GetProperty("parameters", BindingFlags.NonPublic | BindingFlags.Instance)
-                        .GetValue(prop, null);
+                            .GetValue(prop, null);
 
                     if (innerParams != null)
                         SetAllOverridesTo(innerParams, state);
@@ -231,7 +232,7 @@ namespace UnityEngine.Rendering
         {
             for (int i = 0; i < parameters.Count; i++)
             {
-                if(parameters[i] != null)
+                if (parameters[i] != null)
                     parameters[i].Release();
             }
         }

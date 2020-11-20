@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal struct LayerBatch
     {
         public int startLayerID;
-		public int endLayerValue;
+        public int endLayerValue;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
         private unsafe fixed int renderTargetIds[4];

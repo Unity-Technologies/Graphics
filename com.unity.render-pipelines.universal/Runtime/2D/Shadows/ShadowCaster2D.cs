@@ -87,7 +87,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
-            
+
             Renderer renderer = GetComponent<Renderer>();
             if (renderer != null)
             {
@@ -101,9 +101,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bounds = collider.bounds;
             }
 #endif
-            Vector3 inverseScale = Vector3.zero; 
+            Vector3 inverseScale = Vector3.zero;
             Vector3 relOffset = transform.position;
-            
+
             if (transform.lossyScale.x != 0 && transform.lossyScale.y != 0)
             {
                 inverseScale = new Vector3(1 / transform.lossyScale.x, 1 / transform.lossyScale.y);

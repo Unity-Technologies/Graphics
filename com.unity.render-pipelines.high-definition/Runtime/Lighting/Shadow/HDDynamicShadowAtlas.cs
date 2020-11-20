@@ -229,4 +229,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

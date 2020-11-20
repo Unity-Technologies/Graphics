@@ -110,7 +110,7 @@ namespace UnityEditor.Rendering.Universal
                 material.shader = shader;
             }
 
-            
+
             foreach (var clip in clips)
             {
                 clip.ClearCurves();

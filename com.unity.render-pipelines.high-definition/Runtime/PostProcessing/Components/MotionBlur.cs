@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>
         /// Determine how the component of the motion vectors coming from the camera is clamped. It is important to remember that clamping the camera component separately, velocities relative to camera might change too (e.g. an object parented to a camera
-        /// when the camera moves might not have a 0 motion vector anymore). 
+        /// when the camera moves might not have a 0 motion vector anymore).
         /// </summary>
         [Tooltip("Determine if and how the component of the motion vectors coming from the camera is clamped in a special fashion.")]
         public CameraClampModeParameter specialCameraClampMode = new CameraClampModeParameter(CameraClampMode.None);

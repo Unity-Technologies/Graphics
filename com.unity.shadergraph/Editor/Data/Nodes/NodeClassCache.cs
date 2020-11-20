@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
             Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
             m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
             foreach (Type nodeType in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
-            { 
+            {
                if (!nodeType.IsAbstract)
                {
                    List<ContextFilterableAttribute> filterableAttributes = new List<ContextFilterableAttribute>();

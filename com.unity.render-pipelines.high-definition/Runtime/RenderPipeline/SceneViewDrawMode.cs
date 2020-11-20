@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (sceneViewHaveValidateFunction.Contains(sceneView))
                     continue;
-                
+
 
                 sceneView.onValidateCameraMode += RejectDrawMode;
                 sceneViewHaveValidateFunction.Add(sceneView);
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static public void ResetDrawMode()
         {
             EditorApplication.update -= UpdateSceneViewStates;
-            
+
             foreach (var sceneView in sceneViewHaveValidateFunction)
                 sceneView.onValidateCameraMode -= RejectDrawMode;
             sceneViewHaveValidateFunction.Clear();

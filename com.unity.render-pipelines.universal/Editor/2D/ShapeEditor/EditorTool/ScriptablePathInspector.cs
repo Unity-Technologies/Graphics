@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             {
                 if (EditorGUIUtility.isProSkin)
                     return IconContent(pro, tooltip);
-                
+
                 return IconContent(personal, tooltip);
             }
         }
@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             {
                 if (m_Paths == null)
                     m_Paths = targets.Select( t => t as ScriptablePath).ToList();
-                
+
                 return m_Paths;
             }
         }
@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             if (!IsAnyShapeType(ShapeType.Spline))
                 return;
-            
+
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(Contents.tangentModeLabel);
 
@@ -104,7 +104,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                     {
                         foreach(var path in paths)
                             path.undoObject.RegisterUndo("Point Position");
-                        
+
                         m_Dragged = true;
                     }
 
@@ -128,7 +128,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 value = GUILayout.Toggle(value, icon, buttonStyle, GUILayout.Width(kButtonWidth), GUILayout.Height(kButtonHeight));
                 changed = check.changed;
             }
-            
+
             return value && changed;
         }
 
@@ -142,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                     if (path.GetPoint(index).tangentMode != mode)
                         return false;
             }
-            
+
             return true;
         }
 
@@ -188,7 +188,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
                 path.localToWorldMatrix = matrix;
             }
-            
+
             return false;
         }
 

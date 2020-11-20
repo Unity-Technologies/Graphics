@@ -2,7 +2,7 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
- 	class TextureCache2D : TextureCache
+    class TextureCache2D : TextureCache
     {
         private RenderTexture m_Cache;
 

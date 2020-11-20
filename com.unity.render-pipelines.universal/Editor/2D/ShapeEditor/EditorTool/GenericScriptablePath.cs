@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             {
                 if (value.Length != pointCount)
                     throw new Exception("Custom data count does not match control point count");
-                
+
                 m_Data.Clear();
                 m_Data.AddRange(value);
             }

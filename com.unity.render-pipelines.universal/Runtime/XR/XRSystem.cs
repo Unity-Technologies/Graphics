@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        // Used for updating URP cameraData data struct with XRPass data. 
+        // Used for updating URP cameraData data struct with XRPass data.
         internal void UpdateCameraData(ref CameraData baseCameraData, in XRPass xr)
         {
             // Update cameraData viewport for XR

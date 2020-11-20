@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         /// <summary>
         /// Draw the scalable setting as a popup and field GUI in a single line.
-        /// 
+        ///
         /// This helper statically dispatch the appropriate GUI call depending
         /// on the multiselection state of the serialized properties.
         /// </summary>

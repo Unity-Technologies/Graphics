@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.UI
                         UpdateSelectionWithNewBlocks();
                         using (var growContext = new GrowContext(this))
                         {
-                            controller.AddBlock(blockIndex, newModel,true);
+                            controller.AddBlock(blockIndex, newModel, true);
                         }
                     }
                 });
@@ -616,13 +616,13 @@ namespace UnityEditor.VFX.UI
 
                             if (m_UpdateSelectionWithNewBlocks)
                             {
-                                if(!selectionCleared)
+                                if (!selectionCleared)
                                 {
                                     selectionCleared = true;
                                     view.ClearSelection();
                                 }
                                 view.AddToSelection(blockUI);
-                            }  
+                            }
                             //Refresh error can only be called after the block has been instanciated
                             blockController.model.RefreshErrors(controller.viewController.graph);
                         }
@@ -777,7 +777,7 @@ namespace UnityEditor.VFX.UI
             if (!(desc.model is VFXAbstractParticleOutput))
                 return false;
 
-            foreach( var links in controller.model.inputFlowSlot.Select((t,i)=>new { index = i, links = t.link }))
+            foreach (var links in controller.model.inputFlowSlot.Select((t, i) => new { index = i, links = t.link }))
             {
                 foreach (var link in links.links)
                 {

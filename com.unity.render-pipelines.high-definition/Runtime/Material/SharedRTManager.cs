@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CameraDepthBufferMipChainInfo.Allocate();
             m_CameraDepthBufferMipChain = RTHandles.Alloc(ComputeDepthBufferMipChainSize, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "CameraDepthBufferMipChain");
 
-            if(settings.lowresTransparentSettings.enabled)
+            if (settings.lowresTransparentSettings.enabled)
             {
                 // Create the half res depth buffer used for low resolution transparency
                 m_CameraHalfResDepthBuffer = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, DepthBits.Depth32, dimension: TextureXR.dimension, useDynamicScale: true, name: "LowResDepthBuffer");
@@ -373,7 +373,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void AllocateCoarseStencilBuffer(int width, int height, int viewCount)
         {
-            if(width > 8 && height > 8)
+            if (width > 8 && height > 8)
                 m_CoarseStencilBuffer = new ComputeBuffer(HDUtils.DivRoundUp(width, 8) * HDUtils.DivRoundUp(height, 8) * viewCount, sizeof(uint));
         }
 
@@ -424,7 +424,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(m_NormalMSAART);
                 RTHandles.Release(m_DepthAsColorMSAART);
 
-                 // Do not forget to release the materials
+                // Do not forget to release the materials
                 CoreUtils.Destroy(m_DepthResolveMaterial);
                 CoreUtils.Destroy(m_ColorResolveMaterial);
                 CoreUtils.Destroy(m_MotionVectorResolve);
@@ -446,10 +446,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     return 2;
                 case MSAASamples.MSAA8x:
                     return 3;
-            };
+            }
+            ;
             return 0;
         }
-
 
         // Bind the normal buffer that is needed
         public void BindNormalBuffer(CommandBuffer cmd, bool isMSAA = false)

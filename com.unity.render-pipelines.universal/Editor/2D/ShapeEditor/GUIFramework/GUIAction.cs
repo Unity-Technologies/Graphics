@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
         private void Repaint(IGUIState guiState)
         {
             Debug.Assert(guiState.eventType == EventType.Repaint);
-            
+
             if (onRepaint != null)
                 onRepaint(guiState, this);
         }
@@ -96,7 +96,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
         protected virtual bool CanTrigger(IGUIState guiState) { return true; }
         protected virtual void OnTrigger(IGUIState guiState)
         {
-            
+
         }
 
         protected virtual void OnPerform(IGUIState guiState)
@@ -106,7 +106,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
 
         protected virtual void OnFinish(IGUIState guiState)
         {
-            
+
         }
     }
 }

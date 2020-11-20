@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ProbeSettings.Mode.Custom:
                     {
                         // Custom and Baked texture only support float16 for now
-                        var format = GraphicsFormat.R16G16B16A16_SFloat;             
+                        var format = GraphicsFormat.R16G16B16A16_SFloat;
 
                         switch (settings.type)
                         {

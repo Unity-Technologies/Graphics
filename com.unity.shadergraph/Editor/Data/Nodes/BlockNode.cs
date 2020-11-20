@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         public BlockNode()
         {
         }
-        
+
         public override bool canCutNode => false;
         public override bool canCopyNode => false;
 
@@ -118,7 +118,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresNormal;
         }
@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresPosition;
         }
@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresTangent;
         }
@@ -166,7 +166,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresBitangent;
         }
@@ -178,7 +178,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_Descriptor.control == null)
                 return false;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresMeshUVs.Contains(channel);
         }
@@ -190,7 +190,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_Descriptor.control == null)
                 return false;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresScreenPosition;
         }
@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_Descriptor.control == null)
                 return false;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresVertexColor;
         }

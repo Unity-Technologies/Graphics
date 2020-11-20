@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle dxr64bits = new ConfigStyle(
                 label: "Architecture 64 bits",
                 error: "To build your Project to a Unity Player, ray tracing requires that the build uses 64 bit architecture.");
-			public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
+            public static readonly ConfigStyle dxrStaticBatching = new ConfigStyle(
                 label: "Static Batching",
                 error: "Static Batching is not supported!");
             public static readonly ConfigStyle dxrActivated = new ConfigStyle(

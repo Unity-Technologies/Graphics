@@ -55,7 +55,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
             foreach(var path in paths)
                 elementCount += path.pointCount;
-            
+
             while (m_DataObjects.Count < elementCount)
                 CreateDataObject();
 
@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 var genericPath = path as GenericScriptablePath<T>;
                 var customDataArray = genericPath.data;
                 var length = customDataArray.Length;
-                
+
                 for (var i = 0; i < length; ++i)
                 {
                     var dataObject = m_DataObjects[index + i];
@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                         m_SelectedDataObjects.Add(dataObject);
                     }
                 }
-                
+
                 index += length;
             }
         }
@@ -91,12 +91,12 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                 var genericPath = path as GenericScriptablePath<T>;
                 var customDataArray = genericPath.data;
                 var length = customDataArray.Length;
-                
+
                 for (var i = 0; i < length; ++i)
                     customDataArray[i] = m_DataObjects[index + i].data;
 
                 genericPath.data = customDataArray;
-                
+
                 index += length;
             }
         }

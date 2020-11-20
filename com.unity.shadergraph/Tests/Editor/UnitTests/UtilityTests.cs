@@ -1,5 +1,3 @@
-
-
 using NUnit.Framework;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;

@@ -164,7 +164,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
         }
-        
+
         [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to 2D Renderer Materials", true)]
         [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Materials to 2D Renderer Materials", true)]
         static bool MenuValidation()
@@ -217,6 +217,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             UpgradeParametricLightsInScene(true);
         }
 
-        
+
     }
 }

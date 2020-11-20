@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             displayName = "Float";
         }
-        
+
         public override PropertyType propertyType => PropertyType.Float;
-        
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_EnumType;
             set => m_EnumType = value;
         }
-    
+
         Type m_CSharpEnumType;
 
         public Type cSharpEnumType
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         List<string> m_EnumNames = new List<string>();
-        
+
         public List<string> enumNames
         {
             get => m_EnumNames;
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_EnumValues;
             set => m_EnumValues = value;
         }
-        
+
         internal override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)

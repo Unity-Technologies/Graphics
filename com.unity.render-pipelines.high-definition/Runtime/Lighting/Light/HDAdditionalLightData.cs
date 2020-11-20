@@ -2021,7 +2021,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // ease out and invert the curve, give more importance to closer distances
                 distance01 = 1.0f - Mathf.Pow(distance01, 2);
 
-                // normalized ratio between light range and distance 
+                // normalized ratio between light range and distance
                 float range01 = Mathf.Clamp01(visibleLight.range / Vector3.Distance(camera.transform.position, visibleLight.GetPosition()));
 
                 float scaleFactor01 = Mathf.Max(distance01, range01);

@@ -284,7 +284,7 @@ namespace UnityEditor.Rendering.Universal
             // Shadows drop-down. Area lights can only be baked and always have shadows.
             float show = 1.0f - m_AnimAreaOptions.faded;
 
-			settings.DrawShadowsType();
+            settings.DrawShadowsType();
 
             EditorGUI.indentLevel += 1;
             show *= m_AnimShadowOptions.faded;

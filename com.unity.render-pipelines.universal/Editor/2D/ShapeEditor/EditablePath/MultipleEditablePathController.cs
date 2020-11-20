@@ -68,7 +68,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             {
                 editablePath = s;
                 m_Controller.ClearSelection();
-            });   
+            });
 
             editablePath = current;
         }

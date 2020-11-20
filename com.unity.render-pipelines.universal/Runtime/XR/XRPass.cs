@@ -277,7 +277,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     hashCode = 0;
                     return false;
-                } 
+                }
             }
 
             return true;
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.Universal
 
                     indices[indexStart + i] = (ushort)newIndex;
                 }
-                
+
                 vertexStart += mesh.vertexCount;
                 indexStart += meshIndices.Length;
             }

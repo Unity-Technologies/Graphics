@@ -261,4 +261,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // class GeometryUtils
 }
-

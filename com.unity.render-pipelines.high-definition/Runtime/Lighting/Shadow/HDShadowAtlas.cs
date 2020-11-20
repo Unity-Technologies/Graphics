@@ -471,4 +471,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

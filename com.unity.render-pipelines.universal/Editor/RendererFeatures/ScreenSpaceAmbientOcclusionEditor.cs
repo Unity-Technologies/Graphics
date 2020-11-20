@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_Radius;
         private SerializedProperty m_SampleCount;
 
-		#endregion
+        #endregion
 
         private bool m_IsInitialized = false;
 

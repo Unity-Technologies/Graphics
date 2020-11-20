@@ -1213,7 +1213,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-                    
+
             return result;
         }
 
@@ -1381,7 +1381,7 @@ namespace UnityEditor.ShaderGraph
 
             var node = property.ToConcreteNode() as AbstractMaterialNode;
             if (node == null)   // Some nodes have no concrete form
-            {                
+            {
                 if (deleteNodeIfNoConcreteFormExists)
                     RemoveNodeNoValidate(propertyNode);
                 return;
@@ -1794,7 +1794,7 @@ namespace UnityEditor.ShaderGraph
             var value = jsonObj as AbstractMaterialNode;
             if (value == null)
             {
-                //Special case - want to support nodes of unknwon type for cross pipeline compatability 
+                //Special case - want to support nodes of unknwon type for cross pipeline compatability
                 value = new LegacyUnknownTypeNode(typeString, json);
                 if (overrideObjectId.HasValue)
                     value.OverrideObjectId(overrideObjectId.Value.ToString("N"));
@@ -1818,7 +1818,7 @@ namespace UnityEditor.ShaderGraph
             {
                 var graphData0 = JsonUtility.FromJson<GraphData0>(json);
                 //If a graph was previously updated to V2, since we had to rename m_Version to m_SGVersion to avoid collision with an upgrade system from
-                //HDRP, we have to handle the case that our version might not be correct - 
+                //HDRP, we have to handle the case that our version might not be correct -
                 if (graphData0.m_Version > 0)
                 {
                     sgVersion = graphData0.m_Version;

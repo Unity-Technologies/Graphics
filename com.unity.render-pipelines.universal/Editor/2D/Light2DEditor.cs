@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
             public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
 
-            
+
             public static GUIContent blendingSettingsFoldout = EditorGUIUtility.TrTextContent("Blending", "Options used for blending");
             public static GUIContent shadowsSettingsFoldout = EditorGUIUtility.TrTextContent("Shadows", "Options used for shadows");
             public static GUIContent volumetricSettingsFoldout = EditorGUIUtility.TrTextContent("Volumetric", "Options used for volumetric lighting");
@@ -281,7 +281,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 {
                     SendModifiedAnalytics(m_Analytics, light);
                 }
-            } 
+            }
         }
 
         void DrawBlendingGroup()
@@ -400,7 +400,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUI.BeginDisabledGroup(!boolProperty.boolValue);
             EditorGUILayout.PropertyField(property, label);
             EditorGUI.EndDisabledGroup();
-            
+
             EditorGUILayout.EndHorizontal();
 
             EditorGUI.indentLevel = savedIndentLevel;
@@ -494,7 +494,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
             EditorGUILayout.Space();
-            EditorGUILayout.HelpBox(Styles.deprecatedParametricLightInstructions);  
+            EditorGUILayout.HelpBox(Styles.deprecatedParametricLightInstructions);
         }
 
         bool DrawLightCommon()

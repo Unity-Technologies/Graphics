@@ -358,7 +358,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             this.NX = 0; this.NY = 0;
             this.N = -1; this.D = 0;
         }
-        
+
         public IntPoint(double x, double y)
         {
             this.X = (ClipInt)x; this.Y = (ClipInt)y;
@@ -3171,7 +3171,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     pivotPoint = (edge2.Curr.N > 0) ? edge2.Curr.N - 1 : 0;
                 }
             }
-            ip.D = 2; ip.N = isClamp ? pivotPoint : -1; 
+            ip.D = 2; ip.N = isClamp ? pivotPoint : -1;
 
             //nb: with very large coordinate values, it's possible for SlopesEqual() to
             //return false but for the edge.Dx value be equal due to double precision rounding.
@@ -3181,7 +3181,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 ip.X = TopX(edge1, ip.Y);
                 return;
             }
-            
+
             double b1, b2;
             if (edge1.Delta.X == 0)
             {
@@ -4805,7 +4805,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     int k = 0;
                     for (int j = 1; j < len - 1; ++j)
                         OffsetPoint(j, ref k, node.m_jointype);
-                    
+
                     {
                         int j = len - 1;
                         k = len - 2;
@@ -4823,7 +4823,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     k = len - 1;
                     for (int j = k - 1; j > 0; --j)
                         OffsetPoint(j, ref k, node.m_jointype);
-                    
+
                     {
                         k = 1;
                         m_sinA = 0;

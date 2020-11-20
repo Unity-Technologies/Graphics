@@ -123,8 +123,8 @@ namespace UnityEngine.Rendering.Universal
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 
         [SerializeField] CameraRenderType m_CameraType = CameraRenderType.Base;
-		[SerializeField] List<Camera> m_Cameras = new List<Camera>();
-		[SerializeField] int m_RendererIndex = -1;
+        [SerializeField] List<Camera> m_Cameras = new List<Camera>();
+        [SerializeField] int m_RendererIndex = -1;
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;

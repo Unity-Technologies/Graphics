@@ -164,6 +164,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) { }
+        public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

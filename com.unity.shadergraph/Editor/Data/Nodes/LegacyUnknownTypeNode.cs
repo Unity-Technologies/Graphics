@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
         public override void OnAfterDeserialize(string json)
         {
             base.OnAfterDeserialize(json);
-            
+
         }
 
         public override void ValidateNode()
@@ -47,4 +47,3 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
-
