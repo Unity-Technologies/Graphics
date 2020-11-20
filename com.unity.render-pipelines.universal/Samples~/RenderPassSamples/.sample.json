@@ -1,0 +1,5 @@
+{
+    "displayName": "RenderPass Samples",
+    "description": "Adds RenderPass samples to your project. Open the BlurryRefraction scene to see examples of enqueing a renderpass at runtime.",
+    "createSeparatePackage": false
+}
