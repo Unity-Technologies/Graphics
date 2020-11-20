@@ -42,6 +42,6 @@ def _job(project, test_platform_name, editor, platform, api, cmd, build_config, 
         job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
         job.add_var_custom('BOAT_ATTACK_REVISION', 'head')
 
-    job.add_var_custom('TEST_FILTER', '*')
+    job.add_var_custom('TEST_FILTER', '.*')
 
     return job
