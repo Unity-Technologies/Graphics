@@ -101,6 +101,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with exposure history being uninitialized on second frame.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
 - Fixes some labels being clipped in the Render Graph Viewer
+- Fixed the clear coat not being handled properly for SSR and RTR (case 1291654).
+- Fixed ghosting in RTGI and RTAO when denoising is enabled and the RTHandle size is not equal to the Viewport size (case 1291654).
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
