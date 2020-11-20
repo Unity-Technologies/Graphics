@@ -263,7 +263,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             if (m_OutputCamera == null)
             {
-                Debug.Log("No camera was found");
                 return false;
             }
 
@@ -440,10 +439,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public void OnAfterAssemblyReload()
         {
             // Bug? : After assembly reload, the customRender callback is dropped, so set it again
-            var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraData && !cameraData.hasCustomRender)
+            if (m_OutputCamera)
             {
-                cameraData.customRender += CustomRender;
+                var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
+                if (cameraData && !cameraData.hasCustomRender)
+                {
+                    cameraData.customRender += CustomRender;
+                }
             }
         }
 
