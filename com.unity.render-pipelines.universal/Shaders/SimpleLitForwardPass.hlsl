@@ -135,30 +135,13 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.uv;
-    half4 diffuseAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
-    half3 diffuse = diffuseAlpha.rgb * _BaseColor.rgb;
-
-    half alpha = diffuseAlpha.a * _BaseColor.a;
-    AlphaDiscard(alpha, _Cutoff);
-
-    #ifdef _ALPHAPREMULTIPLY_ON
-        diffuse *= alpha;
-    #endif
-
-    #if defined(_NORMALMAP)
-    half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-    #else
-    half3 normalTS = half3(0, 0, 1);
-    #endif
-    half3 emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
-    half4 specular = SampleSpecularSmoothness(uv, alpha, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
-    half smoothness = specular.a;
+    SurfaceData surfaceData;
+    InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
     InputData inputData;
-    InitializeInputData(input, normalTS, inputData);
+    InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha, normalTS);
+    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);
 
