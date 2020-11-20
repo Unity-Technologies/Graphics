@@ -16,4 +16,4 @@
 * [Look Dev](Look-Dev)
   * [Environment Library](Look-Dev-Environment-Library)
   
-* [View Lighting Tool](View-Lighting-Tool)
+* [View Lighting Tool](view-lighting-tool.md)

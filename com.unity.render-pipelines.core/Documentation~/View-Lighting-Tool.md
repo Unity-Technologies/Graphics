@@ -1,23 +1,24 @@
-# View Lighting Tool
+## View Lighting tool
 
-View Lighting Tool is a tool that allow to setup lighting in the camera space. The main Camera (Game View) is used to setup the orientation of a light with spherical coordinate. We can choose a target and Yaw, Pitch and Roll (useful when a cookie or IES is setuped).
+The View Lighting tool allows you to set up lighting in camera space. It uses the main Camera (the one that renders to the Game view) to set the orientation of the Light using spherical coordinates, and it uses a target and distance to set the position of the Light. 
 
-![](Images/ViewLightingTool00.png)
+Since the View Lighting tool uses camera-space, it is especially useful when setting up lighting for cinematics.
 
-## Using View Lighting Tool
+## Using the View Lighting tool
 
-From a light we can add a component following Rendering > Light Anchor. Select the light on the light in the hierachy and enable the tool:
-![](Images/ViewLightingTool01.png)
+The View Lighting tool uses the Light Anchor component to position and orient the Light. When this component is attached to a Light, you can use a custom Scene view gizmo to position the Light, and use the component's Inspector to orient the Light.
 
-Which change the gizmo of the light to setup the target.
-![](Images/ViewLightingTool02.gif)
+To get started with the View Lighting tool:
 
-On the inspector we can orient the light relative to this target and the main camera.
-The distance:
-![](Images/ViewLightingTool03.gif)
+1. In the Scene view or Hierarchy, select a GameObject with an attached Light component.
+2. In the Inspector click **Add Component > Rendering > Light Anchor**.
+3. To use the Light Anchor gizmo, click the custom tool button then, in the drop-down, click **Light Anchor**.<br/>![](Images/view-lighting-tool-gizmo.png)
+4. You can now use the gizmo to move the Light's target. This gizmo also shows you a visualization of the yaw, pitch, and roll from the target to the Light. To change the yaw, pitch, and roll, as well as the distance from the Light to the target, see [Light Anchor](#light-anchor).
 
-And the orientation:
-![](Images/ViewLightingTool04.gif)
+### Light Anchor
 
-When a Cookie or an IES is setuped the last knob allow us to orient this one:
-![](Images/ViewLightingTool05.gif)
+The Light Anchor controls the Light's orientation and the distance it is from the target position. **Yaw** and **Pitch** control the orientation and **Distance** controls the distance between the Light and the target. If the Light has a cookie or uses [IES](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/IES-Profile.html), **Roll** controls the orientation of the cookie or IES profile.
+
+![](Images/view-lighting-tool-light-anchor.png)
+
+The Light Anchor component also includes a list of **Presets** that you can use to quickly set the Light's orientation relative to the Game view.
