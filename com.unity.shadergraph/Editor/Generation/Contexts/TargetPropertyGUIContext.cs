@@ -16,12 +16,11 @@ namespace UnityEditor.ShaderGraph
 
         public TargetPropertyGUIContext()
         {
-            
         }
 
         public void AddProperty<T>(string label, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)
         {
-            if(condition == true)
+            if (condition == true)
             {
                 AddProperty<T>(label, field, evt);
             }
@@ -29,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)
         {
-            if(condition == true)
+            if (condition == true)
             {
                 AddProperty<T>(label, indentLevel, field, evt);
             }
@@ -42,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
         {
-            if(field is INotifyValueChanged<T> notifyValueChanged)
+            if (field is INotifyValueChanged<T> notifyValueChanged)
             {
                 notifyValueChanged.RegisterValueChangedCallback(evt);
             }

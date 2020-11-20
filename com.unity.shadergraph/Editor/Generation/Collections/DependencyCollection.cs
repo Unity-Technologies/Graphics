@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
 
         public DependencyCollection Add(DependencyCollection dependencies)
         {
-            foreach(DependencyCollection.Item item in dependencies)
+            foreach (DependencyCollection.Item item in dependencies)
             {
                 m_Items.Add(item);
             }
