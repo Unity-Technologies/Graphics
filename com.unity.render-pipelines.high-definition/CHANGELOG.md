@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volument component creation via script.
 - Fixed issue with exposure history being uninitialized on second frame.
 - Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
+- Fixed an issue with opaque material using a shader graph with Transparent SurfaceType selected. FPTL was not working for this case.
 
 ### Changed
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
