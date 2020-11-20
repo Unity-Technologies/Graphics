@@ -23,6 +23,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 this.typeInfo = typeInfo;
             }
+
             public override void Deserailize(string typeInfo, string jsonData)
             {
                 this.jsonData = jsonData;
@@ -43,13 +44,13 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override void OnAfterMultiDeserialize(string json)
             {
-                if(castedObject.value == null)
+                if (castedObject.value == null)
                 {
                     //Never got casted so nothing ever reffed this object
                     //likely that some other unknown json object had a ref
                     //to this thing. Need to include it in the serialization
                     //step of the object still.
-                    if(jsonBlobs.TryGetValue(currentRoot.objectId, out var blobs))
+                    if (jsonBlobs.TryGetValue(currentRoot.objectId, out var blobs))
                     {
                         blobs[objectId] = jsonData.Trim();
                     }
@@ -57,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     {
                         var lookup = new Dictionary<string, string>();
                         lookup[objectId] = jsonData.Trim();
-                        jsonBlobs.Add(currentRoot.objectId, lookup) ;
+                        jsonBlobs.Add(currentRoot.objectId, lookup);
                     }
                 }
             }
@@ -68,7 +69,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     return castedObject.value.CastTo<T>();
 
                 Type t = typeof(T);
-                if(t == typeof(AbstractMaterialNode) || t.IsSubclassOf(typeof(AbstractMaterialNode)))
+                if (t == typeof(AbstractMaterialNode) || t.IsSubclassOf(typeof(AbstractMaterialNode)))
                 {
                     UnknownNodeType unt = new UnknownNodeType(jsonData);
                     valueMap[objectId] = unt;
@@ -76,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     castedObject = unt;
                     return unt.CastTo<T>();
                 }
-                else if(t == typeof(Target) || t.IsSubclassOf(typeof(Target)))
+                else if (t == typeof(Target) || t.IsSubclassOf(typeof(Target)))
                 {
                     UnknownTargetType utt = new UnknownTargetType(typeInfo, jsonData);
                     valueMap[objectId] = utt;
@@ -84,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     castedObject = utt;
                     return utt.CastTo<T>();
                 }
-                else if(t == typeof(SubTarget) || t.IsSubclassOf(typeof(SubTarget)))
+                else if (t == typeof(SubTarget) || t.IsSubclassOf(typeof(SubTarget)))
                 {
                     UnknownSubTargetType ustt = new UnknownSubTargetType(typeInfo, jsonData);
                     valueMap[objectId] = ustt;
@@ -119,7 +120,7 @@ namespace UnityEditor.ShaderGraph.Serialization
         public class UnknownTargetType : Target
         {
             public string jsonData;
-            public UnknownTargetType() : base ()
+            public UnknownTargetType() : base()
             {
                 isHidden = true;
             }
@@ -140,10 +141,12 @@ namespace UnityEditor.ShaderGraph.Serialization
                 this.jsonData = jsonData;
                 base.Deserailize(typeInfo, jsonData);
             }
+
             public override string Serialize()
             {
                 return jsonData.Trim();
             }
+
             //When we first call GetActiveBlocks, we assume any unknown blockfielddescriptors are owned by this target
             public override void GetActiveBlocks(ref TargetActiveBlockContext context)
             {
@@ -159,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     }
                 }
 
-                foreach(var block in m_activeBlocks)
+                foreach (var block in m_activeBlocks)
                 {
                     context.AddBlock(block);
                 }
@@ -190,6 +193,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 isHidden = true;
             }
+
             public UnknownSubTargetType(string displayName, string jsonData) : base()
             {
                 isHidden = false;
@@ -261,18 +265,20 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
 
             public override PropertyType propertyType => PropertyType.Float;
-            internal override void GetPropertyReferenceNames(List<string> result) { }
-            internal override void GetPropertyDisplayNames(List<string> result) { }
+            internal override void GetPropertyReferenceNames(List<string> result) {}
+            internal override void GetPropertyDisplayNames(List<string> result) {}
             internal override string GetPropertyBlockString() { return ""; }
             internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
             {
                 builder.AppendLine("/* UNKNOWN PROPERTY: " + referenceName + " */");
             }
+
             internal override bool AllowHLSLDeclaration(HLSLDeclaration decl) => false;
             internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
             {
                 action(new HLSLProperty(HLSLType._float, referenceName, HLSLDeclaration.Global, concretePrecision));
             }
+
             internal override string GetPropertyAsArgumentString() { return ""; }
             internal override AbstractMaterialNode ToConcreteNode() { return null; }
 
@@ -363,6 +369,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 SetOverrideActiveState(ActiveState.ExplicitInactive, false);
                 SetActive(false, false);
             }
+
             public UnknownNodeType(string jsonData)
             {
                 this.jsonData = jsonData;
@@ -411,7 +418,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         static JsonObject currentRoot = null;
 
-        static Dictionary<string, Dictionary<string, string>>jsonBlobs = new Dictionary<string, Dictionary<string,string>>();
+        static Dictionary<string, Dictionary<string, string>> jsonBlobs = new Dictionary<string, Dictionary<string, string>>();
 
         static Dictionary<string, Type> CreateTypeMap()
         {
@@ -539,7 +546,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     try
                     {
                         JsonObject value = null;
-                        if(index == 0)
+                        if (index == 0)
                         {
                             value = root;
                         }
@@ -590,10 +597,10 @@ namespace UnityEditor.ShaderGraph.Serialization
                     }
                     catch (Exception e)
                     {
-                        if(!String.IsNullOrEmpty(entry.id))
+                        if (!String.IsNullOrEmpty(entry.id))
                         {
                             var value = valueMap[entry.id];
-                            if(value != null)
+                            if (value != null)
                             {
                                 Debug.LogError($"Exception thrown while deserialize object of type {entry.type}: {e.Message}");
                             }
@@ -649,15 +656,14 @@ namespace UnityEditor.ShaderGraph.Serialization
                     idJsonList.Add((value.objectId, json));
                 }
 
-                if(jsonBlobs.TryGetValue(mainObject.objectId, out var blobs))
+                if (jsonBlobs.TryGetValue(mainObject.objectId, out var blobs))
                 {
-                    foreach(var blob in blobs)
+                    foreach (var blob in blobs)
                     {
-                        if(!idJsonList.Contains((blob.Key, blob.Value)))
+                        if (!idJsonList.Contains((blob.Key, blob.Value)))
                             idJsonList.Add((blob.Key, blob.Value));
                     }
                 }
-
 
 
                 idJsonList.Sort((x, y) =>
@@ -670,7 +676,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
                 const string k_NewLineString = "\n";
                 var sb = new StringBuilder();
-                foreach (var (id, json) in idJsonList)
+                foreach (var(id, json) in idJsonList)
                 {
                     sb.Append(json);
                     sb.Append(k_NewLineString);

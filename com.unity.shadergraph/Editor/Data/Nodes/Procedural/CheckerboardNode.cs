@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Checkerboard";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Checkerboard", BindingFlags.Static | BindingFlags.NonPublic);
@@ -26,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector2.zero;
             return
-                @"
+@"
 {
     UV = (UV.xy + 0.5) * Frequency;
     $precision4 derivatives = $precision4(ddx(UV), ddy(UV));

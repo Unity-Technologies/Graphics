@@ -100,6 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             visible = !UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject);
         }
+
 #endif
 
         bool IsVisible(HDCamera hdCamera)
@@ -113,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // We never execute volume if the layer is not within the culling layers of the camera
             if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
                 return false;
-            
+
             return true;
         }
 
@@ -429,6 +430,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
 #endif
     }
 }

@@ -37,7 +37,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent requireDepthTexture = EditorGUIUtility.TrTextContent("Depth Texture", "On makes this camera create a _CameraDepthTexture, which is a copy of the rendered depth values.\nOff makes the camera not create a depth texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
             public static GUIContent requireOpaqueTexture = EditorGUIUtility.TrTextContent("Opaque Texture", "On makes this camera create a _CameraOpaqueTexture, which is a copy of the rendered view.\nOff makes the camera not create an opaque texture.\nUse Pipeline Settings applies settings from the Render Pipeline Asset.");
             public static GUIContent allowMSAA = EditorGUIUtility.TrTextContent("MSAA", "Use Multi Sample Anti-Aliasing to reduce aliasing.");
-            public static GUIContent allowHDR = EditorGUIUtility.TrTextContent("HDR", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture) null);
+            public static GUIContent allowHDR = EditorGUIUtility.TrTextContent("HDR", "High Dynamic Range gives you a wider range of light intensities, so your lighting looks more realistic. With it, you can still see details and experience less saturation even with bright light.", (Texture)null);
             public static GUIContent priority = EditorGUIUtility.TrTextContent("Priority", "A camera with a higher priority is drawn on top of a camera with a lower priority [ -100, 100 ].");
             public static GUIContent clearDepth = EditorGUIUtility.TrTextContent("Clear Depth", "If enabled, depth from the previous camera will be cleared.");
 
@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.Universal
 
         List<Camera> validCameras = new List<Camera>();
         // This is the valid list of types, so if we need to add more types we just add it here.
-        List<CameraRenderType> validCameraTypes = new List<CameraRenderType>{CameraRenderType.Overlay};
+        List<CameraRenderType> validCameraTypes = new List<CameraRenderType> {CameraRenderType.Overlay};
         List<Camera> errorCameras = new List<Camera>();
         Texture2D m_ErrorIcon;
 
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalCameraDataRenderOpaqueProp;
         SerializedProperty m_AdditionalCameraDataRendererProp;
         SerializedProperty m_AdditionalCameraDataCameraTypeProp;
-		SerializedProperty m_AdditionalCameraDataCameras;
+        SerializedProperty m_AdditionalCameraDataCameras;
         SerializedProperty m_AdditionalCameraDataVolumeLayerMask;
         SerializedProperty m_AdditionalCameraDataVolumeTrigger;
         SerializedProperty m_AdditionalCameraDataRenderPostProcessing;
@@ -193,7 +193,7 @@ namespace UnityEditor.Rendering.Universal
             foreach (var cameraTarget in targets)
             {
                 var additionData = (cameraTarget as Component).gameObject.GetComponent<UniversalAdditionalCameraData>();
-                if(additionData == null)
+                if (additionData == null)
                     additionData = (cameraTarget as Component).gameObject.AddComponent<UniversalAdditionalCameraData>();
                 m_AdditionalCameraDatas[cameraTarget] = additionData;
                 additionalCameraList.Add(additionData);
@@ -210,6 +210,7 @@ namespace UnityEditor.Rendering.Universal
 
             UpdateCameras();
         }
+
         void UpdateCameras()
         {
             var o = new PropertyFetcher<UniversalAdditionalCameraData>(m_AdditionalCameraDataSO);
@@ -380,7 +381,7 @@ namespace UnityEditor.Rendering.Universal
             var names = new GUIContent[validCameras.Count];
             for (int i = 0; i < validCameras.Count; ++i)
             {
-                names[i] = new GUIContent((i+1) + " " + validCameras[i].name);
+                names[i] = new GUIContent((i + 1) + " " + validCameras[i].name);
             }
 
             if (!validCameras.Any())
@@ -393,7 +394,7 @@ namespace UnityEditor.Rendering.Universal
 
         void AddCameraToCameraListMenuSelected(object userData, string[] options, int selected)
         {
-            if(!validCameras.Any())
+            if (!validCameras.Any())
                 return;
 
             var length = m_AdditionalCameraDataCameras.arraySize;
@@ -405,7 +406,7 @@ namespace UnityEditor.Rendering.Universal
 
         void init(List<Object> additionalCameraData)
         {
-            if(additionalCameraData == null)
+            if (additionalCameraData == null)
                 return;
 
             m_AdditionalCameraDataSO = new SerializedObject(additionalCameraData.ToArray());
@@ -454,11 +455,11 @@ namespace UnityEditor.Rendering.Universal
         public override void OnInspectorGUI()
         {
             var rpAsset = UniversalRenderPipeline.asset;
-            if(rpAsset == null)
-			{
+            if (rpAsset == null)
+            {
                 base.OnInspectorGUI();
                 return;
-			}
+            }
 
             settings.Update();
             m_AdditionalCameraDataSO.Update();
@@ -491,7 +492,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUI.indentLevel--;
-	        settings.ApplyModifiedProperties();
+            settings.ApplyModifiedProperties();
             m_AdditionalCameraDataSO.ApplyModifiedProperties();
         }
 
@@ -664,7 +665,7 @@ namespace UnityEditor.Rendering.Universal
         void DrawClearFlags()
         {
             // Converts between ClearFlags and Background Type.
-            BackgroundType backgroundType = GetBackgroundType((CameraClearFlags) settings.clearFlags.intValue);
+            BackgroundType backgroundType = GetBackgroundType((CameraClearFlags)settings.clearFlags.intValue);
             EditorGUI.showMixedValue = settings.clearFlags.hasMultipleDifferentValues;
 
             EditorGUI.BeginChangeCheck();
@@ -693,7 +694,7 @@ namespace UnityEditor.Rendering.Universal
                         break;
                 }
 
-                settings.clearFlags.intValue = (int) selectedClearFlags;
+                settings.clearFlags.intValue = (int)selectedClearFlags;
             }
         }
 
@@ -729,6 +730,7 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraDataAllowXRRendering.boolValue = EditorGUI.IntPopup(controlRect, Styles.xrTargetEye, selectedValue, Styles.xrTargetEyeOptions, Styles.xrTargetEyeValues) == 1;
             EditorGUI.EndProperty();
         }
+
 #endif
 
         void DrawTargetTexture(UniversalRenderPipelineAsset rpAsset)
@@ -877,7 +879,7 @@ namespace UnityEditor.Rendering.Universal
 
             EndProperty();
             return hasChanged;
-		}
+        }
 
         void DrawDepthTexture()
         {
@@ -908,7 +910,7 @@ namespace UnityEditor.Rendering.Universal
             var controlRect = EditorGUILayout.GetControlRect(true);
             EditorGUI.BeginProperty(controlRect, style, prop);
             return controlRect;
-		}
+        }
 
         void DrawRenderShadows()
         {

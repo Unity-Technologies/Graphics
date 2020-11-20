@@ -42,14 +42,14 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     m_updateNodeViewsCallback?.Invoke();
                     node.Dirty(ModificationScope.Graph);
                 });
-            
+
                 if (help != null)
                 {
                     nodeSettings.Insert(0, help);
                 }
             }
             EnumField precisionField = null;
-            if(node.canSetPrecision)
+            if (node.canSetPrecision)
             {
                 precisionField = new EnumField(node.precision);
                 var propertyRow = new PropertyRow(new Label("Precision"));
@@ -75,10 +75,11 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertyVisualElement = precisionField;
             return nodeSettings;
         }
+
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (AbstractMaterialNode) actualObject,
+                (AbstractMaterialNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }

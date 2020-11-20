@@ -313,112 +313,112 @@ namespace UnityEditor.ShaderGraph
                 switch (prop.concreteShaderValueType)
                 {
                     case ConcreteSlotValueType.Matrix4:
-                        {
-                            var tSlot = slot as Matrix4MaterialSlot;
-                            var tProp = prop as Matrix4ShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.value = tProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Matrix4MaterialSlot;
+                        var tProp = prop as Matrix4ShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.value = tProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Matrix3:
-                        {
-                            var tSlot = slot as Matrix3MaterialSlot;
-                            var tProp = prop as Matrix3ShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.value = tProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Matrix3MaterialSlot;
+                        var tProp = prop as Matrix3ShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.value = tProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Matrix2:
-                        {
-                            var tSlot = slot as Matrix2MaterialSlot;
-                            var tProp = prop as Matrix2ShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.value = tProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Matrix2MaterialSlot;
+                        var tProp = prop as Matrix2ShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.value = tProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Texture2D:
-                        {
-                            var tSlot = slot as Texture2DInputMaterialSlot;
-                            var tProp = prop as Texture2DShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.texture = tProp.value.texture;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Texture2DInputMaterialSlot;
+                        var tProp = prop as Texture2DShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.texture = tProp.value.texture;
+                    }
+                    break;
                     case ConcreteSlotValueType.Texture2DArray:
-                        {
-                            var tSlot = slot as Texture2DArrayInputMaterialSlot;
-                            var tProp = prop as Texture2DArrayShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.textureArray = tProp.value.textureArray;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Texture2DArrayInputMaterialSlot;
+                        var tProp = prop as Texture2DArrayShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.textureArray = tProp.value.textureArray;
+                    }
+                    break;
                     case ConcreteSlotValueType.Texture3D:
-                        {
-                            var tSlot = slot as Texture3DInputMaterialSlot;
-                            var tProp = prop as Texture3DShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.texture = tProp.value.texture;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Texture3DInputMaterialSlot;
+                        var tProp = prop as Texture3DShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.texture = tProp.value.texture;
+                    }
+                    break;
                     case ConcreteSlotValueType.Cubemap:
-                        {
-                            var tSlot = slot as CubemapInputMaterialSlot;
-                            var tProp = prop as CubemapShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.cubemap = tProp.value.cubemap;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as CubemapInputMaterialSlot;
+                        var tProp = prop as CubemapShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.cubemap = tProp.value.cubemap;
+                    }
+                    break;
                     case ConcreteSlotValueType.Gradient:
-                        {
-                            var tSlot = slot as GradientInputMaterialSlot;
-                            var tProp = prop as GradientShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.value = tProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as GradientInputMaterialSlot;
+                        var tProp = prop as GradientShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.value = tProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Vector4:
-                        {
-                            var tSlot = slot as Vector4MaterialSlot;
-                            var vector4Prop = prop as Vector4ShaderProperty;
-                            var colorProp = prop as ColorShaderProperty;
-                            if (tSlot != null && vector4Prop != null)
-                                tSlot.value = vector4Prop.value;
-                            else if (tSlot != null && colorProp != null)
-                                tSlot.value = colorProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Vector4MaterialSlot;
+                        var vector4Prop = prop as Vector4ShaderProperty;
+                        var colorProp = prop as ColorShaderProperty;
+                        if (tSlot != null && vector4Prop != null)
+                            tSlot.value = vector4Prop.value;
+                        else if (tSlot != null && colorProp != null)
+                            tSlot.value = colorProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Vector3:
-                        {
-                            var tSlot = slot as Vector3MaterialSlot;
-                            var tProp = prop as Vector3ShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.value = tProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Vector3MaterialSlot;
+                        var tProp = prop as Vector3ShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.value = tProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Vector2:
-                        {
-                            var tSlot = slot as Vector2MaterialSlot;
-                            var tProp = prop as Vector2ShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.value = tProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Vector2MaterialSlot;
+                        var tProp = prop as Vector2ShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.value = tProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Vector1:
-                        {
-                            var tSlot = slot as Vector1MaterialSlot;
-                            var tProp = prop as Vector1ShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.value = tProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as Vector1MaterialSlot;
+                        var tProp = prop as Vector1ShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.value = tProp.value;
+                    }
+                    break;
                     case ConcreteSlotValueType.Boolean:
-                        {
-                            var tSlot = slot as BooleanMaterialSlot;
-                            var tProp = prop as BooleanShaderProperty;
-                            if (tSlot != null && tProp != null)
-                                tSlot.value = tProp.value;
-                        }
-                        break;
+                    {
+                        var tSlot = slot as BooleanMaterialSlot;
+                        var tProp = prop as BooleanShaderProperty;
+                        if (tSlot != null && tProp != null)
+                            tSlot.value = tProp.value;
+                    }
+                    break;
                 }
 
                 AddSlot(slot);
@@ -486,7 +486,7 @@ namespace UnityEditor.ShaderGraph
                 hasError = true;
                 owner.AddValidationError(objectId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
-            else if(!owner.isSubGraph && owner.activeTargets.Any(x => asset.unsupportedTargets.Contains(x)))
+            else if (!owner.isSubGraph && owner.activeTargets.Any(x => asset.unsupportedTargets.Contains(x)))
             {
                 SetOverrideActiveState(ActiveState.ExplicitInactive);
                 owner.AddValidationError(objectId, $"Subgraph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid} contains nodes that are unsuported by the current active targets");

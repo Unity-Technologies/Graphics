@@ -47,27 +47,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 var historyDepth = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
                 passData.historyDepth = historyDepth != null ? builder.ReadTexture(renderGraph.ImportTexture(historyDepth)) : renderGraph.defaultResources.blackTextureXR;
                 passData.hitPointBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Hit Point"});
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Hit Point"});
                 passData.outputBuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Signal0"}));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Signal0"}));
                 passData.outputBuffer1 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Signal1" }));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Signal1" }));
 
                 builder.SetRenderFunc(
-                (TraceSSGIPassData data, RenderGraphContext ctx) =>
-                {
-                    // We need to fill the structure that holds the various resources
-                    SSGITraceResources resources = new SSGITraceResources();
-                    resources.depthTexture = data.depthTexture;
-                    resources.normalBuffer = data.normalBuffer;
-                    resources.motionVectorsBuffer = data.motionVectorsBuffer;
-                    resources.colorPyramid = data.colorPyramid;
-                    resources.historyDepth = data.historyDepth;
-                    resources.hitPointBuffer = data.hitPointBuffer;
-                    resources.outputBuffer0 = data.outputBuffer0;
-                    resources.outputBuffer1 = data.outputBuffer1;
-                    ExecuteSSGITrace(ctx.cmd, data.parameters, resources);
-                });
+                    (TraceSSGIPassData data, RenderGraphContext ctx) =>
+                    {
+                        // We need to fill the structure that holds the various resources
+                        SSGITraceResources resources = new SSGITraceResources();
+                        resources.depthTexture = data.depthTexture;
+                        resources.normalBuffer = data.normalBuffer;
+                        resources.motionVectorsBuffer = data.motionVectorsBuffer;
+                        resources.colorPyramid = data.colorPyramid;
+                        resources.historyDepth = data.historyDepth;
+                        resources.hitPointBuffer = data.hitPointBuffer;
+                        resources.outputBuffer0 = data.outputBuffer0;
+                        resources.outputBuffer1 = data.outputBuffer1;
+                        ExecuteSSGITrace(ctx.cmd, data.parameters, resources);
+                    });
                 TraceOutput traceOutput = new TraceOutput();
                 traceOutput.outputBuffer0 = passData.outputBuffer0;
                 traceOutput.outputBuffer1 = passData.outputBuffer1;
@@ -93,18 +93,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.depthTexture = builder.ReadTexture(depthPyramid);
                 passData.inputBuffer = builder.ReadTexture(inputBuffer);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Final" }));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "SSGI Final" }));
 
                 builder.SetRenderFunc(
-                (UpscaleSSGIPassData data, RenderGraphContext ctx) =>
-                {
-                    // We need to fill the structure that holds the various resources
-                    SSGIUpscaleResources resources = new SSGIUpscaleResources();
-                    resources.depthTexture = data.depthTexture;
-                    resources.inputBuffer = data.inputBuffer;
-                    resources.outputBuffer = data.outputBuffer;
-                    ExecuteSSGIUpscale(ctx.cmd, data.parameters, resources);
-                });
+                    (UpscaleSSGIPassData data, RenderGraphContext ctx) =>
+                    {
+                        // We need to fill the structure that holds the various resources
+                        SSGIUpscaleResources resources = new SSGIUpscaleResources();
+                        resources.depthTexture = data.depthTexture;
+                        resources.inputBuffer = data.inputBuffer;
+                        resources.outputBuffer = data.outputBuffer;
+                        ExecuteSSGIUpscale(ctx.cmd, data.parameters, resources);
+                    });
                 return passData.outputBuffer;
             }
         }
@@ -133,17 +133,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.inoutputBuffer1 = builder.WriteTexture(builder.ReadTexture(inoutputBuffer1));
 
                 builder.SetRenderFunc(
-                (ConvertSSGIPassData data, RenderGraphContext ctx) =>
-                {
-                    // We need to fill the structure that holds the various resources
-                    SSGIConvertResources resources = new SSGIConvertResources();
-                    resources.depthTexture = data.depthTexture;
-                    resources.stencilBuffer = data.stencilBuffer;
-                    resources.normalBuffer = data.normalBuffer;
-                    resources.inoutBuffer0 = data.inoutputBuffer0;
-                    resources.inputBufer1 = data.inoutputBuffer1;
-                    ExecuteSSGIConversion(ctx.cmd, data.parameters, resources);
-                });
+                    (ConvertSSGIPassData data, RenderGraphContext ctx) =>
+                    {
+                        // We need to fill the structure that holds the various resources
+                        SSGIConvertResources resources = new SSGIConvertResources();
+                        resources.depthTexture = data.depthTexture;
+                        resources.stencilBuffer = data.stencilBuffer;
+                        resources.normalBuffer = data.normalBuffer;
+                        resources.inoutBuffer0 = data.inoutputBuffer0;
+                        resources.inputBufer1 = data.inoutputBuffer1;
+                        ExecuteSSGIConversion(ctx.cmd, data.parameters, resources);
+                    });
                 return passData.inoutputBuffer0;
             }
         }

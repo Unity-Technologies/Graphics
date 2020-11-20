@@ -49,8 +49,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 float4  positionCS  : SV_POSITION;
                 half4   color       : COLOR;
-                float2	uv          : TEXCOORD0;
-                half2	lightingUV  : TEXCOORD1;
+                float2  uv          : TEXCOORD0;
+                half2   lightingUV  : TEXCOORD1;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -60,10 +60,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_MainTex);
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
-            TEXTURE2D(_NormalMap);
-            SAMPLER(sampler_NormalMap);
             half4 _MainTex_ST;
-            half4 _NormalMap_ST;
 
             #if USE_SHAPE_LIGHT_TYPE_0
             SHAPE_LIGHT(0)
@@ -116,20 +113,20 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             struct Attributes
             {
                 float3 positionOS   : POSITION;
-                float4 color		: COLOR;
-                float2 uv			: TEXCOORD0;
+                float4 color        : COLOR;
+                float2 uv           : TEXCOORD0;
                 float4 tangent      : TANGENT;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
-                float4  positionCS		: SV_POSITION;
-                half4   color			: COLOR;
-                float2	uv				: TEXCOORD0;
-                half3   normalWS		: TEXCOORD1;
-                half3   tangentWS		: TEXCOORD2;
-                half3   bitangentWS		: TEXCOORD3;
+                float4  positionCS      : SV_POSITION;
+                half4   color           : COLOR;
+                float2  uv              : TEXCOORD0;
+                half3   normalWS        : TEXCOORD1;
+                half3   tangentWS       : TEXCOORD2;
+                half3   bitangentWS     : TEXCOORD3;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -147,7 +144,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
-                o.uv = attributes.uv;
                 o.color = attributes.color;
                 o.normalWS = TransformObjectToWorldDir(float3(0, 0, -1));
                 o.tangentWS = TransformObjectToWorldDir(attributes.tangent.xyz);
@@ -176,16 +172,16 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             struct Attributes
             {
                 float3 positionOS   : POSITION;
-                float4 color		: COLOR;
-                float2 uv			: TEXCOORD0;
+                float4 color        : COLOR;
+                float2 uv           : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
-                float4  positionCS		: SV_POSITION;
-                float4  color			: COLOR;
-                float2	uv				: TEXCOORD0;
+                float4  positionCS      : SV_POSITION;
+                float4  color           : COLOR;
+                float2  uv              : TEXCOORD0;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -201,7 +197,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.uv = attributes.uv;
                 o.color = attributes.color;
                 return o;
             }

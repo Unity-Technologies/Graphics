@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!Application.isBatchMode)
                 {
                     if (!EditorUtility.DisplayDialog("Build Player",
-                                                    "There is no HDRP Asset provided in GraphicsSettings.\nAre you sure you want to continue?\n Build time can be extremely long without it.", "Ok", "Cancel"))
+                        "There is no HDRP Asset provided in GraphicsSettings.\nAre you sure you want to continue?\n Build time can be extremely long without it.", "Ok", "Cancel"))
                     {
                         throw new BuildFailedException("Stop build on request.");
                     }

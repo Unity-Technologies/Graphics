@@ -8,7 +8,7 @@ PropertyRow ColorField,
 PropertyRow DoubleField {
     margin-left: 0;
     margin-right: 0;
-	-unity-text-align : middle-left;
+    -unity-text-align : middle-left;
 }
 
 PropertyRow > #container{

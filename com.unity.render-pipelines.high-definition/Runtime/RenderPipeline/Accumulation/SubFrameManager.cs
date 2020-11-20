@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
-    using UnityEditor;
+using UnityEditor;
 #endif // UNITY_EDITOR
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -84,15 +84,18 @@ namespace UnityEngine.Rendering.HighDefinition
             camData.ResetIteration();
             SetCameraData(camID, camData);
         }
+
         internal void Reset()
         {
             foreach (int camID in m_CameraCache.Keys.ToList())
                 Reset(camID);
         }
+
         internal void Clear()
         {
             m_CameraCache.Clear();
         }
+
         internal void SelectiveReset(uint maxSamples)
         {
             foreach (int camID in m_CameraCache.Keys.ToList())
@@ -221,7 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CameraData camData = GetCameraData(camID);
 
             float totalWeight = camData.accumulatedWeight;
-            float time = m_AccumulationSamples > 0 ? (float) camData.currentIteration / m_AccumulationSamples : 0.0f;
+            float time = m_AccumulationSamples > 0 ? (float)camData.currentIteration / m_AccumulationSamples : 0.0f;
 
             float weight = isRecording ? ShutterProfile(time) : 1.0f;
 
@@ -354,5 +357,4 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
     }
-
 }

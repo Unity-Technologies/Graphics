@@ -1,8 +1,8 @@
 #if USE_NORMAL_MAP
     #if LIGHT_QUALITY_FAST
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
-            half4	lightDirection	: TEXCOORDA;\
-            half2	screenUV   : TEXCOORDB;
+            half4   lightDirection  : TEXCOORDA;\
+            half2   screenUV   : TEXCOORDB;
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)\
             output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS);\
@@ -13,12 +13,12 @@
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
-            half3 normalUnpacked = UnpackNormal(normal);\
+            half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
             lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
     #else
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
-            half4	positionWS : TEXCOORDA;\
-            half2	screenUV   : TEXCOORDB;
+            half4   positionWS : TEXCOORDA;\
+            half2   screenUV   : TEXCOORDB;
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos) \
             output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS); \
@@ -26,7 +26,7 @@
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
-            half3 normalUnpacked = UnpackNormal(normal);\
+            half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
             half3 dirToLight;\
             dirToLight.xy = _LightPosition.xy - input.positionWS.xy;\
             dirToLight.z =  _LightZDistance;\
@@ -37,8 +37,8 @@
     #define NORMALS_LIGHTING_VARIABLES \
             TEXTURE2D(_NormalMap); \
             SAMPLER(sampler_NormalMap); \
-            half4	    _LightPosition;\
-            half	    _LightZDistance;
+            half4       _LightPosition;\
+            half        _LightZDistance;
 #else
     #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB)
     #define NORMALS_LIGHTING_VARIABLES
@@ -74,4 +74,3 @@
     half2 _ShapeLightBlendFactors##index;\
     half4 _ShapeLightMaskFilter##index;\
     half4 _ShapeLightInvertedFilter##index;
-

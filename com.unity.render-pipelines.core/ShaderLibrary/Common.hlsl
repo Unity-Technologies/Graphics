@@ -562,7 +562,7 @@ TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 // -As a replacement for pow(0,y) where y >= 1, the result of SafePositivePow(x,y) should be close enough to 0.
 // -For cases where we substitute for pow(0,y) where 0 < y < 1, SafePositivePow(x,y) will quickly reach 1 as y -> 0, while
 // normally pow(0,y) would give 0 instead of 1 for all 0 < y.
-// eg: if we #define FLT_EPS  5.960464478e-8 (for fp32), 
+// eg: if we #define FLT_EPS  5.960464478e-8 (for fp32),
 // SafePositivePow(0, 0.1)   = 0.1894646
 // SafePositivePow(0, 0.01)  = 0.8467453
 // SafePositivePow(0, 0.001) = 0.9835021
