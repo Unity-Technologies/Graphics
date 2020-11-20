@@ -395,17 +395,20 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly int _unity_StereoMatrixV = Shader.PropertyToID("unity_StereoMatrixV");
         static readonly int _unity_StereoMatrixP = Shader.PropertyToID("unity_StereoMatrixP");
         static readonly int _unity_StereoMatrixVP = Shader.PropertyToID("unity_StereoMatrixVP");
+        static readonly int _unity_StereoWorldSpaceCameraPos = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
         Matrix4x4[] builtinViewMatrix = new Matrix4x4[2];
         Matrix4x4[] builtinProjMatrix = new Matrix4x4[2];
         Matrix4x4[] builtinViewProjMatrix = new Matrix4x4[2];
+        Vector4[] builtinWorldSpaceCameraPos = new Vector4[2];
 
         // Maintain compatibility with builtin renderer
-        internal void UpdateBuiltinStereoMatrices(CommandBuffer cmd)
+        internal void UpdateBuiltinStereoMatrices(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (singlePassEnabled)
             {
                 for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
                 {
+                    builtinWorldSpaceCameraPos[viewIndex] = hdCamera.m_XRViewConstants[viewIndex].worldSpaceCameraPos;
                     builtinViewMatrix[viewIndex] = GetViewMatrix(viewIndex);
                     builtinProjMatrix[viewIndex] = GL.GetGPUProjectionMatrix(GetProjMatrix(viewIndex), true);
                     builtinViewProjMatrix[viewIndex] = builtinProjMatrix[viewIndex] * builtinViewMatrix[viewIndex];
@@ -414,6 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalMatrixArray(_unity_StereoMatrixV, builtinViewMatrix);
                 cmd.SetGlobalMatrixArray(_unity_StereoMatrixP, builtinProjMatrix);
                 cmd.SetGlobalMatrixArray(_unity_StereoMatrixVP, builtinViewProjMatrix);
+                cmd.SetGlobalVectorArray(_unity_StereoWorldSpaceCameraPos, builtinWorldSpaceCameraPos);
             }
         }
     }
