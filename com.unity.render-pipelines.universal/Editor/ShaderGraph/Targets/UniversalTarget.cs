@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get
             {
-                if(surfaceType == SurfaceType.Transparent)
+                if (surfaceType == SurfaceType.Transparent)
                     return $"{RenderType.Transparent}";
                 else
                     return $"{RenderType.Opaque}";
@@ -106,9 +106,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get
             {
-                if(surfaceType == SurfaceType.Transparent)
+                if (surfaceType == SurfaceType.Transparent)
                     return $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}";
-                else if(alphaClip)
+                else if (alphaClip)
                     return $"{UnityEditor.ShaderGraph.RenderQueue.AlphaTest}";
                 else
                     return $"{UnityEditor.ShaderGraph.RenderQueue.Geometry}";
@@ -182,7 +182,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_ActiveSubTarget.value.Setup(ref context);
 
             // Override EditorGUI
-            if(!string.IsNullOrEmpty(m_CustomEditorGUI))
+            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
             {
                 context.SetDefaultShaderGUI(m_CustomEditorGUI);
             }
@@ -199,8 +199,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
             context.AddField(Fields.GraphVertex,            descs.Contains(BlockFields.VertexDescription.Position) ||
-                                                            descs.Contains(BlockFields.VertexDescription.Normal) ||
-                                                            descs.Contains(BlockFields.VertexDescription.Tangent));
+                descs.Contains(BlockFields.VertexDescription.Normal) ||
+                descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip,              alphaClip);
             context.AddField(Fields.DoubleSided,            twoSided);
@@ -265,12 +265,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public bool TrySetActiveSubTarget(Type subTargetType)
         {
-            if(!subTargetType.IsSubclassOf(typeof(SubTarget)))
+            if (!subTargetType.IsSubclassOf(typeof(SubTarget)))
                 return false;
 
-            foreach(var subTarget in m_SubTargets)
+            foreach (var subTarget in m_SubTargets)
             {
-                if(subTarget.GetType().Equals(subTargetType))
+                if (subTarget.GetType().Equals(subTargetType))
                 {
                     m_ActiveSubTarget = subTarget;
                     return true;
@@ -287,18 +287,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 var clipThresholdId = 8;
                 var node = masterNode as AbstractMaterialNode;
                 var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
-                if(clipThresholdSlot == null)
+                if (clipThresholdSlot == null)
                     return;
 
                 clipThresholdSlot.owner = node;
-                if(clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f)
+                if (clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f)
                 {
                     m_AlphaClip = true;
                 }
             }
 
             // Upgrade Target
-            switch(masterNode)
+            switch (masterNode)
             {
                 case PBRMasterNode1 pbrMasterNode:
                     m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
@@ -323,12 +323,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Upgrade SubTarget
-            foreach(var subTarget in m_SubTargets)
+            foreach (var subTarget in m_SubTargets)
             {
-                if(!(subTarget is ILegacyTarget legacySubTarget))
+                if (!(subTarget is ILegacyTarget legacySubTarget))
                     continue;
 
-                if(legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
+                if (legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
                 {
                     m_ActiveSubTarget = subTarget;
                     return true;
@@ -345,7 +345,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
     }
 
-#region Passes
+    #region Passes
     static class CorePasses
     {
         public static readonly PassDescriptor DepthOnly = new PassDescriptor()
@@ -400,9 +400,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             includes = CoreIncludes.ShadowCaster,
         };
     }
-#endregion
+    #endregion
 
-#region PortMasks
+    #region PortMasks
     class CoreBlockMasks
     {
         public static readonly BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
@@ -425,9 +425,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
     }
-#endregion
+    #endregion
 
-#region StructCollections
+    #region StructCollections
     static class CoreStructCollections
     {
         public static readonly StructCollection Default = new StructCollection
@@ -438,9 +438,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Structs.VertexDescriptionInputs },
         };
     }
-#endregion
+    #endregion
 
-#region RequiredFields
+    #region RequiredFields
     static class CoreRequiredFields
     {
         public static readonly FieldCollection ShadowCaster = new FieldCollection()
@@ -448,21 +448,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             StructFields.Attributes.normalOS,
         };
     }
-#endregion
+    #endregion
 
-#region FieldDependencies
+    #region FieldDependencies
     static class CoreFieldDependencies
     {
         public static readonly DependencyCollection Default = new DependencyCollection()
         {
             { FieldDependencies.Default },
-            new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,    StructFields.Attributes.instanceID ),
-            new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,     StructFields.Attributes.instanceID ),
+            new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsRTArrayIdx,    StructFields.Attributes.instanceID),
+            new FieldDependency(UniversalStructFields.Varyings.stereoTargetEyeIndexAsBlendIdx0,     StructFields.Attributes.instanceID),
         };
     }
-#endregion
+    #endregion
 
-#region RenderStates
+    #region RenderStates
     internal static class CoreRenderStates
     {
         // Generic way to build blendstate, should match BaseShaderGUI.SetupMaterialBlendMode()
@@ -575,9 +575,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAddPreserveSpecular, true) }
         };
     }
-#endregion
+    #endregion
 
-#region Pragmas
+    #region Pragmas
     // TODO: should these be renamed and moved to UniversalPragmas/UniversalPragmas.cs ?
     // TODO: these aren't "core" as HDRP doesn't use them
     // TODO: and the same for the rest "Core" things
@@ -586,7 +586,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -594,7 +594,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -603,7 +603,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.Vertex("vert") },
@@ -613,7 +613,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection _2DDefault = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.D3D9 }) },
+            { Pragma.ExcludeRenderers(new[] { Platform.D3D9 }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -621,7 +621,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSDefault = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -629,7 +629,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
@@ -639,7 +639,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSForward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.DOTSInstancing },
@@ -650,7 +650,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.DOTSInstancing },
@@ -658,9 +658,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { Pragma.Fragment("frag") },
         };
     }
-#endregion
+    #endregion
 
-#region Includes
+    #region Includes
     static class CoreIncludes
     {
         const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
@@ -726,19 +726,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
     }
-#endregion
+    #endregion
 
-#region Defines
-        static class CoreDefines
+    #region Defines
+    static class CoreDefines
+    {
+        public static readonly DefineCollection UseLegacySpriteBlocks = new DefineCollection
         {
-            public static readonly DefineCollection UseLegacySpriteBlocks = new DefineCollection
-            {
-                { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
-            };
-        }
-#endregion
+            { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
+        };
+    }
+    #endregion
 
-#region KeywordDescriptors
+    #region KeywordDescriptors
     // TODO: should these be renamed and moved to UniversalKeywordDescriptors/UniversalKeywords.cs ?
     // TODO: these aren't "core" as they aren't used by HDRP
     static class CoreKeywordDescriptors
@@ -900,12 +900,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
         };
     }
-#endregion
+    #endregion
 
-#region FieldDescriptors
+    #region FieldDescriptors
     static class CoreFields
     {
         public static readonly FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
     }
-#endregion
+    #endregion
 }

@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering
         /// <param name="generateCBuffer">Generate a constant buffer.</param>
         /// <param name="constantRegister">When generating a constant buffer, specify the optional constant register.</param>
         public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1,
-                                bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false, int constantRegister = -1)
+                            bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false, int constantRegister = -1)
         {
             packingRules = rules;
             this.needAccessors = needAccessors;
@@ -312,6 +312,5 @@ namespace UnityEngine.Rendering
     /// </summary>
     public struct ShaderGenUInt4
     {
-
     }
 }

@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         ReorderableList m_ReorderableList;
 
         internal delegate void ListRecreatedDelegate();
-        ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => { });
+        ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => {});
 
         string label => string.Format("{0}s", m_SlotType.ToString());
 
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
             m_Node = node;
             m_SlotType = slotType;
-            m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
+            m_Container = new IMGUIContainer(() => OnGUIHandler()) { name = "ListContainer" };
             Add(m_Container);
             RecreateList();
             AddCallbacks();
@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Get slots based on type
             List<MaterialSlot> slots = new List<MaterialSlot>();
-            if(m_SlotType == SlotType.Input)
+            if (m_SlotType == SlotType.Input)
                 m_Node.GetInputSlots(slots);
             else
                 m_Node.GetOutputSlots(slots);
@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void OnGUIHandler()
         {
-            if(m_ReorderableList == null)
+            if (m_ReorderableList == null)
             {
                 RecreateList();
                 AddCallbacks();
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_ReorderableList.drawHeaderCallback = (Rect rect) =>
             {
-                var labelRect = new Rect(rect.x, rect.y, rect.width-10, rect.height);
+                var labelRect = new Rect(rect.x, rect.y, rect.width - 10, rect.height);
                 EditorGUI.LabelField(labelRect, label);
             };
 
@@ -102,15 +102,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 EditorGUI.BeginChangeCheck();
 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
+                var displayName = EditorGUI.DelayedTextField(new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
 
-                var concreteValueType = (ConcreteSlotValueType) EditorGUI.EnumPopup(
+                var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup(
                     new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight),
                     GUIContent.none,
                     (ConcreteSlotValueTypePopupName)oldSlot.concreteValueType, // Force ConcreteSlotValueTypePopupName enum which match ConcreteSlotValueType to provide a friendly named in Popup
-                    e => (AllowedTypeCallback == null) ? true : AllowedTypeCallback((ConcreteSlotValueType) e));
+                    e => (AllowedTypeCallback == null) ? true : AllowedTypeCallback((ConcreteSlotValueType)e));
 
-                if(EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck())
                 {
                     m_Node.owner.owner.RegisterCompleteObjectUndo("Modify Port");
 
@@ -134,7 +134,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     // Need to get all current slots as everything after the edited slot in the list must be added again
                     List<MaterialSlot> slots = new List<MaterialSlot>();
-                    if(m_SlotType == SlotType.Input)
+                    if (m_SlotType == SlotType.Input)
                         m_Node.GetInputSlots<MaterialSlot>(slots);
                     else
                         m_Node.GetOutputSlots<MaterialSlot>(slots);
@@ -145,14 +145,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // Because the list doesnt match the slot IDs (reordering)
                         // Need to get the index in the list of every slot
                         int listIndex = 0;
-                        for(int i = 0; i < m_ReorderableList.list.Count; i++)
+                        for (int i = 0; i < m_ReorderableList.list.Count; i++)
                         {
-                            if((int)m_ReorderableList.list[i] == slot.id)
+                            if ((int)m_ReorderableList.list[i] == slot.id)
                                 listIndex = i;
                         }
 
                         // Then for everything after the edited slot
-                        if(listIndex <= index)
+                        if (listIndex <= index)
                             continue;
 
                         // Remove and re-add
@@ -224,7 +224,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Get all the current slots
             List<MaterialSlot> slots = new List<MaterialSlot>();
-            if(m_SlotType == SlotType.Input)
+            if (m_SlotType == SlotType.Input)
                 m_Node.GetInputSlots<MaterialSlot>(slots);
             else
                 m_Node.GetOutputSlots<MaterialSlot>(slots);

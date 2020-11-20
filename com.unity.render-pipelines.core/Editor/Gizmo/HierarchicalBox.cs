@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering
                 if (m_Material == null || m_Material.Equals(null))
                     m_Material = new Material(k_Material);
                 //material can be lost when exiting play mode so gather the color again when reconstructing it
-                m_Material.color = m_MonochromeFillColor;   
+                m_Material.color = m_MonochromeFillColor;
                 return m_Material;
             }
         }
@@ -130,26 +130,26 @@ namespace UnityEditor.Rendering
         //Thus Slider1D is used (with reflection)
         static Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
         static MethodInfo k_Slider1D_Do = k_Slider1D
-                .GetMethod(
-                    "Do",
-                    BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-                    null,
-                    CallingConventions.Any,
-                    new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
-                    null);
+            .GetMethod(
+            "Do",
+            BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
+            null,
+            CallingConventions.Any,
+            new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
+            null);
         static void Slider1D(int controlID, ref Vector3 handlePosition, Vector3 handleOrientation, float snapScale, Color color)
         {
             using (new Handles.DrawingScope(color))
             {
                 handlePosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                    {
-                        controlID,
-                        handlePosition,
-                        handleOrientation,
-                        HandleUtility.GetHandleSize(handlePosition) * k_HandleSizeCoef,
-                        new Handles.CapFunction(Handles.DotHandleCap),
-                        snapScale
-                    });
+                {
+                    controlID,
+                    handlePosition,
+                    handleOrientation,
+                    HandleUtility.GetHandleSize(handlePosition) * k_HandleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
+                    snapScale
+                });
             }
         }
 
@@ -244,7 +244,7 @@ namespace UnityEditor.Rendering
 
             for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
                 m_ControlIDs[i] = GUIUtility.GetControlID("HierarchicalBox".GetHashCode() + i, FocusType.Passive);
-            
+
             var leftPosition = center + size.x * .5f * Vector3.left;
             var rightPosition = center + size.x * .5f * Vector3.right;
             var topPosition = center + size.y * .5f * Vector3.up;
@@ -338,7 +338,7 @@ namespace UnityEditor.Rendering
                             case NamedFace.Front: backPosition.z += delta; break;
                             case NamedFace.Back: frontPosition.z -= delta; break;
                         }
-                        
+
                         //ensure that the box face are still facing outside
                         switch (theChangedFace)
                         {
@@ -358,7 +358,6 @@ namespace UnityEditor.Rendering
                                     frontPosition.z = backPosition.z = center.z;
                                 break;
                         }
-
                     }
 
                     if (useHomothety)
@@ -388,7 +387,7 @@ namespace UnityEditor.Rendering
                                 topPosition.y -= halfDelta;
                                 break;
                         }
-                        
+
                         //ensure that the box face are still facing outside
                         switch (theChangedFace)
                         {

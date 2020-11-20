@@ -313,12 +313,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // to enable the keyword.
                 // TODO: In PC and Consoles we can upload shadow data per light and branch on shader. That will be more likely way faster.
                 bool mainLightHasSoftShadows = shadowData.supportsMainLightShadows &&
-                                               lightData.mainLightIndex != -1 &&
-                                               visibleLights[lightData.mainLightIndex].light.shadows ==
-                                               LightShadows.Soft;
+                    lightData.mainLightIndex != -1 &&
+                    visibleLights[lightData.mainLightIndex].light.shadows ==
+                    LightShadows.Soft;
 
                 bool softShadows = shadowData.supportsSoftShadows &&
-                                   (mainLightHasSoftShadows || additionalLightHasSoftShadows);
+                    (mainLightHasSoftShadows || additionalLightHasSoftShadows);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, anyShadowSliceRenderer);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
