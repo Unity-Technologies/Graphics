@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
             var graph = new GraphData();
             graph.AddContexts();
             graph.InitializeOutputs(m_Targets, m_Blocks);
-            
+
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph
         public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject
         {
             obj = null;
-            if(!shader.IsShaderGraph())
+            if (!shader.IsShaderGraph())
                 return false;
 
             var path = AssetDatabase.GetAssetPath(shader);
@@ -390,7 +390,7 @@ namespace UnityEditor.ShaderGraph
                 p.EnableRaisingEvents = true;
                 p.Exited += (Object obj, EventArgs args) =>
                 {
-                    if(p.ExitCode != 0)
+                    if (p.ExitCode != 0)
                         Debug.LogWarningFormat("Unable to open {0}: Check external editor in preferences", filePath);
                 };
                 p.Start();

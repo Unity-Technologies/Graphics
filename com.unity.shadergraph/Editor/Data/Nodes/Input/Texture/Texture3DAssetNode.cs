@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture3DMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));

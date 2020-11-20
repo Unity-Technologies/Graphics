@@ -131,9 +131,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (s_ComponentTypes == null)
                 {
                     s_ComponentTypes = VolumeManager.instance.baseComponentTypes
-                    .Where(t => !t.IsDefined(typeof(VolumeComponentDeprecated), false))
-                    .OrderBy(t => ComponentDisplayName(t))
-                    .ToList();
+                        .Where(t => !t.IsDefined(typeof(VolumeComponentDeprecated), false))
+                        .OrderBy(t => ComponentDisplayName(t))
+                        .ToList();
                 }
                 return s_ComponentTypes;
             }
@@ -163,7 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cameras.Contains(camera))
                 cameras.Remove(camera);
         }
-
 
         internal VolumeParameter GetParameter(VolumeComponent component, FieldInfo field)
         {

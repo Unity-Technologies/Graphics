@@ -49,7 +49,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
-    
+
     TEXTURE2D(_Flowmap);
     SAMPLER(sampler_Flowmap);
 
@@ -61,7 +61,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     uint   _BackplateShadowFilter;
 
     float4 _FlowmapParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
-    
+
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
     #define _SinPhi             _SkyParam.w

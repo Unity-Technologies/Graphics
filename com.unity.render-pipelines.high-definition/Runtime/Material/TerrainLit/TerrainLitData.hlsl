@@ -61,8 +61,8 @@ SAMPLER(sampler_TerrainHolesTexture);
 
 void ClipHoles(float2 uv)
 {
-	float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-	DoAlphaTest(hole, 0.5);
+    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+    DoAlphaTest(hole, 0.5);
 }
 #endif
 
@@ -159,8 +159,8 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 #endif
 
 #ifdef _ALPHATEST_ON
-	ClipHoles(input.texCoord0.xy);
-#endif	
+    ClipHoles(input.texCoord0.xy);
+#endif
 
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
