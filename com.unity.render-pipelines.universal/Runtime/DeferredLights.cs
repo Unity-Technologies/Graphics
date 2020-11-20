@@ -31,9 +31,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             get
             {
                 #if !UNITY_EDITOR && UNITY_SWITCH
-                    return false;
+                return false;
                 #else
-                    return IsOpenGL;
+                return IsOpenGL;
                 #endif
             }
         }
@@ -43,9 +43,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             get
             {
                 #if !UNITY_EDITOR && UNITY_SWITCH
-                    return false;
+                return false;
                 #else
-                    return IsOpenGL;
+                return IsOpenGL;
                 #endif
             }
         }
@@ -63,9 +63,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             get
             {
                 #if !UNITY_EDITOR && UNITY_SWITCH
-                    return false;
+                return false;
                 #else
-                    return IsOpenGL;
+                return IsOpenGL;
                 #endif
             }
         }
@@ -233,12 +233,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             public int instanceCount;
         }
 
-        static readonly string[] k_TileDeferredPassNames = new string[] {
+        static readonly string[] k_TileDeferredPassNames = new string[]
+        {
             "Tiled Deferred Punctual Light (Lit)",
             "Tiled Deferred Punctual Light (SimpleLit)"
         };
 
-        static readonly string[] k_StencilDeferredPassNames = new string[] {
+        static readonly string[] k_StencilDeferredPassNames = new string[]
+        {
             "Stencil Volume",
             "Deferred Punctual Light (Lit)",
             "Deferred Punctual Light (SimpleLit)",
@@ -304,7 +306,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
                 return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
             else if (index == GBufferSpecularMetallicIndex) // sRGB specular, [unused]
-                return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;    
+                return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
             else if (index == GBufferNormalSmoothnessIndex)
                 return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
             else if (index == GBufferLightingIndex) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
@@ -326,12 +328,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         // This is an overlay camera being rendered.
         internal bool IsOverlay { get; set; }
         // Not all platforms support R8G8B8A8_SNorm, so we need to check for the support and force accurate GBuffer normals and relevant shader variants
-		private  bool m_AccurateGbufferNormals;
+        private  bool m_AccurateGbufferNormals;
         internal bool AccurateGbufferNormals
-		{
-			get { return m_AccurateGbufferNormals; }
-			set { m_AccurateGbufferNormals = value || !RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render); }
-		}
+        {
+            get { return m_AccurateGbufferNormals; }
+            set { m_AccurateGbufferNormals = value || !RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render); }
+        }
         // true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
         internal bool TiledDeferredShading { get; set; }
         // We browse all visible lights and found the mixed lighting setup every frame.
@@ -422,8 +424,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Cache result for GL platform here. SystemInfo properties are in C++ land so repeated access will be unecessary penalized.
             // They can also only be called from main thread!
             DeferredConfig.IsOpenGL = SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore
-                                   || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
-                                   || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
+                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2
+                || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 
             m_TileDepthInfoMaterial = tileDepthInfoMaterial;
             m_TileDeferredMaterial = tileDeferredMaterial;
@@ -649,32 +651,32 @@ namespace UnityEngine.Rendering.Universal.Internal
                         int fineStepY = coarseTiler.TilePixelHeight / fineTiler.TilePixelHeight;
 
                         for (int j = 0; j < coarseTileYCount; ++j)
-                        for (int i = 0; i < coarseTileXCount; ++i)
-                        {
-                            int fine_istart = i * fineStepX;
-                            int fine_jstart = j * fineStepY;
-                            int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
-                            int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
-                            int coarseHeaderOffset = coarseTiler.GetTileHeaderOffset(i, j);
-
-                            CullLightsJob job = new CullLightsJob
+                            for (int i = 0; i < coarseTileXCount; ++i)
                             {
-                                tiler = m_Tilers[t-1],
-                                prePunctualLights = prePunctualLights,
-                                coarseTiles = coarseTiles,
-                                coarseTileHeaders = coarseTileHeaders,
-                                coarseHeaderOffset = coarseHeaderOffset,
-                                istart = fine_istart,
-                                iend = fine_iend,
-                                jstart = fine_jstart,
-                                jend = fine_jend,
-                            };
+                                int fine_istart = i * fineStepX;
+                                int fine_jstart = j * fineStepY;
+                                int fine_iend = Mathf.Min(fine_istart + fineStepX, fineTileXCount);
+                                int fine_jend = Mathf.Min(fine_jstart + fineStepY, fineTileYCount);
+                                int coarseHeaderOffset = coarseTiler.GetTileHeaderOffset(i, j);
 
-                            if (this.UseJobSystem)
-                                jobHandles[jobCount++] = job.Schedule(jobHandles[jobOffset + (i / subdivX) + (j / subdivY) * superCoarseTileXCount]);
-                            else
-                                job.Execute();
-                        }
+                                CullLightsJob job = new CullLightsJob
+                                {
+                                    tiler = m_Tilers[t - 1],
+                                    prePunctualLights = prePunctualLights,
+                                    coarseTiles = coarseTiles,
+                                    coarseTileHeaders = coarseTileHeaders,
+                                    coarseHeaderOffset = coarseHeaderOffset,
+                                    istart = fine_istart,
+                                    iend = fine_iend,
+                                    jstart = fine_jstart,
+                                    jend = fine_jend,
+                                };
+
+                                if (this.UseJobSystem)
+                                    jobHandles[jobCount++] = job.Schedule(jobHandles[jobOffset + (i / subdivX) + (j / subdivY) * superCoarseTileXCount]);
+                                else
+                                    job.Execute();
+                            }
 
                         jobOffset += superCoarseTileXCount * superCoarseTileYCount;
                     }
@@ -719,8 +721,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 Light light = visibleLights[lightIndex].light;
 
                 if (light != null
-                 && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
-                 && light.shadows != LightShadows.None)
+                    && light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
+                    && light.shadows != LightShadows.None)
                 {
                     switch (light.bakingOutput.mixedLightingMode)
                     {
@@ -795,8 +797,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 for (int i = 0; i < this.GbufferAttachmentIdentifiers.Length; ++i)
                     this.GbufferAttachmentIdentifiers[i] = new RenderTargetIdentifier(this.GbufferAttachmentIdentifiers[i], 0, CubemapFace.Unknown, -1);
                 this.DepthAttachmentIdentifier = new RenderTargetIdentifier(this.DepthAttachmentIdentifier, 0, CubemapFace.Unknown, -1);
-
-
             }
 #endif
 
@@ -812,7 +812,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, false);
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, false); // Backward compatibility
 
-            for (int tilerIndex = 0; tilerIndex < m_Tilers.Length; ++ tilerIndex)
+            for (int tilerIndex = 0; tilerIndex < m_Tilers.Length; ++tilerIndex)
             {
                 m_TileDataCapacities[tilerIndex] = max(m_TileDataCapacities[tilerIndex], m_Tilers[tilerIndex].TileDataCapacity);
                 m_Tilers[tilerIndex].OnCameraCleanup();
@@ -1190,13 +1190,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         void PrecomputeLights(out NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights,
-                              out NativeArray<ushort> stencilVisLights,
-                              out NativeArray<ushort> stencilVisLightOffsets,
-                              ref NativeArray<VisibleLight> visibleLights,
-                              bool hasAdditionalLights,
-                              Matrix4x4 view,
-                              bool isOrthographic,
-                              float zNear)
+            out NativeArray<ushort> stencilVisLights,
+            out NativeArray<ushort> stencilVisLightOffsets,
+            ref NativeArray<VisibleLight> visibleLights,
+            bool hasAdditionalLights,
+            Matrix4x4 view,
+            bool isOrthographic,
+            float zNear)
         {
             const int lightTypeCount = (int)LightType.Disc + 1;
 
@@ -1758,34 +1758,36 @@ namespace UnityEngine.Rendering.Universal.Internal
             // This icosaedron has been been slightly inflated to fit an unit sphere.
             // This is the same geometry as built-in deferred.
 
-            Vector3[] positions = {
-                new Vector3( 0.000f,  0.000f, -1.070f), new Vector3( 0.174f, -0.535f, -0.910f),
-                new Vector3(-0.455f, -0.331f, -0.910f), new Vector3( 0.562f,  0.000f, -0.910f),
-                new Vector3(-0.455f,  0.331f, -0.910f), new Vector3( 0.174f,  0.535f, -0.910f),
-                new Vector3(-0.281f, -0.865f, -0.562f), new Vector3( 0.736f, -0.535f, -0.562f),
-                new Vector3( 0.296f, -0.910f, -0.468f), new Vector3(-0.910f,  0.000f, -0.562f),
-                new Vector3(-0.774f, -0.562f, -0.478f), new Vector3( 0.000f, -1.070f,  0.000f),
-                new Vector3(-0.629f, -0.865f,  0.000f), new Vector3( 0.629f, -0.865f,  0.000f),
-                new Vector3(-1.017f, -0.331f,  0.000f), new Vector3( 0.957f,  0.000f, -0.478f),
-                new Vector3( 0.736f,  0.535f, -0.562f), new Vector3( 1.017f, -0.331f,  0.000f),
-                new Vector3( 1.017f,  0.331f,  0.000f), new Vector3(-0.296f, -0.910f,  0.478f),
-                new Vector3( 0.281f, -0.865f,  0.562f), new Vector3( 0.774f, -0.562f,  0.478f),
-                new Vector3(-0.736f, -0.535f,  0.562f), new Vector3( 0.910f,  0.000f,  0.562f),
-                new Vector3( 0.455f, -0.331f,  0.910f), new Vector3(-0.174f, -0.535f,  0.910f),
-                new Vector3( 0.629f,  0.865f,  0.000f), new Vector3( 0.774f,  0.562f,  0.478f),
-                new Vector3( 0.455f,  0.331f,  0.910f), new Vector3( 0.000f,  0.000f,  1.070f),
+            Vector3[] positions =
+            {
+                new Vector3(0.000f,  0.000f, -1.070f), new Vector3(0.174f, -0.535f, -0.910f),
+                new Vector3(-0.455f, -0.331f, -0.910f), new Vector3(0.562f,  0.000f, -0.910f),
+                new Vector3(-0.455f,  0.331f, -0.910f), new Vector3(0.174f,  0.535f, -0.910f),
+                new Vector3(-0.281f, -0.865f, -0.562f), new Vector3(0.736f, -0.535f, -0.562f),
+                new Vector3(0.296f, -0.910f, -0.468f), new Vector3(-0.910f,  0.000f, -0.562f),
+                new Vector3(-0.774f, -0.562f, -0.478f), new Vector3(0.000f, -1.070f,  0.000f),
+                new Vector3(-0.629f, -0.865f,  0.000f), new Vector3(0.629f, -0.865f,  0.000f),
+                new Vector3(-1.017f, -0.331f,  0.000f), new Vector3(0.957f,  0.000f, -0.478f),
+                new Vector3(0.736f,  0.535f, -0.562f), new Vector3(1.017f, -0.331f,  0.000f),
+                new Vector3(1.017f,  0.331f,  0.000f), new Vector3(-0.296f, -0.910f,  0.478f),
+                new Vector3(0.281f, -0.865f,  0.562f), new Vector3(0.774f, -0.562f,  0.478f),
+                new Vector3(-0.736f, -0.535f,  0.562f), new Vector3(0.910f,  0.000f,  0.562f),
+                new Vector3(0.455f, -0.331f,  0.910f), new Vector3(-0.174f, -0.535f,  0.910f),
+                new Vector3(0.629f,  0.865f,  0.000f), new Vector3(0.774f,  0.562f,  0.478f),
+                new Vector3(0.455f,  0.331f,  0.910f), new Vector3(0.000f,  0.000f,  1.070f),
                 new Vector3(-0.562f,  0.000f,  0.910f), new Vector3(-0.957f,  0.000f,  0.478f),
-                new Vector3( 0.281f,  0.865f,  0.562f), new Vector3(-0.174f,  0.535f,  0.910f),
-                new Vector3( 0.296f,  0.910f, -0.478f), new Vector3(-1.017f,  0.331f,  0.000f),
+                new Vector3(0.281f,  0.865f,  0.562f), new Vector3(-0.174f,  0.535f,  0.910f),
+                new Vector3(0.296f,  0.910f, -0.478f), new Vector3(-1.017f,  0.331f,  0.000f),
                 new Vector3(-0.736f,  0.535f,  0.562f), new Vector3(-0.296f,  0.910f,  0.478f),
-                new Vector3( 0.000f,  1.070f,  0.000f), new Vector3(-0.281f,  0.865f, -0.562f),
+                new Vector3(0.000f,  1.070f,  0.000f), new Vector3(-0.281f,  0.865f, -0.562f),
                 new Vector3(-0.774f,  0.562f, -0.478f), new Vector3(-0.629f,  0.865f,  0.000f),
             };
 
-            int[] indices = {
-                 0,  1,  2,  0,  3,  1,  2,  4,  0,  0,  5,  3,  0,  4,  5,  1,  6,  2,
-                 3,  7,  1,  1,  8,  6,  1,  7,  8,  9,  4,  2,  2,  6, 10, 10,  9,  2,
-                 8, 11,  6,  6, 12, 10, 11, 12,  6,  7, 13,  8,  8, 13, 11, 10, 14,  9,
+            int[] indices =
+            {
+                0,  1,  2,  0,  3,  1,  2,  4,  0,  0,  5,  3,  0,  4,  5,  1,  6,  2,
+                3,  7,  1,  1,  8,  6,  1,  7,  8,  9,  4,  2,  2,  6, 10, 10,  9,  2,
+                8, 11,  6,  6, 12, 10, 11, 12,  6,  7, 13,  8,  8, 13, 11, 10, 14,  9,
                 10, 12, 14,  3, 15,  7,  5, 16,  3,  3, 16, 15, 15, 17,  7, 17, 13,  7,
                 16, 18, 15, 15, 18, 17, 11, 19, 12, 13, 20, 11, 11, 20, 19, 17, 21, 13,
                 13, 21, 20, 12, 19, 22, 12, 22, 14, 17, 23, 21, 18, 23, 17, 21, 24, 20,
@@ -1795,7 +1797,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 30, 29, 33, 33, 28, 32, 34, 26, 16,  5, 34, 16, 14, 31, 35, 14, 35,  9,
                 31, 30, 36, 30, 33, 36, 35, 31, 36, 37, 33, 32, 36, 33, 37, 38, 32, 26,
                 34, 38, 26, 38, 37, 32,  5, 39, 34, 39, 38, 34,  4, 39,  5,  9, 40,  4,
-                 9, 35, 40,  4, 40, 39, 35, 36, 41, 41, 36, 37, 41, 37, 38, 40, 35, 41,
+                9, 35, 40,  4, 40, 39, 35, 36, 41, 41, 36, 37, 41, 37, 38, 40, 35, 41,
                 40, 41, 39, 41, 38, 39,
             };
 
@@ -1813,7 +1815,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // TODO reorder for pre&post-transform cache optimisation.
             // This capped hemisphere shape is in unit dimensions. It will be slightly inflated in the vertex shader
             // to fit the cone analytical shape.
-            Vector3 [] positions = {
+            Vector3[] positions =
+            {
                 new Vector3(0.000000f, 0.000000f, 0.000000f), new Vector3(1.000000f, 0.000000f, 0.000000f),
                 new Vector3(0.923880f, 0.382683f, 0.000000f), new Vector3(0.707107f, 0.707107f, 0.000000f),
                 new Vector3(0.382683f, 0.923880f, 0.000000f), new Vector3(-0.000000f, 1.000000f, 0.000000f),
@@ -1837,7 +1840,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 new Vector3(-0.923880f, 0.000000f, 0.382683f), new Vector3(-0.382683f, 0.000000f, 0.923880f)
             };
 
-            int [] indices = {
+            int[] indices =
+            {
                 0, 2, 1, 0, 3, 2, 0, 4, 3, 0, 5, 4, 0, 6, 5, 0,
                 7, 6, 0, 8, 7, 0, 9, 8, 0, 10, 9, 0, 11, 10, 0, 12,
                 11, 0, 13, 12, 0, 14, 13, 0, 15, 14, 0, 16, 15, 0, 1, 16,
@@ -1867,13 +1871,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // TODO reorder for pre&post-transform cache optimisation.
             // Simple full-screen triangle.
-            Vector3 [] positions = {
+            Vector3[] positions =
+            {
                 new Vector3(-1.0f,  1.0f, 0.0f),
                 new Vector3(-1.0f, -3.0f, 0.0f),
-                new Vector3( 3.0f,  1.0f, 0.0f)
+                new Vector3(3.0f,  1.0f, 0.0f)
             };
 
-            int [] indices = { 0, 1, 2 };
+            int[] indices = { 0, 1, 2 };
 
             Mesh mesh = new Mesh();
             mesh.indexFormat = IndexFormat.UInt16;

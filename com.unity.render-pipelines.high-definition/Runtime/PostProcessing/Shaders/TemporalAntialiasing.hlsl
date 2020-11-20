@@ -55,7 +55,7 @@ float4 Fetch4Array(Texture2DArray tex, uint slot, float2 coords, float2 offset, 
 
 /// Neighbourhood sampling options
 #define PLUS 0    // Faster! Can allow for read across twice (paying cost of 2 samples only)
-#define CROSS 1   // Can only do one fast read diagonal 
+#define CROSS 1   // Can only do one fast read diagonal
 #define SMALL_NEIGHBOURHOOD_SHAPE PLUS
 
 // Neighbourhood AABB options
@@ -328,7 +328,7 @@ float ModifyBlendWithMotionVectorRejection(TEXTURE2D_X(VelocityMagnitudeTexture)
 }
 
 // ---------------------------------------------------
-// History sampling 
+// History sampling
 // ---------------------------------------------------
 
 CTYPE HistoryBilinear(TEXTURE2D_X(HistoryTexture), float2 UV)
@@ -418,7 +418,7 @@ CTYPE GetFilteredHistory(TEXTURE2D_X(HistoryTexture), float2 UV, float sharpenin
 // ---------------------------------------------------
 // Neighbourhood related.
 // ---------------------------------------------------
-#define SMALL_NEIGHBOURHOOD_SIZE 4 
+#define SMALL_NEIGHBOURHOOD_SIZE 4
 #define NEIGHBOUR_COUNT ((WIDE_NEIGHBOURHOOD == 0) ? SMALL_NEIGHBOURHOOD_SIZE : 8)
 
 struct NeighbourhoodSamples

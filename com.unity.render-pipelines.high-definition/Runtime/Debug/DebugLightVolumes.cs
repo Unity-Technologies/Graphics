@@ -116,16 +116,15 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public static void RenderLightVolumes(CommandBuffer cmd,
-                                                in RenderLightVolumesParameters parameters,
-                                                RenderTargetIdentifier[] accumulationMRT, // [0] = m_LightCountBuffer, [1] m_ColorAccumulationBuffer
-                                                RTHandle lightCountBuffer,
-                                                RTHandle colorAccumulationBuffer,
-                                                RTHandle debugLightVolumesTexture,
-                                                RTHandle depthBuffer,
-                                                RTHandle destination,
-                                                MaterialPropertyBlock mpb)
+            in RenderLightVolumesParameters parameters,
+            RenderTargetIdentifier[] accumulationMRT,                                     // [0] = m_LightCountBuffer, [1] m_ColorAccumulationBuffer
+            RTHandle lightCountBuffer,
+            RTHandle colorAccumulationBuffer,
+            RTHandle debugLightVolumesTexture,
+            RTHandle depthBuffer,
+            RTHandle destination,
+            MaterialPropertyBlock mpb)
         {
-
             if (parameters.lightOverlapEnabled)
             {
                 // We only need the accumulation buffer, not the color (we only disply the outline of the light shape in this mode).
@@ -224,7 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyLight.transform.position);
 
-            switch(currentHDRLight.ComputeLightType(currentLegacyLight))
+            switch (currentHDRLight.ComputeLightType(currentLegacyLight))
             {
                 case HDLightType.Point:
                     mpb.SetColor(_ColorShaderID, new Color(0.0f, 0.5f, 0.0f, 1.0f));

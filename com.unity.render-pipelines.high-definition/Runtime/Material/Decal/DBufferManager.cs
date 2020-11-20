@@ -4,8 +4,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class DBufferManager : MRTBufferManager
     {
-
-
         public DBufferManager()
             : base(Decal.GetMaterialDBufferCount())
         {

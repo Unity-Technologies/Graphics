@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.Universal.Tests
         [Test]
         public void CachedMeshDataIsUpdatedOnChange()
         {
-            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var shapePath = new Vector3[4] { new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
             var light = m_TestObjectCached.AddComponent<Light2D>();
             light.lightType = Light2D.LightType.Freeform;
 
@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.Universal.Tests
         [Test]
         public void CachedMeshDataIsOverriddenByRuntimeChanges()
         {
-            var shapePath = new Vector3[4] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
+            var shapePath = new Vector3[4] { new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0, 1, 0) };
             var light = m_TestObjectCached.AddComponent<Light2D>();
             light.lightType = Light2D.LightType.Freeform;
             light.SetShapePath(shapePath);
@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal.Tests
             triangleCount = light.lightMesh.vertices.Length;
 
             // Simulate Runtime Behavior.
-            var shapePathChanged = new Vector3[5] { new Vector3( 0, 0, 0), new Vector3(1,0,0), new Vector3(1, 1, 0), new Vector3(0.5f, 1.5f, 0), new Vector3(0, 1, 0) };
+            var shapePathChanged = new Vector3[5] { new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0.5f, 1.5f, 0), new Vector3(0, 1, 0) };
             light.SetShapePath(shapePathChanged);
             light.UpdateMesh(true);
 

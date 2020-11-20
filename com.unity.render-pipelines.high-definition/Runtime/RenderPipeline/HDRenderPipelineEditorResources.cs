@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                foreach(var field in typeof(HDRenderPipelineEditorResources).GetFields())
+                foreach (var field in typeof(HDRenderPipelineEditorResources).GetFields())
                     field.SetValue(target, null);
 
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());

@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
             for (int index = 0; index < targets.Length; ++index)
             {
                 DecalProjector decalProjector = (targets[index] as DecalProjector);
-                if((decalProjector != null) && (decalProjector.material != null))
+                if ((decalProjector != null) && (decalProjector.material != null))
                     validMaterialsCount++;
             }
             // Update material editor with the new material
@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 DecalProjector decalProjector = (targets[index] as DecalProjector);
 
-                if((decalProjector != null) && (decalProjector.material != null))
+                if ((decalProjector != null) && (decalProjector.material != null))
                     materials[validMaterialsCount++] = (targets[index] as DecalProjector).material;
             }
             m_MaterialEditor = (MaterialEditor)CreateEditor(materials);
@@ -322,7 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         Vector2 size = new Vector2(
                             (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * decalProjector.size.x,
                             (decalProjector.uvScale.y > 100000 || decalProjector.uvScale.y < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
-                            );
+                        );
                         Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.uvBias.x * size.x, decalProjector.uvBias.y * size.y);
                         Handles.DrawDottedLines(
                             new Vector3[]
@@ -376,7 +376,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.EndHorizontal();
 
                 EditorGUILayout.Space();
-                
+
                 Rect rect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector2, k_SizeContent));
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
@@ -434,7 +434,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!decalLayerEnabled)
                 {
                     EditorGUILayout.HelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
-                    MessageType.Info);
+                        MessageType.Info);
                 }
 
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
@@ -469,7 +469,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
                 {
-                    foreach(var decalProjector in targets)
+                    foreach (var decalProjector in targets)
                     {
                         var mat = (decalProjector as DecalProjector).material;
 

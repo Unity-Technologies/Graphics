@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
 {
     abstract class VFXAbstractDistortionOutput : VFXAbstractParticleOutput
     {
-        public VFXAbstractDistortionOutput(bool strip = false) : base(strip) { }
+        public VFXAbstractDistortionOutput(bool strip = false) : base(strip) {}
 
         public enum DistortionMode
         {
@@ -136,7 +136,7 @@ namespace UnityEditor.VFX
                 foreach (var define in base.additionalDefines)
                     yield return define;
 
-                switch(distortionMode)
+                switch (distortionMode)
                 {
                     case DistortionMode.ScreenSpace:
                         yield return "DISTORTION_SCREENSPACE";

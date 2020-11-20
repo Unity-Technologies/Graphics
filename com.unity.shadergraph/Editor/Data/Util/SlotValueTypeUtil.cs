@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
     {
         public static SlotValueType ToSlotValueType(this ConcreteSlotValueType concreteValueType)
         {
-            switch(concreteValueType)
+            switch (concreteValueType)
             {
                 case ConcreteSlotValueType.SamplerState:
                     return SlotValueType.SamplerState;

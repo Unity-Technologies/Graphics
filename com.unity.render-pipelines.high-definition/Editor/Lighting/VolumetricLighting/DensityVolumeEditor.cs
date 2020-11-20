@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return size - densityVolume.parameters.m_EditorUniformFade * 2f * Vector3.one;
         }
 
-        [DrawGizmo(GizmoType.Selected|GizmoType.Active)]
+        [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(DensityVolume densityVolume, GizmoType gizmoType)
         {
             if (s_BlendBox == null || s_BlendBox.Equals(null)
@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 s_BlendBox.center = CenterBlendLocalPosition(densityVolume);
                 s_BlendBox.size = BlendSize(densityVolume);
                 Color baseColor = densityVolume.parameters.albedo;
-                baseColor.a = 8/255f;
+                baseColor.a = 8 / 255f;
                 s_BlendBox.baseColor = baseColor;
                 s_BlendBox.DrawHull(EditMode.editMode == k_EditBlend);
 
@@ -181,12 +181,12 @@ namespace UnityEditor.Rendering.HighDefinition
                                 newSize.x < 0.00001 ? 0 : previousPositiveFade.x * previousSize.x / newSize.x,
                                 newSize.y < 0.00001 ? 0 : previousPositiveFade.y * previousSize.y / newSize.y,
                                 newSize.z < 0.00001 ? 0 : previousPositiveFade.z * previousSize.z / newSize.z
-                                );
+                            );
                             Vector3 newNegativeFade = new Vector3(
                                 newSize.x < 0.00001 ? 0 : previousNegativeFade.x * previousSize.x / newSize.x,
                                 newSize.y < 0.00001 ? 0 : previousNegativeFade.y * previousSize.y / newSize.y,
                                 newSize.z < 0.00001 ? 0 : previousNegativeFade.z * previousSize.z / newSize.z
-                                );
+                            );
                             for (int axeIndex = 0; axeIndex < 3; ++axeIndex)
                             {
                                 if (newPositiveFade[axeIndex] + newNegativeFade[axeIndex] > 1)
