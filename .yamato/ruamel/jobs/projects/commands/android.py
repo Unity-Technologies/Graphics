@@ -14,13 +14,17 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
+        f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
+        f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
+        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
          git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
          set /p GIT_REVISIONDATE=<revdate.tmp
          echo %GIT_REVISIONDATE%
          del revdate.tmp
-         utr {" ".join(utr_args)}''')
+        utr {" ".join(utr_args)}'''),
+        f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
     
     extra_cmds = extra_perf_cmd(project_folder)
@@ -62,147 +66,40 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):   
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
-    quality_levels = []
-
-    for utr_arg in utr_args:
-        if ';' in utr_arg:
-            test_filters = utr_arg.split('=')
-            quality_level = test_filters[1][1:-1]
-            quality_levels = quality_level.split(';')
-            utr_args.remove(utr_arg)
-
-    utr_commands = []
-
-    if len(quality_levels) > 0:
-        for q in quality_levels:
-            str_in_list = any('testfilter' in string for string in utr_args)
-            if str_in_list == False:
-                testfilter = f'--testfilter={q}'
-                utr_args.append(testfilter)
-                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args] 
-                utr_command = f'utr {" ".join(utr_args)}'
-                utr_commands.append(utr_command)
-            else:
-                utr_args.pop()
-                testfilter = f'--testfilter={q}'
-                utr_args.append(testfilter)
-                tail = ''
-                for arg in utr_args:
-                    if 'players' in arg:
-                        #stripped = arg.split('players', 1)[0]
-                        head, sep, tail = arg.partition('players')
-                utr_args = [arg.replace(tail, q) for arg in utr_args]
-                utr_command = f'utr {" ".join(utr_args)}'
-                utr_commands.append(utr_command)
-    
-    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
 
     base = [ 
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
-        f'NetSh Advfirewall set allprofiles state off'
+        f'NetSh Advfirewall set allprofiles state off',
+        pss(f'''
+        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+        utr {" ".join(utr_args)}'''),
+        f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ]
-
-    git_utr_string = ''
-    utr_string = ''
-
-    if len(utr_commands) > 0:
-        for cmd in utr_commands:
-            git_utr_string = pss(f'''
-        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-         set /p GIT_REVISIONDATE=<revdate.tmp
-         echo %GIT_REVISIONDATE%
-         del revdate.tmp
-        {cmd}''')
-            base.append(git_utr_string)
-    else:
-        utr_string = utr_string + f'utr {" ".join(utr_args)}'
-        git_utr_string = pss(f'''
-        set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-         set /p GIT_REVISIONDATE=<revdate.tmp
-         echo %GIT_REVISIONDATE%
-         del revdate.tmp
-        {utr_string}''')
-        
-        base.append(git_utr_string)
     
-    base.append(f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server')
     return base
 
         
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder)
 
-    quality_levels = []
-
-    for utr_arg in utr_args:
-        if ';' in utr_arg:
-            test_filters = utr_arg.split('=')
-            quality_level = test_filters[1][1:-1]
-            quality_levels = quality_level.split(';')
-            utr_args.remove(utr_arg)
-
-    utr_commands = []
-
-    if len(quality_levels) > 0:
-        for q in quality_levels:
-            str_in_list = any('testfilter' in string for string in utr_args)
-            if str_in_list == False:
-                testfilter = f'--testfilter={q}'
-                utr_args.append(testfilter)
-                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args] 
-                utr_command = f'utr {" ".join(utr_args)}'
-                utr_commands.append(utr_command)
-            else:
-                utr_args.pop()
-                testfilter = f'--testfilter={q}'
-                utr_args.append(testfilter)
-                tail = ''
-                for arg in utr_args:
-                    if 'players' in arg:
-                        #stripped = arg.split('players', 1)[0]
-                        head, sep, tail = arg.partition('players')
-                utr_args = [arg.replace(tail, q) for arg in utr_args]
-                utr_command = f'utr {" ".join(utr_args)}'
-                utr_commands.append(utr_command)
-                
-
-    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
-
-    base = [ 
+    base = [  
         f'curl -s {UTR_INSTALL_URL}.bat --output utr.bat',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } -p WindowsEditor {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
-        f'NetSh Advfirewall set allprofiles state off'
+        f'NetSh Advfirewall set allprofiles state off',
+        pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         utr {" ".join(utr_args)}''')
         ]
-    
-    git_utr_string = ''
-    utr_string = ''
-    if len(utr_commands) > 0:
-        for cmd in utr_commands:
-            git_utr_string =         pss(f'''
-         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-         set /p GIT_REVISIONDATE=<revdate.tmp
-         echo %GIT_REVISIONDATE%
-         del revdate.tmp
-         {cmd}''')
-            base.append(git_utr_string)
-    else:
-        utr_string = utr_string + f'utr {" ".join(utr_args)}'
-    
-        git_utr_string =         pss(f'''
-         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-         set /p GIT_REVISIONDATE=<revdate.tmp
-         echo %GIT_REVISIONDATE%
-         del revdate.tmp
-         {utr_string}''')
-        base.append(git_utr_string)
-
-
-    
     
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)

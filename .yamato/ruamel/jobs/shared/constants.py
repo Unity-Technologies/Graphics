@@ -8,7 +8,6 @@ PATH_PACKAGES_temp = 'packages_temp' # used in combination with packages_temp\\[
 PATH_TEMPLATES = 'upm-ci~/templates/**/*'
 PATH_UNITY_REVISION = 'unity_revision.txt'
 PATH_PLAYERS_padded = 'players/**'
-PATH_PLAYERS_padded_extra = 'players*/**'
 PATH_PLAYERS = 'players'
 NPM_UPMCI_INSTALL_URL = 'https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm'
 UTR_INSTALL_URL = 'https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr'

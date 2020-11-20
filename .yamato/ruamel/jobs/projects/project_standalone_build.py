@@ -8,7 +8,7 @@ class Project_StandaloneBuildJob():
 
     def __init__(self, project, editor, platform, api, test_platform, build_config, color_space):
         self.project_name = project["name"]
-        self.job_id = project_job_id_build(project["name"],platform["name"],api["name"],test_platform["name"],editor["name"], build_config["name"], color_space)
+        self.job_id = project_job_id_build(project["name"],platform["name"],api["name"],test_platform["name"], editor["name"], build_config["name"], color_space)
         self.yml = self.get_job_definition(project, editor, platform, api, test_platform, build_config, color_space).get_yml()
 
 
@@ -16,9 +16,7 @@ class Project_StandaloneBuildJob():
 
         project_folder = project.get("folder_standalone", project["folder"])
         cmd = get_cmd(platform["name"], api, 'standalone_build', "")
-        job = _job(project, f'{test_platform["name"]}_build', editor, platform, api, cmd(project_folder, platform, api, test_platform, editor, build_config, color_space), build_config, color_space)
-        if project["name"] == "URP_Performance_BoatAttack":
-            job.add_artifacts_players_extra()
-        else:
-            job.add_artifacts_players()
+        job = _job(project, 'standalone_build', editor, platform, api, cmd(project_folder, platform, api, test_platform, editor, build_config, color_space), build_config, color_space)
+
+        job.add_artifacts_players()
         return job

@@ -78,7 +78,7 @@ HDRP_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
       -  path: .yamato/hdrp_hybrid-win-vulkan.yml#Build_HDRP_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk
          rerun: on-new-revision
 Build_HDRP_Hybrid_Win_Vulkan_Standalone_mono_Linear_trunk:
-    name: Build HDRP_Hybrid on Win_Vulkan_mono_Linear_Standalone_build_Player on version trunk
+    name: Build HDRP_Hybrid on Win_Vulkan_mono_Linear_Player on version trunk
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -187,7 +187,7 @@ HDRP_Hybrid_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  path: .yamato/hdrp_hybrid-win-vulkan.yml#Build_HDRP_Hybrid_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
 Build_HDRP_Hybrid_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build HDRP_Hybrid on Win_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
+    name: Build HDRP_Hybrid on Win_Vulkan_mono_Linear_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
