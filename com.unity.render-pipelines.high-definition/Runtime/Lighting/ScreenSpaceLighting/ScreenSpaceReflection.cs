@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">SSR Algo Type parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public SSRAlgoParameter(ScreenSpaceReflectionAlgorithm value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     /// <summary>

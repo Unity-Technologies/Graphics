@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.Universal
             float cameraHeight = (float)pixelRect.height;
 
             // Use eye texture's width and height as screen params when XR is enabled
-            if(cameraData.xr.enabled)
+            if (cameraData.xr.enabled)
             {
                 scaledCameraWidth = (float)cameraData.cameraTargetDescriptor.width;
                 scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
@@ -338,7 +338,7 @@ namespace UnityEngine.Rendering.Universal
         // This should be removed when early camera color target assignment is removed.
         internal bool isCameraColorTargetValid = false;
 
-        static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
+        static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
 
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
@@ -348,14 +348,14 @@ namespace UnityEngine.Rendering.Universal
         static RenderTargetIdentifier[][] m_TrimmedColorAttachmentCopies = new RenderTargetIdentifier[][]
         {
             new RenderTargetIdentifier[0],                          // m_TrimmedColorAttachmentCopies[0] is an array of 0 RenderTargetIdentifier - only used to make indexing code easier to read
-            new RenderTargetIdentifier[]{0},                        // m_TrimmedColorAttachmentCopies[1] is an array of 1 RenderTargetIdentifier
-            new RenderTargetIdentifier[]{0, 0},                     // m_TrimmedColorAttachmentCopies[2] is an array of 2 RenderTargetIdentifiers
-            new RenderTargetIdentifier[]{0, 0, 0},                  // m_TrimmedColorAttachmentCopies[3] is an array of 3 RenderTargetIdentifiers
-            new RenderTargetIdentifier[]{0, 0, 0, 0},               // m_TrimmedColorAttachmentCopies[4] is an array of 4 RenderTargetIdentifiers
-            new RenderTargetIdentifier[]{0, 0, 0, 0, 0},            // m_TrimmedColorAttachmentCopies[5] is an array of 5 RenderTargetIdentifiers
-            new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0},         // m_TrimmedColorAttachmentCopies[6] is an array of 6 RenderTargetIdentifiers
-            new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0},      // m_TrimmedColorAttachmentCopies[7] is an array of 7 RenderTargetIdentifiers
-            new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
+            new RenderTargetIdentifier[] {0},                        // m_TrimmedColorAttachmentCopies[1] is an array of 1 RenderTargetIdentifier
+            new RenderTargetIdentifier[] {0, 0},                     // m_TrimmedColorAttachmentCopies[2] is an array of 2 RenderTargetIdentifiers
+            new RenderTargetIdentifier[] {0, 0, 0},                  // m_TrimmedColorAttachmentCopies[3] is an array of 3 RenderTargetIdentifiers
+            new RenderTargetIdentifier[] {0, 0, 0, 0},               // m_TrimmedColorAttachmentCopies[4] is an array of 4 RenderTargetIdentifiers
+            new RenderTargetIdentifier[] {0, 0, 0, 0, 0},            // m_TrimmedColorAttachmentCopies[5] is an array of 5 RenderTargetIdentifiers
+            new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0},         // m_TrimmedColorAttachmentCopies[6] is an array of 6 RenderTargetIdentifiers
+            new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0},      // m_TrimmedColorAttachmentCopies[7] is an array of 7 RenderTargetIdentifiers
+            new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
         };
 
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
@@ -1017,7 +1017,7 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
-                        depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
+                    depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
         }
 
@@ -1114,7 +1114,7 @@ namespace UnityEngine.Rendering.Universal
                 m_BlockEventLimits[RenderPassBlock.BeforeRendering] = RenderPassEvent.BeforeRenderingPrepasses;
                 m_BlockEventLimits[RenderPassBlock.MainRenderingOpaque] = RenderPassEvent.AfterRenderingOpaques;
                 m_BlockEventLimits[RenderPassBlock.MainRenderingTransparent] = RenderPassEvent.AfterRenderingPostProcessing;
-                m_BlockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent) Int32.MaxValue;
+                m_BlockEventLimits[RenderPassBlock.AfterRendering] = (RenderPassEvent)Int32.MaxValue;
 
                 // blockRanges[0] is always 0
                 // blockRanges[i] is the index of the first RenderPass found in m_ActiveRenderPassQueue that has a ScriptableRenderPass.renderPassEvent higher than blockEventLimits[i] (i.e, should be executed after blockEventLimits[i])

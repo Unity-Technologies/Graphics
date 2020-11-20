@@ -119,7 +119,6 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     half3 emission = half3(0, 0, 0);
 #endif
     half4 specularGloss = SampleSpecularSmoothness(particleParams.uv, particleParams.blendUv, albedo.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
-    half shininess = specularGloss.a;
 
 #if defined(_DISTORTION_ON)
     diffuse = Distortion(half4(diffuse, alpha), normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
@@ -128,7 +127,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha, normalTS);
+    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a, _Surface);

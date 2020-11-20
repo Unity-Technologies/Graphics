@@ -153,7 +153,8 @@ namespace UnityEngine.Rendering.Universal
                 // - Legacy materials have unamed pass, which is implicitely renamed as SRPDefaultUnlit. In that case, they are considered forward-only too.
                 // TO declare a material with unnamed pass and UniversalForward/UniversalForwardOnly pass is an ERROR, as the material will be rendered twice.
                 StencilState forwardOnlyStencilState = DeferredLights.OverwriteStencil(m_DefaultStencilState, (int)StencilUsage.MaterialMask);
-                ShaderTagId[] forwardOnlyShaderTagIds = new ShaderTagId[] {
+                ShaderTagId[] forwardOnlyShaderTagIds = new ShaderTagId[]
+                {
                     new ShaderTagId("UniversalForwardOnly"),
                     new ShaderTagId("SRPDefaultUnlit"), // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
                     new ShaderTagId("LightweightForward") // Legacy shaders (do not have a gbuffer pass) are considered forward-only for backward compatibility
@@ -238,7 +239,8 @@ namespace UnityEngine.Rendering.Universal
                 this.supportedRenderingFeatures.msaa = false;
 
                 // Avoid legacy platforms: use vulkan instead.
-                unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[] {
+                unsupportedGraphicsDeviceTypes = new GraphicsDeviceType[]
+                {
                     GraphicsDeviceType.OpenGLCore,
                     GraphicsDeviceType.OpenGLES2,
                     GraphicsDeviceType.OpenGLES3
@@ -512,7 +514,7 @@ namespace UnityEngine.Rendering.Universal
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
-                                     renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+                renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
             // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConvertion etc)
@@ -577,7 +579,6 @@ namespace UnityEngine.Rendering.Universal
                 }
 #endif
             }
-
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
@@ -799,14 +800,14 @@ namespace UnityEngine.Rendering.Universal
         bool PlatformRequiresExplicitMsaaResolve()
         {
             #if UNITY_EDITOR
-                // In the editor play-mode we use a Game View Render Texture, with
-                // samples count forced to 1 so we always need to do an explicit MSAA resolve.
-                return true;
+            // In the editor play-mode we use a Game View Render Texture, with
+            // samples count forced to 1 so we always need to do an explicit MSAA resolve.
+            return true;
             #else
-                // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
-                // TODO: should also be valid on Metal MacOS/Editor, but currently not working as expected. Remove the "mobile only" requirement once trunk has a fix.
-                return !SystemInfo.supportsMultisampleAutoResolve
-                        && !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && Application.isMobilePlatform);
+            // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
+            // TODO: should also be valid on Metal MacOS/Editor, but currently not working as expected. Remove the "mobile only" requirement once trunk has a fix.
+            return !SystemInfo.supportsMultisampleAutoResolve
+                && !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && Application.isMobilePlatform);
             #endif
         }
 
@@ -851,7 +852,7 @@ namespace UnityEngine.Rendering.Universal
                 return requiresBlitForOffscreenCamera;
 
             return requiresBlitForOffscreenCamera || isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion;
+                !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion;
         }
 
         bool CanCopyDepth(ref CameraData cameraData)

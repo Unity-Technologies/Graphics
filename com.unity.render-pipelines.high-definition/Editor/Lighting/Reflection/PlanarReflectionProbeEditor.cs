@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     sealed class PlanarReflectionProbeEditor : HDProbeEditor<PlanarReflectionProbeUISettingsProvider, SerializedPlanarReflectionProbe>
     {
         public static Material GUITextureBlit2SRGBMaterial
-                => HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
+            => HDRenderPipeline.defaultAsset.renderPipelineEditorResources.materials.GUITextureBlit2SRGB;
 
         const float k_PreviewHeight = 128;
 
@@ -74,10 +74,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 var row = i / rowSize;
                 var col = i % rowSize;
                 var itemRect = new Rect(
-                        r.x + size.x * row + ((row > 0) ? (row - 1) * space.x : 0),
-                        r.y + size.y * col + ((col > 0) ? (col - 1) * space.y : 0),
-                        size.x,
-                        size.y);
+                    r.x + size.x * row + ((row > 0) ? (row - 1) * space.x : 0),
+                    r.y + size.y * col + ((col > 0) ? (col - 1) * space.y : 0),
+                    size.x,
+                    size.y);
 
                 if (m_PreviewedTextures[i] != null)
                     EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], previewMaterial, ScaleMode.ScaleToFit, 0, 1);
@@ -332,13 +332,13 @@ namespace UnityEditor.Rendering.HighDefinition
             camera = new CameraSettingsOverride
             {
                 camera = (CameraSettingsFields)(-1) & ~(
-                   CameraSettingsFields.flipYMode
-                   | CameraSettingsFields.frustumAspect
-                   | CameraSettingsFields.cullingInvertFaceCulling
-                   | CameraSettingsFields.frustumMode
-                   | CameraSettingsFields.frustumProjectionMatrix
-                   | CameraSettingsFields.frustumFieldOfView
-               )
+                    CameraSettingsFields.flipYMode
+                    | CameraSettingsFields.frustumAspect
+                    | CameraSettingsFields.cullingInvertFaceCulling
+                    | CameraSettingsFields.frustumMode
+                    | CameraSettingsFields.frustumProjectionMatrix
+                    | CameraSettingsFields.frustumFieldOfView
+                )
             }
         };
 

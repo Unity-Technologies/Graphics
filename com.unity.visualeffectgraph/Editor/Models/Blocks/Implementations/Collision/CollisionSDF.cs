@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Block
                     if (input.name == "FieldTransform")
                     {
                         yield return new VFXNamedExpression(new VFXExpressionInverseTRSMatrix(input.exp), "InvFieldTransform");
-                        yield return new VFXNamedExpression( VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)) , "scalingFactor");
+                        yield return new VFXNamedExpression(VFXOperatorUtility.Max3(new VFXExpressionExtractScaleFromMatrix(input.exp)) , "scalingFactor");
                     }
                 }
             }
@@ -65,7 +65,7 @@ if (colliderSign * dist <= 0.0f) // collision
     float outsideDist = max(absPos.x,max(absPos.y,absPos.z));
     if (outsideDist > 0.5f) // Check whether point is outside the box
         position = mul(FieldTransform,float4(coord - 0.5f,1)).xyz;
-    
+
 
 ";
                 }

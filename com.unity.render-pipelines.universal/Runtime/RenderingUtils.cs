@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         s_ErrorMaterial = new Material(Shader.Find("Hidden/Universal Render Pipeline/FallbackError"));
                     }
-                    catch { }
+                    catch {}
                 }
 
                 return s_ErrorMaterial;
@@ -212,7 +212,6 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
         }
-
 
 #if ENABLE_VR && ENABLE_XR_MODULE
         internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
@@ -277,6 +276,7 @@ namespace UnityEngine.Rendering.Universal
             }
             cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoConstants.worldSpaceCameraPos);
         }
+
 #endif
 
         internal static void Blit(CommandBuffer cmd,
@@ -334,7 +334,7 @@ namespace UnityEngine.Rendering.Universal
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.
         static Dictionary<RenderTextureFormat, bool> m_RenderTextureFormatSupport = new Dictionary<RenderTextureFormat, bool>();
-        static Dictionary<GraphicsFormat, Dictionary<FormatUsage, bool> > m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, Dictionary<FormatUsage, bool> >();
+        static Dictionary<GraphicsFormat, Dictionary<FormatUsage, bool>> m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, Dictionary<FormatUsage, bool>>();
 
         internal static void ClearSystemInfoCache()
         {
@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
         internal static int GetLastValidColorBufferIndex(RenderTargetIdentifier[] colorBuffers)
         {
             int i = colorBuffers.Length - 1;
-            for(; i>=0; --i)
+            for (; i >= 0; --i)
             {
                 if (colorBuffers[i] != 0)
                     break;
@@ -489,7 +489,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns></returns>
         internal static int LastValid(RenderTargetIdentifier[] source)
         {
-            for (int i = source.Length-1; i >= 0; --i)
+            for (int i = source.Length - 1; i >= 0; --i)
             {
                 if (source[i] != 0)
                     return i;

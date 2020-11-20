@@ -98,60 +98,60 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (target.dimension)
                 {
                     case TextureDimension.Tex2D:
-                        {
+                    {
 #if DEBUG
-                            Debug.LogWarning(
-                                "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                        Debug.LogWarning(
+                            "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                        );
+#endif
+                        Assert.IsNotNull(rtTarget);
+                        camera.targetTexture = rtTarget;
+                        camera.Render();
+                        camera.targetTexture = null;
+                        target.IncrementUpdateCount();
+                        break;
+                    }
+                    case TextureDimension.Cube:
+                    {
+                        Assert.IsTrue(rtTarget != null || cubeTarget != null);
+
+                        var canHandleStaticFlags = false;
+#if UNITY_EDITOR
+                        canHandleStaticFlags = true;
+#endif
+                        // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                        if (canHandleStaticFlags && staticFlags != 0)
+                        // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                        {
+#if UNITY_EDITOR
+                            UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
+                                camera,
+                                rtTarget,
+                                -1,
+                                (UnityEditor.StaticEditorFlags)staticFlags
                             );
 #endif
-                            Assert.IsNotNull(rtTarget);
-                            camera.targetTexture = rtTarget;
-                            camera.Render();
-                            camera.targetTexture = null;
-                            target.IncrementUpdateCount();
-                            break;
                         }
-                    case TextureDimension.Cube:
+                        else
                         {
-                            Assert.IsTrue(rtTarget != null || cubeTarget != null);
-
-                            var canHandleStaticFlags = false;
-#if UNITY_EDITOR
-                            canHandleStaticFlags = true;
-#endif
                             // ReSharper disable ConditionIsAlwaysTrueOrFalse
-                            if (canHandleStaticFlags && staticFlags != 0)
-                                // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                            if (!canHandleStaticFlags && staticFlags != 0)
+                            // ReSharper restore ConditionIsAlwaysTrueOrFalse
                             {
-#if UNITY_EDITOR
-                                UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
-                                    camera,
-                                    rtTarget,
-                                    -1,
-                                    (UnityEditor.StaticEditorFlags)staticFlags
+                                Debug.LogWarning(
+                                    "A static flags bitmask was provided but this is ignored in player builds"
                                 );
-#endif
-                            }
-                            else
-                            {
-                                // ReSharper disable ConditionIsAlwaysTrueOrFalse
-                                if (!canHandleStaticFlags && staticFlags != 0)
-                                    // ReSharper restore ConditionIsAlwaysTrueOrFalse
-                                {
-                                    Debug.LogWarning(
-                                        "A static flags bitmask was provided but this is ignored in player builds"
-                                    );
-                                }
-
-                                if (rtTarget != null)
-                                    camera.RenderToCubemap(rtTarget);
-                                if (cubeTarget != null)
-                                    camera.RenderToCubemap(cubeTarget);
                             }
 
-                            target.IncrementUpdateCount();
-                            break;
+                            if (rtTarget != null)
+                                camera.RenderToCubemap(rtTarget);
+                            if (cubeTarget != null)
+                                camera.RenderToCubemap(cubeTarget);
                         }
+
+                        target.IncrementUpdateCount();
+                        break;
+                    }
                 }
             }
             finally
@@ -235,24 +235,24 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (settings.type)
             {
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    {
-                        cameras.Add(cameraSettings);
-                        cameraPositions.Add(cameraPositionSettings);
-                        break;
-                    }
+                {
+                    cameras.Add(cameraSettings);
+                    cameraPositions.Add(cameraPositionSettings);
+                    break;
+                }
                 case ProbeSettings.ProbeType.ReflectionProbe:
+                {
+                    for (int i = 0; i < 6; ++i)
                     {
-                        for (int i = 0; i < 6; ++i)
-                        {
-                            var cameraPositionCopy = cameraPositionSettings;
-                            cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
-                                s_GenerateRenderingSettingsFor_Rotations[i]
-                            );
-                            cameras.Add(cameraSettings);
-                            cameraPositions.Add(cameraPositionCopy);
-                        }
-                        break;
+                        var cameraPositionCopy = cameraPositionSettings;
+                        cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
+                            s_GenerateRenderingSettingsFor_Rotations[i]
+                        );
+                        cameras.Add(cameraSettings);
+                        cameraPositions.Add(cameraPositionCopy);
                     }
+                    break;
+                }
             }
         }
 

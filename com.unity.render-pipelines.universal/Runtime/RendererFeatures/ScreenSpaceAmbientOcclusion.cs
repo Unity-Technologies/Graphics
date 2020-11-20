@@ -164,9 +164,9 @@ namespace UnityEngine.Rendering.Universal
                         throw new ArgumentOutOfRangeException();
                 }
                 return material != null
-                       &&  m_CurrentSettings.Intensity > 0.0f
-                       &&  m_CurrentSettings.Radius > 0.0f
-                       &&  m_CurrentSettings.SampleCount > 0;
+                    &&  m_CurrentSettings.Intensity > 0.0f
+                    &&  m_CurrentSettings.Radius > 0.0f
+                    &&  m_CurrentSettings.SampleCount > 0;
             }
 
             /// <inheritdoc/>
@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.DontCare
                 );
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, (int) pass);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, (int)pass);
             }
 
             private void RenderAndSetBaseMap(CommandBuffer cmd, RenderTargetIdentifier baseMap, RenderTargetIdentifier target, ShaderPasses pass)

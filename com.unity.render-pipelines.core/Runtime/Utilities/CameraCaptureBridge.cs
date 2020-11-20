@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering
 #else
                     _enabled
 #endif
-                    ;
+                ;
             }
             set
             {
@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering
 #elif UNITY_EDITOR
             var recorderActions = UnityEditor.Recorder.Input.CameraCapture.GetActions(camera);
             if (recorderActions != null)
-	            return recorderActions;
+                return recorderActions;
 #endif
 
             if (!actionDict.TryGetValue(camera, out var actions))
