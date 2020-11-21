@@ -35,6 +35,17 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle)
         {
+            // Find compatible render-target format for storing normals.
+            // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
+            // Deferred gbuffer format is signed so that normals can be blended for terrain geometry.
+            GraphicsFormat normalsFormat;
+            if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8G8B8A8_SNorm, FormatUsage.Render))
+                normalsFormat = GraphicsFormat.R8G8B8A8_SNorm; // Preferred format
+            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Render))
+                normalsFormat = GraphicsFormat.R16G16B16A16_SFloat; // fallback
+            else
+                normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
+
             this.depthHandle = depthHandle;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = k_DepthBufferBits;
@@ -42,7 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             depthDescriptor = baseDescriptor;
 
             this.normalHandle = normalHandle;
-            baseDescriptor.graphicsFormat = GraphicsFormat.R8G8B8A8_SNorm;
+            baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.msaaSamples = 1;
             normalDescriptor = baseDescriptor;
