@@ -292,8 +292,17 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
             // Insertion sort. We retain at most MAX_REFLECTION_PROBES_PER_PIXEL probes (based on their weight).
             for (uint j = 0; j < MAX_REFLECTION_PROBES_PER_PIXEL; j++)
             {
-                if ((envLightWeightsAndIndices[j] >> 12) < weight)
+                uint arrayElementWeight = envLightWeightsAndIndices[j] >> 12;
+
+                if (arrayElementWeight < weight)
                 {
+                    // Rotate the sub-array [j, last] to the right.
+                    for (uint k = MAX_REFLECTION_PROBES_PER_PIXEL - 1; k > j; k--)
+                    {
+                        envLightWeightsAndIndices[k] = envLightWeightsAndIndices[k - 1];
+                    }
+
+                    // Perform the insertion.
                     envLightWeightsAndIndices[j] = indexAndWeight;
                     break;
                 }
