@@ -234,9 +234,9 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (!IsFeatureEnabled(features, ShaderFeatures.DeferredShading))
                     return true;
-                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                if (!IsFeatureEnabled(features, ShaderFeatures.DeferredWithAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
                     return true;
-                if (IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
+                if (!IsFeatureEnabled(features, ShaderFeatures.DeferredWithoutAccurateGbufferNormals) && !compilerData.shaderKeywordSet.IsEnabled(m_GbufferNormalsOct))
                     return true;
             }
             return false;
@@ -432,10 +432,10 @@ namespace UnityEditor.Rendering.Universal
                 shaderFeatures |= ShaderFeatures.DeferredShading;
 
             // We can only strip accurateGbufferNormals related variants if all DeferredRenderers use the same option.
-            if (withAccurateGbufferNormals && !withoutAccurateGbufferNormals)
+            if (withAccurateGbufferNormals)
                 shaderFeatures |= ShaderFeatures.DeferredWithAccurateGbufferNormals;
 
-            if (!withAccurateGbufferNormals && withoutAccurateGbufferNormals)
+            if (withoutAccurateGbufferNormals)
                 shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
 
             if (hasScreenSpaceOcclusion)
