@@ -312,7 +312,7 @@ void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLigh
         }
 
         // Do not index out of bounds.
-        uint envLightCount = min(i, MAX_REFLECTION_PROBES_PER_PIXEL);
+        const uint envLightCount = min(i, MAX_REFLECTION_PROBES_PER_PIXEL);
 
         if (envLightCount > 0)
         {
