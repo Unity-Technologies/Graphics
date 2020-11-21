@@ -8,15 +8,14 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-    #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
     #pragma multi_compile_local _ SKY_MOTION
     #pragma multi_compile_local _ USE_FLOWMAP
 
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
-    #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+    // Comment out the line to loop over all lights (for debugging purposes)
+    #define FINE_BINNING
 
     #define ATTRIBUTES_NEED_NORMAL
     #define ATTRIBUTES_NEED_TANGENT
