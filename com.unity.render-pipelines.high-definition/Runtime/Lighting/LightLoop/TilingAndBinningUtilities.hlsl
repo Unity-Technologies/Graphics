@@ -1,12 +1,6 @@
 #ifndef UNITY_TILINGANDBINNINGUTILITIES_INCLUDED
 #define UNITY_TILINGANDBINNINGUTILITIES_INCLUDED
 
-// REMOVE!!!
-uint GetTileSize()
-{
-    return 16;
-}
-
 // The HLSL preprocessor does not support the '%' operator.
 #define REMAINDER(A, N)       ((A) - (N) * ((A) / (N)))
 #define CLEAR_SIGN_BIT(X)     (asint(X) & INT_MAX)
