@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [11.0.0] - 2020-10-21
+### Added
+- Euler orientation integrated to VFXTypes : Circle, ArcCircle, Sphere, ArcSphere, Torus, ArcTorus, Cone, ArcCone
+
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
 
@@ -19,7 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New particle strip attribute in Initialize: spawnIndexInStrip
 - Added Get Strip Index subgraph utility operator in Additional Samples
 - Added Encompass (Point) subgraph utility operator in Additional Samples
-- Euler orientation integrated to VFXTypes : Circle, ArcCircle, Sphere, ArcSphere, Torus, ArcTorus, Cone, ArcCone
 
 ### Fixed
 - "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
