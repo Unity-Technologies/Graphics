@@ -26,14 +26,44 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting]
         protected SerializableType m_customType;
 
+        [SerializeField, VFXSetting]
+        protected ScriptableObject m_instance;
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get
             {
                 yield return "m_customType";
+                yield return "m_instance";
             }
         }
 
+        private void ResolveCustomCallbackInstance()
+        {
+            if (customBehavior == null && m_instance != null)
+                m_customType = m_instance.GetType();
+
+            if (customBehavior != null && m_instance == null)
+                m_instance = CreateInstance(m_customType);
+        }
+
+        protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
+        {
+            base.Invalidate(model, cause);
+            ResolveCustomCallbackInstance();
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            ResolveCustomCallbackInstance();
+        }
+
+        public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly)
+        {
+            base.CollectDependencies(objs, ownedOnly);
+            objs.Add(m_instance);
+        }
 
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
@@ -42,6 +72,7 @@ namespace UnityEditor.VFX
             if (m_customType != null)
             {
                 var function = ScriptableObject.CreateInstance(m_customType);
+                //TODOPAUL : share FromScriptableObject
                 var monoScript = MonoScript.FromScriptableObject(function);
                 if (monoScript != null)
                     dependencies.Add(monoScript.GetInstanceID());
@@ -75,6 +106,7 @@ namespace UnityEditor.VFX
                 return "null";
             }
         }
+
         public override sealed Type customBehavior { get { return (Type)m_customType; } }
         public override sealed VFXTaskType spawnerType { get { return VFXTaskType.CustomCallbackSpawner; } }
     }
