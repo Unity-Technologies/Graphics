@@ -53,9 +53,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField]
         internal TextureChannel maskTextureChannel;
 
-        [SerializeField, Range(0.01f, 1.0f)]
-        internal float renderTextureScale;
-
         [SerializeField]
         internal BlendMode blendMode;
 
@@ -128,6 +125,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal bool isDirty { get; set; }
         internal bool hasRenderTarget { get; set; }
         internal RenderTargetHandle renderTargetHandle;
-
     }
 }

@@ -190,7 +190,7 @@ void RaytracingAreaShadowPrepass(uint3 dispatchThreadId : SV_DispatchThreadID, u
         // Generate the right MIS Sample
         bool validity = GenerateMISSample(misInput, squad, viewWS,  misOutput);
         outputPosition = misOutput.pos;
-        
+
         // If we could not sample , or the sample is not in the hemisphere or the sample is on the backface of the light
         if (!validity || dot(misOutput.dir, bsdfData.normalWS) <= 0.0 || dot(misOutput.dir, lightData.forward) >= 0.0)
         {
@@ -510,7 +510,7 @@ void RaytracingDirectionalShadowSample(uint3 dispatchThreadId : SV_DispatchThrea
     // We need to convert the diameter to a radius for our sampling
     float3 localDir = SampleConeUniform(noiseValue.x, noiseValue.y, cos(lightData.angularDiameter * 0.5));
 
-    float3 wsDir = mul(localDir, localToWorld); 
+    float3 wsDir = mul(localDir, localToWorld);
 
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(wsDir, 1.0f);
@@ -579,9 +579,9 @@ void RaytracingPointShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, u
     float lightRange2 = lightData.range * lightData.range;
     if (dot(normalData.normalWS, rayDirection) < 0.0 || dist2 > lightRange2)
     {
-       samplePDF = -1.0; 
+       samplePDF = -1.0;
     }
-    
+
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
     _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
@@ -634,7 +634,7 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     float samplePDF = 1.0;
     if (_RaytracingLightRadius > 0.001)
     {
-        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward, 
+        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward,
             _RaytracingSpotAngle,
             noiseValue.x, noiseValue.y,
             posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);
@@ -653,12 +653,12 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     float lightRange2 = lightData.range * lightData.range;
     if (dot(normalData.normalWS, rayDirection) < 0.0 || dist2 > lightRange2)
     {
-       samplePDF = -1.0; 
+       samplePDF = -1.0;
     }
 
     // If the direction is going out of the cone, we invalidate this ray (to avoid casting useless rays)
     samplePDF = dot(-rayDirection, lightData.forward) > cos(_RaytracingSpotAngle * 0.5f) ? samplePDF : -1.0;
-    
+
     // Output the direction to the target uav
     _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentCoord)] = float4(rayDirection, samplePDF);
     _RayTracingLengthBuffer[COORD_TEXTURE2D_X(currentCoord)] = rayLength;
@@ -692,7 +692,7 @@ void OUTPUT_SHADOW_TEXTURE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     // Offset shadow slot based on XR setup
     uint shadowSlot = INDEX_TEXTURE2D_ARRAY_X(_RaytracingShadowSlot);
 
-    // Fetch the previous stored values 
+    // Fetch the previous stored values
     float4 previousShadowValues = _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)];
 
 #if defined(COLOR_SHADOW)
@@ -701,7 +701,7 @@ void OUTPUT_SHADOW_TEXTURE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = previousShadowValues;
 #else
     // Otherwise we only override the channel we are interested in. We use a max with 0 to avoid using invalid values that may come from rthandle resizing
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * max(0, previousShadowValues) 
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * max(0, previousShadowValues)
                                                                     + _RaytracingChannelMask * _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x;
 #endif
 }

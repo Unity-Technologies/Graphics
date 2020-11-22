@@ -33,10 +33,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("{0}_IndirectDiffuseHistoryBuffer{1}", viewName, frameIndex));
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("{0}_IndirectDiffuseHistoryBuffer{1}", viewName, frameIndex));
         }
-        
+
         void RenderRayTracedIndirectDiffuse(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return parameters;
         }
-    
+
         static void AdjustRTIDWeight(CommandBuffer cmd, AdjustRTIDWeightParameters parameters, RTHandle indirectDiffuseTexture, RTHandle depthPyramid, RTHandle stencilBuffer)
         {
             // Input data
@@ -554,7 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 QualityRTIndirectDiffuseResources qrtidResources = PrepareQualityRTIndirectDiffuseResources(m_IndirectDiffuseBuffer0);
                 RenderQualityRayTracedIndirectDiffuse(cmd, qrtidParameters, qrtidResources);
             }
-           
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse)))
             {
                 if (giSettings.denoise)

@@ -24,7 +24,6 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", variantProvider = typeof(PositionMeshProvider), experimental = true)]
     class PositionMesh : PositionBase
     {
-
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 

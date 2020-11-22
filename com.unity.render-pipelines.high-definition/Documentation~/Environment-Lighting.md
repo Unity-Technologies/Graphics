@@ -9,7 +9,7 @@ In the High Definition Render Pipeline (HDRP), there are two parts to environmen
 Essentially, you use the visual environment to control how the sky looks in your Scene and use the lighting environment to control how the sky contributes to indirect ambient lighting.
 
 ## Visual Environment
-The Visual Environment is a Volume override that tells HDRP what type of [sky](HDRP-Features.md#SkyOverview) and [fog](HDRP-Features.md#FogOverview) you want to see through Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.md) documentation.
+The Visual Environment is a Volume override that tells HDRP what type of [sky](HDRP-Features.md#sky) and [fog](HDRP-Features.md#fog) you want to see through Cameras that the Volume affects. For information on how to customize Visual Environments, see the [Visual Environment](Override-Visual-Environment.md) documentation.
 
 Your Unity Project’s [HDRP Asset](HDRP-Asset.md) has the following properties that also affect all Visual Environments:
 
@@ -18,7 +18,7 @@ Your Unity Project’s [HDRP Asset](HDRP-Asset.md) has the following properties 
 
 ### HDRP built-in sky types
 
-HDRP has three built-in [sky types](HDRP-Features.md#SkyOverview):
+HDRP has three built-in [sky types](HDRP-Features.md#sky):
 
 * [HDRI Sky](Override-HDRI-Sky.md)
 * [Gradient Sky](Override-Gradient-Sky.md)
@@ -34,7 +34,7 @@ HDRP also allows you to implement your own sky types that display a background a
 
 ## Lighting environment
 
-The **Environment (HDRP)** is a section in the Lighting window that allows you to specify which sky to use for indirect ambient light. To open the window, select **Window > Rendering > Lighting > Environment**.
+The **Environment (HDRP)** is a section in the [Lighting window](https://docs.unity3d.com/Manual/lighting-window.html) that allows you to specify which sky to use for indirect ambient light in HDRP. To open the window, select **Window > Rendering > Lighting > Environment**.
 
 ![](Images/EnvironmentLighting1.png)
 
