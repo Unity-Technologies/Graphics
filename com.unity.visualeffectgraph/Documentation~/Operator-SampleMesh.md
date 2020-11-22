@@ -25,11 +25,11 @@ The Sample Mesh or Skinned Mesh Operator allows you to fetch vertex data of a st
 | **Mesh**                  | Mesh                  | The source mesh asset to sample.<br/>This property only appears if you set **Source** to **Mesh** |
 | **Skinned Mesh Renderer** | Skinned Mesh Renderer | The source skinned mesh renderer to sample, a reference to a component within the scene, has to be an exposed entry.<br/>This property only appears if you set **Source** to **Skinned Mesh Renderer** |
 | **Vertex**                | uint                  | The index of the vertex to sample.<br/>This property only appears if you set **Placement mode** to **Vertex**. |
-| **Index**                 | uint                  | The start index of edge, this index correspond of all consecutive edges of every triangles.<br/>This property only appears if you set **Placement mode** to **Index**. |
+| **Index**                 | uint                  | The start index of edge, this index correspond of all consecutive edges of every triangles.<br/>This property only appears if you set **Placement mode** to **Edge**. |
 | **Triangle**              | uint                  | The index of triangle to sample, assuming the index buffer express a triangle list.<br/>This property only appears if you set **Placement mode** to **Surface**. |
 | **X**                     | float                 | Interpolation value between start and end edge position.<br/>This property only appears if you set **Placement mode** to **Edge**. |
 | **Barycentric**           | Vector2               | Raw barycentric coordinate of the triangle, x and y are exposed and z is computed to respect the surface constraint : z = 1 - x - y. This sampling do **not** keep sampling value inside triangle.<br/>This property only appears if you set **Placement mode** to **Surface** and **Surface coordinates** to **Barycentric**. |
-| **Square**                | Vector2               | Uniform placement inside the triangle describe by [this mapping](https://hal.archives-ouvertes.fr/hal-02073696v2/document).<br/>This property only appears if you set **Placement mode** to **Surface** and **Surface coordinates** to **Uniform**. |
+| **Square**                | Vector2               | Uniform placement inside the triangle described by [this mapping](https://hal.archives-ouvertes.fr/hal-02073696v2/document).<br/>This property only appears if you set **Placement mode** to **Surface** and **Surface coordinates** to **Uniform**. |
 
 | **Output**       | **Type** | **Description**                                              |
 | ---------------- | -------- | ------------------------------------------------------------ |
