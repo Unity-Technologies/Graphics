@@ -99,7 +99,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 - Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
 
-
 ## [10.0.0] - 2019-06-10
 ### Added
 - Tooltips for Attributes
