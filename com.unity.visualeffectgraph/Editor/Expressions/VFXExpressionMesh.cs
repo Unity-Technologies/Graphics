@@ -111,7 +111,6 @@ namespace UnityEditor.VFX
     {
         public VFXExpressionSampleIndex() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
-
         }
 
         public VFXExpressionSampleIndex(VFXExpression mesh, VFXExpression index, VFXExpression indexFormat) : base(Flags.None, new VFXExpression[] { mesh, index, indexFormat })

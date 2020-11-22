@@ -201,7 +201,7 @@ namespace UnityEditor.VFX.Operator
                 if (placementMode != PlacementMode.Surface)
                     yield return nameof(surfaceCoordinates);
             }
-    }
+        }
 
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties
         {

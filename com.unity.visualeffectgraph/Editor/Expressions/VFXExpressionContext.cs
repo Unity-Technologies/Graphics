@@ -143,7 +143,7 @@ namespace UnityEditor.VFX
                                 }
                                 else //VFXValueType.SkinnedMeshRenderer
                                 {
-                                    if (   sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat
+                                    if (sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat
                                         || sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat2
                                         || sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat3
                                         || sourceExpression is VFXExpressionSampleSkinnedMeshRendererFloat4
@@ -191,8 +191,8 @@ namespace UnityEditor.VFX
                     {
                         var parent = Compile(e);
                         bool currentGPUTransformation =     gpuTransformation
-                                                        &&  expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
-                                                        &&  !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
+                            &&  expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
+                            &&  !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
                         parent = PatchVFXExpression(parent, expression, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
                         return parent;
                     }).ToArray();

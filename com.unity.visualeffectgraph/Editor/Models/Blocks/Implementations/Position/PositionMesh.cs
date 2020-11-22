@@ -113,17 +113,17 @@ namespace UnityEditor.VFX.Block
                 VFXExpression coordinate = null;
                 foreach (var parameter in base.parameters)
                 {
-                    if (    parameter.name == nameof(CustomPropertiesMesh.mesh)
-                        ||  parameter.name == nameof(CustomPropertiesPropertiesSkinnedMeshRenderer.skinnedMesh))
+                    if (parameter.name == nameof(CustomPropertiesMesh.mesh)
+                        || parameter.name == nameof(CustomPropertiesPropertiesSkinnedMeshRenderer.skinnedMesh))
                         source = parameter.exp;
-                    else if (       parameter.name == nameof(CustomPropertiesEdge.x)
-                                ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.square)
-                                ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.barycentric))
+                    else if (parameter.name == nameof(CustomPropertiesEdge.x)
+                             || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.square)
+                             || parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.barycentric))
                         coordinate = parameter.exp;
-                    else if (   parameter.name == nameof(CustomPropertiesVertex.vertex)
-                            ||  parameter.name == nameof(CustomPropertiesEdge.index)
-                            || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.triangle)
-                            ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.triangle))
+                    else if (parameter.name == nameof(CustomPropertiesVertex.vertex)
+                             || parameter.name == nameof(CustomPropertiesEdge.index)
+                             || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.triangle)
+                             || parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.triangle))
                         index = parameter.exp;
                     else
                         yield return parameter;
@@ -144,7 +144,7 @@ namespace UnityEditor.VFX.Block
                     else if (placementMode == SampleMesh.PlacementMode.Surface)
                         index = VFXOperatorUtility.ApplyAddressingMode(index, meshIndexCount / threeUint, mode);
                 }
-                else if(spawnMode == SpawnMode.Random)
+                else if (spawnMode == SpawnMode.Random)
                 {
                     if (placementMode == SampleMesh.PlacementMode.Vertex)
                     {
