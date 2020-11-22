@@ -16,7 +16,7 @@ The Sample Mesh or Skinned Mesh Operator allows you to fetch vertex data of a st
 | **Mode**                | Enum     | The wrap mode to use for the sequence. The options are:<br/>&#8226; **Clamp**: Clamps the index between the first and last vertices.<br/>&#8226; **Wrap**: Wraps the index around to the other side of the vertex list. <br/>&#8226; **Mirror**: Mirrors the vertex list so out of range indices move back and forth through the list. |
 | **Placement mode**      | Enum     | The placement mode choose what kind of primitive to consider while sampling.<br/>&#8226; **Vertex**: Sample among all listed vertices without using any index buffer.<br/>&#8226; **Edge: **Interpolate among two consecutives vertices drawing a triangle. <br/>&#8226; **Surface:** Interpolate between three vertices defining a triangle. |
 | **Surface coordinates** | Enum     | Choose the approach of sampling in triangle.<br/>&#8226; **Barycentric**: Raw barencentric coordinates.<br/>&#8226; **Uniform**: Uniform placement within the triangle area.<br/>This property only appears if you set **Placement mode** to **Surface** |
-| **Source**              | Enum     | Choose the kind of geometry to sample, either a **Mesh** or a **Skinned Mesh Renderer** |
+| **Source**              | Enum     | **(Inspector)** Choose the kind of geometry to sample, either a **Mesh** or a **Skinned Mesh Renderer** |
 
 ### Operator Properties
 
