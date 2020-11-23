@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Rectangle";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Rectangle", BindingFlags.Static | BindingFlags.NonPublic);
@@ -24,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     $precision2 d = abs(UV * 2 - 1) - $precision2(Width, Height);
     d = 1 - d / fwidth(d);

@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
 
                 dragging = true;
                 startValue = m_DrivenField.value;
-                if(m_OnDragStarted != null)
+                if (m_OnDragStarted != null)
                     m_OnDragStarted();
 
                 EditorGUIUtility.SetWantsMouseJumping(1);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -7,14 +7,14 @@ namespace UnityEditor.ShaderGraph
     {
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-			materialEditor.PropertiesDefaultGUI(props);
+            materialEditor.PropertiesDefaultGUI(props);
 
             Material material = materialEditor.target as Material;
 
             if (materialEditor.EmissionEnabledProperty())
             {
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
-            } 
+            }
         }
     }
 }

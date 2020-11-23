@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.LookDev
         int computeIndex(ViewIndex index, ShadowCompositionPass passIndex)
             => (int)index * k_PassPerViewCount + (int)(passIndex);
         int computeIndex(CompositionFinal index)
-            => (k_PassPerViewCount-1) + (int)(index) * k_PassPerViewCount;
+            => (k_PassPerViewCount - 1) + (int)(index) * k_PassPerViewCount;
 
         void UpdateSize(int index, Rect rect, bool pixelPerfect, Camera renderingCamera, string renderDocName = "LookDevRT")
         {
@@ -92,7 +92,6 @@ namespace UnityEditor.Rendering.LookDev
             UpdateSize(computeIndex(index, ShadowCompositionPass.MainView), rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-MainView");
             UpdateSize(computeIndex(index, ShadowCompositionPass.ShadowMask), rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-ShadowMask");
         }
-
 
         public void UpdateSize(Rect rect, CompositionFinal index, bool pixelPerfect, Camera renderingCamera)
             => UpdateSize(computeIndex(index), rect, pixelPerfect, renderingCamera, $"LookDevRT-Final-{index}");
@@ -184,6 +183,7 @@ namespace UnityEditor.Rendering.LookDev
             m_Displayer.OnRenderDocAcquisitionTriggered -= RenderDocAcquisitionRequested;
             m_Displayer.OnUpdateRequested -= Render;
         }
+
         public void Dispose()
         {
             if (m_Disposed)
@@ -192,6 +192,7 @@ namespace UnityEditor.Rendering.LookDev
             CleanUp();
             GC.SuppressFinalize(this);
         }
+
         ~Compositer() => CleanUp();
 
         public void Render()

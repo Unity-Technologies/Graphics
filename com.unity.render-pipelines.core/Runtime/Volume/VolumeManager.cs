@@ -225,7 +225,7 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < count; i++)
                 {
-                    if(target.parameters[i] != null)
+                    if (target.parameters[i] != null)
                     {
                         target.parameters[i].overrideState = false;
                         target.parameters[i].SetValue(component.parameters[i]);
@@ -468,11 +468,11 @@ namespace UnityEngine.Rendering
         /// Constructs a scope in which a Camera filters a Volume.
         /// </summary>
         /// <param name="unused">Unused parameter.</param>
-        public VolumeIsolationScope(bool unused) { }
+        public VolumeIsolationScope(bool unused) {}
 
         /// <summary>
         /// Stops the Camera from filtering a Volume.
         /// </summary>
-        void IDisposable.Dispose() { }
+        void IDisposable.Dispose() {}
     }
 }
