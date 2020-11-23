@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with image layers in the graphics compositor (case 1289936).
 - Fixed issue with angle fading when rotating decal projector.
 - Fixed issue with gameview repaint in the graphics compositor (case 1290622).
-- Fixes some labels being clipped in the Render Graph Viewer
+- Fixed some labels being clipped in the Render Graph Viewer
 - Fixed issue when decal projector material is none.
 - Fixed the sampling of the normal buffer in the the forward transparent pass.
 - Fixed bloom prefiltering tooltip.
