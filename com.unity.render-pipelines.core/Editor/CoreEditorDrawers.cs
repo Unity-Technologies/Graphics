@@ -559,10 +559,10 @@ namespace UnityEditor.Rendering
         /// <param name="options">Drawing options</param>
         /// <returns>A IDrawer object</returns>
         [Obsolete("Use AdditionalPropertiesFoldoutGroup instead.")]
-        public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isShowingAdditionalProperties, SwitchEnabler switchAdditionalProperties, ActionDrawer normalContent, ActionDrawer additionalContent, FoldoutOption options = FoldoutOption.Indent)
+        public static IDrawer AdvancedFoldoutGroup<TEnum, TState>(GUIContent foldoutTitle, TEnum foldoutMask, ExpandedState<TEnum, TState> foldoutState, Enabler isAdvanced, SwitchEnabler switchAdvanced, ActionDrawer normalContent, ActionDrawer advancedContent, FoldoutOption options = FoldoutOption.Indent)
             where TEnum : struct, IConvertible
         {
-            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isShowingAdditionalProperties, switchAdditionalProperties, normalContent, additionalContent, options);
+            return AdditionalPropertiesFoldoutGroup(foldoutTitle, foldoutMask, foldoutState, isAdvanced, switchAdvanced, normalContent, advancedContent, options);
         }
 
         /// <summary> Helper to draw a foldout with additional properties. </summary>
