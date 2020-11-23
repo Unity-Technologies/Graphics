@@ -281,7 +281,6 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeBlackCubemapArray();
 
 #if UNITY_EDITOR
-            Debug.Log("REGISTER SKYMANAGER");
             UnityEditor.Lightmapping.bakeStarted += OnBakeStarted;
 #endif
         }
@@ -329,7 +328,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             CoreUtils.Destroy(m_DefaultPreviewSky);
-            Debug.Log("UNREGISTER SKYMANAGER");
             UnityEditor.Lightmapping.bakeStarted -= OnBakeStarted;
 #endif
         }
