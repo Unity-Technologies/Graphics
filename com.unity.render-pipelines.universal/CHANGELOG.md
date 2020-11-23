@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added preset shapes for creating a freeform light
 - Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
 - Added 2D Renderer Asset Preset for creating a Universal Renderer Asset
+- Added an option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.
   
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
