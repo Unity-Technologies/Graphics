@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   endTimesRcpDistFadeLen;
         public Vector3 rcpNegFaceFade;
         public int     useVolumeMask; // bool
-        public Vector3 atlasOffset;   // x and y coordinates in the atlas in pixels
+        public Vector3 atlasOffset;   // coordinates in the atlas in pixels
         public int     maskResolution;
 
         public static DensityVolumeEngineData GetNeutralValues()
