@@ -9,6 +9,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [HasDependencies(typeof(MinimalTexture2DInputMaterialSlot))]
     class Texture2DInputMaterialSlot : Texture2DMaterialSlot
     {
         [SerializeField]
@@ -90,6 +91,21 @@ namespace UnityEditor.ShaderGraph
             {
                 m_Texture = slot.m_Texture;
                 bareResource = slot.bareResource;
+            }
+        }
+    }
+
+    class MinimalTexture2DInputMaterialSlot : IHasDependencies
+    {
+        [SerializeField]
+        private SerializableTexture m_Texture = null;
+
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            var guidString = m_Texture.guid;
+            if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out var guid))
+            {
+                assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
             }
         }
     }

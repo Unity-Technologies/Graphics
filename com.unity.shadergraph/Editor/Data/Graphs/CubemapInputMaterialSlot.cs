@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
+    [HasDependencies(typeof(MinimalCubemapInputMaterialSlot))]
     class CubemapInputMaterialSlot : CubemapMaterialSlot
     {
         [SerializeField]
@@ -80,6 +81,21 @@ namespace UnityEditor.ShaderGraph
             {
                 m_Cubemap = slot.m_Cubemap;
                 bareResource = slot.bareResource;
+            }
+        }
+    }
+
+    class MinimalCubemapInputMaterialSlot : IHasDependencies
+    {
+        [SerializeField]
+        private SerializableCubemap m_Cubemap = null;
+
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            var guidString = m_Cubemap.guid;
+            if (!string.IsNullOrEmpty(guidString) && GUID.TryParse(guidString, out var guid))
+            {
+                assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
             }
         }
     }
