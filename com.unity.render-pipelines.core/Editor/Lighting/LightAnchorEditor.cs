@@ -45,6 +45,11 @@ namespace UnityEditor
             get { return target as LightAnchor; }
         }
 
+        static GUISkin GetCurrentSkin()
+        {
+            return EditorGUIUtility.isProSkin ? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Scene) : EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
+        }
+
         /// <summary>
         /// Calls the methods in its invocation list when show the Inspector
         /// </summary>
@@ -66,19 +71,47 @@ namespace UnityEditor
             // we have a dedicated editor tool to move the anchor
             var anchor = firstManipulator.anchorPosition;
 
-            EditorGUI.ChangeCheckScope yawChange = null;
-            EditorGUI.ChangeCheckScope pitchChange = null;
-            EditorGUI.ChangeCheckScope rollChange = null;
-            EditorGUI.ChangeCheckScope distanceChange = null;
-            bool yawChanged         = false;
-            bool pitchChanged       = false;
-            bool rollChanged        = false;
-            bool distanceChanged    = false;
-            bool frameChanged       = false;
-
+            bool yawChanged = false;
+            bool pitchChanged = false;
+            bool rollChanged = false;
+            bool distanceChanged = false;
+            bool frameChanged = false;
             bool upSpaceChanged = false;
+
             using (var change = new EditorGUI.ChangeCheckScope())
             {
+                EditorGUILayout.Space();
+
+                var widgetHeight = EditorGUIUtility.singleLineHeight * 7f;
+
+                float oldValue;
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    {
+                        var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
+                        oldValue = m_Yaw;
+                        m_Yaw = AngleField(localRect, "Yaw", m_Yaw, 90);
+                    }
+                    yawChanged = oldValue != m_Yaw;
+                    {
+                        var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
+                        oldValue = m_Pitch;
+                        m_Pitch = AngleField(localRect, "Pitch", m_Pitch, 180);
+                    }
+                    pitchChanged = oldValue != m_Pitch;
+                    {
+                        var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
+                        oldValue = m_Roll;
+                        m_Roll = AngleField(localRect, "Roll", m_Roll, -90);
+                    }
+                    rollChanged = oldValue != m_Roll;
+                }
+
+                oldValue = firstManipulator.distance;
+                m_Distance = EditorGUILayout.FloatField(styles.distanceProperty, firstManipulator.distance);
+                distanceChanged = oldValue != m_Distance;
+
                 var upIsWorldSpace = EditorGUILayout.Toggle(styles.upIsWorldSpaceProperty, firstManipulator.upIsWorldSpace);
                 upSpaceChanged = firstManipulator.upIsWorldSpace != upIsWorldSpace;
                 firstManipulator.upIsWorldSpace = upIsWorldSpace;
@@ -88,45 +121,20 @@ namespace UnityEditor
                     firstManipulator.SynchronizeOnTransform(camera);
                     UpdateCache();
                 }
-
-                EditorGUILayout.Space();
-
-                var widgetHeight = EditorGUIUtility.singleLineHeight * 7f;
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    using (yawChange = new EditorGUI.ChangeCheckScope())
-                    {
-                        m_Yaw = AngleField(EditorGUILayout.GetControlRect(false, widgetHeight), "Yaw", m_Yaw, 90);
-                    }
-                    yawChanged = yawChange.changed;
-                    using (pitchChange = new EditorGUI.ChangeCheckScope())
-                    {
-                        m_Pitch = AngleField(EditorGUILayout.GetControlRect(false, widgetHeight), "Pitch", m_Pitch, 180);
-                    }
-                    pitchChanged = pitchChange.changed;
-                    using (rollChange = new EditorGUI.ChangeCheckScope())
-                    {
-                        m_Roll = AngleField(EditorGUILayout.GetControlRect(false, widgetHeight), "Roll", m_Roll, -90);
-                    }
-                    rollChanged = rollChange.changed;
-                }
-
-                using (distanceChange = new EditorGUI.ChangeCheckScope())
-                {
-                    m_Distance = EditorGUILayout.FloatField(styles.distanceProperty, firstManipulator.distance);
-                }
-                distanceChanged = distanceChange.changed;
                 frameChanged = yawChanged || pitchChanged || rollChanged || distanceChanged;
 
                 EditorGUILayout.LabelField("Presets");
                 Color cachedColor = GUI.backgroundColor;
-                GUI.backgroundColor = Color.clear;
+                GUI.backgroundColor = new Color(0.440513f, 0.440513f, 0.440513f, 1.0f);
                 var inspectorWidth = EditorGUIUtility.currentViewWidth - Styles.inspectorWidthPadding;
                 var presetButtonWidth = GUILayout.Width(inspectorWidth / Styles.presetButtonCount);
                 var presetButtonHeight = GUILayout.Height(inspectorWidth / Styles.presetButtonCount);
+
                 using (new EditorGUILayout.HorizontalScope())
                 {
+                    bool rectFound = false;
+                    Rect rect = new Rect();
+                    const float eps = 1e-4f;
                     if (GUILayout.Button(styles.presetTextureRimLeft, presetButtonWidth, presetButtonHeight))
                     {
                         m_Yaw = 135;
@@ -134,6 +142,11 @@ namespace UnityEditor
                         yawChanged = true;
                         pitchChanged = true;
                         frameChanged = true;
+                    }
+                    if (Mathf.Abs(m_Yaw - 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
                     }
                     if (GUILayout.Button(styles.presetTextureKickLeft, presetButtonWidth, presetButtonHeight))
                     {
@@ -143,6 +156,11 @@ namespace UnityEditor
                         pitchChanged = true;
                         frameChanged = true;
                     }
+                    if (Mathf.Abs(m_Yaw - 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
+                    }
                     if (GUILayout.Button(styles.presetTextureBounceLeft, presetButtonWidth, presetButtonHeight))
                     {
                         m_Yaw = 30;
@@ -151,9 +169,11 @@ namespace UnityEditor
                         pitchChanged = true;
                         frameChanged = true;
                     }
-                }
-                using (new EditorGUILayout.HorizontalScope())
-                {
+                    if (Mathf.Abs(m_Yaw - 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
+                    }
                     if (GUILayout.Button(styles.presetTextureFillLeft, presetButtonWidth, presetButtonHeight))
                     {
                         m_Yaw = 35;
@@ -161,6 +181,11 @@ namespace UnityEditor
                         yawChanged = true;
                         pitchChanged = true;
                         frameChanged = true;
+                    }
+                    if (Mathf.Abs(m_Yaw - 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
                     }
                     if (GUILayout.Button(styles.presetTextureHair, presetButtonWidth, presetButtonHeight))
                     {
@@ -170,6 +195,11 @@ namespace UnityEditor
                         pitchChanged = true;
                         frameChanged = true;
                     }
+                    if (Mathf.Abs(m_Yaw - 0.0f) < eps && Mathf.Abs(m_Pitch - 110.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
+                    }
                     if (GUILayout.Button(styles.presetTextureFillRight, presetButtonWidth, presetButtonHeight))
                     {
                         m_Yaw = -35;
@@ -178,9 +208,11 @@ namespace UnityEditor
                         pitchChanged = true;
                         frameChanged = true;
                     }
-                }
-                using (new EditorGUILayout.HorizontalScope())
-                {
+                    if (Mathf.Abs(m_Yaw + 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
+                    }
                     if (GUILayout.Button(styles.presetTextureBounceRight, presetButtonWidth, presetButtonHeight))
                     {
                         m_Yaw = -30;
@@ -188,6 +220,11 @@ namespace UnityEditor
                         yawChanged = true;
                         pitchChanged = true;
                         frameChanged = true;
+                    }
+                    if (Mathf.Abs(m_Yaw + 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
                     }
                     if (GUILayout.Button(styles.presetTextureKickRight, presetButtonWidth, presetButtonHeight))
                     {
@@ -197,6 +234,11 @@ namespace UnityEditor
                         pitchChanged = true;
                         frameChanged = true;
                     }
+                    if (Mathf.Abs(m_Yaw + 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
+                    }
                     if (GUILayout.Button(styles.presetTextureRimRight, presetButtonWidth, presetButtonHeight))
                     {
                         m_Yaw = -135;
@@ -205,18 +247,25 @@ namespace UnityEditor
                         pitchChanged = true;
                         frameChanged = true;
                     }
+                    if (Mathf.Abs(m_Yaw + 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
+                    {
+                        rect = GUILayoutUtility.GetLastRect();
+                        rectFound = true;
+                    }
+                    if (rectFound)
+                    {
+                        GUISkin cur = GetCurrentSkin();
+                        Handles.DrawSolidRectangleWithOutline(rect, new Color(0, 0, 0, 0), new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f));
+                    }
                     GUILayout.FlexibleSpace();
                 }
                 GUI.backgroundColor = cachedColor;
 
-                if (change.changed)
+                if (frameChanged)
                 {
                     foreach (var curTarget in targets)
                     {
                         LightAnchor manipulator = curTarget as LightAnchor;
-
-                        Undo.RegisterCompleteObjectUndo(manipulator.transform, "Inspector");
-                        Undo.RegisterCompleteObjectUndo(manipulator, "Inspector");
 
                         if (upSpaceChanged)
                         {
@@ -224,6 +273,7 @@ namespace UnityEditor
                         }
                         manipulator.upIsWorldSpace = firstManipulator.upIsWorldSpace;
 
+                        Undo.RecordObjects(new UnityEngine.Object[] { manipulator.transform }, "Reset Transform");
                         if (yawChanged)
                             manipulator.yaw = m_Yaw;
                         if (pitchChanged)
@@ -244,6 +294,9 @@ namespace UnityEditor
 
                         EditorUtility.SetDirty(manipulator.transform);
                         EditorUtility.SetDirty(manipulator);
+
+                        //Undo.RegisterCompleteObjectUndo(manipulator.transform, "Transform");
+                        //Undo.RegisterCompleteObjectUndo(manipulator, "Inspector");
                     }
                 }
             }
@@ -360,6 +413,17 @@ namespace UnityEditor
             return (AngleFieldState)GUIUtility.GetStateObject(typeof(AngleFieldState), id);
         }
 
+        Rect PrepareControlRect(float height = -1)
+        {
+            if (height < 0)
+                height = EditorGUIUtility.singleLineHeight;
+            var rect = GUILayoutUtility.GetRect(1f, 1f, height, height);
+            rect.width -= 2f;
+            rect.xMin += 2f;
+            EditorGUIUtility.labelWidth = rect.width / 2f;
+            return rect;
+        }
+
         float AngleField(Rect r, string label, float angle, float offset)
         {
             var id = GUIUtility.GetControlID("AngleSlider".GetHashCode(), FocusType.Passive);
@@ -407,8 +471,16 @@ namespace UnityEditor
             if (Event.current.type == EventType.Repaint)
             {
                 DrawAngleWidget(state.position, state.radius, newAngle, offset);
-                GUI.Label(labelRect, $"{label}: {String.Format("{0:0.##}", newAngle)}", styles.centeredLabel);
             }
+            //labelRect.width *= 0.5f * 0.8f; // 0.5f half for text, 0.8f security padding
+            //labelRect.height *= 0.5f;
+            //EditorGUI.DrawRect(labelRect, new Color(0, 0, 0, 0));
+            //labelRect.y += labelRect.height * 0.5f;
+            //EditorGUI.LabelField(labelRect, label);
+            //labelRect.x += labelRect.width;
+            //newAngle = EditorGUI.FloatField(labelRect, newAngle); // TODO: FloatField with label with custom size of label & float
+
+            //newAngle = Mathf.Round(newAngle*100.0f)/100.0f;
 
             return newAngle;
         }
@@ -505,7 +577,7 @@ namespace UnityEditor
     class Styles
     {
         public const float inspectorWidthPadding = 60f;
-        public const float presetButtonCount = 3f;
+        public const float presetButtonCount = 9f;
         public GUIStyle centeredLabel;
         public GUIContent presetTextureRimLeft;
         public GUIContent presetTextureKickLeft;
