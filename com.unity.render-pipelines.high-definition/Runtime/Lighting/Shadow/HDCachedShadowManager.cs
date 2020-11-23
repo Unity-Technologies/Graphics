@@ -63,6 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
 #endif
         // ------------------------ Public API -------------------------------
 
@@ -150,14 +151,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal void InitPunctualShadowAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,
-                                            HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+            HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
             m_InitParams = initParams;
             punctualShadowAtlas.InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
         }
 
         internal void InitAreaLightShadowAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams,
-                                            HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+            HDShadowAtlas.BlurAlgorithm blurAlgorithm = HDShadowAtlas.BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
             m_InitParams = initParams;
             areaShadowAtlas.InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
@@ -227,17 +228,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadowAtlas.RemoveTransformFromCache(lightData);
         }
 
-
         internal void AssignSlotsInAtlases()
         {
             punctualShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
-            if(ShaderConfig.s_AreaLights == 1)
+            if (ShaderConfig.s_AreaLights == 1)
                 areaShadowAtlas.AssignOffsetsInAtlas(m_InitParams);
         }
 
         internal bool NeedRenderingDueToTransformChange(HDAdditionalLightData lightData, HDLightType lightType)
         {
-            if(lightData.updateUponLightMovement)
+            if (lightData.updateUponLightMovement)
             {
                 if (lightType == HDLightType.Directional)
                 {

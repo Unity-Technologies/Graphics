@@ -43,7 +43,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 resourceArray.Resize(sharedResourcesCount); // First N elements are reserved for shared persistent resources and are kept as is.
                 pool.CheckFrameAllocation(onException, frameIndex);
-
             }
 
             public void Cleanup()
@@ -117,7 +116,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         private RenderGraphResourceRegistry()
         {
-
         }
 
         internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
@@ -407,7 +405,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
 #if UNITY_2020_2_OR_NEWER
             var fastMemDesc = resource.desc.fastMemoryDesc;
-            if(fastMemDesc.inFastMemory)
+            if (fastMemDesc.inFastMemory)
             {
                 resource.graphicsResource.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
             }

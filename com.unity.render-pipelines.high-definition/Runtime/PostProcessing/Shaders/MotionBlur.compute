@@ -41,12 +41,12 @@ TEXTURE2D_X(_TileMaxNeighbourhood);
 #define ONLY_FAST_PATH 2
 
 #define DEBUG_EXECUTION NORMAL
- 
+
 // ------------Options------------------
 #define MIRROR_WEIGHTS 1
 #define TILE_JITTER 1
-// When this is set to 1, samples are taken from both the central direction and the maximum direction in the tile. This reduces bugs when very different velocities are available in a tile. 
-// This however also can cause the blur to look slightly different. 
+// When this is set to 1, samples are taken from both the central direction and the maximum direction in the tile. This reduces bugs when very different velocities are available in a tile.
+// This however also can cause the blur to look slightly different.
 #define GUERTIN2014_DOUBLE_DIR 0
 #define DOT_WEIGHTING 1
 #define DOT_MULTIPLIER 1 * DOT_WEIGHTING
@@ -128,7 +128,7 @@ void MirrorWeights(float depth1, float depth2, float motionVec1, float motionVec
 }
 
 // ---------------------------------------------
-// Sample processing 
+// Sample processing
 // ---------------------------------------------
 
 CTYPE ProcessSampleFastPath(uint sampleNumber, float2 dir, float invSampleCount, float2 centralUV, float randomVal, float dirSign)

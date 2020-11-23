@@ -9,7 +9,7 @@ using UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework;
 
 using UnityObject = UnityEngine.Object;
 #if !UNITY_2020_2_OR_NEWER
-using ToolManager=UnityEditor.EditorTools.EditorTools;
+using ToolManager = UnityEditor.EditorTools.EditorTools;
 #endif
 
 namespace UnityEditor.Experimental.Rendering.Universal.Path2D
@@ -81,7 +81,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         internal static T GetEditorTool<T>() where T : EditorTool
         {
-            foreach(var tool in m_Tools)
+            foreach (var tool in m_Tools)
             {
                 if (tool.GetType().Equals(typeof(T)))
                     return tool as T;
@@ -271,7 +271,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         private void ForEachTarget(Action<UnityObject> action)
         {
-            foreach(var target in targets)
+            foreach (var target in targets)
             {
                 if (target == null)
                     continue;
@@ -489,11 +489,11 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         }
 
         protected abstract IShape GetShape(UnityObject target);
-        protected virtual void Initialize(T path, SerializedObject serializedObject) { }
+        protected virtual void Initialize(T path, SerializedObject serializedObject) {}
         protected abstract void SetShape(T path, SerializedObject serializedObject);
-        protected virtual void OnActivate() { }
-        protected virtual void OnDeactivate() { }
-        protected virtual void OnCustomGUI(T path) { }
+        protected virtual void OnActivate() {}
+        protected virtual void OnDeactivate() {}
+        protected virtual void OnCustomGUI(T path) {}
     }
 }
 #pragma warning restore 0618

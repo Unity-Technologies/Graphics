@@ -61,10 +61,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var list = new List<DebugUI.Widget>();
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
             // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
-        //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
+            //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
             list.Add(new DebugUI.BoolField { displayName = "Disable Pass Culling", getter = () => disablePassCulling, setter = value => disablePassCulling = value });
             list.Add(new DebugUI.BoolField { displayName = "Immediate Mode", getter = () => immediateMode, setter = value => immediateMode = value });
-            list.Add(new DebugUI.Button { displayName = "Log Frame Information",
+            list.Add(new DebugUI.Button
+            {
+                displayName = "Log Frame Information",
                 action = () =>
                 {
                     logFrameInformation = true;
@@ -73,7 +75,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 #endif
                 }
             });
-            list.Add(new DebugUI.Button { displayName = "Log Resources",
+            list.Add(new DebugUI.Button
+            {
+                displayName = "Log Resources",
                 action = () =>
                 {
                     logResources = true;
@@ -420,7 +424,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 texture = m_Resources.CreateTexture(desc);
         }
 
-
         /// <summary>
         /// Gets the descriptor of the specified Texture resource.
         /// </summary>
@@ -545,7 +548,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_CompiledPassInfos.Resize(m_CompiledPassInfos.capacity);
                 m_CurrentImmediatePassIndex = 0;
 
-                for(int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+                for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 {
                     if (m_ImmediateModeResourceList[i] == null)
                         m_ImmediateModeResourceList[i] = new List<int>();
@@ -607,7 +610,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-
         class ProfilingScopePassData
         {
             public ProfilingSampler sampler;
@@ -648,6 +650,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 });
             }
         }
+
         #endregion
 
         #region Internal Interface
@@ -777,7 +780,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         foreach (var index in passInfo.pass.resourceReadLists[type])
                         {
                             m_CompiledResourcesInfos[type][index].refCount--;
-
                         }
                     }
                 }
@@ -949,7 +951,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return -1;
         }
 
-
         void UpdateResourceAllocationAndSynchronization()
         {
             int lastGraphicsPipeSync = -1;
@@ -978,7 +979,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     {
                         UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourcesInfo[resource]);
                     }
-
                 }
 
                 // Gather all renderer lists
@@ -1114,7 +1114,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             // Create the necessary renderer lists
-            foreach(var rl in pass.usedRendererListList)
+            foreach (var rl in pass.usedRendererListList)
             {
                 if (!m_Resources.IsRendererListCreated(rl))
                     m_RendererLists.Add(rl);
@@ -1210,7 +1210,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     {
                         CoreUtils.SetRenderTarget(rgContext.cmd, m_Resources.GetTexture(pass.colorBuffers[0]));
                     }
-
                 }
             }
         }
@@ -1288,8 +1287,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
             {
                 foreach (var resource in m_ImmediateModeResourceList[type])
+                {
                     m_Resources.ReleasePooledResource(m_RenderGraphContext, type, resource);
-
+                }
             }
         }
 
@@ -1374,7 +1374,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     data.releasePassIndex = Math.Max(data.releasePassIndex, pass);
             }
         }
-
 
         void GenerateDebugData()
         {
@@ -1499,4 +1498,3 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
     }
 }
-

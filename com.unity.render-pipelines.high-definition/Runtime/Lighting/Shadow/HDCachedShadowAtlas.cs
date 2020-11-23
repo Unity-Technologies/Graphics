@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CanTryPlacement = true;
             m_NeedOptimalPacking = true;
         }
+
         // ------------------------------------------------------------------------------------------
 
         // ------------------------------------------------------------------------------------------
@@ -95,7 +96,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             foreach (var request in m_ShadowRequests)
             {
-                if(request.shouldRenderCachedComponent) // meaning it has been updated this time frame
+                if (request.shouldRenderCachedComponent) // meaning it has been updated this time frame
                 {
                     dynamicAtlas.AddRequestToPendingBlitFromCache(request);
                 }
@@ -109,6 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x] == false);
         }
+
         private bool IsEntryFull(int x, int y)
         {
             return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x]);
@@ -180,6 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return false;
         }
+
         // ---------------------------------------------------------------------------------------
 
         // ------------------------------------------------------------------------------------------
@@ -261,7 +264,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TransformCaches.Remove(lightData.lightIdxForCachedShadows);
         }
 
-
         // ------------------------------------------------------------------------------------------
 
 
@@ -341,7 +343,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // If they all fit, we actually placed them, otherwise we mark the slot that we temp filled as free and go on.
-            if(successfullyPlaced == numberOfShadows)   // Success.
+            if (successfullyPlaced == numberOfShadows)   // Success.
             {
                 for (int j = 0; j < numberOfShadows; ++j)
                 {
@@ -355,10 +357,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 return true;
             }
-            else if(successfullyPlaced > 0)   // Couldn't place them all, but we placed something, so we revert those placements.
+            else if (successfullyPlaced > 0)   // Couldn't place them all, but we placed something, so we revert those placements.
             {
                 int numEntries = HDUtils.DivRoundUp(m_TempListForPlacement[startIdx].viewportSize, m_MinSlotSize);
-                for (int j=0; j <successfullyPlaced; ++j)
+                for (int j = 0; j < successfullyPlaced; ++j)
                 {
                     MarkEntries(placements[j].x, placements[j].y, numEntries, false);
                 }
@@ -485,7 +487,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool LightIsPendingPlacement(HDAdditionalLightData lightData)
         {
             return (m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) ||
-                    m_RecordsPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows));
+                m_RecordsPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows));
         }
 
         internal bool ShadowIsPendingRendering(int shadowIdx)
@@ -571,7 +573,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     needUpdate = true;
                 }
-                if(lightType != HDLightType.Point)
+                if (lightType != HDLightType.Point)
                 {
                     float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
                     Vector3 angleDiff = cachedTransform.angles - lightData.transform.eulerAngles;
@@ -598,5 +600,3 @@ namespace UnityEngine.Rendering.HighDefinition
         // ------------------------------------------------------------------------------------------
     }
 }
-
-
