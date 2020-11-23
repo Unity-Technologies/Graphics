@@ -3,7 +3,6 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
-
     /// <summary>
     /// Renderer List resource handle.
     /// </summary>

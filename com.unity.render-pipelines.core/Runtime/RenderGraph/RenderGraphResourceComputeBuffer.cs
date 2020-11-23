@@ -3,7 +3,6 @@ using System.Diagnostics;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
-
     /// <summary>
     /// Compute Buffer resource handle.
     /// </summary>
