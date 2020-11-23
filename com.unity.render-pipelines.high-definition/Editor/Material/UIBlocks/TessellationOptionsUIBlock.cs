@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // If we don't have tesselation
             if (tessellationMode == null)
-                return ;
+                return;
 
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
             {

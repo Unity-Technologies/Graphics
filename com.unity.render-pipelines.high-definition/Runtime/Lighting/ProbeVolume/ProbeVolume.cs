@@ -370,7 +370,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int resolutionZ;
         public float backfaceTolerance;
         public int dilationIterations;
-
     }
 
     [Serializable]
@@ -562,7 +561,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return data;
         }
-
     } // class ProbeVolumeArtistParameters
 
     [ExecuteAlways]
@@ -717,8 +715,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (probeVolumeAsset)
             {
                 return parameters.resolutionX == probeVolumeAsset.resolutionX &&
-                       parameters.resolutionY == probeVolumeAsset.resolutionY &&
-                       parameters.resolutionZ == probeVolumeAsset.resolutionZ;
+                    parameters.resolutionY == probeVolumeAsset.resolutionY &&
+                    parameters.resolutionZ == probeVolumeAsset.resolutionZ;
             }
             return false;
         }
@@ -804,7 +802,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In the future, we should add an API call for GetAdditionalBakedProbes() without octahedralDepth required.
             var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
+            if (UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
             {
                 if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
@@ -1038,6 +1036,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
                 Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, emptyCamera, lightProbeUsage, lightProbeProxyVolume);
         }
+
 #endif
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline
