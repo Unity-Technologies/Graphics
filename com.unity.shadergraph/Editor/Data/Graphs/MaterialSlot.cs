@@ -291,9 +291,11 @@ namespace UnityEditor.ShaderGraph
             properties.Add(default(PreviewProperty));
         }
 
-        public virtual string GetHLSLVariableType()
+        public virtual void AppendHLSLParameterDeclaration(ShaderStringBuilder sb, string paramName)
         {
-            return concreteValueType.ToShaderString();
+            sb.Append(concreteValueType.ToShaderString());
+            sb.Append(" ");
+            sb.Append(paramName);
         }
 
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);

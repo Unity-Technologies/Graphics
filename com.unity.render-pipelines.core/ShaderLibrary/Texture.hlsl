@@ -2,20 +2,20 @@
 #define UNITY_TEXTURE_INCLUDED
 
 #ifdef SHADER_API_GLES
-    #define SAMPLERDECL(n) GLES2UnsupportedSamplerState n;
+    #define UNITY_BARE_SAMPLER(n) GLES2UnsupportedSamplerState n
 #else
-    #define SAMPLERDECL(n) SAMPLER(n);
+    #define UNITY_BARE_SAMPLER(n) SAMPLER(n)
 #endif
-
-SAMPLER(default_sampler_Linear_Repeat);
 
 struct GLES2UnsupportedSamplerState
 {
 };
 
+UNITY_BARE_SAMPLER(default_sampler_Linear_Repeat);
+
 struct UnitySamplerState
 {
-    SAMPLERDECL(samplerstate)
+    UNITY_BARE_SAMPLER(samplerstate);
 };
 
 #ifdef SHADER_API_GLES
@@ -34,7 +34,7 @@ UnitySamplerState UnityBuildSamplerStateStructInternal(SAMPLER(samplerstate))
 struct UnityTexture2D
 {
     TEXTURE2D(tex);
-    SAMPLERDECL(samplerstate)
+    UNITY_BARE_SAMPLER(samplerstate);
     float4 texelSize;
     float4 scaleTranslate;
 
@@ -87,7 +87,7 @@ UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplersta
 struct UnityTexture2DArray
 {
     TEXTURE2D_ARRAY(tex);
-    SAMPLERDECL(samplerstate)
+    UNITY_BARE_SAMPLER(samplerstate);
 
     // these functions allows users to convert code using Texture2DArray to UnityTexture2DArray by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
@@ -119,7 +119,7 @@ UnityTexture2DArray UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_PARAM
 struct UnityTextureCube
 {
     TEXTURECUBE(tex);
-    SAMPLERDECL(samplerstate)
+    UNITY_BARE_SAMPLER(samplerstate);
 
     // these functions allows users to convert code using TextureCube to UnityTextureCube by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
@@ -153,14 +153,15 @@ UnityTextureCube UnityBuildTextureCubeStructInternal(TEXTURECUBE_PARAM(tex, samp
 struct UnityTexture3D
 {
     TEXTURE3D(tex);
-    SAMPLERDECL(samplerstate)
+    UNITY_BARE_SAMPLER(samplerstate);
 
     // these functions allows users to convert code using Texture3D to UnityTexture3D by simply changing the type of the variable
     // the existing texture macros will call these functions, which will forward the call to the texture appropriately
     float4 Sample(UnitySamplerState s, float3 uvw)                      { return SAMPLE_TEXTURE3D(tex, s.samplerstate, uvw); }
-    float4 SampleLevel(UnitySamplerState s, float3 uvw, float lod)      { return SAMPLE_TEXTURE3D_LOD(tex, s.samplerstate, uvw, lod); }
 
 #ifndef SHADER_API_GLES
+    float4 SampleLevel(UnitySamplerState s, float3 uvw, float lod)      { return SAMPLE_TEXTURE3D_LOD(tex, s.samplerstate, uvw, lod); }
+
     float4 Sample(SAMPLER(s), float3 uvw)                               { return SAMPLE_TEXTURE2D(tex, s, uvw); }
     float4 SampleLevel(SAMPLER(s), float3 uvw, float lod)               { return SAMPLE_TEXTURE2D_LOD(tex, s, uvw, lod); }
     float4 Load(int4 pixel)                                             { return LOAD_TEXTURE3D_LOD(tex, pixel.xyz, pixel.w); }
@@ -177,7 +178,5 @@ UnityTexture3D UnityBuildTexture3DStructInternal(TEXTURE3D_PARAM(tex, samplersta
     ASSIGN_SAMPLER(result.samplerstate, samplerstate);
     return result;
 }
-
-#undef SAMPLERDECL
 
 #endif // UNITY_TEXTURE_INCLUDED
