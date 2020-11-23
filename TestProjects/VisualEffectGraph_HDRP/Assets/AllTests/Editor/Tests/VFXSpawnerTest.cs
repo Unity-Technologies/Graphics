@@ -79,13 +79,20 @@ namespace UnityEditor.VFX.Test
             string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSpawnerCustomCallbackBuiltin.vfx_";
             var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
 
-            Assert.AreEqual(1, graph.GetNbChildren());
+            Assert.AreEqual(1, graph.children.OfType<VFXBasicSpawner>().Count());
             var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
             Assert.AreEqual(4, basicSpawner.GetNbChildren());
             Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("SpawnOverDistance")));
             Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("SetSpawnTime")));
             Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("LoopAndDelay")));
             Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("IncrementStripIndexOnStart")));
+
+            foreach (var sanitizeSpawn in basicSpawner.children)
+            {
+                Assert.IsFalse(sanitizeSpawn.inputSlots.Any(o => !o.HasLink()));
+                Assert.IsNotNull(sanitizeSpawn.GetSettingValue("m_instance"));
+                Assert.IsNotNull((sanitizeSpawn as VFXSpawnerCustomWrapper).customBehavior);
+            }
 
             yield return null;
         }
