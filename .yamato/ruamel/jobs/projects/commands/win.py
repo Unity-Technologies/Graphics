@@ -95,7 +95,6 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
         if ';' in utr_arg:
             test_filters = utr_arg.split('=')
             quality_level = test_filters[1][1:-1]
-            print(quality_level)
             quality_levels = quality_level.split(';')
             utr_args.remove(utr_arg)
 

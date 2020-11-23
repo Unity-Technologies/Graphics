@@ -10,7 +10,7 @@ test_platforms:
       - [all]: --performance-project-id=BoatAttack
       - [iPhone_Metal]: --timeout=2400
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --testfilter="Low;Medium;High"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter="Low;Medium;High"
     utr_flags_build:
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
       - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
@@ -26,7 +26,7 @@ test_platforms:
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --testfilter="Low;Medium;High"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter="Low;Medium;High"
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -42,14 +42,14 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --testfilter="Low;Medium;High"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter="Low;Medium;High"
   - type: editmode
     name: performance_build_editmode
     is_performance: True
     utr_flags:
       - [all]: --testfilter=Build
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --testfilter="Low;Medium;High"
+      - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter="Low;Medium;High"
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
