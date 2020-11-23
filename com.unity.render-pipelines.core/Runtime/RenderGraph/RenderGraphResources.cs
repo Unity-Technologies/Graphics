@@ -48,6 +48,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             // Scramble frame count to avoid collision when wrapping around.
             s_CurrentValidBit = (uint)(((executionIndex >> 16) ^ (executionIndex & 0xffff) * 58546883) << 16);
+            // In case the current valid bit is 0, even though perfectly valid, 0 represents an invalid handle, hence we'll
+            // trigger an invalid state incorrectly. To account for this, we actually skip 0 as a viable s_CurrentValidBit and
+            // start from 1 again.
+            if (s_CurrentValidBit == 0)
+            {
+                s_CurrentValidBit = 1 << 16;
+            }
         }
     }
 
@@ -81,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="texture">Input TextureHandle.</param>
         /// <returns>Resource as a RenderTargetIdentifier.</returns>
-        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : null;
+        public static implicit operator RenderTargetIdentifier(TextureHandle texture) => texture.IsValid() ? RenderGraphResourceRegistry.current.GetTexture(texture) : default(RenderTargetIdentifier);
 
         /// <summary>
         /// Cast to RenderTexture
@@ -373,6 +380,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 hashCode = hashCode * 23 + (isShadowMap ? 1 : 0);
                 hashCode = hashCode * 23 + (bindTextureMS ? 1 : 0);
                 hashCode = hashCode * 23 + (useDynamicScale ? 1 : 0);
+#if UNITY_2020_2_OR_NEWER
+                hashCode = hashCode * 23 + (fastMemoryDesc.inFastMemory ? 1 : 0);
+#endif
             }
 
             return hashCode;
@@ -435,5 +445,4 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return hashCode;
         }
     }
-
 }

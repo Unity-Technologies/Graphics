@@ -372,7 +372,7 @@ Managing LOD in this way has two consequences:
 
 | **Feature**       | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------- | ------------------------ | ------------------------------- |
-| AR Foundation | No                       | No                              |
+| AR Foundation | Yes                    | No                        |
 
 ## Debug
 

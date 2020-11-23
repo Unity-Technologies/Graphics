@@ -119,7 +119,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
-	    // ------------------------------------------------------------------
+        // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
         {
@@ -170,7 +170,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma fragment ParticlesGBufferFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGBufferPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGbufferPass.hlsl"
             ENDHLSL
         }
         // ------------------------------------------------------------------
@@ -186,6 +186,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull Off
 
             HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
             #pragma target 2.0
 
             // -------------------------------------
@@ -219,6 +220,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull Off
 
             HLSLPROGRAM
+            #define PARTICLES_EDITOR_META_PASS
             #pragma target 2.0
 
             // -------------------------------------

@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             m_Graph.owner.RegisterCompleteObjectUndo("Move Graph Input");
-            switch(input)
+            switch (input)
             {
                 case AbstractShaderProperty property:
                     m_Graph.MoveProperty(property, newIndex);
@@ -208,7 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             shaderInputTypes.Sort((s1, s2) => {
                 var info1 = Attribute.GetCustomAttribute(s1, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 var info2 = Attribute.GetCustomAttribute(s2, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
-            
+
                 if (info1.priority == info2.priority)
                     return (info1.name ?? s1.Name).CompareTo(info2.name ?? s2.Name);
                 else
@@ -222,7 +222,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var info = Attribute.GetCustomAttribute(t, typeof(BlackboardInputInfo)) as BlackboardInputInfo;
                 string name = info?.name ?? ObjectNames.NicifyVariableName(t.Name.Replace("ShaderProperty", ""));
-                gm.AddItem(new GUIContent(name), false, () => AddInputRow(Activator.CreateInstance(t, true) as ShaderInput, true));
+                ShaderInput si = Activator.CreateInstance(t, true) as ShaderInput;
+                gm.AddItem(new GUIContent(name), false, () => AddInputRow(si, true));
+                //QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
+                if (ShaderGraphPreferences.allowDeprecatedBehaviors && si is ColorShaderProperty csp)
+                {
+                    gm.AddItem(new GUIContent($"Color (Deprecated)"), false, () => AddInputRow(new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), true));
+                }
             }
             gm.AddSeparator($"/");
         }
@@ -241,7 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddBuiltinKeyword(GenericMenu gm, ShaderKeyword keyword)
         {
-            if(m_Graph.keywords.Where(x => x.referenceName == keyword.referenceName).Any())
+            if (m_Graph.keywords.Where(x => x.referenceName == keyword.referenceName).Any())
             {
                 gm.AddDisabledItem(new GUIContent($"Keyword/{keyword.displayName}"));
             }
@@ -275,7 +281,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     //update property pill
                     blackboardFieldView.text = blackboardFieldView.shaderInput.displayName;
-                    // for some reason doesn't work from the inspector calls so need it here 
+                    // for some reason doesn't work from the inspector calls so need it here
                     DirtyNodes();
                 }
             }
@@ -350,13 +356,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             BlackboardFieldView field = null;
             BlackboardRow row = null;
 
-            switch(input)
+            switch (input)
             {
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.GetPropertyTypeString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
+                    property.onBeforeVersionChange += (_) => m_Graph.owner.RegisterCompleteObjectUndo($"Change {property.displayName} Version");
+                    void UpdateField()
+                    {
+                        field.typeText = property.GetPropertyTypeString();
+                        field.InspectorUpdateTrigger();
+                    }
+
+                    property.onAfterVersionChange += UpdateField;
                     row = new BlackboardRow(field, null);
 
                     if (index < 0 || index > m_InputRows.Count)
@@ -415,7 +429,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.AddGraphInput(input);
                 field.OpenTextEditor();
 
-                if(input as ShaderKeyword != null)
+                if (input as ShaderKeyword != null)
                 {
                     m_Graph.OnKeywordChangedNoValidate();
                 }
@@ -460,7 +474,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 foreach (var node in graphView.nodes.ToList())
                 {
-                    if(input is AbstractShaderProperty property)
+                    if (input is AbstractShaderProperty property)
                     {
                         if (node.userData is PropertyNode propertyNode)
                         {
@@ -471,7 +485,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             }
                         }
                     }
-                    else if(input is ShaderKeyword keyword)
+                    else if (input is ShaderKeyword keyword)
                     {
                         if (node.userData is KeywordNode keywordNode)
                         {

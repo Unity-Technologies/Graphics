@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering
     /// <example>
     /// <code>
     /// using UnityEngine.Rendering;
-    /// 
+    ///
     /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
     /// public class ExampleComponent : VolumeComponent
     /// {
@@ -96,7 +96,12 @@ namespace UnityEngine.Rendering
                 .AsReadOnly();
 
             foreach (var parameter in parameters)
-                parameter.OnEnable();
+            {
+                if (parameter != null)
+                    parameter.OnEnable();
+                else
+                    Debug.LogWarning("Volume Component " + GetType().Name + " contains a null parameter; please make sure all parameters are initialized to a default value. Until this is fixed the null parameters will not be considered by the system.");
+            }
         }
 
         /// <summary>
@@ -108,8 +113,12 @@ namespace UnityEngine.Rendering
                 return;
 
             foreach (var parameter in parameters)
-                parameter.OnDisable();
+            {
+                if (parameter != null)
+                    parameter.OnDisable();
+            }
         }
+
         /// <summary>
         /// Interpolates a <see cref="VolumeComponent"/> with this component by an interpolation
         /// factor and puts the result back into the given <see cref="VolumeComponent"/>.
@@ -130,15 +139,15 @@ namespace UnityEngine.Rendering
         /// public virtual void Override(VolumeComponent state, float interpFactor)
         /// {
         ///     int count = parameters.Count;
-        /// 
+        ///
         ///     for (int i = 0; i &lt; count; i++)
         ///     {
         ///         var stateParam = state.parameters[i];
         ///         var toParam = parameters[i];
-        /// 
+        ///
         ///         // Keep track of the override state for debugging purpose
         ///         stateParam.overrideState = toParam.overrideState;
-        /// 
+        ///
         ///         if (toParam.overrideState)
         ///             stateParam.Interp(stateParam, toParam, interpFactor);
         ///     }
@@ -184,7 +193,7 @@ namespace UnityEngine.Rendering
                     // This method won't be called a lot but this is sub-optimal, fix me
                     var innerParams = (ReadOnlyCollection<VolumeParameter>)
                         t.GetProperty("parameters", BindingFlags.NonPublic | BindingFlags.Instance)
-                        .GetValue(prop, null);
+                            .GetValue(prop, null);
 
                     if (innerParams != null)
                         SetAllOverridesTo(innerParams, state);
@@ -212,7 +221,7 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Unity calls this method before the object is destroyed. 
+        /// Unity calls this method before the object is destroyed.
         /// </summary>
         protected virtual void OnDestroy() => Release();
 
@@ -222,7 +231,10 @@ namespace UnityEngine.Rendering
         public void Release()
         {
             for (int i = 0; i < parameters.Count; i++)
-                parameters[i].Release();
+            {
+                if (parameters[i] != null)
+                    parameters[i].Release();
+            }
         }
     }
 }

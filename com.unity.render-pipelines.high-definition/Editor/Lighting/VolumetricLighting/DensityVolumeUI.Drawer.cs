@@ -25,27 +25,27 @@ namespace UnityEditor.Rendering.HighDefinition
                 ),
             CED.space,
             CED.FoldoutGroup(Styles.k_VolumeHeader, Expandable.Volume, k_ExpandedState,
-                Drawer_VolumeContent 
+                Drawer_VolumeContent
                 ),
             CED.FoldoutGroup(
                 Styles.k_DensityMaskTextureHeader, Expandable.DensityMaskTexture, k_ExpandedState,
                 Drawer_DensityMaskTextureContent
-                )
-            );
+            )
+        );
 
         static void Drawer_ToolBar(SerializedDensityVolume serialized, Editor owner)
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             EditMode.DoInspectorToolbar(new[] { DensityVolumeEditor.k_EditShape, DensityVolumeEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
+            {
+                var bounds = new Bounds();
+                foreach (Component targetObject in owner.targets)
                 {
-                    var bounds = new Bounds();
-                    foreach (Component targetObject in owner.targets)
-                    {
-                        bounds.Encapsulate(targetObject.transform.position);
-                    }
-                    return bounds;
-                },
+                    bounds.Encapsulate(targetObject.transform.position);
+                }
+                return bounds;
+            },
                 owner);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
             EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
         }
-        
+
         static void Drawer_VolumeContent(SerializedDensityVolume serialized, Editor owner)
         {
             //keep previous data as value are stored in percent
@@ -80,12 +80,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     newSize.x < 0.00001 ? 0 : previousPositiveFade.x * previousSize.x / newSize.x,
                     newSize.y < 0.00001 ? 0 : previousPositiveFade.y * previousSize.y / newSize.y,
                     newSize.z < 0.00001 ? 0 : previousPositiveFade.z * previousSize.z / newSize.z
-                    );
+                );
                 Vector3 newNegativeFade = new Vector3(
                     newSize.x < 0.00001 ? 0 : previousNegativeFade.x * previousSize.x / newSize.x,
                     newSize.y < 0.00001 ? 0 : previousNegativeFade.y * previousSize.y / newSize.y,
                     newSize.z < 0.00001 ? 0 : previousNegativeFade.z * previousSize.z / newSize.z
-                    );
+                );
                 for (int axeIndex = 0; axeIndex < 3; ++axeIndex)
                 {
                     if (newPositiveFade[axeIndex] + newNegativeFade[axeIndex] > 1)

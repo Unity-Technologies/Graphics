@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,7 +6,21 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    class InitializeVariantProvider : VariantProvider
+    {
+        protected override sealed Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "dataType", Enum.GetValues(typeof(VFXDataParticle.DataType)).Cast<object>().ToArray() }
+                };
+            }
+        }
+    }
+
+    [VFXInfo(variantProvider = typeof(InitializeVariantProvider))]
     class VFXBasicInitialize : VFXContext
     {
         public VFXBasicInitialize() : base(VFXContextType.Init, VFXDataType.SpawnEvent, VFXDataType.None) {}
@@ -49,12 +64,11 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
             VFXSetting capacitySetting = GetSetting("capacity");
             if ((uint)capacitySetting.value > 1000000)
-                manager.RegisterError("CapacityOver1M",VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
+                manager.RegisterError("CapacityOver1M", VFXErrorType.PerfWarning, "Systems with large capacities can be slow to simulate");
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

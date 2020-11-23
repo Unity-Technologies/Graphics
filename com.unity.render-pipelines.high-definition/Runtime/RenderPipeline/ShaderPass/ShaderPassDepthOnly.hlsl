@@ -11,7 +11,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
 
-#if (SHADERPASS == SHADERPASS_DEPTH_ONLY) && defined(HAVE_RECURSIVE_RENDERING) && !defined(SCENESELECTIONPASS)
+#if (SHADERPASS == SHADERPASS_DEPTH_ONLY) && defined(HAVE_RECURSIVE_RENDERING) && !defined(SCENESELECTIONPASS) && !defined(SCENEPICKINGPASS)
     // If we have a recursive raytrace object, we will not render it.
     // As we don't want to rely on renderqueue to exclude the object from the list,
     // we cull it by settings position to NaN value.
@@ -51,7 +51,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif
 
 void Frag(  PackedVaryingsToPS packedInput
-            #if defined(SCENESELECTIONPASS)
+            #if defined(SCENESELECTIONPASS) || defined(SCENEPICKINGPASS)
             , out float4 outColor : SV_Target0
             #else
                 #ifdef WRITE_MSAA_DEPTH
@@ -72,13 +72,13 @@ void Frag(  PackedVaryingsToPS packedInput
                 #endif
             #endif
 
-            #ifdef _DEPTHOFFSET_ON
+            #if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
             , out float outputDepth : SV_Depth
             #endif
         )
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // input.positionSS is SV_Position
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
@@ -94,13 +94,15 @@ void Frag(  PackedVaryingsToPS packedInput
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-#ifdef _DEPTHOFFSET_ON
+#if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
     outputDepth = posInput.deviceDepth;
 #endif
 
 #ifdef SCENESELECTIONPASS
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
     outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+#elif defined(SCENEPICKINGPASS)
+    outColor = _SelectionID;
 #else
 
     // Depth and Alpha to coverage

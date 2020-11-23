@@ -219,6 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     DensityVolumeManager.manager.RegisterVolume(this);
             }
         }
+
 #endif
 
         private void OnDisable()

@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/HDRI Sky")]
     [SkyUniqueID((int)SkyType.HDRI)]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-HDRI-Sky" + Documentation.endURL)]
     public class HDRISky : SkySettings
     {
         /// <summary>Cubemap used to render the HDRI sky.</summary>
@@ -44,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public FloatParameter           groundLevel         = new FloatParameter(0.0f);
         /// <summary>Extent of the Backplate (if circle only the X value is considered).</summary>
         [Tooltip("Extent of the Backplate (if circle only the X value is considered).")]
-        public Vector2Parameter         scale               = new Vector2Parameter(Vector2.one*32.0f);
+        public Vector2Parameter         scale               = new Vector2Parameter(Vector2.one * 32.0f);
         /// <summary>Backplate's projection distance to varying the cubemap projection on the plate.</summary>
         [Tooltip("Backplate's projection distance to varying the cubemap projection on the plate.")]
         public MinFloatParameter        projectionDistance  = new MinFloatParameter(16.0f, 1e-7f);

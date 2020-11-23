@@ -1,7 +1,7 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
-    using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 #endif
 
 using System.Collections.Generic;
@@ -160,7 +160,17 @@ namespace UnityEngine.Rendering
             var state = m_DebugActionStates[actionIndex];
 
 // Disable all input events if we're using the new input system
-#if ENABLE_LEGACY_INPUT_MANAGER
+#if USE_INPUT_SYSTEM
+            if (state.runningAction == false)
+            {
+                if (desc.buttonAction != null)
+                {
+                    var value = desc.buttonAction.ReadValue<float>();
+                    if (!Mathf.Approximately(value, 0))
+                        state.TriggerWithButton(desc.buttonAction, value);
+                }
+            }
+#elif ENABLE_LEGACY_INPUT_MANAGER
             //bool canSampleAction = (state.actionTriggered == false) || (desc.repeatMode == DebugActionRepeatMode.Delay && state.timer > desc.repeatDelay);
             if (state.runningAction == false)
             {
@@ -213,16 +223,7 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-#elif USE_INPUT_SYSTEM
-            if (state.runningAction == false)
-            {
-                if (desc.buttonAction != null)
-                {
-                    var value = desc.buttonAction.ReadValue<float>();
-                    if (!Mathf.Approximately(value, 0))
-                        state.TriggerWithButton(desc.buttonAction, value);
-                }
-            }
+
 #endif
         }
 
@@ -377,6 +378,7 @@ namespace UnityEngine.Rendering
             inputAction = action;
             Trigger(action.bindings.Count, state);
         }
+
 #else
         public void TriggerWithButton(string[] buttons, float state)
         {
@@ -400,6 +402,7 @@ namespace UnityEngine.Rendering
             m_PressedAxis = "";
             Trigger(keys.Length, state);
         }
+
 #endif
 
         void Reset()

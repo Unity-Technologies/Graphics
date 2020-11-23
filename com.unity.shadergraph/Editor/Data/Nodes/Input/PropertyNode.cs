@@ -64,7 +64,12 @@ namespace UnityEditor.ShaderGraph
 
         void AddOutputSlot()
         {
-            switch(property.concreteShaderValueType)
+            if (property is MultiJsonInternal.UnknownShaderPropertyType uspt)
+            {
+                // keep existing slots, don't modify them
+                return;
+            }
+            switch (property.concreteShaderValueType)
             {
                 case ConcreteSlotValueType.Boolean:
                     AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
@@ -133,7 +138,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            switch(property.propertyType)
+            switch (property.propertyType)
             {
                 case PropertyType.Boolean:
                     sb.AppendLine($"$precision {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
@@ -151,7 +156,28 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.Color:
-                    sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                    switch (property.sgVersion)
+                    {
+                        case 0:
+                        case 2:
+                            sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                            break;
+                        case 1:
+                        case 3:
+                            //Exposed color properties get put into the correct space automagikally by Unity UNLESS tagged as HDR, then they just get passed in as is.
+                            //for consistency with other places in the editor, we assume HDR colors are in linear space, and correct for gamma space here
+                            if ((property as ColorShaderProperty).colorMode == ColorMode.HDR)
+                            {
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = IsGammaSpace() ? LinearToSRGB({property.referenceName}) : {property.referenceName};");
+                            }
+                            else
+                            {
+                                sb.AppendLine($"$precision4 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
+                            }
+                            break;
+                        default:
+                            throw new Exception($"Unknown Color Property Version on property {property.displayName}");
+                    }
                     break;
                 case PropertyType.Matrix2:
                     sb.AppendLine($"$precision2x2 {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
@@ -166,9 +192,9 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"SamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
                 case PropertyType.Gradient:
-                if(generationMode == GenerationMode.Preview)
+                    if (generationMode == GenerationMode.Preview)
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.referenceName)};");
-                else
+                    else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
                     break;
             }
@@ -176,7 +202,6 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            
             // TODO: I don't like this exception list being buried in PropertyNode.cs, should be something on the ShaderProperty themselves...
             if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
@@ -193,6 +218,10 @@ namespace UnityEditor.ShaderGraph
             if (property == null || !owner.properties.Any(x => x == property))
             {
                 owner.AddConcretizationError(objectId, "Property Node has no associated Blackboard property.");
+            }
+            else if (property is MultiJsonInternal.UnknownShaderPropertyType)
+            {
+                owner.AddValidationError(objectId, "Property is of unknown type, a package may be missing.", Rendering.ShaderCompilerMessageSeverity.Warning);
             }
         }
 

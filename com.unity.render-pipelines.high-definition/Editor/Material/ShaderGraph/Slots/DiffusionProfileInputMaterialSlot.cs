@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             [SerializeField]
             public DiffusionProfileSettings    diffusionProfileAsset = null;
-
         }
 
         [SerializeField]
@@ -60,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 if (m_DiffusionProfileAsset == value)
-                    return ;
+                    return;
 
                 var serializedProfile = new DiffusionProfileSerializer();
                 serializedProfile.diffusionProfileAsset = value;
@@ -77,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public DiffusionProfileInputMaterialSlot(int slotId, string displayName, string shaderOutputName,
-                                          ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+                                                 ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, 0.0f, stageCapability, hidden: hidden)
         {
         }
@@ -162,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((diffusionProfile != null) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(diffusionProfile, out string guid, out long localId))
             {
                 // diffusion profile is a ScriptableObject, so this is an artifact dependency
-                assetCollection.AddAssetDependency(new GUID(guid), AssetCollection.Flags.ArtifactDependency);
+                assetCollection.AddAssetDependency(new GUID(guid), AssetCollection.Flags.ArtifactDependency | AssetCollection.Flags.IncludeInExportPackage);
             }
         }
     }

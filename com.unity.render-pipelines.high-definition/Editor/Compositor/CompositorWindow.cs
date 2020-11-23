@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Repaint();
 
                 // [case 1266216] Ensure the game view gets repainted a few times per second even when we are not in play mode.
-                // This ensures that we will not always display the first frame, which might have some artifacts for effects that require temporal data 
+                // This ensures that we will not always display the first frame, which might have some artifacts for effects that require temporal data
                 if (!Application.isPlaying)
                 {
                     CompositionManager compositor = CompositionManager.GetInstance();
@@ -68,10 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                             compositor.Repaint();
                         }
                     }
-
                 }
             }
-                
         }
 
         void OnGUI()
@@ -108,10 +106,14 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 compositor.SetupCompositionMaterial();
                 CompositionUtils.SetDefaultCamera(compositor);
                 CompositionUtils.SetDefaultLayers(compositor);
-            }
 
-            if (compositor)
+                Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
+                Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
+            }
+            else if (compositor)
             {
+                string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
+                Undo.RecordObject(compositor, message);
                 compositor.enabled = enableCompositor;
             }
             else
@@ -125,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 {
                     if (compositor.outputCamera)
                     {
-                        if(compositor.outputCamera.name == CompositionUtils.k_DefaultCameraName)
+                        if (compositor.outputCamera.name == CompositionUtils.k_DefaultCameraName)
                         {
                             var cameraData = compositor.outputCamera.GetComponent<HDAdditionalCameraData>();
                             if (cameraData != null)
@@ -137,7 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
                         }
                     }
-                    
+
                     CoreUtils.Destroy(compositor);
                     return;
                 }
@@ -156,6 +158,11 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             if (m_Editor == null || m_Editor.target == null || m_Editor.isDirty || m_RequiresRedraw)
             {
+                if (m_Editor != null)
+                {
+                    // Remember the previously selected layer when recreating the Editor
+                    s_SelectionIndex = m_Editor.selectionIndex;
+                }
                 m_Editor = (CompositionManagerEditor)Editor.CreateEditor(compositor);
                 m_RequiresRedraw = false;
                 m_Editor.defaultSelection = s_SelectionIndex;
@@ -206,6 +213,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             s_SelectionIndex = m_Editor.selectionIndex;
 
             CompositionManager compositor = CompositionManager.GetInstance();
+            // The compositor might be null even if the CompositionManagerEditor is not (in case the user switches from a scene with a compositor to a scene without one)
+            if (compositor)
             {
                 // Some properties were changed, mark the profile as dirty so it can be saved if the user saves the scene
                 EditorUtility.SetDirty(compositor);
