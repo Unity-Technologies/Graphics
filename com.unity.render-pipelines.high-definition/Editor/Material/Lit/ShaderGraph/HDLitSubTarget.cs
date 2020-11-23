@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string pathtracingInclude => CoreIncludes.kLitPathtracing;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Lit Subshader", "");
         protected override string subShaderInclude => CoreIncludes.kLit;
+        protected override string customInspector => "Rendering.HighDefinition.LitShaderGraphGUI";
 
         // SubShader features
         protected override bool supportDistortion => true;
