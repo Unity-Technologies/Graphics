@@ -1091,7 +1091,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PreRenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle normalbuffer)
         {
-            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky || m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                 !m_SkyManager.RequiresPreRenderSky(hdCamera))
                 return;
 
@@ -1131,7 +1131,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
         {
-            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky || m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
 
             using (var builder = renderGraph.AddRenderPass<RenderSkyPassData>("Render Sky And Fog", out var passData))

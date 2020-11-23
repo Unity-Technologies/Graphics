@@ -991,6 +991,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void RenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
         {
+            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky ||
+                // If the luxmeter is enabled, we don't render the sky
+                debugSettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                return;
+
             var skyContext = hdCamera.visualSky;
             if (skyContext.IsValid())
             {

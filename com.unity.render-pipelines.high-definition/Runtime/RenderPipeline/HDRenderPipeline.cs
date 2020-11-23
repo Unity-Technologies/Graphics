@@ -4209,7 +4209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PreRenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky || m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                 !m_SkyManager.RequiresPreRenderSky(hdCamera))
                 return;
 
@@ -4223,7 +4223,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (hdCamera.clearColorMode != HDAdditionalCameraData.ClearColorMode.Sky || m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
                 return;
 
             // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
@@ -5519,7 +5519,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearHDRTarget)))
                 {
                     if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Color ||
-                        // If the matcap view or luxmeter is enabled, the sky isn't updated so we clear the background color
+                        // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
+                        m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
+                        // If the matcap view is enabled, the sky isn't updated so we clear the background color
                         m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                         // If we want the sky but the sky don't exist, still clear with background color
                         (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||

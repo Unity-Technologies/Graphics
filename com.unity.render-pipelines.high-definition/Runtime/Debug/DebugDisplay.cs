@@ -1970,8 +1970,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 GetDebugLightingMode() == DebugLightingMode.DirectSpecularLighting ||
                 GetDebugLightingMode() == DebugLightingMode.IndirectDiffuseLighting ||
                 GetDebugLightingMode() == DebugLightingMode.ReflectionLighting ||
-                GetDebugLightingMode() == DebugLightingMode.RefractionLighting ||
-                GetDebugLightingMode() == DebugLightingMode.LuxMeter
+                GetDebugLightingMode() == DebugLightingMode.RefractionLighting
             );
         }
 
