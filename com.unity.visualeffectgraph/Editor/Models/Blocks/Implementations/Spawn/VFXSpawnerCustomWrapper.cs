@@ -43,6 +43,25 @@ namespace UnityEditor.VFX
                 m_instance = CreateInstance(m_customType);
         }
 
+        public override void Sanitize(int version)
+        {
+            if (m_instance == null && !object.ReferenceEquals(m_customType, null))
+            {
+                //Handle previous name based serialization, these class move to UnityEngine.VFX
+                if (m_customType.text.StartsWith("UnityEditor.VFX.LoopAndDelay,"))
+                    m_customType = typeof(LoopAndDelay);
+                else if (m_customType.text.StartsWith("UnityEditor.VFX.SetSpawnTime,"))
+                    m_customType = typeof(SetSpawnTime);
+                else if (m_customType.text.StartsWith("UnityEditor.VFX.SpawnOverDistance,"))
+                    m_customType = typeof(SpawnOverDistance);
+                else if (m_customType.text.StartsWith("IncrementStripIndexOnStart,"))
+                    m_customType = typeof(IncrementStripIndexOnStart);
+
+                ResolveCustomCallbackInstance();
+            }
+            base.Sanitize(version);
+        }
+
         protected internal override void Invalidate(VFXModel model, InvalidationCause cause)
         {
             base.Invalidate(model, cause);
