@@ -27,7 +27,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing alpha blend state properties in Axf shader and update default stencil properties
 - Fixed normal buffer not bound to custom pass anymore.
 - Fixed issues with camera management in the graphics compositor (cases 1292548, 1292549).
-- Fixes some labels being clipped in the Render Graph Viewer
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -120,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed picking for materials with depth offset.
 - Fixed issue with exposure history being uninitialized on second frame.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
+- Fixed some labels being clipped in the Render Graph Viewer
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
