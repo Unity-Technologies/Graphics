@@ -97,6 +97,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with exposure history being uninitialized on second frame.
 - Fixed issue when changing FoV with the physical camera fold-out closed.
 - Fixes some labels being clipped in the Render Graph Viewer
+- Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
 
 ### Changed
 - Combined occlusion meshes into one to reduce draw calls and state changes with XR single-pass.
