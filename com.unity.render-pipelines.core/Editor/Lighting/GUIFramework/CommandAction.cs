@@ -4,31 +4,31 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// Command Acction
+    /// Represents an Action to process when the custom editor validates a command.
     /// </summary>
     public class CommandAction : GUIAction
     {
         private string m_CommandName;
 
         /// <summary>
-        /// The command
+        /// The Action to execute.
         /// </summary>
         public Action<IGUIState> onCommand;
 
         /// <summary>
         /// Initializes and returns an instance of CommandAction
         /// </summary>
-        /// <param name="commandName">Command name</param>
+        /// <param name="commandName">The name of the command. When the custom editor validates a command with this name, it triggers the action.</param>
         public CommandAction(string commandName)
         {
             m_CommandName = commandName;
         }
 
         /// <summary>
-        /// Get trigger condition
+        /// Checks to see if the trigger condition has been met or not.
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
-        /// <returns>true if the trigger condition is validated</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <returns>Returns `true` if the trigger condition has been met. Otherwise, returns `false`.</returns>
         protected override bool GetTriggerCondition(IGUIState guiState)
         {
             if (guiState.eventType == EventType.ValidateCommand && guiState.commandName == m_CommandName)
@@ -41,10 +41,10 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Get finish conditions
+        /// Checks to see if the finish condition has been met or not. 
         /// </summary>
-        /// <param name="guiState">The gui state</param>
-        /// <returns>true if the trigger condition is finished</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <returns>Returns `true` if the trigger condition is finished. Otherwise, returns `false`.</returns>
         protected override bool GetFinishCondition(IGUIState guiState)
         {
             if (guiState.eventType == EventType.ExecuteCommand && guiState.commandName == m_CommandName)
@@ -58,9 +58,9 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Calls the methods in its invocation list when finished
+        /// Calls the methods in its invocation list when the finish condition is met.
         /// </summary>
-        /// <param name="guiState">The gui state</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected override void OnFinish(IGUIState guiState)
         {
             if (onCommand != null)
