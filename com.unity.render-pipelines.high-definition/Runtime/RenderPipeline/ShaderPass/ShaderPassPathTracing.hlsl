@@ -20,6 +20,14 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
     return geomNormal * (below ? -bias : bias);
 }
 
+void OverrideGeometricNormal(AttributeData attributeData, inout float3 geomNormal)
+{
+    // Make sure we conserve orientation (for double-sidedness)
+    float3 newGeomNormal;
+    GetCurrentIntersectionGeometricNormal(attributeData, newGeomNormal);
+    geomNormal = dot(newGeomNormal, geomNormal) > 0.0 ? newGeomNormal : -newGeomNormal;
+}
+
 // Function responsible for surface scattering
 void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {
@@ -76,7 +84,7 @@ void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPa
 #ifndef SHADER_UNLIT
 
     // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
-    GetCurrentIntersectionGeometricNormal(attributeData, bsdfData.geomNormalWS);
+    OverrideGeometricNormal(attributeData, bsdfData.geomNormalWS);
 
     // Compute the world space position (the non-camera relative one if camera relative rendering is enabled)
     float3 shadingPosition = fragInput.positionRWS;
