@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph
 
         internal static string ToShaderString(this ConcretePrecision precision)
         {
-            switch(precision)
+            switch (precision)
             {
                 case ConcretePrecision.Single:
                     return "float";
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
 
         internal static ConcretePrecision ToConcrete(this Precision precision)
         {
-            switch(precision)
+            switch (precision)
             {
                 case Precision.Single:
                     return ConcretePrecision.Single;

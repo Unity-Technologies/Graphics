@@ -308,7 +308,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             try
             {
-                var scenes = AssetDatabase.FindAssets("t:Scene", new string[]{ "Assets" });
+                var scenes = AssetDatabase.FindAssets("t:Scene", new string[] { "Assets" });
                 var scale = 1f / Mathf.Max(1, scenes.Length);
                 for (var i = 0; i < scenes.Length; ++i)
                 {
@@ -343,7 +343,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void ResetAllMaterialAssetsKeywords(float progressScale, float progressOffset)
         {
-            var matIds = AssetDatabase.FindAssets("t:Material", new string[]{ "Assets" }); // do not include packages
+            var matIds = AssetDatabase.FindAssets("t:Material", new string[] { "Assets" }); // do not include packages
 
             bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
@@ -440,7 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 currentRenderer.GetSharedMaterials(materialArray);
                 if (materialArray == null)
                 {
-                    Debug.LogWarning("The object "+ currentRenderer.name + " has a null material array.");
+                    Debug.LogWarning("The object " + currentRenderer.name + " has a null material array.");
                     generalErrorFlag = true;
                     continue;
                 }
@@ -494,7 +494,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
                                 || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
+                                    && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
                             // aggregate the transparency info
                             materialIsOnlyTransparent &= materialIsTransparent;

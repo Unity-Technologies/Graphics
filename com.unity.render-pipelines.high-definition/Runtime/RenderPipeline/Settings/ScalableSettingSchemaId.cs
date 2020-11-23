@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Use <see cref="ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId)"/> to get a schema.
     /// </summary>
     [Serializable]
-    public struct ScalableSettingSchemaId: IEquatable<ScalableSettingSchemaId>
+    public struct ScalableSettingSchemaId : IEquatable<ScalableSettingSchemaId>
     {
         /// <summary>A scalable setting with 3 levels.</summary>
         public static readonly ScalableSettingSchemaId With3Levels = new ScalableSettingSchemaId("With3Levels");
@@ -46,6 +46,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>The string representation.</returns>
         public override string ToString() => m_Id;
-
     }
 }

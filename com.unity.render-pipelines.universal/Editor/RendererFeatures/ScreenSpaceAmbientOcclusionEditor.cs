@@ -72,15 +72,15 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_BlurType, Styles.BlurType);
 
             // We only enable this field when depth source is selected
-            GUI.enabled = m_Source.enumValueIndex == (int) ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
+            GUI.enabled = m_Source.enumValueIndex == (int)ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
             EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
             GUI.enabled = true;
 
-            m_Intensity.floatValue = EditorGUILayout.Slider(Styles.Intensity,m_Intensity.floatValue, 0f, 10f);
-            m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength,m_DirectLightingStrength.floatValue, 0f, 1f);
+            m_Intensity.floatValue = EditorGUILayout.Slider(Styles.Intensity, m_Intensity.floatValue, 0f, 10f);
+            m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength, m_DirectLightingStrength.floatValue, 0f, 1f);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
-            m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount,m_SampleCount.intValue, 1, 20);
+            m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount, m_SampleCount.intValue, 1, 20);
         }
     }
 }

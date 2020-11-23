@@ -331,7 +331,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
             float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
             result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
-        }  
+        }
     }
 }
 
@@ -870,14 +870,14 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
 {
     // We can't use SAMPLE_TEXTURE2D_ARRAY, the compiler can't unroll in that case, and the lightloop is built with unroll
     // That's why we calculate gradients or LOD earlier.
-    // TODO: The LOD code path (useFlakesMipLevel == true) is kept for a possible performance/appearance trade-off 
+    // TODO: The LOD code path (useFlakesMipLevel == true) is kept for a possible performance/appearance trade-off
     // (less VGPR for LOD) and also for (future) raytracing, it is easier to substitute an approximate single LOD value
     // than a full 2x2 Jacobian.
     float3 val = 0;
     bool useFlakesMipLevel = all(bsdfData.flakesDdxZY == (float2)0); // should be known statically!
 
 #ifdef _MAPPING_TRIPLANAR
-    val += bsdfData.flakesTriplanarWeights.x * 
+    val += bsdfData.flakesTriplanarWeights.x *
            (useFlakesMipLevel ?
              SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                         bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
@@ -886,7 +886,7 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
                                          bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
                                          sliceIndex, bsdfData.flakesDdxZY, bsdfData.flakesDdyZY).xyz );
 
-    val += bsdfData.flakesTriplanarWeights.y * 
+    val += bsdfData.flakesTriplanarWeights.y *
            (useFlakesMipLevel ?
              SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                         bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
@@ -894,7 +894,7 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
            : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                          bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
                                          sliceIndex, bsdfData.flakesDdxXZ, bsdfData.flakesDdyXZ).xyz );
-    val += bsdfData.flakesTriplanarWeights.z * 
+    val += bsdfData.flakesTriplanarWeights.z *
            (useFlakesMipLevel ?
              SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                         bsdfData.flakesUVXY + offsets[FLAKES_SHIFT_IDX_PLANAR_XY],
@@ -904,7 +904,7 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
                                          sliceIndex, bsdfData.flakesDdxXY, bsdfData.flakesDdyXY).xyz );
     val *= _CarPaint2_BTFFlakeMapScale;
 #else
-    val = _CarPaint2_BTFFlakeMapScale * 
+    val = _CarPaint2_BTFFlakeMapScale *
           (useFlakesMipLevel ?
             SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                        bsdfData.flakesUVZY + offsets[0], sliceIndex, bsdfData.flakesMipLevelZY).xyz
@@ -1160,7 +1160,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
         preLightData.iblDominantDirectionWS_BottomLobeOnTop = FindAverageBaseLobeDirOnTop(bsdfData, preLightData, reflectedLobeDirUndercoat); // much better
         // reflectedLobeDirUndercoat is now adjusted to correspond to the refracted-back on top direction returned by FindAverageBaseLobeDirOnTop()
 
-        //sanity check: If both normals are equal, then this shouldn't change the output: 
+        //sanity check: If both normals are equal, then this shouldn't change the output:
         //preLightData.iblDominantDirectionWS_BottomLobeOnTop = reflect(-viewWS_Clearcoat, bsdfData.clearcoatNormalWS);
         //reflectedLobeDirUndercoat = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
     }
@@ -1220,7 +1220,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     preLightData.singleBRDFColor = 1.0;
     float thetaH = 0; //acos(clamp(NdotH, 0, 1));
     float thetaD = acos(clamp(preLightData.NdotV_UnderCoat, 0, 1));
-    // The above is the same as 
+    // The above is the same as
     //float3 lightDir = reflect(-preLightData.viewWS_UnderCoat, bsdfData.normalWS);
     //float3 H = normalize(preLightData.viewWS_UnderCoat + lightDir);
     //float NdotH = dot(bsdfData.normalWS, H);
@@ -1295,7 +1295,7 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     float oneOverLobeCnt = rcp(CARPAINT2_LOBE_COUNT);
     preLightData.iblPerceptualRoughness = RoughnessToPerceptualRoughness(sumRoughness * oneOverLobeCnt);
     tempF0 = sumF0 * oneOverLobeCnt;
-    // todo_BeckmannToGGX    
+    // todo_BeckmannToGGX
     GetPreIntegratedFGDCookTorranceAndLambert(NdotV_UnderCoat, preLightData.iblPerceptualRoughness, tempF0 * preLightData.singleBRDFColor, specularFGD, diffuseFGD, reflectivity);
     preLightData.iblPerceptualRoughness = PerceptualRoughnessBeckmannToGGX(preLightData.iblPerceptualRoughness);
     specularFGD *= GetPreIntegratedFGDCookTorranceSampleMutiplier();
@@ -2523,22 +2523,22 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // and in case of carpaint, one for each lobe. However, if we would like to "correctly" take into account the effect, we would have
     // to calculate the effect on the bottom layer where directions are different, and then use FindAverageBaseLobeDirOnTop().
     // We decide to just apply the effect on top instead.
-    // (FindAverageBaseLobeDirOnTop is alreayd an approximation ignoring under-horizon or TIR. If we saturated to the critical angle undercoat 
+    // (FindAverageBaseLobeDirOnTop is alreayd an approximation ignoring under-horizon or TIR. If we saturated to the critical angle undercoat
     // and thus grazing when exiting on top, a tilt back for off-specular effect might in fact have no effect since the lobe could still
     // be under horizon. On the other hand, if we didn't have to saturate, a little tilt-back toward normal (from GetModifiedEnvSamplingDir)
     // should have translated into a bigger one on top because of angle range decompression.)
     envSamplingDirForBottomLayer = GetModifiedEnvSamplingDir(lightData, bsdfData.clearcoatNormalWS, preLightData.iblDominantDirectionWS_BottomLobeOnTop, preLightData.iblPerceptualRoughness, NdotV);
 
-    // Note: using _influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)    
+    // Note: using _influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, bsdfData.clearcoatNormalWS, lightData, _influenceShapeType, envSamplingDirForBottomLayer, weight);
     // ...here the normal is only used for normal fading mode of the influence volume.
 
     // Another problem with having even two fetch directions is the reflection hierarchy that only supports one weight.
-    // (TODO: We could have a vector tracking multiplied weights already applied per lobe that we update and that is 
+    // (TODO: We could have a vector tracking multiplied weights already applied per lobe that we update and that is
     // passed back by the light loop but otherwise opaque to it, with the single hierarchyWeight tracked alongside.
-    // That way no "overlighting" would be done and by returning the hierarchyWeight = min(all weights) up to now, 
+    // That way no "overlighting" would be done and by returning the hierarchyWeight = min(all weights) up to now,
     // we could potentially avoid artifacts in having eg the clearcoat reflection not available from one influence volume
-    // while the base has full weight reflection. This ends up always preventing a blend for the coat reflection when the 
+    // while the base has full weight reflection. This ends up always preventing a blend for the coat reflection when the
     // bottom reflection is full. Lit doesn't have this problem too much in practice since only GetModifiedEnvSamplingDir
     // changes the direction vs the coat.)
 
