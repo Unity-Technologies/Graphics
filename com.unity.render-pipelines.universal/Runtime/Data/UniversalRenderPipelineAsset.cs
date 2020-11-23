@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_RendererDataList[0] == null)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
-                if(k_AssetPreviousVersion != k_AssetVersion)
+                if (k_AssetPreviousVersion != k_AssetVersion)
                     return null;
 
                 Debug.LogError(
@@ -663,7 +663,7 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel
         {
-            get => PipelineDebugLevel.Disabled ;
+            get => PipelineDebugLevel.Disabled;
         }
 
         public bool useSRPBatcher
@@ -684,7 +684,7 @@ namespace UnityEngine.Rendering.Universal
             set { m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize); }
         }
 
-        
+
         /// <summary>
         /// Returns true if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
@@ -693,10 +693,10 @@ namespace UnityEngine.Rendering.Universal
             get { return m_UseFastSRGBLinearConversion; }
         }
 
-       /// <summary>
-       /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.
-       /// Only applicable when Adaptive performance package is available.
-       /// </summary>
+        /// <summary>
+        /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.
+        /// Only applicable when Adaptive performance package is available.
+        /// </summary>
         public bool useAdaptivePerformance
         {
             get { return m_UseAdaptivePerformance; }
@@ -879,7 +879,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         static void UpgradeAsset(UniversalRenderPipelineAsset asset)
         {
-            if(asset.k_AssetPreviousVersion < 5)
+            if (asset.k_AssetPreviousVersion < 5)
             {
                 if (asset.m_RendererType == RendererType.ForwardRenderer)
                 {
@@ -898,6 +898,7 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
         }
+
 #endif
 
         float ValidateShadowBias(float value)

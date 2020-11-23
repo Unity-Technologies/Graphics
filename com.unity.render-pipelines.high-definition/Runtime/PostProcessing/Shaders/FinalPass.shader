@@ -97,10 +97,10 @@ Shader "Hidden/HDRP/FinalPass"
             CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).CTYPE_SWIZZLE;
             #endif
 
-			#if !defined(ENABLE_ALPHA)
+            #if !defined(ENABLE_ALPHA)
             float outAlpha = (_KeepAlpha == 1.0) ? LOAD_TEXTURE2D_X(_AlphaTexture, positionSS).x : 1.0;
-			#endif
-			
+            #endif
+
             #if FXAA
             RunFXAA(_InputTexture, sampler_LinearClamp, outColor.rgb, positionSS, positionNDC);
             #endif

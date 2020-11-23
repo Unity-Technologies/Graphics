@@ -123,7 +123,7 @@ namespace UnityEditor.Rendering.Universal
             // Strip here only if mixed lighting is disabled
             // No need to check here if actually used by scenes as this taken care by builtin stripper
             if ((compilerData.shaderKeywordSet.IsEnabled(m_LightmapShadowMixing) ||
-                    compilerData.shaderKeywordSet.IsEnabled(m_ShadowsShadowMask)) &&
+                 compilerData.shaderKeywordSet.IsEnabled(m_ShadowsShadowMask)) &&
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
                 return true;
 
@@ -256,10 +256,10 @@ namespace UnityEditor.Rendering.Universal
                 float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
 
                 string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                        " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
-                        shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
-                        prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                        percentageTotal);
+                    " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
+                    shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
+                    prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
+                    percentageTotal);
                 Debug.Log(result);
             }
         }
@@ -282,7 +282,6 @@ namespace UnityEditor.Rendering.Universal
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
-
                 bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
                 if (removeInput)
                     compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
@@ -290,11 +289,11 @@ namespace UnityEditor.Rendering.Universal
                     ++i;
             }
 
-            if(compilerDataList is List<ShaderCompilerData> inputDataList)
+            if (compilerDataList is List<ShaderCompilerData> inputDataList)
                 inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
             else
             {
-                for(int i = compilerDataList.Count -1; i >= inputShaderVariantCount; --i)
+                for (int i = compilerDataList.Count - 1; i >= inputShaderVariantCount; --i)
                     compilerDataList.RemoveAt(i);
             }
 
@@ -321,7 +320,8 @@ namespace UnityEditor.Rendering.Universal
     {
         public static ShaderFeatures supportedFeatures
         {
-            get {
+            get
+            {
                 if (_supportedFeatures <= 0)
                 {
                     FetchAllSupportedFeatures();
@@ -337,6 +337,7 @@ namespace UnityEditor.Rendering.Universal
         {
             Profiler.enabled = false;
         }
+
 #endif
 
         public void OnPreprocessBuild(BuildReport report)
@@ -353,7 +354,7 @@ namespace UnityEditor.Rendering.Universal
         {
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
             urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
-            for(int i = 0; i < QualitySettings.names.Length; i++)
+            for (int i = 0; i < QualitySettings.names.Length; i++)
             {
                 urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
             }
@@ -390,7 +391,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             bool anyShadows = pipelineAsset.supportsMainLightShadows ||
-                              (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
+                (shaderFeatures & ShaderFeatures.AdditionalLightShadows) != 0;
             if (pipelineAsset.supportsSoftShadows && anyShadows)
                 shaderFeatures |= ShaderFeatures.SoftShadows;
 

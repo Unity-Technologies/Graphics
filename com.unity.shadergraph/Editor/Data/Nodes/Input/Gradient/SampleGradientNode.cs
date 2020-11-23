@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector4.zero;
             return
-                @"
+@"
 {
     $precision3 color = Gradient.colors[0].rgb;
     [unroll]

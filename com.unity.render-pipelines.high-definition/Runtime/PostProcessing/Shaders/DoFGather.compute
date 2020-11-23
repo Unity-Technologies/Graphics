@@ -119,7 +119,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // If there is a larger CoC that overlaps the central pixel then it will have greater depth
     float centerCoC = GetCoCRadius(posInputs.positionSS);
     float maxRadius = abs(centerCoC);
-    
+
     float dR = rcp(NumRings);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
     int numSamples = maxRadius > 0 ? NumRings : 0;
