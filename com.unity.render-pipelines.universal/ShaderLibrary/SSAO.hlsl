@@ -351,10 +351,10 @@ half4 Blur(half2 uv, half2 delta) : SV_Target
 half BlurSmall(half2 uv, half2 delta)
 {
     half4 p0 = SAMPLE_BASEMAP(uv                             );
-    half4 p1 = SAMPLE_BASEMAP(uv + float2(-delta.x, -delta.y));
-    half4 p2 = SAMPLE_BASEMAP(uv + float2( delta.x, -delta.y));
-    half4 p3 = SAMPLE_BASEMAP(uv + float2(-delta.x,  delta.y));
-    half4 p4 = SAMPLE_BASEMAP(uv + float2( delta.x,  delta.y));
+    half4 p1 = SAMPLE_BASEMAP(uv + half2(-delta.x, -delta.y));
+    half4 p2 = SAMPLE_BASEMAP(uv + half2( delta.x, -delta.y));
+    half4 p3 = SAMPLE_BASEMAP(uv + half2(-delta.x,  delta.y));
+    half4 p4 = SAMPLE_BASEMAP(uv + half2( delta.x,  delta.y));
 
     half3 n0 = GetPackedNormal(p0);
 
@@ -378,8 +378,8 @@ half4 HorizontalBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.uv;
-    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
+    half2 uv = input.uv;
+    half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
     return Blur(uv, delta);
 }
 
@@ -387,8 +387,8 @@ half4 VerticalBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.uv;
-    float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
+    half2 uv = input.uv;
+    half2 delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
     return Blur(uv, delta);
 }
 
@@ -396,8 +396,8 @@ half4 FinalBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.uv;
-    float2 delta = _SourceSize.zw * rcp(DOWNSAMPLE);
+    half2 uv = input.uv;
+    half2 delta = _SourceSize.zw * rcp(DOWNSAMPLE);
     return 1.0 - BlurSmall(uv, delta );
 }
 
@@ -454,11 +454,11 @@ half GaussianBlur( half2 uv, half2 pixelOffset)
     // Kernel width 7 x 7
     const int stepCount = 2;
 
-    const float gWeights[stepCount] ={
+    const half gWeights[stepCount] ={
        0.44908,
        0.05092
     };
-    const float gOffsets[stepCount] ={
+    const half gOffsets[stepCount] ={
        0.53805,
        2.06278
     };
@@ -480,8 +480,8 @@ half HorizontalGaussianBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.uv;
-    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 1.0, 0.0);
+    half2 uv = input.uv;
+    half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 1.0, 0.0);
 
     return GaussianBlur(uv, delta);
 }
@@ -490,8 +490,8 @@ half VerticalGaussianBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.uv;
-    float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 1.0);
+    half2 uv = input.uv;
+    half2 delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 1.0);
 
     return 1.0h - GaussianBlur(uv, delta);
 }
@@ -500,14 +500,14 @@ half HorizontalVerticalGaussianBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    float2 uv = input.uv;
+    half2 uv = input.uv;
 
     // Horizontal
-    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 1.0, 0.0);
+    half2 delta = half2(_SourceSize.z * rcp(DOWNSAMPLE) * 1.0, 0.0);
     half colH = 1.0h - GaussianBlur(uv, delta);
 
     // Vertical
-    delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 1.0);
+    delta = half2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 1.0);
     half colV = 1.0h - GaussianBlur(uv, delta);
 
     return lerp(colH, colV, 0.5);
