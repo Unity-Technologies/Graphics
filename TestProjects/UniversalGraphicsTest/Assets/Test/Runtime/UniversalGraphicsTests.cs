@@ -123,39 +123,34 @@ public class UniversalGraphicsTests
 
     public static string[] IncludeTheseTestsForDeferred = new string[]
     {
-        //Simple Lit or Unlit
         "001_SimpleCube",
         "053_UnlitShader",
 
-        //Material types
         "007_LitShaderMaps",
         "012_PBS_EnvironmentBRDF_Spheres",
         "026_Shader_PBRscene",
         "035_Shader_TerrainShaders",
 
-        //Particles
         "029_Particles",
         "037_Particles_Standard",
 
-        //Shadergraph
         "050_Shader_Graphs",
 
-        //Lighting modes
         "023_Lighting_Mixed_Indirect",
         "043_Lighting_Mixed_ShadowMask",
         "049_Lighting_Mixed_Subtractive",
 
-        //Light layers (Enable when feature is done)
-        //"018_LightLayers",
+        "010_AdditionalLightsSorted_Deferred",
+        "018_LightLayers",
 
-        //Camera stacking (014 still fails)
         "111_CameraStackMSAA",
         "123_CameraStackingClear",
-        //"014_CameraMulti_MiniMap",
+        "014_CameraMulti_MiniMap",
         "015_CameraMulti_FPSCam",
 
-        //Deferred-only test scenes
-        "010_AdditionalLightsSorted_Deferred"
+        "140_SSAO_DepthOnly_Projection",
+        "142_SSAO_DepthNormal_Projection",
+        "144_SSAO_RenderToBackBuffer"
     };
 
 
