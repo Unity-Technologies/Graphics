@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when decal projector material is none.
 - Fixed the sampling of the normal buffer in the the forward transparent pass.
 - Fixed bloom prefiltering tooltip.
+- Fixed NullReferenceException when loading multipel scene async
 
 ## [10.2.0] - 2020-10-19
 
