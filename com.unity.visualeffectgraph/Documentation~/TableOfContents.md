@@ -28,7 +28,6 @@
   * [Point Caches](PointCaches.md)
   * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
-  * [Mesh Sampling](MeshSampling.md)
 * Node Library
   * Context
     * [Event](Context-Event.md)
@@ -95,6 +94,7 @@
         * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
         * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
         * [Tile/Warp Positions](Block-TileWarpPositions.md)
+        * [Set Position (Mesh/Skinned)](Block-SetPosition(Mesh).md)
       * Size
         * [Screen Space Size](Block-ScreenSpaceSize.md)
       * Spawn
@@ -329,6 +329,7 @@
       * [Sample Texture3D](Operator-SampleTexture3D.md)
       * [Sample TextureCube](Operator-SampleTextureCube.md)
       * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
+      * [Sample Mesh/Skinned](Operator-SampleMesh.md)
     * Utility
       * [Point Cache](Operator-PointCache.md)
 * Reference
