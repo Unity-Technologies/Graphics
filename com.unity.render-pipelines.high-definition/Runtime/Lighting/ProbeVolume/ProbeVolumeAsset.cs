@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] public int Version { get => m_Version; }
         [SerializeField] public SphericalHarmonicsL1[] probes;
         [SerializeField] public ProbeBrickIndex.Brick[] bricks;
+        [SerializeField] public float[] validity;
 
 #if UNITY_EDITOR
         internal static string GetFileName(int id = -1)
