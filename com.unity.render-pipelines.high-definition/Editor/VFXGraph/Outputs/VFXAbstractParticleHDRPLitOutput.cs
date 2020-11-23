@@ -92,7 +92,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles can be affected by environment light set in the global volume profile.")]
         protected bool enableEnvLight = true;
 
-        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) { }
+        protected VFXAbstractParticleHDRPLitOutput(bool strip = false) : base(strip) {}
 
         protected virtual bool allowTextures { get { return shaderGraph == null; }}
 
@@ -213,7 +213,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if( shaderGraph == null)
+            if (shaderGraph == null)
             {
                 yield return slotExpressions.First(o => o.name == "smoothness");
 
@@ -230,12 +230,12 @@ namespace UnityEditor.VFX
 
                     case MaterialType.Translucent:
                     case MaterialType.SimpleLitTranslucent:
-                        {
-                            yield return slotExpressions.First(o => o.name == "thickness");
-                            uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
-                            yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
-                            break;
-                        }
+                    {
+                        yield return slotExpressions.First(o => o.name == "thickness");
+                        uint diffusionProfileHash = (diffusionProfileAsset?.profile != null) ? diffusionProfileAsset.profile.hash : 0;
+                        yield return new VFXNamedExpression(VFXValue.Constant(diffusionProfileHash), "diffusionProfileHash");
+                        break;
+                    }
 
                     default: break;
                 }

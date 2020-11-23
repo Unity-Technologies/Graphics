@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.Universal
 
             public readonly GUIContent BakingWarning = EditorGUIUtility.TrTextContent("Light mode is currently overridden to Realtime mode. Enable Baked Global Illumination to use Mixed or Baked light modes.");
             public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TrTextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
+            public readonly GUIContent SunSourceWarning = EditorGUIUtility.TrTextContent("This light is set as the current Sun Source, which requires a directional light. Go to the Lighting Window's Environment settings to edit the Sun Source.");
 
             public readonly GUIContent ShadowsNotSupportedWarning = EditorGUIUtility.TrTextContent("Realtime shadows for point lights are not supported. Either disable shadows or set the light mode to Baked.");
             public static readonly GUIContent ShadowRealtimeSettings = EditorGUIUtility.TrTextContent("Realtime Shadows", "Settings for realtime direct shadows.");
@@ -91,7 +92,7 @@ namespace UnityEditor.Rendering.Universal
 
         void init(UniversalAdditionalLightData additionalLightData)
         {
-            if(additionalLightData == null)
+            if (additionalLightData == null)
                 return;
             m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
@@ -110,6 +111,12 @@ namespace UnityEditor.Rendering.Universal
             UpdateShowOptions(false);
 
             settings.DrawLightType();
+
+            Light light = target as Light;
+            if (LightType.Directional != light.type && light == RenderSettings.sun)
+            {
+                EditorGUILayout.HelpBox(s_Styles.SunSourceWarning.text, MessageType.Warning);
+            }
 
             EditorGUILayout.Space();
 
@@ -141,7 +148,6 @@ namespace UnityEditor.Rendering.Universal
             using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimAreaOptions.faded))
                 if (group.visible)
                 {
-                    Light light = target as Light;
                     if (light.type != LightType.Disc)
                     {
                         settings.DrawLightmapping();
@@ -161,7 +167,7 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.Space();
 
-            if (SceneView.lastActiveSceneView != null )
+            if (SceneView.lastActiveSceneView != null)
             {
 #if UNITY_2019_1_OR_NEWER
                 var sceneLighting = SceneView.lastActiveSceneView.sceneLighting;
@@ -232,7 +238,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             Rect controlRectAdditionalData = EditorGUILayout.GetControlRect(true);
-            if(m_AdditionalLightDataSO != null)
+            if (m_AdditionalLightDataSO != null)
                 EditorGUI.BeginProperty(controlRectAdditionalData, Styles.shadowBias, m_UseAdditionalDataProp);
             EditorGUI.BeginChangeCheck();
 
@@ -241,7 +247,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 hasChanged = true;
             }
-            if(m_AdditionalLightDataSO != null)
+            if (m_AdditionalLightDataSO != null)
                 EditorGUI.EndProperty();
 
             if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
@@ -261,7 +267,7 @@ namespace UnityEditor.Rendering.Universal
                     lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
                     m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
 
-                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+                    var asset = UniversalRenderPipeline.asset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
                     settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
 
@@ -278,7 +284,7 @@ namespace UnityEditor.Rendering.Universal
             // Shadows drop-down. Area lights can only be baked and always have shadows.
             float show = 1.0f - m_AnimAreaOptions.faded;
 
-			settings.DrawShadowsType();
+            settings.DrawShadowsType();
 
             EditorGUI.indentLevel += 1;
             show *= m_AnimShadowOptions.faded;
@@ -365,7 +371,7 @@ namespace UnityEditor.Rendering.Universal
                         CoreLightEditorUtilities.DrawDirectionalLightGizmo(light);
                     }
                     break;
-                
+
                 default:
                     base.OnSceneGUI();
                     break;

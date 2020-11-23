@@ -5,13 +5,13 @@ Shader "Hidden/UnlitTransparentColored" {
 
     SubShader {
         Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
-        
+
         ZWrite Off
         Lighting Off
         Fog { Mode Off }
-		Cull Off
+        Cull Off
 
-        Blend SrcAlpha OneMinusSrcAlpha 
+        Blend SrcAlpha OneMinusSrcAlpha
 
         Pass {
             Color [_Color]

@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/Physically Based Sky")]
     [SkyUniqueID((int)SkyType.PhysicallyBased)]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Physically-Based-Sky" + Documentation.endURL)]
     public partial class PhysicallyBasedSky : SkySettings
     {
         /* We use the measurements from Earth as the defaults. */
@@ -293,8 +294,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             return new Vector3(airExt.x * airAlb.x,
-                               airExt.y * airAlb.y,
-                               airExt.z * airAlb.z);
+                airExt.y * airAlb.y,
+                airExt.z * airAlb.z);
         }
 
         internal float GetAerosolScaleHeight()
@@ -331,8 +332,8 @@ namespace UnityEngine.Rendering.HighDefinition
             float aerExt = GetAerosolExtinctionCoefficient();
 
             return new Vector3(aerExt * aerosolTint.value.r,
-                               aerExt * aerosolTint.value.g,
-                               aerExt * aerosolTint.value.b);
+                aerExt * aerosolTint.value.g,
+                aerExt * aerosolTint.value.b);
         }
 
         PhysicallyBasedSky()

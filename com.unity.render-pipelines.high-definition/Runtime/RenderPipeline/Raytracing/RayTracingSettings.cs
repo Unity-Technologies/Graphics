@@ -43,4 +43,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

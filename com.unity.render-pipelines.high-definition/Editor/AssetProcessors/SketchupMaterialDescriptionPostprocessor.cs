@@ -41,23 +41,23 @@ namespace UnityEditor.Rendering.HighDefinition
             TexturePropertyDescription textureProperty;
 
             material.SetShaderPassEnabled("DistortionVectors", false);
-            material.SetShaderPassEnabled("TransparentDepthPrepass",false);
+            material.SetShaderPassEnabled("TransparentDepthPrepass", false);
             material.SetShaderPassEnabled("TransparentDepthPostpass", false);
             material.SetShaderPassEnabled("TransparentBackface", false);
             material.SetShaderPassEnabled("MOTIONVECTORS", false);
 
-			if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture!=null)
+            if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture != null)
             {
                 SetMaterialTextureProperty("_BaseColorMap", material, textureProperty);
                 SetMaterialTextureProperty("_MainTex", material, textureProperty);
-				var color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+                var color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
                 material.SetColor("_BaseColor", color);
                 material.SetColor("_Color", color);
             }
-			else if (description.TryGetProperty("DiffuseColor", out vectorProperty))
+            else if (description.TryGetProperty("DiffuseColor", out vectorProperty))
             {
-				Color diffuseColor = vectorProperty;
-				diffuseColor = PlayerSettings.colorSpace == ColorSpace.Linear ? diffuseColor.gamma : diffuseColor;
+                Color diffuseColor = vectorProperty;
+                diffuseColor = PlayerSettings.colorSpace == ColorSpace.Linear ? diffuseColor.gamma : diffuseColor;
                 material.SetColor("_BaseColor", diffuseColor);
                 material.SetColor("_Color", diffuseColor);
             }
@@ -67,9 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                 material.SetInt("_ZWrite", 0);
                 material.SetFloat("_BlendMode", (float)BlendMode.Alpha);
+                material.SetFloat("_EnableBlendModePreserveSpecularLighting", 1.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                material.EnableKeyword("_BLENDMODE_PRESERVE_SPECULAR_LIGHTING");
                 material.EnableKeyword("_ENABLE_FOG_ON_TRANSPARENT");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             }
@@ -90,4 +90,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-

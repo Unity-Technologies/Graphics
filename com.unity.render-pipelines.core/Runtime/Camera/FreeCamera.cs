@@ -1,6 +1,6 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem;
+using UnityEngine.InputSystem;
 #endif
 
 using System.Collections.Generic;
@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         public float m_Turbo = 10.0f;
 
+#if !USE_INPUT_SYSTEM
         private static string kMouseX = "Mouse X";
         private static string kMouseY = "Mouse Y";
         private static string kRightStickX = "Controller Right Stick X";
@@ -44,6 +45,7 @@ namespace UnityEngine.Rendering
 
         private static string kYAxis = "YAxis";
         private static string kSpeedAxis = "Speed Axis";
+#endif
 
 #if USE_INPUT_SYSTEM
         InputAction lookAction;
