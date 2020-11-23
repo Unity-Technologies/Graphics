@@ -138,6 +138,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
 - Range handles for decal projector angle fading.
 - Smoother angle fading for decal projector.
+- Now the screen space shadow is only used if the analytic value is valid.
 
 ## [10.1.0] - 2020-10-12
 
