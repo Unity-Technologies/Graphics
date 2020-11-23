@@ -56,7 +56,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private static class Styles
         {
             public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Adjusts the inner / outer angles of this light to change the angle ranges of this Spot Light’s beam.");
-            public static readonly GUIContent SpotAngle = EditorGUIUtility.TrTextContent("Spot Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
 
             public static Texture lightCapTopRight = Resources.Load<Texture>("LightCapTopRight");
             public static Texture lightCapTopLeft = Resources.Load<Texture>("LightCapTopLeft");
@@ -84,7 +83,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalFalloffIntensity = EditorGUIUtility.TrTextContent("Falloff Strength", "Adjusts the falloff curve to control the softness of this light’s edges. The higher the falloff strength, the softer the edges of this light.");
             public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Adjusts this light’s color.");
             public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Adjusts this light’s color intensity by using multiply to brighten the Sprite beyond its original colour.");
-            public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
             public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Intensity", "Adjusts the intensity of this additional light volume that's additively blended on top of this light. To enable the Volumetric Shadow Strength, increase this Intensity to be greater than 0.");
             public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Adjusts how this light blends with the Sprites on the Target Sorting Layers. Different Blend Styles can be customized in the 2D Renderer Data Asset.");
             public static GUIContent generalLightOverlapOperation = EditorGUIUtility.TrTextContent("Overlap Operation", "Determines how this light blends with the other lights either through additive or alpha values blending.");
@@ -96,16 +94,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent generalNormalMapZDistance = EditorGUIUtility.TrTextContent("Normal Map Distance", "Adjusts the z-axis distance of this light and the lit Sprite(s). Do note that this distance does not Transform the position of this light in the Scene.");
             public static GUIContent generalNormalMapLightQuality = EditorGUIUtility.TrTextContent("Normal Map Quality", "Determines the accuracy of the lighting calculations of the normal map rendering of the Sprites’ normal map Textures. To optimize for performance, select Fast.");
 
-            public static GUIContent pointLightInnerAngle =  EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light");
-            public static GUIContent pointLightOuterAngle = EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light");
             public static GUIContent pointLightRadius = EditorGUIUtility.TrTextContent("Radius", "Adjusts the inner / outer radius of this light to change the size of this light.");
             public static GUIContent pointLightInner = EditorGUIUtility.TrTextContent("Inner", "Specify the inner radius of the light");
             public static GUIContent pointLightOuter = EditorGUIUtility.TrTextContent("Outer", "Specify the outer radius of the light");
             public static GUIContent pointLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite (deprecated)");
 
             public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Assign a Sprite which acts as a mask to create a light cookie.");
-            public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
-            public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
 
             public static GUIContent deprecatedParametricLightWarningSingle = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Light to a Freeform Light to enjoy similar light functionality.", MessageType.Warning);
             public static GUIContent deprecatedParametricLightWarningMulti = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
