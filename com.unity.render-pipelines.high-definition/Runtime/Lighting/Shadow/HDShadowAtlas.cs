@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // if false we filter only for dynamic)
         protected bool m_IsACacheForShadows;
 
-        public HDShadowAtlas() { }
+        public HDShadowAtlas() {}
 
         public virtual void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
@@ -181,12 +181,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderShadows(  in RenderShadowsParameters  parameters,
-                                    RTHandle                    atlasRenderTexture,
-                                    ShadowDrawingSettings       shadowDrawSettings,
-                                    ScriptableRenderContext     renderContext,
-                                    bool                        renderingOnAShadowCache,
-                                    CommandBuffer               cmd)
+        static void RenderShadows(in RenderShadowsParameters  parameters,
+            RTHandle                    atlasRenderTexture,
+            ShadowDrawingSettings       shadowDrawSettings,
+            ScriptableRenderContext     renderContext,
+            bool                        renderingOnAShadowCache,
+            CommandBuffer               cmd)
         {
             cmd.SetRenderTarget(atlasRenderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
 
@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var shadowRequest in parameters.shadowRequests)
             {
                 bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && renderingOnAShadowCache :
-                                                                                                            shadowRequest.shouldUseCachedShadowData;
+                    shadowRequest.shouldUseCachedShadowData;
 
                 if (shouldSkipRequest)
                     continue;
@@ -248,7 +248,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             cmd.SetGlobalFloat(HDShaderIDs._ZClip, 1.0f);   // Re-enable zclip globally
             cmd.SetGlobalDepthBias(0.0f, 0.0f);             // Reset depth bias.
-
         }
 
         public bool HasBlurredEVSM()
@@ -258,16 +257,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // This is a 9 tap filter, a gaussian with std. dev of 3. This standard deviation with this amount of taps probably cuts
         // the tail of the gaussian a bit too much, and it is a very fat curve, but it seems to work fine for our use case.
-        static readonly Vector4[] evsmBlurWeights = {
+        static readonly Vector4[] evsmBlurWeights =
+        {
             new Vector4(0.1531703f, 0.1448929f, 0.1226492f, 0.0929025f),
             new Vector4(0.06297021f, 0.0f, 0.0f, 0.0f),
         };
 
-        unsafe static void EVSMBlurMoments( RenderShadowsParameters parameters,
-                                            RTHandle atlasRenderTexture,
-                                            RTHandle[] momentAtlasRenderTextures,
-                                            bool blurOnACache,
-                                            CommandBuffer cmd)
+        unsafe static void EVSMBlurMoments(RenderShadowsParameters parameters,
+            RTHandle atlasRenderTexture,
+            RTHandle[] momentAtlasRenderTextures,
+            bool blurOnACache,
+            CommandBuffer cmd)
         {
             ComputeShader shadowBlurMomentsCS = parameters.evsmShadowBlurMomentsCS;
 
@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var shadowRequest in parameters.shadowRequests)
                 {
                     bool shouldSkipRequest = shadowRequest.shadowMapType != ShadowMapType.CascadedDirectional ? !shadowRequest.shouldRenderCachedComponent && blurOnACache :
-                                                                                            shadowRequest.shouldUseCachedShadowData;
+                        shadowRequest.shouldUseCachedShadowData;
 
                     if (shouldSkipRequest)
                         continue;
@@ -356,12 +356,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void IMBlurMoment(   RenderShadowsParameters parameters,
-                                    RTHandle atlas,
-                                    RTHandle atlasMoment,
-                                    RTHandle intermediateSummedAreaTexture,
-                                    RTHandle summedAreaTexture,
-                                    CommandBuffer cmd)
+        static void IMBlurMoment(RenderShadowsParameters parameters,
+            RTHandle atlas,
+            RTHandle atlasMoment,
+            RTHandle intermediateSummedAreaTexture,
+            RTHandle summedAreaTexture,
+            CommandBuffer cmd)
         {
             // If the target kernel is not available
             ComputeShader momentCS = parameters.imShadowBlurMomentsCS;
@@ -444,7 +444,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Atlas != null)
                 RTHandles.Release(m_Atlas);
 
-            if(m_AtlasMoments != null && m_AtlasMoments.Length > 0)
+            if (m_AtlasMoments != null && m_AtlasMoments.Length > 0)
             {
                 for (int i = 0; i < m_AtlasMoments.Length; ++i)
                 {
@@ -460,7 +460,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 RTHandles.Release(m_IntermediateSummedAreaTexture);
                 m_IntermediateSummedAreaTexture = null;
-
             }
 
             if (m_SummedAreaTexture != null)
@@ -471,4 +470,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

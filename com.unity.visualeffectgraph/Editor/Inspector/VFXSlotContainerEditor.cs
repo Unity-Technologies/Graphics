@@ -51,10 +51,10 @@ class VFXSlotContainerEditor : Editor
 
         for (int i = 1; i < targets.Length; ++i)
         {
-            IEnumerable<VFXSetting> otherSettingFields = (targets[i] as VFXModel).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector).ToArray() ;
+            IEnumerable<VFXSetting> otherSettingFields = (targets[i] as VFXModel).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector).ToArray();
 
             var excluded = new HashSet<NameNType>(settingFields.Select(t => new NameNType() { name = t.name, type = t.field.FieldType }).Except(otherSettingFields.Select(t => new NameNType() { name = t.name, type = t.field.FieldType })));
-            settingFields.RemoveAll(t => excluded.Any( u=> u.name == t.name));
+            settingFields.RemoveAll(t => excluded.Any(u => u.name == t.name));
         }
 
         SerializedProperty modifiedSetting = null;
@@ -100,10 +100,10 @@ class VFXSlotContainerEditor : Editor
 
                 HeaderAttribute attr = fieldInfo.GetCustomAttributes<HeaderAttribute>().FirstOrDefault();
 
-                if( attr != null)
-                    GUILayout.Label( attr.header, EditorStyles.boldLabel);
+                if (attr != null)
+                    GUILayout.Label(attr.header, EditorStyles.boldLabel);
 
-                EditorGUILayout.IntPopup(prop.Value,enumNames,enumValues );
+                EditorGUILayout.IntPopup(prop.Value, enumNames, enumValues);
             }
             else
             {
@@ -117,7 +117,7 @@ class VFXSlotContainerEditor : Editor
                     }
                 }
             }
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 modifiedSetting = prop.Value;
             }

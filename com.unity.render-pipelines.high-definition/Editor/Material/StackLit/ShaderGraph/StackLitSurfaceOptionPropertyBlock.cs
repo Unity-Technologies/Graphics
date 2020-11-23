@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // SpecularOcclusion from input AO (baked or data-based SO)
             EnumField specularOcclusionFromInputAOField;
-            if(stackLitData.devMode)
+            if (stackLitData.devMode)
             {
                 specularOcclusionFromInputAOField = new EnumField(StackLitData.SpecularOcclusionBaseMode.DirectFromAO);
                 specularOcclusionFromInputAOField.value = stackLitData.dataBasedSpecularOcclusionBaseMode;
@@ -93,10 +93,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty("Specular Occlusion Bent Cone Fixup", () => stackLitData.specularOcclusionConeFixupMethod != StackLitData.SpecularOcclusionConeFixupMethod.Off, (newValue) =>
                 {
                     stackLitData.specularOcclusionConeFixupMethod = newValue ? StackLitData.SpecularOcclusionConeFixupMethod.BoostAndTilt
-                                                        : StackLitData.SpecularOcclusionConeFixupMethod.Off;
+                        : StackLitData.SpecularOcclusionConeFixupMethod.Off;
                 }, 0);
             }
-            
+
             // Misc Cont.
             // Advanced Options
             context.AddLabel("Advanced Options", 0);

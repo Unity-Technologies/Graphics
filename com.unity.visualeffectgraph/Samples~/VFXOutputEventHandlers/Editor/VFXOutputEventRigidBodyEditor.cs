@@ -48,7 +48,7 @@ namespace UnityEditor.VFX.Utility
             if (EditorGUI.EndChangeCheck())
             {
                 var newRigidBody = m_RigidBody.objectReferenceValue;
-                if (    newRigidBody != null
+                if (newRigidBody != null
                     &&  PrefabUtility.GetPrefabAssetType(newRigidBody) != PrefabAssetType.NotAPrefab
                     &&  PrefabUtility.GetPrefabInstanceStatus(newRigidBody) != PrefabInstanceStatus.Connected)
                     m_RigidBody.objectReferenceValue = null;
