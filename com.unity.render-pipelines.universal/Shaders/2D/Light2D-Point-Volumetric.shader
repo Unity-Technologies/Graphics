@@ -29,13 +29,13 @@ Shader "Hidden/Light2d-Point-Volumetric"
             {
                 float4  positionCS      : SV_POSITION;
                 half2   uv              : TEXCOORD0;
-                half2	screenUV        : TEXCOORD1;
-                half2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
+                half2   screenUV        : TEXCOORD1;
+                half2   lookupUV        : TEXCOORD2;  // This is used for light relative direction
 
 #if LIGHT_QUALITY_FAST
-                half4	lightDirection	: TEXCOORD4;
+                half4   lightDirection  : TEXCOORD4;
 #else
-                half4	positionWS : TEXCOORD4;
+                half4   positionWS : TEXCOORD4;
 #endif
                 SHADOW_COORDS(TEXCOORD5)
             };
@@ -59,9 +59,9 @@ Shader "Hidden/Light2d-Point-Volumetric"
             float4x4 _LightInvMatrix;
             float4x4 _LightNoRotInvMatrix;
             half    _LightZDistance;
-            half    _OuterAngle;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half    _InnerAngleMult;			// 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
-            half    _InnerRadiusMult;			// 1-0 where 1 is the value at the center and 0 is the value at the outer radius
+            half    _OuterAngle;            // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _InnerAngleMult;            // 1-0 where 1 is the value at 0 degrees and 1 is the value at 180 degrees
+            half    _InnerRadiusMult;           // 1-0 where 1 is the value at the center and 0 is the value at the outer radius
             half    _InverseHDREmulationScale;
             half    _IsFullSpotlight;
 

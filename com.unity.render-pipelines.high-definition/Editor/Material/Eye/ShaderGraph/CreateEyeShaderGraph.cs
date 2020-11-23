@@ -11,16 +11,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
             target.TrySetActiveSubTarget(typeof(EyeSubTarget));
 
-            var blockDescriptors = new [] 
-            { 
+            var blockDescriptors = new[]
+            {
                 BlockFields.VertexDescription.Position,
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
                 BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.NormalTS, 
-                HDBlockFields.SurfaceDescription.IrisNormalTS, 
+                BlockFields.SurfaceDescription.NormalTS,
+                HDBlockFields.SurfaceDescription.IrisNormalTS,
                 HDBlockFields.SurfaceDescription.BentNormal,
-                BlockFields.SurfaceDescription.Smoothness, 
+                BlockFields.SurfaceDescription.Smoothness,
                 HDBlockFields.SurfaceDescription.IOR,
                 BlockFields.SurfaceDescription.Occlusion,
                 HDBlockFields.SurfaceDescription.Mask,
@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
             };
 
-            GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
+            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
         }
     }
 }

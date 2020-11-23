@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
 
-      class ResizableElement : VisualElement
+    class ResizableElement : VisualElement
     {
         Dictionary<Resizer, VisualElement> m_Resizers = new Dictionary<Resizer, VisualElement>();
 
@@ -610,7 +610,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             Rect rect = m_Title.layout;
             m_Title.parent.ChangeCoordinatesTo(m_TitleField.parent, rect);
 
-            m_TitleField.style.left = rect.xMin -1;
+            m_TitleField.style.left = rect.xMin - 1;
             m_TitleField.style.right = rect.yMin + m_Title.resolvedStyle.marginTop;
             m_TitleField.style.width = rect.width - m_Title.resolvedStyle.marginLeft - m_Title.resolvedStyle.marginRight;
             m_TitleField.style.height = rect.height - m_Title.resolvedStyle.marginTop - m_Title.resolvedStyle.marginBottom;
@@ -673,5 +673,5 @@ namespace UnityEditor.ShaderGraph.Drawing
         protected TextField m_TitleField;
         Label m_Contents;
         protected TextField m_ContentsField;
-	}
+    }
 }

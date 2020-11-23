@@ -87,8 +87,9 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="props">The list of properties the material has.</param>
         protected abstract void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props);
 
-        readonly static string[] floatPropertiesToSynchronize = {
-            kUseSplitLighting, 
+        readonly static string[] floatPropertiesToSynchronize =
+        {
+            kUseSplitLighting,
         };
 
         /// <summary>

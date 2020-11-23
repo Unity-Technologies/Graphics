@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -16,13 +16,13 @@ namespace UnityEditor.ShaderGraph
                 case ShaderValueType.Float2:
                     return $"{precisionToken}2";
                 case ShaderValueType.Float3:
-                    return $"{precisionToken}3";        
+                    return $"{precisionToken}3";
                 case ShaderValueType.Float4:
                     return $"{precisionToken}4";
                 case ShaderValueType.Matrix2:
                     return $"{precisionToken}2x2";
                 case ShaderValueType.Matrix3:
-                    return $"{precisionToken}3x3";             
+                    return $"{precisionToken}3x3";
                 case ShaderValueType.Matrix4:
                     return $"{precisionToken}4x4";
                 case ShaderValueType.Integer:
@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph
                 case ShaderValueType.Float2:
                     return 2;
                 case ShaderValueType.Float3:
-                    return 3;        
+                    return 3;
                 case ShaderValueType.Float4:
                     return 4;
                 default:

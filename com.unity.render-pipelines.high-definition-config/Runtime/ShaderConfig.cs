@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Also uncomment in the HDRP package all ".../Experimental/Probe Volume" menu
 
         /// <summary>Whether probe volumes are enabled.</summary>
-        EnableProbeVolumes = 0, 
+        EnableProbeVolumes = 0,
         /// <summary>Probe volume supports additive blending.</summary>
         ProbeVolumesAdditiveBlending = 1,
         /// <summary>The probe volume filtering mode.</summary>

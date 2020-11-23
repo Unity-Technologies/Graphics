@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public override bool AllowCustom() => false;
 
         public override bool ClearOnDirty() => true;
-        
+
         protected override bool GetClassFromNode(AbstractMaterialNode node, out string ussClass)
         {
             ussClass = node.concretePrecision.ToString();

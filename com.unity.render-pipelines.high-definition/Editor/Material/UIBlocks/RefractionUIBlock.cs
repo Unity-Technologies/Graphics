@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     default:
                         break;
                 }
-            
+
                 if (refractionModel.floatValue != 0 && blendMode != null)
                 {
                     if (blendMode.floatValue != (int)BlendMode.Alpha)
