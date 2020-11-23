@@ -59,7 +59,12 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 #endif
 
 #if defined(_FOG_FRAGMENT)
-    inputData.fogCoord = ComputeFogIntensity(ComputeFogFactor(input.clipPos.z));
+    float clipZ = input.clipPos.z;
+    #if !UNITY_REVERSED_Z
+    clipZ = lerp(UNITY_NEAR_CLIP_VALUE, 1, clipZ);    // OpenGL NDC, -1 < z < 1
+    #endif
+    clipZ *= input.clipPos.w;
+    inputData.fogCoord = ComputeFogFactor(clipZ);
 #else
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
 #endif
