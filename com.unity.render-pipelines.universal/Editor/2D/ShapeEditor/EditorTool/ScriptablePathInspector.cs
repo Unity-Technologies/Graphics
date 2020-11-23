@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Experimental.Rendering.Universal;
 
 namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 {
@@ -163,12 +164,19 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             var first = true;
             position = Vector3.zero;
-
+            var activeObject = Selection.activeObject as GameObject;
+            
+            if (Selection.count > 1 || !activeObject)
+                return true;
+            var lightObject = activeObject.GetComponent<Light2D>();
+            
             foreach (var path in paths)
             {
                 var selection = path.selection;
                 var matrix = path.localToWorldMatrix;
-
+                if ( lightObject != path.owner)
+                    continue;
+                
                 path.localToWorldMatrix = Matrix4x4.identity;
 
                 foreach (var index in selection.elements)
