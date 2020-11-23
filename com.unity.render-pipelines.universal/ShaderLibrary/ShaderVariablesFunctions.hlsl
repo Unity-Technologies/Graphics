@@ -224,7 +224,7 @@ real ComputeFogIntensity(real fogFactor)
 #define _FOG_FRAGMENT 1
 real InitializeInputDataFog(float4 positionWS, real vertFogFactor)
 {
-    half fogFactor = 0.0;
+    real fogFactor = 0.0;
 #if defined(_FOG_FRAGMENT)
     #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
         // Compiler eliminates unused math --> matrix.column_z * vec
