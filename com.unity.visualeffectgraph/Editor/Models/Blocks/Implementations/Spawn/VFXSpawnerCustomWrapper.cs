@@ -106,6 +106,11 @@ namespace UnityEditor.VFX
             {
                 manager.RegisterError("CustomSpawnerIDNotFound", VFXErrorType.Error, "Can't found assembly : " + m_customType.text);
             }
+
+            if (customBehavior == null && m_customType != null)
+            {
+                manager.RegisterError("CustomSpawnerIDInvalid", VFXErrorType.Error, "Invalid scriptable object : " + (Type)m_customType);
+            }
         }
 
         public override sealed string name
