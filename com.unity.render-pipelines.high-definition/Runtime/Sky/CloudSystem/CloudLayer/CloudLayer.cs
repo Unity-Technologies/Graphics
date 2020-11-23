@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -27,6 +28,58 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Resolution of the cloud texture.
+    /// </summary>
+    public enum CloudResolution
+    {
+        /// <summary>Size 256</summary>
+        CloudResolution256 = 256,
+        /// <summary>Size 512</summary>
+        CloudResolution512 = 512,
+        /// <summary>Size 1024</summary>
+        CloudResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
+        CloudResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
+        CloudResolution4096 = 4096,
+        /// <summary>Size 8192</summary>
+        CloudResolution8192 = 8192,
+    }
+
+    /// <summary>
+    /// Resolution of the cloud shadow.
+    /// </summary>
+    public enum CloudShadowsResolution
+    {
+        /// <summary>Size 32</summary>
+        CloudShadowsResolution32 = 32,
+        /// <summary>Size 64</summary>
+        CloudShadowsResolution64 = 64,
+        /// <summary>Size 128</summary>
+        CloudShadowsResolution128 = 128,
+        /// <summary>Size 256</summary>
+        CloudShadowsResolution256 = 256,
+        /// <summary>Size 512</summary>
+        CloudShadowsResolution512 = 512,
+    }
+
+
+    /// <summary>
+    /// Enum volume parameter.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class CloudLayerEnumParameter<T> : VolumeParameter<T>
+    {
+        /// <summary>
+        /// Enum volume parameter constructor.
+        /// </summary>
+        /// <param name="value">Enum parameter.</param>
+        /// <param name="overrideState">Initial override state.</param>
+        public CloudLayerEnumParameter(T value, bool overrideState = false)
+            : base(value, overrideState) {}
+    }
+
+    /// <summary>
     /// Cloud Layer Volume Component.
     /// This component setups the Cloud Layer for rendering.
     /// </summary>
@@ -48,6 +101,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter upperHemisphereOnly = new BoolParameter(true);
         /// <summary>Choose the number of cloud layers.</summary>
         public VolumeParameter<CloudMapMode> layers = new VolumeParameter<CloudMapMode>();
+        /// <summary>Choose the resolution of the baked cloud texture.</summary>
+        [Tooltip("Specifies the resolution of the texture HDRP uses to represent the clouds.")]
+        public CloudLayerEnumParameter<CloudResolution> resolution = new CloudLayerEnumParameter<CloudResolution>(CloudResolution.CloudResolution1024);
 
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
@@ -56,6 +112,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Controls the tiling of the cloud shadows.</summary>
         [Tooltip("Controls the tiling of the cloud shadows.")]
         public MinFloatParameter shadowsTiling = new MinFloatParameter(500.0f, 0.0f);
+        /// <summary>Choose the resolution of the texturefor the cloud shadows.</summary>
+        [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
+        public CloudLayerEnumParameter<CloudShadowsResolution> shadowsResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.CloudShadowsResolution128);
 
 
         /// <summary>
@@ -142,7 +201,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return (Opacities, parameters);
             }
 
-            internal int GetBakingHashCode(Light sunLight)
+            internal int GetBakingHashCode()
             {
                 int hash = 0;
 
@@ -162,8 +221,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         hash = hash * 23 + lighting.GetHashCode();
                         hash = hash * 23 + steps.GetHashCode();
                         hash = hash * 23 + thickness.GetHashCode();
-
-                        hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
                     }
 
 #if UNITY_EDITOR
@@ -187,15 +244,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal int GetBakingHashCode(Light sunLight)
         {
-            int hash = 17;//base.GetHashCode();
+            int hash = 17;
 
             unchecked
             {
-                //hash = hash * 23 + upperHemisphereOnly.GetHashCode();
+                hash = hash * 23 + upperHemisphereOnly.GetHashCode();
                 hash = hash * 23 + layers.GetHashCode();
-                hash = hash * 23 + layerA.GetBakingHashCode(sunLight);
+                hash = hash * 23 + resolution.GetHashCode();
+                hash = hash * 23 + layerA.GetBakingHashCode();
                 if (layers.value == CloudMapMode.Double)
-                    hash = hash * 23 + layerB.GetBakingHashCode(sunLight);
+                    hash = hash * 23 + layerB.GetBakingHashCode();
+
+                if (CastShadows)
+                {
+                    hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
+                    hash = hash * 23 + shadowsResolution.GetHashCode();
+                }
             }
 
             return hash;

@@ -174,7 +174,6 @@ class NewCloudRenderer : CloudRenderer
         }
     }
 }
-
 ```
 ### Important note:
 If your cloud renderer has to manage heavy data (like precomputed textures or similar things) then particular care has to be taken. Indeed, one instance of the renderer will exist per camera so by default if this data is a member of the renderer, it will also be duplicated in memory.
@@ -281,7 +280,6 @@ Shader "Hidden/HDRP/Sky/NewCloud"
     }
     Fallback Off
 }
-
 ```
 **Note**: The NewCloud example uses two passes, one that uses a Depth Test for rendering the clouds in the background (so that geometry occludes it correctly), and the other that does not use a Depth Test and renders the clouds into the reflection cubemap.
 In each case, the passes use alpha blending to correctly blend with the sky behind.

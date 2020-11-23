@@ -10,6 +10,8 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(CloudLayer))]
     class CloudLayerEditor : VolumeComponentEditor
     {
+        public override bool hasAdvancedMode => true;
+
         struct CloudMapParameter
         {
             public SerializedDataParameter cloudMap;
@@ -62,6 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         SerializedDataParameter m_Opacity, m_UpperHemisphereOnly, m_LayerCount;
+        SerializedDataParameter m_Resolution, m_ShadowsResolution;
         SerializedDataParameter m_ShadowsOpacity, m_ShadowsTiling;
         CloudMapParameter[] m_Layers;
 
@@ -74,9 +77,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Opacity = Unpack(o.Find(x => x.opacity));
             m_UpperHemisphereOnly = Unpack(o.Find(x => x.upperHemisphereOnly));
             m_LayerCount = Unpack(o.Find(x => x.layers));
+            m_Resolution = Unpack(o.Find(x => x.resolution));
 
             m_ShadowsOpacity = Unpack(o.Find(x => x.shadowsOpacity));
             m_ShadowsTiling = Unpack(o.Find(x => x.shadowsTiling));
+            m_ShadowsResolution = Unpack(o.Find(x => x.shadowsResolution));
 
             m_Layers = new CloudMapParameter[]
             {
@@ -129,6 +134,8 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_Opacity);
             PropertyField(m_UpperHemisphereOnly);
             PropertyField(m_LayerCount);
+            if (isInAdvancedMode)
+                PropertyField(m_Resolution);
 
             PropertyField(m_Layers[0], "Layer A");
 
@@ -140,6 +147,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_ShadowsOpacity);
             PropertyField(m_ShadowsTiling);
+            if (isInAdvancedMode)
+                PropertyField(m_ShadowsResolution);
         }
     }
 }

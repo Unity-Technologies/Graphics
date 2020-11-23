@@ -13,8 +13,8 @@ The **Cloud Layer** uses the [Volume](Volumes.md) framework, so to enable and mo
 After you add a **Cloud Layer** override, you must set the Volume to use **Cloud Layer**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of clouds the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Cloud Type** to **Cloud Layer**. HDRP now renders a **Cloud Layer** for any Camera this Volume affects.
 To enable the **Cloud Layer** override, you must assign a Cloud Map. You can refer to the [Cloud Map](#CloudMap) section to learn about the cloud map format or how to find the example cloud map texture.
 
-The Cloud Layer will bake the cloud map to an intermediate texture, which is recomputed everytime a parameter changes. The resolution of the baked texture is determined by the **Cloud Texture Size** parameter in the HDRP asset.
-Clouds shadows are also baked to a separate texture whose resolution is set by the **Cloud Shadows Size** parameter in the HDRP asset.
+The Cloud Layer will bake the cloud map to an intermediate texture, which is recomputed everytime a parameter changes. The resolution of the baked texture is determined by the **Resolution** parameter in the advanced settings of the inspector.
+Clouds shadows are also baked to a separate texture whose resolution is set by the **Shadows Resolution** parameter.
 
 <a name="CloudMap"></a>
 
@@ -43,6 +43,7 @@ Only the red and green channels are used and they represent respectively horizon
 | **Opacity**                   | This controls the global opacity of the cloud layer. |
 | **Upper Hemisphere Only**     | Check the box to display the cloud layer above the horizon only. |
 | **Layers**                    | Control the number of cloud layers (either one or two). Each layer has its own set of parameters described in the table below. |
+| **Resolution**                | Controls the resolution of the texture HDRP uses to bake the clouds. |
 
 | Layer Property                | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
@@ -65,5 +66,6 @@ Only the red and green channels are used and they represent respectively horizon
 
 | Shadows Property              | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Shadows Opacity**           | Controls the opacity of the clouds shadows. |
+| **Shadows Opacity**           | Controls the opacity of the cloud shadows. |
 | **Shadows Tiling**            | Controls the tiling of the cloud shadows. |
+| **Shadows Resolution**        | Controls the resolution of the cloud shadows texture. |

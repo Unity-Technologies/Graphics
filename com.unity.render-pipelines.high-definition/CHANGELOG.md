@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
+### Added
+- Added a cloud system and the CloudLayer volume override.
+
 ### Changed
 - Removed the material pass probe volumes evaluation mode. 
 
