@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float     anisotropy;   // . Not currently available for density volumes
 
         /// <summary>Texture containing density values.</summary>
-        public Texture3D volumeMask;
+        public Texture   volumeMask;
         /// <summary>Scrolling speed of the density texture.</summary>
         public Vector3   textureScrollingSpeed;
         /// <summary>Tiling rate of the density texture.</summary>
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Density volume parameters.</summary>
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
-        private Texture3D previousVolumeMask = null;
+        private Texture previousVolumeMask = null;
 #if UNITY_EDITOR
         private int volumeMaskHash = 0;
 #endif

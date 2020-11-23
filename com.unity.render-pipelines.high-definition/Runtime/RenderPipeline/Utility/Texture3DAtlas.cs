@@ -237,7 +237,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (freeElem != null)
                 {
                     SetTextureToElem(freeElem, tex);
-                    Debug.Log("Add: " + freeElem);
                     return true;
                 }
             }
@@ -350,12 +349,25 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_TextureElementsMap.Count == 0)
                 return;
 
+            // First pass to remove / add textures that changed resolution, it can happens if a 3D render texture is resized
+            foreach (var element in m_TextureElementsMap.Values)
+            {
+                var texture = element.texture;
+
+                if (texture.width != element.size)
+                {
+                    RemoveTexture(texture);
+                    AddTexture(texture);
+                    continue;
+                }
+            }
+
+            // Second pass to update elements where the texture content have changed
             foreach (var element in m_TextureElementsMap.Values)
             {
                 int newHash = GetTextureHash(element.texture);
-                // TODO: check if texture resolution haven't changed (it's possible with render textures)
 
-                // if (elem.hash != newHash)
+                if (element.hash != newHash)
                 {
                     element.hash = newHash;
 

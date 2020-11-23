@@ -177,7 +177,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_DensityMaskTextureContent(SerializedDensityVolume serialized, Editor owner)
         {
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
+            if (EditorGUI.EndChangeCheck())
+            {
+                var newTexture = serialized.volumeTexture.objectReferenceValue;
+                if (newTexture != null)
+                {
+                    if (!(newTexture is RenderTexture rt && rt.dimension == UnityEngine.Rendering.TextureDimension.Tex3D || newTexture is Texture3D))
+                    {
+                        Debug.LogError($"Can't assign texture '{newTexture}' to the Density Volume because the dimension doesn't match the expected Texture3D dimension.");
+                        serialized.volumeTexture.objectReferenceValue = null;
+                    }
+                }
+            }
             EditorGUILayout.PropertyField(serialized.textureScroll, Styles.s_TextureScrollLabel);
             EditorGUILayout.PropertyField(serialized.textureTile, Styles.s_TextureTileLabel);
         }
