@@ -40,7 +40,18 @@ namespace UnityEditor.VFX
             // - VFXSpawnerCallbacks has been suppressed, in that case, m_customType.text can display a message and m_customType == null.
             // - VFXSpawnerCallbacks has been restored, m_customType != null, rebuild the m_instance.
             if (m_customType != null && m_instance == null)
+            {
                 m_instance = CreateInstance(m_customType);
+            }
+
+            //FromScriptableObject returns null but we have stored an instance with unexpected id
+            // - We have an VFXSpawnerCallbacks named "A" in "A.cs"
+            // - Rename A.cs to B.cs without rename A class, it will log "Invalid scriptable object" as expected.
+            // - Rename B.cs to A.cs, the instance still relies on previous B.cs, should rebuild m_instance to fix FromScriptableObject.
+            if (customBehavior == null && m_instance != null && m_instance.GetType() == (Type)m_customType)
+            {
+                m_instance = CreateInstance(m_customType);
+            }
         }
 
         public override void Sanitize(int version)
@@ -77,13 +88,14 @@ namespace UnityEditor.VFX
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly)
         {
             base.CollectDependencies(objs, ownedOnly);
-            objs.Add(m_instance);
+            if (m_instance && customBehavior != null)
+                objs.Add(m_instance);
         }
 
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-            if (customBehavior != null)
+            if (customBehavior != null && customBehavior != null)
                 dependencies.Add(customBehavior.GetInstanceID());
         }
 
@@ -109,7 +121,7 @@ namespace UnityEditor.VFX
 
             if (customBehavior == null && m_customType != null)
             {
-                manager.RegisterError("CustomSpawnerIDInvalid", VFXErrorType.Error, "Invalid scriptable object : " + (Type)m_customType);
+                manager.RegisterError("CustomSpawnerIDInvalid", VFXErrorType.Error, "Invalid ScriptableObject : " + (Type)m_customType);
             }
         }
 
@@ -117,13 +129,19 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (m_instance != null)
-                    return ObjectNames.NicifyVariableName(m_instance.GetType().Name);
+                if (m_customType != null)
+                    return ObjectNames.NicifyVariableName(((Type)m_customType).Name);
                 return "null";
             }
         }
 
-        public override sealed MonoScript customBehavior { get { return MonoScript.FromScriptableObject(m_instance); } }
+        public override sealed MonoScript customBehavior
+        {
+            get
+            {
+                return MonoScript.FromScriptableObject(m_instance);
+            }
+        }
         public override sealed VFXTaskType spawnerType { get { return VFXTaskType.CustomCallbackSpawner; } }
     }
 }
