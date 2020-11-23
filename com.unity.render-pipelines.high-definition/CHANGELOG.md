@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
 - Fixed issue in Material Postprocess which may fail due to empty SubAsset.
 - Fixed built-in shaders when using XR single-pass (1268962).
+- Fixed NullReferenceException when loading multipel scene async
 
 ### Changed
 - The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
