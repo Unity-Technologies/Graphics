@@ -225,6 +225,7 @@ namespace UnityEngine.Rendering
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
+
         /// <summary>
         /// Set the current render texture.
         /// </summary>
@@ -1161,6 +1162,7 @@ namespace UnityEngine.Rendering
             var lambda = System.Linq.Expressions.Expression.Lambda<Func<List<UnityEditor.MaterialEditor>>>(fieldExpression);
             materialEditors = lambda.Compile();
         }
+
 #endif
 
         /// <summary>

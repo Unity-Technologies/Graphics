@@ -499,9 +499,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // Fetch the surface option block which contains the function to update the displacement datas
                     if (m_LayerCount == 1)
-                        surfaceOption = parent.FetchUIBlock< SurfaceOptionUIBlock >();
+                        surfaceOption = parent.FetchUIBlock<SurfaceOptionUIBlock>();
                     else
-                        surfaceOption = parent.parent.FetchUIBlock< SurfaceOptionUIBlock >();
+                        surfaceOption = parent.parent.FetchUIBlock<SurfaceOptionUIBlock>();
 
                     surfaceOption.UpdateDisplacement(m_LayerIndex);
                 }

@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
         OutputEvent =   1 << 1,
         Particle =      1 << 2,
         Mesh =          1 << 3,
-        ParticleStrip = 1 << 4 | Particle, // strips 
+        ParticleStrip = 1 << 4 | Particle, // strips
     };
 
     [Serializable]
