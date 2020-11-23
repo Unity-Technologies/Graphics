@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        internal bool m_BareResource = false;
+        bool m_BareResource = false;
         internal override bool bareResource
         {
             get { return m_BareResource; }

@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             if (slot != null)
             {
                 m_Cubemap = slot.m_Cubemap;
-                m_BareResource = slot.m_BareResource;
+                bareResource = slot.bareResource;
             }
         }
     }
