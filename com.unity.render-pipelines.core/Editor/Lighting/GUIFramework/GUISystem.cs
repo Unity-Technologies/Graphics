@@ -25,7 +25,7 @@ namespace UnityEditor
         /// <summary>
         /// Initializes and returns an instance of GUISystem
         /// </summary>
-        /// <param name="guiState">The gui state</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         public GUISystem(IGUIState guiState)
         {
             m_GUIState = guiState;

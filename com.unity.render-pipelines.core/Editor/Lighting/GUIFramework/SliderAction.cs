@@ -44,7 +44,7 @@ namespace UnityEditor
         /// <summary>
         /// On Trigger
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected override void OnTrigger(IGUIState guiState)
         {
             base.OnTrigger(guiState);
@@ -61,7 +61,7 @@ namespace UnityEditor
         /// <summary>
         /// On Finished
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected override void OnFinish(IGUIState guiState)
         {
             if (onSliderEnd != null)

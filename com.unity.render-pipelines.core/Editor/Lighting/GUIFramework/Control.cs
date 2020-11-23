@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// Interface for control
+    /// An interface that represents a UI control.
     /// </summary>
     public abstract class Control
     {
@@ -17,7 +17,7 @@ namespace UnityEditor
         private bool m_Enabled;
 
         /// <summary>
-        /// Name
+        /// The name of the control.
         /// </summary>
         public string name
         {
@@ -25,7 +25,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Control ID
+        /// The control ID. The GUI uses this to identify the control.
         /// </summary>
         public int ID
         {
@@ -60,7 +60,7 @@ namespace UnityEditor
         /// <summary>
         /// Initializes and returns an instance of Control
         /// </summary>
-        /// <param name="name">Name of the control</param>
+        /// <param name="name">The name of the control</param>
         public Control(string name)
         {
             m_Name = name;
@@ -68,9 +68,9 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Get the control
+        /// Gets the control from the guiState.
         /// </summary>
-        /// <param name="guiState">The </param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         public void GetControl(IGUIState guiState)
         {
             if (guiState.eventType == EventType.Layout)
@@ -89,9 +89,9 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Begin Layout, should be followed at the end by an EndLayout
+        /// Begins the layout for this control. A call to EndLayout must always follow a call to this function.
         /// </summary>
-        /// <param name="guiState">the gui state</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         public void BeginLayout(IGUIState guiState)
         {
             Debug.Assert(guiState.eventType == EventType.Layout);
@@ -101,9 +101,9 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Layout
+        /// Gets the control's layout data from the guiState. 
         /// </summary>
-        /// <param name="guiState">the gui state</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         public void Layout(IGUIState guiState)
         {
             Debug.Assert(guiState.eventType == EventType.Layout);
@@ -136,9 +136,9 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// End Layout, must be called to end an BeginLayout
+        /// Ends the layout for this control. This function must always follow a call to BeginLayout().
         /// </summary>
-        /// <param name="guiState">the gui state</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         public void EndLayout(IGUIState guiState)
         {
             Debug.Assert(guiState.eventType == EventType.Layout);
@@ -148,9 +148,9 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Repaint
+        /// Repaints the control. 
         /// </summary>
-        /// <param name="guiState">the gui state</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         public void Repaint(IGUIState guiState)
         {
             if (m_Enabled)
@@ -161,113 +161,116 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Get Enabled
+        /// Checks whether the control is enabled in the custom editor.
         /// </summary>
-        /// <param name="guiState">The gui state</param>
-        /// <returns>Always true</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <returns>Returns `true` if the control is enabled in the custom editor. Otherwise, returns `false`.</returns>
         protected virtual bool GetEnabled(IGUIState guiState)
         {
             return true;
         }
 
         /// <summary>
-        /// On Begin Layout
+        /// Called when the control begins its layout.
         /// </summary>
-        /// <param name="data">The data layout</param>
-        /// <param name="guiState">The gui state</param>
-        /// <returns>data</returns>
+        /// <param name="data">The layout data.</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <returns>Returns the layout data to use.</returns>
         protected virtual LayoutData OnBeginLayout(LayoutData data, IGUIState guiState)
         {
             return data;
         }
 
         /// <summary>
-        /// On End Layout
+        /// Called when the control ends its layout.
         /// /// </summary>
-        /// <param name="guiState">The gui state</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected virtual void OnEndLayout(IGUIState guiState)
         {
         }
 
         /// <summary>
-        /// On Repaint
+        /// Called when the control repaints its contents.
         /// </summary>
-        /// <param name="guiState">The gui state</param>
-        /// <param name="index">The index</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <param name="index">The index.</param>
         protected virtual void OnRepaint(IGUIState guiState, int index)
         {
         }
 
         /// <summary>
-        /// Get Count
+        /// Gets the number of sub-controllers.
         /// </summary>
-        /// <returns>Always return 1</returns>
+        /// <remarks>
+        /// By default, this is `1`. If you implement your own controller and want to use multiple sub-controllers within it, you can override this function to declare how to count the sub-controllers.
+        /// </remarks>
+        /// <returns>Returns the number of sub-controllers. If you do not override this function, this returns 1.</returns>
         protected virtual int GetCount()
         {
             return 1;
         }
 
         /// <summary>
-        /// Get Position
+        /// Gets the position of the control.
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
-        /// <param name="index">the index</param>
-        /// <returns>Always return Vector3.zero</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Returns Vector3.zero.</returns>
         protected virtual Vector3 GetPosition(IGUIState guiState, int index)
         {
             return Vector3.zero;
         }
 
         /// <summary>
-        /// Get Forward
+        /// Gets the forward vector of the control.
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
-        /// <param name="index">the index</param>
-        /// <returns>Always return Vector3.forward</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Returns Vector3.forward.</returns>
         protected virtual Vector3 GetForward(IGUIState guiState, int index)
         {
             return Vector3.forward;
         }
 
         /// <summary>
-        /// Get Up
+        /// Gets the up vector of the control.
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
-        /// <param name="index">the index</param>
-        /// <returns>Always return Vector3.up</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Returns Vector3.up,</returns>
         protected virtual Vector3 GetUp(IGUIState guiState, int index)
         {
             return Vector3.up;
         }
 
         /// <summary>
-        /// Get Right
+        /// Gets the right vector of the control.
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
-        /// <param name="index">the index</param>
-        /// <returns>Always return Vector3.right</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Returns Vector3.right.</returns>
         protected virtual Vector3 GetRight(IGUIState guiState, int index)
         {
             return Vector3.right;
         }
 
         /// <summary>
-        /// Get Distance
+        /// Gets the distance from the Scene view camera to the control.
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
-        /// <param name="index">the index</param>
-        /// <returns>Always return layoutData.distance</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Returns layoutData.distance.</returns>
         protected virtual float GetDistance(IGUIState guiState, int index)
         {
             return layoutData.distance;
         }
 
         /// <summary>
-        /// Get User Data
+        /// Gets the control's user data. 
         /// </summary>
-        /// <param name="guiState"></param>
-        /// <param name="index"></param>
-        /// <returns>Always return null</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <param name="index">The index.</param>
+        /// <returns>Returns `null`.</returns>
         protected virtual object GetUserData(IGUIState guiState, int index)
         {
             return null;
