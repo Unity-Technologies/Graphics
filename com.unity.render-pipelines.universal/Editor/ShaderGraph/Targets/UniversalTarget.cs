@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[]{"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -343,7 +344,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Template
             passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
@@ -368,7 +369,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Template
             passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
