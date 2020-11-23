@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with upgrading material set to cutout didn't properly set alpha clipping. [case 1235516](https://issuetracker.unity3d.com/issues/urp-upgrade-material-utility-does-not-set-the-alpha-clipping-when-material-was-using-a-shader-with-rendering-mode-set-to-cutout)
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
+- Fixed an issue where the Camera inspector was grabbing the URP asset in Graphics Settings rather than the currently active.
+- Fixed an issue where the Light Explorer was grabbing the URP asset in Graphics Settings rather than the currently active.
 
 ## [7.5.1] - 2020-09-02
 

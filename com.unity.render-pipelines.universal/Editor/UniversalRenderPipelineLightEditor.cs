@@ -263,7 +263,7 @@ namespace UnityEditor.Rendering.Universal
                     lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
                     m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
 
-                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+                    var asset = UniversalRenderPipeline.asset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
                     settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
 
@@ -367,7 +367,7 @@ namespace UnityEditor.Rendering.Universal
                         CoreLightEditorUtilities.DrawDirectionalLightGizmo(light);
                     }
                     break;
-                
+
                 default:
                     base.OnSceneGUI();
                     break;
