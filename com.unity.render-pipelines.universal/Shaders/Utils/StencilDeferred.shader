@@ -109,7 +109,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
-    #ifdef _DEFERRED_SUBTRACTIVE_LIGHTING
+    #ifdef _DEFERRED_MIXED_LIGHTING
     TEXTURE2D_X_HALF(_GBuffer4);
     #endif
 
@@ -142,7 +142,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
 
-        #ifdef _DEFERRED_SUBTRACTIVE_LIGHTING
+        #ifdef _DEFERRED_MIXED_LIGHTING
         half4 gbuffer4 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer4, my_point_clamp_sampler, screen_uv, 0);
         half4 shadowMask = gbuffer4;
         #else
@@ -158,7 +158,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
         #endif
 
-        #if defined(_DEFERRED_SUBTRACTIVE_LIGHTING)
+        #if defined(_DEFERRED_MIXED_LIGHTING)
         // If both lights and geometry are static, then no realtime lighting to perform for this combination.
         [branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
             return half4(0.0, 0.0, 0.0, 0.0); // Cannot discard because stencil must be updated.
@@ -186,11 +186,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             {
                 #if defined(_MAIN_LIGHT_SHADOWS)
                     float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
-                    unityLight.shadowAttenuation = MainLightRealtimeShadow(shadowCoord);
-                    unityLight.shadowAttenuation = ApplyShadowFade(unityLight.shadowAttenuation, posWS.xyz);
+                    unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
                 #elif defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
-                    unityLight.shadowAttenuation = AdditionalLightRealtimeShadow(_ShadowLightIndex, posWS.xyz);
-                    unityLight.shadowAttenuation = ApplyShadowFade(unityLight.shadowAttenuation, posWS.xyz);
+                    unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, shadowMask, _LightOcclusionProbInfo);
                 #else
                     unityLight.shadowAttenuation = 1.0;
                 #endif
@@ -204,8 +202,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.spotDirection = _LightDirection;
             light.occlusionProbeInfo = _LightOcclusionProbInfo;
             light.flags = _LightFlags;
-            light.shadowLightIndex = _ShadowLightIndex;
-            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, materialReceiveShadowsOff);
+            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
         #endif
 
         half3 color = 0.0.xxx;
@@ -306,8 +303,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -346,8 +345,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -387,8 +388,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -428,8 +431,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
-            #pragma multi_compile_fragment _ _DEFERRED_SUBTRACTIVE_LIGHTING
+            #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading

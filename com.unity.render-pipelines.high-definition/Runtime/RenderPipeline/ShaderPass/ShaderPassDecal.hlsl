@@ -1,4 +1,4 @@
-#if (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH) && (SHADERPASS != SHADERPASS_FORWARD_PREVIEW)
+#if (SHADERPASS != SHADERPASS_DEPTH_ONLY) && (SHADERPASS != SHADERPASS_DBUFFER_PROJECTOR) && (SHADERPASS != SHADERPASS_DBUFFER_MESH) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) && (SHADERPASS != SHADERPASS_FORWARD_EMISSIVE_MESH) && (SHADERPASS != SHADERPASS_FORWARD_PREVIEW)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -27,13 +27,16 @@ PackedVaryingsType Vert(AttributesMesh inputMesh)
 void Frag(  PackedVaryingsToPS packedInput,
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DBUFFER_MESH)
     OUTPUT_DBUFFER(outDBuffer)
-#elif (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph
+#elif defined(SCENEPICKINGPASS) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW) // Only used for preview in shader graph and scene picking
     out float4 outColor : SV_Target0
 #else
     out float4 outEmissive : SV_Target0
 #endif
 )
 {
+#ifdef SCENEPICKINGPASS
+    outColor = _SelectionID;
+#else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
     DecalSurfaceData surfaceData;
@@ -100,11 +103,11 @@ void Frag(  PackedVaryingsToPS packedInput,
         float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
         float2 angleFade = float2(normalToWorld[1][3], normalToWorld[2][3]);
 
-        if (angleFade.x > 0.0f) // if angle fade is enabled
+        if (angleFade.y < 0.0f) // if angle fade is enabled
         {
-            float dotAngle = 1.0 - dot(material.geomNormalWS, normalToWorld[2].xyz);
-            // See equation in DecalSystem.cs - simplified to a madd here
-            angleFadeFactor = 1.0 - saturate(dotAngle * angleFade.x + angleFade.y);
+            float dotAngle = dot(material.geomNormalWS, normalToWorld[2].xyz);
+            // See equation in DecalSystem.cs - simplified to a madd mul add here
+            angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
         }
     }
 
@@ -146,5 +149,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     // Emissive need to be pre-exposed
     outEmissive.rgb = surfaceData.emissive * GetCurrentExposureMultiplier();
     outEmissive.a = 1.0;
+#endif
 #endif
 }
