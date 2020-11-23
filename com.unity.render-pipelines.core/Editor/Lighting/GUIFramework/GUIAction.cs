@@ -42,7 +42,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list when enter on GUI
         /// </summary>
-        /// <param name="guiState">The gui state</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         public void OnGUI(IGUIState guiState)
         {
             m_ID = guiState.GetControlID(GetType().GetHashCode(), FocusType.Passive);
@@ -73,7 +73,7 @@ namespace UnityEditor
         /// <summary>
         /// Test if enabled
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>true if enabled</returns>
         public bool IsEnabled(IGUIState guiState)
         {
@@ -86,7 +86,7 @@ namespace UnityEditor
         /// <summary>
         /// Test if is Repaint Enabled
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>true if repaint enabled</returns>
         public bool IsRepaintEnabled(IGUIState guiState)
         {
@@ -102,7 +102,7 @@ namespace UnityEditor
         /// <summary>
         /// PreRepaint
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         public void PreRepaint(IGUIState guiState)
         {
             Debug.Assert(guiState.eventType == EventType.Repaint);
@@ -114,7 +114,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list when repaint
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         private void Repaint(IGUIState guiState)
         {
             Debug.Assert(guiState.eventType == EventType.Repaint);
@@ -126,7 +126,7 @@ namespace UnityEditor
         /// <summary>
         /// Is Repaint On Mouse Move Enabled
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>true if repaint on mouse enabled</returns>
         internal bool IsRepaintOnMouseMoveEnabled(IGUIState guiState)
         {
@@ -142,25 +142,25 @@ namespace UnityEditor
         /// <summary>
         /// GetFinishCondition
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>true if finish condition validated</returns>
         protected abstract bool GetFinishCondition(IGUIState guiState);
         /// <summary>
         /// GetTriggerCondition
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>true if the trigger condition validated</returns>
         protected abstract bool GetTriggerCondition(IGUIState guiState);
         /// <summary>
         /// CanTrigger
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>Always return true</returns>
         protected virtual bool CanTrigger(IGUIState guiState) { return true; }
         /// <summary>
         /// Calls the methods in its invocation list when triggered
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected virtual void OnTrigger(IGUIState guiState)
         {
         }
@@ -168,7 +168,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list when performed
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected virtual void OnPerform(IGUIState guiState)
         {
         }
@@ -176,7 +176,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list when finished
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected virtual void OnFinish(IGUIState guiState)
         {
         }

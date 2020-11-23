@@ -25,7 +25,7 @@ namespace UnityEditor
         /// Override of the On Begin Layout, and modify LayoutData.distance with DefaultControl.kPickDistance
         /// </summary>
         /// <param name="data">Layout Data</param>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>The Layout Data</returns>
         protected override LayoutData OnBeginLayout(LayoutData data, IGUIState guiState)
         {

@@ -64,7 +64,7 @@ namespace UnityEditor
         /// <summary>
         /// Override for GetEnable
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>Is Enabled</returns>
         protected override bool GetEnabled(IGUIState guiState)
         {
@@ -89,7 +89,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list when EndLayout
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected override void OnEndLayout(IGUIState guiState)
         {
             if (onEndLayout != null)
@@ -99,7 +99,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list when Repainted
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <param name="index">Current Index</param>
         protected override void OnRepaint(IGUIState guiState, int index)
         {
@@ -111,7 +111,7 @@ namespace UnityEditor
         /// Calls the methods in its invocation list when BeginLayout
         /// </summary>
         /// <param name="data">The LayoutData</param>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>The LayoutData</returns>
         protected override LayoutData OnBeginLayout(LayoutData data, IGUIState guiState)
         {
@@ -124,7 +124,7 @@ namespace UnityEditor
         /// <summary>
         /// Override for GetPosition
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <param name="index">The Index</param>
         /// <returns>The position</returns>
         protected override Vector3 GetPosition(IGUIState guiState, int index)
@@ -138,7 +138,7 @@ namespace UnityEditor
         /// <summary>
         /// Override for GetDistance
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <param name="index">The Index</param>
         /// <returns>The distance</returns>
         protected override float GetDistance(IGUIState guiState, int index)
@@ -152,7 +152,7 @@ namespace UnityEditor
         /// <summary>
         /// Override for GetForward
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <param name="index">The Index</param>
         /// <returns>Forward Vector</returns>
         protected override Vector3 GetForward(IGUIState guiState, int index)
@@ -166,7 +166,7 @@ namespace UnityEditor
         /// <summary>
         /// Override for GetUp
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <param name="index">The Index</param>
         /// <returns>Up Vector</returns>
         protected override Vector3 GetUp(IGUIState guiState, int index)
@@ -180,7 +180,7 @@ namespace UnityEditor
         /// <summary>
         /// Override for GetRight
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <param name="index">The Index</param>
         /// <returns>Right Vector</returns>
         protected override Vector3 GetRight(IGUIState guiState, int index)
@@ -194,7 +194,7 @@ namespace UnityEditor
         /// <summary>
         /// Override for GetUserData
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <param name="index">The Index</param>
         /// <returns>Return the user data</returns>
         protected override object GetUserData(IGUIState guiState, int index)

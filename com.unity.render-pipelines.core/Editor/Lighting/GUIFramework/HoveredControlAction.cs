@@ -30,7 +30,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list to test if Can be triggered
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         /// <returns>true if can be triggered</returns>
         protected override bool CanTrigger(IGUIState guiState)
         {
@@ -40,7 +40,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list when triggered
         /// </summary>
-        /// <param name="guiState">The GUI State</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected override void OnTrigger(IGUIState guiState)
         {
             m_HoveredControl.SetActionID(ID);
