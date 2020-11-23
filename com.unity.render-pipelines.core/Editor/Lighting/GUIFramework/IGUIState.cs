@@ -88,6 +88,7 @@ namespace UnityEditor
         /// In 2D Mode
         /// </summary>
         bool in2DMode { get; }
+
         /// <summary>
         /// Get Control ID
         /// </summary>

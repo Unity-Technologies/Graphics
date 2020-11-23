@@ -42,7 +42,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Get if enabled
+        /// Test if enabled
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         /// <returns>true if enabled</returns>

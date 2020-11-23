@@ -171,7 +171,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Repaint
+        /// Calls the methods in its invocation list when repaint
         /// </summary>
         public void Repaint()
         {
@@ -179,7 +179,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Has current camera
+        /// Test if has current camera
         /// </summary>
         /// <returns></returns>
         public bool HasCurrentCamera()
@@ -199,7 +199,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Distance to segment
+        /// Helper to measure distance to segment describes 2 points
         /// </summary>
         /// <param name="p1">First point</param>
         /// <param name="p2">Seconde point</param>
@@ -213,7 +213,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Distance to circle
+        /// Helper to measure distance to circle
         /// </summary>
         /// <param name="center">Center of the circle</param>
         /// <param name="radius">Radius of the circle</param>
@@ -245,7 +245,6 @@ namespace UnityEditor
                 Plane plane = new Plane(planeNormal, planePos);
 
                 float distance = 0f;
-
                 if (plane.Raycast(ray, out distance))
                 {
                     worldPos = Handles.inverseMatrix.MultiplyPoint(ray.GetPoint(distance));

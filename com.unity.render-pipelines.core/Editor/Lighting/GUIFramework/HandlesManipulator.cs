@@ -23,7 +23,7 @@ namespace UnityEditor
         private bool m_Enabled = false;
 
         /// <summary>
-        /// On GUI
+        /// Calls the methods in its invocation list when enter in GUI
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         public void OnGUI(IGUIState guiState)
@@ -39,7 +39,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// End Layout
+        /// EndLayout should be called to close an invocation of a BeginLayout
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         public void EndLayout(IGUIState guiState)
@@ -52,7 +52,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Is Enabled
+        /// Calls the methods in its invocation list to test if enabled
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         /// <returns>true if enabled</returns>

@@ -87,7 +87,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Override for OnEndLayout
+        /// Calls the methods in its invocation list when EndLayout
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         protected override void OnEndLayout(IGUIState guiState)
@@ -97,7 +97,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Override for OnRepaint
+        /// Calls the methods in its invocation list when Repainted
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         /// <param name="index">Current Index</param>
@@ -108,7 +108,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Ovveride OnBeginLayout
+        /// Calls the methods in its invocation list when BeginLayout
         /// </summary>
         /// <param name="data">The LayoutData</param>
         /// <param name="guiState">The GUI State</param>

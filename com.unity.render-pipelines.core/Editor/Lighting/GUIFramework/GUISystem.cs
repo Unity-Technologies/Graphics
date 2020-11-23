@@ -32,7 +32,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Add control
+        /// Add control to the internal list of controls
         /// </summary>
         /// <param name="control">Control have to be added</param>
         public void AddControl(Control control)
@@ -44,7 +44,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Remove control
+        /// Remove control from the internal list of controls
         /// </summary>
         /// <param name="control">Control have to be removed</param>
         public void RemoveControl(Control control)
@@ -53,7 +53,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Add Action
+        /// Add Action to the internal list of actions
         /// </summary>
         /// <param name="action">Action added</param>
         public void AddAction(GUIAction action)
@@ -65,7 +65,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Remove Action
+        /// Remove Action from the internal list of actions
         /// </summary>
         /// <param name="action">Action removed</param>
         public void RemoveAction(GUIAction action)
@@ -74,7 +74,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Add Manipulator
+        /// Add Manipulator to the internal list of manipulators
         /// </summary>
         /// <param name="manipulator">Manipulator added</param>
         public void AddManipulator(HandlesManipulator manipulator)
@@ -86,7 +86,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Remove Manipulator
+        /// Remove Manipulator from the internal list of manipulators
         /// </summary>
         /// <param name="manipulator">Manipulator removed</param>
         public void RemoveManipulator(HandlesManipulator manipulator)
@@ -95,7 +95,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// On GUI
+        /// Calls the methods in its invocation list when enter in the GUI
         /// </summary>
         public void OnGUI()
         {
@@ -175,7 +175,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Is Mouse Move Event
+        /// Calls the methods in its invocation list when the Mouse Moves
         /// </summary>
         /// <returns>true, if mouse moved</returns>
         private bool IsMouseMoveEvent()

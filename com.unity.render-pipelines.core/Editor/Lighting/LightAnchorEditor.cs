@@ -46,7 +46,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Code describing the Inspector
+        /// Calls the methods in its invocation list when show the Inspector
         /// </summary>
         public override void OnInspectorGUI()
         {

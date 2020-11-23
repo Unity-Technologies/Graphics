@@ -28,7 +28,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Can trigger
+        /// Calls the methods in its invocation list to test if Can be triggered
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         /// <returns>true if can be triggered</returns>
@@ -38,7 +38,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// On Trigger
+        /// Calls the methods in its invocation list when triggered
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         protected override void OnTrigger(IGUIState guiState)

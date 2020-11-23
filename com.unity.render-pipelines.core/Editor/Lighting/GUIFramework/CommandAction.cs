@@ -58,7 +58,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// On finish
+        /// Calls the methods in its invocation list when finished
         /// </summary>
         /// <param name="guiState">The gui state</param>
         protected override void OnFinish(IGUIState guiState)

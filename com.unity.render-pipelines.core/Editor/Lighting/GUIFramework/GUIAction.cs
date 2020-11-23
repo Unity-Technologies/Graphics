@@ -40,7 +40,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// OnGui
+        /// Calls the methods in its invocation list when enter on GUI
         /// </summary>
         /// <param name="guiState">The gui state</param>
         public void OnGUI(IGUIState guiState)
@@ -71,7 +71,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Is Enabled
+        /// Test if enabled
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         /// <returns>true if enabled</returns>
@@ -84,7 +84,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Is Repaint Enabled
+        /// Test if is Repaint Enabled
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         /// <returns>true if repaint enabled</returns>
@@ -112,7 +112,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Repaint
+        /// Calls the methods in its invocation list when repaint
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         private void Repaint(IGUIState guiState)
@@ -158,7 +158,7 @@ namespace UnityEditor
         /// <returns>Always return true</returns>
         protected virtual bool CanTrigger(IGUIState guiState) { return true; }
         /// <summary>
-        /// OnTrigger
+        /// Calls the methods in its invocation list when triggered
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         protected virtual void OnTrigger(IGUIState guiState)
@@ -166,7 +166,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// OnPerform
+        /// Calls the methods in its invocation list when performed
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         protected virtual void OnPerform(IGUIState guiState)
@@ -174,7 +174,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// OnFinish
+        /// Calls the methods in its invocation list when finished
         /// </summary>
         /// <param name="guiState">The GUI State</param>
         protected virtual void OnFinish(IGUIState guiState)

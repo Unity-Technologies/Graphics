@@ -54,7 +54,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// On trigger
+        /// Calls the methods in its invocation list when triggered
         /// </summary>
         /// <param name="guiState">The gui state</param>
         protected override void OnTrigger(IGUIState guiState)
