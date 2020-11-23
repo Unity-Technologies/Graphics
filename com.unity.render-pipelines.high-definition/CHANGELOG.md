@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed normal buffer not bound to custom pass anymore.
 - Fixed issues with camera management in the graphics compositor (cases 1292548, 1292549).
 - Fixes some labels being clipped in the Render Graph Viewer
+- Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -138,6 +139,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
 - Range handles for decal projector angle fading.
 - Smoother angle fading for decal projector.
+- Now the screen space shadow is only used if the analytic value is valid.
 
 ## [10.1.0] - 2020-10-12
 
