@@ -23,27 +23,23 @@ namespace UnityEditor.VFX
     [VFXInfo(category = "Custom", variantProvider = typeof(CustomSpawnerVariant))]
     class VFXSpawnerCustomWrapper : VFXAbstractSpawner
     {
-        [SerializeField, VFXSetting]
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
         protected SerializableType m_customType;
 
-        [SerializeField, VFXSetting]
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
         protected ScriptableObject m_instance;
-
-        protected override IEnumerable<string> filteredOutSettings
-        {
-            get
-            {
-                yield return "m_customType";
-                yield return "m_instance";
-            }
-        }
 
         private void ResolveCustomCallbackInstance()
         {
-            if (customBehavior == null && m_instance != null)
+            //m_instance always prevails on m_customType, we cannot modify m_customType twice.
+            if (m_instance != null)
                 m_customType = m_instance.GetType();
 
-            if (customBehavior != null && m_instance == null)
+            //m_instance is null in three cases :
+            // - Newly created VFXSpawnerCustomWrapper, m_customType changed by SetSettingValue.
+            // - VFXSpawnerCallbacks has been suppressed, in that case, m_customType.text can display a message and m_customType == null.
+            // - VFXSpawnerCallbacks has been restored, m_customType != null, rebuild the m_instance.
+            if (m_customType != null && m_instance == null)
                 m_instance = CreateInstance(m_customType);
         }
 
@@ -68,28 +64,24 @@ namespace UnityEditor.VFX
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-
-            if (m_customType != null)
-            {
-                var function = ScriptableObject.CreateInstance(m_customType);
-                //TODOPAUL : share FromScriptableObject
-                var monoScript = MonoScript.FromScriptableObject(function);
-                if (monoScript != null)
-                    dependencies.Add(monoScript.GetInstanceID());
-            }
+            if (customBehavior != null)
+                dependencies.Add(customBehavior.GetInstanceID());
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                return customBehavior == null ? Enumerable.Empty<VFXPropertyWithValue>() : PropertiesFromType(customBehavior.GetRecursiveNestedType(GetInputPropertiesTypeName()));
+                if (m_instance == null)
+                    return Enumerable.Empty<VFXPropertyWithValue>();
+                return PropertiesFromType(m_instance.GetType().GetRecursiveNestedType(GetInputPropertiesTypeName()));
             }
         }
 
         protected override void GenerateErrors(VFXInvalidateErrorReporter manager)
         {
-            if (customBehavior == null
+            //Type isn't reachable ... but we already stored a type, log an error.
+            if (m_customType == null
                 && !object.ReferenceEquals(m_customType, null)
                 && !string.IsNullOrEmpty(m_customType.text))
             {
@@ -101,13 +93,13 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (customBehavior != null)
-                    return ObjectNames.NicifyVariableName(customBehavior.Name);
+                if (m_instance != null)
+                    return ObjectNames.NicifyVariableName(m_instance.GetType().Name);
                 return "null";
             }
         }
 
-        public override sealed Type customBehavior { get { return (Type)m_customType; } }
+        public override sealed MonoScript customBehavior { get { return MonoScript.FromScriptableObject(m_instance); } }
         public override sealed VFXTaskType spawnerType { get { return VFXTaskType.CustomCallbackSpawner; } }
     }
 }

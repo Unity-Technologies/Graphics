@@ -561,12 +561,7 @@ namespace UnityEditor.VFX
 
                 Object processor = null;
                 if (spawnerBlock.customBehavior != null)
-                {
-                    var instance = spawnerBlock.GetSetting("m_instance"); //TODOPAUL rework exposed property
-                    processor = MonoScript.FromScriptableObject(instance.value as ScriptableObject);
-                    //TODOPAUL re-add exception
-                    //throw new InvalidOperationException("Unable to find the definition .cs file for " + spawnerBlock.customBehavior + " Make sure that the class name and file name match");
-                }
+                    processor = spawnerBlock.customBehavior;
 
                 taskDescList.Add(new VFXEditorTaskDesc
                 {
