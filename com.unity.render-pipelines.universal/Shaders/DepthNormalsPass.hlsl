@@ -50,7 +50,8 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
     return half4(packedNormalWS, 0.0);
     #else
-    return half4(normalize(input.normalWS), 0.0); // must normalize
+    float3 normalWS = NormalizeNormalPerPixel(input.normalWS);
+    return half4(normalWS, 0.0);
     #endif
 }
 #endif

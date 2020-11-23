@@ -1,4 +1,4 @@
-﻿#ifndef SG_DEPTH_ONLY_PASS_INCLUDED
+#ifndef SG_DEPTH_ONLY_PASS_INCLUDED
 #define SG_DEPTH_ONLY_PASS_INCLUDED
 
 PackedVaryings vert(Attributes input)
@@ -30,7 +30,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
     return half4(packedNormalWS, 0.0);
     #else
-    return half4(normalize(unpacked.normalWS), 0.0); // normalize?
+    float3 normalWS = NormalizeNormalPerPixel(unpacked.normalWS);
+    return half4(normalWS, 0.0);
     #endif
 }
 

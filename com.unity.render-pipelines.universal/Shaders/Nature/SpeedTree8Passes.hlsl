@@ -514,7 +514,7 @@ half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Ta
     AlphaDiscard(alpha - 0.3333, 0.0);
 
     float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
+    return half4(normalWS, 0.0);
 }
 
 #endif
