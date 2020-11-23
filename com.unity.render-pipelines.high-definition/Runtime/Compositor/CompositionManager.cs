@@ -70,6 +70,12 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                         {
                             layer.camera.enabled = value;
                         }
+                        else
+                        {
+                            // The target texture was managed by the compositor, reset it so the user can se the camera output
+                            if (layer.camera && value == false)
+                                layer.camera.targetTexture = null;
+                        }
                     }
 
                 }
@@ -108,9 +114,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             get
             {
-                if (m_InputLayers.Count > 0)
+                if (m_OutputCamera)
                 {
-                    return m_InputLayers[0].aspectRatio;
+                    return (float)m_OutputCamera.pixelWidth / m_OutputCamera.pixelHeight;
                 }
                 return 1.0f;
             }
@@ -259,7 +265,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             if (m_OutputCamera == null)
             {
-                Debug.Log("No camera was found");
                 return false;
             }
 
@@ -435,10 +440,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         public void OnAfterAssemblyReload()
         {
             // Bug? : After assembly reload, the customRender callback is dropped, so set it again
-            var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
-            if (cameraData && !cameraData.hasCustomRender)
+            if (m_OutputCamera)
             {
-                cameraData.customRender += CustomRender;
+                var cameraData = m_OutputCamera.GetComponent<HDAdditionalCameraData>();
+                if (cameraData && !cameraData.hasCustomRender)
+                {
+                    cameraData.customRender += CustomRender;
+                }
             }
         }
 
@@ -839,8 +847,20 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     return camera;
                 }
             }
-            Debug.LogWarning("Camera not found");
+
             return null;
+        }
+
+        static public Camera CreateCamera(string cameraName)
+        {
+            var newCameraGameObject = new GameObject(cameraName)
+            {
+                hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy | HideFlags.HideAndDontSave
+            };
+            var newCamera = newCameraGameObject.AddComponent<Camera>();
+            newCameraGameObject.AddComponent<HDAdditionalCameraData>();
+
+            return newCamera;
         }
 
         static public CompositionManager GetInstance() =>
