@@ -10,7 +10,7 @@ Many compositing operations require an alpha channel. To properly use all featur
 - Set the color buffer format for Rendering to 16-bit half float (R16G16B16A16)
 - Set the buffer format for post-processing to 16-bit half float (R16G16B16A16)
 
-Both buffer format options are in the [HDRP Asset](HDRP-Asset). If the compositor detects a buffer format without an alpha channel, it displays a warning. For more information, seen [Alpha Output](Alpha-Output).
+Both buffer format options are in the [HDRP Asset](HDRP-Asset.md). If the compositor detects a buffer format without an alpha channel, it displays a warning. For more information, seen [Alpha Output](Alpha-Output.md).
 
 ## Layer Types
 The Graphics Compositor tool typically handles two types of layers: 
@@ -35,11 +35,11 @@ Unity saves the Graphics Compositor properties in a .asset file with the same na
 
 ## Adding and removing Composition Layers
 To add a new Composition Layer, create a new Texture2D input property in the [Composition Graph](#composition-graph). For convenience, you have to provide a short and indicative name (such as BackGround Layer) in the Reference field in the Node Settings of the Graph Inspector. 
-When you next save the Composition Graph, the new layer appears automatically in the [Render Schedule](#render-schedule) section of the Graphics Compositor window with the name that you have used as Reference. From there, you can control the [layer properties](Compositor-User-Options.md#composition-layer-properties) and specify how to [fill the layer with content](#Sub-layers:-adding-content-to-composition-layers). 
+When you next save the Composition Graph, the new layer appears automatically in the [Render Schedule](#render-schedule) section of the Graphics Compositor window with the name that you have used as Reference. From there, you can control the [layer properties](Compositor-User-Options.md#composition-layer-properties) and specify how to [fill the layer with content](#adding-content-to-composition-layers). 
 
 Similarly, to delete a Composition Layer, remove the corresponding Texture 2D property from the [Composition Graph](#composition-graph).
 
-## Sub-layers: Adding content to Composition Layers
+## Adding content to Composition Layers
 Each Composition Layer can source its content from one or more Sub-layers. There are three types of Sub-layer:
 - **Camera Sub-layer:** The source of the content is a Unity Camera. You can select which Camera to use in the properties of the Sub-layer.
 - **Video Sub-layer:** The source of the content is a Unity Video Player. You can select which Video Player to use in the properties of the Sub-layer.
@@ -69,7 +69,7 @@ To change the stacking order, re-arrange the Sub-layers in the  [Render Schedule
 
 Choosing the correct order for a Sub-layer is important for elements that don't draw any depth (such as UI elements) and generally for getting proper screen-space reflections and transparency between layers. For example, a layer with semi-transparent UI elements that should render on top of the 3D world should appear last in the stacked sub-layers of a Composition Layer.
 
-The [Sub-layer Properties](Compositor-User-Options.md#Sub-layer-properties) section controls the type of stacking operation.
+The [Sub-layer Properties](Compositor-User-Options.md#sub-layer-properties) section controls the type of stacking operation.
 
 ## Render Schedule
 The Render Schedule is a re-orderable list of Composition Layers and Sub-layers. Sub-layers appear indented below their corresponding parent Composition Layer, which makes it easier to see the hierarchical relationship. When multiple Sub-layers appear below a parent layer, they form a [camera stack](#camera-stacking). Unity renders layers at the top first. To re-order the list, you can click and move both Composition Layers and Sub-layers. You can use this to change the rendering order in a camera stack or move a Sub-layer from one parent Composition Layer to another.

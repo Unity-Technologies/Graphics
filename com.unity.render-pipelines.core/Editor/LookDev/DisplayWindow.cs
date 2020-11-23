@@ -54,21 +54,21 @@ namespace UnityEditor.Rendering.LookDev
 
             internal static readonly GUIContent k_WindowTitleAndIcon = EditorGUIUtility.TrTextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDev", forceLowRes: true));
 
-            internal static readonly (Texture2D icon, string tooltip) k_Layout1Icon =
+            internal static readonly (Texture2D icon, string tooltip)k_Layout1Icon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout1", forceLowRes: true),
-                "First view");
-            internal static readonly (Texture2D icon, string tooltip) k_Layout2Icon =
+                    "First view");
+            internal static readonly (Texture2D icon, string tooltip)k_Layout2Icon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout2", forceLowRes: true),
-                "Second view");
-            internal static readonly (Texture2D icon, string tooltip) k_LayoutVerticalIcon =
+                    "Second view");
+            internal static readonly (Texture2D icon, string tooltip)k_LayoutVerticalIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutVertical", forceLowRes: true),
-                "Both views split vertically");
-            internal static readonly (Texture2D icon, string tooltip) k_LayoutHorizontalIcon =
+                    "Both views split vertically");
+            internal static readonly (Texture2D icon, string tooltip)k_LayoutHorizontalIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutHorizontal", forceLowRes: true),
-                "Both views split horizontally");
-            internal static readonly (Texture2D icon, string tooltip) k_LayoutStackIcon =
+                    "Both views split horizontally");
+            internal static readonly (Texture2D icon, string tooltip)k_LayoutStackIcon =
                 (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutCustom", forceLowRes: true),
-                "Both views stacked");
+                    "Both views stacked");
 
             internal static readonly Texture2D k_Camera1Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Camera1", forceLowRes: true);
             internal static readonly Texture2D k_Camera2Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Camera2", forceLowRes: true);
@@ -219,37 +219,37 @@ namespace UnityEditor.Rendering.LookDev
 
         void ReloadStyleSheets()
         {
-            if(styleSheet == null || styleSheet.Equals(null))
+            if (styleSheet == null || styleSheet.Equals(null))
             {
                 styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
-                if(styleSheet == null || styleSheet.Equals(null))
+                if (styleSheet == null || styleSheet.Equals(null))
                 {
                     //Debug.LogWarning("[LookDev] Could not load Stylesheet.");
                     return;
                 }
             }
 
-            if(!rootVisualElement.styleSheets.Contains(styleSheet))
+            if (!rootVisualElement.styleSheets.Contains(styleSheet))
                 rootVisualElement.styleSheets.Add(styleSheet);
 
             //Additively load Light Skin
-            if(!EditorGUIUtility.isProSkin)
+            if (!EditorGUIUtility.isProSkin)
             {
-                if(styleSheetLight == null || styleSheetLight.Equals(null))
+                if (styleSheetLight == null || styleSheetLight.Equals(null))
                 {
                     styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
-                    if(styleSheetLight == null || styleSheetLight.Equals(null))
+                    if (styleSheetLight == null || styleSheetLight.Equals(null))
                     {
                         //Debug.LogWarning("[LookDev] Could not load Light skin.");
                         return;
                     }
                 }
-                 
-                if(!rootVisualElement.styleSheets.Contains(styleSheetLight))
+
+                if (!rootVisualElement.styleSheets.Contains(styleSheetLight))
                     rootVisualElement.styleSheets.Add(styleSheetLight);
             }
         }
-        
+
         void CreateGUI()
         {
             ReloadStyleSheets();
@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         void OnEnable()
-        { 
+        {
             Undo.undoRedoPerformed += FullRefreshEnvironmentList;
         }
 
@@ -295,13 +295,14 @@ namespace UnityEditor.Rendering.LookDev
         {
             // Layout swapper part
             var layoutRadio = new ToolbarRadio() { name = Style.k_ToolbarRadioName };
-            layoutRadio.AddRadios(new[] {
+            layoutRadio.AddRadios(new[]
+            {
                 Style.k_Layout1Icon,
                 Style.k_Layout2Icon,
                 Style.k_LayoutVerticalIcon,
                 Style.k_LayoutHorizontalIcon,
                 Style.k_LayoutStackIcon,
-                });
+            });
             layoutRadio.RegisterCallback((ChangeEvent<int> evt)
                 => viewLayout = (Layout)evt.newValue);
             layoutRadio.SetValueWithoutNotify((int)viewLayout);
@@ -345,10 +346,11 @@ namespace UnityEditor.Rendering.LookDev
             {
                 name = Style.k_TabsRadioName
             };
-            sideRadio.AddRadios(new[] {
+            sideRadio.AddRadios(new[]
+            {
                 Style.k_EnvironmentSidePanelName,
                 Style.k_DebugSidePanelName,
-                });
+            });
             sideRadio.SetValueWithoutNotify((int)sidePanel);
             sideRadio.RegisterCallback((ChangeEvent<int> evt)
                 => sidePanel = (SidePanel)evt.newValue);
@@ -524,7 +526,7 @@ namespace UnityEditor.Rendering.LookDev
                     if (updated |= m_Views[(int)ViewIndex.First].image != texture)
                         m_Views[(int)ViewIndex.First].image = texture;
                     else if (updated |= (m_LastFirstViewSize.x != texture.width
-                                      || m_LastFirstViewSize.y != texture.height))
+                                         || m_LastFirstViewSize.y != texture.height))
                     {
                         m_Views[(int)ViewIndex.First].image = null; //force refresh else it will appear zoomed
                         m_Views[(int)ViewIndex.First].image = texture;
@@ -539,7 +541,7 @@ namespace UnityEditor.Rendering.LookDev
                     if (m_Views[(int)ViewIndex.Second].image != texture)
                         m_Views[(int)ViewIndex.Second].image = texture;
                     else if (updated |= (m_LastSecondViewSize.x != texture.width
-                                      || m_LastSecondViewSize.y != texture.height))
+                                         || m_LastSecondViewSize.y != texture.height))
                     {
                         m_Views[(int)ViewIndex.Second].image = null; //force refresh else it will appear zoomed
                         m_Views[(int)ViewIndex.Second].image = texture;
@@ -669,9 +671,9 @@ namespace UnityEditor.Rendering.LookDev
 
         void OnGUI()
         {
-            if(EditorApplication.isUpdating)
+            if (EditorApplication.isUpdating)
                 return;
-           
+
             //deal with missing style on domain reload...
             ReloadStyleSheets();
 

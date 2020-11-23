@@ -81,7 +81,7 @@ void AreaShadowHistoryCopy(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     float4 previousValue = _AreaShadowHistoryRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))];
 
     // Only replace where the mask is 1.0
-    _AreaShadowHistoryRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue 
+    _AreaShadowHistoryRW[uint3(centerCoord, INDEX_TEXTURE2D_ARRAY_X(_DenoisingHistorySlice))] = (1.0 - _DenoisingHistoryMask) * previousValue
                                                                                                 + _DenoisingHistoryMaskSn * LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).x
                                                                                                 + _DenoisingHistoryMaskUn * LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).y;
 }
@@ -165,7 +165,7 @@ void AreaShadowApplyTAA(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     color = FastTonemapPerChannelInvert(lerp(color, history, feedback));
     color = clamp(color, 0.0, CLAMP_MAX);
-    
+
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color, LOAD_TEXTURE2D_X(_AnalyticProbBuffer, centerCoord).x, 1.0);
 }
 
@@ -478,7 +478,7 @@ void AREA_SHADOW_DENOISE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         // We should not tap outside of the screen (given that its a unit, if we go below zero we wrap around)
         if ((int)tapCoord.x > _ScreenSize.x || (int)tapCoord.y > _ScreenSize.y)
             continue;
-            
+
         // Compute the weight (skip computation for the center)
         const float w = r ? gaussian(r, sigma) * ComputeBilateralWeight(center, TapBilateralData(tapCoord)) : 1.0;
 
@@ -509,7 +509,7 @@ void AreaShadowNoDenoise(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
 
     // Compute the shadow value that we need to store
     float shadowValue = inputValues.y > 0.0 ? inputValues.x / inputValues.y : 0.0;
-    
+
     // Only override when the mask is 1.0
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(shadowValue,shadowValue,shadowValue, 1.0);
 }

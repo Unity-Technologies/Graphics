@@ -259,6 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+
         /// <summary>
         /// Set the texture for a specific target mode.
         /// </summary>
@@ -337,6 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 default: throw new ArgumentOutOfRangeException();
             }
         }
+
         /// <summary>
         /// Set the render data for a specific mode.
         ///
@@ -478,8 +480,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Vector3 influenceExtents => influenceVolume.extents;
         internal Matrix4x4 proxyToWorld
             => proxyVolume != null
-                ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
-                : influenceToWorld;
+            ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
+            : influenceToWorld;
 
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
         internal int lastRenderedFrame { get; private set; } = int.MinValue;
@@ -499,7 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Prepare the probe for culling.
         /// You should call this method when you update the <see cref="influenceVolume"/> parameters during runtime.
         /// </summary>
-        public virtual void PrepareCulling() { }
+        public virtual void PrepareCulling() {}
 
         /// <summary>
         /// Request to render this probe next update.
@@ -541,6 +543,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.EditorApplication.hierarchyChanged += UpdateProbeName;
 #endif
         }
+
         void OnDisable()
         {
             HDProbeSystem.UnregisterProbe(this);

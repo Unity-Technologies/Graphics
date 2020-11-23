@@ -138,9 +138,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             shadowsRenderTarget.Init("_ShadowTex");
 
             const int totalMaterials = 256;
-            if(shadowMaterials == null || shadowMaterials.Length == 0)
+            if (shadowMaterials == null || shadowMaterials.Length == 0)
                 shadowMaterials = new Material[totalMaterials];
-            if(removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
+            if (removeSelfShadowMaterials == null || removeSelfShadowMaterials.Length == 0)
                 removeSelfShadowMaterials = new Material[totalMaterials];
         }
 

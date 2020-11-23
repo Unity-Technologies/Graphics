@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         }
 
         public IUndoObject undoObject { get; set; }
-        
+
         public Matrix4x4 localToWorldMatrix
         {
             get { return m_LocalToWorldMatrix; }
@@ -68,7 +68,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             {
                 if (pointCount < 3)
                     return true;
-                
+
                 return m_IsOpenEnded;
             }
             set { m_IsOpenEnded = value; }
@@ -113,7 +113,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             m_ControlPoints.Clear();
         }
-        
+
         private ControlPoint TransformPoint(Matrix4x4 transformMatrix, ControlPoint controlPoint)
         {
             if (transformMatrix == Matrix4x4.identity)

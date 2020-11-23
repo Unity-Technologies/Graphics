@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SortedRequestsCache = new HDShadowResolutionRequest[Mathf.CeilToInt(maxShadowRequests)];
         }
 
-
         internal void ReserveResolution(HDShadowResolutionRequest shadowRequest)
         {
             m_ShadowResolutionRequests.Add(shadowRequest);
@@ -123,7 +122,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     currentMaxXCache = Mathf.Max(currentMaxXCache, currentMaxX + r.width);
                     m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
                     index++;
-                } while (y < currentMaxY && index < m_ShadowResolutionRequests.Count);
+                }
+                while (y < currentMaxY && index < m_ShadowResolutionRequests.Count);
                 currentMaxY = Mathf.Max(currentMaxY, currentY);
                 currentMaxX = currentMaxXCache;
                 if (index >= m_ShadowResolutionRequests.Count)
@@ -140,7 +140,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     currentMaxYCache = Mathf.Max(currentMaxYCache, currentMaxY + r.height);
                     m_ShadowResolutionRequests[index].dynamicAtlasViewport = r;
                     index++;
-                } while (x < currentMaxX && index < m_ShadowResolutionRequests.Count);
+                }
+                while (x < currentMaxX && index < m_ShadowResolutionRequests.Count);
                 currentMaxX = Mathf.Max(currentMaxX, currentX);
                 currentMaxY = currentMaxYCache;
             }
@@ -187,7 +188,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material              blitMaterial;
             public MaterialPropertyBlock blitMaterialPropertyBlock;
             public Vector2Int            cachedShadowAtlasSize;
-
         }
 
         internal ShadowBlitParameters PrepareShadowBlitParameters(HDCachedShadowAtlas cachedAtlas, Material blitMaterial, MaterialPropertyBlock blitMpb)
@@ -229,4 +229,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

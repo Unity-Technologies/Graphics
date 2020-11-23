@@ -31,7 +31,6 @@ namespace UnityEditor.ShaderGraph
         [StructLayout(LayoutKind.Explicit)]
         struct StructData
         {
-
             [FieldOffset(0)]
             public Color colorValue;
             [FieldOffset(0)]
