@@ -83,8 +83,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 || s_ShapeBox == null || s_ShapeBox.Equals(null))
                 return;
 
-            Debug.Log(gizmoType);
-
             using (new Handles.DrawingScope(Matrix4x4.TRS(densityVolume.transform.position, densityVolume.transform.rotation, Vector3.one)))
             {
                 // Blend box
