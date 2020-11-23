@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// Default Control
+    /// An interface that represents the default UI control.
     /// </summary>
     public abstract class DefaultControl : Control
     {
@@ -16,17 +16,20 @@ namespace UnityEditor
         /// <summary>
         /// Initializes and returns an instance of DefaultControl
         /// </summary>
-        /// <param name="name">Name of the default control</param>
+        /// <param name="name">The name of the default control.</param>
         public DefaultControl(string name) : base(name)
         {
         }
 
         /// <summary>
-        /// Override of the On Begin Layout, and modify LayoutData.distance with DefaultControl.kPickDistance
+        /// Overrides the Control.OnBeginLayout function.
         /// </summary>
-        /// <param name="data">Layout Data</param>
+        /// <remarks>
+        ///  Sets the LayoutData.distance to DefaultControl.kPickDistance.
+        /// </remarks>
+        /// <param name="data">The layout data.</param>
         /// <param name="guiState">The current state of the custom editor.</param>
-        /// <returns>The Layout Data</returns>
+        /// <returns>Returns the modified layout data.</returns>
         protected override LayoutData OnBeginLayout(LayoutData data, IGUIState guiState)
         {
             data.distance = kPickDistance;

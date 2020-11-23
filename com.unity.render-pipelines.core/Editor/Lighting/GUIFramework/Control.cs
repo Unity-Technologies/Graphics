@@ -173,9 +173,9 @@ namespace UnityEditor
         /// <summary>
         /// Called when the control begins its layout.
         /// </summary>
-        /// <param name="data">The data layout</param>
+        /// <param name="data">The layout data.</param>
         /// <param name="guiState">The current state of the custom editor.</param>
-        /// <returns>data</returns>
+        /// <returns>Returns the layout data to use.</returns>
         protected virtual LayoutData OnBeginLayout(LayoutData data, IGUIState guiState)
         {
             return data;
@@ -199,9 +199,12 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Get Count
+        /// Gets the number of sub-controllers.
         /// </summary>
-        /// <returns>Returns 1.</returns>
+        /// <remarks>
+        /// By default, this is `1`. If you implement your own controller and want to use multiple sub-controllers within it, you can override this function to declare how to count the sub-controllers.
+        /// </remarks>
+        /// <returns>Returns the number of sub-controllers. If you do not override this function, this returns 1.</returns>
         protected virtual int GetCount()
         {
             return 1;
@@ -252,7 +255,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Get Distance
+        /// Gets the distance from the Scene view camera to the control.
         /// </summary>
         /// <param name="guiState">The current state of the custom editor.</param>
         /// <param name="index">The index.</param>
