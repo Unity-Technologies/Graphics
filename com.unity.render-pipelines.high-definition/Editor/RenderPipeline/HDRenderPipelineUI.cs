@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             LightingQuality = 1 << 25,
             SSRQuality = 1 << 26,
             VirtualTexturing = 1 << 27,
-            FogQuality = 1 << 28
+            FogQuality = 1 << 28,
             Volumetric = 1 << 29,
         }
 
