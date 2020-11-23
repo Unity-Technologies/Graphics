@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for pre-exposure for planar reflections.
 - Added support for nested volume components to volume system.
 
+### Added
+- Added a slider to control the fallback value of the directional shadow when the cascade have no coverage.
+
 ### Fixed
 - Fixed probe volumes debug views.
 

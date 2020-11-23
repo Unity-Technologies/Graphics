@@ -144,6 +144,9 @@ EditorBuildSettings:
     path: Assets/Scenes/710_ShadowAlphaCutoff.unity
     guid: 0021b6bb38593db4da5f85503dca6957
   - enabled: 1
+    path: Assets/Scenes/711_DirectionalShadowFallback.unity
+    guid: 5fe85dcccc57e854c983a7cb25f45125
+  - enabled: 1
     path: Assets/Scenes/801_SubSurfaceScatteringDeferred.unity
     guid: c939ce56b901d264baab16d584624b30
   - enabled: 1
