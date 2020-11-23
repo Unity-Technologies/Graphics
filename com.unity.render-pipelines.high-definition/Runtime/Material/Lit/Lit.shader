@@ -284,7 +284,7 @@ Shader "HDRP/Lit"
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #endif
 
-    #pragma shader_feature_local_fragment _HEIGHTMAP
+    #pragma shader_feature_local _HEIGHTMAP
     #pragma shader_feature_local_fragment _TANGENTMAP
     #pragma shader_feature_local_fragment _ANISOTROPYMAP
     #pragma shader_feature_local_fragment _DETAIL_MAP

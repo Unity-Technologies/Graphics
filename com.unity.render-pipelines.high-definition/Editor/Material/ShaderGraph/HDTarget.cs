@@ -980,7 +980,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
+          //  stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor WriteMsaaDepth = new KeywordDescriptor()
@@ -990,7 +990,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
+        //    stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor WriteDecalBuffer = new KeywordDescriptor()
@@ -1000,7 +1000,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor DebugDisplay = new KeywordDescriptor()
@@ -1065,7 +1064,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
                 new KeywordEntry() { displayName = "On", referenceName = "ON" },
             },
-            stages = KeywordShaderStage.Fragment,
+         //   stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor LightLayers = new KeywordDescriptor()
@@ -1075,7 +1074,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
+         //   stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor Decals = new KeywordDescriptor()
@@ -1091,7 +1090,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "3RT", referenceName = "3RT" },
                 new KeywordEntry() { displayName = "4RT", referenceName = "4RT" },
             },
-            stages = KeywordShaderStage.Fragment,
+           // stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor LodFadeCrossfade = new KeywordDescriptor()
@@ -1111,7 +1110,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.Predefined,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor LightList = new KeywordDescriptor()
@@ -1126,7 +1124,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "FPTL", referenceName = "FPTL_LIGHTLIST" },
                 new KeywordEntry() { displayName = "Clustered", referenceName = "CLUSTERED_LIGHTLIST" },
             },
-            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor Shadow = new KeywordDescriptor()
@@ -1241,8 +1238,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             referenceName = "_ALPHATEST_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
+            scope = KeywordScope.Local
         };
 
         public static KeywordDescriptor AlphaToMask = new KeywordDescriptor()
@@ -1279,7 +1275,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DisableSSR = new KeywordDescriptor
@@ -1337,7 +1332,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor DepthOffset = new KeywordDescriptor
