@@ -153,20 +153,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // 2 by default: Static sky + one dynamic. Will grow if needed.
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(2);
+        
+        public SkyManager()	
+        {}	
 
-        public SkyManager()
-        {
-#if UNITY_EDITOR
-            UnityEditor.Lightmapping.bakeStarted += OnBakeStarted;
-    #endif
-        }
-
-        ~SkyManager()
-        {
-#if UNITY_EDITOR
-            UnityEditor.Lightmapping.bakeStarted -= OnBakeStarted;
-#endif
-        }
+        ~SkyManager()	
+        {}        
 
         internal static SkySettings GetSkySetting(VolumeStack stack)
         {
@@ -293,6 +285,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             InitializeBlackCubemapArray();
+
+#if UNITY_EDITOR
+            UnityEditor.Lightmapping.bakeStarted += OnBakeStarted;
+#endif
         }
 
         void InitializeBlackCubemapArray()
@@ -338,6 +334,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             CoreUtils.Destroy(m_DefaultPreviewSky);
+            UnityEditor.Lightmapping.bakeStarted -= OnBakeStarted;
 #endif
         }
 
