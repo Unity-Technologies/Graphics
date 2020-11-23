@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.Universal
         internal enum UpsampleTypes
         {
             None,
-            Bilateral,
+            Bilinear,
             BoxFilter
         }
     }
@@ -415,7 +415,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (m_CurrentSettings.FinalUpsample == ScreenSpaceAmbientOcclusionSettings.UpsampleTypes.BoxFilter)
                             RenderAndSetBaseMap(cmd, m_SSAOTexture2Target, m_SSAOTexture4Target, ShaderPasses.Upsample);
-                        else if (m_CurrentSettings.FinalUpsample == ScreenSpaceAmbientOcclusionSettings.UpsampleTypes.Bilateral)
+                        else if (m_CurrentSettings.FinalUpsample == ScreenSpaceAmbientOcclusionSettings.UpsampleTypes.Bilinear)
                             RenderingUtils.Blit(cmd, m_SSAOTexture2Target, m_SSAOTexture4Target, blitMaterial);
                     }
 
