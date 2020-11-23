@@ -36,7 +36,7 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Pitch relative to the horizon or camera depending on value of m_UpIsWorldSpace.  0,180 is down, 0,-180 is up.
+        /// Pitch relative to the horizon or camera depending on value of m_UpIsWorldSpace. 0,180 is down, 0,-180 is up.
         /// </summary>
         public float pitch
         {
@@ -106,21 +106,18 @@ namespace UnityEngine
         /// <param name="camera">Camera to which light values are relative</param>
         public void SynchronizeOnTransform(Camera camera)
         {
-            var axes = GetWorldSpaceAxes(camera);
+            Axes axes = GetWorldSpaceAxes(camera);
 
-            var extractedYaw = 0f;
-            var extractedPitch = 0f;
+            Vector3 worldAnchorToLight = transform.position - anchorPosition;
+            float extractedDistance = worldAnchorToLight.magnitude;
 
-            var worldAnchorToLight = transform.position - anchorPosition;
-            var extractedDistance = worldAnchorToLight.magnitude;
-
-            var projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up);
+            Vector3 projectOnGround = Vector3.ProjectOnPlane(worldAnchorToLight, axes.up);
             projectOnGround.Normalize();
 
-            extractedYaw = Vector3.SignedAngle(axes.forward, projectOnGround, axes.up);
+            float extractedYaw = Vector3.SignedAngle(axes.forward, projectOnGround, axes.up);
 
-            var yawedRight = Quaternion.AngleAxis(extractedYaw, axes.up) * axes.right;
-            extractedPitch = Vector3.SignedAngle(projectOnGround, worldAnchorToLight, yawedRight);
+            Vector3 yawedRight = Quaternion.AngleAxis(extractedYaw, axes.up) * axes.right;
+            float extractedPitch = Vector3.SignedAngle(projectOnGround, worldAnchorToLight, yawedRight);
 
             yaw = extractedYaw;
             pitch = extractedPitch;
@@ -141,17 +138,17 @@ namespace UnityEngine
 
         Axes GetWorldSpaceAxes(Camera camera)
         {
-            var viewToWorld = camera.cameraToWorldMatrix;
+            Matrix4x4 viewToWorld = camera.cameraToWorldMatrix;
             if (m_UpIsWorldSpace)
             {
-                var viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
-                var worldTilt = Quaternion.FromToRotation(Vector3.up, viewUp);
+                Vector3 viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
+                Quaternion worldTilt = Quaternion.FromToRotation(Vector3.up, viewUp);
                 viewToWorld = viewToWorld * Matrix4x4.Rotate(worldTilt);
             }
 
-            var up = (viewToWorld * Vector3.up).normalized;
-            var right = (viewToWorld * Vector3.right).normalized;
-            var forward = (viewToWorld * Vector3.forward).normalized;
+            Vector3 up = (viewToWorld * Vector3.up).normalized;
+            Vector3 right = (viewToWorld * Vector3.right).normalized;
+            Vector3 forward = (viewToWorld * Vector3.forward).normalized;
 
             return new Axes
             {
@@ -163,14 +160,14 @@ namespace UnityEngine
 
         void OnDrawGizmosSelected()
         {
-            var axes = GetWorldSpaceAxes(Camera.main);
-            var anchor = anchorPosition;
-            var d = transform.position - anchor;
-            var proj = Vector3.ProjectOnPlane(d, axes.up);
+            Axes axes = GetWorldSpaceAxes(Camera.main);
+            Vector3 anchor = anchorPosition;
+            Vector3 d = transform.position - anchor;
+            Vector3 proj = Vector3.ProjectOnPlane(d, axes.up);
 
-            var arcRadius = Mathf.Min(distance * 0.25f, k_ArcRadius);
-            var axisLength = Mathf.Min(distance * 0.5f, k_AxisLength);
-            var alpha = 0.2f;
+            float arcRadius = Mathf.Min(distance * 0.25f, k_ArcRadius);
+            float axisLength = Mathf.Min(distance * 0.5f, k_AxisLength);
+            float alpha = 0.2f;
 
             Handles.color = Color.grey;
             Handles.DrawDottedLine(anchorPosition, anchorPosition + proj, 2);
@@ -178,7 +175,7 @@ namespace UnityEngine
             Handles.DrawDottedLine(anchorPosition, transform.position, 2);
 
             // forward
-            var color = Color.blue;
+            Color color = Color.blue;
             color.a = alpha;
             Handles.color = color;
             Handles.DrawLine(anchorPosition, anchorPosition + axes.forward * axisLength);
@@ -188,7 +185,7 @@ namespace UnityEngine
             color = Color.green;
             color.a = alpha;
             Handles.color = color;
-            var yawRot = Quaternion.AngleAxis(yaw, axes.up * k_AxisLength);
+            Quaternion yawRot = Quaternion.AngleAxis(yaw, axes.up * k_AxisLength);
             Handles.DrawSolidArc(anchor, yawRot * axes.right, yawRot * axes.forward, pitch, arcRadius);
             Handles.DrawLine(anchorPosition, anchorPosition + (yawRot * axes.forward) * axisLength);
         }
@@ -196,13 +193,13 @@ namespace UnityEngine
         // arguments are passed in world space
         void UpdateTransform(Vector3 up, Vector3 right, Vector3 forward, Vector3 anchor)
         {
-            var worldYawRot = Quaternion.AngleAxis(m_Yaw, up);
-            var worldPitchRot = Quaternion.AngleAxis(m_Pitch, right);
-            var worldPosition = anchor + (worldYawRot * worldPitchRot) * forward * m_Distance;
+            Quaternion worldYawRot = Quaternion.AngleAxis(m_Yaw, up);
+            Quaternion worldPitchRot = Quaternion.AngleAxis(m_Pitch, right);
+            Vector3 worldPosition = anchor + (worldYawRot * worldPitchRot) * forward * m_Distance;
             transform.position = worldPosition;
 
-            var lookAt = (anchor - worldPosition).normalized;
-            var worldRotation = Quaternion.LookRotation(lookAt, up) * Quaternion.AngleAxis(m_Roll, Vector3.forward);
+            Vector3 lookAt = (anchor - worldPosition).normalized;
+            Quaternion worldRotation = Quaternion.LookRotation(lookAt, up) * Quaternion.AngleAxis(m_Roll, Vector3.forward);
             transform.rotation = worldRotation;
         }
     }

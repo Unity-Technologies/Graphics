@@ -54,7 +54,7 @@ namespace UnityEditor
         public Func<int, object> getUserData;
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of GenericControl
         /// </summary>
         /// <param name="name">Name for the Generic Control</param>
         public GenericControl(string name) : base(name)

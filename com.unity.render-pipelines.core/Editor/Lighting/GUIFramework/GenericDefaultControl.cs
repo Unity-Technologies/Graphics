@@ -34,7 +34,7 @@ namespace UnityEditor
         public Func<IGUIState, object> getUserData;
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of GenericDefaultControl
         /// </summary>
         /// <param name="name">Name of the GenericDefaultControl</param>
         public GenericDefaultControl(string name) : base(name)

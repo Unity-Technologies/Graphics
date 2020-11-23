@@ -16,7 +16,7 @@ namespace UnityEditor
         public Action<IGUIState> onCommand;
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of CommandAction
         /// </summary>
         /// <param name="commandName">Command name</param>
         public CommandAction(string commandName)

@@ -21,7 +21,7 @@ namespace UnityEditor
         private int m_ClickCounter = 0;
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of ClickAction
         /// </summary>
         /// <param name="control">Current control</param>
         /// <param name="button">Button ID</param>

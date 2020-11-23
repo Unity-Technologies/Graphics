@@ -19,7 +19,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of HoverControlAction
         /// </summary>
         /// <param name="control">The control</param>
         public HoveredControlAction(Control control)

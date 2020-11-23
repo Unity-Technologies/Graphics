@@ -21,7 +21,7 @@ namespace UnityEditor
         public Vector3 anchorPosition { get; set; }
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of LightAnchorHandles
         /// </summary>
         public LightAnchorHandles()
         {

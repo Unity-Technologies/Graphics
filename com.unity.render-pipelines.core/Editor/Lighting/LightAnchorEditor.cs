@@ -47,7 +47,6 @@ namespace UnityEditor
 
         /// <summary>
         /// Code describing the Inspector
-        /// <returns>angle of rotation between -180 and 180</returns>
         /// </summary>
         public override void OnInspectorGUI()
         {

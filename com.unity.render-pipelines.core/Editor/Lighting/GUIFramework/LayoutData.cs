@@ -16,19 +16,19 @@ namespace UnityEditor
         /// </summary>
         public float distance;
         /// <summary>
-        /// Position vector
+        /// Position vector in world space
         /// </summary>
         public Vector3 position;
         /// <summary>
-        /// Forward vector
+        /// Forward vector in world space
         /// </summary>
         public Vector3 forward;
         /// <summary>
-        /// Up vector
+        /// Up vector in world space
         /// </summary>
         public Vector3 up;
         /// <summary>
-        /// Right vector
+        /// Right vector in world space
         /// </summary>
         public Vector3 right;
         /// <summary>

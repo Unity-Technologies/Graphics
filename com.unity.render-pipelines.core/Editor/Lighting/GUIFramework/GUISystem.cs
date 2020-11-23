@@ -23,7 +23,7 @@ namespace UnityEditor
 #endif
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of GUISystem
         /// </summary>
         /// <param name="guiState">The gui state</param>
         public GUISystem(IGUIState guiState)

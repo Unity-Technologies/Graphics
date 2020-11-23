@@ -14,7 +14,7 @@ namespace UnityEditor
         public static readonly float kPickDistance = 5f;
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of DefaultControl
         /// </summary>
         /// <param name="name">Name of the default control</param>
         public DefaultControl(string name) : base(name)

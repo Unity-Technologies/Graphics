@@ -58,7 +58,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of Control
         /// </summary>
         /// <param name="name">Name of the control</param>
         public Control(string name)

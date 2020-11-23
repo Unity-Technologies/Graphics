@@ -24,7 +24,7 @@ namespace UnityEditor
         public Action<IGUIState, Control, Vector3> onSliderEnd;
 
         /// <summary>
-        /// Constructor
+        /// Initializes and returns an instance of SliderAction
         /// </summary>
         /// <param name="control">Control</param>
         public SliderAction(Control control) : base(control, 0, false)
