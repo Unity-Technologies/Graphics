@@ -17,16 +17,16 @@ The following table provides a high level overview of the advantages and disadva
 
 Furthermore, the Graphics Compositor includes functionality such as *"localized post-processing"*, where a Post-Processing Volume only affects certain GameObjects in the Scene. 
 
-For a high level overview of the Graphics Compositor's functionality please refer to the [User Guide](Compositor-User-Guide) section. For a description on specific options in the user interface, please refer to the [User Options](Compositor-User-Options) section.
+For a high level overview of the Graphics Compositor's functionality please refer to the [User Guide](Compositor-User-Guide.md) section. For a description on specific options in the user interface, please refer to the [User Options](Compositor-User-Options.md) section.
 
 ## Composition example
 
 The following example uses the Graphics Compositor to render a watermark on top of a Unity Scene.
 ![](Images/Compositor-HDRPTemplateWithLogo.png)
 
-*The result.*
+*The result*
 
 
 ![](Images/Compositor-CompositorSimpleGraph.png)
 
-*The composition graph for the watermark example:*
+*The composition graph for the watermark example*
