@@ -27,7 +27,7 @@ The Sample Mesh or Skinned Mesh Operator allows you to fetch vertex data of a st
 | **Vertex**                | uint                  | The index of the vertex to sample.<br/>This property only appears if you set **Placement mode** to **Vertex**. |
 | **Index**                 | uint                  | The start index of edge, this index correspond of all consecutive edges of every triangles.<br/>This property only appears if you set **Placement mode** to **Edge**. |
 | **Triangle**              | uint                  | The index of triangle to sample, assuming the index buffer express a triangle list.<br/>This property only appears if you set **Placement mode** to **Surface**. |
-| **X**                     | float                 | Interpolation value between start and end edge position.<br/>This property only appears if you set **Placement mode** to **Edge**. |
+| **Edge**                  | float                 | Interpolation value between start and end edge position.<br/>This property only appears if you set **Placement mode** to **Edge**. |
 | **Barycentric**           | Vector2               | Raw barycentric coordinate of the triangle, x and y are exposed and z is computed to respect the surface constraint : z = 1 - x - y. This sampling do **not** keep sampling value inside triangle.<br/>This property only appears if you set **Placement mode** to **Surface** and **Surface coordinates** to **Barycentric**. |
 | **Square**                | Vector2               | Uniform placement inside the triangle described by [this mapping](https://hal.archives-ouvertes.fr/hal-02073696v2/document).<br/>This property only appears if you set **Placement mode** to **Surface** and **Surface coordinates** to **Uniform**. |
 

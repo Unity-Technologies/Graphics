@@ -70,8 +70,8 @@ namespace UnityEditor.VFX.Block
             [Tooltip("The start index of edge, line will be renderer with the following one.")]
             public uint index = 0u;
 
-            [Tooltip("Linear interpolation value between start and end edge position.")]
-            public float x;
+            [Range(0, 1), Tooltip("Linear interpolation value between start and end edge position.")]
+            public float edge;
         }
 
         public class CustomPropertiesPlacementSurfaceBarycentricCoordinates
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX.Block
                     if (parameter.name == nameof(CustomPropertiesMesh.mesh)
                         || parameter.name == nameof(CustomPropertiesPropertiesSkinnedMeshRenderer.skinnedMesh))
                         source = parameter.exp;
-                    else if (parameter.name == nameof(CustomPropertiesEdge.x)
+                    else if (parameter.name == nameof(CustomPropertiesEdge.edge)
                              || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.square)
                              || parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.barycentric))
                         coordinate = parameter.exp;
