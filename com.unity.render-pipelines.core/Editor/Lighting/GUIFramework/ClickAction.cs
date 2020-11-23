@@ -4,18 +4,18 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// Action for click
+    /// Represents an action to process when the user clicks a particular mouse button a certain number of times.
     /// </summary>
     public class ClickAction : HoveredControlAction
     {
         private int m_Button;
         private bool m_UseEvent;
         /// <summary>
-        /// Click count
+        /// The number of button clicks required to satisfy the trigger condition
         /// </summary>
         public int clickCount = 1;
         /// <summary>
-        /// Action during onClick
+        /// The Action to execute when the user satisfies the trigger condition.
         /// </summary>
         public Action<IGUIState, Control> onClick;
         private int m_ClickCounter = 0;
@@ -24,8 +24,8 @@ namespace UnityEditor
         /// Initializes and returns an instance of ClickAction
         /// </summary>
         /// <param name="control">Current control</param>
-        /// <param name="button">Button ID</param>
-        /// <param name="useEvent">If use an event</param>
+        /// <param name="button">The mouse button to check for.</param>
+        /// <param name="useEvent">Whether to Use the current event after the trigger condition has been met.</param>
         public ClickAction(Control control, int button, bool useEvent = true) : base(control)
         {
             m_Button = button;
@@ -33,10 +33,10 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Get if the trigger condition is validated or not
+        /// Checks to see if the trigger condition has been met or not.
         /// </summary>
-        /// <param name="guiState">The gui state</param>
-        /// <returns></returns>
+        /// <param name="guiState">The current state of the custom editor window.</param>
+        /// <returns>Returns true if the trigger condition has been met. Otherwise, returns false.</returns>
         protected override bool GetTriggerCondition(IGUIState guiState)
         {
             if (guiState.mouseButton == m_Button && guiState.eventType == EventType.MouseDown)
@@ -54,9 +54,9 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Calls the methods in its invocation list when triggered
+        /// Calls the methods in its invocation list when the trigger conditions are met.
         /// </summary>
-        /// <param name="guiState">The gui state</param>
+        /// <param name="guiState">The current state of the custom editor window.</param>
         protected override void OnTrigger(IGUIState guiState)
         {
             base.OnTrigger(guiState);
@@ -69,10 +69,10 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Get Finish Condition
+        /// Checks to see if the finish condition has been met or not. For a ClickAction, this is always true.
         /// </summary>
-        /// <param name="guiState">The gui state</param>
-        /// <returns>Always true</returns>
+        /// <param name="guiState">The current state of the custom editor window.</param>
+        /// <returns>Returns true.</returns>
         protected override bool GetFinishCondition(IGUIState guiState)
         {
             return true;
