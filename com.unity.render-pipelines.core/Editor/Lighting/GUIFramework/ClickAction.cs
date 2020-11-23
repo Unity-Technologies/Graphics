@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// Represents an action to process when the user clicks a particular mouse button a certain number of times.
+    /// Represents an Action to process when the user clicks a particular mouse button a certain number of times.
     /// </summary>
     public class ClickAction : HoveredControlAction
     {
@@ -35,8 +35,8 @@ namespace UnityEditor
         /// <summary>
         /// Checks to see if the trigger condition has been met or not.
         /// </summary>
-        /// <param name="guiState">The current state of the custom editor window.</param>
-        /// <returns>Returns true if the trigger condition has been met. Otherwise, returns false.</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <returns>Returns `true` if the trigger condition has been met. Otherwise, returns false.</returns>
         protected override bool GetTriggerCondition(IGUIState guiState)
         {
             if (guiState.mouseButton == m_Button && guiState.eventType == EventType.MouseDown)
@@ -56,7 +56,7 @@ namespace UnityEditor
         /// <summary>
         /// Calls the methods in its invocation list when the trigger conditions are met.
         /// </summary>
-        /// <param name="guiState">The current state of the custom editor window.</param>
+        /// <param name="guiState">The current state of the custom editor.</param>
         protected override void OnTrigger(IGUIState guiState)
         {
             base.OnTrigger(guiState);
@@ -69,10 +69,10 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Checks to see if the finish condition has been met or not. For a ClickAction, this is always true.
+        /// Checks to see if the finish condition has been met or not. For a ClickAction, this is always `true`.
         /// </summary>
-        /// <param name="guiState">The current state of the custom editor window.</param>
-        /// <returns>Returns true.</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <returns>Returns `true`.</returns>
         protected override bool GetFinishCondition(IGUIState guiState)
         {
             return true;
