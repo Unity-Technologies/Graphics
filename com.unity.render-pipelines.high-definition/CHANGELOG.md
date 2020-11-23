@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
 - Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
 - VFX : Debug material view were rendering pink for albedo. (case 1290752)
+- Fixed NaNs happening when upscaling ray tracing reflections in performance mode (case 1294076).
 
 ### Changed
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
