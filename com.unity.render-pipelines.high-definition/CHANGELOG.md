@@ -24,7 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the sampling of the normal buffer in the the forward transparent pass.
 - Fixed bloom prefiltering tooltip.
 - Fixed NullReferenceException when loading multipel scene async
-- Fixed missing alpha blend state properties in Axf sahder and update default stencil properties
+- Fixed missing alpha blend state properties in Axf shader and update default stencil properties
+- Fixed normal buffer not bound to custom pass anymore.
 
 ## [10.2.0] - 2020-10-19
 
