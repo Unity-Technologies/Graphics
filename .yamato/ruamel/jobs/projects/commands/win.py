@@ -17,10 +17,65 @@ def _cmd_base(project_folder, platform, utr_flags, editor):
 
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
-    base = _cmd_base(project_folder, platform, utr_args, editor)
+    quality_levels = []
+
+    for utr_arg in utr_args:
+        if ';' in utr_arg:
+            test_filters = utr_arg.split('=')
+            quality_level = test_filters[1][1:-1]
+            quality_levels = quality_level.split(';')
+            utr_args.remove(utr_arg)
+
+    utr_commands = []
+
+    if len(quality_levels) > 0:
+        for q in quality_levels:
+            str_in_list = any('testfilter' in string for string in utr_args)
+            if str_in_list == False:
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args] 
+                utr_command = f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+            else:
+                utr_args.pop()
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                utr_command = f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+                
+
+    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
+
+    base = [
+        f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat',
+        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"], cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only'
+    ]
+
+    git_utr_string = ''
+    utr_string = ''
+    if len(utr_commands) > 0:
+        for cmd in utr_commands:
+            git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {cmd}''')
+            base.append(git_utr_string)
+    else:
+        utr_string = utr_string + f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+    
+        git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {utr_string}''')
+        base.append(git_utr_string)
 
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
@@ -32,10 +87,66 @@ def cmd_editmode(project_folder, platform, api, test_platform, editor, build_con
 
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
-    base = _cmd_base(project_folder, platform, utr_args, editor)
+    quality_levels = []
+
+    for utr_arg in utr_args:
+        if ';' in utr_arg:
+            test_filters = utr_arg.split('=')
+            quality_level = test_filters[1][1:-1]
+            print(quality_level)
+            quality_levels = quality_level.split(';')
+            utr_args.remove(utr_arg)
+
+    utr_commands = []
+
+    if len(quality_levels) > 0:
+        for q in quality_levels:
+            str_in_list = any('testfilter' in string for string in utr_args)
+            if str_in_list == False:
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args] 
+                utr_command = f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+            else:
+                utr_args.pop()
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                utr_command = f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+                
+
+    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
+
+    base = [
+        f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat',
+        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"], cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only'
+    ]
+
+    git_utr_string = ''
+    utr_string = ''
+    if len(utr_commands) > 0:
+        for cmd in utr_commands:
+            git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {cmd}''')
+            base.append(git_utr_string)
+    else:
+        utr_string = utr_string + f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+    
+        git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {utr_string}''')
+        base.append(git_utr_string)
 
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
@@ -48,18 +159,135 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
+    quality_levels = []
+
+    for utr_arg in utr_args:
+        if ';' in utr_arg:
+            test_filters = utr_arg.split('=')
+            quality_level = test_filters[1][1:-1]
+            quality_levels = quality_level.split(';')
+            utr_args.remove(utr_arg)
+
+    utr_commands = []
+
+    if len(quality_levels) > 0:
+        for q in quality_levels:
+            str_in_list = any('testfilter' in string for string in utr_args)
+            if str_in_list == False:
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args] 
+                utr_command = f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+            else:
+                utr_args.pop()
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                tail = ''
+                for arg in utr_args:
+                    if 'players' in arg:
+                        head, sep, tail = arg.partition('players')
+                utr_args = [arg.replace(tail, q) for arg in utr_args]
+                utr_command = f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+                
+
+    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
+
     base = [f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat']
     if project_folder.lower() == 'UniversalGraphicsTest'.lower():
         base.append('cd Tools && powershell -command ". .\\Unity.ps1; Set-ScreenResolution -width 1920 -Height 1080"')
     
-    base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}')
+    git_utr_string = ''
+    utr_string = ''
+    if len(utr_commands) > 0:
+        for cmd in utr_commands:
+            git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {cmd}''')
+            base.append(git_utr_string)
+    else:
+        utr_string = utr_string + f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+    
+        git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {utr_string}''')
+        base.append(git_utr_string)
     
     return base
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder)  
-    base = _cmd_base(project_folder, platform, utr_args, editor)
+    utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder)
+
+    quality_levels = []
+
+    for utr_arg in utr_args:
+        if ';' in utr_arg:
+            test_filters = utr_arg.split('=')
+            quality_level = test_filters[1][1:-1]
+            quality_levels = quality_level.split(';')
+            utr_args.remove(utr_arg)
+
+    utr_commands = []
+
+    if len(quality_levels) > 0:
+        for q in quality_levels:
+            str_in_list = any('testfilter' in string for string in utr_args)
+            if str_in_list == False:
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                utr_args = [arg.replace('<TEST_FILTER>', q) for arg in utr_args] 
+                utr_command = f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+            else:
+                utr_args.pop()
+                testfilter = f'--testfilter={q}'
+                utr_args.append(testfilter)
+                tail = ''
+                for arg in utr_args:
+                    if 'players' in arg:
+                        head, sep, tail = arg.partition('players')
+                utr_args = [arg.replace(tail, q) for arg in utr_args]
+                utr_command = f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+                utr_commands.append(utr_command)
+                
+
+    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
+
+    base = [
+        f'curl -s {UTR_INSTALL_URL}.bat --output {TEST_PROJECTS_DIR}/{project_folder}/utr.bat',
+        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"], cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only'
+    ]
+
+    git_utr_string = ''
+    utr_string = ''
+    if len(utr_commands) > 0:
+        for cmd in utr_commands:
+            git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {cmd}''')
+            base.append(git_utr_string)
+    else:
+        utr_string = utr_string + f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr {" ".join(utr_args)}'
+    
+        git_utr_string =         pss(f'''
+         git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
+         set /p GIT_REVISIONDATE=<revdate.tmp
+         echo %GIT_REVISIONDATE%
+         del revdate.tmp
+         {utr_string}''')
+        base.append(git_utr_string)
     
     extra_cmds = extra_perf_cmd(project_folder)
     unity_config = install_unity_config(project_folder)
