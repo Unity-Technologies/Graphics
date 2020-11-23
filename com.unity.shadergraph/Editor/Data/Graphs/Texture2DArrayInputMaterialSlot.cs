@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             if (slot != null)
             {
                 m_TextureArray = slot.m_TextureArray;
-                m_BareResource = slot.m_BareResource;
+                bareResource = slot.bareResource;
             }
         }
     }

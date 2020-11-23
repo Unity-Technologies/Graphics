@@ -129,11 +129,14 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // declare output variables
-                foreach (var argument in outputSlots)
+                foreach (var output in outputSlots)
                 {
                     sb.AppendLine("{0} {1};",
-                        argument.concreteValueType.ToShaderString(),
-                        GetVariableNameForSlot(argument.id));
+                        output.concreteValueType.ToShaderString(),
+                        GetVariableNameForSlot(output.id));
+
+                    if (output.bareResource)
+                        AssignDefaultBareResource(output, sb);
                 }
 
                 // call function
@@ -142,45 +145,77 @@ namespace UnityEditor.ShaderGraph
                 sb.Append("_$precision(");
                 bool first = true;
 
-                foreach (var argument in inputSlots)
+                foreach (var input in inputSlots)
                 {
                     if (!first)
                         sb.Append(", ");
                     first = false;
 
-                    sb.Append(SlotInputValue(argument, generationMode));    // TODO: need to differentiate Texture2D from UnityTexture2D
+                    sb.Append(SlotInputValue(input, generationMode));
 
-                    // fixup input for Bare texture types
-                    if (argument.bareResource)
-                        if (argument is SamplerStateMaterialSlot)
+                    // fixup input for Bare types
+                    if (input.bareResource)
+                    {
+                        if (input is SamplerStateMaterialSlot)
                             sb.Append(".samplerstate");
                         else
                             sb.Append(".tex");
+                    }
                 }
-
-                foreach (var argument in outputSlots)
-                {
-                    if (!first)
-                        sb.Append(", ");
-                    first = false;
-                    sb.Append(GetVariableNameForSlot(argument.id));
-
-                    if (argument.bareResource)
-                        if (argument is SamplerStateMaterialSlot)
-                            sb.Append(".samplerstate");
-                        else
-                            sb.Append(".tex");
-                }
-                sb.Append(");");
-                sb.AppendNewLine();
 
                 foreach (var output in outputSlots)
                 {
+                    if (!first)
+                        sb.Append(", ");
+                    first = false;
+                    sb.Append(GetVariableNameForSlot(output.id));
+
+                    // fixup output for Bare types
                     if (output.bareResource)
                     {
-                        // fill in other values - sampler state, etc ??
+                        if (output is SamplerStateMaterialSlot)
+                            sb.Append(".samplerstate");
+                        else
+                            sb.Append(".tex");
                     }
                 }
+                sb.Append(");");
+                sb.AppendNewLine();
+            }
+        }
+
+        void AssignDefaultBareResource(MaterialSlot slot, ShaderStringBuilder sb)
+        {
+            switch (slot.concreteValueType)
+            {
+                case ConcreteSlotValueType.Texture2D:
+                    {
+                        var slotVariable = GetVariableNameForSlot(slot.id);
+                        sb.AppendIndentation();
+                        sb.Append(slotVariable);
+                        sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
+                        sb.AppendNewLine();
+                        sb.AppendIndentation();
+                        sb.Append(slotVariable);
+                        sb.Append(".texelSize = float4(1.0f/128.0f, 1.0f/128.0f, 128.0f, 128.0f);");
+                        sb.AppendNewLine();
+                        sb.AppendIndentation();
+                        sb.Append(slotVariable);
+                        sb.Append(".scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);");
+                        sb.AppendNewLine();
+                    }
+                    break;
+                case ConcreteSlotValueType.Texture3D:
+                case ConcreteSlotValueType.Texture2DArray:
+                case ConcreteSlotValueType.Cubemap:
+                    {
+                        var slotVariable = GetVariableNameForSlot(slot.id);
+                        sb.AppendIndentation();
+                        sb.Append(slotVariable);
+                        sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
+                        sb.AppendNewLine();
+                    }
+                    break;
             }
         }
 
@@ -339,7 +374,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (slot.bareResource)
                     {
-                        owner.AddValidationError(objectId, "This node uses Bare Texture or SamplerState outputs, which may not work when fed to other nodes. Please convert the node to use full struct-based outputs (see the structs defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl)", ShaderCompilerMessageSeverity.Warning);
+                        owner.AddValidationError(objectId, "This node uses Bare Texture or SamplerState outputs, which may produce unexpected results when fed to other nodes. Please convert the node to use the non-Bare struct-based outputs (see the structs defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl)", ShaderCompilerMessageSeverity.Warning);
                         break;
                     }
                 }
