@@ -15,4 +15,29 @@ MonoBehaviour:
   m_EnablePreviewPackages: 1
   m_EnablePackageDependencies: 0
   m_AdvancedSettingsExpanded: 1
+  m_ScopedRegistriesSettingsExpanded: 1
   oneTimeWarningShown: 1
+  m_Registries:
+  - m_Id: main
+    m_Name: 
+    m_Url: https://packages.unity.com
+    m_Scopes: []
+    m_IsDefault: 1
+    m_Capabilities: 7
+  m_UserSelectedRegistryName: 
+  m_UserAddingNewScopedRegistry: 0
+  m_RegistryInfoDraft:
+    m_ErrorMessage: 
+    m_Original:
+      m_Id: 
+      m_Name: 
+      m_Url: 
+      m_Scopes: []
+      m_IsDefault: 0
+      m_Capabilities: 0
+    m_Modified: 0
+    m_Name: 
+    m_Url: 
+    m_Scopes:
+    - 
+    m_SelectedScopeIndex: 0
