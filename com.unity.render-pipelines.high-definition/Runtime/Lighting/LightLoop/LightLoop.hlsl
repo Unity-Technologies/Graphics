@@ -348,7 +348,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             while (v_envLightListOffset < envLightCount)
             {
                 v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
+    #if SCALARIZE_LIGHT_LOOP
                 uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
+    #else
+                uint s_envLightIdx = v_envLightIdx;
+    #endif
                 if (s_envLightIdx == -1)
                     break;
 
