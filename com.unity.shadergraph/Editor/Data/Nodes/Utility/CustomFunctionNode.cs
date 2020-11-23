@@ -283,9 +283,7 @@ namespace UnityEditor.ShaderGraph
                     if (!first)
                         sb.Append(", ");
                     first = false;
-                    sb.Append(argument.GetHLSLVariableType());
-                    sb.Append(" ");
-                    sb.Append(argument.shaderOutputName);
+                    argument.AppendHLSLParameterDeclaration(sb, argument.shaderOutputName);
                 }
 
                 foreach (var argument in outputSlots)
@@ -294,9 +292,7 @@ namespace UnityEditor.ShaderGraph
                         sb.Append(", ");
                     first = false;
                     sb.Append("out ");
-                    sb.Append(argument.GetHLSLVariableType());
-                    sb.Append(" ");
-                    sb.Append(argument.shaderOutputName);
+                    argument.AppendHLSLParameterDeclaration(sb, argument.shaderOutputName);
                 }
 
                 sb.Append(")");

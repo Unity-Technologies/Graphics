@@ -28,12 +28,16 @@ namespace UnityEditor.ShaderGraph
             set { m_BareResource = value; }
         }
 
-        public override string GetHLSLVariableType()
+        public override void AppendHLSLParameterDeclaration(ShaderStringBuilder sb, string paramName)
         {
             if (m_BareResource)
-                return "TextureCube";
+            {
+                sb.Append("TEXTURECUBE(");
+                sb.Append(paramName);
+                sb.Append(")");
+            }
             else
-                return concreteValueType.ToShaderString();
+                base.AppendHLSLParameterDeclaration(sb, paramName);
         }
 
         public override SlotValueType valueType { get { return SlotValueType.Cubemap; } }

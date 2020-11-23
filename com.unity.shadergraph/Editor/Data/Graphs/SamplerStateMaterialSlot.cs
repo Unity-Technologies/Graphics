@@ -30,12 +30,18 @@ namespace UnityEditor.ShaderGraph
             set { m_BareResource = value; }
         }
 
-        public override string GetHLSLVariableType()
+        public override void AppendHLSLParameterDeclaration(ShaderStringBuilder sb, string paramName)
         {
             if (m_BareResource)
-                return "SamplerState";
+            {
+                // we have to use our modified macro declaration here, to ensure that something is declared for GLES2 platforms
+                // (the standard SAMPLER macro doesn't declare anything, so the commas will be messed up in the parameter list)
+                sb.Append("UNITY_BARE_SAMPLER(");
+                sb.Append(paramName);
+                sb.Append(")");
+            }
             else
-                return concreteValueType.ToShaderString();
+                base.AppendHLSLParameterDeclaration(sb, paramName);
         }
 
         public override string GetDefaultValue(GenerationMode generationMode)
