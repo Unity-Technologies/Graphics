@@ -703,7 +703,7 @@ void OUTPUT_SHADOW_TEXTURE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     previousShadowValues.xyz = _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].xyz;
     _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = previousShadowValues;
 #elif defined(SPECULAR_SHADOW)
-    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * max(0, previousShadowValues) 
+    _ScreenSpaceShadowsTextureRW[uint3(currentCoord, shadowSlot)] = (1.0 - _RaytracingChannelMask) * max(0, previousShadowValues)
                                                                     + _RaytracingChannelMask0 * _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].x
                                                                     + _RaytracingChannelMask1 * _RaytracedShadowIntegration[COORD_TEXTURE2D_X(currentCoord)].y;
 #else

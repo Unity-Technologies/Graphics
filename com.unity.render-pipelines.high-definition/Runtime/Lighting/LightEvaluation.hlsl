@@ -488,7 +488,7 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
     // Note that we override shadow value (in case we don't have any dynamic shadow)
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
-    
+
     // When screen space shadows are not supported, this value is stripped out as it is a constant.
     bool validScreenSpace = false;
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
