@@ -171,3 +171,13 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 0}
     Tutorial: {fileID: 11400000, guid: 9d614f6782108e74a86a3633362490da, type: 2}
+  - OrderInView: 30
+    Heading:
+      m_Untranslated: Density Volume
+    Text:
+      m_Untranslated: 
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: 2d4fd22e1b9ec5b4bbf9b0d3841fa6ef, type: 2}

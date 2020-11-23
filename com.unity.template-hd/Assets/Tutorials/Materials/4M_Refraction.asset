@@ -47,8 +47,8 @@ MonoBehaviour:
           Material</i>\n4) The <b>Surface Type</b> must be set to <b>Transparent</b>.
           This exposes the <b>Transparency Inputs</b> section in the <i>Inspector</i>.\n5)
           Click the <b>Refraction Model</b> drop-down and set the <b>Refraction Model</b>
-          to None and back.\n\nNow you can see that the table has a frosted glass
-          which you can adjust using smoothnes slider. "
+          to None and back.\n\nRefraction allows us to create this frosted glass
+          effect which you can adjust using the smoothness slider above."
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

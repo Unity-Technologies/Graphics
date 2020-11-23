@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 6M_Subsurface
+  m_Name: 0_What
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: 80aae804239dc61458cd1b41b88c68f4, type: 3}
+      m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,15 +37,13 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Subsurface Scattering
+        m_Untranslated: Density Volume
       Text:
-        m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>Props->Room2->NatureSetPiece_02
-          ->Bamboo_A_Snaps004</b> \n2) Select <b>Geometry_Bamboo_A_LOD00</b> gameobject\n3)
-          Go to <i>Inspector</i> window -> expand the <i>Bamboo_Leaf_A Material</i>\n4)
-          Under Surface options, uncheck Transmission\r\n5) Undo, by enabling it
-          again\r\n\nThis subfeature of subsurface scattering allows the sun to penetrate
-          through bamboo leaves, bringing a significant improvement to the scenes
-          visuals."
+        m_Untranslated: A Density Volume is a an additive Volume of fog represented
+          as an oriented bounding box. By default, fog is constant (homogeneous),
+          but you can alter it by assigning a Density Mask 3D texture to the Texture
+          field under the Density Mask Texture section.  Currently, HDRP supports
+          3D textures at a resolution of 32x32x32.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -66,9 +64,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0.99356216
-    m_Pivot: {x: 29.403143, y: 1.6917086, z: -2.5656648}
-    m_Rotation: {x: -0.15519787, y: 0.5945566, z: 0.118301295, w: 0.7800311}
+    m_Size: 9.349025
+    m_Pivot: {x: 37.766357, y: 1.7219006, z: -11.0042515}
+    m_Rotation: {x: 0.0076019387, y: 0.96007496, z: -0.026227767, w: 0.278467}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
