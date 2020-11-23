@@ -47,7 +47,6 @@ namespace UnityEditor.Rendering.Universal
             m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
         }
-
         private void OnDisable()
         {
             ClearEditorsList();
