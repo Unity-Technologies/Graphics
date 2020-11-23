@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
-### Changed
-- Removed the material pass probe volumes evaluation mode. 
-
 ### Fixed
 - Fixed probe volumes debug views.
 - Fixed XR single-pass rendering with legacy shaders using unity_StereoWorldSpaceCameraPos.
@@ -27,6 +24,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing alpha blend state properties in Axf shader and update default stencil properties
 - Fixed normal buffer not bound to custom pass anymore.
 - Fixed issues with camera management in the graphics compositor (cases 1292548, 1292549).
+- Fixes some labels being clipped in the Render Graph Viewer
+
+### Changed
+- Removed the material pass probe volumes evaluation mode.
+- Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
+- Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
 
 ## [10.2.0] - 2020-10-19
 
