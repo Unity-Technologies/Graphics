@@ -26,21 +26,21 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_tru
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Low
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Low
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=High
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=High
     artifacts:
         logs:
             paths:
@@ -263,21 +263,21 @@ URP_Performance_BoatAttack_Win_DX11_performance_playmode_runtime_mono_Linear_CUS
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Low
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Low
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=Medium
       -  |5-
 
                   git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
                   set /p GIT_REVISIONDATE=<revdate.tmp
                   echo %GIT_REVISIONDATE%
                   del revdate.tmp
-                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=High
+                  cd TestProjects/BoatAttack && utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --reruncount=2 --suite=playmode --timeout=1200 --testfilter=High
     artifacts:
         logs:
             paths:
