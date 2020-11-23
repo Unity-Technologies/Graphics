@@ -202,6 +202,9 @@ namespace UnityEditor.VFX.UI
                         if (typeof(VFXModel).IsAssignableFrom(field.FieldType) || field.FieldType.IsGenericType && typeof(VFXModel).IsAssignableFrom(field.FieldType.GetGenericArguments()[0]))
                             continue;
 
+                        if (typeof(UnityEngine.VFX.VFXSpawnerCallbacks).IsAssignableFrom(field.FieldType)) //TODOPAUL Remove this
+                            continue;
+
                         fields.Add(field);
                     }
                     type = type.BaseType;

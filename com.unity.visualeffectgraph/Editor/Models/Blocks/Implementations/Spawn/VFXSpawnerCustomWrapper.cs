@@ -27,7 +27,7 @@ namespace UnityEditor.VFX
         protected SerializableType m_customType;
 
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
-        protected ScriptableObject m_instance;
+        protected VFXSpawnerCallbacks m_instance;
 
         private void ResolveCustomCallbackInstance()
         {
@@ -35,23 +35,17 @@ namespace UnityEditor.VFX
             if (m_instance != null)
                 m_customType = m_instance.GetType();
 
-            //m_instance is null in three cases :
+            //1) m_instance is null in three cases :
             // - Newly created VFXSpawnerCustomWrapper, m_customType changed by SetSettingValue.
             // - VFXSpawnerCallbacks has been suppressed, in that case, m_customType.text can display a message and m_customType == null.
             // - VFXSpawnerCallbacks has been restored, m_customType != null, rebuild the m_instance.
-            if (m_customType != null && m_instance == null)
-            {
-                m_instance = CreateInstance(m_customType);
-            }
-
-            //FromScriptableObject returns null but we have stored an instance with unexpected id
+            //2) At this point customBehavior could returns null even if m_instance != null
             // - We have an VFXSpawnerCallbacks named "A" in "A.cs"
             // - Rename A.cs to B.cs without rename A class, it will log "Invalid scriptable object" as expected.
             // - Rename B.cs to A.cs, the instance still relies on previous B.cs, should rebuild m_instance to fix FromScriptableObject.
-            if (customBehavior == null && m_instance != null && m_instance.GetType() == (Type)m_customType)
-            {
-                m_instance = CreateInstance(m_customType);
-            }
+            //3) m_instance.GetType() == (Type)m_customType always forces a recreation to cover cross reference avoidance from Copy/Past
+            if (m_customType != null && (m_instance == null || m_instance.GetType() == (Type)m_customType))
+                m_instance = CreateInstance(m_customType) as VFXSpawnerCallbacks;
         }
 
         public override void Sanitize(int version)
