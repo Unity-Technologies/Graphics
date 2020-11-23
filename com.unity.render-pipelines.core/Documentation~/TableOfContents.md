@@ -1,8 +1,8 @@
-* [SRP Core](index)
+* [SRP Core](index.md)
 
 * Camera components
-  * [Free Camera](Free-Camera)
-  * [Camera Switcher](Camera-Switcher)
+  * [Free Camera](Free-Camera.md)
+  * [Camera Switcher](Camera-Switcher.md)
   
 * [Render Graph](render-graph-system.md)
   * [Benefits of the render graph system](render-graph-benefits.md)
@@ -13,7 +13,7 @@
   * [RTHandle fundamentals](rthandle-system-fundamentals.md)
   * [Using the RTHandle system](rthandle-system-using.md)
 
-* [Look Dev](Look-Dev)
-  * [Environment Library](Look-Dev-Environment-Library)
+* [Look Dev](Look-Dev.md)
+  * [Environment Library](Look-Dev-Environment-Library.md)
   
-* [View Lighting Tool](View-Lighting-Tool)
+* [View Lighting Tool](view-lighting-tool.md)
