@@ -73,6 +73,24 @@ namespace UnityEditor.VFX.Test
             camera.transform.LookAt(vfxComponent.transform);
         }
 
+        [UnityTest]
+        public IEnumerator Sanitize_VFXSpawnerCustomCallback_Namespace()
+        {
+            string kSourceAsset = "Assets/AllTests/Editor/Tests/VFXSpawnerCustomCallbackBuiltin.vfx_";
+            var graph = VFXTestCommon.CopyTemporaryGraph(kSourceAsset);
+
+            Assert.AreEqual(1, graph.GetNbChildren());
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            Assert.AreEqual(4, basicSpawner.GetNbChildren());
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("SpawnOverDistance")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("SetSpawnTime")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("LoopAndDelay")));
+            Assert.IsNotNull(basicSpawner.children.FirstOrDefault(o => o.name == ObjectNames.NicifyVariableName("IncrementStripIndexOnStart")));
+
+            yield return null;
+        }
+
+
         static string[] k_Create_Asset_And_Check_Event_ListCases = new[] { "OnPlay", "Test_Event" };
 
         [UnityTest]
