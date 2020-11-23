@@ -7,12 +7,15 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class ProbeReferenceVolume
     {
+        [System.Serializable]
         public struct Cell
         {
             public int index;
             public Vector3Int position;
             public List<Brick> bricks;
             public Vector3[] probePositions;
+            public SphericalHarmonicsL1[] sh;
+            public float[] validity;
         }
 
         public struct Volume
@@ -152,6 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (_instance == null)
                 {
+                    // TODO: Allow resizing
                     _instance = new ProbeReferenceVolume(64, 1024 * 1024 * 1024, new Vector3Int(1024, 64, 1024));
                 }
                 return _instance;
