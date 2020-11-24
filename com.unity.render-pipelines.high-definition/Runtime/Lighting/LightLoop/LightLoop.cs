@@ -1941,6 +1941,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     var capturedForwardWS = renderData.captureRotation * Vector3.forward;
                     //capturedForwardWS.z *= -1; // Transform to RHS standard
                     m_TextureCaches.env2DCaptureForward[fetchIndex] = new Vector4(capturedForwardWS.x, capturedForwardWS.y, capturedForwardWS.z, 0.0f);
+
+                    if (probe.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                        envLightData.rangeCompressionFactorCompensation = 1.0f / probe.ProbeExposureValue();
+                    else
+                        envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
                     break;
                 }
                 case HDAdditionalReflectionData _:
@@ -1956,6 +1961,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         out _, out var cameraPositionSettings, 0
                     );
                     capturePosition = cameraPositionSettings.position;
+                    envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
 
                     break;
                 }
@@ -1969,7 +1975,6 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = processedProbe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.reflectionProbeIntensityMultiplier.value;
-            envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
             envLightData.influenceExtents = influence.extents;
             switch (influence.envShape)
             {
