@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         RenderQueueType m_RenderingPass = RenderQueueType.Opaque;
-        public RenderQueueType renderingPass
+        public RenderQueueType renderQueueType
         {
             get => m_RenderingPass;
             set => m_RenderingPass = value;
@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_ZTest;
             set => m_ZTest = value;
-        }    
+        }
 
         [SerializeField]
         bool m_ZWrite = false;
@@ -150,7 +150,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 case HDRenderQueue.RenderQueueType.Unknown:
                 case HDRenderQueue.RenderQueueType.Background:
                     throw new ArgumentException("Unexpected kind of RenderQueue, was " + value);
-            };
+            }
+            ;
 
             // Update for SurfaceType
             switch (systemData.surfaceType)
@@ -165,10 +166,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     throw new ArgumentException("Unknown SurfaceType");
             }
 
-            if (Equals(systemData.renderingPass, value))
+            if (Equals(systemData.renderQueueType, value))
                 return false;
 
-            systemData.renderingPass = value;
+            systemData.renderQueueType = value;
             return true;
         }
     }

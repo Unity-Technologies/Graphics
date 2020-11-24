@@ -361,18 +361,18 @@ namespace UnityEditor.Rendering.Universal
             const int k_ShadowResolutionTiersCount = 3;
             var values = new[] { m_AdditionalLightsShadowResolutionTierLowProp, m_AdditionalLightsShadowResolutionTierMediumProp, m_AdditionalLightsShadowResolutionTierHighProp};
 
-            var num = contentRect.width / (float) k_ShadowResolutionTiersCount; // space allocated for every field including the label
-                                                                                
+            var num = contentRect.width / (float)k_ShadowResolutionTiersCount;  // space allocated for every field including the label
+
             var indentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0; // Reset the indentation
 
             float pixelShift = 0;  // Variable to keep track of the current pixel shift in the rectangle we were assigned for this whole section.
-            for(var index = 0; index < k_ShadowResolutionTiersCount; ++index)
+            for (var index = 0; index < k_ShadowResolutionTiersCount; ++index)
             {
                 var labelWidth = Mathf.Clamp(EditorStyles.label.CalcSize(Styles.additionalLightsShadowResolutionTierNames[index]).x, 0, num);
                 EditorGUI.LabelField(new Rect(contentRect.x + pixelShift, contentRect.y, labelWidth, contentRect.height), Styles.additionalLightsShadowResolutionTierNames[index]);
                 pixelShift += labelWidth;           // We need to remove from the position the label size that we've just drawn and shift by it's length
-                float spaceLeft = num - labelWidth; // The amount of space left for the field                                                   
+                float spaceLeft = num - labelWidth; // The amount of space left for the field
                 if (spaceLeft > 2) // If at least two pixels are left to draw this field, draw it, otherwise, skip
                 {
                     var fieldSlot = new Rect(contentRect.x + pixelShift, contentRect.y, num - labelWidth, contentRect.height); // Define the rectangle for the field
@@ -418,7 +418,7 @@ namespace UnityEditor.Rendering.Universal
                     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
                 else if (cascadeCount == 1)
                     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
-                
+
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
@@ -499,13 +499,13 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.ObjectField(objRect, prop.GetArrayElementAtIndex(index), GUIContent.none);
-                if(EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck())
                     EditorUtility.SetDirty(target);
 
                 Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
                 var defaultRenderer = m_DefaultRendererProp.intValue;
                 GUI.enabled = index != defaultRenderer;
-                if(GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
+                if (GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
                 {
                     m_DefaultRendererProp.intValue = index;
                     EditorUtility.SetDirty(target);
@@ -551,7 +551,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (li.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
                 {
-                    if(li.serializedProperty.GetArrayElementAtIndex(li.serializedProperty.arraySize - 1).objectReferenceValue != null)
+                    if (li.serializedProperty.GetArrayElementAtIndex(li.serializedProperty.arraySize - 1).objectReferenceValue != null)
                         li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
                     li.serializedProperty.arraySize--;
                     li.index = li.count - 1;

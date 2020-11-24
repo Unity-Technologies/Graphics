@@ -30,7 +30,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var shapeBox = shapeBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, ProbeVolumeUI.Styles.k_BaseHandlesColor);
                 shapeBox.monoHandle = false;
                 blendBoxes[targets[i] as ProbeVolume] = new HierarchicalBox(ProbeVolumeUI.Styles.k_GizmoColorBase, InfluenceVolumeUI.k_HandlesColor, parent: shapeBox);
-
             }
         }
 
@@ -78,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 blendBox.center = CenterBlendLocalPosition(probeVolume);
                 blendBox.size = BlendSize(probeVolume);
                 Color baseColor = probeVolume.parameters.debugColor;
-                baseColor.a = 8/255f;
+                baseColor.a = 8 / 255f;
                 blendBox.baseColor = baseColor;
                 blendBox.DrawHull(EditMode.editMode == k_EditBlend);
 
@@ -154,7 +153,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             probeVolume.parameters.size = shapeBox.size;
 
                             Vector3 delta = probeVolume.transform.rotation * shapeBox.center - probeVolume.transform.position;
-                            probeVolume.transform.position += delta; ;
+                            probeVolume.transform.position += delta;;
                         }
                     }
                     break;

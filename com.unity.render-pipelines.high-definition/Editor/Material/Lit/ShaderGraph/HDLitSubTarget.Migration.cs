@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             m_MigrateFromOldSG = true;
 
             blockMap = null;
-            switch(masterNode)
+            switch (masterNode)
             {
                 case PBRMasterNode1 pbrMasterNode:
                     UpgradePBRMasterNode(pbrMasterNode, out blockMap);
@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
             systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             // Previous master node wasn't having any renderingPass. Assign it correctly now.
-            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
+            systemData.renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.dotsInstancing = false;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
             builtinData.addPrecomputedVelocity = false;
@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // PBRMasterNode adds/removes Metallic/Specular based on settings
             BlockFieldDescriptor specularMetallicBlock;
             int specularMetallicId;
-            if(litData.materialType == HDLitData.MaterialType.SpecularColor)
+            if (litData.materialType == HDLitData.MaterialType.SpecularColor)
             {
                 specularMetallicBlock = BlockFields.SurfaceDescription.Specular;
                 specularMetallicId = 3;
@@ -106,10 +106,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Set data
             systemData.surfaceType = (SurfaceType)hdLitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdLitMasterNode.m_AlphaMode);
-            systemData.renderingPass = hdLitMasterNode.m_RenderingPass;
+            systemData.renderQueueType = HDRenderQueue.MigrateRenderQueueToHDRP10(hdLitMasterNode.m_RenderingPass);
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.PreRefraction && !hdLitMasterNode.m_DrawBeforeRefraction)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Transparent;
             // Patch rendering pass in case the master node had an old configuration
-            if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
-                systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
+            if (systemData.renderQueueType == HDRenderQueue.RenderQueueType.Background)
+                systemData.renderQueueType = HDRenderQueue.RenderQueueType.Opaque;
             systemData.alphaTest = hdLitMasterNode.m_AlphaTest;
             systemData.sortPriority = hdLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdLitMasterNode.m_DoubleSidedMode;
@@ -146,7 +148,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             litData.clearCoat = UpgradeCoatMask(hdLitMasterNode);
             litData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;
             litData.rayTracing = hdLitMasterNode.m_RayTracing;
-            litData.refractionModel = hdLitMasterNode.m_RefractionModel; 
+            litData.refractionModel = hdLitMasterNode.m_RefractionModel;
             litData.materialType = materialType;
             litData.sssTransmission = hdLitMasterNode.m_SSSTransmission;
 
@@ -154,16 +156,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
+            BlockFieldDescriptor tangentBlock;
+            switch (lightingData.normalDropOffSpace)
             {
                 case NormalDropOffSpace.Object:
                     normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentOS;
                     break;
                 case NormalDropOffSpace.World:
                     normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentWS;
                     break;
                 default:
                     normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    tangentBlock = HDBlockFields.SurfaceDescription.TangentTS;
                     break;
             }
 
@@ -173,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { HDLitMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
                 { HDLitMasterNode1.SlotMask.Normal, normalBlock },
                 { HDLitMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
-                { HDLitMasterNode1.SlotMask.Tangent, HDBlockFields.SurfaceDescription.Tangent },
+                { HDLitMasterNode1.SlotMask.Tangent, tangentBlock },
                 { HDLitMasterNode1.SlotMask.Anisotropy, HDBlockFields.SurfaceDescription.Anisotropy },
                 { HDLitMasterNode1.SlotMask.SubsurfaceMask, HDBlockFields.SurfaceDescription.SubsurfaceMask },
                 { HDLitMasterNode1.SlotMask.Thickness, HDBlockFields.SurfaceDescription.Thickness },
@@ -197,7 +203,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Legacy master node slots have additional slot conditions, test them here
             bool AdditionalSlotMaskTests(HDLitMasterNode1.SlotMask slotMask)
             {
-                switch(slotMask)
+                switch (slotMask)
                 {
                     case HDLitMasterNode1.SlotMask.Thickness:
                         return litData.sssTransmission || litData.materialType == HDLitData.MaterialType.Translucent;
@@ -222,7 +228,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 var node = masterNode as AbstractMaterialNode;
                 var coatMaskSlot = node.FindSlot<Vector1MaterialSlot>(coatMaskSlotId);
-                if(coatMaskSlot == null)
+                if (coatMaskSlot == null)
                     return false;
 
                 coatMaskSlot.owner = node;
@@ -239,33 +245,33 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockMap.Add(BlockFields.VertexDescription.Tangent, HDLitMasterNode1.VertexTangentSlotID);
 
             // Now handle the SlotMask cases
-            foreach(HDLitMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(HDLitMasterNode1.SlotMask)))
+            foreach (HDLitMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(HDLitMasterNode1.SlotMask)))
             {
-                if(hdLitMasterNode.MaterialTypeUsesSlotMask(slotMask))
+                if (hdLitMasterNode.MaterialTypeUsesSlotMask(slotMask))
                 {
-                    if(!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
+                    if (!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
                         continue;
 
-                    if(!AdditionalSlotMaskTests(slotMask))
+                    if (!AdditionalSlotMaskTests(slotMask))
                         continue;
-                    
+
                     var slotId = Mathf.Log((int)slotMask, 2);
                     blockMap.Add(blockFieldDescriptor, (int)slotId);
                 }
             }
-            
+
             // Specular AA
-            if(lightingData.specularAA)
+            if (lightingData.specularAA)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, HDLitMasterNode1.SpecularAAScreenSpaceVarianceSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAThreshold, HDLitMasterNode1.SpecularAAThresholdSlotId);
             }
 
             // Refraction
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
-            if(hasRefraction)
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderQueueType != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            if (hasRefraction)
             {
-                if(!blockMap.TryGetValue(HDBlockFields.SurfaceDescription.Thickness, out _))
+                if (!blockMap.TryGetValue(HDBlockFields.SurfaceDescription.Thickness, out _))
                 {
                     blockMap.Add(HDBlockFields.SurfaceDescription.Thickness, HDLitMasterNode1.ThicknessSlotId);
                 }
@@ -284,14 +290,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Override Baked GI
-            if(lightingData.overrideBakedGI)
+            if (lightingData.overrideBakedGI)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.BakedGI, HDLitMasterNode1.LightingSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.BakedBackGI, HDLitMasterNode1.BackLightingSlotId);
             }
 
             // Depth Offset (Removed from SlotMask because of missing bits)
-            if(builtinData.depthOffset)
+            if (builtinData.depthOffset)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.DepthOffset, HDLitMasterNode1.DepthOffsetSlotId);
             }

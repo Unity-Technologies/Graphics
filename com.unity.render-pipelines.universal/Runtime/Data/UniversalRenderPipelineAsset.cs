@@ -75,6 +75,7 @@ namespace UnityEngine.Rendering.Universal
         AllShaders,
     }
 
+    [Obsolete("PipelineDebugLevel is unused and has no effect.", false)]
     public enum PipelineDebugLevel
     {
         Disabled,
@@ -120,7 +121,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsTerrainHoles = true;
 
         // Quality settings
-        [SerializeField] bool m_SupportsHDR = false;
+        [SerializeField] bool m_SupportsHDR = true;
         [SerializeField] MsaaQuality m_MSAA = MsaaQuality.Disabled;
         [SerializeField] float m_RenderScale = 1.0f;
         // TODO: Shader Quality Tiers
@@ -154,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseSRPBatcher = true;
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
-        [SerializeField] PipelineDebugLevel m_DebugLevel = PipelineDebugLevel.Disabled;
+        [SerializeField][Obsolete] PipelineDebugLevel m_DebugLevel;
 
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
@@ -220,7 +221,7 @@ namespace UnityEngine.Rendering.Universal
                 "UniversalRenderPipelineAsset.asset", null, null);
         }
 
-        static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true)
+        internal static ScriptableRendererData CreateRendererAsset(string path, RendererType type, bool relativePath = true)
         {
             ScriptableRendererData data = CreateRendererData(type);
             string dataPath;
@@ -292,7 +293,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_RendererDataList[0] == null)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
-                if(k_AssetPreviousVersion != k_AssetVersion)
+                if (k_AssetPreviousVersion != k_AssetVersion)
                     return null;
 
                 Debug.LogError(
@@ -584,13 +585,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal int GetAdditionalLightsShadowResolution(int additionalLightsShadowResolutionTier)
         {
-            if (additionalLightsShadowResolutionTier <= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow    /* 0 */)
+            if (additionalLightsShadowResolutionTier <= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierLow /* 0 */)
                 return additionalLightsShadowResolutionTierLow;
 
             if (additionalLightsShadowResolutionTier == UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierMedium /* 1 */)
                 return additionalLightsShadowResolutionTierMedium;
 
-            if (additionalLightsShadowResolutionTier >= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh   /* 2 */)
+            if (additionalLightsShadowResolutionTier >= UniversalAdditionalLightData.AdditionalLightsShadowResolutionTierHigh /* 2 */)
                 return additionalLightsShadowResolutionTierHigh;
 
             return additionalLightsShadowResolutionTierMedium;
@@ -691,9 +692,10 @@ namespace UnityEngine.Rendering.Universal
             set { m_ShaderVariantLogLevel = value; }
         }
 
+        [Obsolete("PipelineDebugLevel is deprecated. Calling debugLevel is not necessary.", false)]
         public PipelineDebugLevel debugLevel
         {
-            get => m_DebugLevel;
+            get => PipelineDebugLevel.Disabled;
         }
 
         public bool useSRPBatcher
@@ -714,10 +716,10 @@ namespace UnityEngine.Rendering.Universal
             set { m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize); }
         }
 
-       /// <summary>
-       /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.
-       /// Only applicable when Adaptive performance package is available.
-       /// </summary>
+        /// <summary>
+        /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.
+        /// Only applicable when Adaptive performance package is available.
+        /// </summary>
         public bool useAdaptivePerformance
         {
             get { return m_UseAdaptivePerformance; }
@@ -900,7 +902,7 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         static void UpgradeAsset(UniversalRenderPipelineAsset asset)
         {
-            if(asset.k_AssetPreviousVersion < 5)
+            if (asset.k_AssetPreviousVersion < 5)
             {
                 if (asset.m_RendererType == RendererType.ForwardRenderer)
                 {
@@ -919,6 +921,7 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
         }
+
 #endif
 
         float ValidateShadowBias(float value)

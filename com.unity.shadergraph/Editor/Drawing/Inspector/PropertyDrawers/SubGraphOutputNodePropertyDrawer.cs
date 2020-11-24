@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -20,6 +20,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             inputListView.OnAddCallback += list => inspectorUpdateDelegate();
             inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
             inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
+            inputListView.AllowedTypeCallback = SlotValueHelper.AllowedAsSubgraphOutput;
             propertySheet.Add(inputListView);
             propertyVisualElement = propertySheet;
             return propertySheet;
@@ -31,7 +32,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (SubGraphOutputNode) actualObject,
+                (SubGraphOutputNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }

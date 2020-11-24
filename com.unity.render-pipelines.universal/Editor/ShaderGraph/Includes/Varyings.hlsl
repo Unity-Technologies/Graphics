@@ -1,5 +1,5 @@
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
-    // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs 
+    // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
     // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
     // For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
     float3 _LightDirection;
@@ -18,7 +18,7 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    
+
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
     #if defined(VARYINGS_NEED_NORMAL_WS)
@@ -57,11 +57,11 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_NORMAL_WS
-    output.normalWS = normalWS;			// normalized in TransformObjectToWorldNormal()
+    output.normalWS = normalWS;         // normalized in TransformObjectToWorldNormal()
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_WS
-    output.tangentWS = tangentWS;		// normalized in TransformObjectToWorldDir()
+    output.tangentWS = tangentWS;       // normalized in TransformObjectToWorldDir()
 #endif
 
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
@@ -125,4 +125,3 @@ Varyings BuildVaryings(Attributes input)
 
     return output;
 }
-

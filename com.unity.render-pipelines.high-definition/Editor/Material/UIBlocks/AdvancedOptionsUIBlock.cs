@@ -64,7 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             addPrecomputedVelocity = FindProperty(kAddPrecomputedVelocity);
-
         }
 
         public override void OnGUI()
@@ -98,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(specularOcclusionMode, Styles.specularOcclusionModeText);
             if ((m_Features & Features.AddPrecomputedVelocity) != 0)
             {
-                if ( addPrecomputedVelocity != null)
+                if (addPrecomputedVelocity != null)
                     materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
             }
         }
@@ -114,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // So here we workaround it with materialTag system by checking if a tag exist to know if it is
             // the first time we display this information. And thus setup the MotionVector Pass to false.
             const string materialTag = "MotionVector";
-            
+
             string tag = materials[0].GetTag(materialTag, false, "Nothing");
             if (tag == "Nothing")
             {

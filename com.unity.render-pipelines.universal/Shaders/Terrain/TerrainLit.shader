@@ -35,16 +35,16 @@ Shader "Universal Render Pipeline/Terrain/Lit"
         [HideInInspector] _MainTex("BaseMap (RGB)", 2D) = "grey" {}
         [HideInInspector] _BaseColor("Main Color", Color) = (1,1,1,1)
 
-		[HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
+        [HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
 
         [ToggleUI] _EnableInstancedPerPixelNormal("Enable Instanced per-pixel normal", Float) = 1.0
     }
 
-	HLSLINCLUDE
+    HLSLINCLUDE
 
-	#pragma multi_compile_fragment __ _ALPHATEST_ON
+    #pragma multi_compile_fragment __ _ALPHATEST_ON
 
-	ENDHLSL
+    ENDHLSL
 
     SubShader
     {
@@ -99,6 +99,7 @@ Shader "Universal Render Pipeline/Terrain/Lit"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
+            ColorMask 0
 
             HLSLPROGRAM
             #pragma target 2.0

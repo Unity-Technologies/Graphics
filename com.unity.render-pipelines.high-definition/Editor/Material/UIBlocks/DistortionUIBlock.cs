@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent distortionScaleText = new GUIContent("Distortion Scale", "Sets the scale HDRP applies to the Distortion Vector Map.");
             public static GUIContent distortionBlurScaleText = new GUIContent("Distortion Blur Scale", "Sets the scale HDRP applies to the distortion blur effect.");
             public static GUIContent distortionBlurRemappingText = new GUIContent("Distortion Blur Remapping", "Controls a remap for the Distortion Blur effect.");
+            public static GUIContent distortionRoughInfoText = new GUIContent("Blur parameters will have an effect on the distortion if the Rough Distortion Frame Setting is enabled on the target camera.");
         }
 
         protected MaterialProperty distortionEnable = null;
@@ -69,6 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (distortionEnable.floatValue == 1.0f)
                 {
+                    EditorGUILayout.HelpBox(Styles.distortionRoughInfoText.text, MessageType.Info, true);
                     EditorGUI.indentLevel++;
                     materialEditor.ShaderProperty(distortionBlendMode, Styles.distortionBlendModeText);
                     if (distortionOnly != null)

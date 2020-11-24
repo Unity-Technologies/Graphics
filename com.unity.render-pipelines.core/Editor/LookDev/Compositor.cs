@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.LookDev
         int computeIndex(ViewIndex index, ShadowCompositionPass passIndex)
             => (int)index * k_PassPerViewCount + (int)(passIndex);
         int computeIndex(CompositionFinal index)
-            => (k_PassPerViewCount-1) + (int)(index) * k_PassPerViewCount;
+            => (k_PassPerViewCount - 1) + (int)(index) * k_PassPerViewCount;
 
         void UpdateSize(int index, Rect rect, bool pixelPerfect, Camera renderingCamera, string renderDocName = "LookDevRT")
         {
@@ -93,7 +93,6 @@ namespace UnityEditor.Rendering.LookDev
             UpdateSize(computeIndex(index, ShadowCompositionPass.ShadowMask), rect, pixelPerfect, renderingCamera, $"LookDevRT-{index}-ShadowMask");
         }
 
-
         public void UpdateSize(Rect rect, CompositionFinal index, bool pixelPerfect, Camera renderingCamera)
             => UpdateSize(computeIndex(index), rect, pixelPerfect, renderingCamera, $"LookDevRT-Final-{index}");
 
@@ -130,7 +129,6 @@ namespace UnityEditor.Rendering.LookDev
             }
         }
 
-        IDataProvider m_DataProvider;
         IViewDisplayer m_Displayer;
         Context m_Contexts;
         RenderTextureCache m_RenderTextures = new RenderTextureCache();
@@ -156,7 +154,6 @@ namespace UnityEditor.Rendering.LookDev
             IDataProvider dataProvider,
             StageCache stages)
         {
-            m_DataProvider = dataProvider;
             m_Displayer = displayer;
             m_Contexts = contexts;
 
@@ -186,6 +183,7 @@ namespace UnityEditor.Rendering.LookDev
             m_Displayer.OnRenderDocAcquisitionTriggered -= RenderDocAcquisitionRequested;
             m_Displayer.OnUpdateRequested -= Render;
         }
+
         public void Dispose()
         {
             if (m_Disposed)
@@ -194,6 +192,7 @@ namespace UnityEditor.Rendering.LookDev
             CleanUp();
             GC.SuppressFinalize(this);
         }
+
         ~Compositer() => CleanUp();
 
         public void Render()
@@ -253,7 +252,7 @@ namespace UnityEditor.Rendering.LookDev
                 RenderTexture tmp = m_RenderTextures[index, ShadowCompositionPass.ShadowMask];
                 view.environment?.UpdateSunPosition(renderingData.stage.sunLight);
                 renderingData.stage.sunLight.intensity = 1f;
-                m_DataProvider.GetShadowMask(ref tmp, renderingData.stage.runtimeInterface);
+                LookDev.dataProvider.GetShadowMask(ref tmp, renderingData.stage.runtimeInterface);
                 renderingData.stage.sunLight.intensity = 0f;
                 m_RenderTextures[index, ShadowCompositionPass.ShadowMask] = tmp;
             }

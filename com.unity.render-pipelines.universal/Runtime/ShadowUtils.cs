@@ -72,7 +72,6 @@ namespace UnityEngine.Rendering.Universal
             return success;
         }
 
-
         public static bool ExtractPointLightMatrix(ref CullingResults cullResults, ref ShadowData shadowData, int shadowLightIndex, CubemapFace cubemapFace, float fovBias, out Matrix4x4 shadowMatrix, out Matrix4x4 viewMatrix, out Matrix4x4 projMatrix, out ShadowSplitData splitData)
         {
             bool success = cullResults.ComputePointShadowMatricesAndCullingPrimitives(shadowLightIndex, cubemapFace, fovBias, out viewMatrix, out projMatrix, out splitData); // returns false if input parameters are incorrect (rare)
@@ -182,9 +181,9 @@ namespace UnityEngine.Rendering.Universal
                 //  the frustum as if it was orthogonal considering the size at mid point between near and far planes.
                 //  Depending on how big the light range is, it will be good enough with some tweaks in bias"
                 // Note: HDRP uses normalBias both in HDShadowUtils.CalcGuardAnglePerspective and HDShadowAlgorithms/EvalShadow_NormalBias (receiver bias)
-                float fovBias = Internal.AdditionalLightsShadowCasterPass.GetPointLightShadowFrustumFovBiasInDegrees((int)shadowResolution, (shadowLight.light.shadows==LightShadows.Soft));
+                float fovBias = Internal.AdditionalLightsShadowCasterPass.GetPointLightShadowFrustumFovBiasInDegrees((int)shadowResolution, (shadowLight.light.shadows == LightShadows.Soft));
                 // Note: the same fovBias was also used to compute ShadowUtils.ExtractPointLightMatrix
-                float cubeFaceAngle = 90 + fovBias; 
+                float cubeFaceAngle = 90 + fovBias;
                 frustumSize = Mathf.Tan(cubeFaceAngle * 0.5f * Mathf.Deg2Rad) * shadowLight.range; // half-width (in world-space units) of shadow frustum's "far plane"
             }
             else

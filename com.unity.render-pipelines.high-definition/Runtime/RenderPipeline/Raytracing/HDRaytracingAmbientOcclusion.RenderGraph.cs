@@ -52,20 +52,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayCountTexture = builder.ReadTexture(builder.WriteTexture(rayCountTexture));
                 // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "Ray Traced Ambient Occlusion" }));
+                    { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "Ray Traced Ambient Occlusion" }));
 
                 builder.SetRenderFunc(
-                (TraceRTAOPassData data, RenderGraphContext ctx) =>
-                {
-                    // We need to fill the structure that holds the various resources
-                    AmbientOcclusionTraceResources aotResources = new AmbientOcclusionTraceResources();
-                    aotResources.depthStencilBuffer = data.depthPyramid;
-                    aotResources.normalBuffer = data.normalBuffer;
-                    aotResources.rayCountTexture = data.rayCountTexture;
-                    aotResources.outputTexture = data.outputTexture;
+                    (TraceRTAOPassData data, RenderGraphContext ctx) =>
+                    {
+                        // We need to fill the structure that holds the various resources
+                        AmbientOcclusionTraceResources aotResources = new AmbientOcclusionTraceResources();
+                        aotResources.depthStencilBuffer = data.depthPyramid;
+                        aotResources.normalBuffer = data.normalBuffer;
+                        aotResources.rayCountTexture = data.rayCountTexture;
+                        aotResources.outputTexture = data.outputTexture;
 
-                    TraceAO(ctx.cmd, data.parameters, aotResources);
-                });
+                        TraceAO(ctx.cmd, data.parameters, aotResources);
+                    });
 
                 return passData.outputTexture;
             }
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();
-                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false);
+                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false, false);
                 rayTracedAO = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthPyramid, normalBuffer, rayTracedAO);
 
                 return rayTracedAO;
@@ -112,11 +112,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.outputTexture = builder.ReadTexture(builder.WriteTexture(aoTexture));
 
                 builder.SetRenderFunc(
-                (ComposeRTAOPassData data, RenderGraphContext ctx) =>
-                {
-                    // We need to fill the structure that holds the various resources
-                    ComposeAO(ctx.cmd, data.parameters, data.outputTexture);
-                });
+                    (ComposeRTAOPassData data, RenderGraphContext ctx) =>
+                    {
+                        // We need to fill the structure that holds the various resources
+                        ComposeAO(ctx.cmd, data.parameters, data.outputTexture);
+                    });
 
                 return passData.outputTexture;
             }

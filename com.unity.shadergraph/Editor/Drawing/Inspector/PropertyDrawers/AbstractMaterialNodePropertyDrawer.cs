@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -31,8 +31,25 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             VisualElement nodeSettings = new VisualElement();
             var nameLabel = PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold);
             nodeSettings.Add(nameLabel);
+            if (node.sgVersion < node.latestVersion)
+            {
+                var help = HelpBoxRow.TryGetDeprecatedHelpBoxRow($"{node.name} Node", () =>
+                {
+                    m_setNodesAsDirtyCallback?.Invoke();
+                    node.owner.owner.RegisterCompleteObjectUndo($"Update {node.name} Node");
+                    node.ChangeVersion(node.latestVersion);
+                    inspectorUpdateDelegate?.Invoke();
+                    m_updateNodeViewsCallback?.Invoke();
+                    node.Dirty(ModificationScope.Graph);
+                });
+
+                if (help != null)
+                {
+                    nodeSettings.Insert(0, help);
+                }
+            }
             EnumField precisionField = null;
-            if(node.canSetPrecision)
+            if (node.canSetPrecision)
             {
                 precisionField = new EnumField(node.precision);
                 var propertyRow = new PropertyRow(new Label("Precision"));
@@ -51,15 +68,18 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         node.Dirty(ModificationScope.Graph);
                     });
                 });
+                if (node is Serialization.MultiJsonInternal.UnknownNodeType)
+                    precisionField.SetEnabled(false);
                 nodeSettings.Add(propertyRow);
             }
             propertyVisualElement = precisionField;
             return nodeSettings;
         }
+
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (AbstractMaterialNode) actualObject,
+                (AbstractMaterialNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }
