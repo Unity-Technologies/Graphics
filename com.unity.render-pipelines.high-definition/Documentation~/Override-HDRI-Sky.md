@@ -19,7 +19,7 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 
 ![](Images/Override-HDRISky1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                         | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |

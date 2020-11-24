@@ -14,7 +14,7 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 
 ![](Images/Override-ScreenSpaceRefraction1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property**                  | **Description**                                              |
 | ----------------------------- | ------------------------------------------------------------ |

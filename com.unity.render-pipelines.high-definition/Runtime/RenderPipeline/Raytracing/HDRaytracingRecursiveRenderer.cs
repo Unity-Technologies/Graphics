@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -22,12 +23,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 depthState = new DepthState(false, CompareFunction.LessEqual),
                 mask = RenderStateMask.Depth
             };
-            m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
         }
 
-        void ReleaseRecursiveRenderer()
+        internal TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
         {
-            RTHandles.Release(m_FlagMaskTextureRT);
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            {
+                colorFormat = GraphicsFormat.R8_SNorm,
+                dimension = TextureXR.dimension,
+                enableRandomWrite = true,
+                useMipMap = true,
+                name = "FlagMaskTexture"
+            });
         }
 
         struct RecursiveRendererParameters
@@ -82,7 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Input buffers
             public RTHandle depthStencilBuffer;
             public RTHandle flagMask;
-            public ComputeBuffer directionalLightData;
 
             // Debug buffer
             public RTHandle debugBuffer;
@@ -99,7 +105,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Input buffers
             rrResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             rrResources.flagMask = m_FlagMaskTextureRT;
-            rrResources.directionalLightData = m_LightLoopLightData.directionalLightData;
 
             // Debug buffer
             rrResources.debugBuffer = debugBuffer;
@@ -112,35 +117,36 @@ namespace UnityEngine.Rendering.HighDefinition
             return rrResources;
         }
 
-        void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullingResults cull)
+        // Recursive rendering works as follow:
+        // - Shader have a _RayTracing property
+        // When this property is setup to true, a RayTracingPrepass pass on the material is enabled (otherwise it is disabled)
+        // - Before prepass we render all object with a RayTracingPrepass pass enabled into the depth buffer for performance saving.
+        // Note that we will exclude from the rendering of DepthPrepass, GBuffer and Forward pass the raytraced objects but not from
+        // motion vector pass, so we can still benefit from motion vector. This is handled in VertMesh.hlsl (see below).
+        // However currently when rendering motion vector this will tag the stencil for deferred lighting, and thus could produce overshading.
+        // - After Transparent Depth pass we render all object with a RayTracingPrepass pass enabled into output a mask buffer (need to depth test but not to write depth)
+        // Note: we render two times: one to save performance and the other to write the mask, otherwise if we write the mask in the first pass it
+        // will not take into account the objects which could render on top of the raytracing one (If we want to do that we need to perform the pass after that
+        // the depth buffer is ready, which is after the Gbuffer pass, so we can't save performance).
+        // - During RaytracingRecursiveRender we perform a RayTracingRendering.raytrace call on all pixel tag in the mask
+        // It is require to exclude mesh from regular pass to save performance (for opaque) and get correct result (for transparent)
+        // For this we cull the mesh by setuping their position to NaN if _RayTracing is true and _EnableRecursiveRayTracing true.
+        // We use this method to avoid to have to deal with RenderQueue and it allow to dynamically disabled Recursive rendering
+        // and fallback to classic rasterize transparent this way. The code for the culling is in VertMesh()
+        // If raytracing is disable _EnableRecursiveRayTracing is set to false and no culling happen.
+        // Objects are still render in shadow and motion vector pass to keep their properties.
+
+        // We render Recursive render object before transparent, so transparent object can be overlayed on top
+        // like lens flare on top of headlight. We write the depth, so it correctly z-test object behind as recursive rendering
+        // re-render everything (Mean we should also support fog and sky into it).
+
+        void RaytracingRecursiveRender(HDCamera hdCamera, CommandBuffer cmd)
         {
             // If ray tracing is disabled in the frame settings or the effect is not enabled
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) || !recursiveSettings.enable.value)
                 return;
 
-            // Recursive rendering works as follow:
-            // - Shader have a _RayTracing property
-            // When this property is setup to true, a RayTracingPrepass pass on the material is enabled (otherwise it is disabled)
-            // - Before prepass we render all object with a RayTracingPrepass pass enabled into the depth buffer for performance saving.
-            // Note that we will exclude from the rendering of DepthPrepass, GBuffer and Forward pass the raytraced objects but not from
-            // motion vector pass, so we can still benefit from motion vector. This is handled in VertMesh.hlsl (see below).
-            // However currently when rendering motion vector this will tag the stencil for deferred lighting, and thus could produce overshading.
-            // - After Transparent Depth pass we render all object with a RayTracingPrepass pass enabled into output a mask buffer (need to depth test but not to write depth)
-            // Note: we render two times: one to save performance and the other to write the mask, otherwise if we write the mask in the first pass it
-            // will not take into account the objects which could render on top of the raytracing one (If we want to do that we need to perform the pass after that
-            // the depth buffer is ready, which is after the Gbuffer pass, so we can't save performance).
-            // - During RaytracingRecursiveRender we perform a RayTracingRendering.raytrace call on all pixel tag in the mask
-            // It is require to exclude mesh from regular pass to save performance (for opaque) and get correct result (for transparent)
-            // For this we cull the mesh by setuping their position to NaN if _RayTracing is true and _EnableRecursiveRayTracing true.
-            // We use this method to avoid to have to deal with RenderQueue and it allow to dynamically disabled Recursive rendering
-            // and fallback to classic rasterize transparent this way. The code for the culling is in VertMesh()
-            // If raytracing is disable _EnableRecursiveRayTracing is set to false and no culling happen.
-            // Objects are still render in shadow and motion vector pass to keep their properties.
-
-            // We render Recursive render object before transparent, so transparent object can be overlayed on top
-            // like lens flare on top of headlight. We write the depth, so it correctly z-test object behind as recursive rendering
-            // re-render everything (Mean we should also support fog and sky into it).
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering)))
             {
@@ -150,6 +156,58 @@ namespace UnityEngine.Rendering.HighDefinition
                 RecursiveRendererResources rrResources = PrepareRecursiveRendererResources(debugBuffer);
                 ExecuteRecursiveRendering(cmd, rrParams, rrResources);
                 PushFullScreenDebugTexture(hdCamera, cmd, debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
+            }
+        }
+
+        class RecursiveRenderingPassData
+        {
+            public RecursiveRendererParameters parameters;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle flagMask;
+            public TextureHandle debugBuffer;
+            public TextureHandle rayCountTexture;
+            public TextureHandle outputBuffer;
+        }
+
+        TextureHandle RaytracingRecursiveRender(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthPyramid, TextureHandle flagMask, TextureHandle rayCountTexture)
+        {
+            // If ray tracing is disabled in the frame settings or the effect is not enabled
+            RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) || !recursiveSettings.enable.value)
+                return colorBuffer;
+
+            // Build the parameter structure
+            RecursiveRendererParameters rrParams = PrepareRecursiveRendererParameters(hdCamera, recursiveSettings);
+
+            using (var builder = renderGraph.AddRenderPass<RecursiveRenderingPassData>("Recursive Rendering Evaluation", out var passData, ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering)))
+            {
+                builder.EnableAsyncCompute(false);
+
+                passData.parameters = rrParams;
+                passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
+                passData.flagMask = builder.ReadTexture(flagMask);
+                passData.rayCountTexture = builder.ReadTexture(builder.WriteTexture(rayCountTexture));
+                passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(colorBuffer));
+                // Right now the debug buffer is written to independently of what is happening. This must be changed
+                // TODO RENDERGRAPH
+                passData.debugBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
+
+                builder.SetRenderFunc(
+                    (RecursiveRenderingPassData data, RenderGraphContext ctx) =>
+                    {
+                        RecursiveRendererResources rrResources = new RecursiveRendererResources();
+                        rrResources.depthStencilBuffer = data.depthStencilBuffer;
+                        rrResources.flagMask = data.flagMask;
+                        rrResources.debugBuffer = data.debugBuffer;
+                        rrResources.rayCountTexture = data.rayCountTexture;
+                        rrResources.outputBuffer = data.outputBuffer;
+                        ExecuteRecursiveRendering(ctx.cmd, data.parameters, rrResources);
+                    });
+
+                PushFullScreenDebugTexture(m_RenderGraph, passData.debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
+
+                return passData.outputBuffer;
             }
         }
 
@@ -180,9 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // LightLoop data
             rrParams.lightCluster.BindLightClusterData(cmd);
-
-            // Note: Just in case, we rebind the directional light data (in case they were not)
-            cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, rrResources.directionalLightData);
 
             // Set the data for the ray miss
             cmd.SetRayTracingTextureParam(rrParams.recursiveRenderingRT, HDShaderIDs._SkyTexture, rrParams.skyTexture);

@@ -73,10 +73,8 @@ You can use the Material Quality Node in Shader Graphs to decide which code to e
 
 It is important that, for a given quality level, all Materials have the same Material Quality Level applied. If you need to have a different shader quality in a single rendering (like a Shader LOD system), you should author a dedicated Shader and use a different Shader with the appropriate complexity for this rendering.
 
-### Ray tracing Node in Shader Graph
+### Ray tracing Quality Keyword in Shader Graph
 
-For Shader Graphs that use ray tracing, you can use the Raytracing Node to provide a fast and a slow implementation.
+For Shader Graphs that use ray tracing, you can use the [Raytracing Quality Keyword](SGNode-Raytracing-Quality.md) to provide a fast implementation.
 
 HDRP uses the fast implementation to increase the performance of ray-traced rendering features where accuracy is less important.
-
-HDRP activates the Raytracing Node depending on the settings defined in the current HDRP Asset.

@@ -206,13 +206,13 @@ namespace UnityEditor.VFX
         [VFXSetting, Delayed, SerializeField, FormerlySerializedAs("m_Capacity")][Tooltip("Sets the maximum particle capacity of this system. Particles spawned after the capacity has been reached are discarded.")]
         protected uint capacity = 128;
         [VFXSetting, Delayed, SerializeField]
-        protected uint stripCapacity = 16;
+        protected uint stripCapacity = 1;
         [VFXSetting, Delayed, SerializeField]
-        protected uint particlePerStripCount = 16;
+        protected uint particlePerStripCount = 128;
 
         public bool hasStrip { get { return dataType == DataType.ParticleStrip; } }
 
-        protected override void OnSettingModified(VFXSetting setting)
+        public override void OnSettingModified(VFXSetting setting)
         {
             base.OnSettingModified(setting);
 
@@ -353,7 +353,7 @@ namespace UnityEditor.VFX
         public VFXCoordinateSpace space
         {
             get { return m_Space; }
-            set { m_Space = value; Modified(); }
+            set { m_Space = value; Modified(false); }
         }
 
         public override bool CanBeCompiled()
@@ -528,15 +528,16 @@ namespace UnityEditor.VFX
 
         public bool NeedsGlobalIndirectBuffer()
         {
-            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures,VFXOutputUpdate.Features.IndirectDraw));
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public bool NeedsGlobalSort()
         {
-            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures,VFXOutputUpdate.Features.IndirectDraw));
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public override void FillDescs(
+            VFXCompileErrorReporter reporter,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
@@ -644,7 +645,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            Dictionary < VFXContext, VFXOutputUpdate> indirectOutputToCuller = null;
+            Dictionary<VFXContext, VFXOutputUpdate> indirectOutputToCuller = null;
             bool needsIndirectBuffer = NeedsIndirectBuffer();
             int globalIndirectBufferIndex = -1;
             bool needsGlobalIndirectBuffer = false;
@@ -656,7 +657,7 @@ namespace UnityEditor.VFX
                         indirectOutputToCuller.Add(cullCompute.output, cullCompute);
 
                 var allIndirectOutputs = owners.OfType<VFXAbstractParticleOutput>().Where(o => o.HasIndirectDraw());
- 
+
                 needsGlobalIndirectBuffer = NeedsGlobalIndirectBuffer();
                 if (needsGlobalIndirectBuffer)
                 {
@@ -834,7 +835,7 @@ namespace UnityEditor.VFX
                 }
 
                 uniformMappings.Clear();
-                
+
                 foreach (var uniform in contextData.uniformMapper.uniforms)
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
                 foreach (var buffer in contextData.uniformMapper.buffers)
@@ -854,6 +855,7 @@ namespace UnityEditor.VFX
                 {
                     if (mapping.index < 0)
                     {
+                        reporter?.RegisterError(context.GetSlotByPath(true, mapping.name), "GPUNodeLinkedTOCPUSlot", VFXErrorType.Error, "Can not link a GPU operator to a system wide (CPU) input.");;
                         throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
                     }
                 }

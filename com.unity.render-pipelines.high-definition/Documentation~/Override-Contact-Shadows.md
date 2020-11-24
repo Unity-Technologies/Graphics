@@ -1,9 +1,16 @@
 # Contact Shadows
 The Contact Shadows [Volume Override](Volume-Components.md) specifies properties which control the behavior of Contacts Shadows. Contact Shadows are shadows that The High Definition Render Pipeline (HDRP) [ray marches](Glossary.md#RayMarching) in screen space inside the depth buffer. The goal of using Contact Shadows is to capture small details that regular shadow mapping algorithms fail to capture.
 
-## Using Contact Shadows
 
-To use Contact Shadows in your Scene, you must first enable them for your Cameras. In the Inspector for your HDRP Asset, go to the **Default Frame Settings > Lighting** section and enable the **Contact Shadows** checkbox. All Cameras can now render Contact Shadows unless you override a Camera’s individual [Frame Settings](Frame-Settings.md).
+## Enabling Contact Shadows
+[!include[](snippets/Volume-Override-Enable-Override.md)]
+
+For this feature:
+The property to enable in your HDRP Asset is: **Lighting > Shadows > Use Contact Shadows**.
+The property to enable in your Frame Settings is: **Lighting > Contact Shadows**.
+
+
+## Using Contact Shadows
 
 **Contact Shadows** use the [Volume](Volumes.md) framework, so to enable and modify **Contact Shadow** properties, you must add a **Contact Shadows** override to a [Volume](Volumes.md) in your Scene. To add **Contact Shadows** to a Volume:
 
@@ -20,7 +27,7 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 
 ![](Images/Override-ContactShadows1.png)
 
-[!include[](Snippets/Volume-Override-Enable-Properties.md)]
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                  | Description                                                    |
 | :------------------------ | :----------------------------------------------------------- |
@@ -31,10 +38,11 @@ Only one Light can cast Contact Shadows at a time. This means that, if you have 
 | __Max Distance__          | The distance from the Camera, in meters, at which HDRP begins to fade Contact Shadows out to zero. |
 | __Fade In Distance__ | The distance, in meters, over which HDRP fades Contact Shadows in when past the **Min Distance**. |
 | __Fade Out Distance__     | The distance, in meters, over which HDRP fades Contact Shadows out when at the __Max Distance__. |
-| __Sample Count__          | Use the slider to set the number of samples HDRP uses for ray casting. Increasing this increases quality at the cost of performance. |
 | __Opacity__ |   Use the slider to set the opacity of the Contact Shadows. Lower values result in softer, less prominent shadows.   |
-| **Ray Bias** | Controls the bias applied to the screen space ray cast to get contact shadows. Higher values can reduce self shadowing, however too high values might lead to peter-panning that can be especially undesirable with contact shadows. |
+| **Bias** | Controls the bias applied to the screen space ray cast to get contact shadows. Higher values can reduce self shadowing, however too high values might lead to peter-panning that can be especially undesirable with contact shadows. |
 | **Thickness** | Controls the thickness of the objects found along the ray, essentially thickening the contact shadows. It can be used to fill holes in the shadows, however might also lead to overly wide shadows. |
+| **Quality** | Specifies the quality level to use for this effect. Each quality level applies different preset values. Unity also stops you from editing the properties that the preset overrides. If you want to set your own values for every property, select **Custom**. |
+| __Sample Count__ | Use the slider to set the number of samples HDRP uses for ray casting. Increasing this increases quality at the cost of performance. |
 
 ## Details
 

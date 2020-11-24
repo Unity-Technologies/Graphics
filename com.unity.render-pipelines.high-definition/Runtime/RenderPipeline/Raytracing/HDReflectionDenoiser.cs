@@ -1,3 +1,6 @@
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     internal struct ReflectionDenoiserParameters
@@ -10,6 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // De-noising parameters
         public int maxKernelSize;
         public float historyValidity;
+        public int singleReflectionBounce;
 
         // Kernels
         public int temporalAccumulationKernel;
@@ -25,8 +29,9 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct ReflectionDenoiserResources
     {
         // Input buffer
-        public RTHandle depthStencilBuffer;
+        public RTHandle depthBuffer;
         public RTHandle normalBuffer;
+        public RTHandle motionVectorBuffer;
 
         // Intermediate textures
         public RTHandle intermediateBuffer0;
@@ -70,8 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-
-        internal ReflectionDenoiserParameters PrepareReflectionDenoiserParameters(HDCamera hdCamera, float historyValidity, int maxKernelSize)
+        internal ReflectionDenoiserParameters PrepareReflectionDenoiserParameters(HDCamera hdCamera, float historyValidity, int maxKernelSize, bool singleReflectionBounce)
         {
             ReflectionDenoiserParameters reflDenoiserParams = new ReflectionDenoiserParameters();
             // Camera parameters
@@ -82,6 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // De-noising parameters
             reflDenoiserParams.historyValidity = historyValidity;
             reflDenoiserParams.maxKernelSize = maxKernelSize;
+            reflDenoiserParams.singleReflectionBounce = singleReflectionBounce ? 1 : 0;
 
             // Kernels
             reflDenoiserParams.temporalAccumulationKernel = s_TemporalAccumulationKernel;
@@ -97,16 +102,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal ReflectionDenoiserResources PrepareReflectionDenoiserResources(HDCamera hdCamera,
-                                                                                RTHandle noisyToOutputSignal, RTHandle historySignal,
-                                                                                RTHandle intermediateBuffer0, RTHandle intermediateBuffer1)
+            RTHandle noisyToOutputSignal, RTHandle historySignal,
+            RTHandle intermediateBuffer0, RTHandle intermediateBuffer1)
         {
             ReflectionDenoiserResources reflDenoiserResources = new ReflectionDenoiserResources();
             reflDenoiserResources.historySignal = historySignal;
             reflDenoiserResources.noisyToOutputSignal = noisyToOutputSignal;
             reflDenoiserResources.intermediateBuffer0 = intermediateBuffer0;
             reflDenoiserResources.intermediateBuffer1 = intermediateBuffer1;
-            reflDenoiserResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
+            reflDenoiserResources.depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             reflDenoiserResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
+            reflDenoiserResources.motionVectorBuffer = m_SharedRTManager.GetMotionVectorsBuffer();
             return reflDenoiserResources;
         }
 
@@ -120,10 +126,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.noisyToOutputSignal);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._HistoryBuffer, reflDenoiserResources.historySignal);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthStencilBuffer);
+            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
+            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraDepthTexture, reflDenoiserResources.depthBuffer);
+
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer0);
+            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, reflDenoiserResources.motionVectorBuffer);
             cmd.SetComputeFloatParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._HistoryValidity, reflDenoiserParameters.historyValidity);
+            cmd.SetComputeIntParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._SingleReflectionBounce, reflDenoiserParameters.singleReflectionBounce);
+
             cmd.DispatchCompute(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, numTilesX, numTilesY, reflDenoiserParameters.viewCount);
 
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer0);
@@ -133,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Horizontal pass of the bilateral filter
             cmd.SetComputeIntParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._DenoiserFilterRadius, reflDenoiserParameters.maxKernelSize);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer0);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthStencilBuffer);
+            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer1);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._ReflectionFilterMapping, reflDenoiserParameters.reflectionFilterMapping);
@@ -142,11 +153,61 @@ namespace UnityEngine.Rendering.HighDefinition
             // Horizontal pass of the bilateral filter
             cmd.SetComputeIntParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._DenoiserFilterRadius, reflDenoiserParameters.maxKernelSize);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer1);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthStencilBuffer);
+            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.noisyToOutputSignal);
             cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._ReflectionFilterMapping, reflDenoiserParameters.reflectionFilterMapping);
             cmd.DispatchCompute(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, numTilesX, numTilesY, reflDenoiserParameters.viewCount);
+        }
+
+        class ReflectionDenoiserPassData
+        {
+            public ReflectionDenoiserParameters parameters;
+            public TextureHandle depthBuffer;
+            public TextureHandle normalBuffer;
+            public TextureHandle motionVectorBuffer;
+            public TextureHandle intermediateBuffer0;
+            public TextureHandle intermediateBuffer1;
+            public TextureHandle historySignal;
+            public TextureHandle noisyToOutputSignal;
+        }
+
+        public TextureHandle DenoiseRTR(RenderGraph renderGraph, in ReflectionDenoiserParameters parameters, HDCamera hdCamera,
+            TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, RTHandle historyBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection)))
+            {
+                builder.EnableAsyncCompute(false);
+
+                passData.parameters = parameters;
+                passData.depthBuffer = builder.ReadTexture(depthPyramid);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+
+                passData.intermediateBuffer0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture0" });
+                passData.intermediateBuffer1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "IntermediateTexture1" });
+                passData.historySignal = builder.ReadTexture(builder.WriteTexture(renderGraph.ImportTexture(historyBuffer)));
+                passData.noisyToOutputSignal = builder.ReadTexture(builder.WriteTexture(lightingTexture));
+
+                builder.SetRenderFunc(
+                    (ReflectionDenoiserPassData data, RenderGraphContext ctx) =>
+                    {
+                        // We need to fill the structure that holds the various resources
+                        ReflectionDenoiserResources rtrDenoiseResources = new ReflectionDenoiserResources();
+                        rtrDenoiseResources.depthBuffer = data.depthBuffer;
+                        rtrDenoiseResources.normalBuffer = data.normalBuffer;
+                        rtrDenoiseResources.motionVectorBuffer = data.motionVectorBuffer;
+                        rtrDenoiseResources.intermediateBuffer0 = data.intermediateBuffer0;
+                        rtrDenoiseResources.intermediateBuffer1 = data.intermediateBuffer1;
+                        rtrDenoiseResources.historySignal = data.historySignal;
+                        rtrDenoiseResources.noisyToOutputSignal = data.noisyToOutputSignal;
+                        DenoiseBuffer(ctx.cmd, data.parameters, rtrDenoiseResources);
+                    });
+
+                return passData.noisyToOutputSignal;
+            }
         }
     }
 }

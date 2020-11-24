@@ -32,7 +32,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (s_MatcapScale == value) return;
                 s_MatcapScale = value;
-                EditorPrefs.SetFloat(Keys.matcapViewMixAlbedo, s_MatcapScale);
+                EditorPrefs.SetFloat(Keys.matcapViewScale, s_MatcapScale);
             }
         }
 
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Load();
 
                     matcapViewMixAlbedo = EditorGUILayout.Toggle("Mix Albedo in the Matcap", matcapViewMixAlbedo);
-                    if(matcapViewMixAlbedo)
+                    if (matcapViewMixAlbedo)
                         matcapViewScale = EditorGUILayout.FloatField("Matcap intensity scale", matcapViewScale);
                 }
             };

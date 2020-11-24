@@ -52,14 +52,19 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 | **- Rendering Pass** | Use the drop-down to set the rendering pass that HDRP processes this Material in. For more information on this property, see the [Surface Type documentation](Surface-Type.md). |
 | **Double-Sided**     | Enable the checkbox to make HDRP render both faces of the polygons in your geometry. For more information about the feature and for the list of properties this feature exposes, see the [Double-Sided documentation](Double-Sided.md). |
 | **Receive Decals**   | Enable the checkbox to allow HDRP to draw decals on this Material’s surface. |
-| **Receive SSR**      | Enable the checkbox to make HDRP include this Material when it processes the screen space reflection pass. |
+| **Receive SSR (Transparent)**  | Enable the checkbox to make HDRP include this Material when it processes the screen space reflection pass. There is a separate option for transparent Surface Type. |
 
-### Surface Inputs
+### Main Mapping Configuration
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
 | **Mapping Mode**         | Controls the texture mapping mode of the material for all textures.<br/>&#8226; **UV0..UV3**: Like in Lit, uses a UV set from UV0 to UV3 vertex attributes. Note that UV1 is used for baked lightmaps in Unity, so it isn't recommended to use this set.<br/>&#8226; **PlanarXY,YZ,ZX**: Uses planar mapping along the specified plane.<br/>&#8226; **Triplanar**: Uses triplanar mapping.<br/>&#8226; **Planar Space**: When a planar or triplanar mapping mode is selected, you can select whether the coordinates used are world space or object space using the "planar space" option set to (respectively) "world" or "local". |
 | **Main Tiling & Offset** | Sets the tiling rate (xy) and offsets (zw) for every Texture in the **Surface Inputs** section. HDRP uses these values to tile the Textures along the xy-axes of the Material’s surface, in the object's tangent space. Each texture property can also specify additional tiling and offset values that are applied on top of these main values (Texture property-specific tiling rates are multiplied and offsets are added to the main values set here). These additional tiling and offsets appear next to each texture property on the same line.  |
+
+### Advanced Surface Inputs
+
+| **Property**          | **Description**                                              |
+| --------------------- | ------------------------------------------------------------ |
 | **BRDF Type**         | Controls the main AxF Material representation.<br/>&#8226; **SVBRDF**: For information on the properties Unity makes visible when you select this option, see [BRDF Type - SVBRDF](#SVBRDF).<br/>&#8226;**CAR_PAINT**: For information on the properties Unity makes visible when you select this option, see [BRDF Type - CAR_PAINT](#CAR_PAINT). |
 
 <a name="SVBRDF"></a>
@@ -113,5 +118,5 @@ Note: The AxF Importer imports every Texture as half float, linear, sRGB gamut (
 
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
-| **Enable GPU instancing**    | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you can not[ static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
+| **Enable GPU instancing**    | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
 | **Add Precomputed Velocity** | Enable the checkbox to use precomputed velocity information stored in an Alembic file. |

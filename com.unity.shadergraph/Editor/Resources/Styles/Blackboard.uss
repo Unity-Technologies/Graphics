@@ -25,6 +25,19 @@
     border-color: #44C0FF;
 }
 
+.blackboard > .resizer > .resizer-icon {
+    cursor: resize-up-left;
+}
+
+.blackboard > .resizer {
+    bottom: 0;
+    right: 0;
+    padding-top: 0px;
+    padding-left: 0px;
+    width: 10px;
+    height: 10px;
+}
+
 .sgblackboard > .mainContainer {
     flex-direction: column;
     align-items: stretch;

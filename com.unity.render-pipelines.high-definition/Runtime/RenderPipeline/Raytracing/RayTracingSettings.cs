@@ -29,6 +29,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter extendCameraCulling = new BoolParameter(false);
 
         /// <summary>
+        /// Controls the maximal ray length for ray traced shadows.
+        /// </summary>
+        [Tooltip("Controls the maximal ray length for ray traced directional shadows.")]
+        public MinFloatParameter directionalShadowRayLength = new MinFloatParameter(1000.0f, 0.01f);
+
+        /// <summary>
         /// Default constructor for the ray tracing settings volume component.
         /// </summary>
         public RayTracingSettings()
@@ -37,4 +43,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

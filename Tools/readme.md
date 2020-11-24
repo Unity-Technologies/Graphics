@@ -1,72 +1,30 @@
 # Tools
 
-These tools are mainly to support CI and testing.
+## Git-hooks
 
-## Standalone scripts
+Git hooks are a way to ensure that certain rules are being followed within a repo. They provide a way to run local checks before pushing code to the remote, allowing developers to catch issues sooner and iterate faster.
 
-These are supposed to be run as one-off jobs, and can be called from the git-hooks.
-
--   `file_extension_to_lowercase`: Convert all file extensions in the specified folder from uppercase to lowercase (e.g. `file.FBX` will be converted to `file.fbx` as well as its meta file) 
-    - Prerequisites: Python installed and accessible from the `PATH` 
-    - Usage: `python ./file_extension_to_lowercase [list of folders to convert]`
-
-## Git hooks
-
-The folder `Tools/git-hook` contains git hooks for the Graphics repository.
+For example, compliance with Unity's code convention is mandatory in order to merge a PR into master. While there are server side scripts that will check the code, you can save some time by installing these hooks and ensure to push formatted code to the remote.
 
 ### Installation
 
-**Prerequisites:**
+Follow these steps to install the git hooks before working on the Graphics repository:
 
--   [NodeJS >= 10](https://nodejs.org/en/) is installed and present in your PATH.
--   [Python >= 3.5](https://www.python.org/downloads/) is installed and present in your PATH.
+1. Requirement A: Install [Python >= 3.5](https://www.python.org/downloads/) and make sure it is accessible in your PATH.
+2. Requirement B: Install [pip3](https://pip.pypa.io/en/stable/installing/).
+3. Requirement C: Make sure [unity-meta](https://internaldocs.hq.unity3d.com/unity-meta/setup/) is installed and its requirements are fulfilled. It will be used by the format code hook to ensure your code complies with the convention. _Sidenote: it is the same tool used to format C++/trunk code._
+4. Requirement D: Make sure you have access to the cds.github.com repositories. Usually this means following [these steps](https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/connecting-to-github-with-ssh) to create and upload an ssh key to [cds.github.com](https://github.cds.internal.unity3d.com/settings/keys).
+5. From the root of the repository, run `cd Tools` and `python3 ./hooks_setup.py`.
 
-**Steps:**
+Note: If you already installed the git hooks (before November 2020), you need to follow the steps above to re-install them. This is required in order to move towards a more scalable and flexible system. _Sidenote: NodeJS and the node_modules folder are no longer required._
 
-1. At the root of the repo, open a shell and run :
+### Available hooks
 
-```
-cd Tools
-npm install
-```
+A description of the hooks we currently have is available in the [hooks' library repository](https://github.cds.internal.unity3d.com/theo-penavaire/gfx-automation-tools#available-git-hooks).
 
-This will add the hooks to your `.git/hooks` folder.
+For this repository we have enabled:
 
-2. Verify that the installation logs look good in the terminal (no error).
-
-**Troubleshooting:**
-
-After trying the solutions below, you may want to run `npm install` again in the `Tools` folder.
-
--   _Cannot read property 'toString' of null ; husky > Failed to install_:
-
-    -   `git` is probably not accessible from your `PATH` variable. You'll have to locate the `git` executable on your filesystem and add it to the `PATH` environment variable.
-
--   _Husky requires Node 10_:
-
-    -   Your version of NodeJS is outdated (We need at least version 10). You can update it [here](https://nodejs.org/en/download/). Make sure NodeJS is updated, not only npm.
-
--   _Hook already exists: [hook title]_:
-
-    -   If you attempted to install git lfs (`git lfs install`) _after_ installing the hooks, you may have this error. To resolve, run `git lfs update --force` and then re-do a `npm install` in the Tools folder.
-
--   _Powershell excution policy problem - File cannot be loaded_:
-    -   The full error looks like this: `check-shader-includes.ps1 cannot be loaded because running scripts is disabled on this system.`. Open a powershell console as administrator and run `Set-ExecutionPolicy RemoteSigned`. Note: The shell scripted hooks are progressively being replaced by python ones so this error will disappear definitely in a few weeks.
-
-### Available git hooks
-
--   `check-shader-includes` (pre-commit): Compare the case sensitivity of the shader includes in the code files to the actual files in the filesystem. Generate a log if it differs.
--   `renormalize-files` (pre-commit): Ensure all files are normalized with LF line endings. CRLF line endings are not allowed on the remote.
--   `check-file-name-extension` (pre-commit): Make sure all files pushed have a lowercase extension so that imports are not broken on Linux.
--   `check-branch-name` (pre-push): Ensure the current branch is following the convention: - All new branches enclosed in a folder (valid name: `folder/my-branch`) - All branches in lowercase, except for the enclosing `HDRP` folder (valid names: `HDRP/my-branch`, `something-else/my-branch`)
-
-### Contributing
-
-New git hooks should be added to the `./git-hook` folder. They have to be linked to husky in the `package.json` file.
-
-### Packages
-
-We use the following packages to make the hooks work:
-
--   [husky](https://github.com/typicode/husky) - Easy access to Git hooks from Node scripts/tools.
--   [lint-staged](https://github.com/okonet/lint-staged) - Match all staged files to further process them in the git-hooks.
+- format-code
+- check-shader-includes
+- file-extension-to-lowercase
+- check-branch-name

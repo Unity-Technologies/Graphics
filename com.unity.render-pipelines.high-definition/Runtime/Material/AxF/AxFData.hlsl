@@ -187,7 +187,7 @@ float4 AxfSampleTexture2D(TEXTURE2D_PARAM(textureName, samplerName), float4 scal
     bool useLod = lodBiasOrGrad == 1;
     bool useBias = lodBiasOrGrad == 2;
     bool useGrad = lodBiasOrGrad == 3;
-    bool useCachedDdxDdy = false;    
+    bool useCachedDdxDdy = false;
 #ifdef AXF_REUSE_SCREEN_DDXDDY
     useCachedDdxDdy = false;
 #endif
@@ -195,19 +195,19 @@ float4 AxfSampleTexture2D(TEXTURE2D_PARAM(textureName, samplerName), float4 scal
 #ifdef _MAPPING_TRIPLANAR
     float4 val = 0;
 
-    val += uvMapping.triplanarWeights.x 
+    val += uvMapping.triplanarWeights.x
            * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), lodOrBias.x)
            : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), lodOrBias.x)
            : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), triDdx[0], triDdy[0])
            : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset),  scaleOffset.xy * uvMapping.ddxZY, scaleOffset.xy * uvMapping.ddyZY)
            : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset)) );
-    val += uvMapping.triplanarWeights.y 
+    val += uvMapping.triplanarWeights.y
            * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), lodOrBias.y)
            : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), lodOrBias.y)
            : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), triDdx[1], triDdy[1])
            : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset),  scaleOffset.xy * uvMapping.ddxXZ, scaleOffset.xy * uvMapping.ddyXZ)
            : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset)) );
-    val += uvMapping.triplanarWeights.z 
+    val += uvMapping.triplanarWeights.z
            * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), lodOrBias.z)
            : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), lodOrBias.z)
            : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), triDdx[2], triDdy[2])
@@ -235,7 +235,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
     bool useLod = lodBiasOrGrad == 1;
     bool useBias = lodBiasOrGrad == 2;
     bool useGrad = lodBiasOrGrad == 3;
-    bool useCachedDdxDdy = false;    
+    bool useCachedDdxDdy = false;
 #ifdef AXF_REUSE_SCREEN_DDXDDY
     useCachedDdxDdy = true;
 #endif
@@ -424,37 +424,39 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 #endif
 }
 
-void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)
 {
 #if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE)
-    {
-        surfaceData.diffuseColor.xyz = surfaceData.diffuseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+    surfaceData.diffuseColor.xyz = surfaceData.diffuseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-        surfaceData.clearcoatColor.xyz = surfaceData.clearcoatColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
+    surfaceData.clearcoatColor.xyz = surfaceData.clearcoatColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 #endif
-    }
 
-    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_NORMAL)
+    // Always test the normal as we can have decompression artifact
+    if (decalSurfaceData.normalWS.w < 1.0)
     {
         // Affect both normal and clearcoat normal
         surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
         surfaceData.clearcoatNormalWS = normalize(surfaceData.clearcoatNormalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
 
-    if (decalSurfaceData.HTileMask & DBUFFERHTILEBIT_MASK)
-    {
 #ifdef DECALS_4RT // only smoothness in 3RT mode
 #ifdef _AXF_BRDF_TYPE_SVBRDF
-        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.HTileMask & DBUFFERHTILEBIT_DIFFUSE) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
-        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor;
+    if (decalSurfaceData.MAOSBlend.x < 1.0)
+    {
+        float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
+        surfaceData.specularColor = surfaceData.specularColor * decalSurfaceData.MAOSBlend.x + decalSpecularColor * (1.0f - decalSurfaceData.MAOSBlend.x);
+    }
 #endif
 
-        surfaceData.clearcoatIOR = 1.0; // Neutral
-        // Note:There is no ambient occlusion with AxF material
+    surfaceData.clearcoatIOR = lerp(1.0, surfaceData.clearcoatIOR, decalSurfaceData.MAOSBlend.x); // Transition to IOR 1.0 with increase decal coverage (i.e decrease of decalSurfaceData.MAOSBlend.x value)
+
+    // Note:There is no ambient occlusion with AxF material
 #endif
 
+    if (decalSurfaceData.mask.w < 1.0)
+    {
         surfaceData.specularLobe.x = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.x) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
         surfaceData.specularLobe.y = PerceptualSmoothnessToRoughness(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.y) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
 #ifdef _AXF_BRDF_TYPE_CAR_PAINT
@@ -480,7 +482,7 @@ float2 AxFGetRoughnessFromSpecularLobeTexture(float2 specularLobe)
     // http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
     // http://simonstechblog.blogspot.com/2011/12/microfacet-brdf.html
 
-    // We thus have 
+    // We thus have
     //     roughnessBeckmann = sqrt(2) * rsqrt(exp2(abs(specularLobe.xy)) + 2);
     //     shiniExp = 2 * rcp(max(0.0001,(roughnessBeckmann*roughnessBeckmann))) - 2;
 
@@ -508,7 +510,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // TODOTODO: Move alpha test earlier and test.
     float alphaCutoff = _AlphaCutoff;
 
-    #if SHADERPASS == SHADERPASS_SHADOWS 
+    #if (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
         alphaCutoff = _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff;
     #endif
 
@@ -589,7 +591,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float perceptualRoughness = RoughnessToPerceptualRoughness(GetScalarRoughness(surfaceData.specularLobe));
 
-    //TODO 
+    //TODO
 //#if defined(_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP)
     // Note: we use normalWS as it will always exist and be equal to clearcoatNormalWS if there's no coat
     // (otherwise we do SO with the base lobe, might be wrong depending on way AO is computed, will be wrong either way with a single non-lobe specific value)
@@ -605,8 +607,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Finalize tangent space
     surfaceData.tangentWS = uvMapping.vertexTangentWS;
     // TODOTODO:
-    // This is crappy: anisotropy rotation don't mix triplanar style like scalar values because of what it represents. That's why in HDRP we use 
-    // tangent space tangent vector maps and triplanar sample those as we do normals in the surface gradients framework! 
+    // This is crappy: anisotropy rotation don't mix triplanar style like scalar values because of what it represents. That's why in HDRP we use
+    // tangent space tangent vector maps and triplanar sample those as we do normals in the surface gradients framework!
     // Better to rebuild a gradient in the proper space from each rotation, combine those gradients as normals and resolve here.
     if (HasAnisotropy())
     {
@@ -622,8 +624,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         if (_EnableDecals)
         {
             // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-            ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.tangentToWorld[2], alpha);
+            ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
         }
     #endif
 
@@ -664,7 +666,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // No back lighting with AxF
     InitBuiltinData(posInput, alpha, surfaceData.normalWS, surfaceData.normalWS, input.texCoord1, input.texCoord2, builtinData);
-    
+
 #ifdef _ALPHATEST_ON
     // Used for sharpening by alpha to mask
     builtinData.alphaClipTreshold = _AlphaCutoff;

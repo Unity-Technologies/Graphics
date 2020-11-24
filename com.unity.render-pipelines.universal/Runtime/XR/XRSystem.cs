@@ -20,12 +20,14 @@ namespace UnityEngine.Rendering.Universal
 
         // XR SDK display interface
         static List<XRDisplaySubsystem> displayList = new List<XRDisplaySubsystem>();
-        XRDisplaySubsystem display = null;
+        XRDisplaySubsystem              display = null;
+        // XRSDK does not support msaa per XR display. All displays share the same msaa level.
+        static  int                     msaaLevel = 1;
 
         // Internal resources used by XR rendering
-        Material occlusionMeshMaterial = null;
-        Material mirrorViewMaterial = null;
-        MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
+        Material                        occlusionMeshMaterial = null;
+        Material                        mirrorViewMaterial = null;
+        MaterialPropertyBlock           mirrorViewMaterialProperty = new MaterialPropertyBlock();
 
         RenderTexture testRenderTexture = null;
 
@@ -43,6 +45,12 @@ namespace UnityEngine.Rendering.Universal
         {
             if (data)
             {
+                if (occlusionMeshMaterial != null)
+                    CoreUtils.Destroy(occlusionMeshMaterial);
+
+                if (mirrorViewMaterial != null)
+                    CoreUtils.Destroy(mirrorViewMaterial);
+
                 occlusionMeshMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrOcclusionMeshPS);
                 mirrorViewMaterial = CoreUtils.CreateEngineMaterial(data.shaders.xrMirrorViewPS);
             }
@@ -78,12 +86,24 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void UpdateMSAALevel(int level)
         {
+            if (msaaLevel == level)
+                return;
+
+            level = Mathf.NextPowerOfTwo(level);
+            level = Mathf.Clamp(level, (int)MsaaQuality.Disabled, (int)MsaaQuality._8x);
+
             GetDisplaySubsystem();
 
 #if UNITY_2020_2_OR_NEWER
             for (int i = 0; i < displayList.Count; i++)
                 displayList[i].SetMSAALevel(level);
 #endif
+            msaaLevel = level;
+        }
+
+        internal static int GetMSAALevel()
+        {
+            return msaaLevel;
         }
 
         internal static void UpdateRenderScale(float renderScale)
@@ -104,10 +124,12 @@ namespace UnityEngine.Rendering.Universal
                 // XRTODO : replace by API from XR SDK, assume we have 2 slices until then
                 maxViews = 2;
             }
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             else if (XRGraphicsAutomatedTests.enabled)
             {
                 maxViews = Math.Max(maxViews, 2);
             }
+#endif
 
             return maxViews;
         }
@@ -139,18 +161,22 @@ namespace UnityEngine.Rendering.Universal
             bool isGameCamera = (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.VR);
             bool xrSupported = isGameCamera && camera.targetTexture == null && cameraData.xrRendering;
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running && isGameCamera && LayoutSinglePassTestMode(cameraData, new XRLayout() { camera = camera, xrSystem = this }))
             {
                 // test layout in used
             }
-            else if (xrEnabled && xrSupported)
+            else
+#endif
+            if (xrEnabled && xrSupported)
             {
-                // Disable vsync on the main display when rendering to a XR device
-                // XRTODO: Quest provider has a bug where vSyncCount must be 1, otherwise app is locked to 30fps
-                if (Application.platform == RuntimePlatform.Android)
-                    QualitySettings.vSyncCount = 1;
-                else
-                    QualitySettings.vSyncCount = 0;
+                // Disable vsync on the main display when rendering to a XR device.
+                QualitySettings.vSyncCount = 0;
+                // On Android and iOS, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
+                // Set targetFrameRate to XR refresh rate (round up)
+                float frameRate = 120.0f;
+                frameRate = display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
+                Application.targetFrameRate = Mathf.CeilToInt(frameRate);
 
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
             }
@@ -176,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderTexture.ReleaseTemporary(testRenderTexture);
         }
 
-        bool RefreshXrSdk()
+        internal bool RefreshXrSdk()
         {
             GetDisplaySubsystem();
 
@@ -201,6 +227,38 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
+        // Used for updating URP cameraData data struct with XRPass data.
+        internal void UpdateCameraData(ref CameraData baseCameraData, in XRPass xr)
+        {
+            // Update cameraData viewport for XR
+            Rect cameraRect = baseCameraData.camera.rect;
+            Rect xrViewport = xr.GetViewport();
+            baseCameraData.pixelRect = new Rect(cameraRect.x * xrViewport.width + xrViewport.x,
+                cameraRect.y * xrViewport.height + xrViewport.y,
+                cameraRect.width * xrViewport.width,
+                cameraRect.height * xrViewport.height);
+            Rect camPixelRect = baseCameraData.pixelRect;
+            baseCameraData.pixelWidth  = (int)System.Math.Round(camPixelRect.width + camPixelRect.x) - (int)System.Math.Round(camPixelRect.x);
+            baseCameraData.pixelHeight = (int)System.Math.Round(camPixelRect.height + camPixelRect.y) - (int)System.Math.Round(camPixelRect.y);
+            baseCameraData.aspectRatio = (float)baseCameraData.pixelWidth / (float)baseCameraData.pixelHeight;
+
+            bool isDefaultXRViewport = (!(Math.Abs(xrViewport.x) > 0.0f || Math.Abs(xrViewport.y) > 0.0f ||
+                Math.Abs(xrViewport.width) < xr.renderTargetDesc.width ||
+                Math.Abs(xrViewport.height) < xr.renderTargetDesc.height));
+            baseCameraData.isDefaultViewport = baseCameraData.isDefaultViewport && isDefaultXRViewport;
+
+            // Update cameraData cameraTargetDescriptor for XR. This descriptor is mainly used for configuring intermediate screen space textures
+            var originalTargetDesc = baseCameraData.cameraTargetDescriptor;
+            baseCameraData.cameraTargetDescriptor = xr.renderTargetDesc;
+            if (baseCameraData.isHdrEnabled)
+            {
+                baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
+            }
+            baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
+            baseCameraData.cameraTargetDescriptor.width = baseCameraData.pixelWidth;
+            baseCameraData.cameraTargetDescriptor.height = baseCameraData.pixelHeight;
+        }
+
         // Used for camera stacking where we need to update the parameters per camera
         internal void UpdateFromCamera(ref XRPass xrPass, CameraData cameraData)
         {
@@ -216,6 +274,9 @@ namespace UnityEngine.Rendering.Universal
 
                 // Update culling params for this xr pass using camera's culling params
                 cameraData.camera.TryGetCullingParameters(false, out var cullingParams);
+                cullingParams.stereoProjectionMatrix = cameraData.camera.projectionMatrix;
+                cullingParams.stereoViewMatrix = cameraData.camera.worldToCameraMatrix;
+
                 //// Disable legacy stereo culling path
                 cullingParams.cullingOptions &= ~CullingOptions.Stereo;
                 xrPass.UpdateCullingParams(0, cullingParams);
@@ -230,7 +291,6 @@ namespace UnityEngine.Rendering.Universal
                 xrPass.UpdateCullingParams(cullingPassId: renderPass.cullingPassIndex, cullingParams);
                 if (xrPass.singlePassEnabled)
                 {
-
                     for (int renderParamIndex = 0; renderParamIndex < renderPass.GetRenderParameterCount(); ++renderParamIndex)
                     {
                         renderPass.GetRenderParameter(cameraData.camera, renderParamIndex, out var renderParam);
@@ -302,7 +362,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal void Cleanup()
+        internal void Dispose()
         {
             CoreUtils.Destroy(occlusionMeshMaterial);
             CoreUtils.Destroy(mirrorViewMaterial);
@@ -310,6 +370,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void AddPassToFrame(XRPass xrPass)
         {
+            xrPass.UpdateOcclusionMesh();
             framePasses.Add(xrPass);
         }
 
@@ -317,6 +378,7 @@ namespace UnityEngine.Rendering.Universal
         {
             public static readonly int _SourceTexArraySlice = Shader.PropertyToID("_SourceTexArraySlice");
             public static readonly int _SRGBRead            = Shader.PropertyToID("_SRGBRead");
+            public static readonly int _SRGBWrite           = Shader.PropertyToID("_SRGBWrite");
         }
 
         internal void RenderMirrorView(CommandBuffer cmd, Camera camera)
@@ -346,14 +408,17 @@ namespace UnityEngine.Rendering.Universal
                             blitDesc.GetBlitParameter(i, out var blitParam);
 
                             Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
-                                                        new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
+                                new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
                             Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0 : 1);
+                            // Eye texture is always gamma corrected, use explicit sRGB read in shader if srcTex formats is not sRGB format. sRGB format will have implicit sRGB read so it is already handled.
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBRead, (blitParam.srcTex.sRGB) ? 0.0f : 1.0f);
+                            // Perform explicit sRGB write in shader if color space is gamma
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0.0f : 1.0f);
                             mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, blitParam.srcTex);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
                             mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, blitParam.srcTexArraySlice);
+                            mirrorViewMaterialProperty.SetFloat(XRShaderIDs._SourceTexArraySlice, (float)blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
                             cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
@@ -366,6 +431,35 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
         }
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        static MaterialPropertyBlock testMirrorViewMaterialProperty = new MaterialPropertyBlock();
+        static Material testMirrorViewMaterial = null;
+
+        static void copyToTestRenderTexture(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport)
+        {
+            cmd.SetViewport(viewport);
+            cmd.SetRenderTarget(rt == null ? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget) : rt);
+
+            Vector4 scaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+            Vector4 scaleBiasRT = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+
+            if (rt == null)
+            {
+                scaleBias.y = -1.0f;
+                scaleBias.w = 1.0f;
+            }
+
+            testMirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
+            testMirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
+
+            // Copy result from the second slice
+            testMirrorViewMaterialProperty.SetFloat(XRShaderIDs._SourceTexArraySlice, 1.0f);
+
+            cmd.DrawProcedural(Matrix4x4.identity, testMirrorViewMaterial, 1, MeshTopology.Quads, 4, 1, testMirrorViewMaterialProperty);
+        }
+
+        static XRPass.CustomMirrorView testMirrorView = copyToTestRenderTexture;
 
         bool LayoutSinglePassTestMode(CameraData cameraData, XRLayout frameLayout)
         {
@@ -385,38 +479,26 @@ namespace UnityEngine.Rendering.Universal
                     RenderTextureDescriptor rtDesc = cameraData.cameraTargetDescriptor;
                     rtDesc.dimension = TextureDimension.Tex2DArray;
                     rtDesc.volumeDepth = 2;
-                    // If camera renders to subrect and it renders to backbuffer, we adjust size to match back buffer
-                    if(!cameraData.isDefaultViewport && cameraData.targetTexture == null)
+                    // If camera renders to subrect, we adjust size to match back buffer/target texture
+                    if (!cameraData.isDefaultViewport)
                     {
-                        rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
-                        rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
+                        if (cameraData.targetTexture == null)
+                        {
+                            rtDesc.width = (int)(rtDesc.width / cameraData.camera.rect.width);
+                            rtDesc.height = (int)(rtDesc.height / cameraData.camera.rect.height);
+                        }
+                        else
+                        {
+                            rtDesc.width = (int)(cameraData.targetTexture.width);
+                            rtDesc.height = (int)(cameraData.targetTexture.height);
+                        }
                     }
                     testRenderTexture = RenderTexture.GetTemporary(rtDesc);
-                }
 
-                void copyToTestRenderTexture(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport)
-                {
-                    cmd.SetViewport(viewport);
-                    cmd.SetRenderTarget(rt == null ? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget) : rt);
-
-                    Vector4 scaleBias   = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
-                    Vector4 scaleBiasRT = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
-
-                    if (rt == null)
-                    {
-                        scaleBias.y = -1.0f;
-                        scaleBias.w = 1.0f;
-                    }
-
-                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0 : 1);
-                    mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
-                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
-                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
-
-                    // Copy result from the second slice
-                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, 1);
-
-                    cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, 1, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
+                    testMirrorViewMaterial = mirrorViewMaterial;
+                    testMirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBRead, (testRenderTexture.sRGB) ? 0.0f : 1.0f);
+                    testMirrorViewMaterialProperty.SetFloat(XRShaderIDs._SRGBWrite, (QualitySettings.activeColorSpace == ColorSpace.Linear) ? 0.0f : 1.0f);
+                    testMirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
                 }
 
                 var passInfo = new XRPassCreateInfo
@@ -426,7 +508,7 @@ namespace UnityEngine.Rendering.Universal
                     cullingParameters = cullingParams,
                     renderTarget = testRenderTexture,
                     renderTargetIsRenderTexture = true,
-                    customMirrorView = copyToTestRenderTexture
+                    customMirrorView = testMirrorView
                 };
 
                 var viewInfo2 = new XRViewCreateInfo
@@ -461,6 +543,8 @@ namespace UnityEngine.Rendering.Universal
 
             return false;
         }
+
+#endif
     }
 }
 

@@ -17,15 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition
         Transparent
     }
 
-    // Enum values are hardcoded for retro-compatibility. Don't change them.
-    enum BlendMode
-    {
-        // Note: value is due to code change, don't change the value
-        Alpha = 0,
-        Premultiply = 4,
-        Additive = 1
-    }
-
     enum DisplacementMode
     {
         None,

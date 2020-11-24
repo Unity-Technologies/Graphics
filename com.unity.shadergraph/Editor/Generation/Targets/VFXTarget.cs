@@ -1,3 +1,4 @@
+#if VFX_GRAPH_10_0_0_OR_NEWER
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace UnityEditor.ShaderGraph
 
         [SerializeField]
         bool m_AlphaTest = false;
-        
+
         public VFXTarget()
         {
             displayName = "Visual Effect";
@@ -39,7 +40,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
         }
@@ -50,7 +51,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
-            return true;
+            return base.IsNodeAllowedByTarget(nodeType);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -108,7 +109,7 @@ namespace UnityEditor.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is VisualEffectMasterNode1 vfxMasterNode))
+            if (!(masterNode is VisualEffectMasterNode1 vfxMasterNode))
                 return false;
 
             lit = vfxMasterNode.m_Lit;
@@ -130,7 +131,7 @@ namespace UnityEditor.ShaderGraph
 
             blockMap.Add(BlockFields.SurfaceDescription.Alpha, ShaderGraphVfxAsset.AlphaSlotId);
 
-            if(alphaTest)
+            if (alphaTest)
             {
                 blockMap.Add(BlockFields.SurfaceDescription.AlphaClipThreshold, ShaderGraphVfxAsset.AlphaThresholdSlotId);
             }
@@ -144,3 +145,4 @@ namespace UnityEditor.ShaderGraph
         }
     }
 }
+#endif

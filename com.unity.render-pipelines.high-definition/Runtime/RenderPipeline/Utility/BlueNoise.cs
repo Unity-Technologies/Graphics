@@ -133,11 +133,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal DitheredTextureSet DitheredTextureSet8SPP()
         {
-            // This is a structure, so the new shouldn't be a problem.
             DitheredTextureSet ditheredTextureSet = new DitheredTextureSet();
             ditheredTextureSet.owenScrambled256Tex = m_RenderPipelineResources.textures.owenScrambled256Tex;
             ditheredTextureSet.scramblingTile = m_RenderPipelineResources.textures.scramblingTile8SPP;
             ditheredTextureSet.rankingTile = m_RenderPipelineResources.textures.rankingTile8SPP;
+            ditheredTextureSet.scramblingTex = m_RenderPipelineResources.textures.scramblingTex;
+            return ditheredTextureSet;
+        }
+
+        internal DitheredTextureSet DitheredTextureSet256SPP()
+        {
+            DitheredTextureSet ditheredTextureSet = new DitheredTextureSet();
+            ditheredTextureSet.owenScrambled256Tex = m_RenderPipelineResources.textures.owenScrambled256Tex;
+            ditheredTextureSet.scramblingTile = m_RenderPipelineResources.textures.scramblingTile256SPP;
+            ditheredTextureSet.rankingTile = m_RenderPipelineResources.textures.rankingTile256SPP;
             ditheredTextureSet.scramblingTex = m_RenderPipelineResources.textures.scramblingTex;
             return ditheredTextureSet;
         }
