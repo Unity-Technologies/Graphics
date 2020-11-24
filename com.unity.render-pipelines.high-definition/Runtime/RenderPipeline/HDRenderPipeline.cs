@@ -103,10 +103,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
-        readonly RenderPipelineMaterial m_DeferredMaterial;
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
-        readonly DBufferManager m_DbufferManager;
 #if ENABLE_VIRTUALTEXTURES
         readonly VTBufferManager m_VtBufferManager;
 #endif
@@ -165,7 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_currentDebugViewMaterialGBuffer;
         Material m_DebugDisplayLatlong;
         Material m_DebugFullScreen;
-        MaterialPropertyBlock m_DebugFullScreenPropertyBlock = new MaterialPropertyBlock();
         Material m_DebugColorPicker;
         Material m_DebugExposure;
         Material m_ErrorMaterial;
@@ -174,30 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_BlitTexArray;
         Material m_BlitTexArraySingleSlice;
         Material m_BlitColorAndDepth;
-        MaterialPropertyBlock m_BlitPropertyBlock = new MaterialPropertyBlock();
-
-        RenderTargetIdentifier[] m_MRTCache2 = new RenderTargetIdentifier[2];
-
-        // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
-        RTHandle m_CameraColorBuffer;
-        RTHandle m_OpaqueAtmosphericScatteringBuffer; // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
-        RTHandle m_CameraSssDiffuseLightingBuffer;
-        RTHandle m_DistortionIntermediateBuffer;
-
-        RTHandle m_ContactShadowBuffer;
-        RTHandle m_ScreenSpaceShadowsBuffer;
-        RTHandle m_DistortionBuffer;
-
-        RTHandle m_LowResTransparentBuffer;
-
-        // TODO: remove me, I am just a temporary debug texture. :-)
-        // RTHandle m_SsrDebugTexture;
-        RTHandle m_SsrHitPointTexture;
-        RTHandle m_SsrLightingTexture;
-        // MSAA Versions of regular textures
-        RTHandle m_CameraColorMSAABuffer;
-        RTHandle m_OpaqueAtmosphericScatteringMSAABuffer;  // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity
-        RTHandle m_CameraSssDiffuseLightingMSAABuffer;
 
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
@@ -291,7 +264,6 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly AmbientOcclusionSystem m_AmbientOcclusionSystem;
 
         // Debugging
-        MaterialPropertyBlock m_SharedPropertyBlock = new MaterialPropertyBlock();
         DebugDisplaySettings m_DebugDisplaySettings = new DebugDisplaySettings();
 #if ENABLE_VIRTUALTEXTURES
         Material m_VTDebugBlit;
@@ -302,10 +274,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public DebugDisplaySettings debugDisplaySettings { get { return m_DebugDisplaySettings; } }
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         internal DebugDisplaySettings m_CurrentDebugDisplaySettings;
-        RTHandle                        m_DebugColorPickerBuffer;
-        RTHandle                        m_DebugFullScreenTempBuffer;
-        // This target is only used in Dev builds as an intermediate destination for post process and where debug rendering will be done.
-        RTHandle                        m_IntermediateAfterPostProcessBuffer;
         // We need this flag because otherwise if no full screen debug is pushed (like for example if the corresponding pass is disabled), when we render the result in RenderDebug m_DebugFullScreenTempBuffer will contain potential garbage
         bool                            m_FullScreenDebugPushed;
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
@@ -315,13 +283,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
             CameraCache<(Transform viewer, HDProbe probe, int face)>();
-
-        RenderTargetIdentifier[] m_MRTTransparentMotionVec;
-
-        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3]; // Specular, diffuse, sss buffer;
-
-        RenderTargetIdentifier[] mMRTSingle = new RenderTargetIdentifier[1];
-        string m_ForwardPassProfileName;
 
         internal Material GetBlitMaterial(bool useTexArray, bool singleSlice) { return useTexArray ? (singleSlice ? m_BlitTexArraySingleSlice : m_BlitTexArray) : m_Blit; }
         internal Material GetBlitColorAndDepthMaterial() { return m_BlitColorAndDepth; }
@@ -413,6 +374,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ValidateResources();
 #endif
 
+            if (m_RayTracingSupported)
+            {
+                m_RayCountManager.InitializeNonRenderGraphResources();
+            }
+
             // We need to call this after the resource initialization as we attempt to use them in checking the supported API.
             if (!CheckAPIValidity())
             {
@@ -464,20 +430,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Scan material list and assign it
             m_MaterialList = HDUtils.GetRenderPipelineMaterialList();
-            // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
-            m_DeferredMaterial = null;
-            foreach (var material in m_MaterialList)
-            {
-                if (material.IsDefferedMaterial())
-                    m_DeferredMaterial = material;
-            }
 
-            // TODO: Handle the case of no Gbuffer material
-            // TODO: I comment the assert here because m_DeferredMaterial for whatever reasons contain the correct class but with a "null" in the name instead of the real name and then trigger the assert
-            // whereas it work. Don't know what is happening, DebugDisplay use the same code and name is correct there.
-            // Debug.Assert(m_DeferredMaterial != null);
-
-            m_DbufferManager = new DBufferManager();
 #if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager = new VTBufferManager(asset);
             m_VTDebugBlit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewVirtualTexturingBlit);
@@ -554,10 +507,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Keep track of the original msaa sample value
             // TODO : Bind this directly to the debug menu instead of having an intermediate value
             m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
-
-
-            //Debug.Log("Scriptable renderpipeline VT disabled");
-            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 
             if (m_RayTracingSupported)
             {
@@ -683,110 +632,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.ResetReferenceSize(width, height);
             HDCamera.ResetAllHistoryRTHandleSystems(width, height);
-        }
-
-        void InitializeRenderTextures()
-        {
-            RenderPipelineSettings settings = m_Asset.currentPlatformRenderPipelineSettings;
-
-            if (settings.supportDecals)
-                m_DbufferManager.CreateBuffers();
-
-            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "CameraColor");
-            m_OpaqueAtmosphericScatteringBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "OpaqueAtmosphericScattering");
-            m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite: true, useDynamicScale: true, name: "CameraSSSDiffuseLighting");
-
-            m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
-            m_DistortionIntermediateBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true, name: "DistortionIntermediateBuffer");
-            m_ContactShadowBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "ContactShadowsBuffer");
-
-            if (m_Asset.currentPlatformRenderPipelineSettings.lowresTransparentSettings.enabled)
-            {
-                // We need R16G16B16A16_SFloat as we need a proper alpha channel for compositing.
-                m_LowResTransparentBuffer = RTHandles.Alloc(Vector2.one * 0.5f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "Low res transparent");
-            }
-
-            if (settings.supportSSR)
-            {
-                m_SsrHitPointTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16_UNorm, enableRandomWrite: true, useDynamicScale: true, name: "SSR_Hit_Point_Texture");
-                m_SsrLightingTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, name: "SSR_Lighting_Texture");
-            }
-
-            // Let's create the MSAA textures
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportMSAA && m_Asset.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
-            {
-                m_CameraColorMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraColorMSAA");
-                m_OpaqueAtmosphericScatteringMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "OpaqueAtmosphericScatteringMSAA");
-                m_CameraSssDiffuseLightingMSAABuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), bindTextureMS: true, enableMSAA: true, useDynamicScale: true, name: "CameraSSSDiffuseLightingMSAA");
-            }
-
-            if (m_RayTracingSupported)
-            {
-                m_RayCountManager.InitializeNonRenderGraphResources();
-
-                m_RayTracingLightCluster.InitializeNonRenderGraphResources();
-            }
-        }
-
-        void GetOrCreateDebugTextures()
-        {
-            if (m_EnableRenderGraph)
-                return;
-
-            //Debug.isDebugBuild can be changed during DoBuildPlayer, these allocation has to be check on every frames
-            //TODO : Clean this with the RenderGraph system
-            if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null)
-            {
-                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, dimension: TextureXR.dimension, slices: TextureXR.slices, name: "DebugColorPicker");
-                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, useDynamicScale: true, name: "DebugFullScreen");
-            }
-
-            if (m_IntermediateAfterPostProcessBuffer == null)
-            {
-                // We always need this target because there could be a custom pass in after post process mode.
-                // In that case, we need to do the flip y after this pass.
-                m_IntermediateAfterPostProcessBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), useDynamicScale: true, name: "AfterPostProcess"); // Needs to be FP16 because output target might be HDR
-            }
-        }
-
-        void DestroyRenderTextures()
-        {
-            m_DbufferManager.DestroyBuffers();
-
-            RTHandles.Release(m_CameraColorBuffer);
-            RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
-            RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
-
-            RTHandles.Release(m_DistortionBuffer);
-            RTHandles.Release(m_DistortionIntermediateBuffer);
-            RTHandles.Release(m_ContactShadowBuffer);
-
-            RTHandles.Release(m_LowResTransparentBuffer);
-
-            // RTHandles.Release(m_SsrDebugTexture);
-            RTHandles.Release(m_SsrHitPointTexture);
-            RTHandles.Release(m_SsrLightingTexture);
-
-            RTHandles.Release(m_CameraColorMSAABuffer);
-            RTHandles.Release(m_OpaqueAtmosphericScatteringMSAABuffer);
-            RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
-
-            // Those buffer are initialized lazily so we need to null them for this to work after deallocation.
-            RTHandles.Release(m_DebugColorPickerBuffer);
-            RTHandles.Release(m_DebugFullScreenTempBuffer);
-            RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
-            m_DebugColorPickerBuffer = null;
-            m_DebugFullScreenTempBuffer = null;
-            m_IntermediateAfterPostProcessBuffer = null;
-
-            if (m_RayTracingSupported)
-            {
-                m_RayCountManager.CleanupNonRenderGraphResources();
-
-                m_RayTracingLightCluster.CleanupNonRenderGraphResources();
-
-                RaytracingManagerCleanupNonRenderGraphResources();
-            }
         }
 
         void SetRenderingFeatures()
@@ -917,27 +762,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CleanupRenderGraph()
         {
-            if (m_EnableRenderGraph)
-            {
-                m_RenderGraph.Cleanup();
-                m_RenderGraph = null;
-            }
-        }
-
-        void InitializeNonRenderGraphResources()
-        {
-            InitializeRenderTextures();
-            m_ShadowManager.InitializeNonRenderGraphResources();
-
-            // Reset resolution dependent buffers. Tile, Coarse stencil etc...
-            m_MaxCameraWidth = m_MaxCameraHeight = m_MaxViewCount = 1;
-        }
-
-        void CleanupNonRenderGraphResources()
-        {
-            DestroyRenderTextures();
-            m_ShadowManager.CleanupNonRenderGraphResources();
-            LightLoopCleanupNonRenderGraphResources();
+            m_RenderGraph.Cleanup();
+            m_RenderGraph = null;
         }
 
         void InitializeDebugMaterials()
@@ -1004,8 +830,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             base.Dispose(disposing);
 
-            if (!m_EnableRenderGraph)
-                CleanupNonRenderGraphResources();
+            if (m_RayTracingSupported)
+            {
+                m_RayCountManager.CleanupNonRenderGraphResources();
+            }
 
             ReleaseScreenSpaceShadows();
 
@@ -1414,7 +1242,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             GetOrCreateDefaultVolume();
-            GetOrCreateDebugTextures();
 
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();

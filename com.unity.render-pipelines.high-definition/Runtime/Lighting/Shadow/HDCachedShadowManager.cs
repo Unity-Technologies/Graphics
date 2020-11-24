@@ -351,9 +351,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Dispose()
         {
-            punctualShadowAtlas.Release();
-            if (ShaderConfig.s_AreaLights == 1)
-                areaShadowAtlas.Release();
         }
     }
 }
