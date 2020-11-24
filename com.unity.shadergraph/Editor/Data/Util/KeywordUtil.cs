@@ -66,23 +66,47 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static bool NeedsMultiStageDefinition(this KeywordDescriptor keyword, ref List<KeywordShaderStage> dstStages)
+        {
+            dstStages.Clear();
+
+            // All doesn't need special treatment.
+            if (keyword.stages == KeywordShaderStage.All)
+                return false;
+
+            if ((keyword.stages & KeywordShaderStage.Vertex) == KeywordShaderStage.Vertex)
+                dstStages.Add(KeywordShaderStage.Vertex);
+            if ((keyword.stages & KeywordShaderStage.Hull) == KeywordShaderStage.Hull)
+                dstStages.Add(KeywordShaderStage.Hull);
+            if ((keyword.stages & KeywordShaderStage.Domain) == KeywordShaderStage.Domain)
+                dstStages.Add(KeywordShaderStage.Domain);
+            if ((keyword.stages & KeywordShaderStage.Geometry) == KeywordShaderStage.Geometry)
+                dstStages.Add(KeywordShaderStage.Geometry);
+            if ((keyword.stages & KeywordShaderStage.RayTracing) == KeywordShaderStage.RayTracing)
+                dstStages.Add(KeywordShaderStage.RayTracing);
+
+            return dstStages.Count > 1;
+
+        }
+
+        // TODO: BROKEN FIX!!!!
         public static string ToKeywordStagesString(this KeywordShaderStage stages)
         {
             string outString = "";
 
             if (stages == KeywordShaderStage.All)
                 return outString;
-            if ((stages & KeywordShaderStage.Vertex) == KeywordShaderStage.Vertex)
+            if (stages == KeywordShaderStage.Vertex)
                 outString += "_vertex";
-            if ((stages & KeywordShaderStage.Fragment) == KeywordShaderStage.Fragment)
+            if (stages == KeywordShaderStage.Fragment)
                 outString += "_fragment";
-            if ((stages & KeywordShaderStage.Geometry) == KeywordShaderStage.Geometry)
+            if (stages == KeywordShaderStage.Geometry)
                 outString += "_geometry";
-            if ((stages & KeywordShaderStage.Hull) == KeywordShaderStage.Hull)
+            if (stages == KeywordShaderStage.Hull)
                 outString += "_hull";
-            if ((stages & KeywordShaderStage.Domain) == KeywordShaderStage.Domain)
+            if (stages == KeywordShaderStage.Domain)
                 outString += "_domain";
-            if ((stages & KeywordShaderStage.RayTracing) == KeywordShaderStage.RayTracing)
+            if (stages == KeywordShaderStage.RayTracing)
                 outString += "_raytracing";
 
             return outString;

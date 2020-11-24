@@ -980,7 +980,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-          //  stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor WriteMsaaDepth = new KeywordDescriptor()
@@ -1009,8 +1008,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
-            //stages = KeywordShaderStage.FragmentAndRaytracing, 
+            stages = KeywordShaderStage.FragmentAndRaytracing, 
         };
 
         public static KeywordDescriptor Lightmap = new KeywordDescriptor()
@@ -1020,8 +1018,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
-            //stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DirectionalLightmapCombined = new KeywordDescriptor()
@@ -1031,8 +1028,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
-            //stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DynamicLightmap = new KeywordDescriptor()
@@ -1042,8 +1038,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
-            //stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor ShadowsShadowmask = new KeywordDescriptor()
@@ -1054,7 +1049,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
             stages = KeywordShaderStage.Fragment,
-            //stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor ScreenSpaceShadow = new KeywordDescriptor()
@@ -1079,6 +1073,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor Decals = new KeywordDescriptor()
@@ -1127,6 +1122,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new KeywordEntry() { displayName = "FPTL", referenceName = "FPTL_LIGHTLIST" },
                 new KeywordEntry() { displayName = "Clustered", referenceName = "CLUSTERED_LIGHTLIST" },
             },
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static KeywordDescriptor Shadow = new KeywordDescriptor()
@@ -1278,6 +1274,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DisableSSR = new KeywordDescriptor
@@ -1287,8 +1284,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.Fragment,
-            //stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor DisableSSRTransparent = new KeywordDescriptor
@@ -1298,8 +1294,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
-            stages = KeywordShaderStage.Fragment,
-            //stages = KeywordShaderStage.FragmentAndRaytracing,
+            stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor EnableGeometricSpecularAA = new KeywordDescriptor
@@ -1310,7 +1305,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
             stages = KeywordShaderStage.Fragment,
-            //stages = KeywordShaderStage.FragmentAndRaytracing,
         };
 
         public static KeywordDescriptor SupportBlendModePreserveSpecularLighting = new KeywordDescriptor
@@ -1329,6 +1323,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment
         };
 
         public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor
@@ -1347,6 +1342,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment
         };
     }
 #endregion
