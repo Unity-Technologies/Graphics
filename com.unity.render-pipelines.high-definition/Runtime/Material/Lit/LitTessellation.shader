@@ -253,60 +253,87 @@ Shader "HDRP/LitTessellation"
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
-    #pragma shader_feature_local _DEPTHOFFSET_ON
+    #pragma shader_feature_local_fragment _DEPTHOFFSET_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
     #pragma shader_feature_local _ _TESSELLATION_DISPLACEMENT _PIXEL_DISPLACEMENT
-    #pragma shader_feature_local _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local_vertex _VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
-    #pragma shader_feature_local _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local _TESSELLATION_PHONG
-    #pragma shader_feature_local _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
+    #pragma shader_feature_local_fragment _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+    #pragma shader_feature_local_fragment _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
+    #pragma shader_feature_local_raytracing _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
-    #pragma shader_feature_local _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
-    #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
-    #pragma shader_feature_local _NORMALMAP_TANGENT_SPACE
+    #pragma shader_feature_local_fragment _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
+    #pragma shader_feature_local_fragment _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
+    #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE
+    #pragma shader_feature_local_raytracing _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
+    #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
+    #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
     #pragma shader_feature_local _NORMALMAP
-    #pragma shader_feature_local _MASKMAP
-    #pragma shader_feature_local _BENTNORMALMAP
-    #pragma shader_feature_local _EMISSIVE_COLOR_MAP
+    #pragma shader_feature_local_fragment _MASKMAP
+    #pragma shader_feature_local_fragment _BENTNORMALMAP
+    #pragma shader_feature_local_fragment _EMISSIVE_COLOR_MAP
+    #pragma shader_feature_local_raytracing _MASKMAP
+    #pragma shader_feature_local_raytracing _BENTNORMALMAP
+    #pragma shader_feature_local_raytracing _EMISSIVE_COLOR_MAP
 
     // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
     // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
     // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
-    #pragma shader_feature_local _ENABLESPECULAROCCLUSION
-    #pragma shader_feature_local _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+    #pragma shader_feature_local_fragment _ENABLESPECULAROCCLUSION
+    #pragma shader_feature_local_fragment _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+    #pragma shader_feature_local_raytracing _ENABLESPECULAROCCLUSION
+    #pragma shader_feature_local_raytracing _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #endif
 
     #pragma shader_feature_local _HEIGHTMAP
-    #pragma shader_feature_local _TANGENTMAP
-    #pragma shader_feature_local _ANISOTROPYMAP
-    #pragma shader_feature_local _DETAIL_MAP
-    #pragma shader_feature_local _SUBSURFACE_MASK_MAP
-    #pragma shader_feature_local _THICKNESSMAP
-    #pragma shader_feature_local _IRIDESCENCE_THICKNESSMAP
-    #pragma shader_feature_local _SPECULARCOLORMAP
-    #pragma shader_feature_local _TRANSMITTANCECOLORMAP
+    #pragma shader_feature_local_fragment _TANGENTMAP
+    #pragma shader_feature_local_fragment _ANISOTROPYMAP
+    #pragma shader_feature_local_fragment _DETAIL_MAP
+    #pragma shader_feature_local_fragment _SUBSURFACE_MASK_MAP
+    #pragma shader_feature_local_fragment _THICKNESSMAP
+    #pragma shader_feature_local_fragment _IRIDESCENCE_THICKNESSMAP
+    #pragma shader_feature_local_fragment _SPECULARCOLORMAP
+    #pragma shader_feature_local_fragment _TRANSMITTANCECOLORMAP
+    #pragma shader_feature_local_raytracing _TANGENTMAP
+    #pragma shader_feature_local_raytracing _ANISOTROPYMAP
+    #pragma shader_feature_local_raytracing _DETAIL_MAP
+    #pragma shader_feature_local_raytracing _SUBSURFACE_MASK_MAP
+    #pragma shader_feature_local_raytracing _THICKNESSMAP
+    #pragma shader_feature_local_raytracing _IRIDESCENCE_THICKNESSMAP
+    #pragma shader_feature_local_raytracing _SPECULARCOLORMAP
+    #pragma shader_feature_local_raytracing _TRANSMITTANCECOLORMAP
 
-    #pragma shader_feature_local _DISABLE_DECALS
-    #pragma shader_feature_local _DISABLE_SSR
-    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
-    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local_fragment _DISABLE_SSR
+    #pragma shader_feature_local_raytracing _DISABLE_DECALS
+    #pragma shader_feature_local_raytracing _DISABLE_SSR
+    // Bit of a mystery why this is not possible to have frequency specific.
+    #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
+
+    #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local_fragment _ENABLE_FOG_ON_TRANSPARENT
 
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
-    #pragma shader_feature_local _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    #pragma shader_feature_local _MATERIAL_FEATURE_TRANSMISSION
-    #pragma shader_feature_local _MATERIAL_FEATURE_ANISOTROPY
-    #pragma shader_feature_local _MATERIAL_FEATURE_CLEAR_COAT
-    #pragma shader_feature_local _MATERIAL_FEATURE_IRIDESCENCE
-    #pragma shader_feature_local _MATERIAL_FEATURE_SPECULAR_COLOR
+    #pragma shader_feature_local_fragment _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local_fragment _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local_fragment _MATERIAL_FEATURE_ANISOTROPY
+    #pragma shader_feature_local_fragment _MATERIAL_FEATURE_CLEAR_COAT
+    #pragma shader_feature_local_fragment _MATERIAL_FEATURE_IRIDESCENCE
+    #pragma shader_feature_local_fragment _MATERIAL_FEATURE_SPECULAR_COLOR
+    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_TRANSMISSION
+    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_ANISOTROPY
+    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_CLEAR_COAT
+    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_IRIDESCENCE
+    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SPECULAR_COLOR
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
@@ -452,7 +479,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile_fragment _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
-            // Setup DECALS_OFF so the shader stripper can remove variants
+        // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile_fragment _ LIGHT_LAYERS
 
@@ -788,7 +815,12 @@ Shader "HDRP/LitTessellation"
             // Supported shadow modes per light type
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
-            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+            #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+
+            #ifndef SHADER_STAGE_FRAGMENT
+            #define SHADOW_LOW
+            #define USE_FPTL_LIGHTLIST
+            #endif
 
             #define SHADERPASS SHADERPASS_FORWARD
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
