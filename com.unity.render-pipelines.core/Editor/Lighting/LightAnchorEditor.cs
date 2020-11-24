@@ -88,16 +88,21 @@ namespace UnityEditor
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
+                    Color usedColor;
                     {
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Yaw;
-                        m_Yaw = AngleField(localRect, "Yaw", m_Yaw, 90, new Color(0, 0, 1, 0.2f), true);
+                        usedColor = Color.green;
+                        usedColor.a = 0.2f;
+                        m_Yaw = AngleField(localRect, "Yaw", m_Yaw, 90, usedColor, true);
                     }
                     yawChanged = oldValue != m_Yaw;
                     {
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Pitch;
-                        m_Pitch = AngleField(localRect, "Pitch", m_Pitch, 180, new Color(0, 1, 0, 0.2f), true);
+                        usedColor = Color.blue;
+                        usedColor.a = 0.2f;
+                        m_Pitch = AngleField(localRect, "Pitch", m_Pitch, 180, usedColor, true);
                     }
                     pitchChanged = oldValue != m_Pitch;
                     {
@@ -108,7 +113,9 @@ namespace UnityEditor
 
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Roll;
-                        m_Roll = AngleField(localRect, "Roll", m_Roll, -90, Color.grey, enabledKnob);
+                        usedColor = Color.red;
+                        usedColor.a = 0.2f;
+                        m_Roll = AngleField(localRect, "Roll", m_Roll, -90, usedColor, enabledKnob);
                     }
                     rollChanged = oldValue != m_Roll;
                 }
@@ -156,7 +163,10 @@ namespace UnityEditor
                 if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Presets"))
                 {
                     Color cachedColor = GUI.backgroundColor;
-                    GUI.backgroundColor = new Color(0.440513f, 0.440513f, 0.440513f, 1.0f);
+                    if (EditorGUIUtility.isProSkin)
+                        GUI.backgroundColor = new Color(43f / 255f, 41f / 255f, 43f / 255f, 1.0f);
+                    else
+                        GUI.backgroundColor = new Color(229f / 255f, 228f / 255f, 229f / 255f);
                     var inspectorWidth = EditorGUIUtility.currentViewWidth - Styles.inspectorWidthPadding;
                     var presetButtonWidth = GUILayout.Width(inspectorWidth / Styles.presetButtonCount);
                     var presetButtonHeight = GUILayout.Height(inspectorWidth / Styles.presetButtonCount);
@@ -419,10 +429,13 @@ namespace UnityEditor
 
         void UpdateCache()
         {
-            m_Yaw = firstManipulator.yaw;
-            m_Pitch = firstManipulator.pitch;
-            m_Roll = firstManipulator.roll;
-            m_Distance = firstManipulator.distance;
+            if (firstManipulator != null)
+            {
+                m_Yaw = firstManipulator.yaw;
+                m_Pitch = firstManipulator.pitch;
+                m_Roll = firstManipulator.roll;
+                m_Distance = firstManipulator.distance;
+            }
         }
 
         bool IsCacheInvalid(LightAnchor manipulator)
@@ -525,15 +538,31 @@ namespace UnityEditor
             float coef = enabled ? 1.0f : 0.5f;
 
             Color backupColor = Handles.color;
-            Handles.color = Color.grey * 0.66f * coef;
+            if (EditorGUIUtility.isProSkin)
+                Handles.color = new Color(50f / 255f, 50f / 255f, 50f / 255f);
+            else
+                Handles.color = new Color(229f / 255f, 228f / 255f, 229f / 255f);
             Handles.DrawSolidDisc(center, Vector3.forward, radius);
-            Handles.color = Color.black * coef;
+            if (EditorGUIUtility.isProSkin)
+                Handles.color = new Color(33f / 255f, 33f / 255f, 33f / 255f);
+            else
+                Handles.color = new Color(33f / 255f, 33f / 255f, 33f / 255f);
             Handles.DrawWireDisc(center, Vector3.forward, radius);
-            Handles.color = sectionColor;// Color.grey;
+            if (EditorGUIUtility.isProSkin)
+                Handles.color = sectionColor;
+            else
+                Handles.color = sectionColor;
             Handles.DrawSolidArc(center, Vector3.forward, Quaternion.AngleAxis(offset, Vector3.forward) * Vector3.right, angleDegrees, radius);
-            Handles.color = Color.black * coef;
+            if (EditorGUIUtility.isProSkin)
+                Handles.color = new Color(196f / 255f, 196f / 255f, 196f / 255f);
+            else
+                Handles.color = new Color(97f / 255f, 97f / 255f, 97f / 255f);
             Handles.DrawLine(center + toOrigin * 0.75f, center + toOrigin * 0.9f);
-            Handles.color = Color.white * coef;
+            ////Handles.color = Color.white * coef;
+            //if (EditorGUIUtility.isProSkin)
+            //    Handles.color = Color.black * coef;
+            //else
+            //    Handles.color = Color.black * coef;
             Handles.DrawLine(center, handlePosition);
             Handles.DrawSolidDisc(handlePosition, Vector3.forward, 5f);
             Handles.color = backupColor;

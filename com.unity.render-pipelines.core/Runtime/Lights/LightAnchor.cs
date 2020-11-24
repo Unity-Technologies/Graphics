@@ -167,7 +167,7 @@ namespace UnityEngine
 
             float arcRadius = Mathf.Min(distance * 0.25f, k_ArcRadius);
             float axisLength = Mathf.Min(distance * 0.5f, k_AxisLength);
-            float alpha = 0.2f;
+            const float alpha = 0.2f;
 
             Handles.color = Color.grey;
             Handles.DrawDottedLine(anchorPosition, anchorPosition + proj, 2);
@@ -175,14 +175,14 @@ namespace UnityEngine
             Handles.DrawDottedLine(anchorPosition, transform.position, 2);
 
             // forward
-            Color color = Color.blue;
+            Color color = Color.green;
             color.a = alpha;
             Handles.color = color;
             Handles.DrawLine(anchorPosition, anchorPosition + axes.forward * axisLength);
             Handles.DrawSolidArc(anchor, axes.up, axes.forward, yaw, arcRadius);
 
             // up
-            color = Color.green;
+            color = Color.blue;
             color.a = alpha;
             Handles.color = color;
             Quaternion yawRot = Quaternion.AngleAxis(yaw, axes.up * k_AxisLength);
