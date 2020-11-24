@@ -351,7 +351,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // RENDER GRAPH
-        internal static bool enableNonRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-non-rendergraph-tests"); }
         RenderGraph m_RenderGraph = new RenderGraph("HDRPGraph");
         bool        m_EnableRenderGraph = true;
 
@@ -593,8 +592,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
-
-            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
         }
 
 #if UNITY_EDITOR
@@ -999,31 +996,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RenderGraph.Cleanup();
                 m_RenderGraph = null;
-            }
-        }
-
-        internal bool IsRenderGraphEnabled()
-        {
-            return m_EnableRenderGraph;
-        }
-
-        internal void EnableRenderGraph(bool value)
-        {
-            bool changed = value != m_EnableRenderGraph;
-            if (changed)
-            {
-                if (value)
-                {
-                    CleanupNonRenderGraphResources();
-                    InitializeRenderGraph();
-                    m_EnableRenderGraph = true;
-                }
-                else
-                {
-                    CleanupRenderGraph();
-                    InitializeNonRenderGraphResources();
-                    m_EnableRenderGraph = false;
-                }
             }
         }
 
