@@ -911,6 +911,8 @@ namespace UnityEngine.Rendering.Universal
                 asset.postProcessData = PostProcessData.GetDefaultPostProcessData();
                 asset.k_AssetPreviousVersion = 7;
             }
+
+            EditorUtility.SetDirty(asset);
         }
 
 #endif
