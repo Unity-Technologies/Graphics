@@ -119,8 +119,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = UniversalRenderPipeline.maxVisibleAdditionalLights;
                 }
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];
-                m_UnusedAtlasSquareAreas.Capacity = maxShadowSlices;
-                m_ShadowResolutionRequests.Capacity = maxShadowSlices;
+                m_UnusedAtlasSquareAreas.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
+                m_ShadowResolutionRequests.Capacity = MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO;
             }
         }
 
