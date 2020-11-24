@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+        [SerializeField] internal List<VolumeComponent> m_VolumeComponents = new List<VolumeComponent>();
 
         /// <summary>
         /// List of additional render pass features for this renderer.
@@ -58,6 +59,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_RendererFeatures.Contains(null))
                 ValidateRendererFeatures();
 #endif
+            GatherVolumeComponents();
         }
 
         protected virtual void OnEnable()
@@ -74,6 +76,19 @@ namespace UnityEngine.Rendering.Universal
         internal virtual Shader GetDefaultShader()
         {
             return null;
+        }
+
+        internal void GatherVolumeComponents()
+        {
+            m_VolumeComponents.Clear();
+            var subassets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this));
+
+            // Collect valid, compiled sub-assets
+            foreach (var asset in subassets)
+            {
+                if (asset == null || asset.GetType().BaseType != typeof(VolumeComponent)) continue;
+                m_VolumeComponents.Add(asset as VolumeComponent);
+            }
         }
 
         internal bool ValidateRendererFeatures()

@@ -81,6 +81,8 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal static ScriptableRenderer current = null;
 
+        internal VolumeProfile volumeProfile;
+
         /// <summary>
         /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to camera matrices.
         /// Additionally this will also set <c>unity_CameraProjection</c> and <c>unity_CameraProjection</c>.
@@ -369,6 +371,12 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderer(ScriptableRendererData data)
         {
             profilingExecute = new ProfilingSampler($"{nameof(ScriptableRenderer)}.{nameof(ScriptableRenderer.Execute)}: {data.name}");
+
+            if (volumeProfile == null)
+            {
+                volumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+                volumeProfile.components.AddRange(data.m_VolumeComponents);
+            }
 
             foreach (var feature in data.rendererFeatures)
             {

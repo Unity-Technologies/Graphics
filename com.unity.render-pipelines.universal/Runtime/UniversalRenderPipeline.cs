@@ -638,6 +638,7 @@ namespace UnityEngine.Rendering.Universal
             // Default values when there's no additional camera data available
             LayerMask layerMask = 1; // "Default"
             Transform trigger = camera.transform;
+            VolumeProfile profile = null;
 
             if (additionalCameraData != null)
             {
@@ -645,6 +646,7 @@ namespace UnityEngine.Rendering.Universal
                 trigger = additionalCameraData.volumeTrigger != null
                     ? additionalCameraData.volumeTrigger
                     : trigger;
+                profile = additionalCameraData.scriptableRenderer.volumeProfile;
             }
             else if (camera.cameraType == CameraType.SceneView)
             {
@@ -653,11 +655,15 @@ namespace UnityEngine.Rendering.Universal
                 UniversalAdditionalCameraData mainAdditionalCameraData = null;
 
                 if (mainCamera != null && mainCamera.TryGetComponent(out mainAdditionalCameraData))
+                {
                     layerMask = mainAdditionalCameraData.volumeLayerMask;
+                    profile = mainAdditionalCameraData.scriptableRenderer.volumeProfile;
+                }
 
                 trigger = mainAdditionalCameraData != null && mainAdditionalCameraData.volumeTrigger != null ? mainAdditionalCameraData.volumeTrigger : trigger;
             }
 
+            s_DefaultVolume.sharedProfile = profile;
             VolumeManager.instance.Update(trigger, layerMask);
         }
 
