@@ -4032,7 +4032,7 @@
     "m_ObjectId": "60e13120709e4329af3515b50896a9c1",
     "m_MaterialType": 0,
     "m_SubsurfaceScattering": true,
-    "m_IrisNormal": false
+    "m_IrisNormal": true
 }
 
 {
