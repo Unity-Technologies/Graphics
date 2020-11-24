@@ -36,7 +36,9 @@ namespace UnityEngine.Rendering.Universal
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
-
+#pragma warning disable 414
+        [SerializeField] private ScreenSpaceAmbientOcclusionVolume m_VolumeSettings = null;
+#pragma warning restore 414
         // Private Fields
         private Material m_Material;
         private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;

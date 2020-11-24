@@ -1,4 +1,6 @@
+﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -14,6 +16,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_DirectLightingStrength;
         private SerializedProperty m_Radius;
         private SerializedProperty m_SampleCount;
+        private SerializedProperty m_VolumeSettings;
 
         #endregion
 
@@ -33,6 +36,30 @@ namespace UnityEditor.Rendering.Universal
 
         private void Init()
         {
+            SerializedProperty volumeSettings = serializedObject.FindProperty("m_VolumeSettings");
+            if (volumeSettings.objectReferenceValue == null)
+            {
+                serializedObject.Update();
+
+                ScriptableObject component = CreateInstance(typeof(ScreenSpaceAmbientOcclusionVolume));
+                component.name = $"New{typeof(ScreenSpaceAmbientOcclusionVolume)}";
+                //Undo.RegisterCreatedObjectUndo(component, "Add SSAO");
+
+                // Store this new effect as a sub-asset so we can reference it safely afterwards
+                // Only when we're not dealing with an instantiated asset
+                string ssaoRendererPath = AssetDatabase.GetAssetPath(target);
+                ScriptableRendererData renderer = AssetDatabase.LoadAssetAtPath<ScriptableRendererData>(ssaoRendererPath);
+                if (EditorUtility.IsPersistent(renderer))
+                {
+                    AssetDatabase.AddObjectToAsset(component, renderer);
+                }
+
+                volumeSettings.objectReferenceValue = component;
+                EditorUtility.SetDirty(renderer);
+                serializedObject.ApplyModifiedProperties();
+            }
+
+
             SerializedProperty settings = serializedObject.FindProperty("m_Settings");
             m_Source = settings.FindPropertyRelative("Source");
             m_Downsample = settings.FindPropertyRelative("Downsample");
@@ -41,6 +68,9 @@ namespace UnityEditor.Rendering.Universal
             m_DirectLightingStrength = settings.FindPropertyRelative("DirectLightingStrength");
             m_Radius = settings.FindPropertyRelative("Radius");
             m_SampleCount = settings.FindPropertyRelative("SampleCount");
+
+            m_VolumeSettings = volumeSettings;//settings.FindPropertyRelative("SampleCount");
+
             m_IsInitialized = true;
         }
 
@@ -64,6 +94,11 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
             m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount, m_SampleCount.intValue, 4, 20);
+
+            EditorGUILayout.Space(10f);
+            EditorGUILayout.PropertyField(m_VolumeSettings, Styles.Source);
+            var editor = CreateEditor(m_VolumeSettings.objectReferenceValue);
+            editor.OnInspectorGUI();
         }
     }
 }
