@@ -4209,10 +4209,37 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayDensityVolumeAtlas)))
                 {
-                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, DensityVolumeManager.manager.volumeAtlas.GetAtlas());
-                    m_LightLoopDebugMaterialProperties.SetFloat("_Slice", (float)lightingDebug.densityVolumeAtlasSlice / DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth);
+                    var atlas = DensityVolumeManager.manager.volumeAtlas;
+                    var atlasTexture = atlas.GetAtlas();
+                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, atlasTexture);
+                    m_LightLoopDebugMaterialProperties.SetFloat("_Slice", (float)lightingDebug.densityVolumeAtlasSlice);
+                    m_LightLoopDebugMaterialProperties.SetVector("_Offset", Vector3.zero);
+                    m_LightLoopDebugMaterialProperties.SetVector("_TextureSize", new Vector3(atlasTexture.width, atlasTexture.height, atlasTexture.volumeDepth));
+
+#if UNITY_EDITOR
+                    if (lightingDebug.densityVolumeUseSelection)
+                    {
+                        var obj = UnityEditor.Selection.activeGameObject;
+
+                        if (obj != null && obj.TryGetComponent<DensityVolume>(out var densityVolume))
+                        {
+                            var texture = densityVolume.parameters.volumeMask;
+
+                            if (texture != null)
+                            {
+                                float textureDepth = texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 0;
+                                m_LightLoopDebugMaterialProperties.SetVector("_TextureSize", new Vector3(texture.width, texture.height, textureDepth));
+                                m_LightLoopDebugMaterialProperties.SetVector("_Offset", atlas.GetTextureOffset(texture));
+                            }
+                        }
+                    }
+#endif
+
                     debugParameters.debugOverlay.SetViewport(cmd);
                     cmd.DrawProcedural(Matrix4x4.identity, parameters.debugDensityVolumeMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
+                    debugParameters.debugOverlay.Next();
+                    debugParameters.debugOverlay.SetViewport(cmd);
+                    cmd.DrawProcedural(Matrix4x4.identity, parameters.debugDensityVolumeMaterial, 1, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
                     debugParameters.debugOverlay.Next();
                 }
             }

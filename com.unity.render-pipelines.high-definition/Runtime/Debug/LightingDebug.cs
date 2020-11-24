@@ -365,6 +365,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 displayDensityVolumeAtlas = false;
         /// <summary>Density volume atlas slice.</summary>
         public uint                 densityVolumeAtlasSlice = 0;
+        /// <summary>True if Density Volume Atlas debug mode should be displayed for the currently selected Density Volume.</summary>
+        public bool                 densityVolumeUseSelection = false;
 
         /// <summary>Tile and Cluster debug mode.</summary>
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;
