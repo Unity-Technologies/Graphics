@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.Test
             foreach (var sanitizeSpawn in basicSpawner.children)
             {
                 Assert.IsFalse(sanitizeSpawn.inputSlots.Any(o => !o.HasLink()));
-                Assert.IsNotNull(sanitizeSpawn.GetSettingValue("m_instance"));
+                Assert.IsNotNull(sanitizeSpawn.GetSettingValue("m_customScript"));
                 Assert.IsNotNull((sanitizeSpawn as VFXSpawnerCustomWrapper).customBehavior);
             }
 
