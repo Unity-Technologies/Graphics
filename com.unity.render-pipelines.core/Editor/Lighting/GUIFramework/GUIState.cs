@@ -83,7 +83,7 @@ namespace UnityEditor
         }
 
         /// <summary>
-        /// Nested control
+        /// The closest control to the event.
         /// </summary>
         public int nearestControl
         {
@@ -125,7 +125,7 @@ namespace UnityEditor
         /// Gets the ID of a nested control by a hint and focus type.
         /// </summary>
         /// <param name="hint">The hint this function uses to identify the control ID.</param>
-        /// <param name="focusType">Focus Type</param>
+        /// <param name="focusType">The focus Type</param>
         /// <returns>Returns the ID of the control that matches the hint and focus type.</returns>
         public int GetControlID(int hint, FocusType focusType)
         {
