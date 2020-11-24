@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor
+namespace UnityEditor.GUIFramework
 {
     /// <summary>
     /// Represents an action that is tied to a GUI element.

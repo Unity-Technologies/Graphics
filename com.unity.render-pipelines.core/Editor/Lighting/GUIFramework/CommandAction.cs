@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor
+namespace UnityEditor.GUIFramework
 {
     /// <summary>
     /// Represents an Action to process when the custom editor validates a command.

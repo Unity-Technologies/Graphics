@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityEditor
+namespace UnityEditor.GUIFramework
 {
     /// <summary>
     /// Represents transform data for a slider.

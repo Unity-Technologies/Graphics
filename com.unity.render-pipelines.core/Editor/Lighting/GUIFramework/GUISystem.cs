@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEditor
+namespace UnityEditor.GUIFramework
 {
     /// <summary>
     /// Represents a system of GUI elements and controls.

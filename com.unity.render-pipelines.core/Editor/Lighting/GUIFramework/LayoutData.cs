@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor
+namespace UnityEditor.GUIFramework
 {
     /// <summary>
     /// Represents the layout of a GUI element in a custom editor.
