@@ -388,12 +388,14 @@ namespace UnityEngine.Rendering.Universal
 
             cameraData.xr.EndCamera(cmd, cameraData);
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
-            CommandBufferPool.Release(cmd);
+            cmd.Clear();
 
             using (new ProfilingScope(cmd, Profiling.Pipeline.Context.submit))
             {
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
             }
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
 
             ScriptableRenderer.current = null;
         }
