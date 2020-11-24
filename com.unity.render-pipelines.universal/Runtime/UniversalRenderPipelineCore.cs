@@ -288,6 +288,10 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
+        /// <summary>
+        /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
+        /// </summary>
+        public bool useFastSRGBLinearConversion;
     }
 
     public static class ShaderKeywordStrings
@@ -308,6 +312,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa8 = "_DEPTH_MSAA_8";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+        internal static readonly string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
