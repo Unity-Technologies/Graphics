@@ -145,10 +145,10 @@ namespace UnityEditor
         /// <summary>
         /// Checks whether a slider value has changed.
         /// </summary>
-        /// <param name="id">The slider to check.</param>
+        /// <param name="id">The ID of the slider to check.</param>
         /// <param name="sliderData">The slider's data.</param>
         /// <param name="newPosition">The new position of the slider.</param>
-        /// <returns>Returns `true` if the slide has changed. Otherwise, returns `false`.</returns>
+        /// <returns>Returns `true` if the slider has changed. Otherwise, returns `false`.</returns>
         public bool Slider(int id, SliderData sliderData, out Vector3 newPosition)
         {
             if (mouseButton == 0 && eventType == EventType.MouseDown)
@@ -217,7 +217,7 @@ namespace UnityEditor
         /// </summary>
         /// <param name="center">The center of the circle.</param>
         /// <param name="radius">The radius of the circle.</param>
-        /// <returns>Returns the distance to the circle.</returns>
+        /// <returns>Returns the distance to a circle with the specified center and radius.</returns>
         public float DistanceToCircle(Vector3 center, float radius)
         {
             return HandleUtility.DistanceToCircle(center, radius);

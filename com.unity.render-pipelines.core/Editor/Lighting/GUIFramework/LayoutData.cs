@@ -3,50 +3,50 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// Layout data
+    /// Represents the layout of a GUI element in a custom editor.
     /// </summary>
     public struct LayoutData
     {
         /// <summary>
-        /// Index
+        /// The layout's index.
         /// </summary>
         public int index;
         /// <summary>
-        /// Distance
+        /// The distance from the layout to the camera.
         /// </summary>
         public float distance;
         /// <summary>
-        /// Position vector in world space
+        /// The layout's world-space position.
         /// </summary>
         public Vector3 position;
         /// <summary>
-        /// Forward vector in world space
+        /// The layout's world-space forward vector.
         /// </summary>
         public Vector3 forward;
         /// <summary>
-        /// Up vector in world space
+        /// The layout's world-space up vector.
         /// </summary>
         public Vector3 up;
         /// <summary>
-        /// Right vector in world space
+        /// The layout's world-space right vector.
         /// </summary>
         public Vector3 right;
         /// <summary>
-        /// User data
+        /// The layout's user data.
         /// </summary>
         public object userData;
 
         /// <summary>
-        /// Zero definition of LayoutData
+        /// Zero definition of LayoutData.
         /// </summary>
         public static readonly LayoutData zero = new LayoutData() { index = 0, distance = float.MaxValue, position = Vector3.zero, forward = Vector3.forward, up = Vector3.up, right = Vector3.right };
 
         /// <summary>
-        /// Nearest between currentData and newData
+        /// Gets the layout that is closest to the camera,
         /// </summary>
-        /// <param name="currentData">Current Data</param>
-        /// <param name="newData">New Data</param>
-        /// <returns>Return the nearest layoutData between currentData and newData</returns>
+        /// <param name="currentData">The current layout.</param>
+        /// <param name="newData">The new layout to compare with.</param>
+        /// <returns>Returns the closest layout to the camera. If `currentData` is closest to the camera, returns `currentData`. Otherwise, if `newData` is closest to the camera, returns `newData`.</returns>
         public static LayoutData Nearest(LayoutData currentData, LayoutData newData)
         {
             if (newData.distance <= currentData.distance)
