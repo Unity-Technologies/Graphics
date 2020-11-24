@@ -238,30 +238,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUILayout.PropertyField(props.maskTextureChannel, Styles.maskTextureChannel);
                 EditorGUILayout.PropertyField(props.blendMode, Styles.blendMode);
 
-                if (props.blendMode.intValue == (int)Light2DBlendStyle.BlendMode.Custom)
-                {
-                    EditorGUILayout.BeginHorizontal();
-
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.LabelField(Styles.customBlendFactors, GUILayout.MaxWidth(200.0f));
-                    EditorGUI.indentLevel--;
-
-                    int oldIndentLevel = EditorGUI.indentLevel;
-                    EditorGUI.indentLevel = 0;
-
-                    EditorGUIUtility.labelWidth = 80.0f;
-                    EditorGUILayout.PropertyField(props.blendFactorMultiplicative, Styles.blendFactorMultiplicative, GUILayout.MinWidth(110.0f));
-
-                    GUILayout.Space(10.0f);
-
-                    EditorGUIUtility.labelWidth = 50.0f;
-                    EditorGUILayout.PropertyField(props.blendFactorAdditive, Styles.blendFactorAdditive, GUILayout.MinWidth(90.0f));
-
-                    EditorGUIUtility.labelWidth = 0.0f;
-                    EditorGUI.indentLevel = oldIndentLevel;
-                    EditorGUILayout.EndHorizontal();
-                }
-
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }

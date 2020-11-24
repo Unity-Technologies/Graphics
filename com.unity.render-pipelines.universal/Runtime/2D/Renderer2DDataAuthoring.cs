@@ -67,7 +67,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private void Awake()
         {
             if (m_LightBlendStyles != null)
+            {
+                for (int i = 0; i < m_LightBlendStyles.Length; ++i)
+                {
+                    ref var blendStyle = ref m_LightBlendStyles[i];
+
+                    // Custom blend mode (99) now falls back to Multiply.
+                    if ((int)blendStyle.blendMode == 99)
+                        blendStyle.blendMode = Light2DBlendStyle.BlendMode.Multiply;
+                }
+
                 return;
+            }
 
             m_LightBlendStyles = new Light2DBlendStyle[4];
 
