@@ -41,9 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 SurfaceOptionUIBlock.Features.AlphaCutoff |  SurfaceOptionUIBlock.Features.AlphaCutoffShadowThreshold | SurfaceOptionUIBlock.Features.DoubleSidedNormalMode |
                 SurfaceOptionUIBlock.Features.ReceiveSSR | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.PreserveSpecularLighting
             ),
-            new AxfMainSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
-            new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Other),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
+            new AxfMainSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Input),
+            new AxfSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Other),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
 
         protected override void SetupMaterialKeywordsAndPass(Material material) => SetupAxFKeywordsAndPass(material);
