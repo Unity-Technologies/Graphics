@@ -113,7 +113,7 @@ Shader "HDRP/Unlit"
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local_fragment _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
