@@ -593,6 +593,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracingTargetAreaLight       = Shader.PropertyToID("_RaytracingTargetAreaLight");
         public static readonly int _RaytracingShadowSlot            = Shader.PropertyToID("_RaytracingShadowSlot");
         public static readonly int _RaytracingChannelMask           = Shader.PropertyToID("_RaytracingChannelMask");
+        public static readonly int _RaytracingChannelMask0          = Shader.PropertyToID("_RaytracingChannelMask0");
+        public static readonly int _RaytracingChannelMask1          = Shader.PropertyToID("_RaytracingChannelMask1");
         public static readonly int _RaytracingAreaWorldToLocal      = Shader.PropertyToID("_RaytracingAreaWorldToLocal");
         public static readonly int _RaytracedAreaShadowSample       = Shader.PropertyToID("_RaytracedAreaShadowSample");
         public static readonly int _RaytracedAreaShadowIntegration = Shader.PropertyToID("_RaytracedAreaShadowIntegration");
