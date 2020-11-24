@@ -244,7 +244,15 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     blendStyleIndices.Add(i);
 
                     ref var blendStyle = ref rendererData.lightBlendStyles[i];
-                    blendStyleNames.Add(blendStyle.name);
+
+                    if (blendStyle.maskTextureChannel == Light2DBlendStyle.TextureChannel.None)
+                        blendStyleNames.Add(blendStyle.name);
+                    else
+                    {
+                        var name = string.Format("{0} ({1})", blendStyle.name, blendStyle.maskTextureChannel);
+                        blendStyleNames.Add(name);
+                    }
+                    
                     m_AnyBlendStyleEnabled = true;
                 }
             }
