@@ -120,6 +120,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             Cull Off    ZWrite Off
             Blend One SrcAlpha // Premultiplied alpha
             ZTest Less  // Required for XR occlusion mesh optimization
+            ColorMask RGB 0 // Do not write on the alpha channel
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -133,6 +134,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             Cull Off    ZWrite Off
             Blend One SrcAlpha // Premultiplied alpha
             ZTest Less  // Required for XR occlusion mesh optimization
+            ColorMask RGB 0 // Do not write on the alpha channel
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -146,6 +148,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             Cull Off    ZWrite Off
             Blend Off   // Manual blending
             ZTest Less  // Required for XR occlusion mesh optimization
+            ColorMask RGB 0 // Do not write on the alpha channel
 
             HLSLPROGRAM
                 #pragma vertex Vert
@@ -159,6 +162,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             Cull Off    ZWrite Off
             Blend Off   // Manual blending
             ZTest Less  // Required for XR occlusion mesh optimization
+            ColorMask RGB 0 // Do not write on the alpha channel
 
             HLSLPROGRAM
                 #pragma vertex Vert
