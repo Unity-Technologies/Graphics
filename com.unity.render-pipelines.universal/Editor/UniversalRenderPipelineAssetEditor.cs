@@ -58,6 +58,7 @@ namespace UnityEditor.Rendering.Universal
             // Post-processing
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
+            public static GUIContent useFastSRGBLinearConversion = EditorGUIUtility.TrTextContent("Fast sRGB/Linear conversions", "Use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.");
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
             public static string colorGradingModeSpecInfo = "The high dynamic range color grading mode works best on platforms that support floating point textures.";
             public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
@@ -139,6 +140,7 @@ namespace UnityEditor.Rendering.Universal
         LightRenderingMode selectedLightRenderingMode;
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
+        SerializedProperty m_UseFastSRGBLinearConversion;
 
         SerializedProperty m_UseAdaptivePerformance;
         EditorPrefBoolFlags<EditorUtils.Unit> m_State;
@@ -213,6 +215,8 @@ namespace UnityEditor.Rendering.Universal
 
             m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
+
+            m_UseFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
 
             m_UseAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
 
@@ -394,6 +398,8 @@ namespace UnityEditor.Rendering.Universal
                 m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
                 if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+
+                EditorGUILayout.PropertyField(m_UseFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();

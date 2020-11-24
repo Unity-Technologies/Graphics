@@ -484,9 +484,9 @@ namespace UnityEditor.Rendering.Universal
             DrawRenderingSettings(camType, rpAsset);
             DrawEnvironmentSettings(camType);
 
-            // Settings only relevant to base cameras
             if (camType == CameraRenderType.Base)
             {
+                // Settings only relevant to base cameras
                 DrawOutputSettings(rpAsset);
                 DrawStackSettings();
             }
@@ -659,6 +659,12 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateCameras();
+
+                // ScriptableRenderContext.SetupCameraProperties still depends on camera target texture
+                // In order for overlay camera not to override base camera target texture we null it here
+                CameraRenderType camType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
+                if (camType == CameraRenderType.Overlay && settings.targetTexture.objectReferenceValue != null)
+                    settings.targetTexture.objectReferenceValue = null;
             }
         }
 
