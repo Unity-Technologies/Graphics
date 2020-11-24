@@ -979,7 +979,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             InitializeRenderTextures();
             m_ShadowManager.InitializeNonRenderGraphResources();
-            m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
 
             // Reset resolution dependent buffers. Tile, Coarse stencil etc...
             m_MaxCameraWidth = m_MaxCameraHeight = m_MaxViewCount = 1;
@@ -989,7 +988,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DestroyRenderTextures();
             m_ShadowManager.CleanupNonRenderGraphResources();
-            m_PostProcessSystem.CleanupNonRenderGraphResources();
             LightLoopCleanupNonRenderGraphResources();
             m_SharedRTManager.DisposeFullScreenDebugBuffer();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
@@ -2407,16 +2405,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 #endif
-
-                RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
-                RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
-
-                // If requested, compute histogram of the very final image
-                if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
-                {
-                    var debugImageHistogramParam = m_PostProcessSystem.PrepareDebugImageHistogramParameters(hdCamera);
-                    PostProcessSystem.GenerateDebugImageHistogram(debugImageHistogramParam, cmd, m_IntermediateAfterPostProcessBuffer);
-                }
             } // using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
 
             // This is required so that all commands up to here are executed before EndCameraRendering is called for the user.
@@ -3992,57 +3980,6 @@ namespace UnityEngine.Rendering.HighDefinition
             result.transparentAfterPPDesc = CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_ForwardOnlyName, renderQueueRange: HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent);
 
             return result;
-        }
-
-        void RenderPostProcess(CullingResults cullResults, HDCamera hdCamera, RenderTargetIdentifier destination, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
-
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AfterPostProcessing)))
-                {
-                    // Note: We bind the depth only if the ZTest for After Post Process is enabled. It is disabled by
-                    // default so we're consistent in the behavior: no ZTest for After Post Process materials).
-                    if (!parameters.useDepthBuffer)
-                        CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
-                    else
-                        CoreUtils.SetRenderTarget(cmd, GetAfterPostProcessOffScreenBuffer(), m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
-
-                    // We render AfterPostProcess objects first into a separate buffer that will be composited in the final post process pass
-                    RenderAfterPostProcess(parameters
-                        , RendererList.Create(parameters.opaqueAfterPPDesc)
-                        , RendererList.Create(parameters.transparentAfterPPDesc)
-                        , renderContext, cmd);
-                }
-            }
-
-            // Set the depth buffer to the main one to avoid missing out on transparent depth for post process.
-            cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-
-            // Post-processes output straight to the backbuffer
-            var motionVectors = m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors ? m_SharedRTManager.GetMotionVectorsBuffer() : TextureXR.GetBlackTexture();
-            m_PostProcessSystem.Render(
-                cmd: cmd,
-                camera: hdCamera,
-                blueNoise: parameters.blueNoise,
-                colorBuffer: m_CameraColorBuffer,
-                afterPostProcessTexture: GetAfterPostProcessOffScreenBuffer(),
-                finalRT: destination,
-                depthBuffer: m_SharedRTManager.GetDepthStencilBuffer(),
-                depthMipChain: m_SharedRTManager.GetDepthTexture(),
-                motionVecTexture: motionVectors,
-                flipY: parameters.flipYInPostProcess
-            );
-        }
-
-        RTHandle GetAfterPostProcessOffScreenBuffer()
-        {
-            // Here we share GBuffer albedo buffer since it's not needed anymore else we
-            if (currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
-                return GetSSSBuffer();
-            else
-                return m_GbufferManager.GetBuffer(0);
         }
 
         static void UpdateOffscreenRenderingConstants(ref ShaderVariablesGlobal cb, bool enabled, uint factor)
