@@ -31,7 +31,7 @@ To change the current active item:
 
 To change the current tab:
 
-- **Keyboard**: Use the Page up and Page down keys (Fn + Up and Fn + Down respectively for MacOS).
+- **Keyboard**: Use the Page up and Page down keys (Fn + Up and Fn + Down keys respectively for MacOS).
 - **Xbox controller**: Use the Left Bumper and Right Bumper.
 - **PlayStation controller**: Use the L1 button and R1 button.
 
