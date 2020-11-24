@@ -811,20 +811,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle cachedAreaShadowAtlas;
         }
 
-        public ShadowDebugAtlasTextures GetDebugAtlasTextures()
-        {
-            var result = new ShadowDebugAtlasTextures();
-            if (ShaderConfig.s_AreaLights == 1)
-            {
-                result.areaShadowAtlas = m_AreaLightShadowAtlas.renderTarget;
-                result.cachedAreaShadowAtlas = cachedShadowManager.areaShadowAtlas.renderTarget;
-            }
-            result.punctualShadowAtlas = m_Atlas.renderTarget;
-            result.cascadeShadowAtlas = m_CascadeAtlas.renderTarget;
-            result.cachedPunctualShadowAtlas = cachedShadowManager.punctualShadowAtlas.renderTarget;
-            return result;
-        }
-
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
         public void DisplayShadowAtlas(RTHandle atlasTexture, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
         {
