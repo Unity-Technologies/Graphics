@@ -401,7 +401,7 @@ MonoBehaviour:
   m_Name: CloudLayer
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
+  m_AdvancedMode: 1
   opacity:
     m_OverrideState: 0
     m_Value: 1
@@ -413,6 +413,9 @@ MonoBehaviour:
   layers:
     m_OverrideState: 1
     m_Value: 1
+  resolution:
+    m_OverrideState: 0
+    m_Value: 1024
   shadowsOpacity:
     m_OverrideState: 0
     m_Value: 1
@@ -421,6 +424,9 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 500
     min: 0
+  shadowsResolution:
+    m_OverrideState: 1
+    m_Value: 512
   layerA:
     cloudMap:
       m_OverrideState: 1
