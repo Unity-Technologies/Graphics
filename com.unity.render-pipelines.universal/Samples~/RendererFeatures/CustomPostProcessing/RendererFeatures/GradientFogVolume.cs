@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 using System;
 using UnityEngine;
 
-[Serializable, VolumeComponentMenu("Post-processing/Gradient Fog"), ControlsShader("Shader Graphs/GradientFogGraph")]
+[Serializable, VolumeComponentMenu("Post-processing/Gradient Fog"), ForCustomPostProcessing]
 public class GradientFogVolume : VolumeComponent
 {
     [Tooltip("Near color."), ShaderReference("_NearCol")]

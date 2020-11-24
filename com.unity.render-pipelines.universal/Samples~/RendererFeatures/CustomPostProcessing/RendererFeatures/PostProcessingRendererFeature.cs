@@ -12,11 +12,11 @@ public class PostProcessingRendererFeature : ScriptableRendererFeature
     {
         public string volumeComponentName;
         public int volumeComponentIndex;
+        public Material effectMaterial;
     }
     class CustomPostProcessingPass : ScriptableRenderPass
     {
         private readonly PostProcessingRendererFeatureSettings _settings;
-        private Material _effectMaterial;
         private List<string> _shaderPropRefs;
         private List<FieldInfo> _volumeComponentFields;
         private Type _volumeComponentType;
@@ -51,7 +51,7 @@ public class PostProcessingRendererFeature : ScriptableRendererFeature
 
             if (UpdateMaterialFromVolume())
             {
-                Blit(cmd, "null", "_CameraColorTexture", _effectMaterial);
+                Blit(cmd, "null", "_CameraColorTexture", _settings.effectMaterial);
             }
             
             context.ExecuteCommandBuffer(cmd);
@@ -75,23 +75,7 @@ public class PostProcessingRendererFeature : ScriptableRendererFeature
                 //Debug.Log("Could not find volume component type " + _settings.volumeComponent);
                 return;
             }
-            
-            ControlsShaderAttribute controlsShaderAttribute = _volumeComponentType.GetCustomAttribute<ControlsShaderAttribute>();
-            if (controlsShaderAttribute == null)
-            {
-                //Debug.Log("Volume component '" + _settings.volumeComponent + "' missing 'ControlsShader' attribute");
-                return;
-            }
-            
-            Shader effectShader = Shader.Find(controlsShaderAttribute.shaderPath);
-            if (effectShader == null)
-            {
-                //Debug.Log("Could not find shader " + controlsShaderAttribute.shaderPath);
-                return;
-            }
-        
-            _effectMaterial = new Material(effectShader);
-            
+
             foreach(var field in _volumeComponentType.GetFields())
             {
                 field.GetCustomAttribute<ShaderReferenceAttribute>();
@@ -114,7 +98,7 @@ public class PostProcessingRendererFeature : ScriptableRendererFeature
             {
                 FieldInfo currentField = _volumeComponentFields[i];
                 string currentShaderPropRef = _shaderPropRefs[i];
-                SetShaderPropFromField(currentField, currentShaderPropRef, _effectMaterial, volumeComponent);
+                SetShaderPropFromField(currentField, currentShaderPropRef, _settings.effectMaterial, volumeComponent);
             }
 
             return true;
@@ -125,13 +109,13 @@ public class PostProcessingRendererFeature : ScriptableRendererFeature
             switch (field.GetValue(volumeComponent))
             {
                 case ColorParameter c:
-                    _effectMaterial.SetColor(shaderPropRef, c.value);
+                    material.SetColor(shaderPropRef, c.value);
                     break;
                 case FloatParameter f:
-                    _effectMaterial.SetFloat(shaderPropRef, f.value);
+                    material.SetFloat(shaderPropRef, f.value);
                     break;
                 case IntParameter n:
-                    _effectMaterial.SetInt(shaderPropRef, n.value);
+                    material.SetInt(shaderPropRef, n.value);
                     break;
                 default:
                     Debug.Log("Unsupported shader property type");

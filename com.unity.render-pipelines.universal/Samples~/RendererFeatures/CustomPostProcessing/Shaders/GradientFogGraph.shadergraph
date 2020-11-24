@@ -394,7 +394,7 @@
     "m_Name": "NearColor",
     "m_DefaultReferenceName": "Color_3539EBB",
     "m_OverrideReferenceName": "_NearCol",
-    "m_GeneratePropertyBlock": true,
+    "m_GeneratePropertyBlock": false,
     "m_Precision": 0,
     "m_GPUInstanced": false,
     "m_Hidden": false,
@@ -474,15 +474,15 @@
     "m_Name": "MidColor",
     "m_DefaultReferenceName": "Color_5F3AEED7",
     "m_OverrideReferenceName": "_MidCol",
-    "m_GeneratePropertyBlock": true,
+    "m_GeneratePropertyBlock": false,
     "m_Precision": 0,
     "m_GPUInstanced": false,
     "m_Hidden": false,
     "m_Value": {
-        "r": 0.0,
-        "g": 0.0,
-        "b": 0.0,
-        "a": 0.0
+        "r": 0.5471698045730591,
+        "g": 0.5471698045730591,
+        "b": 0.5471698045730591,
+        "a": 0.4901960790157318
     },
     "m_ColorMode": 0
 }
@@ -863,11 +863,11 @@
     "m_Name": "EndDistance",
     "m_DefaultReferenceName": "Vector1_FBDE4BC9",
     "m_OverrideReferenceName": "_EndDist",
-    "m_GeneratePropertyBlock": true,
+    "m_GeneratePropertyBlock": false,
     "m_Precision": 0,
     "m_GPUInstanced": false,
     "m_Hidden": false,
-    "m_Value": 0.0,
+    "m_Value": 10.0,
     "m_FloatType": 0,
     "m_RangeValues": {
         "x": 0.0,
@@ -1150,7 +1150,7 @@
     "m_Name": "StartDistance",
     "m_DefaultReferenceName": "Vector1_1E6156B0",
     "m_OverrideReferenceName": "_StartDist",
-    "m_GeneratePropertyBlock": true,
+    "m_GeneratePropertyBlock": false,
     "m_Precision": 0,
     "m_GPUInstanced": false,
     "m_Hidden": false,
@@ -1679,15 +1679,15 @@
     "m_Name": "FarColor",
     "m_DefaultReferenceName": "Color_416821EA",
     "m_OverrideReferenceName": "_FarCol",
-    "m_GeneratePropertyBlock": true,
+    "m_GeneratePropertyBlock": false,
     "m_Precision": 0,
     "m_GPUInstanced": false,
     "m_Hidden": false,
     "m_Value": {
-        "r": 0.0,
-        "g": 0.0,
-        "b": 0.0,
-        "a": 0.0
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
     },
     "m_ColorMode": 0
 }

@@ -24,12 +24,14 @@ public class PostProcessingRendererFeatureEditor : Editor
         selectedVolume = EditorGUILayout.Popup("Volume Component" ,selectedVolume, volumeComponentOptions);
         _rendererFeature.settings.volumeComponentName = volumeComponentOptions[_rendererFeature.settings.volumeComponentIndex];
         _rendererFeature.settings.volumeComponentIndex = selectedVolume;
+
+        _rendererFeature.settings.effectMaterial = (Material) EditorGUILayout.ObjectField("Material",_rendererFeature.settings.effectMaterial, typeof(Material), false);
     }
 
     private string[] getVolumeComponentOptions()
     {
         return AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
-            .Where(x => typeof(VolumeComponent).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract && x.GetCustomAttribute<ControlsShaderAttribute>() != null)
+            .Where(x => typeof(VolumeComponent).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract && x.GetCustomAttribute<ForCustomPostProcessingAttribute>() != null)
             .Select(x => x.Name).ToArray();
     }
 }

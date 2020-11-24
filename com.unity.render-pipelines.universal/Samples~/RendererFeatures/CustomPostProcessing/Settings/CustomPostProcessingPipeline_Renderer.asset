@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8578956600003766428
+--- !u!114 &-4857939327769633958
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -16,6 +16,7 @@ MonoBehaviour:
   settings:
     volumeComponentName: GradientFogVolume
     volumeComponentIndex: 0
+    effectMaterial: {fileID: 2100000, guid: 3ce9f3c11f2464acbaaa07804246f8dc, type: 2}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29,8 +30,8 @@ MonoBehaviour:
   m_Name: CustomPostProcessingPipeline_Renderer
   m_EditorClassIdentifier: 
   m_RendererFeatures:
-  - {fileID: -8578956600003766428}
-  m_RendererFeatureMap: 645748f16c6cf188
+  - {fileID: -4857939327769633958}
+  m_RendererFeatureMap: 5a1be47beb2195bc
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
