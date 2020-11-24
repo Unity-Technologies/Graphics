@@ -9,6 +9,7 @@ using UnityEngine.Scripting.APIUpdating;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -26,6 +27,8 @@ namespace UnityEngine.Rendering.Universal
     public sealed partial class UniversalRenderPipeline : RenderPipeline
     {
         public const string k_ShaderTagName = "UniversalPipeline";
+        private static Volume s_DefaultVolume = null;
+        private static VolumeProfile defaultVolumeProfile = asset?.defaultVolumeProfile;
 
         private static class Profiling
         {
@@ -219,6 +222,9 @@ namespace UnityEngine.Rendering.Universal
                 BeginFrameRendering(renderContext, cameras);
             }
 #endif
+
+            // Create or get default volume
+            GetOrCreateDefaultVolume();
 
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
@@ -576,6 +582,53 @@ namespace UnityEngine.Rendering.Universal
 
         m_XRSystem.ReleaseFrame();
 #endif
+        }
+
+        internal static Volume GetOrCreateDefaultVolume()
+        {
+            Debug.Log("Calling GetOrCreateDefaultVolume");
+            if (s_DefaultVolume == null || s_DefaultVolume.Equals(null))
+            {
+                Debug.Log("Making new DefaultVolume");
+                var volName = "[Unity-DefaultVolume]";
+                GameObject go;
+                if ((go = GameObject.Find(volName)) != null)
+                {
+                    s_DefaultVolume = go.GetComponent<Volume>();
+                }
+                else
+                {
+                    go = new GameObject("[Unity-DefaultVolume]") {hideFlags = HideFlags.DontSave};
+                    s_DefaultVolume = go.AddComponent<Volume>();
+                    s_DefaultVolume.isGlobal = true;
+                    s_DefaultVolume.priority = float.MinValue;
+                }
+            }
+
+            SceneManager.MoveGameObjectToScene(s_DefaultVolume.gameObject, SceneManager.GetActiveScene());
+
+            Debug.Log($"Have volume object={s_DefaultVolume.gameObject.name}, flags={s_DefaultVolume.gameObject.scene.name}");
+
+            if (
+                // In case the asset was deleted or the reference removed
+                s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
+#if UNITY_EDITOR
+
+                                                      // In case the serialization recreated an empty volume sharedProfile
+
+                                                      || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
+#endif
+            )
+            {
+                s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+            }
+
+            if (s_DefaultVolume.sharedProfile != defaultVolumeProfile)
+            {
+                s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+            }
+
+            return s_DefaultVolume;
         }
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)

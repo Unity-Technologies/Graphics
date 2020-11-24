@@ -156,6 +156,15 @@ namespace UnityEngine.Rendering.Universal
         // Adaptive performance settings
         [SerializeField] bool m_UseAdaptivePerformance = true;
 
+        // Volume settings
+        [SerializeField] private VolumeProfile m_DefaultVolumeProfile;
+
+        internal VolumeProfile defaultVolumeProfile
+        {
+            get => m_DefaultVolumeProfile;
+            set => m_DefaultVolumeProfile = value;
+        }
+
         // Post-processing settings
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
