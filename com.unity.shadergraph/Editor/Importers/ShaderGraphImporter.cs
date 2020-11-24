@@ -26,14 +26,15 @@ namespace UnityEditor.ShaderGraph
     // This ifdef can be removed once V2 is the only option.
 
     // custom-begin:
+    // + 1 Bump ShaderImporter version after _DissolveOnOcclusionOpacity parameter needed HLSLDeclaration.HybridPerInstance declaration
     // + 1 Bump ShaderImporter version after Return positionDS from ObjectSpacePosition in Decal Shader Graphs
     // + 1 Bump ShaderImporter version after stripping LIGHTMAP_ON variants from shadergraph codegen in 9.x.x/custom/cherry-pick.
     // + 1 Bump ShaderImporter version after _DissolveOnOcclusionOpacity parameter needed HLSLDeclaration.UnityPerMaterial declaration, changing codegen in 10.2.0.
     // [ScriptedImporter(115, Extension, -902)]
-    [ScriptedImporter(118, Extension, -902)]
+    [ScriptedImporter(119, Extension, -902)]
 #else
     // [ScriptedImporter(47, Extension, -902)]
-    [ScriptedImporter(50, Extension, -902)]
+    [ScriptedImporter(51, Extension, -902)]
     // custom-end
 #endif
 
