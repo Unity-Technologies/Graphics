@@ -18,7 +18,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : MonoBehaviour
     {
-
         public enum DeprecatedLightType
         {
             Parametric = 0,
@@ -203,7 +202,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
 
-
         internal int GetTopMostLitLayer()
         {
             var largestIndex = Int32.MinValue;
@@ -212,7 +210,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var layers = Light2DManager.GetCachedSortingLayer();
             for (var i = 0; i < m_ApplyToSortingLayers.Length; ++i)
             {
-                for(var layer = layers.Length - 1; layer >= largestLayer; --layer)
+                for (var layer = layers.Length - 1; layer >= largestLayer; --layer)
                 {
                     if (layers[layer].id == m_ApplyToSortingLayers[i])
                     {
@@ -236,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var shapePathHashChanged = LightUtility.CheckForChange(shapePathHash, ref m_PreviousShapePathHash);
             var lightTypeChanged = LightUtility.CheckForChange(m_LightType, ref m_PreviousLightType);
             var hashChanged = fallOffSizeChanged || parametricRadiusChanged || parametricSidesChanged ||
-                             parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
+                parametricAngleOffsetChanged || spriteInstanceChanged || shapePathHashChanged || lightTypeChanged;
             // Mesh Rebuilding
             if (hashChanged && forceUpdate)
             {
@@ -279,7 +277,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (m_ApplyToSortingLayers == null)
                 return false;
 
-            for(var i = 0; i < m_ApplyToSortingLayers.Length; i++)
+            for (var i = 0; i < m_ApplyToSortingLayers.Length; i++)
                 if (m_ApplyToSortingLayers[i] == layer)
                     return true;
 

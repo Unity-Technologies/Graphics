@@ -31,18 +31,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int kMaxBladeCount = 11;
 
         // Camera body
-        [SerializeField] [Min(1f)] int m_Iso = 200;
-        [SerializeField] [Min(0f)] float m_ShutterSpeed = 1f / 200f;
+        [SerializeField][Min(1f)] int m_Iso = 200;
+        [SerializeField][Min(0f)] float m_ShutterSpeed = 1f / 200f;
 
         // Lens
         // Note: focalLength is already defined in the regular camera component
-        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
+        [SerializeField][Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
 
         // Aperture shape
-        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
+        [SerializeField][Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
         [SerializeField] Vector2 m_Curvature = new Vector2(2f, 11f);
-        [SerializeField] [Range(0f, 1f)] float m_BarrelClipping = 0.25f;
-        [SerializeField] [Range(-1f, 1f)] float m_Anamorphism = 0f;
+        [SerializeField][Range(0f, 1f)] float m_BarrelClipping = 0.25f;
+        [SerializeField][Range(-1f, 1f)] float m_Anamorphism = 0f;
 
         /// <summary>
         /// The sensor sensitivity (ISO).
@@ -289,7 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Range(0.0f, 1.0f)]
         public float taaAntiFlicker = 0.5f;
 
-        /// <summary>Larger is this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount. 
+        /// <summary>Larger is this value, more likely history will be rejected when current and reprojected history motion vector differ by a substantial amount.
         /// Larger values can decrease ghosting but will also reintroduce aliasing on the aforementioned cases.</summary>
         [Range(0.0f, 1.0f)]
         public float taaMotionVectorRejection = 0.0f;
@@ -381,10 +381,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>.</returns>
         Action IDebugData.GetReset()
-                //caution: we actually need to retrieve the right
-                //m_FrameSettingsHistory as it is a struct so no direct
-                // => m_FrameSettingsHistory.TriggerReset
-                => () => m_RenderingPathHistory.TriggerReset();
+        //caution: we actually need to retrieve the right
+        //m_FrameSettingsHistory as it is a struct so no direct
+        // => m_FrameSettingsHistory.TriggerReset
+            => () => m_RenderingPathHistory.TriggerReset();
 
         internal ProfilingSampler profilingSampler;
 
@@ -657,7 +657,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             HDCamera hdCamera = HDCamera.GetOrCreate(m_Camera);
             if ((type & BufferAccessType.Color) != 0)
-                return  hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
             else if ((type & BufferAccessType.Depth) != 0)
                 return hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
             else if ((type & BufferAccessType.Normal) != 0)

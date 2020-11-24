@@ -1,7 +1,7 @@
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel MAIN         KERNEL_NAME=MAIN         NUM_SAMPLES=1      COARSE_STENCIL  
-#pragma kernel MAIN_MSAA_2  KERNEL_NAME=MAIN_MSAA_2  NUM_SAMPLES=2 MSAA COARSE_STENCIL 
+#pragma kernel MAIN         KERNEL_NAME=MAIN         NUM_SAMPLES=1      COARSE_STENCIL
+#pragma kernel MAIN_MSAA_2  KERNEL_NAME=MAIN_MSAA_2  NUM_SAMPLES=2 MSAA COARSE_STENCIL
 #pragma kernel MAIN_MSAA_4  KERNEL_NAME=MAIN_MSAA_4  NUM_SAMPLES=4 MSAA COARSE_STENCIL
 #pragma kernel MAIN_MSAA_8  KERNEL_NAME=MAIN_MSAA_8  NUM_SAMPLES=8 MSAA COARSE_STENCIL
 
@@ -47,7 +47,7 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadID.z);
 
-    // The best shot at resolving is being overly conservative, hence the OR operator. This is by nature inaccurate. 
+    // The best shot at resolving is being overly conservative, hence the OR operator. This is by nature inaccurate.
     uint resolvedStencil = 0;
 
     if (dispatchThreadID.x < (uint)_ScreenSize.x && dispatchThreadID.y < (uint)_ScreenSize.y)

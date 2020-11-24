@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         case Mode.UseProbeResolution:
                         {
                             if (probe == null || probe.Equals(null)) throw new ArgumentNullException(nameof(probe));
-                            return (int) probe.resolution;
+                            return (int)probe.resolution;
                         }
                         default: throw new ArgumentOutOfRangeException(nameof(mode));
                     }

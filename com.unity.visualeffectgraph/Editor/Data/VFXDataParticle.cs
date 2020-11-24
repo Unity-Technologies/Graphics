@@ -528,12 +528,12 @@ namespace UnityEditor.VFX
 
         public bool NeedsGlobalIndirectBuffer()
         {
-            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures,VFXOutputUpdate.Features.IndirectDraw));
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public bool NeedsGlobalSort()
         {
-            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures,VFXOutputUpdate.Features.IndirectDraw));
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public override void FillDescs(
@@ -645,7 +645,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            Dictionary < VFXContext, VFXOutputUpdate> indirectOutputToCuller = null;
+            Dictionary<VFXContext, VFXOutputUpdate> indirectOutputToCuller = null;
             bool needsIndirectBuffer = NeedsIndirectBuffer();
             int globalIndirectBufferIndex = -1;
             bool needsGlobalIndirectBuffer = false;
@@ -657,7 +657,7 @@ namespace UnityEditor.VFX
                         indirectOutputToCuller.Add(cullCompute.output, cullCompute);
 
                 var allIndirectOutputs = owners.OfType<VFXAbstractParticleOutput>().Where(o => o.HasIndirectDraw());
- 
+
                 needsGlobalIndirectBuffer = NeedsGlobalIndirectBuffer();
                 if (needsGlobalIndirectBuffer)
                 {
@@ -835,7 +835,7 @@ namespace UnityEditor.VFX
                 }
 
                 uniformMappings.Clear();
-                
+
                 foreach (var uniform in contextData.uniformMapper.uniforms)
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
                 foreach (var buffer in contextData.uniformMapper.buffers)
@@ -855,7 +855,7 @@ namespace UnityEditor.VFX
                 {
                     if (mapping.index < 0)
                     {
-                        reporter?.RegisterError(context.GetSlotByPath(true,mapping.name),"GPUNodeLinkedTOCPUSlot",VFXErrorType.Error, "Can not link a GPU operator to a system wide (CPU) input." );;
+                        reporter?.RegisterError(context.GetSlotByPath(true, mapping.name), "GPUNodeLinkedTOCPUSlot", VFXErrorType.Error, "Can not link a GPU operator to a system wide (CPU) input.");;
                         throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
                     }
                 }

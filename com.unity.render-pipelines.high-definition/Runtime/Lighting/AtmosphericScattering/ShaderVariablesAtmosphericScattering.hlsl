@@ -5,4 +5,3 @@ TEXTURECUBE_ARRAY(_SkyTexture);
 #define _MipFogMaxMip                   _MipFogParameters.z
 
 #define _FogColor                       _FogColor
-
