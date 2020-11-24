@@ -20,7 +20,7 @@ namespace UnityEngine
         [SerializeField]
         float m_Distance = 3;
         [SerializeField]
-        bool m_UpIsWorldSpace = true;
+        Space m_FrameSpace = Space.World;
 
         float m_Yaw;
         float m_Pitch;
@@ -36,7 +36,7 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Pitch relative to the horizon or camera depending on value of m_UpIsWorldSpace. 0,180 is down, 0,-180 is up.
+        /// Pitch relative to the horizon or camera depending on value of m_Space. 0,180 is down, 0,-180 is up.
         /// </summary>
         public float pitch
         {
@@ -65,10 +65,10 @@ namespace UnityEngine
         /// <summary>
         /// Should Up be in World or Camera Space
         /// </summary>
-        public bool upIsWorldSpace
+        public Space frameSpace
         {
-            get { return m_UpIsWorldSpace; }
-            set { m_UpIsWorldSpace = value; }
+            get { return m_FrameSpace; }
+            set { m_FrameSpace = value; }
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace UnityEngine
         Axes GetWorldSpaceAxes(Camera camera)
         {
             Matrix4x4 viewToWorld = camera.cameraToWorldMatrix;
-            if (m_UpIsWorldSpace)
+            if (m_FrameSpace == Space.World)
             {
                 Vector3 viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
                 Quaternion worldTilt = Quaternion.FromToRotation(Vector3.up, viewUp);

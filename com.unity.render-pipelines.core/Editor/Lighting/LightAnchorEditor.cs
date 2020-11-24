@@ -112,9 +112,10 @@ namespace UnityEditor
                 m_Distance = EditorGUILayout.FloatField(styles.distanceProperty, firstManipulator.distance);
                 distanceChanged = oldValue != m_Distance;
 
-                var upIsWorldSpace = EditorGUILayout.Toggle(styles.upIsWorldSpaceProperty, firstManipulator.upIsWorldSpace);
-                upSpaceChanged = firstManipulator.upIsWorldSpace != upIsWorldSpace;
-                firstManipulator.upIsWorldSpace = upIsWorldSpace;
+                var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+                Space newSpace = (Space)EditorGUI.EnumPopup(dropRect, EditorGUIUtility.TrTextContent("Frame Space"), firstManipulator.frameSpace);
+                upSpaceChanged = firstManipulator.frameSpace != newSpace;
+                firstManipulator.frameSpace = newSpace;
 
                 if (upSpaceChanged)
                 {
@@ -271,7 +272,7 @@ namespace UnityEditor
                         {
                             manipulator.SynchronizeOnTransform(camera);
                         }
-                        manipulator.upIsWorldSpace = firstManipulator.upIsWorldSpace;
+                        manipulator.frameSpace = firstManipulator.frameSpace;
 
                         Undo.RecordObjects(new UnityEngine.Object[] { manipulator.transform }, "Reset Transform");
                         if (yawChanged)
@@ -589,7 +590,7 @@ namespace UnityEditor
         public GUIContent presetTextureBounceRight;
         public GUIContent presetTextureFillRight;
         public GUIContent distanceProperty;
-        public GUIContent upIsWorldSpaceProperty;
+        public GUIContent spaceProperty;
 
         public Styles()
         {
@@ -607,7 +608,7 @@ namespace UnityEditor
             presetTextureFillRight = new GUIContent(Resources.Load<Texture2D>("PresetFill_Right"), "Fill Right");
 
             distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
-            upIsWorldSpaceProperty = new GUIContent("Up is in World Space", "Should the light's Up vector be in World space (enabled) or Camera space (disabled)");
+            spaceProperty = new GUIContent("Space", "Should the light's Up vector be in World space (enabled) or Camera space (disabled)");
         }
     }
 }
