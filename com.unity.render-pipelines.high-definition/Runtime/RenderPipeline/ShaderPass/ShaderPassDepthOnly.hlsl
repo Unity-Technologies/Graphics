@@ -72,7 +72,7 @@ void Frag(  PackedVaryingsToPS packedInput
                 #endif
             #endif
 
-            #ifdef _DEPTHOFFSET_ON
+            #if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
             , out float outputDepth : SV_Depth
             #endif
         )
@@ -94,7 +94,7 @@ void Frag(  PackedVaryingsToPS packedInput
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-#ifdef _DEPTHOFFSET_ON
+#if defined(_DEPTHOFFSET_ON) && !defined(SCENEPICKINGPASS)
     outputDepth = posInput.deviceDepth;
 #endif
 

@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int textureSliceSize = m_atlasSize * m_atlasSize * m_atlasSize;
                 int totalTextureSize = textureSliceSize * m_textures.Count;
 
-                Color [] colorData = new Color[totalTextureSize];
+                Color[] colorData = new Color[totalTextureSize];
                 m_atlas = new Texture3D(m_atlasSize, m_atlasSize, m_atlasSize * m_textures.Count, m_format, true);
 
                 //Iterate through all the textures and append their texture data to the texture array
@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < m_textures.Count; i++)
                 {
                     Texture3D tex = m_textures[i];
-                    Color [] texData = tex.GetPixels();
+                    Color[] texData = tex.GetPixels();
                     Array.Copy(texData, 0, colorData, textureSliceSize * i, texData.Length);
                 }
 

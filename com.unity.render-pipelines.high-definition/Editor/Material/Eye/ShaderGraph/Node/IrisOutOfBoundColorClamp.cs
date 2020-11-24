@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
         {
             OutputColor = Vector3.zero;
             return
-                @"
+@"
                 {
                     OutputColor = (IrisUV.x < 0.0 || IrisUV.y < 0.0 || IrisUV.x > 1.0 || IrisUV.y > 1.0) ? ClampColor : IrisColor;
                 }
