@@ -27,8 +27,6 @@ all_project_ci_nightly_trunk:
     dependencies:
       -  path: .yamato/_abv.yml#all_project_ci_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_mono_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_editmode_mono_Linear_trunk
