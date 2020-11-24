@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class CommandBufferPool
     {
-        static ObjectPool<CommandBuffer> s_BufferPool = new ObjectPool<CommandBuffer>(null, x => x.Clear());
+        static Stack<CommandBuffer> s_BufferPool = new Stack<CommandBuffer>();
 
         /// <summary>
         /// Get a new Command Buffer.
@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static CommandBuffer Get()
         {
-            var cmd = s_BufferPool.Get();
+            CommandBuffer cmd = s_BufferPool.Count == 0 ? new CommandBuffer(true) : s_BufferPool.Pop();
             // Set to empty on purpose, does not create profiling markers.
             cmd.name = "";
             return cmd;
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public static CommandBuffer Get(string name)
         {
-            var cmd = s_BufferPool.Get();
+            CommandBuffer cmd = s_BufferPool.Count == 0 ? new CommandBuffer(true) : s_BufferPool.Pop();
             cmd.name = name;
             return cmd;
         }
@@ -41,7 +41,8 @@ namespace UnityEngine.Rendering
         /// <param name="buffer"></param>
         public static void Release(CommandBuffer buffer)
         {
-            s_BufferPool.Release(buffer);
+            buffer.Clear();
+            s_BufferPool.Push(buffer);
         }
     }
 }
