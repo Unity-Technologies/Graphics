@@ -15,28 +15,40 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
         flavor: b1.medium
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --testfilter=RuntimeProfilerMetrics --timeout=1200
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=2400 --testfilter=Low
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                         ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=2400 --testfilter=Medium
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_trunk
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
-Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_trunk:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_Player on version trunk
+Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
         flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -48,7 +60,6 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
@@ -59,10 +70,17 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_trunk:
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS -c il2cpp   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/BoatAttack --timeout=1200
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=1200 --testfilter=Low
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                         ./utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=1200 --testfilter=Medium
     artifacts:
         logs:
             paths:
@@ -70,17 +88,20 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_trunk:
               -  "TestProjects/BoatAttack/Logs/*.log"
         players:
             paths:
-              -  "players/**"
-URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_editor_il2cpp_Linear_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_editor_il2cpp_Linear on version trunk
+              -  "players*/**"
+URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_build_editmode_il2cpp_Linear on version trunk
     agent:
-        type: Unity::mobile::iPhone
+        type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
-        flavor: b1.medium
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -92,7 +113,6 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_editor_il2cpp_Linea
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
@@ -103,51 +123,13 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_editor_il2cpp_Linea
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS -c il2cpp   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/BoatAttack
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/BoatAttack/Logs/*.log"
-URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear_trunk:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_Linear on version trunk
-    agent:
-        type: Unity::mobile::iPhone
-        image: mobile/macos-10.13-testing:stable
-        flavor: b1.medium
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.ios.revision}} -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=TestProjects/BoatAttack
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=iOS --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter="Low;Medium" --testproject=./TestProjects/BoatAttack
     artifacts:
         logs:
             paths:
@@ -162,10 +144,19 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=players --report-performance-data --reruncount=2 --suite=playmode --testfilter=RuntimeProfilerMetrics --timeout=1200
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersLow --report-performance-data --reruncount=2 --suite=playmode --timeout=2400 --testfilter=Low
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                         ./utr --artifacts_path=test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersMedium --report-performance-data --reruncount=2 --suite=playmode --timeout=2400 --testfilter=Medium
     artifacts:
         logs:
             paths:
@@ -174,10 +165,10 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
-      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_performance_boatattack-iphone-metal.yml#Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISION:
-    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_Player on version CUSTOM-REVISION
+Build_URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION:
+    name: Build URP_Performance_BoatAttack on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
@@ -185,8 +176,11 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISI
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -198,7 +192,6 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISI
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
@@ -209,10 +202,17 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISI
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/BoatAttack --timeout=1200
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=1200 --testfilter=Low
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                         ./utr --artifacts_path=test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=iOS --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testproject=./TestProjects/BoatAttack --timeout=1200 --testfilter=Medium
     artifacts:
         logs:
             paths:
@@ -220,21 +220,24 @@ Build_URP_Performance_BoatAttack_iPhone_Metal_Player_il2cpp_Linear_CUSTOM-REVISI
               -  "TestProjects/BoatAttack/Logs/*.log"
         players:
             paths:
-              -  "players/**"
+              -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
          rerun: always
-URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_editor_il2cpp_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_playmode_editor_il2cpp_Linear on version CUSTOM-REVISION
+URP_Performance_BoatAttack_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION:
+    name: URP_Performance_BoatAttack on iPhone_Metal_performance_build_editmode_il2cpp_Linear on version CUSTOM-REVISION
     agent:
-        type: Unity::mobile::iPhone
+        type: Unity::VM::osx
         image: mobile/macos-10.13-testing:stable
-        flavor: b1.medium
+        flavor: b1.large
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
+        BOAT_ATTACK_BRANCH: master
+        BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
     commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
+      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b $BOAT_ATTACK_BRANCH TestProjects/BoatAttack
+      -  cd TestProjects/BoatAttack && git checkout $BOAT_ATTACK_REVISION
       -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
       -  brew install unity-config
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
@@ -246,7 +249,6 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_editor_il2cpp_Linea
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
@@ -257,55 +259,13 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_editor_il2cpp_Linea
       -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
       -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
+      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp   --wait --published-only
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
       -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --reruncount=2 --scripting-backend=IL2CPP --suite=playmode --testproject=TestProjects/BoatAttack
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-              -  "TestProjects/BoatAttack/Logs/*.log"
-    dependencies:
-      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:ios
-         rerun: always
-URP_Performance_BoatAttack_iPhone_Metal_performance_editmode_build_il2cpp_Linear_CUSTOM-REVISION:
-    name: URP_Performance_BoatAttack on iPhone_Metal_performance_editmode_build_il2cpp_Linear on version CUSTOM-REVISION
-    agent:
-        type: Unity::mobile::iPhone
-        image: mobile/macos-10.13-testing:stable
-        flavor: b1.medium
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  git clone https://github.com/Unity-Technologies/BoatAttack.git -b feature/benchmark TestProjects/BoatAttack
-      -  brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
-      -  brew install unity-config
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.test.metadata-manager@0.1.2-preview" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.cli-project-setup  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-      -  cd TestProjects/BoatAttack && unity-config project set project-update false --project-path .
-      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS   --wait --published-only
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
-      -  chmod +x ./utr
-      -  ./utr --artifacts_path=test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testproject=TestProjects/BoatAttack
+      -  |5-
+
+                  export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+                 ./utr --artifacts_path=test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=$GIT_BRANCH" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=$GIT_REVISION" --extra-editor-arg="-packageundertestrevdate=$GIT_REVISIONDATE" --extra-editor-arg="-playergraphicsapi=Metal" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=BoatAttack --platform=iOS --report-performance-data --reruncount=2 --scripting-backend=IL2CPP --suite=editor --testfilter="Low;Medium" --testproject=./TestProjects/BoatAttack
     artifacts:
         logs:
             paths:

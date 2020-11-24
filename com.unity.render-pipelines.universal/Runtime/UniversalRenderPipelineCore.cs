@@ -279,6 +279,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
+
+        // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
+        public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
     public struct PostProcessingData
@@ -461,6 +464,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = camera.targetTexture.descriptor;
                 desc.width = camera.pixelWidth;
                 desc.height = camera.pixelHeight;
+                desc.graphicsFormat = isHdrEnabled ? desc.graphicsFormat : renderTextureFormatDefault;
                 // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
                 // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
                 // If this is fixed then we can implement debug statement to the user explaining why some
