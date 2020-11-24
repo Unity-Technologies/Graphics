@@ -7,7 +7,7 @@ def get_repeated_utr_calls(test_platform, platform, api, build_config, color_spa
     utr_calls = []
     if test_platform.get("utr_repeat"):
         for utr_repeat in test_platform["utr_repeat"]:
-            utr_calls.append(extract_flags(test_platform[utr_flags_key], platform["name"], api["name"], build_config, color_space, project_folder, utr_repeat[utr_flags_key]))
+            utr_calls.append(extract_flags(test_platform[utr_flags_key], platform["name"], api["name"], build_config, color_space, project_folder, utr_repeat.get(utr_flags_key,[])))
     else:
         utr_calls.append(extract_flags(test_platform[utr_flags_key], platform["name"], api["name"], build_config, color_space, project_folder))
     utr_calls = list(utr_calls for utr_calls,_ in itertools.groupby(utr_calls)) # removes duplicates which happen if repeated utr is specified but not for this platform+api
