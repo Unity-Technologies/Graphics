@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(m_VolumeSettings);
+            bool shouldAdd = m_SSAOPass.Setup();
             if (shouldAdd)
             {
                 renderer.EnqueuePass(m_SSAOPass);
@@ -132,14 +132,9 @@ namespace UnityEngine.Rendering.Universal
                 BlurFinal = 3
             }
 
-            internal ScreenSpaceAmbientOcclusionPass()
+            internal bool Setup()
             {
-
-            }
-
-            internal bool Setup(ScreenSpaceAmbientOcclusionVolume featureSettings)
-            {
-                m_CurrentSettings = featureSettings;
+                m_CurrentSettings = VolumeManager.instance.stack.GetComponent<ScreenSpaceAmbientOcclusionVolume>();
                 switch (m_CurrentSettings.Source.value)
                 {
                     case DepthSource.Depth:
@@ -167,7 +162,7 @@ namespace UnityEngine.Rendering.Universal
                 Vector4 ssaoParams = new Vector4(
                     m_CurrentSettings.Intensity.value,   // Intensity
                     m_CurrentSettings.Radius.value,      // Radius
-                    1.0f / downsampleDivider,      // Downsampling
+                    1.0f / downsampleDivider,            // Downsampling
                     m_CurrentSettings.SampleCount.value  // Sample count
                 );
                 material.SetVector(s_SSAOParamsID, ssaoParams);
