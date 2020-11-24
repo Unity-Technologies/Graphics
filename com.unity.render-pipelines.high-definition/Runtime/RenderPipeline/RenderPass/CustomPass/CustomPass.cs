@@ -69,7 +69,12 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock userMaterialPropertyBlock;
 
         // TODO RENDERGRAPH: Remove this when we move things to render graph completely.
-        static MaterialPropertyBlock s_MSAAResolveMPB = new MaterialPropertyBlock();
+        MaterialPropertyBlock m_MSAAResolveMPB = null;
+        void Awake()
+        {
+            if (m_MSAAResolveMPB == null)
+                m_MSAAResolveMPB = new MaterialPropertyBlock();
+        }
 
         /// <summary>
         /// Mirror of the value in the CustomPassVolume where this custom pass is listed
@@ -420,8 +425,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (IsMSAAEnabled(hdCamera))
             {
                 CoreUtils.SetRenderTarget(cmd, currentRenderTarget.nonMSAAColorBufferRG);
-                s_MSAAResolveMPB.SetTexture(HDShaderIDs._ColorTextureMS, currentRenderTarget.colorBufferRG);
-                cmd.DrawProcedural(Matrix4x4.identity, HDRenderPipeline.currentPipeline.GetMSAAColorResolveMaterial(), HDRenderPipeline.SampleCountToPassIndex(hdCamera.msaaSamples), MeshTopology.Triangles, 3, 1, s_MSAAResolveMPB);
+                m_MSAAResolveMPB.SetTexture(HDShaderIDs._ColorTextureMS, currentRenderTarget.colorBufferRG);
+                cmd.DrawProcedural(Matrix4x4.identity, HDRenderPipeline.currentPipeline.GetMSAAColorResolveMaterial(), HDRenderPipeline.SampleCountToPassIndex(hdCamera.msaaSamples), MeshTopology.Triangles, 3, 1, m_MSAAResolveMPB);
             }
         }
 
