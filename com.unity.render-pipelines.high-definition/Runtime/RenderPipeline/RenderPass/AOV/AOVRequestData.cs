@@ -170,36 +170,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Copy a camera sized texture into the texture buffers.</summary>
-        /// <param name="cmd">the command buffer to use for the copy.</param>
-        /// <param name="aovBufferId">The id of the buffer to copy.</param>
-        /// <param name="camera">The camera associated with the source texture.</param>
-        /// <param name="source">The source texture to copy</param>
-        /// <param name="targets">The target texture buffer.</param>
-        internal void PushCameraTexture(
-            CommandBuffer cmd,
-            AOVBuffers aovBufferId,
-            HDCamera camera,
-            RTHandle source,
-            List<RTHandle> targets
-        )
-        {
-            if (!isValid || m_RequestedAOVBuffers == null)
-                return;
-
-            Assert.IsNotNull(m_RequestedAOVBuffers);
-            Assert.IsNotNull(targets);
-
-            var index = Array.IndexOf(m_RequestedAOVBuffers, aovBufferId);
-            if (index == -1)
-                return;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
-            {
-                HDUtils.BlitCameraTexture(cmd, source, targets[index]);
-            }
-        }
-
         class PushCameraTexturePassData
         {
             public TextureHandle source;

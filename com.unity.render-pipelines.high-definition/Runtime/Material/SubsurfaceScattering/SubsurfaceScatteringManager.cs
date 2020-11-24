@@ -265,48 +265,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void RenderSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
-            RTHandle diffuseBufferRT, RTHandle depthStencilBufferRT, RTHandle depthTextureRT, RTHandle normalBuffer)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
-                return;
-
-            var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
-
-            // If ray tracing is enabled for the camera, if the volume override is active and if the RAS is built, we want to do ray traced SSS
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value && GetRayTracingState() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
-            {
-                RenderSubsurfaceScatteringRT(hdCamera, cmd, colorBufferRT, diffuseBufferRT, depthStencilBufferRT, normalBuffer);
-            }
-            else
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
-                {
-                    var parameters = PrepareSubsurfaceScatteringParameters(hdCamera);
-                    var resources = new SubsurfaceScatteringResources();
-                    resources.colorBuffer = colorBufferRT;
-                    resources.diffuseBuffer = diffuseBufferRT;
-                    resources.depthStencilBuffer = depthStencilBufferRT;
-                    resources.depthTexture = depthTextureRT;
-                    resources.cameraFilteringBuffer = m_SSSCameraFilteringBuffer;
-                    resources.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
-                    resources.sssBuffer = m_SSSColor;
-
-                    // For Jimenez we always need an extra buffer, for Disney it depends on platform
-                    if (parameters.needTemporaryBuffer)
-                    {
-                        // Clear the SSS filtering target
-                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearSSSFilteringTarget)))
-                        {
-                            CoreUtils.SetRenderTarget(cmd, m_SSSCameraFilteringBuffer, ClearFlag.Color, Color.clear);
-                        }
-                    }
-
-                    RenderSubsurfaceScattering(parameters, resources, cmd);
-                }
-            }
-        }
-
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         // In the case our frame is MSAA, for the moment given the fact that we do not have read/write access to the stencil buffer of the MSAA target; we need to keep this pass MSAA
         // However, the compute can't output and MSAA target so we blend the non-MSAA target into the MSAA one.

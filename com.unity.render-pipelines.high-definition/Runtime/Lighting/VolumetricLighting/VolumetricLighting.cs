@@ -491,12 +491,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, parameters.viewCount);
         }
 
-        internal void GenerateMaxZ(CommandBuffer cmd, HDCamera camera, RTHandle depthTexture,  HDUtils.PackedMipChainInfo depthMipInfo, int frameIndex)
-        {
-            if (Fog.IsVolumetricFogEnabled(camera))
-                GenerateMaxZ(PrepareGenerateMaxZParameters(camera, depthMipInfo, frameIndex), depthTexture, m_MaxZMask8x, m_MaxZMask, m_DilatedMaxZMask, cmd);
-        }
-
         static internal void CreateVolumetricHistoryBuffers(HDCamera hdCamera, int bufferCount)
         {
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
@@ -1072,42 +1066,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDUtils.DivRoundUp((int)parameters.resolution.y, 8),
                     parameters.sliceCount);
             }
-        }
-
-        void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, int frameIndex)
-        {
-            if (!Fog.IsVolumetricFogEnabled(hdCamera))
-            {
-                cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, HDUtils.clearTexture3D);
-                return;
-            }
-
-            var parameters = PrepareVolumetricLightingParameters(hdCamera, frameIndex);
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumetricLighting)))
-            {
-                RTHandle feedbackRT = null, historyRT = null;
-
-                if (parameters.enableReprojection)
-                {
-                    var currIdx = (frameIndex + 0) & 1;
-                    var prevIdx = (frameIndex + 1) & 1;
-
-                    feedbackRT = hdCamera.volumetricHistoryBuffers[currIdx];
-                    historyRT  = hdCamera.volumetricHistoryBuffers[prevIdx];
-                }
-
-                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, m_DilatedMaxZMask, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
-
-                if (parameters.enableReprojection)
-                    hdCamera.volumetricHistoryIsValid = true; // For the next frame...
-            }
-
-            // Let's filter out volumetric buffer
-            if (parameters.filterVolume)
-                FilterVolumetricLighting(parameters, m_LightingBuffer, cmd);
-
-            cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, m_LightingBuffer);
         }
     } // class VolumetricLightingModule
 } // namespace UnityEngine.Rendering.HighDefinition

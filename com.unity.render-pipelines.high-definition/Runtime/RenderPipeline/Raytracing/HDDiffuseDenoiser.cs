@@ -108,23 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return ddParams;
         }
 
-        public DiffuseDenoiserResources PrepareDiffuseDenoiserResources(RTHandle noisyBuffer, RTHandle intermediateBuffer, RTHandle outputBuffer)
-        {
-            DiffuseDenoiserResources ddResources = new DiffuseDenoiserResources();
-            // Input buffers
-            ddResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            ddResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            ddResources.noisyBuffer = noisyBuffer;
-
-            // Temporary buffers
-            ddResources.intermediateBuffer = intermediateBuffer;
-
-            // Output buffers
-            ddResources.outputBuffer = outputBuffer;
-
-            return ddResources;
-        }
-
         static public void DenoiseBuffer(CommandBuffer cmd, DiffuseDenoiserParameters ddParams, DiffuseDenoiserResources ddResources)
         {
             // Evaluate the dispatch parameters

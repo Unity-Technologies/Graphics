@@ -767,15 +767,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_RaytracingGBufferManager.CreateBuffers();
                 m_RayCountManager.InitializeNonRenderGraphResources();
 
-                if (m_Asset.currentPlatformRenderPipelineSettings.supportSSGI)
-                {
-                    m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
-                    m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
-                    m_IndirectDiffuseBuffer2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer2");
-                    m_IndirectDiffuseBuffer3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer3");
-                    m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
-                }
-
                 m_RayTracingLightCluster.InitializeNonRenderGraphResources();
 
                 m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
@@ -844,17 +835,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RaytracingGBufferManager.DestroyBuffers();
                 m_RayCountManager.CleanupNonRenderGraphResources();
-
-                if (m_IndirectDiffuseBuffer0 != null)
-                    RTHandles.Release(m_IndirectDiffuseBuffer0);
-                if (m_IndirectDiffuseBuffer1 != null)
-                    RTHandles.Release(m_IndirectDiffuseBuffer1);
-                if (m_IndirectDiffuseBuffer2 != null)
-                    RTHandles.Release(m_IndirectDiffuseBuffer2);
-                if (m_IndirectDiffuseBuffer3 != null)
-                    RTHandles.Release(m_IndirectDiffuseBuffer3);
-                if (m_IndirectDiffuseHitPointBuffer != null)
-                    RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
 
                 m_RayTracingLightCluster.CleanupNonRenderGraphResources();
 
@@ -1005,7 +985,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.InitializeNonRenderGraphResources();
             m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
             s_lightVolumes.InitializeNonRenderGraphResources();
-            ScreenSpaceShadowInitializeNonRenderGraphResources();
 
             // Reset resolution dependent buffers. Tile, Coarse stencil etc...
             m_MaxCameraWidth = m_MaxCameraHeight = m_MaxViewCount = 1;
@@ -1020,7 +999,6 @@ namespace UnityEngine.Rendering.HighDefinition
             LightLoopCleanupNonRenderGraphResources();
             m_SharedRTManager.DisposeFullScreenDebugBuffer();
             m_SharedRTManager.DisposeCoarseStencilBuffer();
-            ScreenSpaceShadowCleanupNonRenderGraphResources();
         }
 
         void InitializeDebugMaterials()
@@ -2423,79 +2401,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
                 }
 
-                hdCamera.xr.StartSinglePass(cmd);
-
                 {
-                    hdCamera.xr.StopSinglePass(cmd);
-
-                    hdCamera.xr.StartSinglePass(cmd);
-
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                    {
-                        // We only request the light cluster if we are gonna use it for debug mode
-                        if (FullScreenDebugMode.LightCluster == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode && GetRayTracingClusterState())
-                        {
-                            HDRaytracingLightCluster lightCluster = RequestLightCluster();
-                            lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
-                        }
-                    }
-
-                    switch (GetIndirectDiffuseMode(hdCamera))
-                    {
-                        case IndirectDiffuseMode.Off:
-                            BindBlackIndirectDiffuseTexture(cmd);
-                            break;
-
-                        case IndirectDiffuseMode.ScreenSpace:
-                            RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
-                            BindIndirectDiffuseTexture(cmd);
-                            break;
-
-                        case IndirectDiffuseMode.Raytrace:
-                            RenderRayTracedIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
-                            break;
-                    }
-
-                    // Run the contact shadows here as they need the light list
-                    HDUtils.CheckRTCreated(m_ContactShadowBuffer);
-                    RenderContactShadows(hdCamera, cmd);
-
-                    RenderScreenSpaceShadows(hdCamera, cmd);
-
-                    GenerateMaxZ(cmd, hdCamera, m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetDepthBufferMipChainInfo(), m_FrameCount);
-
-                    // Render the volumetric lighting.
-                    // The pass requires the volume properties, the light list and the shadows, and can run async.
-                    VolumetricLightingPass(hdCamera, cmd, m_FrameCount);
-
-                    SetContactShadowsTexture(hdCamera, m_ContactShadowBuffer, cmd);
-                    RenderDeferredLighting(hdCamera, cmd);
-
-                    RenderForwardOpaque(cullingResults, hdCamera, renderContext, cmd);
-
-                    // Normal buffer could be reuse after that
-                    if (aovRequest.isValid)
-                        aovRequest.PushCameraTexture(cmd, AOVBuffers.Normals, hdCamera, m_SharedRTManager.GetNormalBuffer(), aovBuffers);
-
-                    m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, m_CameraSssDiffuseLightingMSAABuffer, m_CameraSssDiffuseLightingBuffer);
-                    m_SharedRTManager.ResolveMSAAColor(cmd, hdCamera, GetSSSBufferMSAA(), GetSSSBuffer());
-
-                    // SSS pass here handle both SSS material from deferred and forward
-                    RenderSubsurfaceScattering(hdCamera, cmd, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_CameraColorMSAABuffer : m_CameraColorBuffer,
-                        m_CameraSssDiffuseLightingBuffer, m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)), m_SharedRTManager.GetDepthTexture(), m_SharedRTManager.GetNormalBuffer());
-
-                    RenderForwardEmissive(cullingResults, hdCamera, renderContext, cmd);
-
-                    RenderSky(hdCamera, cmd);
-
-                    // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
-                    SendGeometryGraphicsBuffers(PrepareSendGeometryBuffersParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo()), m_SharedRTManager.GetNormalBuffer(), m_SharedRTManager.GetDepthTexture(), cmd);
-
-                    m_PostProcessSystem.DoUserAfterOpaqueAndSky(cmd, hdCamera, m_CameraColorBuffer);
-
-                    // No need for old stencil values here since from transparent on different features are tagged
-                    ClearStencilBuffer(cmd);
-
                     RenderTransparentDepthPrepass(cullingResults, hdCamera, renderContext, cmd);
 
                     RenderSSRTransparent(hdCamera, cmd, renderContext);
@@ -2584,9 +2490,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // At this point, m_CameraColorBuffer has been filled by either debug views are regular rendering so we can push it here.
                 PushColorPickerDebugTexture(cmd, hdCamera, m_CameraColorBuffer);
 
-                if (aovRequest.isValid)
-                    aovRequest.PushCameraTexture(cmd, AOVBuffers.Color, hdCamera, m_CameraColorBuffer, aovBuffers);
-
                 RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
                 RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
 
@@ -2639,9 +2542,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_SharedRTManager.GetDepthTexture(), target.targetDepth, cmd);
                         }
                     }
-
-                    if (aovRequest.isValid)
-                        aovRequest.PushCameraTexture(cmd, AOVBuffers.Output, hdCamera, m_IntermediateAfterPostProcessBuffer, aovBuffers);
                 }
 
                 // XR mirror view and blit do device
@@ -2677,10 +2577,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (aovRequest.isValid)
                 {
-                    aovRequest.PushCameraTexture(cmd, AOVBuffers.DepthStencil, hdCamera, m_SharedRTManager.GetDepthStencilBuffer(), aovBuffers);
-                    if (m_Asset.currentPlatformRenderPipelineSettings.supportMotionVectors)
-                        aovRequest.PushCameraTexture(cmd, AOVBuffers.MotionVectors, hdCamera, m_SharedRTManager.GetMotionVectorsBuffer(), aovBuffers);
-
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AOVExecute)))
                     {
                         aovRequest.Execute(cmd, aovBuffers, aovCustomPassBuffers, RenderOutputProperties.From(hdCamera));
@@ -3558,19 +3454,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        void RenderForwardEmissive(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ForwardEmissive)))
-            {
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                CoreUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa));
-                CoreUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
-
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
-                    DecalSystem.instance.RenderForwardEmissive(cmd);
-            }
-        }
-
         void RenderWireFrame(CullingResults cull, HDCamera hdCamera, RenderTargetIdentifier backbuffer, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderWireFrame)))
@@ -3706,31 +3589,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SkyManager.RequestStaticEnvironmentUpdate();
         }
 
-        void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
-            {
-                return;
-            }
-
-            // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
-            // We load from the color buffer, perform blending manually, and store to the atmospheric scattering buffer.
-            // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
-            bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            var colorBuffer = msaaEnabled ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-            var intermediateBuffer = msaaEnabled ? m_OpaqueAtmosphericScatteringMSAABuffer : m_OpaqueAtmosphericScatteringBuffer;
-            var depthBuffer = m_SharedRTManager.GetDepthStencilBuffer(msaaEnabled);
-
-            var visualEnv = hdCamera.volumeStack.GetComponent<VisualEnvironment>();
-            m_SkyManager.RenderSky(hdCamera, GetCurrentSunLight(), colorBuffer, depthBuffer, m_CurrentDebugDisplaySettings, m_FrameCount, cmd);
-
-            if (Fog.IsFogEnabled(hdCamera) || Fog.IsPBRFogEnabled(hdCamera))
-            {
-                var pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                m_SkyManager.RenderOpaqueAtmosphericScattering(cmd, hdCamera, colorBuffer, m_SharedRTManager.GetDepthTexture(msaaEnabled), m_LightingBuffer, intermediateBuffer, depthBuffer, pixelCoordToViewDirWS, hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
-            }
-        }
-
         /// <summary>
         /// Export the provided camera's sky to a flattened cubemap.
         /// </summary>
@@ -3747,58 +3605,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ? m_ForwardAndForwardOnlyPassNames
                 : m_ForwardOnlyPassNames;
             return CreateOpaqueRendererListDesc(cullResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting);
-        }
-
-        // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
-        // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
-        // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
-        // The RenderForward pass will render the appropriate pass depends on the engine settings. In case of forward only rendering, both "Forward" pass and "ForwardOnly" pass
-        // material will be render for both transparent and opaque. In case of deferred, both path are used for transparent but only "ForwardOnly" is use for opaque.
-        // (Thus why "Forward" and "ForwardOnly" are exclusive, else they will render two times"
-        void RenderForwardOpaque(CullingResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
-            using (new ProfilingScope(cmd, debugDisplay ? ProfilingSampler.Get(HDProfileId.ForwardOpaqueDebug) : ProfilingSampler.Get(HDProfileId.ForwardOpaque)))
-            {
-                bool useFptl = hdCamera.frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
-                bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-
-                RenderTargetIdentifier[] renderTarget = null;
-
-                // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
-                {
-                    renderTarget = m_MRTWithSSS;
-                    renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer; // Store the specular color
-
-#if ENABLE_VIRTUALTEXTURES
-                    renderTarget[1] = GetVTFeedbackBufferForForward(hdCamera);
-                    const int offset = 2;
-#else
-                    const int offset = 1;
-#endif
-                    renderTarget[offset + 0] = msaa ? m_CameraSssDiffuseLightingMSAABuffer : m_CameraSssDiffuseLightingBuffer;
-                    renderTarget[offset + 1] = msaa ? GetSSSBufferMSAA() : GetSSSBuffer();
-                }
-                else
-                {
-#if ENABLE_VIRTUALTEXTURES
-                    renderTarget = m_MRTWithVTFeedback;
-                    renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-                    renderTarget[1] = GetVTFeedbackBufferForForward(hdCamera);
-#else
-                    renderTarget = mMRTSingle;
-                    renderTarget[0] = msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer;
-#endif
-                }
-
-                RenderForwardRendererList(hdCamera.frameSettings,
-                    RendererList.Create(PrepareForwardOpaqueRendererList(cullResults, hdCamera)),
-                    renderTarget,
-                    m_SharedRTManager.GetDepthStencilBuffer(msaa),
-                    useFptl ? m_TileAndClusterData.lightList : m_TileAndClusterData.perVoxelLightLists,
-                    true, renderContext, cmd);
-            }
         }
 
         static bool NeedMotionVectorForTransparent(FrameSettings frameSettings)
@@ -4678,15 +4484,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderShadowsDebugOverlay(debugParams, atlases, cmd, m_SharedPropertyBlock);
 
                 DecalSystem.instance.RenderDebugOverlay(debugParams.hdCamera, cmd, debugParams.debugDisplaySettings, debugParams.debugOverlay);
-            }
-        }
-
-        void ClearStencilBuffer(CommandBuffer cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearStencil)))
-            {
-                m_ClearStencilBufferMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.HDRPReservedBits);
-                HDUtils.DrawFullScreen(cmd, m_ClearStencilBufferMaterial, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
             }
         }
 

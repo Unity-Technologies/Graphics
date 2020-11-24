@@ -90,31 +90,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RaytracingGBufferManager.DestroyBuffers();
         }
 
-        DeferredLightingRTResources PrepareDeferredLightingRTResources(HDCamera hdCamera, RTHandle directionBuffer, RTHandle ouputBuffer)
-        {
-            DeferredLightingRTResources deferredResources = new DeferredLightingRTResources();
-
-            deferredResources.directionBuffer = directionBuffer;
-            deferredResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            deferredResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            deferredResources.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
-
-            // Temporary buffers
-            deferredResources.gbuffer0 = m_RaytracingGBufferManager.GetBuffer(0);
-            deferredResources.gbuffer1 = m_RaytracingGBufferManager.GetBuffer(1);
-            deferredResources.gbuffer2 = m_RaytracingGBufferManager.GetBuffer(2);
-            deferredResources.gbuffer3 = m_RaytracingGBufferManager.GetBuffer(3);
-            deferredResources.distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
-
-            // Debug textures
-            deferredResources.rayCountTexture = m_RayCountManager.GetRayCountTexture();
-
-            // Output Buffer
-            deferredResources.litBuffer = ouputBuffer;
-
-            return deferredResources;
-        }
-
         void CheckBinningBuffersSize(HDCamera hdCamera)
         {
             // Evaluate the dispatch parameters

@@ -3588,16 +3588,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_EnableContactShadow && m_ContactShadowIndex != 0;
         }
 
-        void SetContactShadowsTexture(HDCamera hdCamera, RTHandle contactShadowsRT, CommandBuffer cmd)
-        {
-            if (!WillRenderContactShadow())
-            {
-                cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, TextureXR.GetBlackUIntTexture());
-                return;
-            }
-            cmd.SetGlobalTexture(HDShaderIDs._ContactShadowTexture, contactShadowsRT);
-        }
-
         // The first rendered 24 lights that have contact shadow enabled have a mask used to select the bit that contains
         // the contact shadow shadowed information (occluded or not). Otherwise -1 is written
         void GetContactShadowMask(HDAdditionalLightData hdAdditionalLightData, BoolScalableSetting contactShadowEnabled, HDCamera hdCamera, bool isRasterization, ref int contactShadowMask, ref float rayTracingShadowFlag)
@@ -3726,23 +3716,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void RenderContactShadows(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            // if there is no need to compute contact shadows, we just quit
-            if (!WillRenderContactShadow())
-                return;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ContactShadows)))
-            {
-                m_ShadowManager.BindResources(cmd);
-
-                var depthTexture = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture();
-                int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
-                var parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
-                RenderContactShadows(parameters, m_ContactShadowBuffer, depthTexture, m_LightLoopLightData, m_TileAndClusterData.lightList, cmd);
-            }
-        }
-
         struct DeferredLightingParameters
         {
             public int                  numTilesX;
@@ -3806,45 +3779,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer tileFeatureFlagsBuffer;
             public ComputeBuffer tileListBuffer;
             public ComputeBuffer dispatchIndirectBuffer;
-        }
-
-        DeferredLightingResources PrepareDeferredLightingResources()
-        {
-            var resources = new DeferredLightingResources();
-
-            resources.colorBuffers = m_MRTCache2;
-            resources.colorBuffers[0] = m_CameraColorBuffer;
-            resources.colorBuffers[1] = m_CameraSssDiffuseLightingBuffer;
-            resources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            resources.depthTexture = m_SharedRTManager.GetDepthTexture();
-            resources.lightListBuffer = m_TileAndClusterData.lightList;
-            resources.tileFeatureFlagsBuffer = m_TileAndClusterData.tileFeatureFlags;
-            resources.tileListBuffer = m_TileAndClusterData.tileList;
-            resources.dispatchIndirectBuffer = m_TileAndClusterData.dispatchIndirectBuffer;
-
-            return resources;
-        }
-
-        void RenderDeferredLighting(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            if (hdCamera.frameSettings.litShaderMode != LitShaderMode.Deferred)
-                return;
-
-            var parameters = PrepareDeferredLightingParameters(hdCamera, m_CurrentDebugDisplaySettings);
-            var resources = PrepareDeferredLightingResources();
-
-            if (parameters.enableTile)
-            {
-                bool useCompute = parameters.useComputeLightingEvaluation && !k_PreferFragment;
-                if (useCompute)
-                    RenderComputeDeferredLighting(parameters, resources, cmd);
-                else
-                    RenderComputeAsPixelDeferredLighting(parameters, resources, cmd);
-            }
-            else
-            {
-                RenderPixelDeferredLighting(parameters, resources, cmd);
-            }
         }
 
         static void RenderComputeDeferredLighting(in DeferredLightingParameters parameters, in DeferredLightingResources resources, CommandBuffer cmd)

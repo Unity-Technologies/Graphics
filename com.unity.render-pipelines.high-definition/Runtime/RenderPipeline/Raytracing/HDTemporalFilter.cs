@@ -118,30 +118,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return temporalFilterParameters;
         }
 
-        public TemporalFilterResources PrepareTemporalFilterResources(HDCamera hdCamera, RTHandle validationBuffer, RTHandle noisyBuffer, RTHandle historyBuffer, RTHandle outputBuffer)
-        {
-            TemporalFilterResources tfResources = new TemporalFilterResources();
-            tfResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            tfResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            tfResources.velocityBuffer = TextureXR.GetBlackTexture();
-            tfResources.historyDepthTexture = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
-            tfResources.historyNormalTexture = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal);
-            tfResources.noisyBuffer = noisyBuffer;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
-                tfResources.motionVectorBuffer = m_SharedRTManager.GetMotionVectorsBuffer();
-            else
-                tfResources.motionVectorBuffer = TextureXR.GetBlackTexture();
-
-            // Temporary buffers
-            tfResources.validationBuffer = validationBuffer;
-
-            // Output buffers
-            tfResources.historyBuffer = historyBuffer;
-            tfResources.outputBuffer = outputBuffer;
-
-            return tfResources;
-        }
-
         // Denoiser variant for non history array
         static public void DenoiseBuffer(CommandBuffer cmd, TemporalFilterParameters tfParameters, TemporalFilterResources tfResources)
         {

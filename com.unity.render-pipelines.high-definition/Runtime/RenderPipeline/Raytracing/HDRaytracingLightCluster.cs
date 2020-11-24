@@ -661,15 +661,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle debugLightClusterTexture;
         }
 
-        LightClusterDebugResources PrepareLightClusterDebugResources(RTHandle outputDebugLightBuffer)
-        {
-            LightClusterDebugResources resources = new LightClusterDebugResources();
-            resources.debugLightClusterTexture = outputDebugLightBuffer;
-            resources.depthTexture = m_RenderPipeline.sharedRTManager.GetDepthTexture();
-            resources.depthStencilBuffer = m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer();
-            return resources;
-        }
-
         static public void ExecuteLightClusterDebug(CommandBuffer cmd, LightClusterDebugParameters parameters, LightClusterDebugResources resources)
         {
             // Bind the output texture
@@ -698,13 +689,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Draw the faces
             cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 1, MeshTopology.Lines, 48, 64 * 64 * 32, parameters.debugMaterialProperties);
             cmd.DrawProcedural(Matrix4x4.identity, parameters.debugMaterial, 0, MeshTopology.Triangles, 36, 64 * 64 * 32, parameters.debugMaterialProperties);
-        }
-
-        public void EvaluateClusterDebugView(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            LightClusterDebugParameters parameters = PrepareLightClusterDebugParameters(hdCamera);
-            LightClusterDebugResources resources = PrepareLightClusterDebugResources(m_DebugLightClusterTexture);
-            ExecuteLightClusterDebug(cmd, parameters, resources);
         }
 
         class LightClusterDebugPassData
