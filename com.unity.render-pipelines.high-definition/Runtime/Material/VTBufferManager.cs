@@ -95,15 +95,15 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {
-	            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
-	            {
-	                var parameters = PrepareResolveVTParameters(hdCamera);
-	                var msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-	                RTHandle input = msaaEnabled ? FeedbackBufferMsaa : (rt != null ? rt : FeedbackBuffer);
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
+                {
+                    var parameters = PrepareResolveVTParameters(hdCamera);
+                    var msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                    RTHandle input = msaaEnabled ? FeedbackBufferMsaa : (rt != null ? rt : FeedbackBuffer);
 
-                	ResolveVTDispatch(parameters, cmd, input, m_LowresResolver);
-            	}
-			}
+                    ResolveVTDispatch(parameters, cmd, input, m_LowresResolver);
+                }
+            }
         }
 
         class ResolveVTData
@@ -117,23 +117,23 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {
-	            using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
-	            {
-            	    // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
-        	        builder.AllowPassCulling(false);
+                using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
+                {
+                    // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
+                    builder.AllowPassCulling(false);
 
-    	            passData.parameters = PrepareResolveVTParameters(hdCamera);
-	                passData.input = builder.ReadTexture(input);
-                	passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
+                    passData.parameters = PrepareResolveVTParameters(hdCamera);
+                    passData.input = builder.ReadTexture(input);
+                    passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
 
-            	    builder.SetRenderFunc(
-        	        (ResolveVTData data, RenderGraphContext ctx) =>
-    	            {
-	                    ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
-                    	VirtualTexturing.System.Update();
-                	});
-            	}
-			}
+                    builder.SetRenderFunc(
+                        (ResolveVTData data, RenderGraphContext ctx) =>
+                        {
+                            ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
+                            VirtualTexturing.System.Update();
+                        });
+                }
+            }
         }
 
         struct ResolveVTParameters
