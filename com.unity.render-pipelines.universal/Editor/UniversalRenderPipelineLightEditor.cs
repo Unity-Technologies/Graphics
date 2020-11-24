@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.Universal
 
         void init(UniversalAdditionalLightData additionalLightData)
         {
-            if(additionalLightData == null)
+            if (additionalLightData == null)
                 return;
             m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUILayout.Space();
 
-            if (SceneView.lastActiveSceneView != null )
+            if (SceneView.lastActiveSceneView != null)
             {
 #if UNITY_2019_1_OR_NEWER
                 var sceneLighting = SceneView.lastActiveSceneView.sceneLighting;
@@ -228,7 +228,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             Rect controlRectAdditionalData = EditorGUILayout.GetControlRect(true);
-            if(m_AdditionalLightDataSO != null)
+            if (m_AdditionalLightDataSO != null)
                 EditorGUI.BeginProperty(controlRectAdditionalData, Styles.shadowBias, m_UseAdditionalDataProp);
             EditorGUI.BeginChangeCheck();
 
@@ -237,7 +237,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 hasChanged = true;
             }
-            if(m_AdditionalLightDataSO != null)
+            if (m_AdditionalLightDataSO != null)
                 EditorGUI.EndProperty();
 
             if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
@@ -257,7 +257,7 @@ namespace UnityEditor.Rendering.Universal
                     lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
                     m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
 
-                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
+                    var asset = UniversalRenderPipeline.asset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
                     settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
 
@@ -274,7 +274,7 @@ namespace UnityEditor.Rendering.Universal
             // Shadows drop-down. Area lights can only be baked and always have shadows.
             float show = 1.0f - m_AnimAreaOptions.faded;
 
-			settings.DrawShadowsType();
+            settings.DrawShadowsType();
 
             EditorGUI.indentLevel += 1;
             show *= m_AnimShadowOptions.faded;
@@ -358,7 +358,7 @@ namespace UnityEditor.Rendering.Universal
                         CoreLightEditorUtilities.DrawDirectionalLightGizmo(light);
                     }
                     break;
-                
+
                 default:
                     base.OnSceneGUI();
                     break;

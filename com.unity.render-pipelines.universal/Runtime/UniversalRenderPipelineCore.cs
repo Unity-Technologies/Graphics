@@ -279,6 +279,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
         public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
         public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
+
+        // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
+        public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
     }
 
     public struct PostProcessingData
@@ -416,19 +419,21 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
+        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
 #if UNITY_2021_1_OR_NEWER
         void SortCameras(List<Camera> cameras)
         {
             if (cameras.Count > 1)
                 cameras.Sort(cameraComparison);
         }
+
 #else
         void SortCameras(Camera[] cameras)
         {
             if (cameras.Length > 1)
                 Array.Sort(cameras, cameraComparison);
         }
+
 #endif
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
@@ -462,6 +467,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = camera.targetTexture.descriptor;
                 desc.width = camera.pixelWidth;
                 desc.height = camera.pixelHeight;
+                desc.graphicsFormat = isHdrEnabled ? desc.graphicsFormat : renderTextureFormatDefault;
                 // SystemInfo.SupportsRenderTextureFormat(camera.targetTexture.descriptor.colorFormat)
                 // will assert on R8_SINT since it isn't a valid value of RenderTextureFormat.
                 // If this is fixed then we can implement debug statement to the user explaining why some
@@ -472,6 +478,11 @@ namespace UnityEngine.Rendering.Universal
             desc.enableRandomWrite = false;
             desc.bindMS = false;
             desc.useDynamicScale = camera.allowDynamicResolution;
+
+            // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
+            // replace the requested desc.msaaSamples value with the actual value the engine falls back to
+            desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
+
             return desc;
         }
 

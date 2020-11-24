@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Uniform buffers are faster on some platforms, but they have stricter size limitations
 
                 int MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = 545;  // keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
-                if(UniversalRenderPipeline.maxVisibleAdditionalLights != UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile)
+                if (UniversalRenderPipeline.maxVisibleAdditionalLights != UniversalRenderPipeline.k_MaxVisibleAdditionalLightsNonMobile)
                 {
                     // Reduce uniform block size on Mobile/GL to avoid shader performance or compilation issues - keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in Shadows.hlsl
                     MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO = UniversalRenderPipeline.maxVisibleAdditionalLights;
@@ -114,19 +114,19 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal static float CalcGuardAngle(float frustumAngleInDegrees, float guardBandSizeInTexels, float sliceResolutionInTexels)
         {
             float frustumAngle = frustumAngleInDegrees * Mathf.Deg2Rad;
-            float halfFrustumAngle = frustumAngle/2;
+            float halfFrustumAngle = frustumAngle / 2;
             float tanHalfFrustumAngle = Mathf.Tan(halfFrustumAngle);
 
-            float halfSliceResolution = sliceResolutionInTexels/2;
-            float halfGuardBand = guardBandSizeInTexels/2;
-            float factorBetweenAngleTangents = 1 + halfGuardBand/halfSliceResolution;
+            float halfSliceResolution = sliceResolutionInTexels / 2;
+            float halfGuardBand = guardBandSizeInTexels / 2;
+            float factorBetweenAngleTangents = 1 + halfGuardBand / halfSliceResolution;
 
             float tanHalfGuardAnglePlusHalfFrustumAngle = tanHalfFrustumAngle * factorBetweenAngleTangents;
 
             float halfGuardAnglePlusHalfFrustumAngle = Mathf.Atan(tanHalfGuardAnglePlusHalfFrustumAngle);
             float halfGuardAngleInRadian = halfGuardAnglePlusHalfFrustumAngle - halfFrustumAngle;
 
-            float guardAngleInRadian = 2*halfGuardAngleInRadian;
+            float guardAngleInRadian = 2 * halfGuardAngleInRadian;
             float guardAngleInDegree = guardAngleInRadian * Mathf.Rad2Deg;
 
             return guardAngleInDegree;
@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Since we only handle a fixed number of resolutions, we use empirical values instead.
             #if false
             float fudgeFactor = 1.5f;
-            return fudgeFactor * CalcGuardAngle(90, shadowFiltering? 5 : 1, shadowSliceResolution);
+            return fudgeFactor * CalcGuardAngle(90, shadowFiltering ? 5 : 1, shadowSliceResolution);
             #endif
 
 
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // We can see that the guard angle is roughly proportional to the inverse of resolution https://docs.google.com/spreadsheets/d/1QrIZJn18LxVKq2-K1XS4EFRZcZdZOJTTKKhDN8Z1b_s
             if (shadowSliceResolution <= 8)
                 Debug.LogWarning("Too many additional punctual lights shadows, increase shadow atlas size or remove some shadowed lights");
-                // TODO: (If we decide to support it) Investigate why shadows are not rendered when single slice resolution is 8
+            // TODO: (If we decide to support it) Investigate why shadows are not rendered when single slice resolution is 8
             else if (shadowSliceResolution <= 16)
                 fovBias = 43.0f;
             else if (shadowSliceResolution <= 32)
@@ -168,11 +168,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             else if (shadowSliceResolution <= 1024)
                 fovBias = 0.50f;
 
-            if(shadowFiltering)
+            if (shadowFiltering)
             {
                 if (shadowSliceResolution <= 16)
                     Debug.LogWarning("Too many additional punctual lights shadows to use Soft Shadows. Increase shadow atlas size, remove some shadowed lights or use Hard Shadows.");
-                    // With such small resolutions no fovBias can give good visual results
+                // With such small resolutions no fovBias can give good visual results
                 else if (shadowSliceResolution <= 32)
                     fovBias += 9.35f;
                 else if (shadowSliceResolution <= 64)
@@ -222,7 +222,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     {
                         // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length maps to _AdditionalLightsWorldToShadow in Shadows.hlsl
                         // We have to limit its size because uniform buffers cannot be higher than 64kb for some platforms.
-                        if(totalShadowSlicesCount + shadowSlicesCountForThisLight > m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length)
+                        if (totalShadowSlicesCount + shadowSlicesCountForThisLight > m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length)
                         {
                             if (!m_IssuedMessageAboutShadowSlicesTooMany)
                             {
@@ -247,11 +247,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_AdditionalLightsShadowSlices == null || m_AdditionalLightsShadowSlices.Length < totalShadowSlicesCount)
                 m_AdditionalLightsShadowSlices = new ShadowSliceData[totalShadowSlicesCount];
 
-            if ( m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix == null ||
-                (m_UseStructuredBuffer && (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length < totalShadowSlicesCount))  ) // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix can be resized when using SSBO to pass shadow data (no size limitation)
+            if (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix == null ||
+                (m_UseStructuredBuffer && (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length < totalShadowSlicesCount)))   // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix can be resized when using SSBO to pass shadow data (no size limitation)
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[totalShadowSlicesCount];
 
-            if(m_AdditionalLightIndexToVisibleLightIndex.Length < visibleLights.Length)
+            if (m_AdditionalLightIndexToVisibleLightIndex.Length < visibleLights.Length)
             {
                 // Array "visibleLights" is returned by ScriptableRenderContext.Cull()
                 // The maximum number of "visibleLights" that ScriptableRenderContext.Cull() should return, is defined by parameter ScriptableCullingParameters.maximumVisibleLights
@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int perLightFirstShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
 
                 bool isValidShadowCastingLight = false;
-                for(int perLightShadowSlice = 0; perLightShadowSlice < perLightShadowSlicesCount; ++perLightShadowSlice)
+                for (int perLightShadowSlice = 0; perLightShadowSlice < perLightShadowSlicesCount; ++perLightShadowSlice)
                 {
                     int globalShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
 
@@ -331,7 +331,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                             }
                             else if (lightType == LightType.Point)
                             {
-                                float fovBias = GetPointLightShadowFrustumFovBiasInDegrees(sliceResolution, (shadowLight.light.shadows==LightShadows.Soft));
+                                float fovBias = GetPointLightShadowFrustumFovBiasInDegrees(sliceResolution, (shadowLight.light.shadows == LightShadows.Soft));
                                 // Note: the same fovBias will also be used to compute ShadowUtils.GetShadowBias
 
                                 bool success = ShadowUtils.ExtractPointLightMatrix(ref renderingData.cullResults,
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                 }
 
-                if(isValidShadowCastingLight)
+                if (isValidShadowCastingLight)
                     validShadowCastingLightsCount++;
             }
 
@@ -390,7 +390,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
 
                 // We can skip the slice if strength is zero.
-                if ( Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].x, 0.0f)  || Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].w, -1.0f))
+                if (Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].x, 0.0f)  || Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].w, -1.0f))
                     continue;
 
                 m_AdditionalLightsShadowSlices[globalShadowSliceIndex].offsetX = (sliceIndex % shadowSlicesPerRow) * sliceResolution;
@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     // we do the shadow strength check here again here because we might have zero strength for non-shadow-casting lights.
                     // In that case we need the shadow data buffer but we can skip rendering them to shadowmap.
-                    if ( Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].x, 0.0f)  || Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].w, -1.0f))
+                    if (Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].x, 0.0f)  || Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].w, -1.0f))
                         continue;
 
                     int visibleLightIndex = m_AdditionalLightIndexToVisibleLightIndex[additionalLightIndex];
@@ -495,12 +495,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // to enable the keyword.
                 // TODO: In PC and Consoles we can upload shadow data per light and branch on shader. That will be more likely way faster.
                 bool mainLightHasSoftShadows = shadowData.supportsMainLightShadows &&
-                                               lightData.mainLightIndex != -1 &&
-                                               visibleLights[lightData.mainLightIndex].light.shadows ==
-                                               LightShadows.Soft;
+                    lightData.mainLightIndex != -1 &&
+                    visibleLights[lightData.mainLightIndex].light.shadows ==
+                    LightShadows.Soft;
 
                 bool softShadows = shadowData.supportsSoftShadows &&
-                                   (mainLightHasSoftShadows || additionalLightHasSoftShadows);
+                    (mainLightHasSoftShadows || additionalLightHasSoftShadows);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.AdditionalLightShadows, anyShadowSliceRenderer);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, softShadows);
@@ -525,7 +525,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             if (m_UseStructuredBuffer)
             {
-                 // per-light data
+                // per-light data
                 var shadowParamsBuffer = ShaderData.instance.GetAdditionalLightShadowParamsStructuredBuffer(m_AdditionalLightIndexToShadowParams.Length);
                 shadowParamsBuffer.SetData(m_AdditionalLightIndexToShadowParams);
                 cmd.SetGlobalBuffer(m_AdditionalShadowParams_SSBO, shadowParamsBuffer);

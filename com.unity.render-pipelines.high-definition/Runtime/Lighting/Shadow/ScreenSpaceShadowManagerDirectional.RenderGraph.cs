@@ -7,8 +7,8 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         TextureHandle DenoiseDirectionalScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
-                                                            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer,
-                                                            TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBuffer)
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer,
+            TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBuffer)
         {
             // Is the history still valid?
             int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
@@ -26,20 +26,20 @@ namespace UnityEngine.Rendering.HighDefinition
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();
             HDTemporalFilter.TemporalDenoiserArrayOutputData temporalFilterResult = temporalFilter.DenoiseBuffer(renderGraph, hdCamera,
-                                         depthBuffer, normalBuffer, motionVetorsBuffer,
-                                         noisyBuffer, shadowHistoryArray,
-                                         distanceBuffer, shadowHistoryDistanceArray,
-                                         velocityBuffer,
-                                         shadowHistoryValidityArray,
-                                         dirShadowIndex / 4, m_ShadowChannelMask0, m_ShadowChannelMask1,
-                                         true, !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity);
+                depthBuffer, normalBuffer, motionVetorsBuffer,
+                noisyBuffer, shadowHistoryArray,
+                distanceBuffer, shadowHistoryDistanceArray,
+                velocityBuffer,
+                shadowHistoryValidityArray,
+                dirShadowIndex / 4, m_ShadowChannelMask0, m_ShadowChannelMask1,
+                true, !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity);
 
             // Apply the spatial denoiser
             HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
             TextureHandle denoisedBuffer = shadowDenoiser.DenoiseBufferDirectional(renderGraph, hdCamera,
-                            depthBuffer, normalBuffer,
-                            temporalFilterResult.outputSignal, temporalFilterResult.outputSignalDistance,
-                            m_CurrentSunLightAdditionalLightData.filterSizeTraced, m_CurrentSunLightAdditionalLightData.angularDiameter * 0.5f, !m_CurrentSunLightAdditionalLightData.colorShadow);
+                depthBuffer, normalBuffer,
+                temporalFilterResult.outputSignal, temporalFilterResult.outputSignalDistance,
+                m_CurrentSunLightAdditionalLightData.filterSizeTraced, m_CurrentSunLightAdditionalLightData.angularDiameter * 0.5f, !m_CurrentSunLightAdditionalLightData.colorShadow);
 
             // Now that we have overriden this history, mark is as used by this light
             hdCamera.PropagateShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex, GPULightType.Directional);
@@ -79,25 +79,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Output Buffers
                 passData.velocityBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8_SNorm, enableRandomWrite = true, clearBuffer = true, name = "Velocity Buffer" })));
+                    { colorFormat = GraphicsFormat.R8_SNorm, enableRandomWrite = true, clearBuffer = true, name = "Velocity Buffer" })));
                 passData.distanceBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "Distance Buffer" })));
+                    { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, clearBuffer = true, name = "Distance Buffer" })));
                 passData.outputShadowBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, name = "RT Directional Shadow" })));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, clearBuffer = true, name = "RT Directional Shadow" })));
 
                 builder.SetRenderFunc(
-                (RTSDirectionalTracePassData data, RenderGraphContext context) =>
-                {
-                    RTShadowDirectionalTraceResources resources = new RTShadowDirectionalTraceResources();
-                    resources.depthStencilBuffer = data.depthStencilBuffer;
-                    resources.normalBuffer = data.normalBuffer;
-                    resources.directionBuffer = data.directionBuffer;
-                    resources.rayCountTexture = data.rayCountTexture;
-                    resources.velocityBuffer = data.velocityBuffer;
-                    resources.distanceBuffer = data.distanceBuffer;
-                    resources.outputShadowBuffer = data.outputShadowBuffer;
-                    ExecuteSSSDirectionalTrace(context.cmd, data.parameters, resources);
-                });
+                    (RTSDirectionalTracePassData data, RenderGraphContext context) =>
+                    {
+                        RTShadowDirectionalTraceResources resources = new RTShadowDirectionalTraceResources();
+                        resources.depthStencilBuffer = data.depthStencilBuffer;
+                        resources.normalBuffer = data.normalBuffer;
+                        resources.directionBuffer = data.directionBuffer;
+                        resources.rayCountTexture = data.rayCountTexture;
+                        resources.velocityBuffer = data.velocityBuffer;
+                        resources.distanceBuffer = data.distanceBuffer;
+                        resources.outputShadowBuffer = data.outputShadowBuffer;
+                        ExecuteSSSDirectionalTrace(context.cmd, data.parameters, resources);
+                    });
                 directionalShadow = passData.outputShadowBuffer;
                 velocityBuffer = passData.velocityBuffer;
                 distanceBuffer = passData.distanceBuffer;
@@ -107,12 +107,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentSunLightAdditionalLightData.filterTracedShadow && rtsdtParams.softShadow)
             {
                 directionalShadow = DenoiseDirectionalScreenSpaceShadow(renderGraph, hdCamera,
-                                                                        depthBuffer, normalBuffer, motionVetorsBuffer,
-                                                                        directionalShadow, velocityBuffer, distanceBuffer);
+                    depthBuffer, normalBuffer, motionVetorsBuffer,
+                    directionalShadow, velocityBuffer, distanceBuffer);
             }
 
             int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
-            ScreenSpaceShadowType shadowType = m_CurrentSunLightAdditionalLightData.colorShadow? ScreenSpaceShadowType.Color: ScreenSpaceShadowType.GrayScale;
+            ScreenSpaceShadowType shadowType = m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale;
 
             // Write the result texture to the screen space shadow buffer
             WriteScreenSpaceShadow(renderGraph, hdCamera, directionalShadow, screenSpaceShadowArray, dirShadowIndex, shadowType);
@@ -146,10 +146,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.screenSpaceShadowArray = builder.ReadTexture(builder.WriteTexture(screenSpaceShadowArray));
 
                         builder.SetRenderFunc(
-                        (SSSDirectionalTracePassData data, RenderGraphContext context) =>
-                        {
-                            ExecuteSSShadowDirectional(context.cmd, data.parameters, context.renderGraphPool.GetTempMaterialPropertyBlock(), data.normalBuffer, data.screenSpaceShadowArray);
-                        });
+                            (SSSDirectionalTracePassData data, RenderGraphContext context) =>
+                            {
+                                ExecuteSSShadowDirectional(context.cmd, data.parameters, context.renderGraphPool.GetTempMaterialPropertyBlock(), data.normalBuffer, data.screenSpaceShadowArray);
+                            });
                     }
                 }
             }

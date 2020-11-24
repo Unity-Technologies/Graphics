@@ -84,14 +84,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowResult = ReadShadowResult(shadowResult, builder);
                 builder.AllowPassCulling(false);
                 builder.SetRenderFunc(
-                (BindShadowGlobalResourcesPassData data, RenderGraphContext ctx) =>
-                {
-                    BindAtlasTexture(ctx, data.shadowResult.punctualShadowResult, HDShaderIDs._ShadowmapAtlas);
-                    BindAtlasTexture(ctx, data.shadowResult.directionalShadowResult, HDShaderIDs._ShadowmapCascadeAtlas);
-                    BindAtlasTexture(ctx, data.shadowResult.areaShadowResult, HDShaderIDs._ShadowmapAreaAtlas);
-                    BindAtlasTexture(ctx, data.shadowResult.cachedPunctualShadowResult, HDShaderIDs._CachedShadowmapAtlas);
-                    BindAtlasTexture(ctx, data.shadowResult.cachedAreaShadowResult, HDShaderIDs._CachedAreaLightShadowmapAtlas);
-                });
+                    (BindShadowGlobalResourcesPassData data, RenderGraphContext ctx) =>
+                    {
+                        BindAtlasTexture(ctx, data.shadowResult.punctualShadowResult, HDShaderIDs._ShadowmapAtlas);
+                        BindAtlasTexture(ctx, data.shadowResult.directionalShadowResult, HDShaderIDs._ShadowmapCascadeAtlas);
+                        BindAtlasTexture(ctx, data.shadowResult.areaShadowResult, HDShaderIDs._ShadowmapAreaAtlas);
+                        BindAtlasTexture(ctx, data.shadowResult.cachedPunctualShadowResult, HDShaderIDs._CachedShadowmapAtlas);
+                        BindAtlasTexture(ctx, data.shadowResult.cachedAreaShadowResult, HDShaderIDs._CachedAreaLightShadowmapAtlas);
+                    });
             }
         }
 
@@ -117,10 +117,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.atlasTexture = builder.WriteTexture(shadowResult.punctualShadowResult);
 
                     builder.SetRenderFunc(
-                    (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
-                    {
-                        HDDynamicShadowAtlas.BlitCachedIntoAtlas(data.shadowBlitParameters, data.atlasTexture, data.sourceCachedAtlas, ctx.cmd);
-                    });
+                        (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
+                        {
+                            HDDynamicShadowAtlas.BlitCachedIntoAtlas(data.shadowBlitParameters, data.atlasTexture, data.sourceCachedAtlas, ctx.cmd);
+                        });
                 }
             }
 
@@ -136,10 +136,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.atlasTexture = builder.WriteTexture(shadowResult.areaShadowResult);
 
                     builder.SetRenderFunc(
-                    (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
-                    {
-                        HDDynamicShadowAtlas.BlitCachedIntoAtlas(data.shadowBlitParameters, data.atlasTexture, data.sourceCachedAtlas, ctx.cmd);
-                    });
+                        (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
+                        {
+                            HDDynamicShadowAtlas.BlitCachedIntoAtlas(data.shadowBlitParameters, data.atlasTexture, data.sourceCachedAtlas, ctx.cmd);
+                        });
                 }
             }
         }
@@ -147,7 +147,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
     partial class HDShadowAtlas
     {
-
         public TextureDesc GetTextureDesc(bool clearBuffer = false)
         {
             return new TextureDesc(width, height)
@@ -171,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle AllocateMomentAtlas(RenderGraph renderGraph, string name)
         {
             return renderGraph.CreateTexture(new TextureDesc(width / 2, height / 2)
-                    { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true });
+                { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true });
         }
 
         internal void RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName, ref TextureHandle result)
@@ -202,39 +201,39 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (passData.parameters.blurAlgorithm == BlurAlgorithm.IM)
                 {
                     passData.momentAtlasTexture1 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = m_MomentName, enableRandomWrite = true }));
+                        { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = m_MomentName, enableRandomWrite = true }));
                     passData.intermediateSummedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true }));
+                        { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_IntermediateSummedAreaName, enableRandomWrite = true }));
                     passData.summedAreaTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(width, height)
-                                                    { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true }));
+                        { colorFormat = GraphicsFormat.R32G32B32A32_SInt, name = m_SummedAreaName, enableRandomWrite = true }));
 
                     result = passData.momentAtlasTexture1;
                 }
 
 
                 builder.SetRenderFunc(
-                (RenderShadowsPassData data, RenderGraphContext context) =>
-                {
-                    RenderShadows(  data.parameters,
-                                    data.atlasTexture,
-                                    data.shadowDrawSettings,
-                                    context.renderContext,
-                                    data.isRenderingOnACache,
-                                    context.cmd);
-
-                    if (data.parameters.blurAlgorithm == BlurAlgorithm.EVSM)
+                    (RenderShadowsPassData data, RenderGraphContext context) =>
                     {
-                        RTHandle[] momentTextures = context.renderGraphPool.GetTempArray<RTHandle>(2);
-                        momentTextures[0] = data.momentAtlasTexture1;
-                        momentTextures[1] = data.momentAtlasTexture2;
+                        RenderShadows(data.parameters,
+                            data.atlasTexture,
+                            data.shadowDrawSettings,
+                            context.renderContext,
+                            data.isRenderingOnACache,
+                            context.cmd);
 
-                        EVSMBlurMoments(data.parameters, data.atlasTexture, momentTextures, data.isRenderingOnACache, context.cmd);
-                    }
-                    else if (data.parameters.blurAlgorithm == BlurAlgorithm.IM)
-                    {
-                        IMBlurMoment(data.parameters, data.atlasTexture, data.momentAtlasTexture1, data.intermediateSummedAreaTexture, data.summedAreaTexture, context.cmd);
-                    }
-                });
+                        if (data.parameters.blurAlgorithm == BlurAlgorithm.EVSM)
+                        {
+                            RTHandle[] momentTextures = context.renderGraphPool.GetTempArray<RTHandle>(2);
+                            momentTextures[0] = data.momentAtlasTexture1;
+                            momentTextures[1] = data.momentAtlasTexture2;
+
+                            EVSMBlurMoments(data.parameters, data.atlasTexture, momentTextures, data.isRenderingOnACache, context.cmd);
+                        }
+                        else if (data.parameters.blurAlgorithm == BlurAlgorithm.IM)
+                        {
+                            IMBlurMoment(data.parameters, data.atlasTexture, data.momentAtlasTexture1, data.intermediateSummedAreaTexture, data.summedAreaTexture, context.cmd);
+                        }
+                    });
             }
         }
     }

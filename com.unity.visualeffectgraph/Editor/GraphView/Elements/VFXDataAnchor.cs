@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UI
                 m_Controller = value;
                 if (m_Controller != null)
                 {
-                    if(m_Controller.model != null)
+                    if (m_Controller.model != null)
                         m_Controller.model.RefreshErrors(m_Controller.sourceNode.viewController.graph);
                     m_Controller.RegisterHandler(this);
                 }
@@ -293,7 +293,7 @@ namespace UnityEditor.VFX.UI
                 if (direction == Direction.Input || viewController.model.visualEffectObject is VisualEffectSubgraphOperator || viewController.model.visualEffectObject is VisualEffectSubgraphBlock) // no context for subgraph operators.
                     VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter)}));
                 else
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
+                    VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(viewController, AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter), typeof(VFXContext) }));
             }
         }
 
@@ -333,7 +333,7 @@ namespace UnityEditor.VFX.UI
                     &&  mySlot != null
                     && container is VFXOperatorDynamicOperand
                     && (container as VFXOperatorDynamicOperand).validTypes.Contains(mySlot.property.type))
-                        return true;
+                    return true;
             }
 
             IEnumerable<Type> validTypes = null;

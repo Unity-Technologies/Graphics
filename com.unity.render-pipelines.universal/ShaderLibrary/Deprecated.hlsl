@@ -34,8 +34,8 @@ half4 _DrawObjectPassData;
 // To access other shadow parameters, use GetAdditionalLightShadowParams(int lightIndex)[see Shadows.hlsl]
 struct ShadowData
 {
-    float4x4 worldToShadowMatrix; // per-shadow-slice	
-    float4 shadowParams;          // per-casting-light	
+    float4x4 worldToShadowMatrix; // per-shadow-slice
+    float4 shadowParams;          // per-casting-light
 };
 
 #endif // UNIVERSAL_DEPRECATED_INCLUDED

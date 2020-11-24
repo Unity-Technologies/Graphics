@@ -95,24 +95,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_InfluenceVolumeHeader, HDProbeUI.Expandable.Influence, HDProbeUI.k_ExpandedState,
                     HDProbeUI.Drawer<TProvider>.DrawInfluenceSettings,
                     HDProbeUI.Drawer_DifferentShapeError
-                ),
+                    ),
                 CoreEditorDrawer<TSerialized>.AdvancedFoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState,
                     (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
                     (s, o) => s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
                     CoreEditorDrawer<TSerialized>.Group(
                         DrawAdditionalCaptureSettings,
                         HDProbeUI.Drawer<TProvider>.DrawCaptureSettings
-                    ),
+                        ),
                     HDProbeUI.Drawer<TProvider>.DrawAdvancedCaptureSettings
-                ),
+                    ),
                 CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
                     HDProbeUI.Drawer<TProvider>.DrawCustomSettings),
                 CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawBakeButton)
             ).Draw(serialized, owner);
         }
 
-        protected virtual void DrawHandles(TSerialized serialized, Editor owner) { }
-        protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) { }
+        protected virtual void DrawHandles(TSerialized serialized, Editor owner) {}
+        protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) {}
 
         protected void OnSceneGUI()
         {
@@ -140,12 +140,13 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             return lambda.Compile();
         }
+
         internal static float capturePointPreviewSize
         { get { return s_CapturePointPreviewSizeGetter(); } }
 
         public FrameSettingsRenderType GetFrameSettingsType()
-             => GetTarget(target).mode == ProbeSettings.Mode.Realtime
-                 ? FrameSettingsRenderType.RealtimeReflection
-                 : FrameSettingsRenderType.CustomOrBakedReflection;
+            => GetTarget(target).mode == ProbeSettings.Mode.Realtime
+            ? FrameSettingsRenderType.RealtimeReflection
+            : FrameSettingsRenderType.CustomOrBakedReflection;
     }
 }

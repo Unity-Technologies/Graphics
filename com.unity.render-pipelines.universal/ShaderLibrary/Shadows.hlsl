@@ -15,11 +15,11 @@
         #if !defined(_MAIN_LIGHT_SHADOWS_CASCADE)
             #define REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR
         #endif
-    #endif 
+    #endif
 
     #if defined(_ADDITIONAL_LIGHT_SHADOWS)
         #define ADDITIONAL_LIGHT_CALCULATE_SHADOWS
-    #endif 
+    #endif
 #endif
 
 #if defined(UNITY_DOTS_INSTANCING_ENABLED)
