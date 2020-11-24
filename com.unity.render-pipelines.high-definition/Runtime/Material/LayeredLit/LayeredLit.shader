@@ -758,9 +758,9 @@ Shader "HDRP/LayeredLit"
             #pragma instancing_options renderinglayer
             #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
 
-            #pragma multi_compile_fragment _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
-            #pragma multi_compile_fragment _ WRITE_DECAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
 
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
@@ -845,9 +845,9 @@ Shader "HDRP/LayeredLit"
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
-            #pragma multi_compile_fragment _ WRITE_NORMAL_BUFFER
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
-            #pragma multi_compile_fragment _ WRITE_DECAL_BUFFER
+            #pragma multi_compile _ WRITE_DECAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
