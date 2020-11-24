@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 
+### Added
+- Added a new API to bake HDRP probes from C# (case 1276360)
+
 ### Fixed
 - Fixed probe volumes debug views.
 
