@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle QualityRTGI(RenderGraph renderGraph, in QualityRTIndirectDiffuseParameters parameters, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle rayCountTexture)
         {
-            using (var builder = renderGraph.AddRenderPass<TraceQualityRTGIPassData>("Quality RT Indirect Diffuse", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionEvaluation)))
+            using (var builder = renderGraph.AddRenderPass<TraceQualityRTGIPassData>("Quality RT Indirect Diffuse", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingIndirectDiffuseEvaluation)))
             {
                 builder.EnableAsyncCompute(false);
 

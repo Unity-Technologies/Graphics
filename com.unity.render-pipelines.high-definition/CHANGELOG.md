@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed normal buffer not bound to custom pass anymore.
 - Fixed issues with camera management in the graphics compositor (cases 1292548, 1292549).
 - Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
+- Fixed the clear coat not being handled properly for SSR and RTR (case 1291654).
+- Fixed ghosting in RTGI and RTAO when denoising is enabled and the RTHandle size is not equal to the Viewport size (case 1291654).
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
