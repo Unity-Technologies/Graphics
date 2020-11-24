@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Creating a Shadow Caster 2D will use try and use sprite and physics bounds as the default shape
 - Deleting all points in a Shadow Caster will cause the shape to use the bounds.
 - Improved Geometry for Smooth Falloff of 2D Shape Lights.
+- Updated the tooltips for Light 2D Inspector.
+- Removed the Custom blend Mode option from the Blend Styles.
+- New default Blend Styles when a new 2D Renderer Data asset is created.
 - Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
 - Bloom in Gamma color-space now more closely matches Linear color-space, this will mean project using Bloom and Gamma color-space may need to adjust Bloom Intensity to match previous look.
 - Autodesk Interactive Shader Graph files and folders containing them were renamed. The new file paths do not have spaces.
