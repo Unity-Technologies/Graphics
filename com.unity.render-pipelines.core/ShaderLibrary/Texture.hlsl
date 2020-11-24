@@ -46,11 +46,6 @@ struct UnityTexture2D
     float4 SampleGrad(UnitySamplerState s, float2 uv, float dpdx, float dpdy) { return SAMPLE_TEXTURE2D_GRAD(tex, s.samplerstate, uv, dpdx, dpdy); }
 
 #ifndef SHADER_API_GLES
-    float4 Gather(UnitySamplerState s, float2 uv)                       { return GATHER_TEXTURE2D(tex, s.samplerstate, uv);  }
-    float4 GatherRed(UnitySamplerState s, float2 uv)                    { return GATHER_RED_TEXTURE2D(tex, s.samplerstate, uv); }
-    float4 GatherGreen(UnitySamplerState s, float2 uv)                  { return GATHER_GREEN_TEXTURE2D(tex, s.samplerstate, uv); }
-    float4 GatherBlue(UnitySamplerState s, float2 uv)                   { return GATHER_BLUE_TEXTURE2D(tex, s.samplerstate, uv); }
-    float4 GatherAlpha(UnitySamplerState s, float2 uv)                  { return GATHER_ALPHA_TEXTURE2D(tex, s.samplerstate, uv); }
     float CalculateLevelOfDetail(UnitySamplerState s, float2 uv)        { return CALCULATE_TEXTURE2D_LOD(tex, s.samplerstate, uv); }
 
     float4 Sample(SAMPLER(s), float2 uv)                                { return SAMPLE_TEXTURE2D(tex, s, uv); }
@@ -59,12 +54,21 @@ struct UnityTexture2D
     float4 SampleGrad(SAMPLER(s), float2 uv, float dpdx, float dpdy)    { return SAMPLE_TEXTURE2D_GRAD(tex, s, uv, dpdx, dpdy); }
     float4 SampleCmpLevelZero(SAMPLER_CMP(s), float2 uv, float cmp)     { return SAMPLE_TEXTURE2D_SHADOW(tex, s, float3(uv, cmp)); }
     float4 Load(int3 pixel)                                             { return LOAD_TEXTURE2D_LOD(tex, pixel.xy, pixel.z); }
+    float CalculateLevelOfDetail(SAMPLER(s), float2 uv)                 { return CALCULATE_TEXTURE2D_LOD(tex, s, uv); }
+#endif
+
+#ifdef PLATFORM_SUPPORT_GATHER
+    float4 Gather(UnitySamplerState s, float2 uv)                       { return GATHER_TEXTURE2D(tex, s.samplerstate, uv); }
+    float4 GatherRed(UnitySamplerState s, float2 uv)                    { return GATHER_RED_TEXTURE2D(tex, s.samplerstate, uv); }
+    float4 GatherGreen(UnitySamplerState s, float2 uv)                  { return GATHER_GREEN_TEXTURE2D(tex, s.samplerstate, uv); }
+    float4 GatherBlue(UnitySamplerState s, float2 uv)                   { return GATHER_BLUE_TEXTURE2D(tex, s.samplerstate, uv); }
+    float4 GatherAlpha(UnitySamplerState s, float2 uv)                  { return GATHER_ALPHA_TEXTURE2D(tex, s.samplerstate, uv); }
+
     float4 Gather(SAMPLER(s), float2 uv)                                { return GATHER_TEXTURE2D(tex, s, uv);  }
     float4 GatherRed(SAMPLER(s), float2 uv)                             { return GATHER_RED_TEXTURE2D(tex, s, uv); }
     float4 GatherGreen(SAMPLER(s), float2 uv)                           { return GATHER_GREEN_TEXTURE2D(tex, s, uv); }
     float4 GatherBlue(SAMPLER(s), float2 uv)                            { return GATHER_BLUE_TEXTURE2D(tex, s, uv); }
     float4 GatherAlpha(SAMPLER(s), float2 uv)                           { return GATHER_ALPHA_TEXTURE2D(tex, s, uv); }
-    float CalculateLevelOfDetail(SAMPLER(s), float2 uv)                 { return CALCULATE_TEXTURE2D_LOD(tex, s, uv); }
 #endif
 };
 
@@ -128,11 +132,13 @@ struct UnityTextureCube
     float4 SampleBias(UnitySamplerState s, float3 dir, float bias)      { return SAMPLE_TEXTURECUBE_BIAS(tex, s.samplerstate, dir, bias); }
 
 #ifndef SHADER_API_GLES
-    float4 Gather(UnitySamplerState s, float3 dir)                      { return GATHER_TEXTURECUBE(tex, s.samplerstate, dir); }
-
     float4 Sample(SAMPLER(s), float3 dir)                               { return SAMPLE_TEXTURECUBE(tex, s, dir); }
     float4 SampleLevel(SAMPLER(s), float3 dir, float lod)               { return SAMPLE_TEXTURECUBE_LOD(tex, s, dir, lod); }
     float4 SampleBias(SAMPLER(s), float3 dir, float bias)               { return SAMPLE_TEXTURECUBE_BIAS(tex, s, dir, bias); }
+#endif
+
+#ifdef PLATFORM_SUPPORT_GATHER
+    float4 Gather(UnitySamplerState s, float3 dir)                      { return GATHER_TEXTURECUBE(tex, s.samplerstate, dir); }
     float4 Gather(SAMPLER(s), float3 dir)                               { return GATHER_TEXTURECUBE(tex, s, dir);  }
 #endif
 };
@@ -164,7 +170,11 @@ struct UnityTexture3D
 
     float4 Sample(SAMPLER(s), float3 uvw)                               { return SAMPLE_TEXTURE2D(tex, s, uvw); }
     float4 SampleLevel(SAMPLER(s), float3 uvw, float lod)               { return SAMPLE_TEXTURE2D_LOD(tex, s, uvw, lod); }
+
+    #ifndef SHADER_API_GLCORE
+    // this macro is not defined in SHADER_API_GLCORE -- once that is fixed we can remove this restriction
     float4 Load(int4 pixel)                                             { return LOAD_TEXTURE3D_LOD(tex, pixel.xyz, pixel.w); }
+    #endif
 #endif
 };
 
