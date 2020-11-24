@@ -30,7 +30,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
 
 ### Changed
-- Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
 - Now the screen space shadow is only used if the analytic value is valid.
