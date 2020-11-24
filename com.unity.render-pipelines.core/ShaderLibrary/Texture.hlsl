@@ -27,7 +27,9 @@ struct UnitySamplerState
 UnitySamplerState UnityBuildSamplerStateStructInternal(SAMPLER(samplerstate))
 {
     UnitySamplerState result;
-    ASSIGN_SAMPLER(result.samplerstate, samplerstate);
+#ifndef SHADER_API_GLES
+    result.samplerstate = samplerstate;
+#endif
     return result;
 }
 
@@ -82,7 +84,9 @@ UnityTexture2D UnityBuildTexture2DStructInternal(TEXTURE2D_PARAM(tex, samplersta
 {
     UnityTexture2D result;
     result.tex = tex;
-    ASSIGN_SAMPLER(result.samplerstate, samplerstate);
+#ifndef SHADER_API_GLES
+    result.samplerstate = samplerstate;
+#endif
     result.texelSize = texelSize;
     result.scaleTranslate = scaleTranslate;
     return result;
@@ -115,7 +119,9 @@ UnityTexture2DArray UnityBuildTexture2DArrayStructInternal(TEXTURE2D_ARRAY_PARAM
 {
     UnityTexture2DArray result;
     result.tex = tex;
-    ASSIGN_SAMPLER(result.samplerstate, samplerstate);
+#ifndef SHADER_API_GLES
+    result.samplerstate = samplerstate;
+#endif
     return result;
 }
 
@@ -151,7 +157,9 @@ UnityTextureCube UnityBuildTextureCubeStructInternal(TEXTURECUBE_PARAM(tex, samp
 {
     UnityTextureCube result;
     result.tex = tex;
-    ASSIGN_SAMPLER(result.samplerstate, samplerstate);
+#ifndef SHADER_API_GLES
+    result.samplerstate = samplerstate;
+#endif
     return result;
 }
 
@@ -181,7 +189,9 @@ UnityTexture3D UnityBuildTexture3DStructInternal(TEXTURE3D_PARAM(tex, samplersta
 {
     UnityTexture3D result;
     result.tex = tex;
-    ASSIGN_SAMPLER(result.samplerstate, samplerstate);
+#ifndef SHADER_API_GLES
+    result.samplerstate = samplerstate;
+#endif
     return result;
 }
 
