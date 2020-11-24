@@ -24,7 +24,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] Mesh m_Mesh;
         [SerializeField] int m_InstanceId;
 
-
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
@@ -84,7 +83,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private void Awake()
         {
-            if(m_ApplyToSortingLayers == null)
+            if (m_ApplyToSortingLayers == null)
                 m_ApplyToSortingLayers = SetDefaultSortingLayers();
 
             Bounds bounds = new Bounds(transform.position, Vector3.one);
@@ -94,12 +93,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 bounds = renderer.bounds;
             }
+#if USING_PHYSICS2D_MODULE
             else
             {
                 Collider2D collider = GetComponent<Collider2D>();
                 if (collider != null)
                     bounds = collider.bounds;
             }
+#endif
 
             Vector3 relOffset = bounds.center - transform.position;
 
@@ -175,5 +176,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             OnEnable();
         }
 #endif
+
     }
 }

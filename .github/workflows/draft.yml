@@ -1,0 +1,20 @@
+name: Draft reminder
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  draft_reminder:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false && github.event.pull_request.ready_for_review == false
+    steps:
+    - uses: thollander/actions-comment-pull-request@master
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        message: |
+              It appears that you made a non-draft PR!
+              Please convert your PR to draft (button on the right side of the page)
+              and cancel any jobs that started on Yamato.
+              See the PR template for more information.
+              Thank you!

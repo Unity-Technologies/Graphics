@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         bool showChromeGizmo { get; set; }
     }
 
-    abstract class HDProbeEditor<TProvider, TSerialized> : Editor, IHDProbeEditor
+    abstract class HDProbeEditor<TProvider, TSerialized> : Editor, IHDProbeEditor, IDefaultFrameSettingsType
         where TProvider : struct, HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
         where TSerialized : SerializedHDProbe
     {
@@ -142,5 +142,10 @@ namespace UnityEditor.Rendering.HighDefinition
         }
         internal static float capturePointPreviewSize
         { get { return s_CapturePointPreviewSizeGetter(); } }
+
+        public FrameSettingsRenderType GetFrameSettingsType()
+             => GetTarget(target).mode == ProbeSettings.Mode.Realtime
+                 ? FrameSettingsRenderType.RealtimeReflection
+                 : FrameSettingsRenderType.CustomOrBakedReflection;
     }
 }

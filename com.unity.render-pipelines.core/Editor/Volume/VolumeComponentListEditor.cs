@@ -119,8 +119,14 @@ namespace UnityEditor.Rendering
 
             // Dumb hack to make sure the serialized object is up to date on undo (else there'll be
             // a state mismatch when this class is used in a GameObject inspector).
-            m_SerializedObject.Update();
-            m_SerializedObject.ApplyModifiedProperties();
+            if (m_SerializedObject != null
+                 && !m_SerializedObject.Equals(null)
+                 && m_SerializedObject.targetObject != null
+                 && !m_SerializedObject.targetObject.Equals(null))
+            {
+                m_SerializedObject.Update();
+                m_SerializedObject.ApplyModifiedProperties();
+            }
 
             // Seems like there's an issue with the inspector not repainting after some undo events
             // This will take care of that
@@ -199,10 +205,10 @@ namespace UnityEditor.Rendering
 
             // Even if the asset is not dirty, the list of component may have been changed by another inspector.
             // In this case, only the hash will tell us that we need to refresh.
-            if (asset.isDirty || asset.GetHashCode() != m_CurrentHashCode)
+            if (asset.isDirty || asset.GetComponentListHashCode() != m_CurrentHashCode)
             {
                 RefreshEditors();
-                m_CurrentHashCode = asset.GetHashCode();
+                m_CurrentHashCode = asset.GetComponentListHashCode();
                 asset.isDirty = false;
             }
 

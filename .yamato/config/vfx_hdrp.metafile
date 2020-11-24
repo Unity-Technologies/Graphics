@@ -2,24 +2,45 @@ project:
   name: VFX_HDRP
   folder: VisualEffectGraph_HDRP
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
+  - type: Standalone
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
+  - type: playmode
+  - type: editmode
 platforms:
   - name: Win
     apis:
-      - DX11
-      - Vulkan
+      - name: DX11
+      # - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: OSX 
     apis:
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis: 
-      - Vulkan
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - Standalone
         - editmode

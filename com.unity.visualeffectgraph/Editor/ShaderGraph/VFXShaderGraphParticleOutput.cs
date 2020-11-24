@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.ShaderGraph;
@@ -125,8 +126,12 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    if (!shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId)) //alpha threshold isn't controlled by shadergraph
-                        return true;
+                    if (!shaderGraph.alphaClipping)
+                    {
+                        //alpha clipping isn't enabled in shaderGraph, we implicitly still allows clipping for shadow & motion vector passes.
+                        if (!isBlendModeOpaque && (hasMotionVector || hasShadowCasting))
+                            return true;
+                    }
                 }
                 return false;
             }
@@ -137,7 +142,7 @@ namespace UnityEditor.VFX
             get
             {
                 bool noShaderGraphAlphaThreshold = shaderGraph == null && useAlphaClipping;
-                bool ShaderGraphAlphaThreshold = shaderGraph != null && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId);
+                bool ShaderGraphAlphaThreshold = shaderGraph != null && shaderGraph.alphaClipping;
                 return noShaderGraphAlphaThreshold || ShaderGraphAlphaThreshold;
             }
         }
@@ -258,7 +263,7 @@ namespace UnityEditor.VFX
                     {
                         var portInfo = shaderGraph.GetOutput(port);
                         if (!string.IsNullOrEmpty(portInfo.referenceName))
-                            yield return $"HAS_SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper()}";
+                            yield return $"HAS_SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper(CultureInfo.InvariantCulture)}";
                     }
 
                     bool needsPosWS = false;
@@ -278,10 +283,10 @@ namespace UnityEditor.VFX
                         bool hasNormalPort = pixelPorts.Any(t => t == ShaderGraphVfxAsset.NormalSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.NormalSlotId);
 
                         if (readsNormal || readsTangent || hasNormalPort) // needs normal
-                            yield return $"SHADERGRAPH_NEEDS_NORMAL_{kvPass.Key.ToUpper()}";
+                            yield return $"SHADERGRAPH_NEEDS_NORMAL_{kvPass.Key.ToUpper(CultureInfo.InvariantCulture)}";
 
                         if (readsTangent || hasNormalPort) // needs tangent
-                            yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper()}";
+                            yield return $"SHADERGRAPH_NEEDS_TANGENT_{kvPass.Key.ToUpper(CultureInfo.InvariantCulture)}";
 
                         needsPosWS |= graphCode.requirements.requiresPosition != NeededCoordinateSpace.None ||
                             graphCode.requirements.requiresScreenPosition ||
@@ -413,7 +418,7 @@ namespace UnityEditor.VFX
                     {
                         var portInfo = shaderGraph.GetOutput(port);
                         if (!string.IsNullOrEmpty(portInfo.referenceName))
-                            yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper()}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.id}"));
+                            yield return new KeyValuePair<string, VFXShaderWriter>($"${{SHADERGRAPH_PARAM_{portInfo.referenceName.ToUpper(CultureInfo.InvariantCulture)}}}", new VFXShaderWriter($"{portInfo.referenceName}_{portInfo.id}"));
                     }
 
                     foreach (var kvPass in graphCodes)
@@ -426,7 +431,7 @@ namespace UnityEditor.VFX
                         if (graphCode.requirements.requiresDepthTexture)
                             preProcess.WriteLine("#define REQUIRE_DEPTH_TEXTURE");
                         preProcess.WriteLine("${VFXShaderGraphFunctionsInclude}\n");
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper() + "}", new VFXShaderWriter(preProcess.ToString() + graphCode.code));
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CODE_" + kvPass.Key.ToUpper(CultureInfo.InvariantCulture) + "}", new VFXShaderWriter(preProcess.ToString() + graphCode.code));
 
                         var callSG = new VFXShaderWriter("//Call Shader Graph\n");
                         callSG.builder.AppendLine($"{shaderGraph.inputStructName} INSG = ({shaderGraph.inputStructName})0;");
@@ -539,7 +544,7 @@ namespace UnityEditor.VFX
                         callSG.builder.AppendLine(");");
 
                         var pixelPorts = currentRP.passInfos[kvPass.Key].pixelPorts;
-                        if (pixelPorts.Any(t => t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.HasOutput(ShaderGraphVfxAsset.AlphaThresholdSlotId))
+                        if (pixelPorts.Any(t => t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.alphaClipping)
                         {
                             callSG.builder.AppendLine(
 @"#if (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)
@@ -547,7 +552,7 @@ i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaThreshold_7;
 #endif");
                         }
 
-                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CALL_" + kvPass.Key.ToUpper() + "}", callSG);
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${SHADERGRAPH_PIXEL_CALL_" + kvPass.Key.ToUpper(CultureInfo.InvariantCulture) + "}", callSG);
                     }
                 }
             }

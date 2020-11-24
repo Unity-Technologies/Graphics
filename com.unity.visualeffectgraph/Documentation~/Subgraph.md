@@ -30,7 +30,7 @@ You can create a System Subgraph using the following:
 * Selecting one or Many Systems in a Visual Effect Graph, then selecting "Convert to Subgraph" in the Right-Click context menu, then saving the Graph Asset in the Save File Dialog.
   * Creating a subgraph using this method will replace all converted content with a System Subgraph Node.
 
-### Editing Block Subgraphs
+### Editing System Subgraphs
 
 You can edit a System Subgraph by opening it in the Visual Effect Graph window:
 
@@ -79,6 +79,8 @@ Block Subgraphs display a non-removable Context named "Block Subgraph" where Blo
 * Context can be customized using the following Properties:
   * **Suitable Contexts** : Determine Which Context types are compatible with the Block Subgraph
 
+You can define the Menu Category the subgraph block will appear in the [Blackboard](Blackboard.md)
+
 ### Using Block Subgraphs
 
 You can add a Block Subgraph Node to your Graph:
@@ -116,6 +118,8 @@ You can set up Input and Output Properties for the Operator using the Blackboard
 
 * You can create **Input** Properties by adding new Properties and enabling their **Exposed** Flag.
 * You can create **Output** Properties by adding new Properties, and moving them to the **Output Category**.
+
+You can define the Menu Category the subgraph block will appear in the [Blackboard](Blackboard.md)
 
 ### Using Operator Subgraphs
 

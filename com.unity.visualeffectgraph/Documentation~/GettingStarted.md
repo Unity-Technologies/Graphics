@@ -4,13 +4,7 @@ This page shows you how  to install Visual Effect Graph, and gives a brief overv
 Visual Effect Graph is a Unity package that uses a [Scriptable Render Pipeline](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) to render visual effects. Visual Effect graph uses on compute Shaders to simulate effects.
 
 ## Requirements
-* Unity 2018.3 or newer. Verified packages start at Unity 2019.3.
-* A [Scriptable Render Pipeline](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) package:
-  * [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html)(2019.3 or newer)
-  * [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?preview=1) (2018.3 or newer. Verified packages start at Unity 2019.3.)
-
-**Note:** When you download the High Definition Render Pipeline package from Package Manager, Unity automatically installs the Visual Effect Graph package.
-* A target device that can use compute Shaders, such as aWindows PC, Playstation 4, XBox One, or Mac running MacOS.
+For information on system requirements for the Visual Effect Graph, see [Requirements and compatibility](System-Requirements.md).
 
 ## Installing Visual Effect Graph
 

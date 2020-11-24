@@ -313,12 +313,11 @@ namespace UnityEditor.VFX
         }
 
         // Only do that when constructing an instance if needed
-        private void Initialize(Flags additionalFlags, VFXExpression[] parents)
+        private void Initialize(VFXExpression[] parents)
         {
             m_Parents = parents;
             SimplifyWithCacheParents();
 
-            m_Flags |= additionalFlags;
             PropagateParentsFlags();
             m_HashCodeCached = false; // as expression is mutated
         }
@@ -353,7 +352,7 @@ namespace UnityEditor.VFX
                 return this;
 
             var reduced = CreateNewInstance();
-            reduced.Initialize(m_Flags, reducedParents);
+            reduced.Initialize(reducedParents);
             return reduced;
         }
 

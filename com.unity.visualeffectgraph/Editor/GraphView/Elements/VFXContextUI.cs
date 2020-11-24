@@ -46,6 +46,8 @@ namespace UnityEditor.VFX.UI
             m_CanHaveBlocks = blocks.Any(t => controller.model.AcceptChild(t.model));
         }
 
+        public bool canHaveBlocks { get => m_CanHaveBlocks; }
+
         public static string ContextEnumToClassName(string name)
         {
             if (name[0] == 'k')

@@ -381,21 +381,7 @@ namespace UnityEngine.Rendering.Universal
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
                 desc.width = (int)((float)desc.width * renderScale);
                 desc.height = (int)((float)desc.height * renderScale);
-            }
-            else
-            {
-                desc = camera.targetTexture.descriptor;
-            }
 
-            if (camera.targetTexture != null)
-            {
-                desc.colorFormat = camera.targetTexture.descriptor.colorFormat;
-                desc.depthBufferBits = camera.targetTexture.descriptor.depthBufferBits;
-                desc.msaaSamples = camera.targetTexture.descriptor.msaaSamples;
-                desc.sRGB = camera.targetTexture.descriptor.sRGB;
-            }
-            else
-            {
                 GraphicsFormat hdrFormat;
                 if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
                     hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
@@ -408,6 +394,10 @@ namespace UnityEngine.Rendering.Universal
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            }
+            else
+            {
+                desc = camera.targetTexture.descriptor;
             }
 
             desc.enableRandomWrite = false;

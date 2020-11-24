@@ -62,6 +62,7 @@ struct VFXSamplerCubeArray
 #ifdef VFX_WORLD_SPACE
 float3 TransformDirectionVFXToWorld(float3 dir)             { return dir; }
 float3 TransformPositionVFXToWorld(float3 pos)              { return pos; }
+float3 TransformNormalVFXToWorld(float3 n)                  { return n; }
 float3 TransformPositionVFXToView(float3 pos)               { return VFXTransformPositionWorldToView(pos); }
 float4 TransformPositionVFXToClip(float3 pos)               { return VFXTransformPositionWorldToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos)       { return VFXTransformPositionWorldToPreviousClip(pos); }
@@ -71,6 +72,7 @@ float3 GetViewVFXPosition()                                 { return VFXGetViewW
 #else
 float3 TransformDirectionVFXToWorld(float3 dir)             { return mul(VFXGetObjectToWorldMatrix(),float4(dir,0.0f)).xyz; }
 float3 TransformPositionVFXToWorld(float3 pos)              { return mul(VFXGetObjectToWorldMatrix(),float4(pos,1.0f)).xyz; }
+float3 TransformNormalVFXToWorld(float3 n)                  { return mul(n, (float3x3)GetWorldToObjectMatrix()); }
 float3 TransformPositionVFXToView(float3 pos)               { return VFXTransformPositionWorldToView(mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz); }
 float4 TransformPositionVFXToClip(float3 pos)               { return VFXTransformPositionObjectToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos)       { return VFXTransformPositionObjectToPreviousClip(pos); }
@@ -454,11 +456,17 @@ float4x4 GetElementToVFXMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 ang
     return GetElementToVFXMatrix(axisX,axisY,axisZ,rot,pivot,size,pos);
 }
 
+// VFXToMatrix for normals (with invert size). TODO Should use inverse transpose but it only works for orthonormal basis atm
+float3x3 GetElementToVFXMatrixNormal(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 size)
+{
+	return (float3x3)GetElementToVFXMatrix(axisX,axisY,axisZ,angles,float3(0,0,0),rcp(size),float3(0,0,0));
+}
+
 float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 angles,float3 pivot,float3 size,float3 pos)
 {
-    float3x3 rotAndScale = float3x3(axisX,axisY,axisZ);
+    float3x3 rotAndScale = float3x3(axisX,axisY,axisZ); // Works only for orthonormal basis
     rotAndScale = mul(transpose(GetEulerMatrix(radians(angles))),rotAndScale);
-    rotAndScale = mul(GetScaleMatrix(1.0f / size),rotAndScale);
+    rotAndScale = mul(GetScaleMatrix(rcp(size)),rotAndScale);
     pos = pivot - mul(rotAndScale,pos);
     return float4x4(
         float4(rotAndScale[0],pos.x),

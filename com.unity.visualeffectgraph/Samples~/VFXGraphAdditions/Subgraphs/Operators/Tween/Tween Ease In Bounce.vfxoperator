@@ -96,7 +96,7 @@ MonoBehaviour:
   m_saved: 1
   m_SubgraphDependencies:
   - {fileID: 5371698745253816930, guid: 9da75de35c7d0fa44b64c83f0b1c0266, type: 3}
-  m_CategoryPath: 
+  m_CategoryPath: Tween
 --- !u!114 &3
 MonoBehaviour:
   m_ObjectHideFlags: 0
