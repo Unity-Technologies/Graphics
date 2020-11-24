@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering
         SerializedObject m_SerializedObject;
         SerializedProperty m_ComponentsProperty;
 
-        Dictionary<Type, Type> m_EditorTypes; // Component type => Editor type
+        static Dictionary<Type, Type> m_EditorTypes; // Component type => Editor type
         List<VolumeComponentEditor> m_Editors;
 
         static Dictionary<Type, string> m_EditorDocumentationURLs;
@@ -101,13 +101,15 @@ namespace UnityEditor.Rendering
             var editorTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponentEditor>()
                 .Where(
                     t => t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
-                    && !t.IsAbstract
+                         && !t.IsAbstract
                 );
 
             // Map them to their corresponding component type
             foreach (var editorType in editorTypes)
             {
-                var attribute = (VolumeComponentEditorAttribute)editorType.GetCustomAttributes(typeof(VolumeComponentEditorAttribute), false)[0];
+                var attribute =
+                    (VolumeComponentEditorAttribute) editorType.GetCustomAttributes(
+                        typeof(VolumeComponentEditorAttribute), false)[0];
                 m_EditorTypes.Add(attribute.componentType, editorType);
             }
 
@@ -141,17 +143,10 @@ namespace UnityEditor.Rendering
         }
 
         // index is only used when we need to re-create a component in a specific spot (e.g. reset)
-        void CreateEditor(VolumeComponent component, SerializedProperty property, int index = -1, bool forceOpen = false)
+        void CreateEditor(VolumeComponent component, SerializedProperty property, int index = -1,
+            bool forceOpen = false)
         {
-            var componentType = component.GetType();
-            Type editorType;
-
-            if (!m_EditorTypes.TryGetValue(componentType, out editorType))
-                editorType = typeof(VolumeComponentEditor);
-
-            var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
-            editor.Init(component, m_BaseEditor);
-            editor.baseProperty = property.Copy();
+            var editor = CreateSingleEditor(component, property, m_BaseEditor, index, forceOpen);
 
             if (forceOpen)
                 editor.baseProperty.isExpanded = true;
@@ -160,6 +155,26 @@ namespace UnityEditor.Rendering
                 m_Editors.Add(editor);
             else
                 m_Editors[index] = editor;
+        }
+
+        // index is only used when we need to re-create a component in a specific spot (e.g. reset)
+        public static VolumeComponentEditor CreateSingleEditor(VolumeComponent component, SerializedProperty property,
+            Editor baseEditor, int index = -1, bool forceOpen = false)
+        {
+            var componentType = component.GetType();
+            Type editorType;
+
+            if (m_EditorTypes == null || !m_EditorTypes.TryGetValue(componentType, out editorType))
+                editorType = typeof(VolumeComponentEditor);
+
+            var editor = (VolumeComponentEditor)Activator.CreateInstance(editorType);
+            editor.Init(component, baseEditor);
+            editor.baseProperty = property.Copy();
+
+            if (forceOpen)
+                editor.baseProperty.isExpanded = true;
+
+            return editor;
         }
 
         void RefreshEditors()

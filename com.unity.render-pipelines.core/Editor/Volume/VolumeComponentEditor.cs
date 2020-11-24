@@ -241,7 +241,7 @@ namespace UnityEditor.Rendering
         {
         }
 
-        internal void OnInternalInspectorGUI()
+        public void OnInternalInspectorGUI()
         {
             serializedObject.Update();
             TopRowFields();

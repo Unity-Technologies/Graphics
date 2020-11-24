@@ -65,8 +65,9 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_VolumeSettings, Styles.Volume);
             EditorGUILayout.Space(10f);
 
-            var editor = CreateEditor(m_VolumeSettings.objectReferenceValue);
-            editor.OnInspectorGUI();
+            var volComp = m_VolumeSettings.objectReferenceValue as VolumeComponent;
+            var editor = VolumeComponentListEditor.CreateSingleEditor(volComp, m_VolumeSettings, this);
+            editor.OnInternalInspectorGUI();
         }
     }
 }
