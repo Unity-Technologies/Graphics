@@ -149,7 +149,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 #if (defined(COARSE_BINNING) || defined(FINE_BINNING))
 
 // Internal. Do not call directly.
-uint TryFindEntityIndex(inout uint i, uint tile, uint zBin, uint category, out uint entityIndex)
+uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category, out uint entityIndex)
 {
     entityIndex = UINT16_MAX;
 
@@ -164,11 +164,15 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint zBin, uint category, out u
 
     if (!isTileEmpty) // Avoid wasted work
     {
-        const uint zBinBufferIndex = ComputeZBinBufferIndex(zBin, category, unity_StereoEyeIndex);
-        const uint zBinRangeData   = _zBinBuffer[zBinBufferIndex]; // {last << 16 | first}
+        const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
+        const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
+        const uint zBinRangeData0   = _zBinBuffer[zBinBufferIndex0]; // {last << 16 | first}
+        const uint zBinRangeData1   = _zBinBuffer[zBinBufferIndex1]; // {last << 16 | first}
 
-        const uint2 tileEntityIndexRange = uint2(tileRangeData & UINT16_MAX, tileRangeData >> 16);
-        const uint2 zBinEntityIndexRange = uint2(zBinRangeData & UINT16_MAX, zBinRangeData >> 16);
+        // Recall that entities are sorted by the z-coordinate.
+        // So we can take the smallest index from the first bin and the largest index from the last bin.
+        const uint2 tileEntityIndexRange = uint2(tileRangeData  & UINT16_MAX, tileRangeData  >> 16);
+        const uint2 zBinEntityIndexRange = uint2(zBinRangeData0 & UINT16_MAX, zBinRangeData1 >> 16);
 
         if (IntervalsOverlap(tileEntityIndexRange, zBinEntityIndexRange)) // Avoid wasted work
         {
@@ -204,12 +208,34 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint zBin, uint category, out u
     return b;
 }
 
+// Internal. Do not call directly.
+uint TryFindEntityIndex(inout uint i, uint tile, uint zBin, uint category, out uint entityIndex)
+{
+    uint2 zBinRange = uint2(zBin, zBin);
+
+    return TryFindEntityIndex(i, tile, zBinRange, category, entityIndex);
+}
+
 bool TryLoadPunctualLightData(inout uint i, uint tile, uint zBin, out LightData data)
 {
     bool success = false;
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, entityIndex))
+    {
+        success = true;
+        data    = _PunctualLightData[entityIndex];
+    }
+
+    return success;
+}
+
+bool TryLoadPunctualLightData(inout uint i, uint tile, uint2 zBinRange, out LightData data)
+{
+    bool success = false;
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT, entityIndex))
     {
         success = true;
         data    = _PunctualLightData[entityIndex];
@@ -232,11 +258,38 @@ bool TryLoadAreaLightData(inout uint i, uint tile, uint zBin, out LightData data
     return success;
 }
 
+bool TryLoadAreaLightData(inout uint i, uint tile, uint2 zBinRange, out LightData data)
+{
+    bool success = false;
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_AREA_LIGHT, entityIndex))
+    {
+        success = true;
+        data    = _AreaLightData[entityIndex];
+    }
+
+    return success;
+}
+
 bool TryLoadReflectionProbeData(inout uint i, uint tile, uint zBin, out EnvLightData data, out uint entityIndex)
 {
     bool success = false;
 
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, entityIndex))
+    {
+        success = true;
+        data    = _ReflectionProbeData[entityIndex];
+    }
+
+    return success;
+}
+
+bool TryLoadReflectionProbeData(inout uint i, uint tile, uint2 zBinRange, out EnvLightData data, out uint entityIndex)
+{
+    bool success = false;
+
+    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE, entityIndex))
     {
         success = true;
         data    = _ReflectionProbeData[entityIndex];
@@ -251,6 +304,20 @@ bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
 
     uint entityIndex;
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_DECAL, entityIndex))
+    {
+        success = true;
+        data    = _DecalData[entityIndex];
+    }
+
+    return success;
+}
+
+bool TryLoadDecalData(uint i, uint tile, uint2 zBinRange, out DecalData data)
+{
+    bool success = false;
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_DECAL, entityIndex))
     {
         success = true;
         data    = _DecalData[entityIndex];
@@ -275,7 +342,35 @@ bool TryLoadPunctualLightData(uint i, uint tile, uint zBin, out LightData data)
     return b;
 }
 
+bool TryLoadPunctualLightData(uint i, uint tile, uint2 zBinRange, out LightData data)
+{
+    bool b = false;
+    uint n = _PunctualLightCount;
+
+    if (i < n)
+    {
+        data = _PunctualLightData[i];
+        b    = true;
+    }
+
+    return b;
+}
+
 bool TryLoadAreaLightData(uint i, uint tile, uint zBin, out LightData data)
+{
+    bool b = false;
+    uint n = _AreaLightCount;
+
+    if (i < n)
+    {
+        data = _AreaLightData[i];
+        b    = true;
+    }
+
+    return b;
+}
+
+bool TryLoadAreaLightData(uint i, uint tile, uint2 zBinRange, out LightData data)
 {
     bool b = false;
     uint n = _AreaLightCount;
@@ -307,7 +402,39 @@ bool TryLoadReflectionProbeData(uint i, uint tile, uint zBin, out EnvLightData d
     return b;
 }
 
+bool TryLoadReflectionProbeData(uint i, uint tile, uint2 zBinRange, out EnvLightData data, out uint entityIndex)
+{
+    entityIndex = UINT16_MAX;
+
+    bool b = false;
+    uint n = _ReflectionProbeCount;
+
+    if (i < n)
+    {
+        entityIndex = i;
+
+        data = _ReflectionProbeData[i];
+        b    = true;
+    }
+
+    return b;
+}
+
 bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
+{
+    bool b = false;
+    uint n = _DecalCount;
+
+    if (i < n)
+    {
+        data = _DecalData[i];
+        b    = true;
+    }
+
+    return b;
+}
+
+bool TryLoadDecalData(uint i, uint tile, uint2 zBinRange, out DecalData data)
 {
     bool b = false;
     uint n = _DecalCount;
