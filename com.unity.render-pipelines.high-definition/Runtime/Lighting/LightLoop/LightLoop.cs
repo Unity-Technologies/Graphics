@@ -3473,40 +3473,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProbeVolumeList = probeVolumeList;
         }
 
-        void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
-            {
-                var parameters = PrepareBuildGPULightListParameters(hdCamera, m_TileAndClusterData, ref m_ShaderVariablesLightListCB, m_TotalLightCount);
-                var resources = PrepareBuildGPULightListResources(
-                    m_TileAndClusterData,
-                    m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
-                    m_SharedRTManager.GetStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
-                    isGBufferNeeded: true
-                );
-
-                bool tileFlagsWritten = false;
-
-                ClearLightLists(parameters, resources, cmd);
-                GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
-                BigTilePrepass(parameters, resources, cmd);
-                BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
-                VoxelLightListGeneration(parameters, resources, cmd);
-
-                BuildDispatchIndirectArguments(parameters, resources, tileFlagsWritten, cmd);
-            }
-        }
-
-        void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd)
-        {
-            cmd.SetRenderTarget(BuiltinRenderTextureType.None);
-
-            BuildGPULightListsCommon(hdCamera, cmd);
-
-            var globalParams = PrepareLightLoopGlobalParameters(hdCamera, m_TileAndClusterData);
-            PushLightLoopGlobalParams(globalParams, cmd);
-        }
-
         HDAdditionalLightData GetHDAdditionalLightData(Light light)
         {
             HDAdditionalLightData add = null;
@@ -3526,14 +3492,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public HDCamera                 hdCamera;
             public TileAndClusterData       tileAndClusterData;
-        }
-
-        LightLoopGlobalParameters PrepareLightLoopGlobalParameters(HDCamera hdCamera, TileAndClusterData tileAndClusterData)
-        {
-            LightLoopGlobalParameters parameters = new LightLoopGlobalParameters();
-            parameters.hdCamera = hdCamera;
-            parameters.tileAndClusterData = tileAndClusterData;
-            return parameters;
         }
 
         unsafe void UpdateShaderVariablesGlobalLightLoop(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
@@ -3613,27 +3571,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void PushShadowGlobalParams(CommandBuffer cmd)
         {
             m_ShadowManager.PushGlobalParameters(cmd);
-        }
-
-        static void PushLightLoopGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushGlobalParameters)))
-            {
-                if (param.hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, param.tileAndClusterData.bigTileLightList);
-
-                // Cluster
-                {
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, param.tileAndClusterData.perVoxelOffset);
-                    if (k_UseDepthBuffer)
-                    {
-                        cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, param.tileAndClusterData.perTileLogBaseTweak);
-                    }
-
-                    // Set up clustered lighting for volumetrics.
-                    cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, param.tileAndClusterData.perVoxelLightLists);
-                }
-            }
         }
 
         void RenderShadowMaps(ScriptableRenderContext renderContext, CommandBuffer cmd, in ShaderVariablesGlobal globalCB, CullingResults cullResults, HDCamera hdCamera)

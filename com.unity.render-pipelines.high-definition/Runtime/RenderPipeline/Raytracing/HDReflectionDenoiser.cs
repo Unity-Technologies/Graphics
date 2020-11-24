@@ -101,21 +101,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return reflDenoiserParams;
         }
 
-        internal ReflectionDenoiserResources PrepareReflectionDenoiserResources(HDCamera hdCamera,
-            RTHandle noisyToOutputSignal, RTHandle historySignal,
-            RTHandle intermediateBuffer0, RTHandle intermediateBuffer1)
-        {
-            ReflectionDenoiserResources reflDenoiserResources = new ReflectionDenoiserResources();
-            reflDenoiserResources.historySignal = historySignal;
-            reflDenoiserResources.noisyToOutputSignal = noisyToOutputSignal;
-            reflDenoiserResources.intermediateBuffer0 = intermediateBuffer0;
-            reflDenoiserResources.intermediateBuffer1 = intermediateBuffer1;
-            reflDenoiserResources.depthBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            reflDenoiserResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-            reflDenoiserResources.motionVectorBuffer = m_SharedRTManager.GetMotionVectorsBuffer();
-            return reflDenoiserResources;
-        }
-
         public static void DenoiseBuffer(CommandBuffer cmd, ReflectionDenoiserParameters reflDenoiserParameters, ReflectionDenoiserResources reflDenoiserResources)
         {
             // Evaluate the dispatch parameters

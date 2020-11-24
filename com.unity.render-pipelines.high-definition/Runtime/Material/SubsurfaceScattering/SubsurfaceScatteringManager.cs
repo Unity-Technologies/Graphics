@@ -271,8 +271,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 return;
 
-            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd, resolveOnly: false);
-
             var settings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
             // If ray tracing is enabled for the camera, if the volume override is active and if the RAS is built, we want to do ray traced SSS

@@ -312,17 +312,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        void RenderAccumulation(HDCamera hdCamera, RTHandle inputTexture, RTHandle outputTexture, bool needExposure, CommandBuffer cmd)
-        {
-            // Grab the history buffer
-            RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1);
-
-            bool inputFromRadianceTexture = !inputTexture.Equals(outputTexture);
-            var parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure, inputFromRadianceTexture);
-            RenderAccumulation(parameters, inputTexture, outputTexture, history, cmd);
-        }
-
         static void RenderAccumulation(in RenderAccumulationParameters parameters, RTHandle inputTexture, RTHandle outputTexture, RTHandle historyTexture, CommandBuffer cmd)
         {
             ComputeShader accumulationShader = parameters.accumulationCS;
