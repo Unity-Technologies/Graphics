@@ -26,6 +26,7 @@ namespace UnityEditor
         float m_CamLightForwardDot;
 
         bool m_EnableClickCatcher = false;
+        bool m_FoldoutPreset = true;
 
         VisualElement m_GameViewRootElement;
         VisualElement m_ClickCatcher;
@@ -82,8 +83,7 @@ namespace UnityEditor
             {
                 EditorGUILayout.Space();
 
-                var widgetHeight = EditorGUIUtility.singleLineHeight * 7f;
-
+                float widgetHeight = EditorGUIUtility.singleLineHeight * 5f;
                 float oldValue;
 
                 using (new EditorGUILayout.HorizontalScope())
@@ -91,22 +91,51 @@ namespace UnityEditor
                     {
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Yaw;
-                        m_Yaw = AngleField(localRect, "Yaw", m_Yaw, 90);
+                        m_Yaw = AngleField(localRect, "Yaw", m_Yaw, 90, new Color(0, 0, 1, 0.2f), true);
                     }
                     yawChanged = oldValue != m_Yaw;
                     {
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Pitch;
-                        m_Pitch = AngleField(localRect, "Pitch", m_Pitch, 180);
+                        m_Pitch = AngleField(localRect, "Pitch", m_Pitch, 180, new Color(0, 1, 0, 0.2f), true);
                     }
                     pitchChanged = oldValue != m_Pitch;
                     {
+                        Light light = firstManipulator.GetComponent<Light>();
+
+                        // TODO: bool enabledKnob = hasCookie | hasIES | isAreaLight | isDiscLight;
+                        bool enabledKnob = true;
+
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Roll;
-                        m_Roll = AngleField(localRect, "Roll", m_Roll, -90);
+                        m_Roll = AngleField(localRect, "Roll", m_Roll, -90, Color.grey, enabledKnob);
                     }
                     rollChanged = oldValue != m_Roll;
                 }
+                EditorGUILayout.Space();
+                Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, new GUIContent("")));
+                float[] angles = new float[3] { m_Yaw, m_Pitch, m_Roll };
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.MultiFloatField(angleRect, styles.angleSubContent, angles);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (angles[0] != m_Yaw)
+                    {
+                        m_Yaw = angles[0];
+                        yawChanged = true;
+                    }
+                    if (angles[1] != m_Pitch)
+                    {
+                        m_Yaw = angles[1];
+                        pitchChanged = true;
+                    }
+                    if (angles[2] != m_Roll)
+                    {
+                        m_Yaw = angles[2];
+                        rollChanged = true;
+                    }
+                }
+                EditorGUILayout.Space();
 
                 oldValue = firstManipulator.distance;
                 m_Distance = EditorGUILayout.FloatField(styles.distanceProperty, firstManipulator.distance);
@@ -124,143 +153,144 @@ namespace UnityEditor
                 }
                 frameChanged = yawChanged || pitchChanged || rollChanged || distanceChanged;
 
-                EditorGUILayout.LabelField("Presets");
-                Color cachedColor = GUI.backgroundColor;
-                GUI.backgroundColor = new Color(0.440513f, 0.440513f, 0.440513f, 1.0f);
-                var inspectorWidth = EditorGUIUtility.currentViewWidth - Styles.inspectorWidthPadding;
-                var presetButtonWidth = GUILayout.Width(inspectorWidth / Styles.presetButtonCount);
-                var presetButtonHeight = GUILayout.Height(inspectorWidth / Styles.presetButtonCount);
-
-                using (new EditorGUILayout.HorizontalScope())
+                if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Presets"))
                 {
-                    bool rectFound = false;
-                    Rect rect = new Rect();
-                    const float eps = 1e-4f;
-                    if (GUILayout.Button(styles.presetTextureRimLeft, presetButtonWidth, presetButtonHeight))
+                    Color cachedColor = GUI.backgroundColor;
+                    GUI.backgroundColor = new Color(0.440513f, 0.440513f, 0.440513f, 1.0f);
+                    var inspectorWidth = EditorGUIUtility.currentViewWidth - Styles.inspectorWidthPadding;
+                    var presetButtonWidth = GUILayout.Width(inspectorWidth / Styles.presetButtonCount);
+                    var presetButtonHeight = GUILayout.Height(inspectorWidth / Styles.presetButtonCount);
+                    using (new EditorGUILayout.HorizontalScope())
                     {
-                        m_Yaw = 135;
-                        m_Pitch = 0;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
+                        bool rectFound = false;
+                        Rect rect = new Rect();
+                        const float eps = 1e-4f;
+                        if (GUILayout.Button(styles.presetTextureRimLeft, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = 135;
+                            m_Pitch = 0;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw - 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (GUILayout.Button(styles.presetTextureKickLeft, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = 100;
+                            m_Pitch = 10;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw - 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (GUILayout.Button(styles.presetTextureBounceLeft, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = 30;
+                            m_Pitch = -30;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw - 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (GUILayout.Button(styles.presetTextureFillLeft, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = 35;
+                            m_Pitch = 35;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw - 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (GUILayout.Button(styles.presetTextureHair, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = 0;
+                            m_Pitch = 110;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw - 0.0f) < eps && Mathf.Abs(m_Pitch - 110.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (GUILayout.Button(styles.presetTextureFillRight, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = -35;
+                            m_Pitch = 35;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw + 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (GUILayout.Button(styles.presetTextureBounceRight, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = -30;
+                            m_Pitch = -30;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw + 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (GUILayout.Button(styles.presetTextureKickRight, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = -100;
+                            m_Pitch = 10;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw + 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (GUILayout.Button(styles.presetTextureRimRight, presetButtonWidth, presetButtonHeight))
+                        {
+                            m_Yaw = -135;
+                            m_Pitch = 0;
+                            yawChanged = true;
+                            pitchChanged = true;
+                            frameChanged = true;
+                        }
+                        if (Mathf.Abs(m_Yaw + 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
+                        {
+                            rect = GUILayoutUtility.GetLastRect();
+                            rectFound = true;
+                        }
+                        if (rectFound)
+                        {
+                            GUISkin cur = GetCurrentSkin();
+                            Handles.DrawSolidRectangleWithOutline(rect, new Color(0, 0, 0, 0), new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f));
+                        }
+                        GUILayout.FlexibleSpace();
                     }
-                    if (Mathf.Abs(m_Yaw - 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (GUILayout.Button(styles.presetTextureKickLeft, presetButtonWidth, presetButtonHeight))
-                    {
-                        m_Yaw = 100;
-                        m_Pitch = 10;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
-                    }
-                    if (Mathf.Abs(m_Yaw - 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (GUILayout.Button(styles.presetTextureBounceLeft, presetButtonWidth, presetButtonHeight))
-                    {
-                        m_Yaw = 30;
-                        m_Pitch = -30;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
-                    }
-                    if (Mathf.Abs(m_Yaw - 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (GUILayout.Button(styles.presetTextureFillLeft, presetButtonWidth, presetButtonHeight))
-                    {
-                        m_Yaw = 35;
-                        m_Pitch = 35;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
-                    }
-                    if (Mathf.Abs(m_Yaw - 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (GUILayout.Button(styles.presetTextureHair, presetButtonWidth, presetButtonHeight))
-                    {
-                        m_Yaw = 0;
-                        m_Pitch = 110;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
-                    }
-                    if (Mathf.Abs(m_Yaw - 0.0f) < eps && Mathf.Abs(m_Pitch - 110.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (GUILayout.Button(styles.presetTextureFillRight, presetButtonWidth, presetButtonHeight))
-                    {
-                        m_Yaw = -35;
-                        m_Pitch = 35;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
-                    }
-                    if (Mathf.Abs(m_Yaw + 35.0f) < eps && Mathf.Abs(m_Pitch - 35.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (GUILayout.Button(styles.presetTextureBounceRight, presetButtonWidth, presetButtonHeight))
-                    {
-                        m_Yaw = -30;
-                        m_Pitch = -30;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
-                    }
-                    if (Mathf.Abs(m_Yaw + 30.0f) < eps && Mathf.Abs(m_Pitch + 30.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (GUILayout.Button(styles.presetTextureKickRight, presetButtonWidth, presetButtonHeight))
-                    {
-                        m_Yaw = -100;
-                        m_Pitch = 10;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
-                    }
-                    if (Mathf.Abs(m_Yaw + 100.0f) < eps && Mathf.Abs(m_Pitch - 10.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (GUILayout.Button(styles.presetTextureRimRight, presetButtonWidth, presetButtonHeight))
-                    {
-                        m_Yaw = -135;
-                        m_Pitch = 0;
-                        yawChanged = true;
-                        pitchChanged = true;
-                        frameChanged = true;
-                    }
-                    if (Mathf.Abs(m_Yaw + 135.0f) < eps && Mathf.Abs(m_Pitch - 0.0f) < eps)
-                    {
-                        rect = GUILayoutUtility.GetLastRect();
-                        rectFound = true;
-                    }
-                    if (rectFound)
-                    {
-                        GUISkin cur = GetCurrentSkin();
-                        Handles.DrawSolidRectangleWithOutline(rect, new Color(0, 0, 0, 0), new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f));
-                    }
-                    GUILayout.FlexibleSpace();
+                    GUI.backgroundColor = cachedColor;
                 }
-                GUI.backgroundColor = cachedColor;
 
                 if (frameChanged)
                 {
@@ -425,11 +455,9 @@ namespace UnityEditor
             return rect;
         }
 
-        float AngleField(Rect r, string label, float angle, float offset)
+        float AngleField(Rect knobRect, string label, float angle, float offset, Color sectionColor, bool enabled)
         {
             var id = GUIUtility.GetControlID("AngleSlider".GetHashCode(), FocusType.Passive);
-            var knobRect = SliceRectVertical(r, 0, 0.66f);
-            var labelRect = SliceRectVertical(r, 0.75f, 1f);
             var state = GetAngleFieldState(id);
 
             if (Event.current.type == EventType.Repaint)
@@ -447,7 +475,7 @@ namespace UnityEditor
             var didReset = GUIUtility.hotControl == 0
                 && Event.current.type == EventType.MouseDown
                 && Event.current.button == 1
-                && r.Contains(Event.current.mousePosition);
+                && knobRect.Contains(Event.current.mousePosition);
 
             if (didReset)
             {
@@ -456,7 +484,7 @@ namespace UnityEditor
                 Event.current.Use();
                 GUI.changed = true;
             }
-            else
+            else if (enabled)
             {
                 var srcPos = new Vector2(
                     Mathf.Cos((angle + offset) * Mathf.Deg2Rad),
@@ -468,37 +496,46 @@ namespace UnityEditor
 
                 newAngle = LightAnchor.NormalizeAngleDegree(Mathf.Atan2(dstPos.y, dstPos.x) * Mathf.Rad2Deg - offset);
             }
+            else
+            {
+                newAngle = 0;
+            }
 
             if (Event.current.type == EventType.Repaint)
             {
-                DrawAngleWidget(state.position, state.radius, newAngle, offset);
+                DrawAngleWidget(state.position, state.radius, newAngle, offset, sectionColor, enabled);
             }
-            //labelRect.width *= 0.5f * 0.8f; // 0.5f half for text, 0.8f security padding
-            //labelRect.height *= 0.5f;
-            //EditorGUI.DrawRect(labelRect, new Color(0, 0, 0, 0));
-            //labelRect.y += labelRect.height * 0.5f;
-            //EditorGUI.LabelField(labelRect, label);
-            //labelRect.x += labelRect.width;
-            //newAngle = EditorGUI.FloatField(labelRect, newAngle); // TODO: FloatField with label with custom size of label & float
-
-            //newAngle = Mathf.Round(newAngle*100.0f)/100.0f;
 
             return newAngle;
         }
 
-        static void DrawAngleWidget(Vector2 center, float radius, float angleDegrees, float offset)
+        static void DrawAngleWidget(Vector2 center, float radius, float angleDegrees, float offset, Color sectionColor, bool enabled)
         {
-            var handlePosition = center + new Vector2(
-                Mathf.Cos((angleDegrees + offset) * Mathf.Deg2Rad),
-                Mathf.Sin((angleDegrees + offset) * Mathf.Deg2Rad)) * radius;
+            Vector2 originPosition = center + new Vector2(
+                    Mathf.Cos(offset * Mathf.Deg2Rad),
+                    Mathf.Sin(offset * Mathf.Deg2Rad)) * radius;
 
-            Handles.color = Color.grey * 0.66f;
+            Vector2 toOrigin = originPosition - center;
+
+            Vector2 handlePosition = center + new Vector2(
+                    Mathf.Cos((angleDegrees + offset) * Mathf.Deg2Rad),
+                    Mathf.Sin((angleDegrees + offset) * Mathf.Deg2Rad)) * radius;
+
+            float coef = enabled ? 1.0f : 0.5f;
+
+            Color backupColor = Handles.color;
+            Handles.color = Color.grey * 0.66f * coef;
             Handles.DrawSolidDisc(center, Vector3.forward, radius);
-            Handles.color = Color.grey;
+            Handles.color = Color.black * coef;
+            Handles.DrawWireDisc(center, Vector3.forward, radius);
+            Handles.color = sectionColor;// Color.grey;
             Handles.DrawSolidArc(center, Vector3.forward, Quaternion.AngleAxis(offset, Vector3.forward) * Vector3.right, angleDegrees, radius);
-            Handles.color = Color.white;
+            Handles.color = Color.black * coef;
+            Handles.DrawLine(center + toOrigin * 0.75f, center + toOrigin * 0.9f);
+            Handles.color = Color.white * coef;
             Handles.DrawLine(center, handlePosition);
             Handles.DrawSolidDisc(handlePosition, Vector3.forward, 5f);
+            Handles.color = backupColor;
         }
 
         static Rect SliceRectVertical(Rect r, float min, float max)
@@ -591,6 +628,8 @@ namespace UnityEditor
         public GUIContent presetTextureFillRight;
         public GUIContent distanceProperty;
         public GUIContent spaceProperty;
+        //static readonly GUIContent k_SizeContent = EditorGUIUtility.TrTextContent("Size", "Sets the size of the projector.");
+        public GUIContent[] angleSubContent;
 
         public Styles()
         {
@@ -609,6 +648,13 @@ namespace UnityEditor
 
             distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
             spaceProperty = new GUIContent("Space", "Should the light's Up vector be in World space (enabled) or Camera space (disabled)");
+
+            angleSubContent = new[]
+            {
+                EditorGUIUtility.TrTextContent("Yaw"),
+                EditorGUIUtility.TrTextContent("Pitch"),
+                EditorGUIUtility.TrTextContent("Roll")
+            };
         }
     }
 }

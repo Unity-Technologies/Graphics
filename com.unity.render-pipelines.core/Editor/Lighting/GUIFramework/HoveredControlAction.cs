@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor
+namespace UnityEditor.GUIFramework
 {
     /// <summary>
     /// Abstract class for HoveredControlAction

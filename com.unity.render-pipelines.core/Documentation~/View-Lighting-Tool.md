@@ -19,6 +19,8 @@ To get started with the View Lighting tool:
 
 The Light Anchor controls the Light's orientation and the distance it is from the target position. **Yaw** and **Pitch** control the orientation and **Distance** controls the distance between the Light and the target. If the Light has a cookie or uses [IES](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/IES-Profile.html), **Roll** controls the orientation of the cookie or IES profile.
 
-![](Images/view-lighting-tool-light-anchor.png)
+A right click on angle-knob reset the angles to 0.
+
+![](Images/view-lighting-tool-light-anchor0.png)
 
 The Light Anchor component also includes a list of **Presets** that you can use to quickly set the Light's orientation relative to the Game view.

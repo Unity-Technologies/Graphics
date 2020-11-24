@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEditor;
+using UnityEditor.GUIFramework;
 
 namespace UnityEditor
 {
