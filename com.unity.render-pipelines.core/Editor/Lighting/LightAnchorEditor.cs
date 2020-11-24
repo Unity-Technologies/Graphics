@@ -495,6 +495,7 @@ namespace UnityEditor
                 dstPos.Normalize();
 
                 newAngle = LightAnchor.NormalizeAngleDegree(Mathf.Atan2(dstPos.y, dstPos.x) * Mathf.Rad2Deg - offset);
+                newAngle = Mathf.Round(newAngle * 100.0f) / 100.0f;
             }
             else
             {
