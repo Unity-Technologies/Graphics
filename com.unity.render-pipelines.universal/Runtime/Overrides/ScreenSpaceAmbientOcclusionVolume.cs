@@ -8,8 +8,8 @@ namespace UnityEngine.Rendering.Universal
     {
         // Public properties
         public BoolParameter Downsample = new BoolParameter(false, true);
-        public DepthSourceSetting Source = new DepthSourceSetting(ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals, true);
-        public NormalQualitySetting NormalSamples = new NormalQualitySetting(ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium, true);
+        public DepthSourceSetting Source = new DepthSourceSetting(ScreenSpaceAmbientOcclusion.DepthSource.DepthNormals, true);
+        public NormalQualitySetting NormalSamples = new NormalQualitySetting(ScreenSpaceAmbientOcclusion.NormalQuality.Medium, true);
         public ClampedFloatParameter Intensity = new ClampedFloatParameter(3.0f, 0.0f, 10.0f, true);
         public ClampedFloatParameter DirectLightingStrength = new ClampedFloatParameter(0.5f, 0.0f, 1.0f, true);
         public FloatParameter Radius = new FloatParameter(0.035f, true);
@@ -17,18 +17,18 @@ namespace UnityEngine.Rendering.Universal
 
         // Classes
         [Serializable]
-        public sealed class NormalQualitySetting : VolumeParameter<ScreenSpaceAmbientOcclusionSettings.NormalQuality>
+        public sealed class NormalQualitySetting : VolumeParameter<ScreenSpaceAmbientOcclusion.NormalQuality>
         {
-            public NormalQualitySetting(ScreenSpaceAmbientOcclusionSettings.NormalQuality value, bool overrideState = false) : base(value, overrideState)
+            public NormalQualitySetting(ScreenSpaceAmbientOcclusion.NormalQuality value, bool overrideState = false) : base(value, overrideState)
             {
             }
         }
 
         // This will be used once we've exposed render feature requirements.
         [Serializable]
-        public sealed class DepthSourceSetting : VolumeParameter<ScreenSpaceAmbientOcclusionSettings.DepthSource>
+        public sealed class DepthSourceSetting : VolumeParameter<ScreenSpaceAmbientOcclusion.DepthSource>
         {
-            public DepthSourceSetting(ScreenSpaceAmbientOcclusionSettings.DepthSource value, bool overrideState = false) : base(value, overrideState)
+            public DepthSourceSetting(ScreenSpaceAmbientOcclusion.DepthSource value, bool overrideState = false) : base(value, overrideState)
             {
             }
         }

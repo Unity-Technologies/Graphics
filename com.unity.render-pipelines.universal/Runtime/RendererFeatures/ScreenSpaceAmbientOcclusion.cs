@@ -2,17 +2,17 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    [Serializable]
-    internal class ScreenSpaceAmbientOcclusionSettings
+    [DisallowMultipleRendererFeature]
+    internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
-        // Parameters
-        [SerializeField] internal bool Downsample = false;
-        [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
-        [SerializeField] internal NormalQuality NormalSamples = NormalQuality.Medium;
-        [SerializeField] internal float Intensity = 3.0f;
-        [SerializeField] internal float DirectLightingStrength = 0.25f;
-        [SerializeField] internal float Radius = 0.035f;
-        [SerializeField] internal int SampleCount = 6;
+        // Serialized Fields
+        [SerializeField, HideInInspector] private Shader m_Shader = null;
+#pragma warning disable 414
+        [SerializeField] public ScreenSpaceAmbientOcclusionVolume m_VolumeSettings;
+#pragma warning restore 414
+        // Private Fields
+        private Material m_Material;
+        private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
         // Enums
         internal enum DepthSource
@@ -28,20 +28,6 @@ namespace UnityEngine.Rendering.Universal
             Medium,
             High
         }
-    }
-
-    [DisallowMultipleRendererFeature]
-    internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
-    {
-        // Serialized Fields
-        [SerializeField, HideInInspector] private Shader m_Shader = null;
-        [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
-#pragma warning disable 414
-        [SerializeField] private ScreenSpaceAmbientOcclusionVolume m_VolumeSettings = null;
-#pragma warning restore 414
-        // Private Fields
-        private Material m_Material;
-        private ScreenSpaceAmbientOcclusionPass m_SSAOPass = null;
 
         // Constants
         private const string k_ShaderName = "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion";
@@ -78,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(m_Settings);
+            bool shouldAdd = m_SSAOPass.Setup(m_VolumeSettings);
             if (shouldAdd)
             {
                 renderer.EnqueuePass(m_SSAOPass);
@@ -120,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
             internal Material material;
 
             // Private Variables
-            private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
+            private ScreenSpaceAmbientOcclusionVolume m_CurrentSettings;
             private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.SSAO);
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
@@ -148,62 +134,62 @@ namespace UnityEngine.Rendering.Universal
 
             internal ScreenSpaceAmbientOcclusionPass()
             {
-                m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
+
             }
 
-            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings)
+            internal bool Setup(ScreenSpaceAmbientOcclusionVolume featureSettings)
             {
                 m_CurrentSettings = featureSettings;
-                switch (m_CurrentSettings.Source)
+                switch (m_CurrentSettings.Source.value)
                 {
-                    case ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth:
+                    case DepthSource.Depth:
                         ConfigureInput(ScriptableRenderPassInput.Depth);
                         break;
-                    case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
+                    case DepthSource.DepthNormals:
                         ConfigureInput(ScriptableRenderPassInput.Normal);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
                 return material != null
-                    &&  m_CurrentSettings.Intensity > 0.0f
-                    &&  m_CurrentSettings.Radius > 0.0f
-                    &&  m_CurrentSettings.SampleCount > 0;
+                    &&  m_CurrentSettings.Intensity.value > 0.0f
+                    &&  m_CurrentSettings.Radius.value > 0.0f
+                    &&  m_CurrentSettings.SampleCount.value > 0;
             }
 
             /// <inheritdoc/>
             public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
             {
                 RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-                int downsampleDivider = m_CurrentSettings.Downsample ? 2 : 1;
+                int downsampleDivider = m_CurrentSettings.Downsample.value ? 2 : 1;
 
                 // Update SSAO parameters in the material
                 Vector4 ssaoParams = new Vector4(
-                    m_CurrentSettings.Intensity,   // Intensity
-                    m_CurrentSettings.Radius,      // Radius
+                    m_CurrentSettings.Intensity.value,   // Intensity
+                    m_CurrentSettings.Radius.value,      // Radius
                     1.0f / downsampleDivider,      // Downsampling
-                    m_CurrentSettings.SampleCount  // Sample count
+                    m_CurrentSettings.SampleCount.value  // Sample count
                 );
                 material.SetVector(s_SSAOParamsID, ssaoParams);
 
                 // Update keywords
                 CoreUtils.SetKeyword(material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
 
-                if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
+                if (m_CurrentSettings.Source == DepthSource.Depth)
                 {
-                    switch (m_CurrentSettings.NormalSamples)
+                    switch (m_CurrentSettings.NormalSamples.value)
                     {
-                        case ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low:
+                        case NormalQuality.Low:
                             CoreUtils.SetKeyword(material, k_NormalReconstructionLowKeyword, true);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionMediumKeyword, false);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionHighKeyword, false);
                             break;
-                        case ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium:
+                        case NormalQuality.Medium:
                             CoreUtils.SetKeyword(material, k_NormalReconstructionLowKeyword, false);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionMediumKeyword, true);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionHighKeyword, false);
                             break;
-                        case ScreenSpaceAmbientOcclusionSettings.NormalQuality.High:
+                        case NormalQuality.High:
                             CoreUtils.SetKeyword(material, k_NormalReconstructionLowKeyword, false);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionMediumKeyword, false);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionHighKeyword, true);
@@ -213,9 +199,9 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                switch (m_CurrentSettings.Source)
+                switch (m_CurrentSettings.Source.value)
                 {
-                    case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
+                    case DepthSource.DepthNormals:
                         CoreUtils.SetKeyword(material, k_SourceDepthKeyword, false);
                         CoreUtils.SetKeyword(material, k_SourceDepthNormalsKeyword, true);
                         CoreUtils.SetKeyword(material, k_SourceGBufferKeyword, false);
@@ -271,7 +257,7 @@ namespace UnityEngine.Rendering.Universal
 
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTexture2Target);
-                    cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+                    cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength.value));
                 }
 
                 context.ExecuteCommandBuffer(cmd);
