@@ -121,8 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise blueNoise = GetBlueNoiseManager();
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
             parameters.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
-            var info = m_SharedRTManager.GetDepthBufferMipChainInfo();
-            parameters.offsetBuffer = info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+            parameters.offsetBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             return parameters;
         }
@@ -224,8 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.ssGICS = m_Asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
             parameters.convertKernel = halfResolution ? m_ConvertYCoCgToRGBHalfKernel : m_ConvertYCoCgToRGBKernel;
 
-            var info = m_SharedRTManager.GetDepthBufferMipChainInfo();
-            parameters.offsetBuffer = info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
+            parameters.offsetBuffer = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
             return parameters;
         }

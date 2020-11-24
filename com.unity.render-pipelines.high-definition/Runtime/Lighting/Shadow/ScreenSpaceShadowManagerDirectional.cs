@@ -174,41 +174,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return historyValidity;
         }
 
-        void DenoiseDirectionalScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera, RTHandle velocityBuffer, RTHandle distanceBuffer, RTHandle inoutBuffer)
-        {
-            RTHandle intermediateBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
-            RTHandle intermediateDistanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
-            // Is the history still valid?
-            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
-            float historyValidity = EvaluateHistoryValidityDirectionalShadow(hdCamera, dirShadowIndex, m_CurrentSunLightAdditionalLightData);
-
-            // Grab the history buffers for shadows
-            RTHandle shadowHistoryArray = RequestShadowHistoryBuffer(hdCamera);
-            RTHandle shadowHistoryValidityArray = RequestShadowHistoryValidityBuffer(hdCamera);
-            RTHandle shadowHistoryDistanceArray = RequestShadowHistoryDistanceBuffer(hdCamera);
-
-            // Grab the slot of the directional light (given that it may be a color shadow, we need to use the mask to get the actual slot index)
-            GetShadowChannelMask(dirShadowIndex, m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
-            GetShadowChannelMask(dirShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask1);
-
-            // Apply the temporal denoiser
-            HDTemporalFilter temporalFilter = GetTemporalFilter();
-            temporalFilter.DenoiseBuffer(cmd, hdCamera, inoutBuffer, shadowHistoryArray,
-                shadowHistoryValidityArray,
-                velocityBuffer,
-                intermediateBuffer,
-                dirShadowIndex / 4, m_ShadowChannelMask0,
-                distanceBuffer, shadowHistoryDistanceArray, intermediateDistanceBuffer, m_ShadowChannelMask1,
-                true, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow, historyValidity: historyValidity);
-
-            // Apply the spatial denoiser
-            HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
-            shadowDenoiser.DenoiseBufferDirectional(cmd, hdCamera, intermediateBuffer, intermediateDistanceBuffer, inoutBuffer, m_CurrentSunLightAdditionalLightData.filterSizeTraced,  m_CurrentSunLightAdditionalLightData.angularDiameter * 0.5f, singleChannel: !m_CurrentSunLightAdditionalLightData.colorShadow);
-
-            // Now that we have overriden this history, mark is as used by this light
-            hdCamera.PropagateShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex, GPULightType.Directional);
-        }
-
         struct SSShadowDirectionalParameters
         {
             public int depthSlice;

@@ -1504,11 +1504,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var customPassTargets = new CustomPass.RenderTargets
                 {
-                    useRenderGraph = true,
-
-                    // Set to null to make sure we don't use them by mistake.
-                    cameraColorMSAABuffer = null,
-                    cameraColorBuffer = null,
                     // TODO RENDERGRAPH: we can't replace the Lazy<RTHandle> buffers with RenderGraph resource because they are part of the current public API.
                     // To replace them correctly we need users to actually write render graph passes and explicit whether or not they want to use those buffers.
                     // We'll do it when we switch fully to render graph for custom passes.

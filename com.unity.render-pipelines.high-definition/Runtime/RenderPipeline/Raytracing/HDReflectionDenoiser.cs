@@ -46,8 +46,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         ComputeShader m_ReflectionDenoiserCS;
         Texture2D m_ReflectionFilterMapping;
-        SharedRTManager m_SharedRTManager;
-        HDRenderPipeline m_RenderPipeline;
         int s_TemporalAccumulationKernel;
         int s_CopyHistoryKernel;
         int s_BilateralFilterHKernel;
@@ -57,12 +55,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
         {
             m_ReflectionDenoiserCS = rpRTResources.reflectionDenoiserCS;
             m_ReflectionFilterMapping = rpRTResources.reflectionFilterMapping;
-            m_SharedRTManager = sharedRTManager;
-            m_RenderPipeline = renderPipeline;
 
             // Fetch all the kernels we shall be using
             s_TemporalAccumulationKernel = m_ReflectionDenoiserCS.FindKernel("TemporalAccumulation");

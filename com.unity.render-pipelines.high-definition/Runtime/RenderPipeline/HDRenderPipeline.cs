@@ -106,14 +106,10 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly RenderPipelineMaterial m_DeferredMaterial;
         readonly List<RenderPipelineMaterial> m_MaterialList = new List<RenderPipelineMaterial>();
 
-        readonly GBufferManager m_GbufferManager;
         readonly DBufferManager m_DbufferManager;
 #if ENABLE_VIRTUALTEXTURES
         readonly VTBufferManager m_VtBufferManager;
 #endif
-        readonly SharedRTManager m_SharedRTManager = new SharedRTManager();
-        internal SharedRTManager sharedRTManager { get { return m_SharedRTManager; } }
-
         readonly PostProcessSystem m_PostProcessSystem;
         readonly XRSystem m_XRSystem;
 
@@ -355,6 +351,11 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_ColorResolveMaterial = null;
         Material m_MotionVectorResolve = null;
 
+        internal Material GetMSAAColorResolveMaterial()
+        {
+            return m_ColorResolveMaterial;
+        }
+
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
         /// <summary>
@@ -476,14 +477,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // whereas it work. Don't know what is happening, DebugDisplay use the same code and name is correct there.
             // Debug.Assert(m_DeferredMaterial != null);
 
-            m_GbufferManager = new GBufferManager(asset, m_DeferredMaterial);
             m_DbufferManager = new DBufferManager();
 #if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager = new VTBufferManager(asset);
             m_VTDebugBlit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewVirtualTexturingBlit);
 #endif
 
-            m_SharedRTManager.Build(asset);
             m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
             m_AmbientOcclusionSystem = new AmbientOcclusionSystem(asset, defaultResources);
 
@@ -674,30 +673,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-#if UNITY_2020_2_OR_NEWER
-        internal void SwitchRenderTargetsToFastMem(CommandBuffer cmd, HDCamera camera)
-        {
-            // Color and normal buffer will always be in fast memory
-            m_CameraColorBuffer.SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
-            m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
-            // Following might need to change depending on context... TODO: Do a deep investigation of projects we have to check what is the most beneficial.
-            RenderPipelineSettings settings = m_Asset.currentPlatformRenderPipelineSettings;
-
-            if (settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
-            {
-                // Switch gbuffers to fast memory when we are in deferred
-                var buffers = m_GbufferManager.GetBuffers();
-                foreach (var buffer in buffers)
-                {
-                    buffer.SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
-                }
-            }
-
-            // Trying to fit the depth pyramid
-            m_SharedRTManager.GetDepthTexture().SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, false);
-        }
-
-#endif
         /// <summary>
         /// Resets the reference size of the internal RTHandle System.
         /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
@@ -714,14 +689,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderPipelineSettings settings = m_Asset.currentPlatformRenderPipelineSettings;
 
-            if (settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
-                m_GbufferManager.CreateBuffers();
-
             if (settings.supportDecals)
                 m_DbufferManager.CreateBuffers();
-
-            InitSSSBuffers();
-            m_SharedRTManager.InitSharedBuffers(m_GbufferManager, m_Asset.currentPlatformRenderPipelineSettings, defaultResources);
 
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "CameraColor");
             m_OpaqueAtmosphericScatteringBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetColorBufferFormat(), enableRandomWrite: true, useMipMap: false, useDynamicScale: true, name: "OpaqueAtmosphericScattering");
@@ -753,7 +722,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_RayTracingSupported)
             {
-                m_RaytracingGBufferManager.CreateBuffers();
                 m_RayCountManager.InitializeNonRenderGraphResources();
 
                 m_RayTracingLightCluster.InitializeNonRenderGraphResources();
@@ -783,11 +751,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DestroyRenderTextures()
         {
-            m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
-
-            DestroySSSBuffers();
-            m_SharedRTManager.Cleanup();
 
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
@@ -817,7 +781,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_RayTracingSupported)
             {
-                m_RaytracingGBufferManager.DestroyBuffers();
                 m_RayCountManager.CleanupNonRenderGraphResources();
 
                 m_RayTracingLightCluster.CleanupNonRenderGraphResources();
@@ -975,8 +938,6 @@ namespace UnityEngine.Rendering.HighDefinition
             DestroyRenderTextures();
             m_ShadowManager.CleanupNonRenderGraphResources();
             LightLoopCleanupNonRenderGraphResources();
-            m_SharedRTManager.DisposeFullScreenDebugBuffer();
-            m_SharedRTManager.DisposeCoarseStencilBuffer();
         }
 
         void InitializeDebugMaterials()
@@ -1113,9 +1074,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CullingGroupManager.instance.Cleanup();
 
-            m_SharedRTManager.DisposeFullScreenDebugBuffer();
-            m_SharedRTManager.DisposeCoarseStencilBuffer();
-
             CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
 
             CustomPassVolume.Cleanup();
@@ -1193,16 +1151,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_MaxCameraWidth > 0 && m_MaxCameraHeight > 0)
                 {
                     LightLoopReleaseResolutionDependentBuffers();
-                    m_SharedRTManager.DisposeFullScreenDebugBuffer();
-                    m_SharedRTManager.DisposeCoarseStencilBuffer();
                 }
 
                 LightLoopAllocResolutionDependentBuffers(hdCamera, m_MaxCameraWidth, m_MaxCameraHeight);
-                if (!m_EnableRenderGraph)
-                {
-                    m_SharedRTManager.AllocateFullScreenDebugBuffer(m_MaxCameraWidth, m_MaxCameraHeight, m_MaxViewCount);
-                    m_SharedRTManager.AllocateCoarseStencilBuffer(m_MaxCameraWidth, m_MaxCameraHeight, m_MaxViewCount);
-                }
             }
         }
 
@@ -1494,21 +1445,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             var dynResHandler = DynamicResolutionHandler.instance;
-            if (m_EnableRenderGraph)
-            {
-                dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
-            }
-            else
-            {
-                dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings, () =>
-                {
-                    var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
-                    var stencilBuffer = hdrp.m_SharedRTManager.GetDepthStencilBuffer().rt;
-                    var stencilBufferSize = new Vector2Int(stencilBuffer.width, stencilBuffer.height);
-                    hdrp.m_SharedRTManager.ComputeDepthBufferMipChainSize(DynamicResolutionHandler.instance.GetScaledSize(stencilBufferSize));
-                }
-                );
-            }
+            dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
 
 
             // This syntax is awful and hostile to debugging, please don't use it...
@@ -2222,14 +2159,6 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.BeginRender(cmd);
             m_CurrentHDCamera = hdCamera;
 
-            // Render graph deals with Fast memory support in an automatic way.
-            if (!m_EnableRenderGraph)
-            {
-#if UNITY_2020_2_OR_NEWER
-                SwitchRenderTargetsToFastMem(cmd, hdCamera);
-#endif
-            }
-
             if (m_RayTracingSupported)
             {
                 // This call need to happen once per camera
@@ -2261,8 +2190,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_MSAASamples = (m_DebugDisplaySettings.data.msaaSamples != MSAASamples.None) ?
                         m_DebugDisplaySettings.data.msaaSamples :
                         m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount;
-
-                    m_SharedRTManager.SetNumMSAASamples(m_MSAASamples);
 
                     m_DebugDisplaySettings.UpdateCameraFreezeOptions();
 

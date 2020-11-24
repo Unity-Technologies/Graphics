@@ -47,8 +47,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeShader m_DiffuseDenoiser;
         Texture m_OwenScrambleRGBA;
 
-        // Required for fetching depth and normal buffers
-        SharedRTManager m_SharedRTManager;
         HDRenderPipeline m_RenderPipeline;
 
         // Kernels that may be required
@@ -61,14 +59,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Init(RenderPipelineResources rpResources, HDRenderPipelineRayTracingResources rpRTResources, HDRenderPipeline renderPipeline)
         {
             // Keep track of the resources
             m_DiffuseDenoiser = rpRTResources.diffuseDenoiserCS;
             m_OwenScrambleRGBA = rpResources.textures.owenScrambledRGBATex;
 
-            // Keep track of the shared rt manager
-            m_SharedRTManager = sharedRTManager;
             m_RenderPipeline = renderPipeline;
 
             // Grab all the kernels we'll eventually need

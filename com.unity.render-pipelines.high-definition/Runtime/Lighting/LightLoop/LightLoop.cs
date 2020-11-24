@@ -3004,30 +3004,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer lightList; // ContactShadows, Deferred, Forward w/ fptl
         }
 
-        BuildGPULightListResources PrepareBuildGPULightListResources(TileAndClusterData tileAndClusterData, RTHandle depthBuffer, RTHandle stencilTexture, bool isGBufferNeeded)
-        {
-            var resources = new BuildGPULightListResources();
-
-            resources.depthBuffer = depthBuffer;
-            resources.stencilTexture = stencilTexture;
-            resources.gBuffer = isGBufferNeeded ? m_GbufferManager.GetBuffers() : null;
-
-            resources.bigTileLightList = tileAndClusterData.bigTileLightList;
-            resources.lightList = tileAndClusterData.lightList;
-            resources.perVoxelOffset = tileAndClusterData.perVoxelOffset;
-            resources.convexBoundsBuffer = tileAndClusterData.convexBoundsBuffer;
-            resources.AABBBoundsBuffer = tileAndClusterData.AABBBoundsBuffer;
-            resources.lightVolumeDataBuffer = tileAndClusterData.lightVolumeDataBuffer;
-            resources.tileFeatureFlags = tileAndClusterData.tileFeatureFlags;
-            resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
-            resources.perVoxelLightLists = tileAndClusterData.perVoxelLightLists;
-            resources.perTileLogBaseTweak = tileAndClusterData.perTileLogBaseTweak;
-            resources.dispatchIndirectBuffer = tileAndClusterData.dispatchIndirectBuffer;
-            resources.tileList = tileAndClusterData.tileList;
-
-            return resources;
-        }
-
         static void ClearLightList(in BuildGPULightListParameters parameters, CommandBuffer cmd, ComputeBuffer bufferToClear)
         {
             cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);

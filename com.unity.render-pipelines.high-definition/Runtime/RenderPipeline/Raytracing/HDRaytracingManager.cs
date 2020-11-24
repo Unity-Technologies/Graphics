@@ -709,7 +709,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_TemporalFilter == null)
             {
                 m_TemporalFilter = new HDTemporalFilter();
-                m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+                m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources);
             }
             return m_TemporalFilter;
         }
@@ -719,7 +719,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_SimpleDenoiser == null)
             {
                 m_SimpleDenoiser = new HDSimpleDenoiser();
-                m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+                m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
             }
             return m_SimpleDenoiser;
         }
@@ -729,7 +729,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_SSGIDenoiser == null)
             {
                 m_SSGIDenoiser = new SSGIDenoiser();
-                m_SSGIDenoiser.Init(m_Asset.renderPipelineResources, sharedRTManager, this);
+                m_SSGIDenoiser.Init(m_Asset.renderPipelineResources);
             }
             return m_SSGIDenoiser;
         }
@@ -739,7 +739,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DiffuseDenoiser == null)
             {
                 m_DiffuseDenoiser = new HDDiffuseDenoiser();
-                m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+                m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, this);
             }
             return m_DiffuseDenoiser;
         }
@@ -749,7 +749,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ReflectionDenoiser == null)
             {
                 m_ReflectionDenoiser = new HDReflectionDenoiser();
-                m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+                m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
             }
             return m_ReflectionDenoiser;
         }
@@ -759,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_DiffuseShadowDenoiser == null)
             {
                 m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
-                m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+                m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
             }
             return m_DiffuseShadowDenoiser;
         }

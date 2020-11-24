@@ -61,9 +61,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer m_RayBinResult = null;
         ComputeBuffer m_RayBinSizeResult = null;
 
-        // Structure that holds the g buffers
-        GBufferManager m_RaytracingGBufferManager;
-
         // The set of ray tracing shader names
         const string m_RayGenGBuffer = "RayGenGBuffer";
         const string m_RayGenGBufferHalfRes = "RayGenGBufferHalfRes";
@@ -78,16 +75,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RayBinResult = new ComputeBuffer(1, sizeof(uint));
             m_RayBinSizeResult = new ComputeBuffer(1, sizeof(uint));
-
-            m_RaytracingGBufferManager = new GBufferManager(asset, m_DeferredMaterial);
         }
 
         void ReleaseRayTracingDeferred()
         {
             CoreUtils.SafeRelease(m_RayBinResult);
             CoreUtils.SafeRelease(m_RayBinSizeResult);
-
-            m_RaytracingGBufferManager.DestroyBuffers();
         }
 
         void CheckBinningBuffersSize(HDCamera hdCamera)
