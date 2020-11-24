@@ -504,13 +504,6 @@ namespace UnityEngine.Rendering.HighDefinition
             HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
             if (FullScreenDebugMode.ScreenSpaceShadows == hdrp.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
-                if (!hdrp.rayTracingSupported || (m_ScreenSpaceShadowChannelSlot <= hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex))
-                {
-                    // In this case we have not rendered any screenspace shadows, so push a black texture on the debug display
-                    hdrp.PushFullScreenDebugTexture(hdCamera, cmd, TextureXR.GetBlackTextureArray(), FullScreenDebugMode.ScreenSpaceShadows);
-                    return;
-                }
-
                 // Fetch the buffer where we we will store our result
                 RTHandle debugResultBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
 
@@ -518,9 +511,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 SSShadowDebugParameters sssdParams = PrepareSSShadowDebugParameters(hdCamera, (int)hdrp.m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex);
                 SSShadowDebugResources sssdResources = PrepareSSShadowDebugResources(debugResultBuffer);
                 ExecuteShadowDebugView(cmd, sssdParams, sssdResources);
-
-                // Push the full screen debug texture
-                hdrp.PushFullScreenDebugTexture(hdCamera, cmd, debugResultBuffer, FullScreenDebugMode.ScreenSpaceShadows);
             }
         }
     }

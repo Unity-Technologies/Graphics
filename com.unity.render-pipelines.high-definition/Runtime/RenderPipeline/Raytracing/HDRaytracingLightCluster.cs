@@ -705,9 +705,6 @@ namespace UnityEngine.Rendering.HighDefinition
             LightClusterDebugParameters parameters = PrepareLightClusterDebugParameters(hdCamera);
             LightClusterDebugResources resources = PrepareLightClusterDebugResources(m_DebugLightClusterTexture);
             ExecuteLightClusterDebug(cmd, parameters, resources);
-
-            // Bind the result
-            m_RenderPipeline.PushFullScreenDebugTexture(hdCamera, cmd, m_DebugLightClusterTexture, FullScreenDebugMode.LightCluster);
         }
 
         class LightClusterDebugPassData

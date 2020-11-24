@@ -331,9 +331,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 SSSCombineParameters ssscParams = PrepareSSSCombineParameters(hdCamera);
                 SSSCombineResources ssscResources = PrepareSSSCombineResources(m_SSSColor, colorBufferRT, diffuseBufferRT, intermediateBuffer0, ssscParams.validSSGI);
                 ExecuteCombineSubsurfaceScattering(cmd, ssscParams, ssscResources);
-
-                // Push this version of the texture for debug
-                PushFullScreenDebugTexture(hdCamera, cmd, diffuseBufferRT, FullScreenDebugMode.RayTracedSubSurface);
             }
         }
 

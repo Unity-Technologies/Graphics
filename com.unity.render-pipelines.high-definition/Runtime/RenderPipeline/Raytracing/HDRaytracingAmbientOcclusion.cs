@@ -187,9 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 ComposeAO(cmd, aoComposeParameters, outputTexture);
             }
-
-            // TODO: All the push-debug stuff should be centralized somewhere
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, outputTexture, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
         }
 
         static public void TraceAO(CommandBuffer cmd, AmbientOcclusionTraceParameters aoTraceParameters, AmbientOcclusionTraceResources aoTraceResources)

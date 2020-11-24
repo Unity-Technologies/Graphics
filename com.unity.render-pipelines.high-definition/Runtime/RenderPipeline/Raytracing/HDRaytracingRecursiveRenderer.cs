@@ -155,7 +155,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 RecursiveRendererParameters rrParams = PrepareRecursiveRendererParameters(hdCamera, recursiveSettings);
                 RecursiveRendererResources rrResources = PrepareRecursiveRendererResources(debugBuffer);
                 ExecuteRecursiveRendering(cmd, rrParams, rrResources);
-                PushFullScreenDebugTexture(hdCamera, cmd, debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
             }
         }
 

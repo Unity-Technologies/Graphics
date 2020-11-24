@@ -238,45 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void PushCustomPassTexture(
-            CommandBuffer cmd,
-            CustomPassInjectionPoint injectionPoint,
-            RTHandle cameraSource,
-            Lazy<RTHandle> customPassSource,
-            List<RTHandle> targets
-        )
-        {
-            if (!isValid || m_CustomPassAOVBuffers == null)
-                return;
-
-            Assert.IsNotNull(targets);
-
-            int index = -1;
-            for (int i = 0; i < m_CustomPassAOVBuffers.Length; ++i)
-            {
-                if (m_CustomPassAOVBuffers[i].injectionPoint == injectionPoint)
-                {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index == -1)
-                return;
-
-            if (m_CustomPassAOVBuffers[index].outputType == CustomPassAOVBuffers.OutputType.Camera)
-            {
-                HDUtils.BlitCameraTexture(cmd, cameraSource, targets[index]);
-            }
-            else
-            {
-                if (customPassSource.IsValueCreated)
-                {
-                    HDUtils.BlitCameraTexture(cmd, customPassSource.Value, targets[index]);
-                }
-            }
-        }
-
         class PushCustomPassTexturePassData
         {
             public TextureHandle source;

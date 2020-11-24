@@ -499,8 +499,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         ExecuteSSGIUpscale(cmd, parameters, resources);
                     }
                 }
-
-                (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_IndirectDiffuseBuffer0, FullScreenDebugMode.ScreenSpaceGlobalIllumination);
             }
         }
     }

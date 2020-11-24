@@ -69,9 +69,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the indirect diffuse texture (for the lighting pass)
             BindIndirectDiffuseTexture(cmd);
-
-            // Bind for debugging
-            (RenderPipelineManager.currentPipeline as HDRenderPipeline).PushFullScreenDebugTexture(hdCamera, cmd, m_IndirectDiffuseBuffer0, FullScreenDebugMode.ScreenSpaceGlobalIllumination);
         }
 
         DeferredLightingRTParameters PrepareIndirectDiffuseDeferredLightingRTParameters(HDCamera hdCamera)

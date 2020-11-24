@@ -661,8 +661,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     dilatedNearCoC, pingFarRGB, pongFarRGB, farCoC, fullresCoC, dofSafePathMips, dilationPingPongRT, prevCoC, nextCoC, motionVecTexture,
                                     m_BokehNearKernel, m_BokehFarKernel, m_BokehIndirectCmd, m_NearBokehTileList, m_FarBokehTileList,  taaEnabled);
 
-                                m_HDInstance.PushFullScreenDebugTexture(camera, cmd, fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
-
                                 if (dofParameters.farLayerActive)
                                 {
                                     m_Pool.Recycle(pingFarRGB);
@@ -800,8 +798,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
 
                         DoUberPostProcess(uberPostParams, source, destination, m_InternalLogLut, bloomActive ? m_BloomMipsUp[0] : TextureXR.GetBlackTexture(), cmd);
-
-                        m_HDInstance.PushFullScreenDebugTexture(camera, cmd, destination, FullScreenDebugMode.ColorLog);
 
                         // Cleanup
                         if (bloomActive) m_Pool.Recycle(m_BloomMipsUp[0]);
