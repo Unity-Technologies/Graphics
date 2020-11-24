@@ -1,3 +1,5 @@
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.TestTools;
 
 // Work around case #1033694, unable to use PrebuildSetup types directly from assemblies that don't have special names.
@@ -7,6 +9,8 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 {
     public void Setup()
     {
+        UniversalGraphicsTests.SetRenderersToDeferred();
         UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup(UniversalGraphicsTests.universalPackagePath);
     }
+
 }

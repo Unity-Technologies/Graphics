@@ -25,6 +25,12 @@ public class UniversalGraphicsTests
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        //Ignore this test if test scene is NOT in the deferred test scene list
+        if ( !System.Array.Exists(IncludeTheseTestsForDeferred, x => testCase.ScenePath.ToString().Contains(x)) )
+        {
+            Assert.Ignore("This test is ignored for Deferred Rendering Path."); 
+        }
+
 #if ENABLE_VR
         // XRTODO: Fix XR tests on macOS or disable them from Yamato directly
         if (XRGraphicsAutomatedTests.enabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
@@ -97,6 +103,56 @@ public class UniversalGraphicsTests
         if (allocatesMemory)
             Assert.Fail("Allocated memory when rendering what is on main camera");
     }
+
+    public static void SetRenderersToDeferred()
+    {
+        UniversalRenderPipelineAsset pipelineAsset = (UniversalRenderPipelineAsset) GraphicsSettings.renderPipelineAsset;
+        if(pipelineAsset != null)
+        {
+            var rendererList = pipelineAsset.m_RendererDataList;
+            for(int i=0; i<rendererList.Length; i++)
+            {
+                if(rendererList[i].GetType() == typeof(ForwardRendererData))
+                {
+                    var forwardData = (ForwardRendererData) rendererList[i];
+                    forwardData.renderingMode = RenderingMode.Deferred;
+                }
+            }
+        }
+    }
+
+    public static string[] IncludeTheseTestsForDeferred = new string[]
+    {
+        "001_SimpleCube",
+        "053_UnlitShader",
+
+        "007_LitShaderMaps",
+        "012_PBS_EnvironmentBRDF_Spheres",
+        "026_Shader_PBRscene",
+        "035_Shader_TerrainShaders",
+
+        "029_Particles",
+        "037_Particles_Standard",
+
+        "050_Shader_Graphs",
+
+        "023_Lighting_Mixed_Indirect",
+        "043_Lighting_Mixed_ShadowMask",
+        "049_Lighting_Mixed_Subtractive",
+
+        "010_AdditionalLightsSorted_Deferred",
+        "018_LightLayers",
+
+        "111_CameraStackMSAA",
+        "123_CameraStackingClear",
+        "014_CameraMulti_MiniMap",
+        "015_CameraMulti_FPSCam",
+
+        "140_SSAO_DepthOnly_Projection",
+        "142_SSAO_DepthNormal_Projection",
+        "144_SSAO_RenderToBackBuffer"
+    };
+
 
 #if UNITY_EDITOR
     [TearDown]

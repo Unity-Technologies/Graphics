@@ -565,7 +565,7 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    1: LWRP_DEBUG_STATIC_POSTFX
+    1: LWRP_DEBUG_STATIC_POSTFX;ENABLE_RENDERING_PATH_UI
     4: LWRP_DEBUG_STATIC_POSTFX
     7: LWRP_DEBUG_STATIC_POSTFX
     13: LWRP_DEBUG_STATIC_POSTFX
