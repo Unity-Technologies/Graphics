@@ -306,7 +306,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // RENDER GRAPH
         RenderGraph m_RenderGraph = new RenderGraph("HDRPGraph");
-        bool        m_EnableRenderGraph = true;
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -1192,6 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public CameraSettings cameraSettings;
             public List<(HDProbe.RenderData, HDProbe)> viewDependentProbesData;
         }
+
         struct HDCullingResults
         {
             public CullingResults cullingResults;
@@ -1945,8 +1945,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            if (m_EnableRenderGraph)
-                m_RenderGraph.EndFrame();
+            m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
 
 #if UNITY_2021_1_OR_NEWER
@@ -2119,17 +2118,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     return;
                 }
 
-                if (m_EnableRenderGraph)
+                try
                 {
-                    try
-                    {
-                        ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError("Error while building Render Graph.");
-                        Debug.LogException(e);
-                    }
+                    ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Error while building Render Graph.");
+                    Debug.LogException(e);
                 }
             } // using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
 
