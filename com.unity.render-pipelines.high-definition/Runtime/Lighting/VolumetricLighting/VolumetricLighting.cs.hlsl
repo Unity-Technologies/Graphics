@@ -4,6 +4,12 @@
 
 #ifndef VOLUMETRICLIGHTING_CS_HLSL
 #define VOLUMETRICLIGHTING_CS_HLSL
+//
+// UnityEngine.Rendering.HighDefinition.DensityVolumeFalloffMode:  static fields
+//
+#define DENSITYVOLUMEFALLOFFMODE_LINEAR (0)
+#define DENSITYVOLUMEFALLOFFMODE_EXPONENTIAL (1)
+
 // Generated from UnityEngine.Rendering.HighDefinition.DensityVolumeEngineData
 // PackingRules = Exact
 struct DensityVolumeEngineData
@@ -20,6 +26,8 @@ struct DensityVolumeEngineData
     int useVolumeMask;
     float3 atlasOffset;
     int maskResolution;
+    float extinctionMultiplier;
+    int falloffMode;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesVolumetric
@@ -98,6 +106,14 @@ float3 GetAtlasOffset(DensityVolumeEngineData value)
 int GetMaskResolution(DensityVolumeEngineData value)
 {
     return value.maskResolution;
+}
+float GetExtinctionMultiplier(DensityVolumeEngineData value)
+{
+    return value.extinctionMultiplier;
+}
+int GetFalloffMode(DensityVolumeEngineData value)
+{
+    return value.falloffMode;
 }
 
 #endif

@@ -62,6 +62,7 @@ struct JitteredRay
 float ComputeFadeFactor(float3 coordNDC, float dist,
                         float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
                         float rcpDistFadeLen, float endTimesRcpDistFadeLen)
+                        float rcpDistFadeLen, float endTimesRcpDistFadeLen, int falloffMode)
 {
     // We have to account for handedness.
     coordNDC.z = 1 - coordNDC.z;
@@ -271,7 +272,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                                                      _VolumeData[volumeIndex].rcpNegFaceFade,
                                                      _VolumeData[volumeIndex].invertFade,
                                                      _VolumeData[volumeIndex].rcpDistFadeLen,
-                                                     _VolumeData[volumeIndex].endTimesRcpDistFadeLen);
+                                                     _VolumeData[volumeIndex].endTimesRcpDistFadeLen,
+                                                     _VolumeData[volumeIndex].falloffMode);
 
                 float3 scatteringMultiplier = 1;
                 // Sample the volume Mask + Scattering color.
@@ -288,9 +290,12 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
                 // There is an overlap. Sample the 3D texture, or load the constant value.
                 voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering * scatteringMultiplier;
-                voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
+                voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction * _VolumeData[volumeIndex].extinctionMultiplier;
             }
         }
+
+        // When we have a substractive extinction volume, we can end up with negative values
+        voxelExtinction = max(0, voxelExtinction);
 
         _VBufferDensity[voxelCoord] = float4(voxelScattering, voxelExtinction);
 

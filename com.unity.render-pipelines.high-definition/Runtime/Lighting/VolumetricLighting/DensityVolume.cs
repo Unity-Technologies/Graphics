@@ -51,6 +51,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("volumeScrollingAmount")]
         public Vector3   textureOffset;
 
+        /// <summary>When enabled, the density from this volume will be substracted from the current fog instead of being added.</summary>
+        public bool      substractiveExtinction;
+
+        /// <summary>When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.</summary>
+        public DensityVolumeFalloffMode falloffMode;
+
         /// <summary>Constructor.</summary>
         /// <param name="color">Single scattering albedo.</param>
         /// <param name="_meanFreePath">Mean free path.</param>
@@ -74,6 +80,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             distanceFadeStart     = 10000;
             distanceFadeEnd       = 10000;
+
+            substractiveExtinction = false;
+            falloffMode          = DensityVolumeFalloffMode.Linear;
 
             m_EditorPositiveFade = Vector3.zero;
             m_EditorNegativeFade = Vector3.zero;
@@ -116,7 +125,10 @@ namespace UnityEngine.Rendering.HighDefinition
             DensityVolumeEngineData data = new DensityVolumeEngineData();
 
             data.extinction     = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
-            data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
+            data.extinctionMultiplier = substractiveExtinction ? -1.0f : 1.0f;
+            Vector3 tmpAlbedo = (Vector4)albedo;
+            tmpAlbedo = substractiveExtinction ? Vector3.one - tmpAlbedo : tmpAlbedo;
+            data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, tmpAlbedo);
 
             data.atlasOffset    = DensityVolumeManager.manager.volumeAtlas.GetTextureOffset(volumeMask);
             data.useVolumeMask  = volumeMask != null ? 1 : 0;
@@ -137,6 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpNegFaceFade.z = Mathf.Min(1.0f / negativeFade.z, float.MaxValue);
 
             data.invertFade = invertFade ? 1 : 0;
+            data.falloffMode = falloffMode;
 
             float distFadeLen = Mathf.Max(distanceFadeEnd - distanceFadeStart, 0.00001526f);
 
