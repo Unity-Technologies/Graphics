@@ -68,8 +68,9 @@ If you disable some of these settings, the relevant [keywords](shader-stripping.
 
 ### Shadows
 
-These settings affect how shadows look and behave. They also impact performance, so this is where you can make tweaks to get the best balance between visual quality and shadow rendering speed.
+These settings let you configure how shadows look and behave, and find a good balance between the visual quality and performance.
 
+The **Shadows** section has the following properties.
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
@@ -81,7 +82,7 @@ These settings affect how shadows look and behave. They also impact performance,
 
 ### Post-processing
 
-This section allows you to fine-tune global settings for URP's integrated post-processing solution.
+This section lets you fine-tune global settings for URP's integrated post-processing solution.
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
@@ -106,8 +107,8 @@ This section allows you to fine-tune less commonly changed settings, which impac
 
 ### Adaptive Performance
 
-This section appears if Adaptive Performance package is installed. It allows to change settings how Adaptive performance and render pipeline interact.
+This section is available if the Adaptive Performance package is installed in the project. The __Use Adaptive Performance__ property lets you enable the Adaptive Performance functionality.
 
 | __Property__            | __Description__                                              |
 | ----------------------- | ------------------------------------------------------------ |
-| __Use adaptive performance__  | Allows Adaptive Performance to adjust rendering quality during runtime. |
+| __Use Adaptive Performance__  | Select this check box to enable the Adaptive Performance functionality, which adjusts the rendering quality at runtime. |
