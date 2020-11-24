@@ -24,8 +24,10 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_PowderEffectIntensity;
         SerializedDataParameter m_MultiScattering;
         SerializedDataParameter m_DensityMultiplier;
+        SerializedDataParameter m_DensityAmplifier;
         SerializedDataParameter m_GlobalLightProbeDimmer;
         SerializedDataParameter m_WindRotation;
+        SerializedDataParameter m_WindSpeed;
 
         public override void OnEnable()
         {
@@ -46,8 +48,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PowderEffectIntensity = Unpack(o.Find(x => x.powderEffectIntensity));
             m_MultiScattering = Unpack(o.Find(x => x.multiScattering));
             m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
+            m_DensityAmplifier = Unpack(o.Find(x => x.densityAmplifier));
             m_GlobalLightProbeDimmer = Unpack(o.Find(x => x.globalLightProbeDimmer));
             m_WindRotation = Unpack(o.Find(x => x.windRotation));
+            m_WindSpeed = Unpack(o.Find(x => x.windSpeed));
         }
         
 
@@ -69,8 +73,10 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_PowderEffectIntensity);
             PropertyField(m_MultiScattering);
             PropertyField(m_DensityMultiplier);
+            PropertyField(m_DensityAmplifier);
             PropertyField(m_GlobalLightProbeDimmer);
             PropertyField(m_WindRotation);
+            PropertyField(m_WindSpeed);
         }
     }
 }

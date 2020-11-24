@@ -22,9 +22,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter phaseFunctionBlend = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
         public ClampedFloatParameter powderEffectIntensity = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
         public ClampedFloatParameter multiScattering = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
-        public ClampedFloatParameter densityMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter densityMultiplier = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public ClampedFloatParameter densityAmplifier = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
         public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         public ClampedFloatParameter windRotation = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        public ClampedFloatParameter windSpeed = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         public VolumetricClouds()
         {

@@ -26,10 +26,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _AccumulationFrameIndex;
 
         public Vector3 _WindDirection;
-        public float _MultiScattering;
+        public float _WindSpeed;
 
         public float _DensityMultiplier;
-        public Vector3 _Padding;
+        public float _DensityAmplifier;
+        public float _MultiScattering;
+        public float _Padding;
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _AmbientProbeCoeffs[7 * 4];  // 3 bands of SH, packed, rescaled and convolved with the phase function
@@ -115,8 +117,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float theta = settings.windRotation.value * Mathf.PI * 2.0f;
             cb._WindDirection = new Vector3(Mathf.Cos(theta), Mathf.Sin(theta), 0.0f);
+            cb._WindSpeed = settings.windSpeed.value;
             cb._MultiScattering = 1.0f - settings.multiScattering.value * 0.8f;
-            cb._DensityMultiplier = settings.densityMultiplier.value;
+            // The density multiplier is not used linearly
+            cb._DensityMultiplier = settings.densityMultiplier.value * settings.densityMultiplier.value;
+            cb._DensityAmplifier = settings.densityAmplifier.value;
         }
 
         struct VolumetricCloudsParameters
@@ -128,7 +133,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Other data
             public Texture3D worley128RGBA;
-            public Texture3D worley32RGB;
             public Texture cloudMapTexture;
             public Texture cloudLutTexture;
             public ComputeShader volumetricCloudsCS;
@@ -159,7 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.cloudMapTexture = settings.cloudMap.value;
             parameters.cloudLutTexture = settings.cloudLut.value;
             parameters.worley128RGBA = m_Asset.renderPipelineResources.textures.worleyNoise128RGBA;
-            parameters.worley32RGB = m_Asset.renderPipelineResources.textures.worleyNoise32RGB;
             BlueNoise blueNoise = GetBlueNoiseManager();
             parameters.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
 
@@ -176,7 +179,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CameraColorTexture, colorBuffer);
             cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._DepthTexture, depthPyramid);
             cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley128RGBA, parameters.worley128RGBA);
-            cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._Worley32RGB, parameters.worley32RGB);
             cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudMapTexture, parameters.cloudMapTexture);
             cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.renderKernel, HDShaderIDs._CloudLutTexture, parameters.cloudLutTexture);
 

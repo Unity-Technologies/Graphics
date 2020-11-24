@@ -391,8 +391,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Clouds noise
             [Reload("Runtime/RenderPipelineResources/Texture/CloudNoise/WorleyNoise128RGBA.png")]
             public Texture3D worleyNoise128RGBA;
-            [Reload("Runtime/RenderPipelineResources/Texture/CloudNoise/WorleyNoise32RGB.png")]
-            public Texture3D worleyNoise32RGB;
 
             // Post-processing
             [Reload(new[]

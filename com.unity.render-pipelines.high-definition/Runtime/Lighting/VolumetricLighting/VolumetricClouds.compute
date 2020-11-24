@@ -12,15 +12,13 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsManager.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsUtilities.hlsl"
 
 // Tile size of this compute
 #define VOLUMETRIC_CLOUDS_TILE_SIZE 8
-
-#define ANVIL_BIAS 0.01
 #define MOTION_DISTORTION 0.02
 #define NUM_MULTI_SCATTERING_OCTAVES 2
-
-#pragma enable_d3d11_debug_symbols
+#define WIND_MAX_SPEED 0.1
 
 // Input textures
 TEXTURE2D_X(_CameraColorTexture);
@@ -28,7 +26,6 @@ TEXTURE2D_X(_DepthTexture);
 Texture2D<float4> _CloudMapTexture;
 Texture2D<float2> _CloudLutTexture;
 Texture3D<float4> _Worley128RGBA;
-Texture3D<float3> _Worley32RGB;
 
 // Output texture
 RW_TEXTURE2D_X(float4, _VolumetricCloudsTextureRW);
@@ -78,12 +75,6 @@ CloudRay BuildRay(uint2 currentCoord)
     return ray;
 }
 
-// Density remapping function
-float remap(float x, float low1, float high1, float low2, float high2)
-{
-    return low2 + (x - low1) * (high2 - low2) / (high1 - low1);
-}
-
 float2 IntersectAABB(float3 rayOrigin, float3 rayDir, float3 boxMin, float3 boxMax)
 {
     float3 tMin = (boxMin - rayOrigin) / rayDir;
@@ -129,19 +120,18 @@ struct CloudCoverageData
     float cloudType;
 };
 
-CloudCoverageData GetCloudCoverageData(float3 positionWS)
+void GetCloudCoverageData(float3 positionWS, out CloudCoverageData data)
 {
     // Convert the position into dome space
     float2 normalizedPosition = saturate(positionWS.xz / _CloudDomeSize * 0.5 + 0.5);
+    // Exclude the limits of the dome
     normalizedPosition = clamp(normalizedPosition, 0.001, 0.999);
     // Read the data from the texture
     float4 cloudMapData =  SAMPLE_TEXTURE2D_LOD(_CloudMapTexture, s_linear_clamp_sampler, float2(normalizedPosition), 0.0);
-    CloudCoverageData data;
-    // TODO: Fix this
+    // Fill the coverage data
     data.coverage = cloudMapData.x;
     data.rainClouds = cloudMapData.y;
     data.cloudType = cloudMapData.z;
-    return data;
 }
 
 // Structure that holds all the lighting data required to light the cloud particles
@@ -200,14 +190,6 @@ struct CloudProperties
     float height;
 };
 
-float3 SmoothThreshold(float3 value, float threshold, float edgeSize)
-{
-    value.r = smoothstep(threshold, threshold + edgeSize, value.r);
-    value.g = smoothstep(threshold, threshold + edgeSize, value.g);
-    value.b = smoothstep(threshold, threshold + edgeSize, value.b);
-    return value;
-}
-
 void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProperties properties)
 {
     // Initliaze all the values to 0 in case
@@ -218,135 +200,46 @@ void EvaluateCloudProperties(float3 positionWS, bool cheapVersion, out CloudProp
         return;
 
     // Evaluate the cloud coverage data for this position
-    CloudCoverageData cloudCoverageData = GetCloudCoverageData(positionWS);
-
-    // Evaluate the normalized height of the position within the cloud volume
-    properties.height = saturate((positionWS.y - _LowestCloudAltitude) / (_HighestCloudAltitude - _LowestCloudAltitude));
+    CloudCoverageData cloudCoverageData;
+    GetCloudCoverageData(positionWS, cloudCoverageData);
 
     // If this region of space has no cloud coverage, exit right away
     if (cloudCoverageData.coverage <= 0.0)
         return;
-
-#if 0
-    // Evaluate the density by the height-base density gradient of the cloud that we are handeling
-    float2 densityHeightGradient = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), 0.0).xy;
-
-    float4 lowFrequencyNoises = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, positionWS.xyz * 0.0001, 0.0);
-    // Read the low frequency Perlin-Worley and Worley noises
-    float lowFreqFBm = ( lowFrequencyNoises.y * 0.625 ) + ( lowFrequencyNoises.z * 0.25 ) + ( lowFrequencyNoises.w * 0.125);
-    float base_cloud = remap(lowFrequencyNoises.x, -(1.0 - lowFrequencyNoises.y), 1.0, 0.0, 1.0);
-
-    //properties.density = densityHeightGradient * lowFreqFBm;
-
-    float3 coord = float3(positionWS / 1000);
-    float4 noiseSample = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, coord, 0.0);
-
-    float noise = saturate(lowFrequencyNoises.r + lowFrequencyNoises.g + lowFrequencyNoises.b+ lowFrequencyNoises.a);
-
-    noise *= densityHeightGradient.r;
-    noise = SmoothThreshold(noise, 0.3, 0.5);
-    noise = saturate(noise - (1.0 - cloudCoverageData.coverage.r)) * cloudCoverageData.coverage.r;
- 
-    //if (!cheapVersion)
-    {
-        coord = coord * 2.0;
-        float3 detail = 1.0 - SAMPLE_TEXTURE3D_LOD(_Worley32RGB, s_trilinear_repeat_sampler, coord, 0.0).xyz;
-        float detailValue = (detail.r + detail.g + detail.b) / 3.0;
-        detailValue *= smoothstep(1.0, 0.0, noise) * 0.5;
-        noise -= detailValue * densityHeightGradient.g;
-        noise = saturate(noise);
-    }        
-
-    properties.density = noise;
-    /*
-    noise = SmoothThreshold(noise, _SampleThreshold, _ErosionEdgeSize);
-    noise = saturate(noise - (1.0 - coverage.r)) * coverage.r;
-    */
-#elif 0
-    // Evaluate the coordinates at which the noise will be sampled
-    float3 noiseSamplingCoordinates = positionWS.xzy * 0.0001 + _WindDirection * _Time * 0.01;    
-    noiseSamplingCoordinates += properties.height * _WindDirection * MOTION_DISTORTION;
-
-    // Read the low frequency Perlin-Worley and Worley noises
-    float4 lowFrequencyNoises = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, noiseSamplingCoordinates, 0.0);
-    float lowFreqFBm = ( lowFrequencyNoises.y * 0.625 ) + ( lowFrequencyNoises.z * 0.25 ) + ( lowFrequencyNoises.w * 0.125);
-
-    // Remap the perlin-worley noise with the worley fbm
-    float base_cloud = remap(lowFrequencyNoises.x, -(1.0 - lowFrequencyNoises.y), 1.0, 0.0, 1.0);
-
-    // Evaluate the density by the height-base density gradient of the cloud that we are handeling
-    float densityHeightGradient = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), 0.0).x;
     
-    // Apply the height function to the base cloud shape
-    base_cloud *= densityHeightGradient;
+    // Evaluate the normalized height of the position within the cloud volume
+    properties.height = saturate((positionWS.y - _LowestCloudAltitude) / (_HighestCloudAltitude - _LowestCloudAltitude));
 
-    // apply anvil deformations
-    cloudCoverageData.coverage = pow(cloudCoverageData.coverage, remap(properties.height, 0.7, 0.8, 1.0, lerp(1.0, 0.5, ANVIL_BIAS)));
+    // Pre-fetch the density as early as posisble
+    float densityHeightGradient = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), 0.0).x;
 
-    // Rmap the base cloud with the coverage
-    properties.density = remap(base_cloud, cloudCoverageData.coverage, 1.0, 0.0, 1.0);
+    // Evaluate the coordinates at which the noise will be sampled and apply wind displacement
+    float3 noiseSamplingCoordinates = positionWS.xzy / (_CloudDomeSize * 2.0) * 10.0f + _WindDirection * _Time.y * WIND_MAX_SPEED * _WindSpeed;
 
-    // Multiply the result by the cloud coverage so that the smaller clouds are lighter and more esthetically pleasing
-    properties.density *= cloudCoverageData.coverage;
-
-    properties.density = saturate(properties.density);
-
-    if (!cheapVersion)
-    {
-            // Sample high frequency noises
-        float3 high_frequency_noises = SAMPLE_TEXTURE3D_LOD(_Worley32RGB, s_trilinear_repeat_sampler, noiseSamplingCoordinates * 0.1, 0.0).xyz;
-
-        // Build high frequency worley noise FBM
-        float high_freq_FBM = (high_frequency_noises.r * 0.625) + ( high_frequency_noises.g * 0.25 ) + ( high_frequency_noises.b * 0.125 );
-
-        // Trans it ion from wispy shapes to billowy shapes over height 
-        float high_freq_noise_modifier = lerp(high_freq_FBM, 1.0 - high_freq_FBM , saturate ( properties.height * 10.0));
-
-        // Erode the base cloud shape with the distorded high frequency worley noises
-        float final_cloud = remap(properties.density, high_freq_noise_modifier * 0.2 , 1.0 , 0.0 , 1.0);
-
-        // Output the final density value
-        properties.density = saturate(final_cloud);
-    }
-#else
-
-    float2 densityHeightGradient = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), 0.0);
-
-    // Evaluate the coordinates at which the noise will be sampled
-    float3 noiseSamplingCoordinates = positionWS.xzy * 0.00007 + _WindDirection * _Time.y * 0.05;    
+    // Distortion of the upper strats of the cloud laer  
     noiseSamplingCoordinates += properties.height * _WindDirection * MOTION_DISTORTION;
 
     // Read the low frequency Perlin-Worley and Worley noises
-    float4 lowFrequencyNoises = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, noiseSamplingCoordinates, 0.0);
+    float4 lowFrequencyNoises = SAMPLE_TEXTURE3D_LOD(_Worley128RGBA, s_trilinear_repeat_sampler, noiseSamplingCoordinates.xyz, 0.0);
     float lowFreqFBm = ( lowFrequencyNoises.y * 0.625 ) + ( lowFrequencyNoises.z * 0.25 ) + ( lowFrequencyNoises.w * 0.125);
-
-    // Remap the perlin-worley noise with the worley fbm
     float base_cloud = remap(lowFrequencyNoises.x, 0.0, 1.0, -(1.0 - lowFreqFBm), 1.0);
 
     // We want bigger clouds to have higher density than smaller ones
-    base_cloud += cloudCoverageData.cloudType * cloudCoverageData.cloudType;   
+    base_cloud += cloudCoverageData.cloudType * cloudCoverageData.cloudType * _DensityAmplifier;
+    // The rain factor increases density at lower heights
+    base_cloud += lerp(cloudCoverageData.rainClouds, 0.0, properties.height);
+
+    // Saturate the result
     base_cloud = saturate(base_cloud);
-    
-    // Evaluate the density by the height-base density gradient of the cloud that we are handeling
     
     // Apply the height function to the base cloud shape
     base_cloud *= densityHeightGradient.x;
 
-    // Rmap the base cloud with the coverage
-    //base_cloud = remap(base_cloud, 0.0, 1.0, cloudCoverageData.coverage, 1.0);
-
     // Multiply the result by the cloud coverage so that the smaller clouds are lighter and more esthetically pleasing
     base_cloud *= cloudCoverageData.coverage;
 
-    properties.density = base_cloud * (_DensityMultiplier * _DensityMultiplier);
-#endif
-}
-
-float HenyeyGreenstein(float cosAngle, float g)
-{
-    // There is a mistake in the GPU Gem7 Paper, the result should be divided by 1/(4.PI)
-    float g2 = g * g;
-    return (1.0 / (4.0 * PI)) * (1.0 - g2) / pow(1.0 + g2 - 2.0 * g * cosAngle, 1.5);
+    // Attenuate everything by the density multiplier
+    properties.density = base_cloud * _DensityMultiplier;
 }
 
 float3 EvaluateSunLuminance(float3 position, EnvironmentLighting environmentLighting, float density, float powderEffect, float phaseFunction[NUM_MULTI_SCATTERING_OCTAVES])
@@ -388,13 +281,6 @@ float3 EvaluateSunLuminance(float3 position, EnvironmentLighting environmentLigh
     return luminance;
 }
 
-float PowderEffect(float cloudDensity, float cosAngle)
-{
-    float powderEffect = 1.0 - exp(-cloudDensity * 2.0);
-    powderEffect = saturate(powderEffect * _PowderEffectIntensity * 2.0);
-    return lerp(1.0, powderEffect, smoothstep(0.5, -0.5, cosAngle));
-}
-
 float4 TraceVolumetricRay(float3 rayOrigin, float3 rayDirection, float maxRayLength,
                             EnvironmentLighting environmentLighting, float offset)
 {    
@@ -426,7 +312,7 @@ float4 TraceVolumetricRay(float3 rayOrigin, float3 rayDirection, float maxRayLen
     {
         const float forwardP = HenyeyGreenstein(cosAngle, _EccentricityF * pow(_MultiScattering, o));
         const float backwardsP = HenyeyGreenstein(cosAngle, -_EccentricityB * pow(_MultiScattering, o));
-        phaseFunction[o]= lerp(forwardP, backwardsP, _PhaseFunctionBlend);
+        phaseFunction[o] = lerp(forwardP, backwardsP, _PhaseFunctionBlend);
     }
 
     // Initialize the integration values
@@ -449,7 +335,7 @@ float4 TraceVolumetricRay(float3 rayOrigin, float3 rayDirection, float maxRayLen
             const float3 clampedExtinction = max(cloudProperties.density, 0.0000001);
             const float currentStepExtinction = exp(- cloudProperties.density * stepS);
 
-            float powder_effect = PowderEffect(cloudProperties.density, cosAngle);
+            float powder_effect = PowderEffect(cloudProperties.density, cosAngle, _PowderEffectIntensity);
             const float3 sunLuminance = (EvaluateSunLuminance(position, environmentLighting, cloudProperties.density, powder_effect, phaseFunction) + environmentLighting.ambientTerm) * cloudProperties.density;
             // THINK about multiplication with shadow map
 
@@ -471,9 +357,6 @@ void RenderClouds(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThrea
 
     // Compute the pixel position to process
     uint2 currentCoord = groupId * VOLUMETRIC_CLOUDS_TILE_SIZE + groupThreadId;
-
-    // Grab the color value of the color buffer
-    // float3 colorValue = LOAD_TEXTURE2D_X(_CameraColorTexture, currentCoord).xyz;
 
     // Build the ray we will use of the ray marching.
     CloudRay ray = BuildRay(currentCoord);
