@@ -7,7 +7,6 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-
     class AttributeProviderSpawner : VariantProvider, IStringProvider
     {
         private static readonly string[] kReadOnlyExceptFromSpawnContext = new[] { VFXAttribute.SpawnCount.name, VFXAttribute.SpawnTime.name };

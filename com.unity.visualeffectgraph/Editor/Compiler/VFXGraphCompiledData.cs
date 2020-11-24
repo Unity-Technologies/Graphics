@@ -199,13 +199,13 @@ namespace UnityEditor.VFX
         private static List<VFXSpawnContextLayer> CollectContextParentRecursively(IEnumerable<VFXContext> inputList, ref SubgraphInfos subgraphContexts, int currentDepth = 0)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
-            var contextList = inputList .SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t))
-                                        .Select(t => t.context).Distinct()
-                                        .Select(c => new VFXSpawnContextLayer()
-                                        {
-                                            context = c,
-                                            depth = currentDepth
-                                        }).ToList();
+            var contextList = inputList.SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t))
+                .Select(t => t.context).Distinct()
+                .Select(c => new VFXSpawnContextLayer()
+                {
+                    context = c,
+                    depth = currentDepth
+                }).ToList();
 
             if (contextList.Any(o => contextEffectiveInputLinks[o.context].Any()))
             {
@@ -230,9 +230,9 @@ namespace UnityEditor.VFX
         {
             var initContext = vfxContext.Where(o => o.contextType == VFXContextType.Init || o.contextType == VFXContextType.OutputEvent).ToList();
             var spawnerHierarchy = CollectContextParentRecursively(initContext, ref subgraphContexts);
-            var spawnerList = spawnerHierarchy  .Where(o => o.context.contextType == VFXContextType.Spawner)
-                                                .OrderByDescending(o => o.depth)
-                                                .Select(o => o.context).ToArray();
+            var spawnerList = spawnerHierarchy.Where(o => o.context.contextType == VFXContextType.Spawner)
+                .OrderByDescending(o => o.depth)
+                .Select(o => o.context).ToArray();
             return spawnerList;
         }
 
