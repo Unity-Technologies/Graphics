@@ -7,8 +7,8 @@ half4 _RendererColor;
 
 half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 {
-	if (color.a == 0.0)
-		discard;
+    if (color.a == 0.0)
+        discard;
 
     color = color * _RendererColor; // This is needed for sprite shape
 

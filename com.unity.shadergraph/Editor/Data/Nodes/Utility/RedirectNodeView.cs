@@ -148,7 +148,7 @@ namespace UnityEditor.ShaderGraph
         public void ClearMessage()
         {
             var badge = this.Q<IconBadge>();
-            if(badge != null)
+            if (badge != null)
             {
                 badge.Detach();
                 badge.RemoveFromHierarchy();
@@ -157,13 +157,12 @@ namespace UnityEditor.ShaderGraph
 
         public void SetColor(Color newColor)
         {
-
         }
 
         public void ResetColor()
         {
-
         }
+
         #endregion
     }
 }

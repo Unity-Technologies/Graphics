@@ -249,7 +249,5 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] Fog_DepthRatio = new float[s_QualitySettingCount];
         // TODO: Shadows. This needs to be discussed further as there is an idiosyncracy here as we have different level of quality settings,
         //some for resolution per light (4 levels) some per volume (which are 3 levels everywhere). This needs to be discussed more.
-
-
     }
 }

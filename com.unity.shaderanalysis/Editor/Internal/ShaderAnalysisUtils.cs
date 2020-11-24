@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -94,6 +94,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
             var fileInfo = new FileInfo(Path.Combine(sourceDir.FullName, "AssetMetaDataBase.asset"));
             return fileInfo;
         }
+
         #endregion
 
         #region Shader Code
@@ -286,6 +287,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
         {
             return new FileInfo(Path.Combine(rootFolder.FullName, string.Format("AssetMetaData_{0}.asset", target)));
         }
+
         #endregion
 
         #region Basic Utils
@@ -321,6 +323,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
             return builder.ToString();
         }
+
         #endregion
 
         public static ShaderBuildReportDiff DiffReports(ShaderBuildReport source, ShaderBuildReport reference)
@@ -405,10 +408,10 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
             // add include folders of playback engines
             foreach (var playbackEnginePath in new[]
-            {
-                "../..",
-                "PlaybackEngines"
-            })
+                 {
+                     "../..",
+                     "PlaybackEngines"
+                 })
             {
                 var directory = new DirectoryInfo(Path.Combine(EditorApplication.applicationContentsPath, playbackEnginePath));
                 if (directory.Exists)

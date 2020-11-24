@@ -494,7 +494,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 //FeatureName   Anisotropic
 //GBuffer0      baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
 //GBuffer1      normal.xy (1212),   perceptualRoughness
-//GBuffer2      anisotropy, tangent.x,  tangent.y(3) / metallic(5), featureID(3) / coatMask(5)
+//GBuffer2      anisotropy, tangent.x,  tangent.sign(1) / metallic(5), featureID(3) / coatMask(5)
 //GBuffer3      bakedDiffuseLighting.rgb
 
 //FeatureName   Irridescence
@@ -1013,7 +1013,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
             float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
             result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
-        }       
+        }
     case DEBUGVIEW_LIT_BSDFDATA_IOR:
         result = saturate((bsdfData.ior - 1.0) / 1.5).xxx;
         break;

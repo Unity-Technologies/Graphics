@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering
         static void DrawPointHandlesAndLabels(Light light)
         {
             // Getting the first control on point handle
-            var firstControl = GUIUtility.GetControlID(s_PointLightHandle.GetHashCode(), FocusType.Passive) -6; // BoxBoundsHandle allocates 6 control IDs
+            var firstControl = GUIUtility.GetControlID(s_PointLightHandle.GetHashCode(), FocusType.Passive) - 6; // BoxBoundsHandle allocates 6 control IDs
             if (Event.current.type != EventType.Repaint)
                 return;
 //            var firstControl = GUIUtility.GetControlID(k_RadiusHandleHash, FocusType.Passive) - 6;
@@ -174,7 +174,7 @@ namespace UnityEditor.Rendering
         static void DrawRectangleHandlesAndLabels(Light light)
         {
             // Getting the first control on radius handle
-            var firstControl = GUIUtility.GetControlID(s_AreaLightHandle.GetHashCode(), FocusType.Passive) -6; // BoxBoundsHandle allocates 6 control IDs
+            var firstControl = GUIUtility.GetControlID(s_AreaLightHandle.GetHashCode(), FocusType.Passive) - 6; // BoxBoundsHandle allocates 6 control IDs
             if (Event.current.type != EventType.Repaint)
                 return;
 
@@ -244,7 +244,7 @@ namespace UnityEditor.Rendering
         static void DrawDiscHandlesAndLabels(Light light)
         {
             // Getting the first control on radius handle
-            var firstControl = GUIUtility.GetControlID(s_DiscLightHandle.GetHashCode(), FocusType.Passive) -6; // BoxBoundsHandle allocates 6 control IDs
+            var firstControl = GUIUtility.GetControlID(s_DiscLightHandle.GetHashCode(), FocusType.Passive) - 6; // BoxBoundsHandle allocates 6 control IDs
             if (Event.current.type != EventType.Repaint)
                 return;
 
@@ -312,7 +312,7 @@ namespace UnityEditor.Rendering
         {
             Vector3 labelPosition = Vector3.zero;
 
-            var style = new GUIStyle{normal = {background = Texture2D.whiteTexture}};
+            var style = new GUIStyle {normal = {background = Texture2D.whiteTexture}};
             GUI.color = new Color(0.82f, 0.82f, 0.82f, 1);
 
             labelPosition = handlePosition + Handles.inverseMatrix.MultiplyVector(Vector3.up) * HandleUtility.GetHandleSize(handlePosition) * offsetFromHandle;
@@ -332,7 +332,7 @@ namespace UnityEditor.Rendering
         }
 
         static readonly SphereBoundsHandle s_DiscLightHandle =
-            new SphereBoundsHandle { axes = PrimitiveBoundsHandle.Axes.X | PrimitiveBoundsHandle.Axes.Y } ;
+            new SphereBoundsHandle { axes = PrimitiveBoundsHandle.Axes.X | PrimitiveBoundsHandle.Axes.Y };
         static float DoDiscHandles(float radius)
         {
             s_DiscLightHandle.center = Vector3.zero;
@@ -447,7 +447,7 @@ namespace UnityEditor.Rendering
 
             // Draw Near Plane Handle
             float nearPlaneRange = light.shadowNearPlane;
-            if(light.shadows != LightShadows.None && light.lightmapBakeType != LightmapBakeType.Baked)
+            if (light.shadows != LightShadows.None && light.lightmapBakeType != LightmapBakeType.Baked)
             {
                 EditorGUI.BeginChangeCheck();
                 nearPlaneRange = SliderLineHandle(GUIUtility.GetControlID(FocusType.Passive), Vector3.zero, Vector3.forward, nearPlaneRange, "Near Plane: ");
@@ -479,7 +479,7 @@ namespace UnityEditor.Rendering
         {
             Color color = wireframeColor;
             color.a = 1f;
-           return RemapLightColor(CoreUtils.ConvertLinearToActiveColorSpace(color.linear));
+            return RemapLightColor(CoreUtils.ConvertLinearToActiveColorSpace(color.linear));
         }
 
         static Color GetLightBehindObjectWireframeColor(Color wireframeColor)
@@ -492,7 +492,7 @@ namespace UnityEditor.Rendering
         static Color RemapLightColor(Color src)
         {
             Color color = src;
-            float max = Mathf.Max( Mathf.Max(color.r, color.g), color.b);
+            float max = Mathf.Max(Mathf.Max(color.r, color.g), color.b);
             if (max > 0f)
             {
                 float mult = 1f / max;
@@ -524,7 +524,7 @@ namespace UnityEditor.Rendering
 
             // Need to check if we need to draw inner angle
             // Need to disable this for now until we get all the inner angle baking working.
-            if(innerAngle > 0f && drawInnerConeAngle)
+            if (innerAngle > 0f && drawInnerConeAngle)
             {
                 DrawHandleDirections = HandleDirections.Up | HandleDirections.Down;
                 var innerDiscRadius = range * Mathf.Sin(innerAngle * Mathf.Deg2Rad * 0.5f);
@@ -551,7 +551,7 @@ namespace UnityEditor.Rendering
             Handles.DrawWireArc(Vector3.zero, Vector3.up, vectorLineLeft, outerAngle, range);
 
             // If we are using shadows we draw the near plane for shadows
-            if(spotlight.shadows != LightShadows.None && spotlight.lightmapBakeType != LightmapBakeType.Baked)
+            if (spotlight.shadows != LightShadows.None && spotlight.lightmapBakeType != LightmapBakeType.Baked)
             {
                 DrawShadowNearPlane(spotlight, innerColor);
             }
@@ -563,7 +563,7 @@ namespace UnityEditor.Rendering
             Handles.color = color;
 
             var shadowDiscRadius = Mathf.Tan(spotlight.spotAngle * Mathf.Deg2Rad * 0.5f) * spotlight.shadowNearPlane;
-            var shadowDiscDistance = spotlight.shadowNearPlane ;
+            var shadowDiscDistance = spotlight.shadowNearPlane;
             Handles.DrawWireDisc(Vector3.forward * shadowDiscDistance, Vector3.forward, shadowDiscRadius);
             Handles.DrawLine(Vector3.forward * shadowDiscDistance, (Vector3.right * shadowDiscRadius) + (Vector3.forward * shadowDiscDistance));
             Handles.DrawLine(Vector3.forward * shadowDiscDistance, (-Vector3.right * shadowDiscRadius) + (Vector3.forward * shadowDiscDistance));
@@ -604,25 +604,25 @@ namespace UnityEditor.Rendering
 
         static float DrawConeHandles(Vector3 position, float angle, float range, HandleDirections handleDirections, string controlName)
         {
-            if(handleDirections.HasFlag(HandleDirections.Left))
+            if (handleDirections.HasFlag(HandleDirections.Left))
             {
                 angle = SizeSliderSpotAngle(position, Vector3.forward, -Vector3.right, range, angle, controlName);
             }
-            if(handleDirections.HasFlag(HandleDirections.Up))
+            if (handleDirections.HasFlag(HandleDirections.Up))
             {
                 angle = SizeSliderSpotAngle(position, Vector3.forward, Vector3.up, range, angle, controlName);
             }
-            if(handleDirections.HasFlag(HandleDirections.Right))
+            if (handleDirections.HasFlag(HandleDirections.Right))
             {
                 angle = SizeSliderSpotAngle(position, Vector3.forward, Vector3.right, range, angle, controlName);
             }
-            if(handleDirections.HasFlag(HandleDirections.Down))
+            if (handleDirections.HasFlag(HandleDirections.Down))
             {
                 angle = SizeSliderSpotAngle(position, Vector3.forward, -Vector3.up, range, angle, controlName);
             }
             return angle;
         }
-        
+
         static float SliderLineHandle(int id, Vector3 position, Vector3 direction, float value, string labelText = "")
         {
             Vector3 pos = position + direction * value;
@@ -644,7 +644,7 @@ namespace UnityEditor.Rendering
 
             return value;
         }
-        
+
         static float SizeSliderSpotAngle(Vector3 position, Vector3 forward, Vector3 axis, float range, float spotAngle, string controlName)
         {
             if (Math.Abs(spotAngle) <= 0.05f)

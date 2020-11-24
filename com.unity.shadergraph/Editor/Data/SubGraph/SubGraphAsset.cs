@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph
 
         public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
-            if(m_SubGraphData == null)
+            if (m_SubGraphData == null)
             {
                 m_SubGraphData = new SubGraphData();
                 m_SubGraphData.OverrideObjectId(assetGuid, "_subGraphData");
@@ -95,27 +95,27 @@ namespace UnityEditor.ShaderGraph
             m_SubGraphData.outputs.Clear();
             m_SubGraphData.unsupportedTargets.Clear();
 
-            foreach(var input in inputs)
+            foreach (var input in inputs)
             {
                 m_SubGraphData.inputs.Add(input);
             }
 
-            foreach(var keyword in keywords)
+            foreach (var keyword in keywords)
             {
                 m_SubGraphData.keywords.Add(keyword);
             }
 
-            foreach(var nodeProperty in nodeProperties)
+            foreach (var nodeProperty in nodeProperties)
             {
                 m_SubGraphData.nodeProperties.Add(nodeProperty);
             }
 
-            foreach(var output in outputs)
+            foreach (var output in outputs)
             {
                 m_SubGraphData.outputs.Add(output);
             }
 
-            foreach(var unsupportedTarget in unsupportedTargets)
+            foreach (var unsupportedTarget in unsupportedTargets)
             {
                 m_SubGraphData.unsupportedTargets.Add(unsupportedTarget);
             }
@@ -130,7 +130,6 @@ namespace UnityEditor.ShaderGraph
 
         public void OnAfterDeserialize()
         {
-
         }
 
         public void LoadGraphData()

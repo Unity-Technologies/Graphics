@@ -755,7 +755,7 @@ namespace UnityEditor.VFX.UI
             if (!(desc.model is VFXAbstractParticleOutput))
                 return false;
 
-            foreach( var links in controller.model.inputFlowSlot.Select((t,i)=>new { index = i, links = t.link }))
+            foreach (var links in controller.model.inputFlowSlot.Select((t, i) => new { index = i, links = t.link }))
             {
                 foreach (var link in links.links)
                 {
