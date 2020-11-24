@@ -170,11 +170,7 @@ struct UnityTexture3D
 
     float4 Sample(SAMPLER(s), float3 uvw)                               { return SAMPLE_TEXTURE2D(tex, s, uvw); }
     float4 SampleLevel(SAMPLER(s), float3 uvw, float lod)               { return SAMPLE_TEXTURE2D_LOD(tex, s, uvw, lod); }
-
-    #ifndef SHADER_API_GLCORE
-    // this macro is not defined in SHADER_API_GLCORE -- once that is fixed we can remove this restriction
     float4 Load(int4 pixel)                                             { return LOAD_TEXTURE3D_LOD(tex, pixel.xyz, pixel.w); }
-    #endif
 #endif
 };
 
