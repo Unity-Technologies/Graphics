@@ -39,11 +39,13 @@ def extract_flags(utr_flags, platform_name, api_name, build_config, color_space,
                 flag = flag.replace('<SCRIPTING_BACKEND>',build_config["scripting_backend"])
                 flag = flag.replace('<COLORSPACE>',color_space)
                 flag = flag.replace('<PROJECT_FOLDER>',project_folder)
-                if f'{platform_name}_{api_name}'.lower() in ['osx_metal', 'iphone_metal']:
+                if f'{platform_name}_{api_name}'.lower() in ['osx_metal', 'iphone_metal','osx_openglcore', 'linux_vulkan', 'linux_openglcore']:
                     if '%' in flag:
-                        flag = flag.replace('%','$')
-                        flag = flag[:-2]
-                        flag = flag + '"'
+                        indices = [pos for pos, char in enumerate(flag) if char == '%']
+                        if len(indices) != 2:
+                            print(f'WARNING :: check utr flags for variables for {flag}')
+                        flag = flag[:indices[0]] + '$' + flag[indices[0]+1:]
+                        flag = flag.replace('%','')
 
                 # check if such a flag is already present, if it is then overwrite. otherwise just append it
                 existing_indices = [i for i, existing_flag in enumerate(flags) if flag_key in existing_flag]
