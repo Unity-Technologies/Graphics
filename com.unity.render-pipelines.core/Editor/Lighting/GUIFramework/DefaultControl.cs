@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// An interface that represents the default UI control.
+    /// Represents the default implementation of a control.
     /// </summary>
     public abstract class DefaultControl : Control
     {

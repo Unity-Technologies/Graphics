@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// An interface that represents a GUI action.
+    /// Represents an action that is tied to a GUI element.
     /// </summary>
     public abstract class GUIAction
     {

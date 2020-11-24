@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor
 {
     /// <summary>
-    /// An interface that represents a UI control.
+    /// Represents a UI control in a custom editor.
     /// </summary>
     public abstract class Control
     {
