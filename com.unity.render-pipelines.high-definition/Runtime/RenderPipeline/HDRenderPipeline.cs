@@ -321,12 +321,9 @@ namespace UnityEngine.Rendering.HighDefinition
             CameraCache<(Transform viewer, HDProbe probe, int face)>();
 
         RenderTargetIdentifier[] m_MRTTransparentMotionVec;
-#if ENABLE_VIRTUALTEXTURES
-        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3 + VTBufferManager.AdditionalForwardRT]; // Specular, (optional) VT, diffuse, sss buffer; note: vt is alway on slot 1 to keep in sync with unlit.
-        RenderTargetIdentifier[] m_MRTWithVTFeedback = new RenderTargetIdentifier[2];
-#else
+
         RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[3]; // Specular, diffuse, sss buffer;
-#endif
+
         RenderTargetIdentifier[] mMRTSingle = new RenderTargetIdentifier[1];
         string m_ForwardPassProfileName;
 
@@ -559,13 +556,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO : Bind this directly to the debug menu instead of having an intermediate value
             m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
 
-#if ENABLE_VIRTUALTEXTURES
-            // Debug.Log("Scriptable renderpipeline VT enabled");
-            m_MRTTransparentMotionVec = new RenderTargetIdentifier[2 + VTBufferManager.AdditionalForwardRT];
-#else
+
             //Debug.Log("Scriptable renderpipeline VT disabled");
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
-#endif
 
             if (m_RayTracingSupported)
             {
@@ -727,10 +720,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (settings.supportDecals)
                 m_DbufferManager.CreateBuffers();
 
-#if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.CreateBuffers(settings);
-#endif
-
             InitSSSBuffers();
             m_SharedRTManager.InitSharedBuffers(m_GbufferManager, m_Asset.currentPlatformRenderPipelineSettings, defaultResources);
 
@@ -796,9 +785,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_GbufferManager.DestroyBuffers();
             m_DbufferManager.DestroyBuffers();
-#if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.DestroyBuffers();
-#endif
 
             DestroySSSBuffers();
             m_SharedRTManager.Cleanup();
@@ -2390,21 +2376,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.LogError("Error while building Render Graph.");
                         Debug.LogException(e);
                     }
-                    return;
                 }
-
-#if ENABLE_VIRTUALTEXTURES
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
-                {
-                    m_VtBufferManager.Resolve(cmd, m_GbufferManager.GetVTFeedbackBuffer(), hdCamera);
-                    VirtualTexturing.System.Update();
-
-                    if (m_VTDebugBlit != null)
-                    {
-                        PushFullScreenVTFeedbackDebugTexture(cmd, GetVTFeedbackBufferForForward(hdCamera), hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
-                    }
-                }
-#endif
             } // using (ListPool<RTHandle>.Get(out var aovCustomPassBuffers))
 
             // This is required so that all commands up to here are executed before EndCameraRendering is called for the user.
@@ -3690,19 +3662,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return fullScreenDebugEnabled || lightingDebugEnabled;
         }
 
-#if ENABLE_VIRTUALTEXTURES
-        void PushFullScreenVTFeedbackDebugTexture(CommandBuffer cmd, RTHandle textureID, bool msaa)
-        {
-            if (FullScreenDebugMode.RequestedVirtualTextureTiles == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
-            {
-                CoreUtils.SetRenderTarget(cmd, m_DebugFullScreenTempBuffer);
-                m_VTDebugBlit.SetTexture(msaa ? HDShaderIDs._BlitTextureMSAA : HDShaderIDs._BlitTexture, textureID);
-                cmd.DrawProcedural(Matrix4x4.identity, m_VTDebugBlit, msaa ? 1 : 0, MeshTopology.Triangles, 3, 1);
-            }
-        }
-
-#endif
-
         struct DebugParameters
         {
             public DebugDisplaySettings debugDisplaySettings;
@@ -4232,19 +4191,5 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
         }
-
-#if ENABLE_VIRTUALTEXTURES
-        RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
-        {
-            bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-            if (msaaEnabled) return m_VtBufferManager.FeedbackBufferMsaa;
-
-            var res =  m_GbufferManager.GetVTFeedbackBuffer();
-            if (res != null) return res;
-
-            return m_VtBufferManager.FeedbackBuffer;
-        }
-
-#endif
     }
 }
