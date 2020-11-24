@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.GUIFramework
 {
     /// <summary>
-    /// Handles Manipulator
+    /// Represents a handle in the custom editor.
     /// </summary>
     public class HandlesManipulator
     {
@@ -23,7 +23,7 @@ namespace UnityEditor.GUIFramework
         private bool m_Enabled = false;
 
         /// <summary>
-        /// Calls the methods in its invocation list when enter in GUI
+        /// Begins the layout for this handle. A call to EndLayout must always follow a call to this function.
         /// </summary>
         /// <param name="guiState">The current state of the custom editor.</param>
         public void OnGUI(IGUIState guiState)
@@ -39,7 +39,7 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// EndLayout should be called to close an invocation of a BeginLayout
+        /// Ends the layout for this handle. This function must always follow a call to BeginLayout().
         /// </summary>
         /// <param name="guiState">The current state of the custom editor.</param>
         public void EndLayout(IGUIState guiState)
@@ -52,10 +52,10 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// Calls the methods in its invocation list to test if enabled
+        /// Checks whether the handle is enabled in the custom editor.
         /// </summary>
         /// <param name="guiState">The current state of the custom editor.</param>
-        /// <returns>true if enabled</returns>
+        /// <returns>Returns `true` if the handle is enabled. Otherwise, returns `false`.</returns>
         protected bool IsEnabled(IGUIState guiState)
         {
             if (enable != null)

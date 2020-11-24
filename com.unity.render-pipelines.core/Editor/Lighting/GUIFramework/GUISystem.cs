@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.GUIFramework
 {
     /// <summary>
-    /// GUI System
+    /// Represents a system of GUI elements and controls.
     /// </summary>
     public class GUISystem
     {
@@ -32,9 +32,9 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// Add control to the internal list of controls
+        /// Adds a control to the internal list of controls.
         /// </summary>
-        /// <param name="control">Control have to be added</param>
+        /// <param name="control">The control to add.</param>
         public void AddControl(Control control)
         {
             if (control == null)
@@ -44,18 +44,18 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// Remove control from the internal list of controls
+        /// Removes a control from the internal list of controls.
         /// </summary>
-        /// <param name="control">Control have to be removed</param>
+        /// <param name="control">The control to remove.</param>
         public void RemoveControl(Control control)
         {
             m_Controls.Remove(control);
         }
 
         /// <summary>
-        /// Add Action to the internal list of actions
+        /// Adds an action to the internal list of actions.
         /// </summary>
-        /// <param name="action">Action added</param>
+        /// <param name="action">The action to add.</param>
         public void AddAction(GUIAction action)
         {
             if (action == null)
@@ -65,18 +65,18 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// Remove Action from the internal list of actions
+        /// Removes an action from the internal list of actions.
         /// </summary>
-        /// <param name="action">Action removed</param>
+        /// <param name="action">The action to remove.</param>
         public void RemoveAction(GUIAction action)
         {
             m_Actions.Remove(action);
         }
 
         /// <summary>
-        /// Add Manipulator to the internal list of manipulators
+        /// Adds a manipulator to the internal list of manipulators.
         /// </summary>
-        /// <param name="manipulator">Manipulator added</param>
+        /// <param name="manipulator">The manipulator to add.</param>
         public void AddManipulator(HandlesManipulator manipulator)
         {
             if (manipulator == null)
@@ -86,16 +86,16 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// Remove Manipulator from the internal list of manipulators
+        /// Removes a manipulator from the internal list of manipulators.
         /// </summary>
-        /// <param name="manipulator">Manipulator removed</param>
+        /// <param name="manipulator">The manipulator to remove.</param>
         public void RemoveManipulator(HandlesManipulator manipulator)
         {
             m_Manipulators.Remove(manipulator);
         }
 
         /// <summary>
-        /// Calls the methods in its invocation list when enter in the GUI
+        /// Calls the methods in its invocation list when Unity draws this GUISystems's GUI.
         /// </summary>
         public void OnGUI()
         {
@@ -175,9 +175,9 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// Calls the methods in its invocation list when the Mouse Moves
+        /// Calls the methods in its invocation list when the mouse moves.
         /// </summary>
-        /// <returns>true, if mouse moved</returns>
+        /// <returns>Returns `true` if the mouse moved. Otherwise, returns `false`.</returns>
         private bool IsMouseMoveEvent()
         {
             return m_GUIState.eventType == EventType.MouseMove || m_GUIState.eventType == EventType.MouseDrag;

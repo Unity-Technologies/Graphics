@@ -26,23 +26,23 @@ namespace UnityEditor.GUIFramework
         /// <summary>
         /// Initializes and returns an instance of SliderAction
         /// </summary>
-        /// <param name="control">Control</param>
+        /// <param name="control">The control to execcute an action for on slide.</param>
         public SliderAction(Control control) : base(control, 0, false)
         {
         }
 
         /// <summary>
-        /// GetFinishedCondiction
+        /// Checks to see if the finish condition has been met or not.
         /// </summary>
-        /// <param name="guiState">The GUIState</param>
-        /// <returns>true if finish condition are validated</returns>
+        /// <param name="guiState">The current state of the custom editor.</param>
+        /// <returns>Returns `true` if the finish condition has been met. Otherwise, returns `false`.</returns>
         protected override bool GetFinishCondition(IGUIState guiState)
         {
             return guiState.eventType == EventType.MouseUp && guiState.mouseButton == 0;
         }
 
         /// <summary>
-        /// On Trigger
+        /// Called when there is interaction with the slider. It updates the stored slider data with data post-interaction.
         /// </summary>
         /// <param name="guiState">The current state of the custom editor.</param>
         protected override void OnTrigger(IGUIState guiState)
@@ -59,7 +59,7 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// On Finished
+        /// Post-processing for when the slider interaction finishes.
         /// </summary>
         /// <param name="guiState">The current state of the custom editor.</param>
         protected override void OnFinish(IGUIState guiState)
@@ -72,9 +72,9 @@ namespace UnityEditor.GUIFramework
         }
 
         /// <summary>
-        /// On Perform
+        /// Moves the slider to the new permission and executes `onSliderChanged` using the new position.
         /// </summary>
-        /// <param name="guiState">The GUIState</param>
+        /// <param name="guiState">The current state of the custom editor</param>
         protected override void OnPerform(IGUIState guiState)
         {
             Vector3 newPosition;
