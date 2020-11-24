@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+
+### Changed
+- Removed the material pass probe volumes evaluation mode.
+- Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
+
+## [10.3.0] - 2020-11-16
+
+### Added
+- Added a warning when trying to bake with static lighting being in an invalid state.
+
+### Fixed
+- Fixed stylesheet reloading for LookDev window and Wizard window.
 - Fixed XR single-pass rendering with legacy shaders using unity_StereoWorldSpaceCameraPos.
 - Fixed issue displaying wrong debug mode in runtime debug menu UI.
 - Fixed useless editor repaint when using lod bias.
@@ -24,13 +36,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing alpha blend state properties in Axf shader and update default stencil properties
 - Fixed normal buffer not bound to custom pass anymore.
 - Fixed issues with camera management in the graphics compositor (cases 1292548, 1292549).
-- Fixes some labels being clipped in the Render Graph Viewer
 - Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
 
 ### Changed
-- Removed the material pass probe volumes evaluation mode.
-- Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
+- Now the screen space shadow is only used if the analytic value is valid.
 
 ## [10.2.0] - 2020-10-19
 
@@ -51,7 +61,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added documentation for LODs not being supported by ray tracing.
 - Added more options to control how the component of motion vectors coming from the camera transform will affect the motion blur with new clamping modes.
 - Added anamorphism support for phsyical DoF, switched to blue noise sampling and fixed tiling artifacts.
-- Added a warning when trying to bake with static lighting being in an invalid state.
 
 ### Fixed
 - Fixed an issue where the Exposure Shader Graph node had clipped text. (case 1265057)
@@ -139,7 +148,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the possibility to have MSAA (through the frame settings) when ray tracing is active.
 - Range handles for decal projector angle fading.
 - Smoother angle fading for decal projector.
-- Now the screen space shadow is only used if the analytic value is valid.
 
 ## [10.1.0] - 2020-10-12
 
