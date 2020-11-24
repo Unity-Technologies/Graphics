@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
 
+### Changed
+- Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
+
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
 - Serialization issue with VFXSpawnerCallbacks
