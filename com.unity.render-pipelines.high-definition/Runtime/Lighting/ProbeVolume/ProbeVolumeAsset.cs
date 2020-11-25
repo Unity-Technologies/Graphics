@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -18,8 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
         [SerializeField] public int Version { get => m_Version; }
-        [SerializeField] public SphericalHarmonicsL1[] probes;
-        [SerializeField] public ProbeBrickIndex.Brick[] bricks;
+
+        [SerializeField] public List<ProbeReferenceVolume.Cell> cells = new List<ProbeReferenceVolume.Cell>();
 
 #if UNITY_EDITOR
         internal static string GetFileName(int id = -1)
