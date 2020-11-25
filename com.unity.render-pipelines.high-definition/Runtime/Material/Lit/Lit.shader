@@ -904,8 +904,8 @@ Shader "HDRP/Lit"
 
         Pass
         {
-            Name "ForwardEmissive"
-            Tags{ "LightMode" = "ForwardEmissive" }
+            Name "ForwardEmissiveForDeferred"
+            Tags{ "LightMode" = "ForwardEmissiveForDeferred" } // This pass is solely used with deferred opaque Material that have emissive
 
             Stencil
             {
@@ -920,7 +920,6 @@ Shader "HDRP/Lit"
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
             Cull [_CullModeForward]
-            ColorMask 0 1
 
             HLSLPROGRAM
 
@@ -933,7 +932,13 @@ Shader "HDRP/Lit"
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE
+            #pragma multi_compile _ DEBUG_DISPLAY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+            #ifdef DEBUG_DISPLAY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+            #endif
+
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"

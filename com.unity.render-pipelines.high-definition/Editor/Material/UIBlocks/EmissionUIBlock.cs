@@ -49,13 +49,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Emission multiply with Base", "Specifies whether or not the emission color is multiplied by the albedo.");
             public static GUIContent useEmissiveIntensityText = new GUIContent("Use Emission Intensity", "Specifies whether to use to a HDR color or a LDR color with a separate multiplier.");
-            public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "");
+            public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Emission intensity in provided Unit");
             public static GUIContent emissiveIntensityFromHDRColorText = new GUIContent("The emission intensity is from the HDR color picker in luminance", "");
             public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Controls how the camera exposure influences the perceived intensity of the emissivity. A weight of 0 means that the emissive intensity is calculated ignoring the exposure; increasing this weight progressively increases the influence of exposure on the final emissive value.");
 
             public static GUIContent UVEmissiveMappingText = new GUIContent("Emission UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World Scale", "Sets the tiling factor HDRP applies to Planar/Trilinear mapping.");
-            public static GUIContent bakedEmission = new GUIContent("Baked Emission", "");
+            public static GUIContent bakedEmissionText = new GUIContent("Baked Emission", "Specifies whether or not the emission will contribute to global illumination.");
         }
 
         MaterialProperty emissiveColorLDR = null;
@@ -257,7 +257,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // initial checkbox for enabling/disabling emission
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = isMixed;
-            enabled = EditorGUILayout.Toggle(Styles.bakedEmission, enabled);
+            enabled = EditorGUILayout.Toggle(Styles.bakedEmissionText, enabled);
             EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
             {
