@@ -1,12 +1,7 @@
 float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
 {
-#if 0 // prioritize clearcoat
-    float roughness = HasClearcoat() ? CLEAR_COAT_ROUGHNESS : PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
-    float3x3 localToWorld = GetLocalFrame(HasClearcoat() ? bsdfData.clearcoatNormalWS : bsdfData.normalWS);
-#else
     float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     float3x3 localToWorld = GetLocalFrame(bsdfData.normalWS);
-#endif
 
     float NdotL, NdotH, VdotH;
     float3 sampleDir;
@@ -28,8 +23,6 @@ IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopCont
     if (HasClearcoat())
     {
         reflectanceFactor = GetSSRDimmer() * bsdfData.clearcoatColor * preLightData.coatFGD;
-        //DEBUG_CONSTANT_BUFFERS: show if coat flag has been detected or not
-        //reflectanceFactor *= float3(1,0,0);
     }
     else
     {
@@ -52,8 +45,6 @@ IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopCont
         // This is only possible if the AxF is a BTF type. However, there is a bunch of ifdefs do not support this third case
 #endif
         reflectanceFactor *= GetSSRDimmer();
-        //DEBUG_CONSTANT_BUFFERS: show if coat flag has been detected or not
-        //reflectanceFactor *= float3(1,0,1);
     }
 
     lighting.specularReflected = reflection.rgb * reflectanceFactor;
@@ -86,10 +77,8 @@ void FitToStandardLit( SurfaceData surfaceData
     float scalarRoughness;
     float coatFGD;
 
-    // TODO_flakes: we could fake it by mixing a component in the diffuse color
+    // We can fake flakes by mixing a component in the diffuse color
     // or the F0, with the later maybe averaging the f0 according to roughness and V
-    //GetBaseSurfaceColorAndF0(surfaceData, /*out*/ outStandardlit.baseColor, /*out*/ outStandardlit.fresnel0, /*out*/specBRDFColor, /*out*/singleFlakesComponent, /*out*/coatFGD);
-    //GetBaseSurfaceColorAndF0(surfaceData, /*out*/ outStandardlit.baseColor, /*out*/ outStandardlit.fresnel0, /*out*/specBRDFColor, /*out*/singleFlakesComponent, /*out*/coatFGD, surfaceData.viewWS);
     GetBaseSurfaceColorAndF0(surfaceData,
                              /*out*/ outStandardlit.baseColor,
                              /*out*/ outStandardlit.fresnel0,

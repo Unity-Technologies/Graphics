@@ -22,10 +22,9 @@
 // DEBUG
 //#define DEBUG_HIDE_COAT
 
-//#define AXF_DEBUG_RAYTRACING_CONSTANT_BUFFER
-
 #if 1 // defined(SHADER_STAGE_RAY_TRACING)
-// test patch: in raytracing shader context, use float props that mirror the int props
+// patch: in raytracing shader context, use float props that mirror the int props
+// this is a workaround until we deal properly with the transfer of int properties in raytracing shaders on the engine side.
 
 #define AXF_MATERIAL_FLAGS            (_FlagsB)
 
@@ -56,10 +55,6 @@
 #endif // defined(SHADER_STAGE_RAY_TRACING)
 
 
-#if defined(AXF_DEBUG_RAYTRACING_CONSTANT_BUFFER)
-#undef AXF_MATERIAL_FLAGS
-#define AXF_MATERIAL_FLAGS (FEATUREFLAGS_AXF_CLEAR_COAT_REFRACTION | FEATUREFLAGS_AXF_CLEAR_COAT) // debug raytracing uint in constant buffer
-#endif// debug raytracing uint in constant buffer
 //-----------------------------------------------------------------------------
 
 #define FORCE_DISABLE_LIGHT_TYPE_DIMMERS
@@ -341,10 +336,6 @@ bool HasClearcoat()
 #if defined(_AXF_BRDF_TYPE_CAR_PAINT) && defined(FORCE_CAR_PAINT_HAS_CLEARCOAT)
     ret = true;
 #endif
-    //DEBUG:
-    //ret = ((AXF_MATERIAL_FLAGS) > 1030000000);
-    //ret = ((AXF_MATERIAL_FLAGS) == 8388614);
-    //ret = AXF_SVBRDF_BRDFVariants & 3;
     return ret;
 }
 
@@ -710,24 +701,6 @@ float3  CarPaint_BTF(float thetaH, float thetaD, SurfaceData surfaceData, BSDFDa
     uint flakeNumThetaF = AXF_CARPAINT2_FLAKENUMTHETAF;
     uint flakeNumThetaI = AXF_CARPAINT2_FLAKENUMTHETAI;
 
-#ifdef AXF_DEBUG_RAYTRACING_CONSTANT_BUFFER
-    // blue paint:
-    // _Flags = 6
-    // - AXF_CARPAINT2_FLAKEMAXTHETAI: 12
-    // - AXF_CARPAINT2_FLAKENUMTHETAF: 24
-    // - AXF_CARPAINT2_FLAKENUMTHETAI: 24
-    //thetaH = 0; thetaD = 0.1;
-    //thetaH = 0; thetaD = _CarPaint2_CTSpreads[0];
-    flakeMaxThetaI = 12;
-    flakeNumThetaF = 24;
-    flakeNumThetaI = 24;
-
-    //And uncommenting this makes the flakes disappear, showing that AXF_CarPaint2_FlakeNumThetaF is actually not zero but some corrupted value
-    //flakeMaxThetaI = AXF_CARPAINT2_FLAKEMAXTHETAI == 0 ? 12 : AXF_CARPAINT2_FLAKEMAXTHETAI;
-    //flakeNumThetaF = AXF_CARPAINT2_FLAKENUMTHETAF == 0 ? 24 : AXF_CARPAINT2_FLAKENUMTHETAF;
-    //flakeNumThetaI = AXF_CARPAINT2_FLAKENUMTHETAI == 0 ? 24 : AXF_CARPAINT2_FLAKENUMTHETAI;
-#endif
-
     // Note: this has no impact on perf, it is just to support multiple callee contexts:
     FlakesSamplingInfo flakesSamplingInfo = GetFillFlakesSamplingInfo(surfaceData, bsdfData, useBSDFData);
 
@@ -926,12 +899,10 @@ void GetCarPaintSpecularColorAndFlakesComponent(SurfaceData surfaceData, out flo
         coatFGD = HasClearcoat() ? F_FresnelDieletricSafe(surfaceData.clearcoatIOR, coatNdotV) : 0;
 
         float3 refractedViewWS = V;
-        float test = 1;
         float thetaHForBRDFColor = FixedBRDFColorThetaHForIndirectLight;
         float thetaHForFlakes = FixedFlakesThetaHForIndirectLight;
         if (HasClearcoatAndRefraction())
         {
-            //test = 100;
             refractedViewWS = -Refract(V, coatNormalWS, 1.0 / surfaceData.clearcoatIOR);
             thetaHForBRDFColor = Refract(thetaHForBRDFColor, 1.0 / surfaceData.clearcoatIOR);
             thetaHForFlakes = Refract(thetaHForFlakes, 1.0 / surfaceData.clearcoatIOR);
@@ -941,13 +912,13 @@ void GetCarPaintSpecularColorAndFlakesComponent(SurfaceData surfaceData, out flo
         float thetaH = 0; //FastACosPos(clamp(NdotH, 0, 1));
         float thetaD = FastACosPos(clamp(NdotV, 0, 1));
 
-        singleBRDFColor = test * GetBRDFColor(thetaHForBRDFColor, thetaD);
-        //singleBRDFColor = test * GetBRDFColor(_CarPaint2_CTSpreads[0] * PI/2, thetaD); //debug
-        singleFlakesComponent = test * CarPaint_BTF(thetaHForFlakes, thetaD, surfaceData, (BSDFData)0, /*useBSDFData:*/false);
+        singleBRDFColor = GetBRDFColor(thetaHForBRDFColor, thetaD);
+        singleFlakesComponent = CarPaint_BTF(thetaHForFlakes, thetaD, surfaceData, (BSDFData)0, /*useBSDFData:*/false);
     }
     else
     {
-        //coatFGD = HasClearcoat() ? F_FresnelDieletricSafe(surfaceData.clearcoatIOR, 1) : 0; // ...this is just F0 of coat
+        //coatFGD = HasClearcoat() ? F_FresnelDieletricSafe(surfaceData.clearcoatIOR, 1) : 0;
+        // ...this is just F0 of coat, so we do the equivalent:
         coatFGD = HasClearcoat() ? IorToFresnel0(surfaceData.clearcoatIOR) : 0;
 
         singleBRDFColor = GetBRDFColor(0,0);
@@ -984,26 +955,18 @@ void GetBaseSurfaceColorAndF0(SurfaceData surfaceData, out float3 diffuseColor, 
     fresnel0 = saturate(3*GetCarPaintFresnel0()); // TODO: presumably better fit using V, see also GetCarPaintSpecularColor that uses V
     fresnel0 = fresnel0.r * specularColor;
 
-    //fresnel0 = V * 0.5 + 0.5;
-    //diffuseColor = fresnel0;
-
     if (mixFlakes)
     {
         float maxf0 = Max3(fresnel0.r, fresnel0.g, fresnel0.b);
-        //fresnel0 = lerp(singleFlakesComponent, fresnel0, maxf0);
-        //fresnel0 = lerp(singleFlakesComponent*maxf0, fresnel0, maxf0);
-        //fresnel0 = saturate(pow(singleFlakesComponent,1.2)*saturate((1-pow(maxf0,0.2))) + fresnel0);
-        //fresnel0 = saturate(pow(singleFlakesComponent,1.2)*saturate((1-maxf0)) + fresnel0);
-        //fresnel0 = saturate(pow(singleFlakesComponent,1.2) + fresnel0);
         fresnel0 = saturate(singleFlakesComponent + fresnel0);
     }
 
 #endif
 
-    float baseEnergy = (1-coatFGD); // should be Sq but at this point we eyeball anyway, TODO
+    float baseEnergy = (1-coatFGD); // should be Sq but at this point we eyeball anyway,
     //specularColor *= baseEnergy;
     //diffuseColor *= baseEnergy;
-
+    //...commented, seems better without it.
 }
 
 void GetRoughnessNormalCoatMaskForFitToStandardLit(SurfaceData surfaceData, float coatFGD, out float3 normalWS, out float roughness, out float coatMask)
