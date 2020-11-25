@@ -424,8 +424,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
-
             var defaultLensAttenuation = m_DefaultAsset.lensAttenuationMode;
             if (defaultLensAttenuation == LensAttenuationMode.ImperfectLens)
             {
@@ -557,6 +555,8 @@ namespace UnityEngine.Rendering.HighDefinition
             MousePositionDebug.instance.Build();
 
             InitializeRenderStateBlocks();
+
+            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
 
             // Keep track of the original msaa sample value
             // TODO : Bind this directly to the debug menu instead of having an intermediate value
