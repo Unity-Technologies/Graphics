@@ -87,7 +87,7 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
             {
-                using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData))
+                using (var builder = renderGraph.AddRenderPass<ResolveVTData>("Resolve VT", out var passData, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
                 {
                     // The output is never read outside the pass but is still useful for the VT system so we can't cull this pass.
                     builder.AllowPassCulling(false);
