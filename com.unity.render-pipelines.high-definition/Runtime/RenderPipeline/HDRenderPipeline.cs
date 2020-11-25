@@ -512,13 +512,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitPathTracing();
 
                 m_AmbientOcclusionSystem.InitRaytracing(this);
-
-
-                if (m_RayTracingSupported)
-                {
-                    m_RayCountManager.InitializeNonRenderGraphResources();
-                }
             }
+
             // Initialize the SSGI structures
             InitScreenSpaceGlobalIllumination();
 
@@ -837,9 +832,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseRayTracingDeferred();
                 ReleaseRayTracedIndirectDiffuse();
                 ReleasePathTracing();
-
-                m_RayCountManager.CleanupNonRenderGraphResources();
             }
+
             ReleaseRayTracingManager();
             m_DebugDisplaySettings.UnregisterDebug();
 
@@ -2021,13 +2015,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 aovRequest.SetupDebugData(ref m_CurrentDebugDisplaySettings);
-
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                {
-                    // Must update after getting DebugDisplaySettings
-                    m_RayCountManager.ClearRayCount(cmd, hdCamera, m_CurrentDebugDisplaySettings.data.countRays);
-                }
-
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                 {
@@ -3641,11 +3628,6 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cubeArraySliceIndex);
             cmd.DrawProcedural(Matrix4x4.identity, debugParameters.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
             debugParameters.debugOverlay.Next();
-        }
-
-        static void RenderRayCountOverlay(in DebugParameters debugParameters, CommandBuffer cmd)
-        {
-            debugParameters.rayCountManager.EvaluateRayCount(cmd, debugParameters.hdCamera);
         }
 
         struct PostProcessParameters

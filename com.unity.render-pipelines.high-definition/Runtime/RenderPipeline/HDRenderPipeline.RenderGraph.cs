@@ -278,6 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     prepassOutput.resolvedDepthBuffer,
                     prepassOutput.depthPyramidTexture,
                     colorPickerTexture,
+                    rayCountTexture,
                     gpuLightListOutput,
                     shadowResult,
                     cullingResults);
