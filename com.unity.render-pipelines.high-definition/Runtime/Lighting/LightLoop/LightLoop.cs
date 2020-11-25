@@ -737,7 +737,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugViewTilesMaterial;
         Material m_DebugHDShadowMapMaterial;
         Material m_DebugBlitMaterial;
-        Material m_DebugDisplayProbeVolumeMaterial;
 
         HashSet<HDAdditionalLightData> m_ScreenSpaceShadowsUnion = new HashSet<HDAdditionalLightData>();
 
@@ -860,7 +859,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewTilesPS);
             m_DebugHDShadowMapMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugHDShadowMapPS);
             m_DebugBlitMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugBlitQuad);
-            m_DebugDisplayProbeVolumeMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDisplayProbeVolumePS);
 
             m_MaxDirectionalLightsOnScreen = lightLoopSettings.maxDirectionalLightsOnScreen;
             m_MaxPunctualLightsOnScreen = lightLoopSettings.maxPunctualLightsOnScreen;
@@ -1041,7 +1039,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugViewTilesMaterial);
             CoreUtils.Destroy(m_DebugHDShadowMapMaterial);
             CoreUtils.Destroy(m_DebugBlitMaterial);
-            CoreUtils.Destroy(m_DebugDisplayProbeVolumeMaterial);
         }
 
         void LightLoopNewRender()

@@ -34,7 +34,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 IsFeatureEnabled,
                 CED.Group(
                     Drawer_ToolBar,
-                    Drawer_AdvancedSwitch,
                     Drawer_VolumeContent,
                     Drawer_BakeToolBar
                     )
@@ -75,40 +74,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_ToolBar(SerializedProbeVolume serialized, Editor owner)
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            EditMode.DoInspectorToolbar(new[] { ProbeVolumeEditor.k_EditShape, ProbeVolumeEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
-                {
-                    var bounds = new Bounds();
-                    foreach (Component targetObject in owner.targets)
-                    {
-                        bounds.Encapsulate(targetObject.transform.position);
-                    }
-                    return bounds;
-                },
-                owner);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        }
-
-        static void Drawer_AdvancedSwitch(SerializedProbeVolume serialized, Editor owner)
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-
-                bool advanced = serialized.advancedFade.boolValue;
-                advanced = GUILayout.Toggle(advanced, Styles.s_AdvancedModeContent, EditorStyles.miniButton, GUILayout.Width(70f), GUILayout.ExpandWidth(false));
-                foreach (var containedBox in ProbeVolumeEditor.blendBoxes.Values)
-                {
-                    containedBox.monoHandle = !advanced;
-                }
-                if (serialized.advancedFade.boolValue ^ advanced)
-                {
-                    serialized.advancedFade.boolValue = advanced;
-                }
-            }
         }
 
         static void Drawer_VolumeContent(SerializedProbeVolume serialized, Editor owner)
@@ -122,9 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 tmpClamp.y = Mathf.Max(0f, tmpClamp.y);
                 tmpClamp.z = Mathf.Max(0f, tmpClamp.z);
                 serialized.size.vector3Value = tmpClamp;
-            }
-            
-            EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
+            }            
         }
     }
 }

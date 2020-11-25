@@ -135,7 +135,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLayerName6 = "Light Layer 6",
                 lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
-                probeVolumeSettings = GlobalProbeVolumeSettings.@default,
             };
             return settings;
         }
@@ -274,8 +273,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support ray tracing mode.</summary>
         public SupportedRayTracingMode supportedRayTracingMode;
 
-        /// <summary>Global Probe Volume settings.</summary>
-        [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
 		/// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>
