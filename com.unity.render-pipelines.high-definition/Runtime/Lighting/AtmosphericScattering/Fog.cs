@@ -147,7 +147,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._MipFogParameters  = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
 
             DensityVolumeArtistParameters param = new DensityVolumeArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
-            DensityVolumeEngineData data = param.ConvertToEngineData();
+
+            // What's this? There is no density volume here.
+            OrientedBBox invalidOBB = new OrientedBBox();
+            DensityVolumeData data = param.ConvertToEngineData(invalidOBB);
 
             cb._HeightFogBaseScattering = data.scattering;
             cb._HeightFogBaseExtinction = data.extinction;

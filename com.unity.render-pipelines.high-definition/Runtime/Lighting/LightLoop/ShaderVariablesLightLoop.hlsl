@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricLighting.cs.hlsl" // For 'DensityVolumeData'
 
 // It appears that, due to our include structure, we have to always declare these.
 StructuredBuffer<uint> _CoarseTileBuffer;
@@ -11,16 +12,14 @@ StructuredBuffer<uint> _zBinBuffer;
 #endif
 
 // Directional lights + 1x list per BoundedEntityCategory.
-StructuredBuffer<DirectionalLightData>       _DirectionalLightData;
+StructuredBuffer<DirectionalLightData> _DirectionalLightData;
 
 // NEVER ACCESS THESE DIRECTLY.
-StructuredBuffer<LightData>                  _PunctualLightData;
-StructuredBuffer<LightData>                  _AreaLightData;
-StructuredBuffer<EnvLightData>               _ReflectionProbeData;
-// Defined elsewhere:
-// StructuredBuffer<DecalData> 		   		 _DecalData;
-// StructuredBuffer<DensityVolumeEngineData> _DensityVolumeData;
-// StructuredBuffer<OrientedBBox>            _DensityVolumeBounds;
+StructuredBuffer<LightData>         _PunctualLightData;
+StructuredBuffer<LightData>         _AreaLightData;
+StructuredBuffer<EnvLightData>      _ReflectionProbeData;
+// StructuredBuffer<DecalData> 		_DecalData; // Defined elsewhere
+StructuredBuffer<DensityVolumeData> _DensityVolumeData;
 
 // Used by directional and spot lights
 TEXTURE2D(_CookieAtlas);

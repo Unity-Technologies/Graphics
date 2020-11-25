@@ -544,14 +544,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public VolumeVoxelizationParameters parameters;
             public TextureHandle                densityBuffer;
             public ComputeBufferHandle          bigTileLightListBuffer;
-            public ComputeBuffer                visibleVolumeBoundsBuffer;
-            public ComputeBuffer                visibleVolumeDataBuffer;
         }
 
         TextureHandle VolumeVoxelizationPass(   RenderGraph         renderGraph,
                                                 HDCamera            hdCamera,
-                                                ComputeBuffer       visibleVolumeBoundsBuffer,
-                                                ComputeBuffer       visibleVolumeDataBuffer,
                                                 ComputeBufferHandle bigTileLightList,
                                                 int                 frameIndex)
         {
@@ -562,8 +558,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
                     passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
-                    passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
-                    passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
                     passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
                     float tileSize = 0;
@@ -576,8 +570,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         VolumeVoxelizationPass( data.parameters,
                                                 data.densityBuffer,
-                                                data.visibleVolumeBoundsBuffer,
-                                                data.visibleVolumeDataBuffer,
                                                 data.bigTileLightListBuffer,
                                                 ctx.cmd);
                     });

@@ -93,7 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Views[i].areaLightData       = new List<LightData>();
                 m_Views[i].reflectionProbeData = new List<EnvLightData>();
                 m_Views[i].decalData           = new List<DecalData>();
-                m_Views[i].densityVolumeData   = new List<DensityVolumeEngineData>();
+                m_Views[i].densityVolumeData   = new List<DensityVolumeData>();
                 m_Views[i].entityBounds        = new List<FiniteLightBound>();
                 m_Views[i].entitySortKeys      = new ulong[m_MaxEntityCount];
             }
@@ -234,7 +234,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // These must be added in the sorted order! TODO: how to enforce this?
-        public void AddEntityData(int viewIndex, BoundedEntityCategory category, DensityVolumeEngineData data)
+        public void AddEntityData(int viewIndex, BoundedEntityCategory category, DensityVolumeData data)
         {
             Debug.Assert(category == BoundedEntityCategory.DensityVolume);
             m_Views[viewIndex].densityVolumeData.Add(data);
@@ -310,12 +310,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int[] s_EntityDataSizesPerCategory = new int[(int)BoundedEntityCategory.Count] // Can't make it const in C#...
         {
-             Marshal.SizeOf(typeof(LightData)),               // BoundedEntityCategory.PunctualLight
-             Marshal.SizeOf(typeof(LightData)),               // BoundedEntityCategory.AreaLight
-             Marshal.SizeOf(typeof(EnvLightData)),            // BoundedEntityCategory.ReflectionProbe
-             Marshal.SizeOf(typeof(DecalData)),               // BoundedEntityCategory.Decal
-             Marshal.SizeOf(typeof(DensityVolumeEngineData)), // BoundedEntityCategory.DensityVolume
-             // Marshal.SizeOf(typeof(ProbeVolumeEngineData))    // BoundedEntityCategory.ProbeVolume
+             Marshal.SizeOf(typeof(LightData)),         // BoundedEntityCategory.PunctualLight
+             Marshal.SizeOf(typeof(LightData)),         // BoundedEntityCategory.AreaLight
+             Marshal.SizeOf(typeof(EnvLightData)),      // BoundedEntityCategory.ReflectionProbe
+             Marshal.SizeOf(typeof(DecalData)),         // BoundedEntityCategory.Decal
+             Marshal.SizeOf(typeof(DensityVolumeData)), // BoundedEntityCategory.DensityVolume
+             // Marshal.SizeOf(typeof(ProbeVolumeEngineData)) // BoundedEntityCategory.ProbeVolume
         };
 
         // The entity count is the same for all views.
@@ -328,11 +328,11 @@ namespace UnityEngine.Rendering.HighDefinition
         struct ViewDependentData
         {
             // 1x list per category.
-            public List<LightData>               punctualLightData;
-            public List<LightData>               areaLightData;
-            public List<EnvLightData>            reflectionProbeData;
-            public List<DecalData>               decalData;
-            public List<DensityVolumeEngineData> densityVolumeData;
+            public List<LightData>         punctualLightData;
+            public List<LightData>         areaLightData;
+            public List<EnvLightData>      reflectionProbeData;
+            public List<DecalData>         decalData;
+            public List<DensityVolumeData> densityVolumeData;
 
             // 1x list for all entites (sorted by category).
             public List<FiniteLightBound> entityBounds;
@@ -2999,15 +2999,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
-        static uint CalculateProbeLogVolume(Bounds bounds)	
-        {	
-            //Notes:	
-            // - 1+ term is to prevent having negative values in the log result	
-            // - 1000* is too keep 3 digit after the dot while we truncate the result later	
-            // - 1048575 is 2^20-1 as we pack the result on 20bit later	
-            float boxVolume = 8f* bounds.extents.x * bounds.extents.y * bounds.extents.z;	
-            uint  logVolume = (uint)Math.Max(0, Math.Min((int)(1000 * Mathf.Log(1 + boxVolume, 1.05f)), 1048575));	
-            return logVolume;	
+        static uint CalculateProbeLogVolume(Bounds bounds)
+        {
+            //Notes:
+            // - 1+ term is to prevent having negative values in the log result
+            // - 1000* is too keep 3 digit after the dot while we truncate the result later
+            // - 1048575 is 2^20-1 as we pack the result on 20bit later
+            float boxVolume = 8f* bounds.extents.x * bounds.extents.y * bounds.extents.z;
+            uint  logVolume = (uint)Math.Max(0, Math.Min((int)(1000 * Mathf.Log(1 + boxVolume, 1.05f)), 1048575));
+            return logVolume;
         }
 
         internal static void PreprocessReflectionProbeData(ref ProcessedProbeData processedData, VisibleReflectionProbe probe, HDCamera hdCamera)
@@ -3261,13 +3261,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                int densityVolumeCount = (densityVolumes.bounds != null) ? Math.Min(densityVolumes.bounds.Count, m_MaxDensityVolumesOnScreen) : 0;
+                int densityVolumeCount = (densityVolumes.data != null) ? Math.Min(densityVolumes.data.Count, m_MaxDensityVolumesOnScreen) : 0;
 
                 for (int densityVolumeIndex = 0; densityVolumeIndex < densityVolumeCount; densityVolumeIndex++)
                 {
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
-                        float w   = ComputeLinearDepth(densityVolumes.bounds[densityVolumeIndex].center, hdCamera, viewIndex);
+                        float w   = ComputeLinearDepth(densityVolumes.data[densityVolumeIndex].center, hdCamera, viewIndex);
                         int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(densityVolumeIndex, BoundedEntityCategory.DensityVolume, d);
 
@@ -3362,9 +3362,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Density volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        FiniteLightBound bounds = GetBoxVolumeDataAndBound(densityVolumes.bounds[densityVolumeIndex], BoundedEntityCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
 
-                        m_BoundedEntityCollection.AddEntityData(viewIndex, BoundedEntityCategory.DensityVolume, densityVolumes.density[densityVolumeIndex]);
+                        OrientedBBox obb = new OrientedBBox();
+
+                        obb.right   = densityVolumes.data[densityVolumeIndex].right;
+                        obb.extentX = densityVolumes.data[densityVolumeIndex].extentX;
+                        obb.up      = densityVolumes.data[densityVolumeIndex].up;
+                        obb.extentY = densityVolumes.data[densityVolumeIndex].extentY;
+                        obb.center  = densityVolumes.data[densityVolumeIndex].center;
+                        obb.extentZ = densityVolumes.data[densityVolumeIndex].extentZ;
+
+                        FiniteLightBound bounds = GetBoxVolumeDataAndBound(obb, BoundedEntityCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
+
+                        m_BoundedEntityCollection.AddEntityData(viewIndex, BoundedEntityCategory.DensityVolume, densityVolumes.data[densityVolumeIndex]);
                         m_BoundedEntityCollection.AddEntityBounds(viewIndex, BoundedEntityCategory.DensityVolume, bounds);
                     }
                 }
@@ -4260,13 +4270,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     cb._Env2DAtlasScaleOffset[i * 4 + j] = m_TextureCaches.env2DAtlasScaleOffset[i][j];
             }
 
-            // Light info
+            // Entity info
             cb._DirectionalLightCount = (uint)m_DirectionalLightData.Count;
             cb._PunctualLightCount    = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.PunctualLight);
             cb._AreaLightCount        = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.AreaLight);
             cb._ReflectionProbeCount  = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.ReflectionProbe);
             cb._DecalCount            = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.Decal);
-            // cb._DensityVolumeCount    = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume);
+            cb._DensityVolumeCount    = (uint)m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume);
 
             HDAdditionalLightData sunLightData = GetHDAdditionalLightData(m_CurrentSunLight);
             bool sunLightShadow = sunLightData != null && m_CurrentShadowSortedSunLightIndex >= 0;
@@ -4324,13 +4334,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._ReflectionProbeData,   m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.ReflectionProbe));
             cmd.SetGlobalBuffer(HDShaderIDs._DecalData,             m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.Decal));
             cmd.SetGlobalBuffer(HDShaderIDs._DensityVolumeData,     m_BoundedEntityCollection.GetEntityDataBuffer(BoundedEntityCategory.DensityVolume));
-
-            //cmd.SetGlobalInt(   HDShaderIDs._DirectionalLightCount, m_DirectionalLightData.Count);
-            //cmd.SetGlobalInt(   HDShaderIDs._PunctualLightCount,    m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.PunctualLight));
-            //cmd.SetGlobalInt(   HDShaderIDs._AreaLightCount,        m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.AreaLight));
-            //cmd.SetGlobalInt(   HDShaderIDs._EnvLightCount,         m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.ReflectionProbe));
-            //cmd.SetGlobalInt(   HDShaderIDs._DecalCount,            m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.Decal));
-            //cmd.SetGlobalInt(   HDShaderIDs._DensityVolumeCount,    m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume));
 
             // Hand it over so it can be used to construct light lists. BEC still owns (and manages) the buffer.
             m_TileAndClusterData.convexBoundsBuffer = m_BoundedEntityCollection.GetEntityBoundsBuffer();

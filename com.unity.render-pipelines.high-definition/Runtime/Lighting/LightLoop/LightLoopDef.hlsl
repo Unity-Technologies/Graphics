@@ -326,6 +326,34 @@ bool TryLoadDecalData(uint i, uint tile, uint2 zBinRange, out DecalData data)
     return success;
 }
 
+bool TryLoadDensityVolumeData(uint i, uint tile, uint zBin, out DensityVolumeData data)
+{
+    bool success = false;
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, entityIndex))
+    {
+        success = true;
+        data    = _DensityVolumeData[i];
+    }
+
+    return success;
+}
+
+bool TryLoadDensityVolumeData(uint i, uint tile, uint2 zBinRange, out DensityVolumeData data)
+{
+    bool success = false;
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, entityIndex))
+    {
+        success = true;
+        data    = _DensityVolumeData[i];
+    }
+
+    return success;
+}
+
 #else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
 bool TryLoadPunctualLightData(uint i, uint tile, uint zBin, out LightData data)
@@ -448,21 +476,33 @@ bool TryLoadDecalData(uint i, uint tile, uint2 zBinRange, out DecalData data)
     return b;
 }
 
-// bool TryLoadDensityVolumeDataDataAndBounds(uint i, uint tile, uint zBin,
-//                                            out DensityVolumeEngineData data, out OrientedBBox bounds)
-// {
-//     bool b = false;
-//     uint n = _DensityVolumeCount;
+bool TryLoadDensityVolumeData(uint i, uint tile, uint zBin, out DensityVolumeData data)
+{
+    bool b = false;
+    uint n = _DensityVolumeCount;
 
-//     if (i < n)
-//     {
-//         data   = _DensityVolumeData[i];
-//         bounds = _DensityVolumeBounds[i];
-//         b      = true;
-//     }
+    if (i < n)
+    {
+        data = _DensityVolumeData[i];
+        b    = true;
+    }
 
-//     return b;
-// }
+    return b;
+}
+
+bool TryLoadDensityVolumeData(uint i, uint tile, uint2 zBinRange, out DensityVolumeData data)
+{
+    bool b = false;
+    uint n = _DensityVolumeCount;
+
+    if (i < n)
+    {
+        data = _DensityVolumeData[i];
+        b    = true;
+    }
+
+    return b;
+}
 
 #endif // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 

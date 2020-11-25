@@ -114,9 +114,16 @@ namespace UnityEngine.Rendering.HighDefinition
             distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
         }
 
-        internal DensityVolumeEngineData ConvertToEngineData()
+        internal DensityVolumeData ConvertToEngineData(OrientedBBox bounds)
         {
-            DensityVolumeEngineData data = new DensityVolumeEngineData();
+            DensityVolumeData data = new DensityVolumeData();
+
+            data.right   = bounds.right;
+            data.extentX = bounds.extentX;
+            data.up      = bounds.up;
+            data.extentY = bounds.extentY;
+            data.center  = bounds.center;
+            data.extentZ = bounds.extentZ;
 
             data.extinction     = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
