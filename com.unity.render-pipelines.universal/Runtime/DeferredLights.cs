@@ -519,8 +519,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             Camera camera = renderingData.cameraData.camera;
             // Support for dynamic resolution.
-            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * camera.pixelWidth) : camera.pixelWidth;
-            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * camera.pixelHeight) : camera.pixelHeight;
+            this.RenderWidth = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.widthScaleFactor * renderingData.cameraData.cameraTargetDescriptor.width) : renderingData.cameraData.cameraTargetDescriptor.width;
+            this.RenderHeight = camera.allowDynamicResolution ? Mathf.CeilToInt(ScalableBufferManager.heightScaleFactor * renderingData.cameraData.cameraTargetDescriptor.height) : renderingData.cameraData.cameraTargetDescriptor.height;
 
             if (this.TiledDeferredShading)
             {

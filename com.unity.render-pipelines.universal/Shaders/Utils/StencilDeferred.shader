@@ -228,10 +228,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
             unityLight.color *= aoFactor.directAmbientOcclusion;
             #if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
-            half occlusion = min(surfaceDataOcclusion, aoFactor.indirectAmbientOcclusion);
             // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
             // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
-            occlusion *= rcp(surfaceDataOcclusion);
+            // We must also avoid divide-by-0 that the reciprocal can generate.
+            half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
             alpha = occlusion;
             #endif
         #endif
@@ -266,10 +266,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
         AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
         half surfaceDataOcclusion = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0).a;
-        half occlusion = min(surfaceDataOcclusion, aoFactor.indirectAmbientOcclusion);
         // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
         // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
-        occlusion *= rcp(surfaceDataOcclusion);
+        // We must also avoid divide-by-0 that the reciprocal can generate.
+        half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
         return half4(0.0, 0.0, 0.0, occlusion);
     }
 
@@ -341,7 +341,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
@@ -383,7 +382,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
@@ -426,7 +424,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
@@ -472,7 +469,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
@@ -562,6 +558,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile_vertex _SSAO_ONLY
             #pragma multi_compile_vertex _ _SCREEN_SPACE_OCCLUSION
