@@ -945,7 +945,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kZTestTransparent = "_ZTestTransparent";
         /// <summary>Is Raytracing supported.</summary>
         public const string kRayTracing = "_RayTracing";
-
+        /// <summary>Surface Type.</summary>
         public const string kSurfaceType = "_SurfaceType";
         /// <summary>Receive Decals.</summary>
         public const string kSupportDecals = kEnableDecals;
@@ -1046,7 +1046,17 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
         internal const string kDecalLayerMaskFromDecal = "_DecalLayerMaskFromDecal";
 
-        public static readonly string kRefractionModel = "_RefractionModel";
+        internal const string kDisplacementMode = "_DisplacementMode";
+        internal const string kMaterialID = "_MaterialID";
+        internal const string kTransmissionEnable = "_TransmissionEnable";
+        internal const string kZTestGBuffer = "_ZTestGBuffer";
+        internal const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
+        internal const string kAlphaToMaskInspector = "_AlphaToMaskInspectorValue";
+        internal const string kEmissionColor = "_EmissionColor";
+        internal const string kEnableSSR = kReceivesSSR;
+        internal const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
+        internal const string kShadowMatteFilter = "_ShadowMatteFilter";
+        internal const string kRefractionModel = "_RefractionModel";
 
         // Emission
         internal const string kEmissiveColorLDR = "_EmissiveColorLDR";
@@ -1057,6 +1067,5 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kEmissiveColor = "_EmissiveColor";
         internal const string kEmissiveColorMap = "_EmissiveColorMap";
         internal const string kUVEmissive = "_UVEmissive";
-
     }
 }

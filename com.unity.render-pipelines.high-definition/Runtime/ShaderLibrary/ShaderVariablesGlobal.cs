@@ -270,7 +270,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // In case the frame setting is active for the deferred mode.
         public int      _Pad8;
-
         public float    _Pad9;
     }
 }
