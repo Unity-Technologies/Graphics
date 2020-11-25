@@ -153,6 +153,9 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
+                // TODO: Make this editable. 
+                // Reinit upon changes
+                // 
                 if (_instance == null)
                 {
                     // TODO: Allow resizing
