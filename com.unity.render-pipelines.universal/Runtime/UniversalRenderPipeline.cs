@@ -586,10 +586,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal static Volume GetOrCreateDefaultVolume()
         {
-            Debug.Log("Calling GetOrCreateDefaultVolume");
             if (s_DefaultVolume == null || s_DefaultVolume.Equals(null))
             {
-                Debug.Log("Making new DefaultVolume");
                 var volName = "[Unity-DefaultVolume]";
                 GameObject go;
                 if ((go = GameObject.Find(volName)) != null)
@@ -606,8 +604,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             SceneManager.MoveGameObjectToScene(s_DefaultVolume.gameObject, SceneManager.GetActiveScene());
-
-            Debug.Log($"Have volume object={s_DefaultVolume.gameObject.name}, flags={s_DefaultVolume.gameObject.scene.name}");
 
             if (
                 // In case the asset was deleted or the reference removed
