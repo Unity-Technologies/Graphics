@@ -92,7 +92,7 @@ Pass
     // Build Graph Inputs
 
     $features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
-    $features.graphPixel:   $include("SharedCode.template.hlsl")
+    $features.graphPixel:   $include("BuildSurfaceDescriptionInputs.template.hlsl")
 
     // --------------------------------------------------
     // Main
