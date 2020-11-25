@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
+- Added support for raytracing for AxF material
+- Added area light moment shadows for AxF material
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -46,11 +48,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
 - Now the screen space shadow is only used if the analytic value is valid.
-
-### Added
-- Added support for raytracing for AxF material
-- Added area light moment shadows for AxF material
-
 
 ## [10.2.0] - 2020-10-19
 
