@@ -5,13 +5,10 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel VolumeVoxelizationBruteforceOptimal VolumeVoxelization=VolumeVoxelizationBruteforceOptimal LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_OPTIMAL
-#pragma kernel VolumeVoxelizationTiledOptimal      VolumeVoxelization=VolumeVoxelizationTiledOptimal                                         VL_PRESET_OPTIMAL
-#pragma kernel VolumeVoxelizationBruteforce        VolumeVoxelization=VolumeVoxelizationBruteforce        LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-#pragma kernel VolumeVoxelizationTiled             VolumeVoxelization=VolumeVoxelizationTiled
-
-// Comment out the line to loop over all lights (for debugging purposes)
-#define COARSE_BINNING
+#pragma kernel VolumeVoxelizationBruteforceOptimal VolumeVoxelization=VolumeVoxelizationBruteforceOptimal 				 VL_PRESET_OPTIMAL
+#pragma kernel VolumeVoxelizationTiledOptimal      VolumeVoxelization=VolumeVoxelizationTiledOptimal      COARSE_BINNING VL_PRESET_OPTIMAL
+#pragma kernel VolumeVoxelizationBruteforce        VolumeVoxelization=VolumeVoxelizationBruteforce
+#pragma kernel VolumeVoxelizationTiled             VolumeVoxelization=VolumeVoxelizationTiled             COARSE_BINNING
 
 #ifdef VL_PRESET_OPTIMAL
     // E.g. for 1080p: (1920/8)x(1080/8)x(64) = 2,073,600 voxels
@@ -104,12 +101,12 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterNDC, floa
     return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).a;
 }
 
-void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay ray, float cosTheta)
+void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay ray, float cosRay)
 {
     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
 
-    float z0 	= t0 * cosTheta; // Distance to linear depth
+    float z0 	= t0 * cosRay; // Distance to linear depth
     uint  zBin0 = ComputeZBinIndex(z0);
 
     for (uint slice = 0; slice < _VBufferSliceCount; slice++)
@@ -121,7 +118,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay
         float dt = t1 - t0;
         float t  = t0 + 0.5 * dt;
 
-        float z1 	= t1 * cosTheta; // Distance to linear depth
+        float z1 	= t1 * cosRay; // Distance to linear depth
 	    uint  zBin1 = ComputeZBinIndex(z1);
 
         float3 voxelCenterWS = ray.originWS + t * ray.centerDirWS;
@@ -267,17 +264,20 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord  = groupOffset + groupThreadId;
+    // We would like to determine the screen pixel (at the full resolution) which
+    // the jittered ray corresponds to. The exact solution can be obtained by intersecting
+    // the ray with the screen plane, e.i. (ViewSpace(jitterDirWS).z = 1). That's a little expensive.
+    // So, as an approximation, we ignore the curvature of the frustum.
+    uint2 pixelCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize);
+
 #ifdef VL_PRESET_OPTIMAL
     // The entire thread group is within the same light tile.
     uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE;
+    uint  tile 		= IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
 #else
     // No compile-time optimizations, no scalarization.
-    // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE, a voxel may straddle
-    // a tile boundary. This means different voxel subsamples may belong to different tiles.
-    // We accept this error, and simply use the coordinates of the center of the voxel.
-    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize / TILE_SIZE);
+    uint  tile 		= ComputeTileIndex(pixelCoord);
 #endif
-    uint tile = IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
     // The curvature of the front and back faces is quite gentle, so we can use
@@ -310,11 +310,11 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.jitterDirWS = ray.centerDirWS; // TODO
 
     // We will use the value of the cosine to convert distances from the camera to linear depth values.
-    float cosTheta = dot(F, ray.jitterDirWS);
+    float cosRay = dot(F, ray.jitterDirWS);
 
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw);
 
     ApplyCameraRelativeXR(ray.originWS);
 
-    FillVolumetricDensityBuffer(posInput, tile, ray, cosTheta);
+    FillVolumetricDensityBuffer(posInput, tile, ray, cosRay);
 }
