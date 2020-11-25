@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
+- Added a cameraCullingResult field in Custom Pass Context to give access to both custom pass and camera culling result.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -15,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
+- Removed the readonly keyword on the cullingResults of the CustomPassContext to allow users to overwrite.
+- The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
 
 ## [10.3.0] - 2020-11-16
 
