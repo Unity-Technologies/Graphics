@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             
             var refVol = ProbeReferenceVolume.instance;
+            refVol.Clear();
             refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.BrickSize);
             refVol.SetMaxSubdivision(refVolAuthoring.MaxSubdivision);
             refVol.SetNormalBias(refVolAuthoring.NormalBias);
@@ -101,6 +102,9 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int c = 0; c < numCells; ++c)
             {
                 var cell = ProbeReferenceVolume.instance.cells[c];
+
+                if (cell.probePositions == null)
+                    continue;
 
                 Debug.Log("Bake completed for id " + cell.index);
                 int numProbes = cell.probePositions.Length;
@@ -366,10 +370,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, probePositionsArr);
                     cell.probePositions = probePositionsArr;
                     cell.bricks = bricks;
-                    ProbeReferenceVolume.instance.cells.Add(cell);
                     placementHappened = true;
                     totalBricks += bricks.Count;
                 }
+
+                ProbeReferenceVolume.instance.cells.Add(cell);
             }
 
             if (placementHappened)
