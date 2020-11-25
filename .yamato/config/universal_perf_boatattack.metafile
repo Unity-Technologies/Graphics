@@ -9,7 +9,6 @@ test_platforms:
       - [all]: --report-performance-data
       - [all]: --performance-project-id=BoatAttack
       - [iPhone_Metal]: --timeout=2400
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
     utr_flags_build:
       - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
       - [all]: --extra-editor-arg="-addscenetobuild=Assets/scenes/Testing/benchmark_island-static.unity"
@@ -24,7 +23,17 @@ test_platforms:
       - [iPhone_Metal]: --extra-editor-arg="-buildtarget" --extra-editor-arg="iOS"
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter="Low;Medium"
+    utr_repeat:
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
