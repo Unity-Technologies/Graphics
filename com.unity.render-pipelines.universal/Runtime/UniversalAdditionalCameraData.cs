@@ -160,10 +160,17 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        new Camera camera
+        #if UNITY_EDITOR
+        internal new Camera camera
         {
             get => gameObject.GetComponent<Camera>();
         }
+        #else
+        internal Camera camera
+        {
+            get => gameObject.GetComponent<Camera>();
+        }
+        #endif
 
         /// <summary>
         /// Controls if this camera should render shadows.
