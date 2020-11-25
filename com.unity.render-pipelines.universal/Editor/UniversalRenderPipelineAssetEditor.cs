@@ -432,7 +432,7 @@ namespace UnityEditor.Rendering.Universal
                 // Reset the volumes to default values when volume updates are being turned off
                 if (lastVolumeFrameworkUpdateSetting && !m_VolumeFrameworkUpdateProp.boolValue)
                 {
-                    VolumeManager.instance.ResetVolumesToDefaultValues();
+                    //VolumeManager.instance.ResetVolumesToDefaultValues();
                 }
             }
             EditorGUILayout.EndFoldoutHeaderGroup();

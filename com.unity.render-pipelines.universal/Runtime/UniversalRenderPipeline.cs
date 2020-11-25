@@ -629,10 +629,6 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
-            // We skip updating if the asset has volume updates disabled
-            if (!asset.supportsVolumeFrameworkUpdate)
-                return;
-
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 
             // Default values when there's no additional camera data available
@@ -664,6 +660,23 @@ namespace UnityEngine.Rendering.Universal
             }
 
             s_DefaultVolume.sharedProfile = profile;
+
+
+            // We skip updating if the asset has volume updates disabled
+            if (!asset.supportsVolumeFrameworkUpdate)
+            {
+                if (additionalCameraData.volumeStack == null)
+                {
+                    Debug.Log("Getting VolumeStack for " + additionalCameraData.gameObject.name);
+                    VolumeStack newStack = VolumeManager.instance.CreateStack();
+                    VolumeManager.instance.Update(newStack, trigger, layerMask);
+                    additionalCameraData.volumeStack = newStack;
+                }
+
+                VolumeManager.instance.stack = additionalCameraData.volumeStack;
+                return;
+            }
+
             VolumeManager.instance.Update(trigger, layerMask);
         }
 

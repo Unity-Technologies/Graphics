@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
+        VolumeStack m_VolumeStack = null;
 
         [SerializeField] bool m_RenderPostProcessing = false;
         [SerializeField] AntialiasingMode m_Antialiasing = AntialiasingMode.None;
@@ -306,17 +307,34 @@ namespace UnityEngine.Rendering.Universal
             m_RendererIndex = index;
         }
 
+        /// <summary>
+        /// Returns the selected scene-layers affecting this camera.
+        /// </summary>
         public LayerMask volumeLayerMask
         {
             get => m_VolumeLayerMask;
             set => m_VolumeLayerMask = value;
         }
 
+        /// <summary>
+        /// Returns the transform that will act as a trigger for volume blending.
+        /// </summary>
         public Transform volumeTrigger
         {
             get => m_VolumeTrigger;
             set => m_VolumeTrigger = value;
         }
+
+        /// <summary>
+        /// Returns the current volume stack used by this camera
+        /// </summary>
+        public VolumeStack volumeStack
+        {
+            get => m_VolumeStack;
+            set => m_VolumeStack = value;
+        }
+
+        public List<Volume> volumeList { get; set; }
 
         /// <summary>
         /// Returns true if this camera should render post-processing.
@@ -347,12 +365,18 @@ namespace UnityEngine.Rendering.Universal
             set => m_AntialiasingQuality = value;
         }
 
+        /// <summary>
+        /// Returns true if this camera should automatically replace NaN/Inf in shaders by a black pixel to avoid breaking some effects.
+        /// </summary>
         public bool stopNaN
         {
             get => m_StopNaN;
             set => m_StopNaN = value;
         }
 
+        /// <summary>
+        /// Returns true if this camera applies 8-bit dithering to the final render to reduce color banding
+        /// </summary>
         public bool dithering
         {
             get => m_Dithering;

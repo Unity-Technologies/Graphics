@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering
         /// A reference to the main <see cref="VolumeStack"/>.
         /// </summary>
         /// <seealso cref="VolumeStack"/>
-        public VolumeStack stack { get; private set; }
+        public VolumeStack stack { get; set; }
 
         /// <summary>
         /// The current list of all available types that derive from <see cref="VolumeComponent"/>.
@@ -232,14 +232,6 @@ namespace UnityEngine.Rendering
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Resets all Volumes to default values.
-        /// </summary>
-        public void ResetVolumesToDefaultValues()
-        {
-            ReplaceData(stack, m_ComponentsDefaultState);
         }
 
         /// <summary>
