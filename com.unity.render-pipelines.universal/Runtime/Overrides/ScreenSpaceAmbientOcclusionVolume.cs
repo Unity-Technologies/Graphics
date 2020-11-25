@@ -7,13 +7,13 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionVolume : VolumeComponent
     {
         // Public properties
-        public BoolParameter Downsample = new BoolParameter(false, true);
-        public DepthSourceSetting Source = new DepthSourceSetting(ScreenSpaceAmbientOcclusion.DepthSource.DepthNormals, true);
-        public NormalQualitySetting NormalSamples = new NormalQualitySetting(ScreenSpaceAmbientOcclusion.NormalQuality.Medium, true);
-        public ClampedFloatParameter Intensity = new ClampedFloatParameter(3.0f, 0.0f, 10.0f, true);
-        public ClampedFloatParameter DirectLightingStrength = new ClampedFloatParameter(0.5f, 0.0f, 1.0f, true);
-        public FloatParameter Radius = new FloatParameter(0.035f, true);
-        public ClampedIntParameter SampleCount = new ClampedIntParameter(4, 4, 20, true);
+        public BoolParameter Downsample = new BoolParameter(false);
+        public DepthSourceSetting Source = new DepthSourceSetting(ScreenSpaceAmbientOcclusion.DepthSource.DepthNormals);
+        public NormalQualitySetting NormalSamples = new NormalQualitySetting(ScreenSpaceAmbientOcclusion.NormalQuality.Medium);
+        public ClampedFloatParameter Intensity = new ClampedFloatParameter(3.0f, 0.0f, 10.0f);
+        public ClampedFloatParameter DirectLightingStrength = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
+        public FloatParameter Radius = new FloatParameter(0.035f);
+        public ClampedIntParameter SampleCount = new ClampedIntParameter(4, 4, 20);
 
         // Classes
         [Serializable]
