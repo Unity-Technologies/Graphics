@@ -661,22 +661,22 @@ namespace UnityEngine.Rendering.Universal
 
             s_DefaultVolume.sharedProfile = profile;
 
-
             // We skip updating if the asset has volume updates disabled
-            if (!asset.supportsVolumeFrameworkUpdate)
+            if (additionalCameraData && !asset.supportsVolumeFrameworkUpdate)
             {
+                // Create stack for camera
                 if (additionalCameraData.volumeStack == null)
                 {
-                    Debug.Log("Getting VolumeStack for " + additionalCameraData.gameObject.name);
-                    VolumeStack newStack = VolumeManager.instance.CreateStack();
+                    Debug.Log("Creating VolumeStack for " + additionalCameraData.gameObject.name);
+                    var newStack = VolumeManager.instance.CreateStack();
                     VolumeManager.instance.Update(newStack, trigger, layerMask);
                     additionalCameraData.volumeStack = newStack;
                 }
-
                 VolumeManager.instance.stack = additionalCameraData.volumeStack;
                 return;
             }
 
+            VolumeManager.instance.ResetDefaultStack();
             VolumeManager.instance.Update(trigger, layerMask);
         }
 

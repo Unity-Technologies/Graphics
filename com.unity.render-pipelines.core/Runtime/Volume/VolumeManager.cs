@@ -25,6 +25,12 @@ namespace UnityEngine.Rendering
         /// A reference to the main <see cref="VolumeStack"/>.
         /// </summary>
         /// <seealso cref="VolumeStack"/>
+        static VolumeStack m_Stack { get; set; }
+
+        /// <summary>
+        /// A reference to the main <see cref="VolumeStack"/>.
+        /// </summary>
+        /// <seealso cref="VolumeStack"/>
         public VolumeStack stack { get; set; }
 
         /// <summary>
@@ -62,7 +68,8 @@ namespace UnityEngine.Rendering
 
             ReloadBaseTypes();
 
-            stack = CreateStack();
+            m_Stack = CreateStack();
+            stack = m_Stack;
         }
 
         /// <summary>
@@ -77,6 +84,11 @@ namespace UnityEngine.Rendering
             var stack = new VolumeStack();
             stack.Reload(baseComponentTypes);
             return stack;
+        }
+
+        public void ResetDefaultStack()
+        {
+            stack = m_Stack;
         }
 
         /// <summary>
