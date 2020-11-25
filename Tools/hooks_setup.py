@@ -37,7 +37,7 @@ def replace_shebangs():
     for dname, dirs, files in os.walk(hooks_folder):
         for fname in files:
             fpath = os.path.join(dname, fname)
-            with open(fpath) as f:
+            with open(fpath, 'r') as f:
                 s = f.read()
             s = s.replace(current_shebang, replacement)
             with open(fpath, "w") as f:
