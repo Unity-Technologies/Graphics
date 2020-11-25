@@ -338,6 +338,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                cmd.SetComputeTextureParam(parameters.screenSpaceShadowsFilterCS, parameters.areaShadowNoDenoiseKernel, HDShaderIDs._AnalyticProbBuffer, sssartResources.intermediateBufferRG0);
                 cmd.SetComputeTextureParam(parameters.screenSpaceShadowsFilterCS, parameters.areaShadowNoDenoiseKernel, HDShaderIDs._DenoiseOutputTextureRW, sssartResources.outputShadowTexture);
                 cmd.DispatchCompute(parameters.screenSpaceShadowsFilterCS, parameters.areaShadowNoDenoiseKernel, numTilesX, numTilesY, parameters.viewCount);
             }
