@@ -1475,16 +1475,15 @@ namespace UnityEngine.Rendering
     /// A <see cref="VolumeParameter"/> that holds a <c>Cubemap</c> value.
     /// </summary>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
-    public class CubemapParameter : VolumeParameter<Cubemap>
+    public class CubemapParameter : VolumeParameter<Texture>
     {
         /// <summary>
         /// Creates a new <seealso cref="CubemapParameter"/> instance.
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public CubemapParameter(Cubemap value, bool overrideState = false)
+        public CubemapParameter(Texture value, bool overrideState = false)
             : base(value, overrideState) {}
-
         // TODO: Cubemap interpolation
     }
 

@@ -50,7 +50,7 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=../../players 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players<TEST_FILTER> 
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players
       
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -58,12 +58,14 @@ test_platforms:
       - [OSX_Metal]: --editor-location=/Users/bokken/.Editor
 
       - [OSX_Metal]: --scripting-backend=<SCRIPTING_BACKEND>
+      - [OSX_Metal]: --testfilter=%TEST_FILTER% 
      
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-connection-ip=auto  
 
     utr_flags_build:
+      - [all]: --testfilter=%TEST_FILTER% 
       - [all]: --suite=playmode
       - [all]: --build-only
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
@@ -85,7 +87,7 @@ test_platforms:
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=../../players 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players<TEST_FILTER>
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players
       
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan]: --timeout=2700
@@ -108,6 +110,7 @@ test_platforms:
   
   - type: playmode
     utr_flags:
+      - [all]: --testfilter=%TEST_FILTER% 
       - [all]: --suite=playmode
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
       - [all]: --reruncount=2
@@ -131,6 +134,7 @@ test_platforms:
       
   - type: editmode
     utr_flags:
+      - [all]: --testfilter=%TEST_FILTER% 
       - [all]: --suite=editor
       - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND> 
