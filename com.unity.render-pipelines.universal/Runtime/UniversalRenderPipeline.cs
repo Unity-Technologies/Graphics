@@ -629,6 +629,10 @@ namespace UnityEngine.Rendering.Universal
 
         static void UpdateVolumeFramework(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
+            // We skip updating if the asset has volume updates disabled
+            if (!asset.supportsVolumeFrameworkUpdate)
+                return;
+
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UpdateVolumeFramework));
 
             // Default values when there's no additional camera data available

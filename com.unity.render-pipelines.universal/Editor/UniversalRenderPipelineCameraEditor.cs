@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.Universal
             // Groups
             public static GUIContent commonCameraSettingsText = EditorGUIUtility.TrTextContent("Projection", "These settings control how the camera views the world.");
             public static GUIContent environmentSettingsText = EditorGUIUtility.TrTextContent("Environment", "These settings control what the camera background looks like.");
+            public static GUIContent volumesSettingsText = EditorGUIUtility.TrTextContent("Volumes", "These settings control how volumes affect this camera.");
             public static GUIContent outputSettingsText = EditorGUIUtility.TrTextContent("Output", "These settings control how the camera output is formatted.");
             public static GUIContent renderingSettingsText = EditorGUIUtility.TrTextContent("Rendering", "These settings control for the specific rendering features for this camera.");
             public static GUIContent stackSettingsText = EditorGUIUtility.TrTextContent("Stack", "The list of overlay cameras assigned to this camera.");
@@ -45,6 +46,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
             public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
+            public static GUIContent volumesUpdated = EditorGUIUtility.TrTextContent("Updated Every Frame", "This field shows whether URP updates the Volume Framework for this camera every frame. Edit this setting in the URP asset.");
 
             public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
@@ -115,6 +117,7 @@ namespace UnityEditor.Rendering.Universal
         // Temporary saved bools for foldout header
         SavedBool m_CommonCameraSettingsFoldout;
         SavedBool m_EnvironmentSettingsFoldout;
+        SavedBool m_VolumesSettingsFoldout;
         SavedBool m_OutputSettingsFoldout;
         SavedBool m_RenderingSettingsFoldout;
         SavedBool m_StackSettingsFoldout;
@@ -185,6 +188,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_CommonCameraSettingsFoldout = new SavedBool($"{target.GetType()}.CommonCameraSettingsFoldout", false);
             m_EnvironmentSettingsFoldout = new SavedBool($"{target.GetType()}.EnvironmentSettingsFoldout", false);
+            m_VolumesSettingsFoldout = new SavedBool($"{target.GetType()}.VolumesSettingsFoldout", false);
             m_OutputSettingsFoldout = new SavedBool($"{target.GetType()}.OutputSettingsFoldout", false);
             m_RenderingSettingsFoldout = new SavedBool($"{target.GetType()}.RenderingSettingsFoldout", false);
             m_StackSettingsFoldout = new SavedBool($"{target.GetType()}.StackSettingsFoldout", false);
@@ -483,6 +487,7 @@ namespace UnityEditor.Rendering.Universal
             DrawCommonSettings();
             DrawRenderingSettings(camType, rpAsset);
             DrawEnvironmentSettings(camType);
+            DrawVolumeSettings(rpAsset);
 
             if (camType == CameraRenderType.Base)
             {
@@ -576,10 +581,50 @@ namespace UnityEditor.Rendering.Universal
                         }
                     }
                 }
-                DrawVolumes();
+
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
             }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        void DrawVolumeSettings(UniversalRenderPipelineAsset rpAsset)
+        {
+            m_VolumesSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_VolumesSettingsFoldout.value, Styles.volumesSettingsText);
+            if (m_VolumesSettingsFoldout.value)
+            {
+                // Display the Update settings for volumes
+                string volumesUpdatedValueText = rpAsset.supportsVolumeFrameworkUpdate ? "Yes" : "No";
+                EditorGUILayout.LabelField(Styles.volumesUpdated, EditorGUIUtility.TrTextContent(volumesUpdatedValueText, ""));
+
+                // Display the Volume LayerMask and Trigger
+                LayerMask selectedVolumeLayerMask;
+                Transform selectedVolumeTrigger;
+                if (m_AdditionalCameraDataSO == null)
+                {
+                    selectedVolumeLayerMask = 1; // "Default"
+                    selectedVolumeTrigger = null;
+                }
+                else
+                {
+                    selectedVolumeLayerMask = m_AdditionalCameraDataVolumeLayerMask.intValue;
+                    selectedVolumeTrigger = (Transform) m_AdditionalCameraDataVolumeTrigger.objectReferenceValue;
+                }
+
+                bool hasChanged = false;
+                hasChanged |= DrawLayerMask(m_AdditionalCameraDataVolumeLayerMask, ref selectedVolumeLayerMask, Styles.volumeLayerMask);
+                hasChanged |= DrawObjectField(m_AdditionalCameraDataVolumeTrigger, ref selectedVolumeTrigger, Styles.volumeTrigger);
+                if (hasChanged)
+                {
+                    m_AdditionalCameraDataVolumeLayerMask.intValue = selectedVolumeLayerMask;
+                    m_AdditionalCameraDataVolumeTrigger.objectReferenceValue = selectedVolumeTrigger;
+                    m_AdditionalCameraDataSO.ApplyModifiedProperties();
+                }
+
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+            }
+
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 

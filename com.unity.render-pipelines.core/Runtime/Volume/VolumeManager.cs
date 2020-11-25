@@ -235,6 +235,14 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Resets all Volumes to default values.
+        /// </summary>
+        public void ResetVolumesToDefaultValues()
+        {
+            ReplaceData(stack, m_ComponentsDefaultState);
+        }
+
+        /// <summary>
         /// Checks the state of the base type library. This is only used in the editor to handle
         /// entering and exiting of play mode and domain reload.
         /// </summary>
