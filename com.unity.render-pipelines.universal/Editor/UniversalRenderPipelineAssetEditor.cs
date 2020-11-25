@@ -500,18 +500,28 @@ namespace UnityEditor.Rendering.Universal
 
             list.onRemoveCallback = li =>
             {
+                bool shouldUpdateIndex = false;
                 // Checking so that the user is not deleting  the default renderer
                 if (li.index != m_DefaultRendererProp.intValue)
                 {
                     // Need to add the undo to the removal of our assets here, for it to work properly.
                     Undo.RecordObject(target, $"Deleting renderer at index {li.index}");
+
+                    if (prop.GetArrayElementAtIndex(li.index).objectReferenceValue == null)
+                    {
+                        shouldUpdateIndex = true;
+                    }
                     prop.DeleteArrayElementAtIndex(li.index);
-                    UpdateDefaultRendererValue(li.index);
                 }
                 else
                 {
                     EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip,
                         "Close");
+                }
+
+                if (shouldUpdateIndex)
+                {
+                    UpdateDefaultRendererValue(li.index);
                 }
 
                 EditorUtility.SetDirty(target);

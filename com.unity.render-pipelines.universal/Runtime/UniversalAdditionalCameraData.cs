@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal new Camera camera
+        new Camera camera
         {
             get => gameObject.GetComponent<Camera>();
         }

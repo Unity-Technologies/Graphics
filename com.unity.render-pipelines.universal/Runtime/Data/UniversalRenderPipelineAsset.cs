@@ -917,7 +917,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Check to see if the RendererData list contains valide RendererData references.
+        /// Check to see if the RendererData list contains valid RendererData references.
         /// </summary>
         /// <param name="partial">This bool controls whether to test against all or any, if false then there has to be no invalid RendererData</param>
         /// <returns></returns>
