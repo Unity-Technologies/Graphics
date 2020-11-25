@@ -183,6 +183,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (updated)
             {
+                if (parameters.volumeMask != null)
+                    DensityVolumeManager.manager.AddTextureIntoAtlas(parameters.volumeMask);
+
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
 #if UNITY_EDITOR

@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void AddTextureIntoAtlas(Texture volumeTexture)
+        internal void AddTextureIntoAtlas(Texture volumeTexture)
         {
             if (!volumeAtlas.AddTexture(volumeTexture))
                 Debug.LogError($"No more space in the density volume atlas, consider increasing the max density volume on screen in the HDRP asset.");

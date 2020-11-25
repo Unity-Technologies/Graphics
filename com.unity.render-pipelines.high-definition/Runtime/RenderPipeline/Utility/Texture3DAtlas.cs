@@ -350,9 +350,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // First pass to remove / add textures that changed resolution, it can happens if a 3D render texture is resized
-            foreach (var element in m_TextureElementsMap.Values)
+            foreach (var element in m_Elements)
             {
                 var texture = element.texture;
+
+                if (texture == null)
+                    continue;
 
                 if (texture.width != element.size)
                 {
