@@ -2079,8 +2079,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Frustum cull probe volumes on the CPU. Can be performed as soon as the camera is set up.
                 ProbeVolumeList probeVolumes = PrepareVisibleProbeVolumeList(renderContext, hdCamera, cmd);
-                // Cache probe volume list as a member variable so it can be accessed inside of async compute tasks.
-                SetProbeVolumeList(probeVolumes);
 
                 // Note: Legacy Unity behave like this for ShadowMask
                 // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.

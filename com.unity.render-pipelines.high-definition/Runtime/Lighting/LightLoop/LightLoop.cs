@@ -455,11 +455,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal LightLoopLightData m_LightLoopLightData = new LightLoopLightData();
         TileAndClusterData m_TileAndClusterData = new TileAndClusterData();
 
-        // HDRenderPipeline needs to cache m_ProbeVolumeList as a member variable, as it cannot be passed in directly into BuildGPULightListProbeVolumesCommon() async compute
-        // due to the HDGPUAsyncTask API. We could have extended HDGPUAsyncTaskParams definition to contain a ProbeVolumeList, but this seems worse, as all other async compute
-        // tasks do not care about it.
-        ProbeVolumeList m_ProbeVolumeList;
-
         // This control if we use cascade borders for directional light by default
         static internal readonly bool s_UseCascadeBorders = true;
 
@@ -3335,14 +3330,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             return parameters;
-        }
-
-        // Note: This is a trivial setter and could be removed if we do not like that style.
-        // I exposed it as a function, even though it will only ever be set by HDRenderPipeline just to make it more clear that
-        // m_ProbeVolumeList is not set inside of LightLoop.cs
-        void SetProbeVolumeList(ProbeVolumeList probeVolumeList)
-        {
-            m_ProbeVolumeList = probeVolumeList;
         }
 
         HDAdditionalLightData GetHDAdditionalLightData(Light light)
