@@ -1,6 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 { 
     [ExecuteAlways]
@@ -14,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public List<MaterialPropertyBlock> props;
             public List<int[]> probeMaps;
             public Hash128 cellHash;
+            public Vector3 cellPosition;
         }
 
         private const int probesPerBatch = 1023;
@@ -61,54 +66,35 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CheckInit();
         }
-
-        void Update()
+        
+        private bool ShouldCull(Vector3 cellPosition)
         {
-            UpdateCulling();
-        }
+            var refVolTranslation = this.transform.position;
+            var refVolRotation = this.transform.rotation;
 
-        private void UpdateCulling()
-        {
-            /*
-            var ecb = ecbSystem.CreateCommandBuffer().ToConcurrent();
-
-            // Add culling component to cells which lack it
-            Entities
-                .WithAll<CellMetadata>()
-                .WithNone<CellDebugCulling>()
-                .ForEach((Entity entity, int entityInQueryIndex) => ecb.AddComponent<CellDebugCulling>(entityInQueryIndex, entity))
-                .ScheduleParallel();
-
-            // Prepare fields that are global to the job
-            var settingsEntity = GetSingletonEntity<ReferenceVolumeSettings>();
-            var settings = EntityManager.GetComponentData<ReferenceVolumeSettings>(settingsEntity);
-            var refVolTranslation = EntityManager.GetComponentData<Translation>(settingsEntity);
-            var refVolRotation = EntityManager.GetComponentData<Rotation>(settingsEntity);
             Transform cam = SceneView.lastActiveSceneView.camera.transform;
             Vector3 camPos = cam.position;
             Vector3 camVec = cam.forward;
-            float halfCellSize = settings.CellSize / 2;
 
-            // Update culling flags
-            Entities.ForEach((Entity entity, int entityInQueryIndex, ref CellDebugCulling culling, in CellMetadata cell) =>
-            {
-                Vector3 cellPos = new Vector3(cell.Position.x, cell.Position.y, cell.Position.z) * settings.CellSize + settings.CellSize * 0.5f * Vector3.one;
+            float halfCellSize = CellSize * 0.5f;
+            
+            Vector3 cellPos = cellPosition * CellSize + halfCellSize * Vector3.one + refVolTranslation;
+            Vector3 camToCell = cellPos - camPos;
 
-                Vector3 camToCell = cellPos - camPos;
-                float angle = Vector3.Angle(camVec, camToCell);
+            float angle = Vector3.Dot(camVec.normalized, camToCell.normalized);
 
-                culling.shouldRender = (camToCell.magnitude < settings.CullingDistance && angle <= 90) ||
-                    (Mathf.Abs(camToCell.x) < halfCellSize && Mathf.Abs(camToCell.y) < halfCellSize && Mathf.Abs(camToCell.z) < halfCellSize);
-            }).ScheduleParallel();
+            bool shouldRender = (camToCell.magnitude < CullingDistance && angle > 0);// || (Mathf.Abs(camToCell.x) < halfCellSize && Mathf.Abs(camToCell.y) < halfCellSize && Mathf.Abs(camToCell.z) < halfCellSize);
 
-            ecbSystem.AddJobHandleForProducer(Dependency);
-            */
+            return !shouldRender;
         }
 
         private void CreateInstancedProbes()
         {
             foreach (var cell in ProbeReferenceVolume.instance.cells)
             {
+                if (cell.sh == null || cell.sh.Length == 0)
+                    continue;
+
                 float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].size;
                 
                 List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
@@ -150,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 debugData.probeBuffers = probeBuffers;
                 debugData.props = props;
                 debugData.probeMaps = probeMaps;
+                debugData.cellPosition = cell.position;
 
                 Vector4[][] shBuffer = new Vector4[4][];
                 for (int i = 0; i < shBuffer.Length; i++)
@@ -188,25 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cellDebugData = new List<CellInstancedDebugProbes>();
         }
 
-        private void DrawInstancedProbes(ProbeShadingMode shading, float exposure)
-        {
-            foreach (var debug in cellDebugData)
-            {
-                //if (!culling.shouldRender)
-                  //  return;
-
-                for (int i = 0; i < debug.probeBuffers.Count; ++i)
-                {
-                    var probeBuffer = debug.probeBuffers[i];
-                    var props = debug.props[i];
-                    props.SetInt("_ShadingMode", (int)shading);
-                    props.SetFloat("_Exposure", -exposure);
-                    props.SetFloat("_ProbeSize", Gizmos.probeSize);
-                    Graphics.DrawMeshInstanced(debugMesh, 0, debugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, null, LightProbeUsage.Off, null);
-                }
-            }
-        }
-
+#if UNITY_EDITOR
         public void OnDrawGizmos()
         {
             if (DrawCells)
@@ -218,6 +187,9 @@ namespace UnityEngine.Rendering.HighDefinition
  
                 foreach (var cell in ProbeReferenceVolume.instance.cells)
                 {
+                    if (ShouldCull(cell.position))
+                        continue;
+
                     var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
                     var center = positionF * CellSize + CellSize * 0.5f * Vector3.one;
                     Gizmos.DrawWireCube(center, Vector3.one * CellSize);
@@ -232,8 +204,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Read refvol transform
                 foreach (var cell in ProbeReferenceVolume.instance.cells)
                 {
-                    //if (!culling.shouldRender)
-                    //    return;
+                    if (ShouldCull(cell.position))
+                        continue;
+
+                    if (cell.bricks == null)
+                        continue;
 
                     foreach (var brick in cell.bricks)
                     {
@@ -246,12 +221,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (DrawProbes)
             {
+                // TODO: Update data on ref vol changes
                 if (cellDebugData.Count == 0)
                     CreateInstancedProbes();
 
-                DrawInstancedProbes(ProbeShading, Exposure);
+                foreach (var debug in cellDebugData)
+                {
+                    if (ShouldCull(debug.cellPosition))
+                        continue;
+
+                    for (int i = 0; i < debug.probeBuffers.Count; ++i)
+                    {
+                        var probeBuffer = debug.probeBuffers[i];
+                        var props = debug.props[i];
+                        props.SetInt("_ShadingMode", (int)ProbeShading);
+                        props.SetFloat("_Exposure", -Exposure);
+                        props.SetFloat("_ProbeSize", Gizmos.probeSize);
+                        Graphics.DrawMeshInstanced(debugMesh, 0, debugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, null, LightProbeUsage.Off, null);
+                    }
+                }
             }
         }
+#endif
 
         private void CheckInit()
         {
