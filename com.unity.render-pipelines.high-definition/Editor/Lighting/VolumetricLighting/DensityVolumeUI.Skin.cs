@@ -25,7 +25,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_InvertFadeLabel = new GUIContent("Invert Blend", "Inverts blend values so 0 becomes the new maximum value and the original maximum value becomes 0.");
             public static readonly GUIContent s_FalloffMode = new GUIContent("Falloff Mode", "When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.");
             public static readonly GUIContent s_ManipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separately. This also include fading options.");
-            public static readonly GUIContent s_SubstractiveExtinction = new GUIContent("Substractive", "When enabled, the density from this volume will be substracted from the current fog instead of being added.");
 
             public static readonly GUIContent s_DistanceFadeStartLabel = new GUIContent("Distance Fade Start");
             public static readonly GUIContent s_DistanceFadeEndLabel   = new GUIContent("Distance Fade End");

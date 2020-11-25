@@ -175,9 +175,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.distanceFadeEnd.floatValue   = distanceFadeEnd;
                 }
             }
-
-            EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serialized.substractiveExtinction, Styles.s_SubstractiveExtinction);
         }
 
         static void Drawer_DensityMaskTextureContent(SerializedDensityVolume serialized, Editor owner)

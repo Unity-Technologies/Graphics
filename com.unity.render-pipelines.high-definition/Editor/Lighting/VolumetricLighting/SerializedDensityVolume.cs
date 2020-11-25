@@ -26,7 +26,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty distanceFadeStart;
         public SerializedProperty distanceFadeEnd;
 
-        public SerializedProperty substractiveExtinction;
         public SerializedProperty falloffMode;
 
         SerializedObject m_SerializedObject;
@@ -59,7 +58,6 @@ namespace UnityEditor.Rendering.HighDefinition
             distanceFadeStart = densityParams.FindPropertyRelative("distanceFadeStart");
             distanceFadeEnd   = densityParams.FindPropertyRelative("distanceFadeEnd");
 
-            substractiveExtinction = densityParams.FindPropertyRelative(nameof(DensityVolumeArtistParameters.substractiveExtinction));
             falloffMode = densityParams.FindPropertyRelative(nameof(DensityVolumeArtistParameters.falloffMode));
         }
 

@@ -295,12 +295,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
                 // There is an overlap. Sample the 3D texture, or load the constant value.
                 voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering * scatteringMultiplier;
-                voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction * _VolumeData[volumeIndex].extinctionMultiplier;
+                voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
             }
         }
-
-        // When we have a substractive extinction volume, we can end up with negative values
-        voxelExtinction = max(0, voxelExtinction);
 
         _VBufferDensity[voxelCoord] = float4(voxelScattering, voxelExtinction);
 

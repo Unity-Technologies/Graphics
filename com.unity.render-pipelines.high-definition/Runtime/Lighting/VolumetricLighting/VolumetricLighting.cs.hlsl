@@ -26,7 +26,6 @@ struct DensityVolumeEngineData
     int useVolumeMask;
     float3 atlasOffset;
     int maskResolution;
-    float extinctionMultiplier;
     int falloffMode;
 };
 
@@ -106,10 +105,6 @@ float3 GetAtlasOffset(DensityVolumeEngineData value)
 int GetMaskResolution(DensityVolumeEngineData value)
 {
     return value.maskResolution;
-}
-float GetExtinctionMultiplier(DensityVolumeEngineData value)
-{
-    return value.extinctionMultiplier;
 }
 int GetFalloffMode(DensityVolumeEngineData value)
 {
