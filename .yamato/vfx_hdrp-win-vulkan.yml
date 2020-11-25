@@ -18,13 +18,7 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
-      -  |5-
-
-                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                  set /p GIT_REVISIONDATE=<revdate.tmp
-                  echo %GIT_REVISIONDATE%
-                  del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -148,13 +142,7 @@ VFX_HDRP_Win_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/VisualEffectGraph_HDRP/utr.bat
-      -  |5-
-
-                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                  set /p GIT_REVISIONDATE=<revdate.tmp
-                  echo %GIT_REVISIONDATE%
-                  del revdate.tmp
-                  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/VisualEffectGraph_HDRP && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:

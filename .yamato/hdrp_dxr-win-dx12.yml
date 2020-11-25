@@ -19,13 +19,7 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
-      -  |5-
-
-                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                  set /p GIT_REVISIONDATE=<revdate.tmp
-                  echo %GIT_REVISIONDATE%
-                  del revdate.tmp
-                  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
@@ -154,13 +148,7 @@ HDRP_DXR_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/HDRP_DXR_Tests/utr.bat
-      -  |5-
-
-                  git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-                  set /p GIT_REVISIONDATE=<revdate.tmp
-                  echo %GIT_REVISIONDATE%
-                  del revdate.tmp
-                  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
+      -  cd TestProjects/HDRP_DXR_Tests && utr --artifacts_path=test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --suite=playmode --timeout=1200
     artifacts:
         logs:
             paths:
