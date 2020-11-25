@@ -7,6 +7,14 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class ProbeReferenceVolume
     {
+        public struct Cell
+        {
+            public int index;
+            public Vector3Int position;
+            public List<Brick> bricks;
+            public Vector3[] probePositions;
+        }
+
         public struct Volume
         {
             public Vector3 Corner;
@@ -104,6 +112,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public void Invalidate() => id = 0;
             public static bool operator ==(RegId lhs, RegId rhs) => lhs.id == rhs.id;
             public static bool operator !=(RegId lhs, RegId rhs) => lhs.id != rhs.id;
+            public override bool Equals(object obj) 
+            {
+                if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+                {
+                    return false;
+                }
+                else
+                {
+                    RegId p = (RegId)obj;
+                    return p == this;
+                }
+            }
+            public override int GetHashCode() => id;
         }
 
         private int m_id = 0;
@@ -112,6 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_MaxSubdivision;
         private ProbeBrickPool m_Pool;
         private ProbeBrickIndex m_Index;
+        public List<Cell> cells = new List<Cell>();
         private List<Brick>[] m_TmpBricks = new List<Brick>[2];
         private List<BrickFlags> m_TmpFlags = new List<BrickFlags>();
         private List<Chunk> m_TmpSrcChunks = new List<Chunk>();
@@ -122,7 +144,21 @@ namespace UnityEngine.Rendering.HighDefinition
         // index related
         Texture3D indexTex;
 
-        public ProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
+        static private ProbeReferenceVolume _instance = null;
+
+        public static ProbeReferenceVolume instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new ProbeReferenceVolume(64, 1024 * 1024 * 1024, new Vector3Int(1024, 64, 1024));
+                }
+                return _instance;
+            }
+        }
+
+        private ProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
         {
             Profiler.BeginSample("Create Reference volume");
             m_Transform.posWS = Vector3.zero;
@@ -335,48 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Runtime API starts here
-        public void AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
-        {
-            Profiler.BeginSample("AddBricks");
-            m_TmpSrcChunks.Clear();
-            m_TmpDstChunks.Clear();
-
-            // calculate the number of chunks necessary
-            int chunk_size = m_Pool.GetChunkSize();
-            m_Pool.Allocate((bricks.Count + chunk_size - 1) / chunk_size, m_TmpDstChunks);
-
-            // fill m_TmpSrcChunks
-            m_TmpSrcChunks.Capacity = m_TmpDstChunks.Count;
-            Chunk c;
-            c.x = 0;
-            c.y = 0;
-            c.z = 0;
-
-            // currently this code assumes that the texture width is a multiple of the allocation chunk size
-            for (int i = 0; i < m_TmpDstChunks.Count; i++)
-            {
-                m_TmpSrcChunks.Add(c);
-                c.x += chunk_size * ProbeBrickPool.kBrickProbeCountPerDim;
-                if (c.x >= dataloc.width)
-                {
-                    c.x = 0;
-                    c.y += ProbeBrickPool.kBrickProbeCountPerDim;
-                    if (c.y >= dataloc.height)
-                    {
-                        c.y = 0;
-                        c.z += ProbeBrickPool.kBrickProbeCountPerDim;
-                    }
-                }
-            }
-
-            // Update the pool and index and ignore any potential frame latency related issues
-            m_Pool.Update(dataloc, m_TmpSrcChunks, m_TmpDstChunks);
-            m_Index.AddBricks(bricks, m_TmpDstChunks, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
-            m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
-            Profiler.EndSample();
-        }
-
-        public RegId AddBricks2(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        public RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -420,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Registry.Add(id, ch_list);
 
             // update the index
-            m_Index.AddBricks2(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+            m_Index.AddBricks(id, bricks, ch_list, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
             m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
 
             Profiler.EndSample();
