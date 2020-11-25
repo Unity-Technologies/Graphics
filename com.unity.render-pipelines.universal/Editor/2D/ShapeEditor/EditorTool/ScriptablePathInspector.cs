@@ -165,12 +165,12 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             var first = true;
             position = Vector3.zero;
             var activeObject = Selection.activeObject as GameObject;
-            
+
             if (Selection.count > 1 || !activeObject)
                 return true;
             var lightObject = activeObject.GetComponent<Light2D>();
             var shadowCaster = activeObject.GetComponent<ShadowCaster2D>();
-            
+
             foreach (var path in paths)
             {
                 var selection = path.selection;
