@@ -894,7 +894,8 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
             {
-                //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+                // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
+                inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
             }
         }
 
@@ -928,7 +929,8 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
             {
-                //inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+                // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
+                inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
             }
         }
 
