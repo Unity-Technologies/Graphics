@@ -28,6 +28,16 @@ CBUFFER_START(updateParams)
 	uint systemSeed;
 CBUFFER_END
 
+#if VFX_HYBRID_V2_SKINNED_MESH_SAMPLING
+struct DeformedVertexData
+{
+    float3 Position;
+    float3 Normal;
+    float3 Tangent;
+};
+uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData : register(t1);
+#endif
+
 ${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
@@ -70,7 +80,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 				indirectBuffer[indirectIndex] = index;
 #endif
 
-#if HAS_STRIPS			
+#if HAS_STRIPS
 				uint relativeIndexInStrip = GetRelativeIndex(index, stripData);
 				InterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE, stripData.stripIndex), relativeIndexInStrip);
 				InterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE, stripData.stripIndex), relativeIndexInStrip);
@@ -88,13 +98,13 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if USE_DEAD_LIST && VFX_USE_STRIPALIVE_CURRENT
         else if (attributes.stripAlive)
         {
-            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle 
+            if (STRIP_DATA_X(attachedStripDataBuffer, STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle the particle
             {
                 uint deadIndex = deadListOut.IncrementCounter();
 				deadListOut[deadIndex] = index;
                 attributes.stripAlive = false;
                 ${VFXStoreAttributes:{stripAlive}}
-            }            
+            }
         }
 #endif
 #else

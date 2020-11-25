@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEditor.VFX.Operator;
 using UnityEngine;
 using UnityEngine.VFX;
 
@@ -42,6 +43,9 @@ namespace UnityEditor.VFX
 
                 if (ownedType == VFXDataType.ParticleStrip)
                     yield return "HAS_STRIPS";
+
+                //if (requiresHybridRendererV2)
+                    yield return "VFX_HYBRID_V2_SKINNED_MESH_SAMPLING";
             }
         }
 

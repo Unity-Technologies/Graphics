@@ -33,6 +33,16 @@ ByteAddressBuffer inputAdditional;
 RWBuffer<uint> stripDataBuffer;
 #endif
 
+#if VFX_HYBRID_V2_SKINNED_MESH_SAMPLING
+struct DeformedVertexData
+{
+    float3 Position;
+    float3 Normal;
+    float3 Tangent;
+};
+uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData : register(t1);
+#endif
+
 ${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
@@ -86,14 +96,14 @@ void CSMain(uint3 groupId          : SV_GroupID,
         int sourceIndex = eventList[id];
 #endif
 		uint particleIndex = id + currentSpawnIndex;
-		
+
 #if !VFX_USE_SPAWNER_FROM_GPU
         ${VFXComputeSourceIndex}
 #endif
 
 		Attributes attributes = (Attributes)0;
 		SourceAttributes sourceAttributes = (SourceAttributes)0;
-		
+
         ${VFXLoadAttributes}
 #if VFX_USE_PARTICLEID_CURRENT
          attributes.particleId = particleIndex;
@@ -119,12 +129,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		InitStripAttributesWithSpawn(maxThreadId, particleIndex, attributes, stripData);
 		// TODO Change seed to be sure we're deterministic on random with strip
 #endif
-        
+
         ${VFXProcessBlocks}
-		
+
 #if VFX_USE_ALIVE_CURRENT
         if (attributes.alive)
-#endif       
+#endif
         {
 #if USE_DEAD_LIST
 	        uint deadIndex = deadListIn.DecrementCounter();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.VFX;
+using UnityEditor.VFX.Operator;
 using UnityEngine.VFX;
 
 using Type = System.Type;
@@ -39,7 +40,7 @@ namespace UnityEditor.VFX
         OutputEvent =   1 << 1,
         Particle =      1 << 2,
         Mesh =          1 << 3,
-        ParticleStrip = 1 << 4 | Particle, // strips 
+        ParticleStrip = 1 << 4 | Particle, // strips
     };
 
     [Serializable]
@@ -139,6 +140,9 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<string> additionalDefines            { get { return Enumerable.Empty<string>(); } }
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
         public virtual IEnumerable<string> fragmentParameters           { get { return Enumerable.Empty<string>(); } }
+
+        protected bool requiresHybridRendererV2 => GetExpressionsFromSlots(this).Any(
+            exp => exp.exp.GetType() == typeof(SampleDeformedMesh));
 
         public virtual bool CanBeCompiled()
         {

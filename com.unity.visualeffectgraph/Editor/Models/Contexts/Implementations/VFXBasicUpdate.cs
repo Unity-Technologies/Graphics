@@ -258,6 +258,9 @@ namespace UnityEditor.VFX
 
                 if (skipZeroDeltaUpdate)
                     yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
+
+                if (requiresHybridRendererV2)
+                    yield return "VFX_HYBRID_V2_SKINNED_MESH_SAMPLING";
             }
         }
     }
