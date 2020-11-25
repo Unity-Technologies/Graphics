@@ -10,9 +10,8 @@
 #pragma kernel VolumeVoxelizationBruteforce        VolumeVoxelization=VolumeVoxelizationBruteforce        LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 #pragma kernel VolumeVoxelizationTiled             VolumeVoxelization=VolumeVoxelizationTiled
 
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    #define USE_BIG_TILE_LIGHTLIST
-#endif
+// Comment out the line to loop over all lights (for debugging purposes)
+#define COARSE_BINNING
 
 #ifdef VL_PRESET_OPTIMAL
     // E.g. for 1080p: (1920/8)x(1080/8)x(64) = 2,073,600 voxels
@@ -71,7 +70,7 @@ float ComputeFadeFactor(float3 coordNDC, float dist,
     return dstF * (invertFade ? (1 - fade) : fade);
 }
 
-float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
+float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
 {
     // Scale and bias the UVWs and then take fractional part, will be in [0,1] range.
     float3 voxelCenterUVW = frac(voxelCenterNDC * volumeData.textureTiling + volumeData.textureScroll);
@@ -105,49 +104,13 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).a;
 }
 
-void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
+void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay ray, float cosTheta)
 {
-    uint volumeCount, volumeStart;
-
-#ifdef USE_BIG_TILE_LIGHTLIST
-    // Offset for stereo rendering
-    tileIndex += unity_StereoEyeIndex * _NumTileBigTileX * _NumTileBigTileY;
-
-    // The "big tile" list contains the number of objects contained within the tile followed by the
-    // list of object indices. Note that while objects are already sorted by type, we don't know the
-    // number of each type of objects (e.g. lights), so we should remember to break out of the loop.
-    volumeCount = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex];
-    volumeStart = MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE * tileIndex + 1;
-
-    // For now, iterate through all the objects to determine the correct range.
-    // TODO: precompute this, of course.
-    {
-        uint offset = 0;
-
-        for (; offset < volumeCount; offset++)
-        {
-            uint objectIndex = FetchIndex(volumeStart, offset);
-
-            if (objectIndex >= _DensityVolumeIndexShift)
-            {
-                // We have found the first density volume.
-                break;
-            }
-        }
-
-        volumeStart += offset;
-        volumeCount -= offset;
-    }
-
-#else  // USE_BIG_TILE_LIGHTLIST
-
-    volumeCount = _DensityVolumeCount;
-    volumeStart = 0;
-
-#endif // USE_BIG_TILE_LIGHTLIST
-
     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
+
+    float z0 	= t0 * cosTheta; // Distance to linear depth
+    uint  zBin0 = ComputeZBinIndex(z0);
 
     for (uint slice = 0; slice < _VBufferSliceCount; slice++)
     {
@@ -158,6 +121,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         float dt = t1 - t0;
         float t  = t0 + 0.5 * dt;
 
+        float z1 	= t1 * cosTheta; // Distance to linear depth
+	    uint  zBin1 = ComputeZBinIndex(z1);
+
         float3 voxelCenterWS = ray.originWS + t * ray.centerDirWS;
 
         // TODO: the fog value at the center is likely different from the average value across the voxel.
@@ -167,23 +133,18 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
         // Start by sampling the height fog.
         float3 voxelScattering = _HeightFogBaseScattering.xyz * heightMultiplier;
-        float  voxelExtinction = _HeightFogBaseExtinction * heightMultiplier;
+        float  voxelExtinction = _HeightFogBaseExtinction     * heightMultiplier;
 
-        for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)
+        uint i = 0;
+
+        DensityVolumeData volumeData;
+        while (TryLoadDensityVolumeData(i, tile, uint2(zBin0, zBin1), volumeData))
         {
-        #ifdef USE_BIG_TILE_LIGHTLIST
-            uint volumeIndex = FetchIndex(volumeStart, volumeOffset) - _DensityVolumeIndexShift;
-        #else
-            uint volumeIndex = FetchIndex(volumeStart, volumeOffset);
-        #endif
-
-            const OrientedBBox obb = _DensityVolumeBounds[volumeIndex];
-
-            const float3x3 obbFrame   = float3x3(obb.right, obb.up, cross(obb.up, obb.right));
-            const float3   obbExtents = float3(obb.extentX, obb.extentY, obb.extentZ);
+            const float3x3 obbFrame   = float3x3(volumeData.right, volumeData.up, cross(volumeData.up, volumeData.right));
+            const float3   obbExtents = float3(volumeData.extentX, volumeData.extentY, volumeData.extentZ);
 
             // Express the voxel center in the local coordinate system of the box.
-            const float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
+            const float3 voxelCenterBS = mul(voxelCenterWS - volumeData.center, transpose(obbFrame));
             const float3 voxelCenterCS = (voxelCenterBS * rcp(obbExtents));
 
             const float3 voxelAxisRightBS   = mul(ray.xDirDerivWS, transpose(obbFrame));
@@ -266,31 +227,34 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 float dist = t;
 
                 overlapFraction *= ComputeFadeFactor(voxelCenterNDC, dist,
-                                                     _DensityVolumeData[volumeIndex].rcpPosFaceFade,
-                                                     _DensityVolumeData[volumeIndex].rcpNegFaceFade,
-                                                     _DensityVolumeData[volumeIndex].invertFade,
-                                                     _DensityVolumeData[volumeIndex].rcpDistFadeLen,
-                                                     _DensityVolumeData[volumeIndex].endTimesRcpDistFadeLen);
+                                                     volumeData.rcpPosFaceFade,
+                                                     volumeData.rcpNegFaceFade,
+                                                     volumeData.invertFade,
+                                                     volumeData.rcpDistFadeLen,
+                                                     volumeData.endTimesRcpDistFadeLen);
 
                 // Sample the volumeMask.
-                if (_DensityVolumeData[volumeIndex].textureIndex != -1)
+                if (volumeData.textureIndex != -1)
                 {
                     float3 xDerivUVW = (0.5 *  t) * voxelAxisRightBS   * rcp(obbExtents);
                     float3 yDerivUVW = (0.5 *  t) * voxelAxisUpBS      * rcp(obbExtents);
                     float3 zDerivUVW = (0.5 * dt) * voxelAxisForwardBS * rcp(obbExtents);
 
-                    overlapFraction *= SampleVolumeMask(_DensityVolumeData[volumeIndex], voxelCenterNDC, xDerivUVW, yDerivUVW, zDerivUVW);
+                    overlapFraction *= SampleVolumeMask(volumeData, voxelCenterNDC, xDerivUVW, yDerivUVW, zDerivUVW);
                 }
 
                 // There is an overlap. Sample the 3D texture, or load the constant value.
-                voxelScattering += overlapFraction * _DensityVolumeData[volumeIndex].scattering;
-                voxelExtinction += overlapFraction * _DensityVolumeData[volumeIndex].extinction;
+                voxelScattering += overlapFraction * volumeData.scattering;
+                voxelExtinction += overlapFraction * volumeData.extinction;
             }
+
+            i++;
         }
 
         _VBufferDensity[voxelCoord] = float4(voxelScattering, voxelExtinction);
 
-        t0 = t1;
+        t0 	  = t1;
+        zBin0 = zBin1;
     }
 }
 
@@ -305,15 +269,15 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 voxelCoord  = groupOffset + groupThreadId;
 #ifdef VL_PRESET_OPTIMAL
     // The entire thread group is within the same light tile.
-    uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE_BIG_TILE;
+    uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE;
 #else
     // No compile-time optimizations, no scalarization.
-    // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE_BIG_TILE, a voxel may straddle
+    // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE, a voxel may straddle
     // a tile boundary. This means different voxel subsamples may belong to different tiles.
     // We accept this error, and simply use the coordinates of the center of the voxel.
-    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize / TILE_SIZE_BIG_TILE);
+    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize / TILE_SIZE);
 #endif
-    uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
+    uint tile = IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
     // The curvature of the front and back faces is quite gentle, so we can use
@@ -345,9 +309,12 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.yDirDerivWS = cross(ray.xDirDerivWS, ray.centerDirWS); // Will have the length of 'unitDistFaceSize' by construction
     ray.jitterDirWS = ray.centerDirWS; // TODO
 
-    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
+    // We will use the value of the cosine to convert distances from the camera to linear depth values.
+    float cosTheta = dot(F, ray.jitterDirWS);
+
+    PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw);
 
     ApplyCameraRelativeXR(ray.originWS);
 
-    FillVolumetricDensityBuffer(posInput, tileIndex, ray);
+    FillVolumetricDensityBuffer(posInput, tile, ray, cosTheta);
 }
