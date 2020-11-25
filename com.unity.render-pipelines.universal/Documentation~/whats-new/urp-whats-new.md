@@ -14,7 +14,11 @@ This section contains the overview of the new features in this release.
 
 This section contains the overview of the major improvements in this release.
 
-### TODO: Improvement 1
+### Post Processing Disabling
+
+Post processing can be disabled in URP Asset now. This includes stripping post processing shaders and textures.
+
+![Post processing properties](../Images/whats-new/urp-11/post-processing-disabling.png)<br/>*Post processing properties in URP Asset.*
 
 ## Issues resolved
 

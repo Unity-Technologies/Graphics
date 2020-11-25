@@ -95,6 +95,8 @@ This section allows you to fine-tune global post-processing settings.
 
 | Property         | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
+| __Post Processing__ | Check this box to enable post processing in your scene. This includes stripping post processing shaders and textures. <br/>**Note:** It will not strip assets if they are referenced somewhere else in scene or even in other URP Asset. |
+| __Post Process Data__ | The asset containing references to shaders and Textures that the Renderer uses for post-processing.<br/>**Note:** This property is for advanced customization use cases. |
 | __Grading Mode__ | Select the [color grading](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) mode to use for the Project.<br />&#8226; __High Dynamic Range__: This mode works best for high precision grading similar to movie production workflows. Unity applies color grading before tonemapping.<br />&#8226; __Low Dynamic Range__: This mode follows a more classic workflow. Unity applies a limited range of color grading after tonemapping. |
 | __LUT Size__     | Set the size of the internal and external [look-up textures (LUTs)](https://docs.unity3d.com/Manual/PostProcessing-ColorGrading.html) that the Universal Render Pipeline uses for color grading. Higher sizes provide more precision, but have a potential cost of performance and memory use. You cannot mix and match LUT sizes, so decide on a size before you start the color grading process.<br />The default value, **32**, provides a good balance of speed and quality. |
 
