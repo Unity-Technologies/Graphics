@@ -204,7 +204,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
             }
-
             //
             // Patch for raytracing for now: mirror int props as float explicitly
             //
