@@ -19,6 +19,8 @@ namespace UnityEditor.ShaderGraph
         // 1 differentiate between struct-based UnityTexture2D and bare Texture2D resources (for all texture and samplerstate resources)
         public override int latestVersion => 1;
 
+        public override IEnumerable<int> allowedNodeVersions => new int[] { 1 };
+
         [Serializable]
         public class MinimalCustomFunctionNode : IHasDependencies
         {
