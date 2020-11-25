@@ -1,7 +1,7 @@
 project:
   name: HDRP
   folder: HDRP_Tests
-  folder_standalone: HDRP_RuntimeTests
+  folder_standalone: HDRP_Tests #test
 test_platforms:
   - type: playmode
   - type: playmode
