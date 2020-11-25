@@ -94,7 +94,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
 
-            return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator)
+            return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
 
             float4 FragMSAAPBRFog(Varyings input, uint sampleIndex: SV_SampleIndex) : SV_Target
@@ -108,7 +108,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
             float3 volColor, volOpacity;
             AtmosphericScatteringCompute(input, V, depth, volColor, volOpacity);
 
-            return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator)
+            return float4(volColor + (1 - volOpacity) * surfColor.rgb, surfColor.a); // Premultiplied alpha (over operator), preserve alpha for the alpha channel for compositing
         }
     ENDHLSL
 
