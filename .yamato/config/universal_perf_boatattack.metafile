@@ -25,15 +25,20 @@ test_platforms:
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
     utr_repeat:
       - utr_flags:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        - [all]: --player-load-path=playersLow
         utr_flags_build:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+        - [all]: --testfilter=Low
+        - [all]: --player-save-path=playersLow
       - utr_flags:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        - [all]: --player-load-path=playersMedium
         utr_flags_build:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
+        - [all]: --testfilter=Medium
+        - [all]: --player-save-path=playersMedium
+      - utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --player-load-path=playersMedium
+        utr_flags_build:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=Medium
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --player-save-path=playersMedium
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
