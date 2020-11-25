@@ -269,7 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _GlobalTessellationFactorMultiplier;
 
         // In case the frame setting is active for the deferred mode.
-        public int      _EmissiveAsForwardForDeferred;
+        public int      _Pad8;
 
         public float    _Pad9;
     }

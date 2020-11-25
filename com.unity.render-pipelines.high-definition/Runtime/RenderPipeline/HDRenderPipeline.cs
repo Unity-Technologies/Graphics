@@ -1349,8 +1349,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
             }
 
-            m_ShaderVariablesGlobalCB._EmissiveAsForwardForDeferred = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LitEmissiveAsForward) ? 1 : 0;
-
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
         }
 

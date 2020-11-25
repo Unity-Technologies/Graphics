@@ -199,26 +199,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 });
 
-            // Due to various reasons, MSAA and ray tracing are not compatible, if ray tracing is enabled on the asset. MSAA can not be enabled on the frame settings.
-            bool emissiveAsForwardCanBeEnabled = ((hdrpAssetSupportDeferred && (frameSettingsOverrideToDeferred || defaultDeferredUsed)) || hdrpAssetIsDeferred);
-            area.AmmendInfo(FrameSettingsField.LitEmissiveAsForward,
-                overrideable: () => emissiveAsForwardCanBeEnabled,
-                overridedDefaultValue: emissiveAsForwardCanBeEnabled && defaultFrameSettings.IsEnabled(FrameSettingsField.LitEmissiveAsForward),
-                customOverrideable: () =>
-                {
-                    switch (hdrpSettings.supportedLitShaderMode)
-                    {
-                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                            return false;
-                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                            return true;
-                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                            return (frameSettingsOverrideToDeferred || defaultDeferredUsed);
-                        default:
-                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
-                    }
-                });
-
             bool depthPrepassEnablable = (hdrpAssetSupportDeferred && (defaultDeferredUsed || frameSettingsOverrideToDeferred)) || (hdrpAssetIsDeferred);
             area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering,
                 overrideable: () => depthPrepassEnablable,
