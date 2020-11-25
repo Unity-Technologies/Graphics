@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
 - Added support for raytracing for AxF material
-- Added area light moment shadows for AxF material
+- Added rasterized area light shadows for AxF material
 
 ### Fixed
 - Fixed probe volumes debug views.
