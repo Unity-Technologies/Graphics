@@ -568,16 +568,25 @@ namespace UnityEngine.Rendering.Universal
             get { return (int)m_AdditionalLightsShadowmapResolution; }
         }
 
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "Low" in the UniversalRenderPipeline asset.
+        /// </summary>
         public int additionalLightsShadowResolutionTierLow
         {
             get { return (int)m_AdditionalLightsShadowResolutionTierLow; }
         }
 
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "Medium" in the UniversalRenderPipeline asset.
+        /// </summary>
         public int additionalLightsShadowResolutionTierMedium
         {
             get { return (int)m_AdditionalLightsShadowResolutionTierMedium; }
         }
 
+        /// <summary>
+        /// Returns the additional light shadow resolution defined for tier "High" in the UniversalRenderPipeline asset.
+        /// </summary>
         public int additionalLightsShadowResolutionTierHigh
         {
             get { return (int)m_AdditionalLightsShadowResolutionTierHigh; }
