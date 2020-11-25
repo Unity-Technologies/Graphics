@@ -11,7 +11,7 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // How many lights (at most) do we support at one given shading point
 // FIXME: hardcoded limits are evil, this LightList should instead be put together in C#
@@ -360,7 +360,7 @@ bool SampleLights(LightList lightList,
             }
             else
             {
-                // DELTA_PDF represents 1 / area, where the area is infinitesimal              
+                // DELTA_PDF represents 1 / area, where the area is infinitesimal
                 pdf = DELTA_PDF;
             }
 
@@ -578,7 +578,7 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
         return false;
 
     float3 lightToRayOrigin = rayOrigin - lightData.positionRWS;
-    
+
     if (!GetSphereInterval(lightToRayOrigin, lightData.range, rayDirection, tMin, tMax))
         return false;
 
@@ -646,7 +646,7 @@ bool GetPointLightInterval(LightData lightData, float3 rayOrigin, float3 rayDire
 
         // Offset light origin to account for light radius
         localOrigin.z += sqrt(lightData.size.x / (1.0 - cosTheta2));
-        
+
         // Account for non-normalized local basis
         float3 normalizedLocalOrigin = float3(localOrigin.x / Length2(lightData.right),
                                               localOrigin.y / Length2(lightData.up),

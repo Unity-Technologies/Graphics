@@ -216,12 +216,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// This utility can be used to copy a value into a volume component setting visible in the inspector.
         /// </summary>
-        protected static void CopySetting<T>(ref SerializedDataParameter setting, T value) where T : struct
+        protected void CopySetting<T>(ref SerializedDataParameter setting, T value) where T : struct
         {
             setting.value.SetInline(value);
 
-            // Force enable the override state, to indicate that these values are actually used.
-            setting.overrideState.boolValue = true;
+            // Force enable the override state to match the state of the quality setting.
+            setting.overrideState.boolValue = m_QualitySetting.overrideState.boolValue;
         }
 
         /// <summary>

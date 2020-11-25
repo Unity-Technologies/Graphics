@@ -364,19 +364,19 @@ namespace UnityEditor.VFX.UI
 
         public static StyleSheet LoadStyleSheet(string text)
         {
-            string path = string.Format("{0}/Editor Default Resources/uss/{1}.uss", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            string path = string.Format("{0}/uss/{1}.uss", VisualEffectAssetEditorUtility.editorResourcesPath, text);
             return AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
         }
 
         public static VisualTreeAsset LoadUXML(string text)
         {
-            string path = string.Format("{0}/Editor Default Resources/uxml/{1}.uxml", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            string path = string.Format("{0}/uxml/{1}.uxml", VisualEffectAssetEditorUtility.editorResourcesPath, text);
             return AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
         }
 
         public static Texture2D LoadImage(string text)
         {
-            string path = string.Format("{0}/Editor Default Resources/VFX/{1}.png", VisualEffectGraphPackageInfo.assetPackagePath, text);
+            string path = string.Format("{0}/VFX/{1}.png", VisualEffectAssetEditorUtility.editorResourcesPath, text);
             return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
@@ -580,7 +580,10 @@ namespace UnityEditor.VFX.UI
                 return DropdownMenuAction.Status.Normal;
         }
 
+        [NonSerialized]
         Dictionary<VFXModel, List<IconBadge>> m_InvalidateBadges = new Dictionary<VFXModel, List<IconBadge>>();
+
+        [NonSerialized]
         List<IconBadge> m_CompileBadges = new List<IconBadge>();
 
         private void RegisterError(VFXModel model, VFXErrorOrigin errorOrigin,string error,VFXErrorType type, string description)
@@ -607,14 +610,20 @@ namespace UnityEditor.VFX.UI
             }
             else if (model is IVFXSlotContainer)
             {
-                var context = model;
-                var nodeController = controller.GetNodeController(context, 0);
+                var node = model;
+                var nodeController = controller.GetNodeController(node, 0);
                 if (nodeController == null)
                     return;
                 target = GetNodeByController(nodeController);
                 if (target == null)
                     return;
-                targetParent = target.parent;
+                if (nodeController is VFXBlockController blkController)
+                {
+                    VFXNodeUI targetContext = GetNodeByController(blkController.contextController);
+                    if (targetContext == null)
+                        return;
+                    targetParent = targetContext.parent;
+                }
                 target = (target as VFXNodeUI).titleContainer;
                 alignement = SpriteAlignment.LeftCenter;
             }
@@ -682,7 +691,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                if (model != null)
+                if (!object.ReferenceEquals(model,null))
                 {
                     List<IconBadge> badges;
                     if (m_InvalidateBadges.TryGetValue(model, out badges))
@@ -696,17 +705,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
                 else
-                {
-                    foreach( var badges in m_InvalidateBadges.Values)
-                    {
-                        foreach (var badge in badges)
-                        {
-                            badge.Detach();
-                            badge.RemoveFromHierarchy();
-                        }
-                    }
-                    m_InvalidateBadges.Clear();
-                }
+                    throw new InvalidOperationException("Can't clear in Invalidate mode without a model");
 
             }
         }

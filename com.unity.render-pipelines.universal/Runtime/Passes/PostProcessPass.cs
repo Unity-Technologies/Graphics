@@ -528,8 +528,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             material.SetVector(ShaderConstants._Metrics, new Vector4(1f / m_Descriptor.width, 1f / m_Descriptor.height, m_Descriptor.width, m_Descriptor.height));
             material.SetTexture(ShaderConstants._AreaTexture, m_Data.textures.smaaAreaTex);
             material.SetTexture(ShaderConstants._SearchTexture, m_Data.textures.smaaSearchTex);
-            material.SetInt(ShaderConstants._StencilRef, kStencilBit);
-            material.SetInt(ShaderConstants._StencilMask, kStencilBit);
+            material.SetFloat(ShaderConstants._StencilRef, (float)kStencilBit);
+            material.SetFloat(ShaderConstants._StencilMask, (float)kStencilBit);
 
             // Quality presets
             material.shaderKeywords = null;
