@@ -733,7 +733,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.HDRenderPipelineAllRenderRequest));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeUpdate));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ClearBuffers));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderShadowMaps));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.GBuffer));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU));
