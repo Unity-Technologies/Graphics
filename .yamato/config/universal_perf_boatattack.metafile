@@ -35,10 +35,10 @@ test_platforms:
         - [all]: --testfilter=Medium
         - [all]: --player-save-path=playersMedium
       - utr_flags:
-        - [Win_DX11, Win_DX12, Win_Vulkan]: --player-load-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --player-load-path=playersHigh
         utr_flags_build:
-        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=Medium
-        - [Win_DX11, Win_DX12, Win_Vulkan]: --player-save-path=playersMedium
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --player-save-path=playersHigh
   - type: playmode
     name: performance_playmode_editor
     is_performance: True
@@ -80,6 +80,8 @@ platforms:
       - name: DX11
       - name: DX12
       - name: Vulkan
+        exclude_test_platforms:
+          - name: performance_playmode_editor
     build_configs:
       - name: mono
     color_spaces:
@@ -170,7 +172,7 @@ all:
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_playmode_editor
+        #- performance_playmode_editor
         - performance_build_editmode
     - platform: Win
       api: DX12

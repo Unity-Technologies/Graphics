@@ -18,8 +18,6 @@ All_URP_Performance_BoatAttack_trunk:
          rerun: on-new-revision
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_editor_mono_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/urp_performance_boatattack-win-dx12.yml#URP_Performance_BoatAttack_Win_DX12_performance_playmode_runtime_mono_Linear_trunk
@@ -54,8 +52,6 @@ All_URP_Performance_BoatAttack_CUSTOM-REVISION:
       -  path: .yamato/urp_performance_boatattack-win-dx11.yml#URP_Performance_BoatAttack_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#URP_Performance_BoatAttack_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
