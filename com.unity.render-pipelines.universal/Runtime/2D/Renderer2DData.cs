@@ -12,15 +12,32 @@ using UnityEditor.ProjectWindowCallback;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
     public partial class Renderer2DData : ScriptableRendererData
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public enum Renderer2DDefaultMaterialType
         {
+            /// <summary>
+            /// 
+            /// </summary>
             Lit,
+
+            /// <summary>
+            /// 
+            /// </summary>
             Unlit,
+
+            /// <summary>
+            /// 
+            /// </summary>
             Custom
         }
 
@@ -91,9 +108,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [HideInInspector]
         private Texture2D m_FallOffLookup = null;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public float hdrEmulationScale => m_HDREmulationScale;
+
         internal float lightRenderTextureScale => m_LightRenderTextureScale;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
+
         internal bool useDepthStencilBuffer => m_UseDepthStencilBuffer;
         internal Texture2D fallOffLookup => m_FallOffLookup;
         internal Shader shapeLightShader => m_ShapeLightShader;
@@ -113,6 +139,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal int cameraSortingLayerTextureBound => m_CameraSortingLayersTextureBound;
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         protected override ScriptableRenderer Create()
         {
 #if UNITY_EDITOR
@@ -125,6 +155,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return new Renderer2D(this);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void OnEnable()
         {
             base.OnEnable();

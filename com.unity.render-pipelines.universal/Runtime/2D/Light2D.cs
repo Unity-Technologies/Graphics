@@ -18,8 +18,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : MonoBehaviour
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public enum DeprecatedLightType
         {
+            /// <summary>
+            /// 
+            /// </summary>
             Parametric = 0,
         }
 
@@ -28,23 +34,66 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// </summary>
         public enum LightType
         {
+            /// <summary>
+            /// 
+            /// </summary>
             Parametric = 0,
+
+            /// <summary>
+            /// 
+            /// </summary>
             Freeform = 1,
+
+            /// <summary>
+            /// 
+            /// </summary>
             Sprite = 2,
+
+            /// <summary>
+            /// 
+            /// </summary>
             Point = 3,
+
+            /// <summary>
+            /// 
+            /// </summary>
             Global = 4
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public enum NormalMapQuality
         {
+            /// <summary>
+            /// 
+            /// </summary>
             Disabled = 2,
+
+            /// <summary>
+            /// 
+            /// </summary>
             Fast = 0,
+
+            /// <summary>
+            /// 
+            /// </summary>
             Accurate = 1
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public enum OverlapOperation
         {
+            /// <summary>
+            /// 
+            /// </summary>
             Additive,
+
+            /// <summary>
+            /// 
+            /// </summary>
             AlphaBlend
         }
 
@@ -186,19 +235,51 @@ namespace UnityEngine.Experimental.Rendering.Universal
         ///
         [Obsolete]
         public float volumeOpacity => m_LightVolumeIntensity;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public float volumeIntensity => m_LightVolumeIntensity;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public float falloffIntensity => m_FalloffIntensity;
 
+        /// <summary>
+        /// 
+        /// </summary>
         [Obsolete]
         public bool alphaBlendOnOverlap { get { return m_OverlapOperation == OverlapOperation.AlphaBlend; }}
+
+        /// <summary>
+        /// 
+        /// </summary>
         public OverlapOperation overlapOperation => m_OverlapOperation;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public int lightOrder { get => m_LightOrder; set => m_LightOrder = value; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public float normalMapDistance => m_NormalMapDistance;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
 

@@ -121,6 +121,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected void OnEnable()
         {
             if (m_Mesh == null || m_InstanceId != GetInstanceID())
@@ -133,11 +136,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_ShadowCasterGroup = null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected void OnDisable()
         {
             ShadowCasterGroup2DManager.RemoveFromShadowCasterGroup(this, m_ShadowCasterGroup);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Update()
         {
             Renderer renderer = GetComponent<Renderer>();
