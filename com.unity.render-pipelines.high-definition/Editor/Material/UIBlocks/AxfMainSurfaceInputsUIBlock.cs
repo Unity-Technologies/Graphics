@@ -41,9 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static string m_RayTracingTexFilteringScaleText = "_RayTracingTexFilteringScale";
         MaterialProperty m_RayTracingTexFilteringScale = null;
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
 
-        public AxfMainSurfaceInputsUIBlock(Expandable expandableBit)
+        public AxfMainSurfaceInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
