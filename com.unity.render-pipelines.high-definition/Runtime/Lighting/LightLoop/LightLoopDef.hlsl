@@ -208,6 +208,49 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
     return b;
 }
 
+#else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
+
+// Internal. Do not call directly.
+uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category, out uint entityIndex)
+{
+    entityIndex = UINT16_MAX;
+
+    bool b = false;
+    uint n;
+
+    switch (category)
+    {
+        case BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT:
+            n = _PunctualLightCount;
+            break;
+        case BOUNDEDENTITYCATEGORY_AREA_LIGHT:
+            n = _AreaLightCount;
+            break;
+        case BOUNDEDENTITYCATEGORY_REFLECTION_PROBE:
+            n = _ReflectionProbeCount;
+            break;
+        case BOUNDEDENTITYCATEGORY_DECAL:
+            n = _DecalCount;
+            break;
+        case BOUNDEDENTITYCATEGORY_DENSITY_VOLUME:
+            n = _DensityVolumeCount;
+            break;
+        default:
+            n = 0;
+            break;
+    }
+
+    if (i < n)
+    {
+        entityIndex = i;
+        b           = true;
+    }
+
+    return b;
+}
+
+#endif // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
+
 // Internal. Do not call directly.
 uint TryFindEntityIndex(inout uint i, uint tile, uint zBin, uint category, out uint entityIndex)
 {
@@ -353,158 +396,6 @@ bool TryLoadDensityVolumeData(uint i, uint tile, uint2 zBinRange, out DensityVol
 
     return success;
 }
-
-#else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
-
-bool TryLoadPunctualLightData(uint i, uint tile, uint zBin, out LightData data)
-{
-    bool b = false;
-    uint n = _PunctualLightCount;
-
-    if (i < n)
-    {
-        data = _PunctualLightData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadPunctualLightData(uint i, uint tile, uint2 zBinRange, out LightData data)
-{
-    bool b = false;
-    uint n = _PunctualLightCount;
-
-    if (i < n)
-    {
-        data = _PunctualLightData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadAreaLightData(uint i, uint tile, uint zBin, out LightData data)
-{
-    bool b = false;
-    uint n = _AreaLightCount;
-
-    if (i < n)
-    {
-        data = _AreaLightData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadAreaLightData(uint i, uint tile, uint2 zBinRange, out LightData data)
-{
-    bool b = false;
-    uint n = _AreaLightCount;
-
-    if (i < n)
-    {
-        data = _AreaLightData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadReflectionProbeData(uint i, uint tile, uint zBin, out EnvLightData data, out uint entityIndex)
-{
-    entityIndex = UINT16_MAX;
-
-    bool b = false;
-    uint n = _ReflectionProbeCount;
-
-    if (i < n)
-    {
-        entityIndex = i;
-
-        data = _ReflectionProbeData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadReflectionProbeData(uint i, uint tile, uint2 zBinRange, out EnvLightData data, out uint entityIndex)
-{
-    entityIndex = UINT16_MAX;
-
-    bool b = false;
-    uint n = _ReflectionProbeCount;
-
-    if (i < n)
-    {
-        entityIndex = i;
-
-        data = _ReflectionProbeData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
-{
-    bool b = false;
-    uint n = _DecalCount;
-
-    if (i < n)
-    {
-        data = _DecalData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadDecalData(uint i, uint tile, uint2 zBinRange, out DecalData data)
-{
-    bool b = false;
-    uint n = _DecalCount;
-
-    if (i < n)
-    {
-        data = _DecalData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadDensityVolumeData(uint i, uint tile, uint zBin, out DensityVolumeData data)
-{
-    bool b = false;
-    uint n = _DensityVolumeCount;
-
-    if (i < n)
-    {
-        data = _DensityVolumeData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-bool TryLoadDensityVolumeData(uint i, uint tile, uint2 zBinRange, out DensityVolumeData data)
-{
-    bool b = false;
-    uint n = _DensityVolumeCount;
-
-    if (i < n)
-    {
-        data = _DensityVolumeData[i];
-        b    = true;
-    }
-
-    return b;
-}
-
-#endif // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
 // This call performs no bounds-checking.
 // Only call this using the 'entityIndex' returned by TryLoadReflectionProbeData, and
