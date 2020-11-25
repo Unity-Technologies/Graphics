@@ -61,7 +61,6 @@ struct JitteredRay
 
 float ComputeFadeFactor(float3 coordNDC, float dist,
                         float3 rcpPosFaceFade, float3 rcpNegFaceFade, bool invertFade,
-                        float rcpDistFadeLen, float endTimesRcpDistFadeLen)
                         float rcpDistFadeLen, float endTimesRcpDistFadeLen, int falloffMode)
 {
     // We have to account for handedness.
@@ -72,7 +71,13 @@ float ComputeFadeFactor(float3 coordNDC, float dist,
     float  dstF = Remap10(dist, rcpDistFadeLen, endTimesRcpDistFadeLen);
     float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
 
-    return dstF * (invertFade ? (1 - fade) : fade);
+    // We only apply exponential falloff on the Blend Distance and not Distance Fade
+    if (falloffMode == DENSITYVOLUMEFALLOFFMODE_EXPONENTIAL)
+        fade = pow(fade, 2.2);
+
+    fade = dstF * (invertFade ? (1 - fade) : fade);
+
+    return fade;
 }
 
 float4 SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
