@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
+        internal void ExecuteInternal(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResults, SharedRTManager rtManager, RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRTManager = rtManager;
@@ -192,7 +192,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool msaa = IsMSAAEnabled(hdCamera);
                 CustomPassContext ctx = new CustomPassContext(
                     renderContext, cmd, hdCamera,
-                    cullingResult, msaa ? targets.cameraColorMSAABuffer : targets.cameraColorBuffer,
+                    cullingResult, cameraCullingResults,
+                    msaa ? targets.cameraColorMSAABuffer : targets.cameraColorBuffer,
                     rtManager.GetDepthStencilBuffer(msaa),
                     rtManager.GetNormalBuffer(msaa),
                     targets.customColorBuffer,
@@ -214,6 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public CustomPass customPass;
             public CullingResults cullingResult;
+            public CullingResults cameraCullingResult;
             public HDCamera hdCamera;
         }
 
@@ -246,7 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return output;
         }
 
-        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in RenderTargets targets, CustomPassVolume owner)
+        internal void ExecuteInternal(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in RenderTargets targets, CustomPassVolume owner)
         {
             this.owner = owner;
             this.currentRTManager = null;
@@ -257,6 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.customPass = this;
                 passData.cullingResult = cullingResult;
+                passData.cameraCullingResult = cameraCullingResult;
                 passData.hdCamera = hdCamera;
 
                 this.currentRenderTarget = ReadRenderTargets(builder, targets);
@@ -292,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Create the custom pass context:
                         CustomPassContext customPassCtx = new CustomPassContext(
                             ctx.renderContext, ctx.cmd, data.hdCamera,
-                            data.cullingResult,
+                            data.cullingResult, data.cameraCullingResult,
                             outputColorBuffer,
                             customPass.currentRenderTarget.depthBufferRG,
                             customPass.currentRenderTarget.normalBufferRG,

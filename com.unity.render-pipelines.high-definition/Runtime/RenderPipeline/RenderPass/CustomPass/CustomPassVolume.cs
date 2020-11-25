@@ -118,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
+        internal bool Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, SharedRTManager rtManager, CustomPass.RenderTargets targets)
         {
             bool executed = false;
 
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (pass != null && pass.WillBeExecuted(hdCamera))
                 {
-                    pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, rtManager, targets, this);
+                    pass.ExecuteInternal(renderContext, cmd, hdCamera, cullingResult, cameraCullingResult, rtManager, targets, this);
                     executed = true;
                 }
             }
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return executed;
         }
 
-        internal bool Execute(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, in CustomPass.RenderTargets targets)
+        internal bool Execute(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullingResult, CullingResults cameraCullingResult, in CustomPass.RenderTargets targets)
         {
             bool executed = false;
 
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (pass != null && pass.WillBeExecuted(hdCamera))
                 {
-                    pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, targets, this);
+                    pass.ExecuteInternal(renderGraph, hdCamera, cullingResult, cameraCullingResult, targets, this);
                     executed = true;
                 }
             }
