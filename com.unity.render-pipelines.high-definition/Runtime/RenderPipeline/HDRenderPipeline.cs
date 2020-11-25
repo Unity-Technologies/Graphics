@@ -373,11 +373,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ValidateResources();
 #endif
 
-            if (m_RayTracingSupported)
-            {
-                m_RayCountManager.InitializeNonRenderGraphResources();
-            }
-
             // We need to call this after the resource initialization as we attempt to use them in checking the supported API.
             if (!CheckAPIValidity())
             {
@@ -517,6 +512,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitPathTracing();
 
                 m_AmbientOcclusionSystem.InitRaytracing(this);
+
+
+                if (m_RayTracingSupported)
+                {
+                    m_RayCountManager.InitializeNonRenderGraphResources();
+                }
             }
             // Initialize the SSGI structures
             InitScreenSpaceGlobalIllumination();
@@ -829,11 +830,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             base.Dispose(disposing);
 
-            if (m_RayTracingSupported)
-            {
-                m_RayCountManager.CleanupNonRenderGraphResources();
-            }
-
             ReleaseScreenSpaceShadows();
 
             if (m_RayTracingSupported)
@@ -841,6 +837,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseRayTracingDeferred();
                 ReleaseRayTracedIndirectDiffuse();
                 ReleasePathTracing();
+
+                m_RayCountManager.CleanupNonRenderGraphResources();
             }
             ReleaseRayTracingManager();
             m_DebugDisplaySettings.UnregisterDebug();
