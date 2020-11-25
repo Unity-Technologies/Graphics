@@ -945,6 +945,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kZTestTransparent = "_ZTestTransparent";
         /// <summary>Is Raytracing supported.</summary>
         public const string kRayTracing = "_RayTracing";
+
         /// <summary>Surface Type.</summary>
         public const string kSurfaceType = "_SurfaceType";
         /// <summary>Receive Decals.</summary>

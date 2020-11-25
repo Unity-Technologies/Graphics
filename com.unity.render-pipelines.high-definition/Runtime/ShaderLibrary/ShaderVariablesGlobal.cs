@@ -268,7 +268,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
         public float    _GlobalTessellationFactorMultiplier;
 
-        // In case the frame setting is active for the deferred mode.
         public int      _Pad8;
         public float    _Pad9;
     }
