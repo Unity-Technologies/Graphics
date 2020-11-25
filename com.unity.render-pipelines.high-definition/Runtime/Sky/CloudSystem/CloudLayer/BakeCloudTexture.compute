@@ -57,7 +57,7 @@ float SampleCloudMap(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), float2 uv,
     float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, uv, 0);
 
     float4 clouds = cloudLayerColor * weights;
-    return max(max(clouds.r, clouds.g), max(clouds.b, clouds.a));
+    return clouds.r + clouds.g + clouds.b + clouds.a;
 }
 
 float3 RotationUp(float3 p, float2 cos_sin)
@@ -70,7 +70,8 @@ float3 RotationUp(float3 p, float2 cos_sin)
 
 float2 ComputeCloudLighting(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), float2 uv, uint3 dispatchThreadId)
 {
-    float opacity = SampleCloudMap(_CloudMap, sampler_CloudMap, uv, _Opacities);
+    float4 weights = _Opacities / max(_Opacities.r + _Opacities.g + _Opacities.b + _Opacities.a, 1.0);
+    float opacity = SampleCloudMap(_CloudMap, sampler_CloudMap, uv, weights);
     float2 finalColor = float2(1.0, opacity);
 
     int numSteps = (int)_LightingSteps;
@@ -92,7 +93,7 @@ float2 ComputeCloudLighting(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), flo
             float3 ray = normalize(dir + marchStep * min(stepSize * i, marchDist));
             ray.y = max(ray.y, 0.00f);
             float2 coords = GetLatLongCoords(ray, _UpperHemisphere);
-            float newSample = SampleCloudMap(_CloudMap, sampler_CloudMap, coords, _Opacities);
+            float newSample = SampleCloudMap(_CloudMap, sampler_CloudMap, coords, weights);
             float c = 1/(1+_LightingSteps);
             finalColor.x = lerp(finalColor.x, 0.02 + 0.98 * saturate(opacity - newSample), lerp(c, 0.5, _Thickness));
         }

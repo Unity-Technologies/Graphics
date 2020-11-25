@@ -101,8 +101,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 
-            var paramsA = cloudLayer.layerA.GetRenderingParameters();
-            var paramsB = cloudLayer.layerB.GetRenderingParameters();
+            float intensity = builtinParams.sunLight ? builtinParams.sunLight.intensity : 1;
+            var paramsA = cloudLayer.layerA.GetRenderingParameters(intensity);
+            var paramsB = cloudLayer.layerB.GetRenderingParameters(intensity);
             paramsA.Item1.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
             paramsB.Item1.w = cloudLayer.opacity.value;
 
@@ -269,8 +270,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudTexture, cloudTextureRT);
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudShadows, cloudShadowsRT);
 
-                var paramsA = cloudLayer.layerA.GetRenderingParameters();
-                var paramsB = cloudLayer.layerB.GetRenderingParameters();
+                var paramsA = cloudLayer.layerA.GetRenderingParameters(0);
+                var paramsB = cloudLayer.layerB.GetRenderingParameters(0);
+                paramsA.Item1.z = paramsA.Item1.z * 0.2f;
+                paramsB.Item1.z = paramsB.Item1.z * 0.2f;
                 paramsA.Item1.w = cloudLayer.upperHemisphereOnly.value ? 1 : 0;
                 paramsB.Item1.w = cloudLayer.opacity.value;
 

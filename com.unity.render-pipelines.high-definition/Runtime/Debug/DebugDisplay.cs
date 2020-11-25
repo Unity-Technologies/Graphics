@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -1588,13 +1587,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         };
                     }
 
-                    Type selectedType = data.volumeDebugSettings.selectedComponentType;
-                    var stackComponent = data.volumeDebugSettings.selectedCameraVolumeStack.GetComponent(selectedType);
+                    Type type = data.volumeDebugSettings.selectedComponentType;
+
+                    var fields = type
+                        .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        .Where(t => t.FieldType.IsSubclassOf(typeof(VolumeParameter)))
+                        .OrderBy(t => t.Name);
 
                     var volumes = data.volumeDebugSettings.GetVolumes();
                     var table = new DebugUI.Table() { displayName = "Parameter", isReadOnly = true };
 
-                    var inst = (VolumeComponent)ScriptableObject.CreateInstance(selectedType);
+                    var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
 
                     // First row for volume info
                     float timer = 0.0f, refreshRate = 0.2f;
@@ -1646,58 +1649,35 @@ namespace UnityEngine.Rendering.HighDefinition
                     row.children.Add(new DebugUI.Value() { displayName = "Default Value", getter = () => "" });
                     table.children.Add(row);
 
-                    // Build rows - recursively handles nested parameters
-                    var rows = new List<DebugUI.Table.Row>();
-                    void AddParameterRows(Type type, string baseName = null)
+                    // One row per parameter
+                    foreach (var f in fields)
                     {
-                        void AddRow(FieldInfo f, string prefix)
-                        {
-                            var fieldName = prefix + f.Name;
-                            var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
-                            if (attr.Length != 0)
-                                fieldName = prefix + attr[0].name;
+                        var fieldName = f.Name;
+                        var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                        if (attr.Length != 0)
+                            fieldName = attr[0].name;
 #if UNITY_EDITOR
-                            // Would be nice to have the equivalent for the runtime debug.
-                            else
-                                fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
+                        // Would be nice to have the equivalent for the runtime debug.
+                        else
+                            fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
 #endif
 
-                            int currentParam = rows.Count;
-                            row = new DebugUI.Table.Row()
-                            {
-                                displayName = fieldName,
-                                children = { makeWidget("Interpolated Value", stackComponent.parameters[currentParam]) }
-                            };
 
-                            foreach (var volume in volumes)
-                            {
-                                VolumeParameter param = null;
-                                var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
-                                if (profile.TryGet(selectedType, out VolumeComponent component) && component.parameters[currentParam].overrideState)
-                                    param = component.parameters[currentParam];
-                                row.children.Add(makeWidget(volume.name + " (" + profile.name + ")", param));
-                            }
-
-                            row.children.Add(makeWidget("Default Value", inst.parameters[currentParam]));
-                            rows.Add(row);
-                        }
-
-                        var fields = type
-                            .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                            .OrderBy(t => t.MetadataToken);
-                        foreach (var field in fields)
+                        row = new DebugUI.Table.Row()
                         {
-                            var fieldType = field.FieldType;
-                            if (fieldType.IsSubclassOf(typeof(VolumeParameter)))
-                                AddRow(field, baseName ?? "");
-                            else if (!fieldType.IsArray && fieldType.IsClass)
-                                AddParameterRows(fieldType, baseName ?? (field.Name + " "));
-                        }
-                    }
+                            displayName = fieldName,
+                            children = { makeWidget("Interpolated Value", data.volumeDebugSettings.GetParameter(f)) }
+                        };
 
-                    AddParameterRows(selectedType);
-                    foreach (var r in rows.OrderBy(t => t.displayName))
-                        table.children.Add(r);
+                        foreach (var volume in volumes)
+                        {
+                            var profile = volume.HasInstantiatedProfile() ? volume.profile : volume.sharedProfile;
+                            row.children.Add(makeWidget(volume.name + " (" + profile.name + ")", data.volumeDebugSettings.GetParameter(volume, f)));
+                        }
+
+                        row.children.Add(makeWidget("Default Value", data.volumeDebugSettings.GetParameter(inst, f)));
+                        table.children.Add(row);
+                    }
 
                     data.volumeDebugSettings.RefreshVolumes(volumes);
                     for (int i = 0; i < volumes.Length; i++)

@@ -108,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
         [Tooltip("Controls the opacity of the cloud shadows.")]
-        public MinFloatParameter shadowsOpacity = new MinFloatParameter(1.0f, 0.0f);
+        public ClampedFloatParameter shadowsOpacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         /// <summary>Controls the tiling of the cloud shadows.</summary>
         [Tooltip("Controls the tiling of the cloud shadows.")]
         public MinFloatParameter shadowsTiling = new MinFloatParameter(500.0f, 0.0f);
@@ -146,8 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Color multiplier of the clouds.</summary>
             [Tooltip("Specifies the color that HDRP uses to tint the clouds.")]
             public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
-            /// <summary>Exposure of the clouds.</summary>
-            [Tooltip("Sets the exposure of the clouds in EV.")]
+            /// <summary>Relative exposure of the clouds.</summary>
+            [Tooltip("Sets the relative exposure of the clouds in EV.")]
             public FloatParameter exposure = new FloatParameter(0.0f);
 
             /// <summary>Distortion mode.</summary>
@@ -182,11 +182,11 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int NumSteps => lighting.value ? steps.value : 0;
             internal Vector4 Opacities => new Vector4(opacityR.value, opacityG.value, opacityB.value, opacityA.value);
 
-            internal (Vector4, Vector4) GetRenderingParameters()
+            internal (Vector4, Vector4) GetRenderingParameters(float intensity)
             {
                 float angle = -Mathf.Deg2Rad * scrollDirection.value;
                 Vector4 params1 = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), scrollFactor);
-                Vector4 params2 = tint.value * ColorUtils.ConvertEV100ToExposure(-exposure.value);
+                Vector4 params2 = tint.value * (ColorUtils.ConvertEV100ToExposure(-exposure.value) * intensity);
                 return (params1, params2);
             }
 
@@ -245,6 +245,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetBakingHashCode(Light sunLight)
         {
             int hash = 17;
+            bool lighting = layerA.lighting.value;
+            bool shadows = sunLight != null && layerA.castShadows.value;
 
             unchecked
             {
@@ -253,13 +255,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + resolution.GetHashCode();
                 hash = hash * 23 + layerA.GetBakingHashCode();
                 if (layers.value == CloudMapMode.Double)
-                    hash = hash * 23 + layerB.GetBakingHashCode();
-
-                if (CastShadows)
                 {
-                    hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
-                    hash = hash * 23 + shadowsResolution.GetHashCode();
+                    hash = hash * 23 + layerB.GetBakingHashCode();
+                    lighting |= layerB.lighting.value;
+                    shadows |= layerB.castShadows.value;
                 }
+
+                if (lighting)
+                    hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
+                if (shadows)
+                    hash = hash * 23 + shadowsResolution.GetHashCode();
             }
 
             return hash;
