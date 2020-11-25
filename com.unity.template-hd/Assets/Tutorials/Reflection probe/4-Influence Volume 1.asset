@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 6M_Subsurface
+  m_Name: 4-Influence Volume 1
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: 80aae804239dc61458cd1b41b88c68f4, type: 3}
+      m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,15 +37,17 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Subsurface Scattering
+        m_Untranslated: Reflection Probe
       Text:
-        m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>Props->Room2->NatureSetPiece_02
-          ->Bamboo_A_Snaps004</b> \n2) Select <b>Geometry_Bamboo_A_LOD00</b> gameobject\n3)
-          Go to <i>Inspector</i> window -> expand the <i>Bamboo_Leaf_A Material</i>\n4)
-          Under Surface options, uncheck Transmission\r\n5) Undo, by enabling it
-          again\r\n\nThis subfeature of subsurface scattering allows the sun to penetrate
-          through bamboo leaves, bringing a significant improvement to the scenes
-          visuals."
+        m_Untranslated: 'See that the <b>Use Influence Volume as a Proxy Volume</b>
+          checkbox is ticked, to ensure that the reflection is warped based on the
+          camera position, to ground the reflections with the environment. You can
+          observe the effects of the warping of the reflections on the reflective
+          surfaces in this room by toggling the checkbox.
+
+
+          Disable and
+          enable <b>Use Influence Volume as a Proxy Volume</b>'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -63,12 +65,12 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
   m_CameraSettings:
-    m_CameraMode: 1
+    m_CameraMode: 0
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0.99356216
-    m_Pivot: {x: 29.403143, y: 1.6917086, z: -2.5656648}
-    m_Rotation: {x: -0.15519787, y: 0.5945566, z: 0.118301295, w: 0.7800311}
+    m_Size: 0
+    m_Pivot: {x: 0, y: 0, z: 0}
+    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -77,7 +79,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 1
+    m_Enabled: 0
   NextButton:
     m_Untranslated: Next
   DoneButton:

@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 7M_Thickness_map 1
+  m_Name: 1-What 1
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
-    - m_Type: 7
+    - m_Type: 6
       Title:
         m_Untranslated: 
       Text:
@@ -27,8 +27,8 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: 6a1cef4aa81b4f44786e5e6824424124, type: 3}
-      m_Video: {fileID: 32900000, guid: f6fd54ddc98bc8542adbeb7836918953, type: 3}
+      m_Image: {fileID: 0}
+      m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
         m_Items: []
@@ -37,15 +37,14 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Thickness map
+        m_Untranslated: Reflection Probe
       Text:
-        m_Untranslated: 'Stores a grayscale Texture, with values from 0 to 1, that
-          correspond to the average thickness of the Mesh at the location of the
-          texel. Higher values mean thicker areas, and thicker areas transmit less
-          light.
-
-          This property only appears when you select <b>Subsurface
-          Scattering</b> or <b>Translucent</b> from the <i>Material</i> Type drop-down.'
+        m_Untranslated: A Reflection Probe is like a camera that captures a spherical
+          view of its surroundings in all directions. The image is then stored as
+          a Cubemap that can be used by objects with reflective Materials, like chrome
+          surfaces. You can use multiple Reflection Probes in a Scene and set up
+          objects to use the Cubemap of the nearest probe. This helps reflective
+          Materials in the Scene properly reflect its surroundings.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -66,9 +65,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0.99356216
-    m_Pivot: {x: 29.403143, y: 1.6917086, z: -2.5656648}
-    m_Rotation: {x: -0.15519787, y: 0.5945566, z: 0.118301295, w: 0.7800311}
+    m_Size: 4.8510256
+    m_Pivot: {x: 28.934547, y: 2.3245857, z: 0.6403017}
+    m_Rotation: {x: 0.094196774, y: 0.4623244, z: -0.049468257, w: 0.88030714}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

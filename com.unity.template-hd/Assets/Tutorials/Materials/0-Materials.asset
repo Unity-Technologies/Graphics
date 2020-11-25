@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f107dc6d4c984c45bdafd3bb15f98f0, type: 3}
-  m_Name: Density
+  m_Name: 0-Materials
   m_EditorClassIdentifier: 
   TutorialTitle:
-    m_Untranslated: New Tutorial
+    m_Untranslated: Materials
   m_TutorialTitle: 
   m_LessonId: 0
   m_Version: 1
@@ -42,10 +42,13 @@ MonoBehaviour:
   m_WindowLayout: {fileID: 0}
   m_Pages:
     m_Items:
-    - {fileID: 11400000, guid: 74f88c881f5e3324fa2007de8ef89d32, type: 2}
-    - {fileID: 11400000, guid: d787d8bff7cf1b349afccda228d376c6, type: 2}
-    - {fileID: 11400000, guid: 52012113f41e46443898932869ad6133, type: 2}
-    - {fileID: 11400000, guid: 4d29fbd5230211749878adc05598e45d, type: 2}
-    - {fileID: 11400000, guid: 42b05f45ad09a9f4cb0fdfaaebc06c6c, type: 2}
-    - {fileID: 11400000, guid: a580bcf45894ef246bc3ef715337f944, type: 2}
-    - {fileID: 11400000, guid: 9bc5e0638b9ffe645b70ccefb37b9060, type: 2}
+    - {fileID: 11400000, guid: 50e85545d70d56d4a81caddff7e04615, type: 2}
+    - {fileID: 11400000, guid: 6815104a5b608ec47aa80ef53886ac7f, type: 2}
+    - {fileID: 11400000, guid: 918c7dbe45c9e2f4da315948153cd94f, type: 2}
+    - {fileID: 11400000, guid: e35d6ccdaaa34d943a7b884c77ea30c1, type: 2}
+    - {fileID: 11400000, guid: 7ba242277d5cb7946a6e07731acf9039, type: 2}
+    - {fileID: 11400000, guid: b7a7ef4afab22844d8fee230db552d5b, type: 2}
+    - {fileID: 11400000, guid: 4b3fdbddd0374c3429cd1e5269b3a20b, type: 2}
+    - {fileID: 11400000, guid: 413ba0eb8c455fa4584a513d6ad050bc, type: 2}
+    - {fileID: 11400000, guid: 821f2647a70f2b847acda809d6085f90, type: 2}
+    - {fileID: 11400000, guid: fa9c1ffbd6c90a94a9b9142acd58ae0d, type: 2}

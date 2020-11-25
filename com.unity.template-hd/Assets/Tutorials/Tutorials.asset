@@ -181,3 +181,23 @@ MonoBehaviour:
     AuthorizedUrl: 0
     Image: {fileID: 0}
     Tutorial: {fileID: 11400000, guid: 2d4fd22e1b9ec5b4bbf9b0d3841fa6ef, type: 2}
+  - OrderInView: 32
+    Heading:
+      m_Untranslated: Light Layers
+    Text:
+      m_Untranslated: 
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: dbf1444cb3f174246b015a9c9b4c5b1b, type: 2}
+  - OrderInView: 34
+    Heading:
+      m_Untranslated: Reflection Probes
+    Text:
+      m_Untranslated: 
+    LinkText: 
+    Url: 
+    AuthorizedUrl: 0
+    Image: {fileID: 0}
+    Tutorial: {fileID: 11400000, guid: 00f8e992f9c971344b7ad1f17ebc7112, type: 2}

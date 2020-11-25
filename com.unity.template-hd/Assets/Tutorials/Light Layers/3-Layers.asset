@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 3M_Mask_map 1
+  m_Name: 3-Layers
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 2800000, guid: 34bb5adf9e55aa544bb92e1fc8c8cce5, type: 3}
+      m_Image: {fileID: 0}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,17 +37,18 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Mask map
+        m_Untranslated: Light Layers
       Text:
-        m_Untranslated: "The material in HDRP uses a Mask Map, to define different
-          texture properties, such as metalness, smoothness, ambient occlusion, and
-          detail mask. \nWe conbine those four textures into one to save memory space.
-          \n\nSelet a <b>Ball</b> by following thouse steps: \n1) In the <i>Hierarchy</i>
-          window expand <b>Props->Room3->Ball_PF (1)</b> gameobject\n2) Select <b>Ball</b>
-          gameobject\n3) Go to <i>Inspector</i> window -> expand the <i>Brass_Mat
-          Material</i>\n4) Remove the  <b>Mask Map</b> or set it to None\n\nThe smoothness
-          map is removed and you can see that the Ball is equally smooth. \nNow bring
-          back the Texture using (Ctrl+z / Cmd+z).\n"
+        m_Untranslated: 'Lights set in the same layer will only affect mesh renderers
+          that are set to the same layers. Lights can affect multiple layers, objects
+          can also be affected by multiple layers.
+
+          By default, light
+          layers are not turned on. To enable them, go to <i>Project Settings > Quality</i>
+          and select the current used HDRP asset for the quality setting. Under <i>Lighting</i>,
+          there will be a checkbox to enable <b>Light Layers</b>.
+
+'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -65,12 +66,12 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
   m_CameraSettings:
-    m_CameraMode: 1
+    m_CameraMode: 0
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0.23990136
-    m_Pivot: {x: 59.72185, y: 3.2436514, z: 2.6995156}
-    m_Rotation: {x: 0.08735351, y: 0.23876403, z: -0.021567427, w: 0.9669072}
+    m_Size: 0
+    m_Pivot: {x: 0, y: 0, z: 0}
+    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -79,7 +80,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 1
+    m_Enabled: 0
   NextButton:
     m_Untranslated: Next
   DoneButton:
