@@ -341,7 +341,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
@@ -383,7 +382,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
@@ -426,7 +424,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _LIT
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
@@ -472,7 +469,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _SIMPLELIT
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
@@ -562,6 +558,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles
 
             #pragma multi_compile_vertex _SSAO_ONLY
             #pragma multi_compile_vertex _ _SCREEN_SPACE_OCCLUSION
