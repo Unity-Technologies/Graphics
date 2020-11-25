@@ -242,7 +242,7 @@ namespace UnityEditor.VFX
         {
             var mapper = base.GetExpressionMapper(target);
             if (target == VFXDeviceTarget.GPU && skipZeroDeltaUpdate)
-                mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", - 1);
+                mapper.AddExpression(VFXBuiltInExpression.DeltaTime, "deltaTime", -1);
             return mapper;
         }
 

@@ -10,7 +10,7 @@ The mesh index count operator allows you to retrieve the number of indices in a 
 
 | **Property** | **Type** | **Description**                                              |
 | ------------ | -------- | ------------------------------------------------------------ |
-| **Source**   | Enum     | Choose the kind of source geometry, either a **Mesh** or a **Skinned Mesh Renderer** |
+| **Source**   | Enum     | **(Inspector)** Choose the kind of source geometry, either a **Mesh** or a **Skinned Mesh Renderer** |
 
 ### Operator Properties
 
@@ -21,7 +21,7 @@ The mesh index count operator allows you to retrieve the number of indices in a 
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| **count**  | UInt     | return the number of indices of the geometry. If the topology uses a default triangle list, the number of triangle can be deduced dividing by three. |
+| **count**  | UInt     | Return the number of indices of the geometry. If the topology uses a default triangle list, the number of triangle can be deduced dividing by three. |
 
 #### Limitations
 

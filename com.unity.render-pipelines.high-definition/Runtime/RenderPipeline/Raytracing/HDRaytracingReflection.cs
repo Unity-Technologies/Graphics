@@ -36,8 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static RTHandle ReflectionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
-                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("{0}_ReflectionHistoryBuffer{1}", viewName, frameIndex));
+                enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
+                name: string.Format("{0}_ReflectionHistoryBuffer{1}", viewName, frameIndex));
         }
 
         void ReleaseRayTracedReflections()
@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                     ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius, false);
                     ReflectionDenoiserResources reflectionDenoiserResources = reflectionDenoiser.PrepareReflectionDenoiserResources(hdCamera, outputTexture, reflectionHistory,
-                                                    intermediateBuffer0, intermediateBuffer1);
+                        intermediateBuffer0, intermediateBuffer1);
 
                     // Denoise
                     HDReflectionDenoiser.DenoiseBuffer(cmd, reflDenoiserParameters, reflectionDenoiserResources);
@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                     ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, EvaluateHistoryValidity(hdCamera), settings.denoiserRadius, rtrQRenderingParameters.bounceCount == 1);
                     ReflectionDenoiserResources reflectionDenoiserResources = reflectionDenoiser.PrepareReflectionDenoiserResources(hdCamera, outputTexture, reflectionHistory,
-                                                    intermediateBuffer0, intermediateBuffer1);
+                        intermediateBuffer0, intermediateBuffer1);
                     HDReflectionDenoiser.DenoiseBuffer(cmd, reflDenoiserParameters, reflectionDenoiserResources);
                 }
             }

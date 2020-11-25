@@ -71,8 +71,8 @@ namespace UnityEditor.VFX.Operator
             [Tooltip("The start index of edge, line will be renderer with the following one.")]
             public uint index = 0u;
 
-            [Tooltip("Linear interpolation value between start and end edge position.")]
-            public float x;
+            [Range(0, 1), Tooltip("Linear interpolation value between start and end edge position.")]
+            public float edge;
         }
 
         public class InputPropertiesPlacementSurfaceBarycentricCoordinates
@@ -201,7 +201,7 @@ namespace UnityEditor.VFX.Operator
                 if (placementMode != PlacementMode.Surface)
                     yield return nameof(surfaceCoordinates);
             }
-    }
+        }
 
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties
         {

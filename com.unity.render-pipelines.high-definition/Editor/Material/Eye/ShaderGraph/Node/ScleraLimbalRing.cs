@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
         {
             LimbalRingFactor = new Vector1();
             return
-                @"
+@"
                 {
                     $precision NdotV = dot($precision3(0.0, 0.0, 1.0), ViewDirectionOS);
                     // Compute the radius of the point inside the eye

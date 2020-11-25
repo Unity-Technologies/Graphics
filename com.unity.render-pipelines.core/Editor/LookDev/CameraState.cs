@@ -37,12 +37,12 @@ namespace UnityEditor.Rendering.LookDev
         /// <summary>The size of the view</summary>
         [field: SerializeField]
         public float viewSize { get; set; } = k_DefaultViewSize;
-        
+
         /// <summary>The distance from pivot</summary>
         public float distanceFromPivot
-            // distance coeficient from vertical FOV should be
-            // 1f / Mathf.Tan(kDefaultFoV * 0.5f * Mathf.Deg2Rad)
-            // but with fixed FoV of 90, this coef is always equal to 1f
+        // distance coeficient from vertical FOV should be
+        // 1f / Mathf.Tan(kDefaultFoV * 0.5f * Mathf.Deg2Rad)
+        // but with fixed FoV of 90, this coef is always equal to 1f
             => viewSize;
 
         /// <summary>The position of the camera</summary>

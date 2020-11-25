@@ -92,16 +92,12 @@ namespace UnityEditor.Rendering
                     {
                         info = new FileInfo(fileName);
                     }
-
-                    catch (UnauthorizedAccessException )
-
+                    catch (UnauthorizedAccessException)
                     {
                         Debug.Log("Access to " + fileName + " is denied. Skipping it.");
                         skipFile = true;
                     }
-
-                    catch (System.Security.SecurityException )
-
+                    catch (System.Security.SecurityException)
                     {
                         Debug.Log("You do not have permission to access " + fileName + ". Skipping it.");
                         skipFile = true;
@@ -169,7 +165,7 @@ namespace UnityEditor.Rendering
 
                     foreach (var gen in it.Value)
                     {
-                        if(gen.hasPackedInfo)
+                        if (gen.hasPackedInfo)
                         {
                             writer.WriteLine(gen.EmitPackedInfo().Replace("\n", writer.NewLine));
                         }

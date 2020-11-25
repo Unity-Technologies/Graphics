@@ -547,7 +547,7 @@ real3 NeutralCurve(real3 x, real a, real b, real c, real d, real e, real f)
     return ((x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f)) - e / f;
 }
 
-#define TONEMAPPING_CLAMP_MAX 435.18712 //(-b + sqrt(b * b - 4 * a * (HALF_MAX - d * f))) / (2 * a * whiteScale) 
+#define TONEMAPPING_CLAMP_MAX 435.18712 //(-b + sqrt(b * b - 4 * a * (HALF_MAX - d * f))) / (2 * a * whiteScale)
 //Extremely high values cause NaN output when using fp16, we clamp to avoid the performace hit of switching to fp32
 //The overflow happens in (x * (a * x + b) + d * f) of the NeutralCurve, highest value that avoids fp16 precision errors is ~571.56873
 //Since whiteScale is constant (~1.31338) max input is ~435.18712
@@ -564,7 +564,7 @@ real3 NeutralTonemap(real3 x)
     const real whiteLevel = 5.3;
     const real whiteClip = 1.0;
 
-#if defined(SHADER_API_MOBILE) 
+#if defined(SHADER_API_MOBILE)
     x = min(x, TONEMAPPING_CLAMP_MAX);
 #endif
 

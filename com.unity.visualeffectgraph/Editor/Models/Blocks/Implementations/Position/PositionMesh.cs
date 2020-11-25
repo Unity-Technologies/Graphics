@@ -24,7 +24,6 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", variantProvider = typeof(PositionMeshProvider), experimental = true)]
     class PositionMesh : PositionBase
     {
-
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
@@ -71,8 +70,8 @@ namespace UnityEditor.VFX.Block
             [Tooltip("The start index of edge, line will be renderer with the following one.")]
             public uint index = 0u;
 
-            [Tooltip("Linear interpolation value between start and end edge position.")]
-            public float x;
+            [Range(0, 1), Tooltip("Linear interpolation value between start and end edge position.")]
+            public float edge;
         }
 
         public class CustomPropertiesPlacementSurfaceBarycentricCoordinates
@@ -114,17 +113,17 @@ namespace UnityEditor.VFX.Block
                 VFXExpression coordinate = null;
                 foreach (var parameter in base.parameters)
                 {
-                    if (    parameter.name == nameof(CustomPropertiesMesh.mesh)
-                        ||  parameter.name == nameof(CustomPropertiesPropertiesSkinnedMeshRenderer.skinnedMesh))
+                    if (parameter.name == nameof(CustomPropertiesMesh.mesh)
+                        || parameter.name == nameof(CustomPropertiesPropertiesSkinnedMeshRenderer.skinnedMesh))
                         source = parameter.exp;
-                    else if (       parameter.name == nameof(CustomPropertiesEdge.x)
-                                ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.square)
-                                ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.barycentric))
+                    else if (parameter.name == nameof(CustomPropertiesEdge.edge)
+                             || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.square)
+                             || parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.barycentric))
                         coordinate = parameter.exp;
-                    else if (   parameter.name == nameof(CustomPropertiesVertex.vertex)
-                            ||  parameter.name == nameof(CustomPropertiesEdge.index)
-                            || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.triangle)
-                            ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.triangle))
+                    else if (parameter.name == nameof(CustomPropertiesVertex.vertex)
+                             || parameter.name == nameof(CustomPropertiesEdge.index)
+                             || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.triangle)
+                             || parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.triangle))
                         index = parameter.exp;
                     else
                         yield return parameter;
@@ -145,7 +144,7 @@ namespace UnityEditor.VFX.Block
                     else if (placementMode == SampleMesh.PlacementMode.Surface)
                         index = VFXOperatorUtility.ApplyAddressingMode(index, meshIndexCount / threeUint, mode);
                 }
-                else if(spawnMode == SpawnMode.Random)
+                else if (spawnMode == SpawnMode.Random)
                 {
                     if (placementMode == SampleMesh.PlacementMode.Vertex)
                     {

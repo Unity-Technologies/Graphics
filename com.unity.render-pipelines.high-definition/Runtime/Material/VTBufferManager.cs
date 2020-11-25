@@ -9,7 +9,6 @@ namespace  UnityEngine.Rendering.HighDefinition
     {
         public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, bool msaa)
         {
-
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
@@ -125,11 +124,11 @@ namespace  UnityEngine.Rendering.HighDefinition
                     passData.lowres = builder.WriteTexture(renderGraph.ImportTexture(m_LowresResolver));
 
                     builder.SetRenderFunc(
-                    (ResolveVTData data, RenderGraphContext ctx) =>
-                    {
-                        ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
-                        VirtualTexturing.System.Update();
-                    });
+                        (ResolveVTData data, RenderGraphContext ctx) =>
+                        {
+                            ResolveVTDispatch(data.parameters, ctx.cmd, data.input, data.lowres);
+                            VirtualTexturing.System.Update();
+                        });
                 }
             }
         }
@@ -172,7 +171,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             var resolveCounter = 0;
             var startOffsetX = (resolveCounter % kResolveScaleFactor);
             var startOffsetY = (resolveCounter / kResolveScaleFactor) % kResolveScaleFactor;
-            cmd.SetComputeVectorParam(parameters.downsampleCS, HDShaderIDs._Params, new Vector4(kResolveScaleFactor, startOffsetX, startOffsetY, /*unused*/-1));
+            cmd.SetComputeVectorParam(parameters.downsampleCS, HDShaderIDs._Params, new Vector4(kResolveScaleFactor, startOffsetX, startOffsetY, /*unused*/ -1));
             cmd.SetComputeVectorParam(parameters.downsampleCS, HDShaderIDs._Params1, new Vector4(parameters.width, parameters.height, parameters.lowresWidth, parameters.lowresHeight));
             var TGSize = 8; //Match shader
             cmd.DispatchCompute(parameters.downsampleCS, parameters.downsampleKernel, ((int)parameters.lowresWidth + (TGSize - 1)) / TGSize, ((int)parameters.lowresHeight + (TGSize - 1)) / TGSize, 1);
