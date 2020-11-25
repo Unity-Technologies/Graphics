@@ -220,6 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Pool.Clear();
             m_Index.Clear();
+            cells.Clear();
         }
 
 #if UNITY_EDITOR
