@@ -52,12 +52,12 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    thetaFI_sliceLUTMapText = new GUIContent("ThetaFI Slice LUT", "First angular dimension indirection for flake slice number");
 
             public static GUIContent    CarPaintFixedColorThetaHForIndirectLightText = new GUIContent("BRDFColor ThetaH For Indirect Light", "Select a fixed angle between normal and half-vector for indirect lighting, when this angle is unknown, to be used for the BRDF color table: "
-                                                                                                                                   + "The value is an angle from 0 to PI/2."
-                                                                                                                                   + "eg this will select a hue column in the BRDF color table for indirect reflection probes and raytraced indirect light");
+                + "The value is an angle from 0 to PI/2."
+                + "eg this will select a hue column in the BRDF color table for indirect reflection probes and raytraced indirect light");
 
             public static GUIContent    CarPaintFixedFlakesThetaHForIndirectLightText = new GUIContent("Flakes ThetaH For Indirect Light", "Select a fixed angle between normal and half-vector for indirect lighting, when this angle is unknown, to be used for the flakes: "
-                                                                                                                                   + "A value between 0 and 1 selects an angle from 0 to PI/2. "
-                                                                                                                                   + "This allows one to control visibility of flakes lit from indirect lighting more precisely when lit by reflection probes and raytraced indirect light");
+                + "A value between 0 and 1 selects an angle from 0 to PI/2. "
+                + "This allows one to control visibility of flakes lit from indirect lighting more precisely when lit by reflection probes and raytraced indirect light");
             public static GUIContent    CarPaintIORText = new GUIContent("Clearcoat IOR");
 
             public static GUIContent    CarPaintCTDiffuseText = new GUIContent("Diffuse coeff");
@@ -74,7 +74,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    clearcoatNormalMapText = new GUIContent("Clearcoat Normal");
             public static GUIContent    clearcoatNormalMapTilingText = new GUIContent("Clearcoat Normal Tiling and Offset");
             public static GUIContent    clearcoatIORMapText = new GUIContent("Clearcoat IOR");
-
         }
 
         static readonly string[]    AxfBrdfTypeNames = Enum.GetNames(typeof(AxfBrdfType));
@@ -293,21 +292,21 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public static uint GenFlags(bool anisotropy = false, bool clearcoat = false, bool clearcoatRefraction = false, bool useHeightMap = false, bool brdfColorDiagonalClamp = false,
-                                    bool honorMinRoughness = false)
+            bool honorMinRoughness = false)
         {
             uint flags = 0;
-            flags |= anisotropy ? (uint) AxF.FeatureFlags.AxfAnisotropy : 0U;
-            flags |= clearcoat ? (uint) AxF.FeatureFlags.AxfClearCoat : 0U;
-            flags |= clearcoatRefraction ? (uint) AxF.FeatureFlags.AxfClearCoatRefraction : 0U;
-            flags |= useHeightMap ? (uint) AxF.FeatureFlags.AxfUseHeightMap : 0U;
-            flags |= brdfColorDiagonalClamp ? (uint) AxF.FeatureFlags.AxfBRDFColorDiagonalClamp : 0U;
-            flags |= honorMinRoughness ? (uint) AxF.FeatureFlags.AxfHonorMinRoughness : 0U;
+            flags |= anisotropy ? (uint)AxF.FeatureFlags.AxfAnisotropy : 0U;
+            flags |= clearcoat ? (uint)AxF.FeatureFlags.AxfClearCoat : 0U;
+            flags |= clearcoatRefraction ? (uint)AxF.FeatureFlags.AxfClearCoatRefraction : 0U;
+            flags |= useHeightMap ? (uint)AxF.FeatureFlags.AxfUseHeightMap : 0U;
+            flags |= brdfColorDiagonalClamp ? (uint)AxF.FeatureFlags.AxfBRDFColorDiagonalClamp : 0U;
+            flags |= honorMinRoughness ? (uint)AxF.FeatureFlags.AxfHonorMinRoughness : 0U;
             return flags;
         }
 
         public static void ExtractFlags(uint flags,
-                                        out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
-                                        out bool honorMinRoughness)
+            out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
+            out bool honorMinRoughness)
         {
             anisotropy             = (flags & (uint)AxF.FeatureFlags.AxfAnisotropy) != 0;
             clearcoat              = (flags & (uint)AxF.FeatureFlags.AxfClearCoat) != 0;
@@ -320,7 +319,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static void DrawRightJustifiedHeader(string header)
         {
             EditorGUILayout.BeginHorizontal();
-            GUILayout.Label("", GUILayout.Width(EditorGUIUtility.labelWidth-5));
+            GUILayout.Label("", GUILayout.Width(EditorGUIUtility.labelWidth - 5));
             GUILayout.Label(header, EditorStyles.boldLabel);
             //EditorGUILayout.LabelField(header, EditorStyles.boldLabel);
             EditorGUILayout.EndHorizontal();
@@ -335,8 +334,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Extract flag:
             uint flags = (uint)m_Flags.floatValue;
             ExtractFlags(flags,
-                         out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
-                         out bool honorMinRoughness);
+                out bool anisotropy, out bool clearcoat, out bool clearcoatRefraction, out bool useHeightMap, out bool brdfColorDiagonalClamp,
+                out bool honorMinRoughness);
 
             switch (AxF_BRDFType)
             {
@@ -519,7 +518,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Finally write back flags:
             flags = GenFlags(anisotropy, clearcoat, clearcoatRefraction, useHeightMap, brdfColorDiagonalClamp,
-                             honorMinRoughness);
+                honorMinRoughness);
             m_Flags.floatValue = (float)flags;
         }//DrawAxfSurfaceOptionsGUI
     }

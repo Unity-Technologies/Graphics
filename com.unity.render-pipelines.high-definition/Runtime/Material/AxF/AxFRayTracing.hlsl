@@ -43,7 +43,7 @@ IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopCont
         }
         // TODO_flakes ? most carpaints have coat anyway and if we're called here, we're already
         // at 2 bounces of indirect specular path (reflection).
-        // See (and cf with) FitToStandardLit() that uses GetBaseSurfaceColorAndF0() and the mixFlakes option: 
+        // See (and cf with) FitToStandardLit() that uses GetBaseSurfaceColorAndF0() and the mixFlakes option:
         // The whole carpaint model is fitted, so here we just add the flakes component.
         // With FitToStandardLit(), we need to hack-in the flakes into the diffuse color or f0,
         // so for the later we are constrained by the f0 < 1 limit, and we have to mix it in instead, but not here.
@@ -90,7 +90,7 @@ void FitToStandardLit( SurfaceData surfaceData
     // or the F0, with the later maybe averaging the f0 according to roughness and V
     //GetBaseSurfaceColorAndF0(surfaceData, /*out*/ outStandardlit.baseColor, /*out*/ outStandardlit.fresnel0, /*out*/specBRDFColor, /*out*/singleFlakesComponent, /*out*/coatFGD);
     //GetBaseSurfaceColorAndF0(surfaceData, /*out*/ outStandardlit.baseColor, /*out*/ outStandardlit.fresnel0, /*out*/specBRDFColor, /*out*/singleFlakesComponent, /*out*/coatFGD, surfaceData.viewWS);
-    GetBaseSurfaceColorAndF0(surfaceData, 
+    GetBaseSurfaceColorAndF0(surfaceData,
                              /*out*/ outStandardlit.baseColor,
                              /*out*/ outStandardlit.fresnel0,
                              /*out*/specBRDFColor,

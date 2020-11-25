@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  geomNormalWS;
 
             // Needed for raytracing.
-            // TODO: should just modify FitToStandardLit in ShaderPassRaytracingGBuffer.hlsl and callee 
+            // TODO: should just modify FitToStandardLit in ShaderPassRaytracingGBuffer.hlsl and callee
             // to have "V" (from -incidentDir)
             [SurfaceDataAttributes("View Direction", true)]
             public Vector3  viewWS;

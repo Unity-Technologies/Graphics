@@ -30,7 +30,6 @@ namespace UnityEditor.Rendering.HighDefinition
             GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
         }
 
-
         public class Styles
         {
             public const string header = "Emission Inputs";
@@ -199,7 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                 {
-                    if(unitChanged)
+                    if (unitChanged)
                     {
                         if (unitIsMixed)
                             UpdateEmissionUnit(newUnitFloat);
@@ -227,11 +226,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-
         public static bool BakedEmissionEnabledProperty(MaterialEditor materialEditor)
         {
             Material[] materials = Array.ConvertAll(materialEditor.targets, (UnityEngine.Object o) => { return (Material)o; });
-            
+
             // Calculate isMixed
             bool enabled = materials[0].globalIlluminationFlags == MaterialGlobalIlluminationFlags.BakedEmissive;
             bool isMixed = materials.Any(m => m.globalIlluminationFlags != materials[0].globalIlluminationFlags);

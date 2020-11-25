@@ -70,9 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base,
                 features: SurfaceOptionUIBlock.Features.Surface | SurfaceOptionUIBlock.Features.BlendMode | SurfaceOptionUIBlock.Features.DoubleSided |
-                    SurfaceOptionUIBlock.Features.AlphaCutoff |  SurfaceOptionUIBlock.Features.AlphaCutoffShadowThreshold | SurfaceOptionUIBlock.Features.DoubleSidedNormalMode |
-                    SurfaceOptionUIBlock.Features.ReceiveSSR | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.PreserveSpecularLighting
-                ),
+                SurfaceOptionUIBlock.Features.AlphaCutoff |  SurfaceOptionUIBlock.Features.AlphaCutoffShadowThreshold | SurfaceOptionUIBlock.Features.DoubleSidedNormalMode |
+                SurfaceOptionUIBlock.Features.ReceiveSSR | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.PreserveSpecularLighting
+            ),
             new AxfMainSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
             new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Other),
             new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Vector4 mask = Vector4.zero;
             if (mappingMode <= AxFMappingMode.UV3)
             {
-                float X,Y,Z,W;
+                float X, Y, Z, W;
                 X = (mappingMode == AxFMappingMode.UV0) ? 1.0f : 0.0f;
                 Y = (mappingMode == AxFMappingMode.UV1) ? 1.0f : 0.0f;
                 Z = (mappingMode == AxFMappingMode.UV2) ? 1.0f : 0.0f;
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (mappingMode < AxFMappingMode.Triplanar)
             {
-                float X,Y,Z,W;
+                float X, Y, Z, W;
                 X = (mappingMode == AxFMappingMode.PlanarYZ) ? 1.0f : 0.0f;
                 Y = (mappingMode == AxFMappingMode.PlanarZX) ? 1.0f : 0.0f;
                 Z = (mappingMode == AxFMappingMode.PlanarXY) ? 1.0f : 0.0f;
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             return mask;
         }
-        
+
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
         {
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_PLANAR_LOCAL", planarIsLocal);
             }
 
-            // Note: for ShaderPass defines for vertmesh/varyingmesh setup, we still use the same 
+            // Note: for ShaderPass defines for vertmesh/varyingmesh setup, we still use the same
             // defines _REQUIRE_UV2 and _REQUIRE_UV3, and thus if eg _REQUIRE_UV3 is defined, _REQUIRE_UV2 will
             // be assumed to be needed. But here in the AxFData sampling code, we use these to indicate precisely
             // the single set used (if not using planar/triplanar) only and thus add _REQUIRE_UV1.

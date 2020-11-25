@@ -33,7 +33,7 @@ void PushValue(inout VarianceEstimator variance, float value)
         variance.newS = variance.oldS + (value - variance.oldM)*(value - variance.newM);
 
         // set up for next iteration
-        variance.oldM = variance.newM; 
+        variance.oldM = variance.newM;
         variance.oldS = variance.newS;
     }
 }
