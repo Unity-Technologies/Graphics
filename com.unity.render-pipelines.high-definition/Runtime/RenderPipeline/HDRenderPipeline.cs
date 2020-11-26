@@ -3256,6 +3256,9 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 cullingParams.cullingOptions &= ~CullingOptions.NeedsReflectionProbes;
 
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ShadowMaps) || currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0)
+                cullingParams.cullingOptions &= ~CullingOptions.ShadowCasters;
+
             return true;
         }
 
