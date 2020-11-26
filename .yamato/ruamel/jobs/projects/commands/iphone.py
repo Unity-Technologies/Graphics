@@ -1,162 +1,69 @@
 from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS, UTR_INSTALL_URL, UNITY_DOWNLOADER_CLI_URL, get_unity_downloader_cli_cmd, get_timeout
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ...shared.utr_utils import  extract_flags
+from ...shared.utr_utils import  get_repeated_utr_calls
 
 
 def _cmd_base(project_folder, platform, editor):
     return []
 
 def cmd_editmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
-
+    
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
-        f'chmod +x ./utr',
-        pss(f'''
-         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-        ./utr {" ".join(utr_args)}''')
+        f'chmod +x ./utr'
      ]
 
-    extra_cmds = extra_perf_cmd(project_folder)
-    unity_config = install_unity_config(project_folder)
-    extra_cmds = extra_cmds + unity_config
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
+    for utr_args in utr_calls:
+        base.append(
+        pss(f'''
+         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
+        ./utr {" ".join(utr_args)}'''))
+
     if project_folder.lower() == "BoatAttack".lower():
-        base = extra_cmds + base
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
     return base
 
 def cmd_playmode(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
 
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"]) } {"".join([f"-c {c} " for c in platform["components"]])}  --wait --published-only',
         f'curl -s {UTR_INSTALL_URL} --output utr',
-        f'chmod +x ./utr',
+        f'chmod +x ./utr'
+     ]
+
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
+    for utr_args in utr_calls:
+        base.append(
         pss(f'''
          export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-        ./utr {" ".join(utr_args)}''')
-     ]
-    extra_cmds = extra_perf_cmd(project_folder)
-    unity_config = install_unity_config(project_folder)
-    extra_cmds = extra_cmds + unity_config
+        ./utr {" ".join(utr_args)}'''))
+    
     if project_folder.lower() == "BoatAttack".lower():
-        base = extra_cmds + base
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
     return base
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags"], platform["name"], api["name"], build_config, color_space, project_folder)
-    scripting_backend = build_config["scripting_backend"]
-    api_level = build_config["api_level"]
-
-    quality_levels = []
-
-    for utr_arg in utr_args:
-        if ';' in utr_arg:
-            test_filters = utr_arg.split('=')
-            quality_level = test_filters[1][1:-1]
-            quality_levels = quality_level.split(';')
-            utr_args.remove(utr_arg)
-
-    utr_commands = []
-
-    if len(quality_levels) > 0:
-        for q in quality_levels:
-            str_in_list = any('testfilter' in string for string in utr_args)
-            if str_in_list == False:
-                testfilter = f'--testfilter={q}'
-                utr_args.append(testfilter)
-                tail = ''
-                for arg in utr_args:
-                    if 'players' in arg:
-                        #stripped = arg.split('players', 1)[0]
-                        head, sep, tail = arg.partition('players')
-                utr_args = [arg.replace(tail, q) for arg in utr_args]
-                utr_command = f'./utr {" ".join(utr_args)}'
-                utr_commands.append(utr_command)
-            else:
-                utr_args.pop()
-                testfilter = f'--testfilter={q}'
-                utr_args.append(testfilter)
-                tail = ''
-                for arg in utr_args:
-                    if 'players' in arg:
-                        #stripped = arg.split('players', 1)[0]
-                        head, sep, tail = arg.partition('players')
-                utr_args = [arg.replace(tail, q) for arg in utr_args]
-                utr_command = f'        ./utr {" ".join(utr_args)}'
-                utr_commands.append(utr_command)
-
-    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
 
     base = [
         f'curl -s {UTR_INSTALL_URL} --output utr',
         f'chmod +x ./utr'
      ]
 
-    
-    git_utr_string = ''
-    utr_string = ''
-    if len(utr_commands) > 0:
-        for cmd in utr_commands:
-            git_utr_string =        pss(f'''
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
+    for utr_args in utr_calls:
+        base.append(
+        pss(f'''
          export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-        {cmd}''')
-            base.append(git_utr_string)
-    else:
-        utr_string = utr_string + f'./utr {" ".join(utr_args)}'
-        git_utr_string =        pss(f'''
-         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-        {utr_string}''')
-        base.append(git_utr_string)
-    
+        ./utr {" ".join(utr_args)}'''))
      
     return base
 
         
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    utr_args = extract_flags(test_platform["utr_flags_build"], platform["name"], api["name"], build_config, color_space, project_folder)
-
-    quality_levels = []
-
-    for utr_arg in utr_args:
-        if ';' in utr_arg:
-            test_filters = utr_arg.split('=')
-            quality_level = test_filters[1][1:-1]
-            quality_levels = quality_level.split(';')
-            utr_args.remove(utr_arg)
-
-    utr_commands = []
-
-    if len(quality_levels) > 0:
-        for q in quality_levels:
-            str_in_list = any('testfilter' in string for string in utr_args)
-            if str_in_list == False:
-                testfilter = f'--testfilter={q}'
-                utr_args.append(testfilter)
-                tail = ''
-                for arg in utr_args:
-                    if 'players' in arg:
-                        #stripped = arg.split('players', 1)[0]
-                        head, sep, tail = arg.partition('players')
-                utr_args = [arg.replace(tail, q) for arg in utr_args] 
-                utr_command = f'./utr {" ".join(utr_args)}'
-                utr_commands.append(utr_command)
-            else:
-                utr_args.pop()
-                testfilter = f'--testfilter={q}'
-                utr_args.append(testfilter)
-                tail = ''
-                for arg in utr_args:
-                    if 'players' in arg:
-                        #stripped = arg.split('players', 1)[0]
-                        head, sep, tail = arg.partition('players')
-                utr_args = [arg.replace(tail, q) for arg in utr_args]
-                utr_command = f'        ./utr {" ".join(utr_args)}'
-                utr_commands.append(utr_command)
-
-    utr_args = [arg.replace('<TEST_FILTER>', '') for arg in utr_args]
 
     base = [
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
@@ -165,27 +72,16 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
         f'chmod +x ./utr'
      ]
     
-    git_utr_string = ''
-    utr_string = ''
-    if len(utr_commands) > 0:
-        for cmd in utr_commands:
-            git_utr_string =        pss(f'''
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags_build")
+    for utr_args in utr_calls:
+        base.append(
+        pss(f'''
          export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-        {cmd}''')
-            base.append(git_utr_string)
-    else:
-        utr_string = utr_string + f'./utr {" ".join(utr_args)}'
-        git_utr_string =        pss(f'''
-         export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-        {utr_string}''')
-        base.append(git_utr_string)
+        ./utr {" ".join(utr_args)}'''))
     
 
-    extra_cmds = extra_perf_cmd(project_folder)
-    unity_config = install_unity_config(project_folder)
-    extra_cmds = extra_cmds + unity_config
     if project_folder.lower() == "BoatAttack".lower():
-        base = extra_cmds + base
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
     return base
 
 def extra_perf_cmd(project_folder):   
