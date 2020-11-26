@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
 - Removed the superior clamping value for the recursive rendering max ray length. 
 - Removed the superior clamping value for the ray tracing light cluster size.
+- Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
 
 ## [10.3.0] - 2020-12-01
 
