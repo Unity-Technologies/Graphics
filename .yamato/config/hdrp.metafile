@@ -15,7 +15,9 @@ test_platforms:
   - type: editmode
   - type: Standalone
     utr_flags:
-      - [OSX_Metal]: --timeout=2400
+      - [all]: --timeout=2400
+    utr_flags_build:
+      - [all]: --timeout=2400
 platforms:
   - name: Win
     apis:
