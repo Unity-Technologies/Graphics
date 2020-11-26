@@ -138,7 +138,7 @@ namespace UnityEngine
         /// Updates the light's transform with respect to a given camera and anchor point
         /// </summary>
         /// <param name="camera">The camera to which values are relative.</param>
-        /// <param name="anchor">The light's anchor position.</param>
+        /// <param name="anchor">The anchor position.</param>
         public void UpdateTransform(Camera camera, Vector3 anchor)
         {
             var axes = GetWorldSpaceAxes(camera);
