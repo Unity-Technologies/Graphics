@@ -204,8 +204,8 @@ platforms:
         flavor: m1.mac
       standalone_build:
         type: Unity::VM::osx
-        image: package-ci/mac:stable
-        flavor: m1.mac
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
     agents_project_OpenGLCore:
       default:
         type: Unity::VM::osx
