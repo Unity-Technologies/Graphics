@@ -31,7 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// This defines the maximal travel distance of rays.
         /// </summary>
-        [Tooltip("Max Ray Length. This defines the maximal travel distance of rays.")]
         public MinFloatParameter rayLength = new MinFloatParameter(10.0f, 0.0f);
 
         /// <summary>
