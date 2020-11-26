@@ -16,7 +16,7 @@ For more information about the future, see the [Shadow](Shadows-in-HDRP.md) sect
 
 ### Cubemap fields in Volume components
 
-Cubemap fields now accept both [RenderTextures](https://docs.unity3d.com/Manual/class-RenderTexture.html) and [CustomRenderTextures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) if they are formatted like Cubemaps. This change affects the `HDRI Sky` and `Physically Based Sky` components and allows you to animate both skies.
+Cubemap fields now accept both [RenderTextures](https://docs.unity3d.com/Manual/class-RenderTexture.html) and [CustomRenderTextures](https://docs.unity3d.com/Manual/class-CustomRenderTexture.html) if they use the cubemap mode / dimension. This change affects the `HDRI Sky` and `Physically Based Sky` components and allows you to animate both skies.
 
 For more information, see the [HDRI Sky](Override-HDRI-Sky.md) and [Physically Based Sky](Override-Physically-Based-Sky) sections of the documentation.
 
