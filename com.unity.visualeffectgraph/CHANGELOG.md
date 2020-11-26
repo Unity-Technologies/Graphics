@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [11.0.0] - 2020-10-21
 ### Added
+- Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
+- Added new setting to output nodes to exclude from TAA
 - Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 
