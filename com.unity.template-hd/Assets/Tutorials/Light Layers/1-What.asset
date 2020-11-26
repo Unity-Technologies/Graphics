@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: e8a7362729469b144bd110fb4265703b, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,10 +39,8 @@ MonoBehaviour:
       Title:
         m_Untranslated: Light Layers
       Text:
-        m_Untranslated: The High Definition Render Pipeline allows you to use Light
-          Layers to make Lights in your Scene only light up specific Meshes. You
-          set Light Layers for Lights and Meshes to make Lights only affect Meshes
-          that are on corresponding Light Layers.
+        m_Untranslated: Light layers can be used to dictate which objects a light
+          or a reflection probe can affect in the scene.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -63,9 +61,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 3.5399008
-    m_Pivot: {x: 62.03808, y: 3.1502094, z: 0.27178776}
-    m_Rotation: {x: 0.03801057, y: 0.611692, z: -0.02944187, w: 0.7896343}
+    m_Size: 0.3600989
+    m_Pivot: {x: 63.291298, y: 4.773621, z: -0.1692621}
+    m_Rotation: {x: -0.04505677, y: 0.69589955, z: 0.043833137, w: 0.715384}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

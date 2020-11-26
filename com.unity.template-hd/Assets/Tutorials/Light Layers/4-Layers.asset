@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 4-End
+  m_Name: 4-Layers
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: eb31c7cc5c5f5214dad1ea1af901f4e6, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,12 +37,49 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Congradulations!
+        m_Untranslated: Light Layers
       Text:
-        m_Untranslated: "You have finished the <b>Light Layers</b> tutorial. For
-          more use cases with light layers, see this  <a href=\" https://www.youtube.com/watch?v=yqCHiZrgKzs&t=3497s\r\">Unite
-          Session.</a>\n\nNote: You do not need to save in order to follow other
-          tutorials."
+        m_Untranslated: 'In this step we will boost the light on our plant, but we
+          do not want to affect any other objects.
+
+
+          1) Add a new Point
+          light to the scene
+
+          2) Place it above the plant, around x:63.2
+          y:3 z:0.25
+
+          3) Optinally, disable Affect Specular in Emission
+          advanced settings
+
+          3) Notice the light affects the table and
+          the floor
+
+          4) Select your light again
+
+          5) In the advanced
+          settings of General section, change Light Layer to Light Layer 6
+
+          6)
+          If status says Mixed, unceck the default. Light Layer should be set to
+          Light Layer 6 only
+
+          7) Notice the light no longer affects anything
+
+          8)
+          Select the plant, Fern_01_LOD0.
+
+          9) In the Rendering Layer Mask,
+          enable Light Layer 6. It should now say Mixed... which is what we want.
+          It means the plant will receive light from default sources + Layer 6
+
+          10)
+          Enable and disable your light. Notice it now only affects the plant, boosting
+          its brightness.
+
+
+          This technique can be really useful for making
+          cuscenes.'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -63,9 +100,9 @@ MonoBehaviour:
     m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 4.5600986
-    m_Pivot: {x: 61.7638, y: 3.003726, z: -0.76938593}
-    m_Rotation: {x: 0.03952461, y: 0.75163066, z: -0.045224227, w: 0.65684587}
+    m_Size: 0.3600989
+    m_Pivot: {x: 62.8023, y: 2.5743423, z: 0.13597547}
+    m_Rotation: {x: -0.20325024, y: -0.70542985, z: 0.22365446, w: -0.6411601}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

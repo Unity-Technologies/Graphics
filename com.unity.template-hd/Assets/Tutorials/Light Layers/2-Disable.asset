@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 2-Layers
+  m_Name: 2-Disable
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:
@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: a15ea45be12925f48b3a3146e469416e, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -37,16 +37,36 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Light Layers
+        m_Untranslated: Disabling the feature
       Text:
-        m_Untranslated: "Light layers can be used to dictate which objects a light
-          or a reflection probe can affect in the scene\n\n1) In the <i>Hierarchy</i>
-          window expand <b>Props->Room3->CeilingLamp_01->CeilingLamp_Lamp_01</b>\n2)
-          Select <b>CeilingLamp_Glass_01_LOD0\r</b>\n3) In the <i>Inspector</i> window
-          set <b>Rendering Layer Mask</b> to only <b>Light LayerDefault</b> \n\nNow
-          that the light cannot affect the the glass, because the mesh renderer for
-          the glass doesn\u2019t have its Rendering Layer Maks set to \u201CLampsOnly\u201D\n\nSet
-          the  <b>Rendering Layer Mask</b> back to only <b>LampsOnly</b> "
+        m_Untranslated: 'Lets take a look at what problems the Light layers are solving
+          for this project. We will do this by simply disabling the feature.
+
+
+          1)
+          Find your active HDRP asset in the <i>Project</i> window <b>Settings</b>
+          folder. It should be <b>HDRP Medium</b> if you havent switched to another
+          one in the quality settings.
+
+          2) In the asset, uncheck Lighting->Light
+          layers
+
+
+          While Light layers are off, we can see 2 unwanted effects:
+
+          *
+          The glass is casting a shadow on the right lamp
+
+          * The bottom
+          part of the glass gets brigter
+
+
+          Turn back Light layers On. In
+          the next step we will see how they were  set up.
+
+
+          Note: by default
+          Light layers are turned off for new projects'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -68,8 +88,8 @@ MonoBehaviour:
     m_FocusMode: 0
     m_Orthographic: 0
     m_Size: 0.3600989
-    m_Pivot: {x: 62.624752, y: 4.940178, z: -0.35896504}
-    m_Rotation: {x: 0.07866719, y: 0.60347867, z: -0.0599981, w: 0.7912182}
+    m_Pivot: {x: 63.291298, y: 4.773621, z: -0.1692621}
+    m_Rotation: {x: -0.04505677, y: 0.69589955, z: 0.043833137, w: 0.715384}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 

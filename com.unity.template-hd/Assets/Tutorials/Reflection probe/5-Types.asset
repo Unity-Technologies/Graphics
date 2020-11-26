@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ff771ccdf4150419d9ff4d342b069aae, type: 3}
-  m_Name: 5-Probes 1
+  m_Name: 5-Types
   m_EditorClassIdentifier: 
   m_Paragraphs:
     m_Items:

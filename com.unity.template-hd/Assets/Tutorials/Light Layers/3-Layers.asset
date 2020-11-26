@@ -27,7 +27,7 @@ MonoBehaviour:
       m_Tutorial: {fileID: 0}
       m_Icons:
         m_Items: []
-      m_Image: {fileID: 0}
+      m_Image: {fileID: 2800000, guid: e8a7362729469b144bd110fb4265703b, type: 3}
       m_Video: {fileID: 0}
       m_CriteriaCompletion: 0
       m_Criteria:
@@ -39,16 +39,18 @@ MonoBehaviour:
       Title:
         m_Untranslated: Light Layers
       Text:
-        m_Untranslated: 'Lights set in the same layer will only affect mesh renderers
-          that are set to the same layers. Lights can affect multiple layers, objects
-          can also be affected by multiple layers.
-
-          By default, light
-          layers are not turned on. To enable them, go to <i>Project Settings > Quality</i>
-          and select the current used HDRP asset for the quality setting. Under <i>Lighting</i>,
-          there will be a checkbox to enable <b>Light Layers</b>.
-
-'
+        m_Untranslated: "Remember from the last step, both issues were caused by
+          the glass. More precisely, because a spotlight was affecting the glass.\n\r\n1)
+          Select the glass, it is under <b>Props->Room3->CeilingLamp_01->CeilingLamp_Lamp_01->CeilingLamp_Glass_01_LOD0\r</b>\r\n2)
+          See that the <b>Rendering Layer Mask</b> parameter is set to a custom layer
+          <b>LampsOnly</b>, rather than default.\n3) Now select the Spotlight, its
+          under <b>Props->Room3->CeilingLamp_01->Light_Spot_1200lm</b>\n4) See that
+          the <b>Rendering Layer Mask</b> is set to <b>Mixed...</b> Click on it,
+          see that inside Mixed, Lamps Only is off.\n\nThe whole point of this setup
+          is that the light and the glass are on different layers. Meaning they cant
+          effect each other in any way, thus no unwanted shadows.\n\nDont worry if
+          you dint quite understand it in this step, in the next one we will set
+          up something up ourselves and hopefully it will get clearer."
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -66,12 +68,12 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
   m_CameraSettings:
-    m_CameraMode: 0
+    m_CameraMode: 1
     m_FocusMode: 0
     m_Orthographic: 0
-    m_Size: 0
-    m_Pivot: {x: 0, y: 0, z: 0}
-    m_Rotation: {x: 0, y: 0, z: 0, w: 0}
+    m_Size: 0.3600989
+    m_Pivot: {x: 63.555546, y: 4.818998, z: -0.22940664}
+    m_Rotation: {x: -0.044620518, y: 0.68515474, z: 0.042124696, w: 0.7258096}
     m_FrameObject:
       m_SceneGuid: 
       m_GameObjectGuid: 
@@ -80,7 +82,7 @@ MonoBehaviour:
       m_ComponentIndex: 0
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
-    m_Enabled: 0
+    m_Enabled: 1
   NextButton:
     m_Untranslated: Next
   DoneButton:
