@@ -32,7 +32,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (SubGraphOutputNode) actualObject,
+                (SubGraphOutputNode)actualObject,
                 attribute,
                 out var propertyVisualElement);
         }

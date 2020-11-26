@@ -191,39 +191,39 @@ namespace UnityEditor.ShaderGraph
             switch (slot.concreteValueType)
             {
                 case ConcreteSlotValueType.Texture2D:
-                    {
-                        var slotVariable = GetVariableNameForSlot(slot.id);
-                        sb.AppendIndentation();
-                        sb.Append(slotVariable);
-                        sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
-                        sb.AppendNewLine();
-                        sb.AppendIndentation();
-                        sb.Append(slotVariable);
-                        sb.Append(".texelSize = float4(1.0f/128.0f, 1.0f/128.0f, 128.0f, 128.0f);");
-                        sb.AppendNewLine();
-                        sb.AppendIndentation();
-                        sb.Append(slotVariable);
-                        sb.Append(".scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);");
-                        sb.AppendNewLine();
-                    }
-                    break;
+                {
+                    var slotVariable = GetVariableNameForSlot(slot.id);
+                    sb.AppendIndentation();
+                    sb.Append(slotVariable);
+                    sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
+                    sb.AppendNewLine();
+                    sb.AppendIndentation();
+                    sb.Append(slotVariable);
+                    sb.Append(".texelSize = float4(1.0f/128.0f, 1.0f/128.0f, 128.0f, 128.0f);");
+                    sb.AppendNewLine();
+                    sb.AppendIndentation();
+                    sb.Append(slotVariable);
+                    sb.Append(".scaleTranslate = float4(1.0f, 1.0f, 0.0f, 0.0f);");
+                    sb.AppendNewLine();
+                }
+                break;
                 case ConcreteSlotValueType.Texture3D:
                 case ConcreteSlotValueType.Texture2DArray:
                 case ConcreteSlotValueType.Cubemap:
-                    {
-                        var slotVariable = GetVariableNameForSlot(slot.id);
-                        sb.AppendIndentation();
-                        sb.Append(slotVariable);
-                        sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
-                        sb.AppendNewLine();
-                    }
-                    break;
+                {
+                    var slotVariable = GetVariableNameForSlot(slot.id);
+                    sb.AppendIndentation();
+                    sb.Append(slotVariable);
+                    sb.Append(".samplerstate = default_sampler_Linear_Repeat;");
+                    sb.AppendNewLine();
+                }
+                break;
             }
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            if(!IsValidFunction())
+            if (!IsValidFunction())
                 return;
 
             switch (sourceType)
@@ -234,7 +234,7 @@ namespace UnityEditor.ShaderGraph
                         string path = AssetDatabase.GUIDToAssetPath(functionSource);
 
                         // This is required for upgrading without console errors
-                        if(string.IsNullOrEmpty(path))
+                        if (string.IsNullOrEmpty(path))
                             path = functionSource;
 
                         string hash;
@@ -326,18 +326,18 @@ namespace UnityEditor.ShaderGraph
         {
             bool validFunctionName = !string.IsNullOrEmpty(functionName) && functionName != k_DefaultFunctionName;
 
-            if(sourceType == HlslSourceType.String)
+            if (sourceType == HlslSourceType.String)
             {
                 bool validFunctionBody = !string.IsNullOrEmpty(functionBody) && functionBody != k_DefaultFunctionBody;
                 return validFunctionName & validFunctionBody;
             }
             else
             {
-                if(!validFunctionName || string.IsNullOrEmpty(functionSource) || functionSource == k_DefaultFunctionSource)
+                if (!validFunctionName || string.IsNullOrEmpty(functionSource) || functionSource == k_DefaultFunctionSource)
                     return false;
 
                 string path = AssetDatabase.GUIDToAssetPath(functionSource);
-                if(string.IsNullOrEmpty(path))
+                if (string.IsNullOrEmpty(path))
                     path = functionSource;
 
                 string extension = Path.GetExtension(path);
@@ -381,15 +381,15 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
-            if(sourceType == HlslSourceType.File)
+            if (sourceType == HlslSourceType.File)
             {
-                if(!string.IsNullOrEmpty(functionSource))
+                if (!string.IsNullOrEmpty(functionSource))
                 {
                     string path = AssetDatabase.GUIDToAssetPath(functionSource);
-                    if(!string.IsNullOrEmpty(path))
+                    if (!string.IsNullOrEmpty(path))
                     {
                         string extension = path.Substring(path.LastIndexOf('.'));
-                        if(!s_ValidExtensions.Contains(extension))
+                        if (!s_ValidExtensions.Contains(extension))
                         {
                             owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
                         }
@@ -429,11 +429,11 @@ namespace UnityEditor.ShaderGraph
             // If asset can be loaded from path then get its guid
             // Otherwise it was the default string so set to empty
             Guid guid;
-            if(!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
+            if (!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
             {
                 string guidString = string.Empty;
                 TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
-                if(textAsset != null)
+                if (textAsset != null)
                 {
                     long localId;
                     AssetDatabase.TryGetGUIDAndLocalFileIdentifier(textAsset, out guidString, out localId);

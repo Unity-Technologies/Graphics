@@ -334,7 +334,7 @@ namespace UnityEditor.VFX
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
         {
-            if(parents.Length > 4)
+            if (parents.Length > 4)
             {
                 throw new System.ArgumentException("An expression can only take up to 4 parent expressions");
             }
@@ -553,10 +553,9 @@ namespace UnityEditor.VFX
 
                     const Flags propagatedFlags = Flags.NotCompilableOnCPU | Flags.InvalidConstant | Flags.PerSpawn;
                     m_Flags |= parent.m_Flags & propagatedFlags;
-                    
+
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
-
                 }
                 if (foldable)
                     m_Flags |= Flags.Foldable;

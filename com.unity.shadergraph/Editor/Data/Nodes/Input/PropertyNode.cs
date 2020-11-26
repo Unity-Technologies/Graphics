@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
                 // keep existing slots, don't modify them
                 return;
             }
-            switch(property.concreteShaderValueType)
+            switch (property.concreteShaderValueType)
             {
                 case ConcreteSlotValueType.Boolean:
                     AddSlot(new BooleanMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, false));
@@ -207,9 +207,9 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine($"UnitySamplerState {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
                 case PropertyType.Gradient:
-                if(generationMode == GenerationMode.Preview)
+                    if (generationMode == GenerationMode.Preview)
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.GetHLSLVariableName(isGeneratingSubgraph))};");
-                else
+                    else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.GetHLSLVariableName(isGeneratingSubgraph)};");
                     break;
             }

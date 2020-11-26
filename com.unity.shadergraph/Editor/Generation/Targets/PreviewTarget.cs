@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
                 passes = new PassCollection { Passes.Preview },
             };
         }
-        
+
         static class Passes
         {
             public static PassDescriptor Preview = new PassDescriptor()

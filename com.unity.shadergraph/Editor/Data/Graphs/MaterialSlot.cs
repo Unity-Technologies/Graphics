@@ -251,8 +251,8 @@ namespace UnityEditor.ShaderGraph
                 && otherSlot.owner != owner
                 && otherSlot.isInputSlot != isInputSlot
                 && ((isInputSlot
-                     ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType)
-                     : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType)));
+                    ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType)
+                    : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType)));
         }
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)
@@ -323,7 +323,7 @@ namespace UnityEditor.ShaderGraph
 
         // this tracks old CustomFunctionNode slots that are expecting the old bare resource inputs
         // rather than the new structure-based inputs
-        internal virtual bool bareResource { get { return false; } set { } }
+        internal virtual bool bareResource { get { return false; } set {} }
 
         public virtual void CopyDefaultValue(MaterialSlot other)
         {

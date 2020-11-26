@@ -205,12 +205,12 @@ Shader ""Hidden/GraphErrorShader2""
             ctx.AddObjectToAsset("MainAsset", mainObject, texture);
             ctx.SetMainObject(mainObject);
 
-            foreach(var target in graph.activeTargets)
+            foreach (var target in graph.activeTargets)
             {
-                if(target is IHasMetadata iHasMetadata)
+                if (target is IHasMetadata iHasMetadata)
                 {
                     var metadata = iHasMetadata.GetMetadataObject();
-                    if(metadata == null)
+                    if (metadata == null)
                         continue;
 
                     metadata.hideFlags = HideFlags.HideInHierarchy;
@@ -264,7 +264,6 @@ Shader ""Hidden/GraphErrorShader2""
                     ctx.DependsOnArtifact(asset.Key);
                 }
             }
-
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
@@ -294,6 +293,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
         }
+
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, out GraphData graph)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
@@ -327,7 +327,7 @@ Shader ""Hidden/GraphErrorShader2""
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
             var target = graph.activeTargets.FirstOrDefault(x => x is VFXTarget) as VFXTarget;
-            if(target == null)
+            if (target == null)
                 return null;
 
             // we need to override graph.isSubgraph, so save old state to restore it
@@ -520,7 +520,6 @@ Shader ""Hidden/GraphErrorShader2""
 
                     codeSnippets.Add($"// Property: {property.displayName}{nl}{builder.ToCodeBlock()}{nl}{nl}");
                 }
-
 
 
                 var inputStructName = $"SG_Input_{assetGuid}";
@@ -758,6 +757,7 @@ Shader ""Hidden/GraphErrorShader2""
                 graph.isSubGraph = oldIsSubGraph;
             }
         }
+
 #endif
     }
 }

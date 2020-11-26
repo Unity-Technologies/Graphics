@@ -40,7 +40,8 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new UVMaterialSlot(kUVsSlotId, kUVsSlotName, kUVsSlotName, UVChannel.UV0, ShaderStageCapability.Fragment));
 
             AddSlot(new Vector2MaterialSlot(kParallaxUVsOutputSlotId, kParallaxUVsOutputSlotName, kParallaxUVsOutputSlotName, SlotType.Output, Vector2.zero, ShaderStageCapability.Fragment));
-            RemoveSlotsNameNotMatching(new[] {
+            RemoveSlotsNameNotMatching(new[]
+            {
                 kParallaxUVsOutputSlotId,
                 kHeightmapSlotId,
                 kHeightmapSamplerSlotId,
@@ -85,7 +86,7 @@ namespace UnityEditor.ShaderGraph
                 amplitude, // cm in the interface so we multiply by 0.01 in the shader to convert in meter
                 uvs,
                 GetSlotValue(kParallaxUVsOutputSlotId, generationMode)
-                ));
+            ));
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All)

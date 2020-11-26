@@ -82,7 +82,7 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
     const uint SH_STRIDE_L2 = (9 * 3) - SH_STRIDE_L01;
 
 #if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-    
+
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = float4(
         _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 0], // shAr.w
         _ProbeVolumeAtlasReadSHL01Buffer[readIndex * SH_STRIDE_L01 + 1], // shAg.w
@@ -150,5 +150,5 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
 
 #else
     #error "Unsupported ShaderOptions.ProbeVolumesAtlasEncodingMode.";
-#endif    
+#endif
 }

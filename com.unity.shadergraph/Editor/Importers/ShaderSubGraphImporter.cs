@@ -222,7 +222,7 @@ namespace UnityEditor.ShaderGraph
             if (anyErrors)
             {
                 asset.isValid = false;
-                registry.ProvideFunction(asset.functionName, sb => { });
+                registry.ProvideFunction(asset.functionName, sb => {});
                 return;
             }
 
@@ -297,7 +297,7 @@ namespace UnityEditor.ShaderGraph
             var collector = new PropertyCollector();
             foreach (var node in nodes)
             {
-                int previousPropertyCount = Math.Max(0, collector.properties.Count-1);
+                int previousPropertyCount = Math.Max(0, collector.properties.Count - 1);
 
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
 

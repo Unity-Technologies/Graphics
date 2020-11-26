@@ -5,7 +5,6 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-
     partial class PostProcessSystem
     {
         class ColorGradingPassData
@@ -184,13 +183,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var pixelSize = new Vector2Int((int)m_BloomMipsInfo[i].x, (int)m_BloomMipsInfo[i].y);
 
                 bloomData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
-                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipDown" });
+                    { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipDown" });
 
                 if (i != 0)
                 {
                     bloomData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
-                    { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipUp" });
-
+                        { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipUp" });
                 }
             }
 
@@ -215,13 +213,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareCopyAlphaParameters(hdCamera);
                     passData.source = builder.ReadTexture(source);
                     passData.outputAlpha = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                    { name = "Alpha Channel Copy", colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true }));
+                        { name = "Alpha Channel Copy", colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true }));
 
                     builder.SetRenderFunc(
-                    (AlphaCopyPassData data, RenderGraphContext ctx) =>
-                    {
-                        DoCopyAlpha(data.parameters, data.source, data.outputAlpha, ctx.cmd);
-                    });
+                        (AlphaCopyPassData data, RenderGraphContext ctx) =>
+                        {
+                            DoCopyAlpha(data.parameters, data.source, data.outputAlpha, ctx.cmd);
+                        });
 
                     return passData.outputAlpha;
                 }
@@ -247,13 +245,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.source = builder.ReadTexture(source);
                     passData.parameters = PrepareStopNaNParameters(hdCamera);
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Stop NaNs Destination");
-                    passData.destination = builder.WriteTexture(dest); ;
+                    passData.destination = builder.WriteTexture(dest);;
 
                     builder.SetRenderFunc(
-                    (StopNaNPassData data, RenderGraphContext ctx) =>
-                    {
-                        DoStopNaNs(data.parameters, ctx.cmd, data.source, data.destination);
-                    });
+                        (StopNaNPassData data, RenderGraphContext ctx) =>
+                        {
+                            DoStopNaNs(data.parameters, ctx.cmd, data.source, data.destination);
+                        });
 
                     return passData.destination;
                 }
@@ -289,26 +287,26 @@ namespace UnityEngine.Rendering.HighDefinition
                             (DynamicExposureData data, RenderGraphContext ctx) =>
                             {
                                 DoHistogramBasedExposure(data.parameters, ctx.cmd, data.source,
-                                                                                   data.prevExposure,
-                                                                                   data.nextExposure,
-                                                                                   data.exposureDebugData);
+                                    data.prevExposure,
+                                    data.nextExposure,
+                                    data.exposureDebugData);
                             });
                     }
                     else
                     {
                         passData.tmpTarget1024 = builder.CreateTransientTexture(new TextureDesc(1024, 1024, true, false)
-                        { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 1024" });
+                            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 1024" });
                         passData.tmpTarget32 = builder.CreateTransientTexture(new TextureDesc(32, 32, true, false)
-                        { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 32" });
+                            { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 32" });
 
                         builder.SetRenderFunc(
                             (DynamicExposureData data, RenderGraphContext ctx) =>
                             {
                                 DoDynamicExposure(data.parameters, ctx.cmd, data.source,
-                                                                            data.prevExposure,
-                                                                            data.nextExposure,
-                                                                            data.tmpTarget1024,
-                                                                            data.tmpTarget32);
+                                    data.prevExposure,
+                                    data.nextExposure,
+                                    data.tmpTarget1024,
+                                    data.tmpTarget32);
                             });
                     }
                 }
@@ -324,13 +322,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(prevExp));
 
                         TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Apply Exposure Destination");
-                        passData.destination = builder.WriteTexture(dest); ;
+                        passData.destination = builder.WriteTexture(dest);;
 
                         builder.SetRenderFunc(
-                        (ApplyExposureData data, RenderGraphContext ctx) =>
-                        {
-                            ApplyExposure(data.parameters, ctx.cmd, data.source, data.destination, data.prevExposure);
-                        });
+                            (ApplyExposureData data, RenderGraphContext ctx) =>
+                            {
+                                ApplyExposure(data.parameters, ctx.cmd, data.source, data.destination, data.prevExposure);
+                            });
 
                         source = passData.destination;
                     }
@@ -362,21 +360,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
 
                 TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "TAA Destination");
-                passData.destination = builder.WriteTexture(dest); ;
+                passData.destination = builder.WriteTexture(dest);;
 
                 builder.SetRenderFunc(
-                (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
-                {
-                    DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
-                                                                     data.destination,
-                                                                     data.motionVecTexture,
-                                                                     data.depthBuffer,
-                                                                     data.depthMipChain,
-                                                                     data.prevHistory,
-                                                                     data.nextHistory,
-                                                                     data.prevMVLen,
-                                                                     data.nextMVLen);
-                });
+                    (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
+                    {
+                        DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
+                            data.destination,
+                            data.motionVecTexture,
+                            data.depthBuffer,
+                            data.depthMipChain,
+                            data.prevHistory,
+                            data.nextHistory,
+                            data.prevMVLen,
+                            data.nextMVLen);
+                    });
 
                 source = passData.destination;
             }
@@ -393,22 +391,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.ReadTexture(depthBuffer);
                 passData.depthBuffer = builder.WriteTexture(depthBuffer);
                 passData.smaaEdgeTex = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "SMAA Edge Texture" });
+                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "SMAA Edge Texture" });
                 passData.smaaBlendTex = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "SMAA Blend Texture" });
+                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "SMAA Blend Texture" });
 
                 TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "SMAA Destination");
-                passData.destination = builder.WriteTexture(dest); ;
+                passData.destination = builder.WriteTexture(dest);;
 
                 builder.SetRenderFunc(
-                (SMAAData data, RenderGraphContext ctx) =>
-                {
-                    DoSMAA(data.parameters, ctx.cmd, data.source,
-                                                     data.smaaEdgeTex,
-                                                     data.smaaBlendTex,
-                                                     data.destination,
-                                                     data.depthBuffer);
-                });
+                    (SMAAData data, RenderGraphContext ctx) =>
+                    {
+                        DoSMAA(data.parameters, ctx.cmd, data.source,
+                            data.smaaEdgeTex,
+                            data.smaaBlendTex,
+                            data.destination,
+                            data.depthBuffer);
+                    });
 
                 source = passData.destination;
             }
@@ -424,9 +422,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
             bool isDoFPathTraced = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
-                 hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
-                 hdCamera.camera.cameraType != CameraType.Preview &&
-                 m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
+                hdCamera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                hdCamera.camera.cameraType != CameraType.Preview &&
+                m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
 
             // Depth of Field is done right after TAA as it's easier to just re-project the CoC
             // map rather than having to deal with all the implications of doing it before TAA
@@ -467,20 +465,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (passData.parameters.nearLayerActive)
                         {
                             passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Ping Near RGB" });
+                                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Ping Near RGB" });
 
                             passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Pong Near RGB" });
+                                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Pong Near RGB" });
 
                             passData.nearCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near CoC" });
+                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near CoC" });
 
                             passData.nearAlpha = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near Alpha" });
+                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Near Alpha" });
 
                             passData.dilatedNearCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilated Near CoC" });
-
+                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilated Near CoC" });
                         }
                         else
                         {
@@ -494,13 +491,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (passData.parameters.farLayerActive)
                         {
                             passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "Ping Far RGB" });
+                                { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "Ping Far RGB" });
 
                             passData.pongFarRGB = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Pong Far RGB" });
+                                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "Pong Far RGB" });
 
                             passData.farCoC = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = k_CoCFormat, useMipMap = true, enableRandomWrite = true, name = "Far CoC" });
+                                { colorFormat = k_CoCFormat, useMipMap = true, enableRandomWrite = true, name = "Far CoC" });
                         }
                         else
                         {
@@ -510,14 +507,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" });
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" });
 
                         int passCount = Mathf.CeilToInt((passData.parameters.nearMaxBlur + 2f) / 4f);
                         passData.dilationPingPongRT = TextureHandle.nullHandle;
                         if (passCount > 1)
                         {
                             passData.dilationPingPongRT = builder.CreateTransientTexture(new TextureDesc(screenScale, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilation ping pong CoC" });
+                                { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Dilation ping pong CoC" });
                         }
 
                         var mipScale = scale;
@@ -541,39 +538,38 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.farBokehTileList = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(dofParameters.threadGroup8.x * dofParameters.threadGroup8.y, sizeof(uint), ComputeBufferType.Append) { name = "Bokeh Far Tile List" });
 
                         builder.SetRenderFunc(
-                        (DepthofFieldData data, RenderGraphContext ctx) =>
-                        {
-                            var mipsHandles = ctx.renderGraphPool.GetTempArray<RTHandle>(4);
-
-                            for (int i = 0; i < 4; ++i)
+                            (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                mipsHandles[i] = data.mips[i];
-                            }
+                                var mipsHandles = ctx.renderGraphPool.GetTempArray<RTHandle>(4);
 
-                            ((ComputeBuffer)data.nearBokehTileList).SetCounterValue(0u);
-                            ((ComputeBuffer)data.farBokehTileList).SetCounterValue(0u);
+                                for (int i = 0; i < 4; ++i)
+                                {
+                                    mipsHandles[i] = data.mips[i];
+                                }
 
-                            DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
-                                           data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture,
-                                           data.bokehNearKernel, data.bokehFarKernel, data.bokehIndirectCmd, data.nearBokehTileList, data.farBokehTileList, data.taaEnabled);
-                        });
+                                ((ComputeBuffer)data.nearBokehTileList).SetCounterValue(0u);
+                                ((ComputeBuffer)data.farBokehTileList).SetCounterValue(0u);
+
+                                DoDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.nearCoC, data.nearAlpha,
+                                    data.dilatedNearCoC, data.pingFarRGB, data.pongFarRGB, data.farCoC, data.fullresCoC, mipsHandles, data.dilationPingPongRT, data.prevCoC, data.nextCoC, data.motionVecTexture,
+                                    data.bokehNearKernel, data.bokehFarKernel, data.bokehIndirectCmd, data.nearBokehTileList, data.farBokehTileList, data.taaEnabled);
+                            });
 
                         source = passData.destination;
-
                     }
                     else
                     {
                         passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
 
                         passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
+                            { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
 
                         builder.SetRenderFunc(
-                        (DepthofFieldData data, RenderGraphContext ctx) =>
-                        {
-                            DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.taaEnabled);
-                        });
+                            (DepthofFieldData data, RenderGraphContext ctx) =>
+                            {
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.taaEnabled);
+                            });
 
                         source = passData.destination;
                     }
@@ -604,30 +600,29 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.nextMVLen = TextureHandle.nullHandle;
 
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
-                    passData.destination = builder.WriteTexture(dest); ;
+                    passData.destination = builder.WriteTexture(dest);;
 
                     builder.SetRenderFunc(
-                    (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
-                    {
-                        DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
-                                                                         data.destination,
-                                                                         data.motionVecTexture,
-                                                                         data.depthBuffer,
-                                                                         data.depthMipChain,
-                                                                         data.prevHistory,
-                                                                         data.nextHistory,
-                                                                         data.prevMVLen,
-                                                                         data.nextMVLen);
+                        (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
+                        {
+                            DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
+                                data.destination,
+                                data.motionVecTexture,
+                                data.depthBuffer,
+                                data.depthMipChain,
+                                data.prevHistory,
+                                data.nextHistory,
+                                data.prevMVLen,
+                                data.nextMVLen);
 
-                        // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                        m_IsDoFHisotoryValid = true;
-                    });
+                            // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                            m_IsDoFHisotoryValid = true;
+                        });
 
                     source = passData.destination;
                 }
 
                 postDoFTAAEnabled = true;
-                
             }
             else
             {
@@ -658,13 +653,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector2 tileTexScale = new Vector2((float)passData.parameters.tileTargetSize.x / hdCamera.actualWidth, (float)passData.parameters.tileTargetSize.y / hdCamera.actualHeight);
 
                     passData.preppedMotionVec = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Prepped Motion Vectors" });
+                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Prepped Motion Vectors" });
 
                     passData.minMaxTileVel = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
-                    { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "MinMax Tile Motion Vectors" });
+                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "MinMax Tile Motion Vectors" });
 
                     passData.maxTileNeigbourhood = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
-                    { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Max Neighbourhood Tile" });
+                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Max Neighbourhood Tile" });
 
                     passData.tileToScatterMax = TextureHandle.nullHandle;
                     passData.tileToScatterMin = TextureHandle.nullHandle;
@@ -672,28 +667,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (passData.parameters.motionblurSupportScattering)
                     {
                         passData.tileToScatterMax = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
-                        { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "Tile to Scatter Max" });
+                            { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "Tile to Scatter Max" });
 
                         passData.tileToScatterMin = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
-                        { colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Tile to Scatter Min" });
+                            { colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Tile to Scatter Min" });
                     }
 
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Motion Blur Destination");
-                    passData.destination = builder.WriteTexture(dest); ;
+                    passData.destination = builder.WriteTexture(dest);;
 
                     builder.SetRenderFunc(
-                    (MotionBlurData data, RenderGraphContext ctx) =>
-                    {
-                        DoMotionBlur(data.parameters, ctx.cmd, data.source,
-                                                               data.destination,
-                                                               data.depthBuffer,
-                                                               data.motionVecTexture,
-                                                               data.preppedMotionVec,
-                                                               data.minMaxTileVel,
-                                                               data.maxTileNeigbourhood,
-                                                               data.tileToScatterMax,
-                                                               data.tileToScatterMin);
-                    });
+                        (MotionBlurData data, RenderGraphContext ctx) =>
+                        {
+                            DoMotionBlur(data.parameters, ctx.cmd, data.source,
+                                data.destination,
+                                data.depthBuffer,
+                                data.motionVecTexture,
+                                data.preppedMotionVec,
+                                data.minMaxTileVel,
+                                data.maxTileNeigbourhood,
+                                data.tileToScatterMax,
+                                data.tileToScatterMin);
+                        });
 
                     source = passData.destination;
                 }
@@ -715,10 +710,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
-                    (PaniniProjectionData data, RenderGraphContext ctx) =>
-                    {
-                        DoPaniniProjection(data.parameters, ctx.cmd, data.source, data.destination);
-                    });
+                        (PaniniProjectionData data, RenderGraphContext ctx) =>
+                        {
+                            DoPaniniProjection(data.parameters, ctx.cmd, data.source, data.destination);
+                        });
 
                     source = passData.destination;
                 }
@@ -743,19 +738,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
                     builder.SetRenderFunc(
-                    (BloomData data, RenderGraphContext ctx) =>
-                    {
-                        var bloomMipDown = ctx.renderGraphPool.GetTempArray<RTHandle>(data.parameters.bloomMipCount);
-                        var bloomMipUp = ctx.renderGraphPool.GetTempArray<RTHandle>(data.parameters.bloomMipCount);
-
-                        for (int i = 0; i < data.parameters.bloomMipCount; ++i)
+                        (BloomData data, RenderGraphContext ctx) =>
                         {
-                            bloomMipDown[i] = data.mipsDown[i];
-                            bloomMipUp[i] = data.mipsUp[i];
-                        }
+                            var bloomMipDown = ctx.renderGraphPool.GetTempArray<RTHandle>(data.parameters.bloomMipCount);
+                            var bloomMipUp = ctx.renderGraphPool.GetTempArray<RTHandle>(data.parameters.bloomMipCount);
 
-                        DoBloom(data.parameters, ctx.cmd, data.source, bloomMipDown, bloomMipUp);
-                    });
+                            for (int i = 0; i < data.parameters.bloomMipCount; ++i)
+                            {
+                                bloomMipDown[i] = data.mipsDown[i];
+                                bloomMipUp[i] = data.mipsUp[i];
+                            }
+
+                            DoBloom(data.parameters, ctx.cmd, data.source, bloomMipDown, bloomMipUp);
+                        });
 
                     bloomTexture = passData.mipsUp[0];
                 }
@@ -788,10 +783,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 logLutOutput = passData.logLut;
 
                 builder.SetRenderFunc(
-                (ColorGradingPassData data, RenderGraphContext ctx) =>
-                {
-                    DoColorGrading(data.parameters, data.logLut, ctx.cmd);
-                });
+                    (ColorGradingPassData data, RenderGraphContext ctx) =>
+                    {
+                        DoColorGrading(data.parameters, data.logLut, ctx.cmd);
+                    });
             }
 
             return logLutOutput;
@@ -811,15 +806,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(dest);
 
                 builder.SetRenderFunc(
-                (UberPostPassData data, RenderGraphContext ctx) =>
-                {
-                    DoUberPostProcess(data.parameters,
-                                          data.source,
-                                        data.destination,
-                                        data.logLut,
-                                        data.bloomTexture,
-                                        ctx.cmd);
-                });
+                    (UberPostPassData data, RenderGraphContext ctx) =>
+                    {
+                        DoUberPostProcess(data.parameters,
+                            data.source,
+                            data.destination,
+                            data.logLut,
+                            data.bloomTexture,
+                            ctx.cmd);
+                    });
 
                 source = passData.destination;
             }
@@ -838,13 +833,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.source = builder.ReadTexture(source);
                     passData.parameters = PrepareFXAAParameters(hdCamera);
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "FXAA Destination");
-                    passData.destination = builder.WriteTexture(dest); ;
+                    passData.destination = builder.WriteTexture(dest);;
 
                     builder.SetRenderFunc(
-                    (FXAAData data, RenderGraphContext ctx) =>
-                    {
-                        DoFXAA(data.parameters, ctx.cmd, data.source, data.destination);
-                    });
+                        (FXAAData data, RenderGraphContext ctx) =>
+                        {
+                            DoFXAA(data.parameters, ctx.cmd, data.source, data.destination);
+                        });
 
                     source = passData.destination;
                 }
@@ -865,15 +860,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.source = builder.ReadTexture(source);
                     passData.parameters = PrepareContrastAdaptiveSharpeningParameters(hdCamera);
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
-                    passData.destination = builder.WriteTexture(dest); ;
+                    passData.destination = builder.WriteTexture(dest);;
 
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
 
                     builder.SetRenderFunc(
-                    (CASData data, RenderGraphContext ctx) =>
-                    {
-                        DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination, data.casParametersBuffer);
-                    });
+                        (CASData data, RenderGraphContext ctx) =>
+                        {
+                            DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination, data.casParametersBuffer);
+                        });
 
                     source = passData.destination;
                 }
@@ -892,10 +887,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.destination = builder.WriteTexture(finalRT);
 
                 builder.SetRenderFunc(
-                (FinalPassData data, RenderGraphContext ctx) =>
-                {
-                    DoFinalPass(data.parameters, data.source, data.afterPostProcessTexture, data.destination, data.alphaTexture, ctx.cmd);
-                });
+                    (FinalPassData data, RenderGraphContext ctx) =>
+                    {
+                        DoFinalPass(data.parameters, data.source, data.afterPostProcessTexture, data.destination, data.alphaTexture, ctx.cmd);
+                    });
             }
         }
 
@@ -946,18 +941,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 passData.source = builder.ReadTexture(source);
                                 passData.destination = builder.UseColorBuffer(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                                { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
+                                    { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "CustomPostProcesDestination" }), 0);
                                 passData.hdCamera = hdCamera;
                                 passData.customPostProcess = customPP;
                                 builder.SetRenderFunc(
-                                (CustomPostProcessData data, RenderGraphContext ctx) =>
-                                {
-                                    // Temporary: see comment above
-                                    ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
-                                    ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                                    (CustomPostProcessData data, RenderGraphContext ctx) =>
+                                    {
+                                        // Temporary: see comment above
+                                        ctx.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthBuffer);
+                                        ctx.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
-                                    data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
-                                });
+                                        data.customPostProcess.Render(ctx.cmd, data.hdCamera, data.source, data.destination);
+                                    });
 
                                 customPostProcessExecuted = true;
                                 source = passData.destination;
@@ -984,16 +979,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public void Render(RenderGraph renderGraph,
-                            HDCamera hdCamera,
-                            BlueNoise blueNoise,
-                            TextureHandle colorBuffer,
-                            TextureHandle afterPostProcessTexture,
-                            TextureHandle depthBuffer,
-                            TextureHandle depthBufferMipChain,
-                            TextureHandle normalBuffer,
-                            TextureHandle motionVectors,
-                            TextureHandle finalRT,
-                            bool flipY)
+            HDCamera hdCamera,
+            BlueNoise blueNoise,
+            TextureHandle colorBuffer,
+            TextureHandle afterPostProcessTexture,
+            TextureHandle depthBuffer,
+            TextureHandle depthBufferMipChain,
+            TextureHandle normalBuffer,
+            TextureHandle motionVectors,
+            TextureHandle finalRT,
+            bool flipY)
         {
             renderGraph.BeginProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
 

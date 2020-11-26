@@ -18,9 +18,9 @@ namespace UnityEditor.Rendering.HighDefinition
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Texture", "HDRP/Unlit"));
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent", "HDRP/Unlit"));
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent Cutout", "HDRP/Unlit"));
-            
-			upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
-			
+
+            upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
+
             return upgraders;
         }
 
@@ -35,27 +35,27 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
         }
-		
-		[MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Scene Terrains to High Definition Terrains")]
-		static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
-        {			
-			var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");
-			var HDRPTerrainMat =  AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat");
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Scene Terrains to High Definition Terrains")]
+        static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
+        {
+            var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");
+            var HDRPTerrainMat =  AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat");
             var terrainArray = UnityEngine.GameObject.FindObjectsOfType<Terrain>();
 
-			if (terrainArray.Length == 0)
-			{
-				Debug.LogWarning("No terrains were found in the scene.");
-				return;
-			}
-			
-			foreach (Terrain currentTerrain in terrainArray)
+            if (terrainArray.Length == 0)
             {
-				if(currentTerrain.materialTemplate == LegacyDefaultTerrainMat)
-				{
-					currentTerrain.materialTemplate = HDRPTerrainMat;
-				}
-			}
-		}
+                Debug.LogWarning("No terrains were found in the scene.");
+                return;
+            }
+
+            foreach (Terrain currentTerrain in terrainArray)
+            {
+                if (currentTerrain.materialTemplate == LegacyDefaultTerrainMat)
+                {
+                    currentTerrain.materialTemplate = HDRPTerrainMat;
+                }
+            }
+        }
     }
 }

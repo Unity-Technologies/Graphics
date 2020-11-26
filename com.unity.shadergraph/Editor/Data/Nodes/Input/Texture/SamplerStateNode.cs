@@ -49,7 +49,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public override bool hasPreview { get { return false; } }
 
         private const int kOutputSlotId = 0;
@@ -94,14 +93,14 @@ namespace UnityEditor.ShaderGraph
         public override string GetVariableNameForNode()
         {
             return string.Format(@"SamplerState_{0}_{1}",
-                Enum.GetName(typeof(TextureSamplerState.FilterMode), filter), 
+                Enum.GetName(typeof(TextureSamplerState.FilterMode), filter),
                 Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap));
         }
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            return new SamplerStateShaderProperty 
-            { 
+            return new SamplerStateShaderProperty
+            {
                 value = new TextureSamplerState()
                 {
                     filter = this.filter,

@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Material m_SamplingMaterial;
 
         private readonly Renderer2DData m_Renderer2DData;
-        
+
         private bool m_HasValidDepth;
 
         public Render2DLightingPass(Renderer2DData rendererData, Material blitMaterial, Material samplingMaterial)
@@ -103,7 +103,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             return short.MinValue;
         }
-
 
         private int DrawLayerBatches(
             LayerBatch[] layerBatches,
@@ -315,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CommandBufferPool.Release(cmd);
 
                 Profiler.BeginSample("Render Sprites Unlit");
-                    context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
+                context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
                 Profiler.EndSample();
             }
 

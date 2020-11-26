@@ -10,7 +10,7 @@ VFXEdgeDragInfo
     border-bottom-width:2px;
     border-left-width:2px;
     border-right-width:2px;
-    
+
     padding-left:8px;
     padding-right:8px;
     padding-top:8px;

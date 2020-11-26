@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     {
         public static void ProcessSubTargetList(ref JsonData<SubTarget> activeSubTarget, ref List<SubTarget> subTargets)
         {
-            if(subTargets == null || subTargets.Count == 0)
+            if (subTargets == null || subTargets.Count == 0)
                 return;
 
             // assign the initial sub-target, if none is assigned yet
@@ -40,11 +40,11 @@ namespace UnityEditor.ShaderGraph
             var typeCollection = TypeCache.GetTypesDerivedFrom<SubTarget>();
             foreach (var type in typeCollection)
             {
-                if(type.IsAbstract || !type.IsClass)
+                if (type.IsAbstract || !type.IsClass)
                     continue;
 
                 var subTarget = (SubTarget)Activator.CreateInstance(type);
-                if(!subTarget.isHidden && subTarget.targetType.Equals(typeof(T)))
+                if (!subTarget.isHidden && subTarget.targetType.Equals(typeof(T)))
                 {
                     subTarget.target = target;
                     subTargets.Add(subTarget);

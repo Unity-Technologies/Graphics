@@ -125,8 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         RTSAreaRayTraceResources PrepareRTSAreaRayTraceResources(HDCamera hdCamera, RTHandle directionBuffer, RTHandle rayLengthBuffer,
-                                                                    RTHandle intermediateBufferRGBA0, RTHandle intermediateBufferRGBA1, RTHandle intermediateBufferRG0,
-                                                                    RTHandle shadowHistoryArray, RTHandle analyticHistoryArray)
+            RTHandle intermediateBufferRGBA0, RTHandle intermediateBufferRGBA1, RTHandle intermediateBufferRG0,
+            RTHandle shadowHistoryArray, RTHandle analyticHistoryArray)
         {
             RTSAreaRayTraceResources rtsartResources = new RTSAreaRayTraceResources();
 
@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(parameters.screenSpaceShadowsFilterCS, parameters.areaShadowApplyTAAKernel, HDShaderIDs._DenoiseOutputTextureRW, sssartResources.intermediateBufferRGBA1);
                 cmd.SetComputeFloatParam(parameters.screenSpaceShadowsFilterCS, HDShaderIDs._HistoryValidity, parameters.historyValidity);
                 cmd.DispatchCompute(parameters.screenSpaceShadowsFilterCS, parameters.areaShadowApplyTAAKernel, numTilesX, numTilesY, parameters.viewCount);
-                
+
                 // Update the shadow history buffer
                 cmd.SetComputeTextureParam(parameters.screenSpaceShadowsFilterCS, parameters.areaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticProbBuffer, sssartResources.intermediateBufferRG0);
                 cmd.SetComputeTextureParam(parameters.screenSpaceShadowsFilterCS, parameters.areaUpdateAnalyticHistoryKernel, HDShaderIDs._AnalyticHistoryBuffer, sssartResources.analyticHistoryArray);
@@ -344,7 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderAreaScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
-        , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex)
+            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex)
         {
             RTHandle intermediateBufferRG0 = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
             RTHandle intermediateBufferRGBA0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
@@ -360,8 +360,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RTSAreaRayTraceParameters sssartParams = PrepareRTSAreaRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
             RTSAreaRayTraceResources sssartResources = PrepareRTSAreaRayTraceResources(hdCamera, directionBuffer, rayLengthBuffer,
-                                                                                        intermediateBufferRGBA0, intermediateBufferRGBA1, intermediateBufferRG0,
-                                                                                        shadowHistoryArray, analyticHistoryArray);
+                intermediateBufferRGBA0, intermediateBufferRGBA1, intermediateBufferRG0,
+                shadowHistoryArray, analyticHistoryArray);
             ExecuteSSSAreaRayTrace(cmd, sssartParams, sssartResources);
 
             int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
@@ -406,7 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void RenderAreaScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
-        , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
+            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
             PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             // Grab the history buffers for shadows
@@ -443,7 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Intermediate buffers
                 passData.directionBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Direction Buffer" });
                 passData.rayLengthBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Ray Length Buffer" });
-                passData.intermediateBufferRGBA1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Buffer RGBA1" }); ;
+                passData.intermediateBufferRGBA1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Buffer RGBA1" });;
                 passData.intermediateBufferRG0 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate Buffer RG0" });
 
                 // Debug textures
@@ -452,33 +452,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Output buffers
                 passData.outputShadowTexture = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Shadow Buffer" })));
                 builder.SetRenderFunc(
-                (RTShadowAreaPassData data, RenderGraphContext context) =>
-                {
-                    RTSAreaRayTraceResources resources = new RTSAreaRayTraceResources();
-                    // Input Buffers
-                    resources.depthStencilBuffer = data.depthStencilBuffer;
-                    resources.normalBuffer = data.normalBuffer;
-                    resources.motionVectorsBuffer = data.motionVectorsBuffer;
-                    resources.gbuffer0 = data.gbuffer0;
-                    resources.gbuffer1 = data.gbuffer1;
-                    resources.gbuffer2 = data.gbuffer2;
-                    resources.gbuffer3 = data.gbuffer3;
-                    resources.shadowHistoryArray = data.shadowHistoryArray;
-                    resources.analyticHistoryArray = data.analyticHistoryArray;
+                    (RTShadowAreaPassData data, RenderGraphContext context) =>
+                    {
+                        RTSAreaRayTraceResources resources = new RTSAreaRayTraceResources();
+                        // Input Buffers
+                        resources.depthStencilBuffer = data.depthStencilBuffer;
+                        resources.normalBuffer = data.normalBuffer;
+                        resources.motionVectorsBuffer = data.motionVectorsBuffer;
+                        resources.gbuffer0 = data.gbuffer0;
+                        resources.gbuffer1 = data.gbuffer1;
+                        resources.gbuffer2 = data.gbuffer2;
+                        resources.gbuffer3 = data.gbuffer3;
+                        resources.shadowHistoryArray = data.shadowHistoryArray;
+                        resources.analyticHistoryArray = data.analyticHistoryArray;
 
-                    // Intermediate buffers
-                    resources.directionBuffer = data.directionBuffer;
-                    resources.rayLengthBuffer = data.rayLengthBuffer;
-                    resources.intermediateBufferRGBA1 = data.intermediateBufferRGBA1;
-                    resources.intermediateBufferRG0 = data.intermediateBufferRG0;
+                        // Intermediate buffers
+                        resources.directionBuffer = data.directionBuffer;
+                        resources.rayLengthBuffer = data.rayLengthBuffer;
+                        resources.intermediateBufferRGBA1 = data.intermediateBufferRGBA1;
+                        resources.intermediateBufferRG0 = data.intermediateBufferRG0;
 
-                    // Debug textures
-                    resources.rayCountTexture = data.rayCountTexture;
+                        // Debug textures
+                        resources.rayCountTexture = data.rayCountTexture;
 
-                    // Output buffers
-                    resources.outputShadowTexture = data.outputShadowTexture;
-                    ExecuteSSSAreaRayTrace(context.cmd, data.parameters, resources);
-                });
+                        // Output buffers
+                        resources.outputShadowTexture = data.outputShadowTexture;
+                        ExecuteSSSAreaRayTrace(context.cmd, data.parameters, resources);
+                    });
                 areaShadow = passData.outputShadowTexture;
             }
 

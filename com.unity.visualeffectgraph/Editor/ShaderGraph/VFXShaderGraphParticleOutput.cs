@@ -260,7 +260,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var sgProperty in shaderGraph.properties)
                 {
-                    if( inputSlots.Any(t=>t.property.name == sgProperty.referenceName))
+                    if (inputSlots.Any(t => t.property.name == sgProperty.referenceName))
                         yield return slotExpressions.First(o => o.name == sgProperty.referenceName);
                 }
             }

@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_AllowBareResources;
 
         internal delegate void ListRecreatedDelegate();
-        ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => { });
+        ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => {});
 
         string label => string.Format("{0}s", m_SlotType.ToString());
 
@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
             m_Node = node;
             m_SlotType = slotType;
-            m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
+            m_Container = new IMGUIContainer(() => OnGUIHandler()) { name = "ListContainer" };
             Add(m_Container);
             RecreateList();
             AddCallbacks();
@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Get slots based on type
             List<MaterialSlot> slots = new List<MaterialSlot>();
-            if(m_SlotType == SlotType.Input)
+            if (m_SlotType == SlotType.Input)
                 m_Node.GetInputSlots(slots);
             else
                 m_Node.GetOutputSlots(slots);
@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void OnGUIHandler()
         {
-            if(m_ReorderableList == null)
+            if (m_ReorderableList == null)
             {
                 RecreateList();
                 AddCallbacks();
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_ReorderableList.drawHeaderCallback = (Rect rect) =>
             {
-                var labelRect = new Rect(rect.x, rect.y, rect.width-10, rect.height);
+                var labelRect = new Rect(rect.x, rect.y, rect.width - 10, rect.height);
                 EditorGUI.LabelField(labelRect, label);
             };
 
@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 EditorGUI.BeginChangeCheck();
 
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
+                var displayName = EditorGUI.DelayedTextField(new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
 
                 ConcreteSlotValueTypePopupName concreteValueTypePopupOrig =
                     oldSlot.concreteValueType.ToConcreteSlotValueTypePopupName(oldSlot.bareResource);
@@ -115,7 +115,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     concreteValueTypePopupOrig,
                     e =>
                     {
-                        ConcreteSlotValueTypePopupName csvtpn = (ConcreteSlotValueTypePopupName) e;
+                        ConcreteSlotValueTypePopupName csvtpn = (ConcreteSlotValueTypePopupName)e;
                         csvtpn.ToConcreteSlotValueType(out bool isBareResource);
                         if (isBareResource && !m_AllowBareResources)
                             return false;
@@ -233,7 +233,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Get all the current slots
             List<MaterialSlot> slots = new List<MaterialSlot>();
-            if(m_SlotType == SlotType.Input)
+            if (m_SlotType == SlotType.Input)
                 m_Node.GetInputSlots<MaterialSlot>(slots);
             else
                 m_Node.GetOutputSlots<MaterialSlot>(slots);
