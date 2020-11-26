@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the clear coat not being handled properly for SSR and RTR (case 1291654).
 - Fixed ghosting in RTGI and RTAO when denoising is enabled and the RTHandle size is not equal to the Viewport size (case 1291654).
 - Fixed alpha output when atmospheric scattering is enabled.
+- Fixed issue with normal buffer being read without ever being written to.
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
