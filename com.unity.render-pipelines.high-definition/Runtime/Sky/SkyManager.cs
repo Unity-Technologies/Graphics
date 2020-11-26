@@ -732,20 +732,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return skyHash;
         }
 
-        int ComputeCloudHash(HDCamera camera, SkyUpdateContext skyContext, Light sunLight)
-        {
-            int sunHash = 0;
-            if (sunLight != null && skyContext.cloudRenderer.SupportDynamicSunLight)
-                sunHash = GetSunLightHashCode(sunLight);
-
-            // For planar reflections we want to use the parent position for hash.
-            Camera cameraForHash = (camera.camera.cameraType == CameraType.Reflection && camera.parentCamera != null) ?
-                camera.parentCamera : camera.camera;
-
-            int hash = sunHash * 23 + skyContext.cloudSettings.GetHashCode(cameraForHash);
-            return hash;
-        }
-
         public void RequestEnvironmentUpdate()
         {
             m_UpdateRequired = true;

@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(CloudLayer))]
     class CloudLayerEditor : VolumeComponentEditor
     {
+        readonly GUIContent sunLabel = new GUIContent("Sun light", "The sun light used for lighting and shadow casting");
         public override bool hasAdvancedMode => true;
 
         struct CloudMapParameter
@@ -65,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_Opacity, m_UpperHemisphereOnly, m_LayerCount;
         SerializedDataParameter m_Resolution, m_ShadowsResolution;
-        SerializedDataParameter m_ShadowsOpacity, m_ShadowsTiling;
+        SerializedDataParameter m_ShadowMultiplier, m_ShadowTint;
         CloudMapParameter[] m_Layers;
 
         public override void OnEnable()
@@ -79,8 +80,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_LayerCount = Unpack(o.Find(x => x.layers));
             m_Resolution = Unpack(o.Find(x => x.resolution));
 
-            m_ShadowsOpacity = Unpack(o.Find(x => x.shadowsOpacity));
-            m_ShadowsTiling = Unpack(o.Find(x => x.shadowsTiling));
+            m_ShadowMultiplier = Unpack(o.Find(x => x.shadowMultiplier));
+            m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
             m_ShadowsResolution = Unpack(o.Find(x => x.shadowsResolution));
 
             m_Layers = new CloudMapParameter[]
@@ -117,9 +118,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(label + " Lighting", EditorStyles.miniLabel);
-
             PropertyField(map.lighting);
             using (new HDEditorUtils.IndentScope())
             {
@@ -129,26 +127,51 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(map.castShadows);
         }
 
+        bool CastShadows => m_Layers[0].castShadows.value.boolValue || (m_LayerCount.value.intValue == (int)CloudMapMode.Double && m_Layers[1].castShadows.value.boolValue);
+
         public override void OnInspectorGUI()
         {
+            bool prevShadows = CastShadows;
+
             PropertyField(m_Opacity);
-            PropertyField(m_UpperHemisphereOnly);
+            if (isInAdvancedMode)
+                PropertyField(m_UpperHemisphereOnly);
             PropertyField(m_LayerCount);
             if (isInAdvancedMode)
                 PropertyField(m_Resolution);
 
             PropertyField(m_Layers[0], "Layer A");
-
             if (m_LayerCount.value.intValue == (int)CloudMapMode.Double)
                 PropertyField(m_Layers[1], "Layer B");
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Cloud Shadows", EditorStyles.miniLabel);
 
-            PropertyField(m_ShadowsOpacity);
-            PropertyField(m_ShadowsTiling);
-            if (isInAdvancedMode)
-                PropertyField(m_ShadowsResolution);
+            var sun = HDRenderPipeline.currentPipeline.GetCurrentSunLight();
+            if (sun != null)
+            {
+                PropertyField(m_ShadowMultiplier);
+                PropertyField(m_ShadowTint);
+                if (isInAdvancedMode)
+                    PropertyField(m_ShadowsResolution);
+
+                bool shadows = CastShadows;
+                if (prevShadows && !shadows)
+                    sun.cookie = null;
+                else if (shadows && sun.cookie == null && sun.TryGetComponent<HDAdditionalLightData>(out var hdSun))
+                {
+                    hdSun.shapeHeight = 500;
+                    hdSun.shapeWidth = 500;
+                }
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUILayout.Space(20);
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUILayout.ObjectField(sunLabel, sun, typeof(Light), true);
+                }
+                EditorGUILayout.HelpBox("Cloud shadows are projected in the sun light cookie space.", MessageType.Info);
+            }
         }
     }
 }

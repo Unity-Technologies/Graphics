@@ -83,16 +83,11 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Cloud Layer Volume Component.
     /// This component setups the Cloud Layer for rendering.
     /// </summary>
-    [VolumeComponentMenu("Sky/Cloud Layer (Preview)")]
+    [VolumeComponentMenu("Sky/Cloud Layer")]
     [CloudUniqueID((int)CloudType.CloudLayer)]
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Cloud-Layer" + Documentation.endURL)]
     public class CloudLayer : CloudSettings
     {
-        CloudLayer()
-        {
-            displayName = "CloudLayer (Preview)";
-        }
-
         /// <summary>Controls the global opacity of the cloud layer.</summary>
         [Tooltip("Controls the global opacity of the cloud layer.")]
         public ClampedFloatParameter opacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
@@ -108,10 +103,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
         [Tooltip("Controls the opacity of the cloud shadows.")]
-        public ClampedFloatParameter shadowsOpacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
-        /// <summary>Controls the tiling of the cloud shadows.</summary>
-        [Tooltip("Controls the tiling of the cloud shadows.")]
-        public MinFloatParameter shadowsTiling = new MinFloatParameter(500.0f, 0.0f);
+        public MinFloatParameter shadowMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        /// <summary>Controls the tint of the cloud shadows.</summary>
+        [Tooltip("Controls the tint of the cloud shadows.")]
+        public ColorParameter shadowTint = new ColorParameter(Color.black, false, false, true);
         /// <summary>Choose the resolution of the texturefor the cloud shadows.</summary>
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
         public CloudLayerEnumParameter<CloudShadowsResolution> shadowsResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.CloudShadowsResolution128);
@@ -124,9 +119,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable]
         public class CloudMap
         {
+            internal static Texture s_DefaultTexture = null;
+
             /// <summary>Texture used to render the clouds.</summary>
             [Tooltip("Specify the texture HDRP uses to render the clouds (in LatLong layout).")]
-            public TextureParameter cloudMap = new TextureParameter(null);
+            public TextureParameter cloudMap = new TextureParameter(CloudMap.s_DefaultTexture);
             /// <summary>Opacity of the red layer.</summary>
             [Tooltip("Opacity of the red layer.")]
             public ClampedFloatParameter opacityR = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
@@ -232,6 +229,36 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 return hash;
             }
+
+            /// <summary>
+            /// Returns the hash code of the CloudMap parameters.
+            /// </summary>
+            /// <returns>The hash code of the CloudMap parameters.</returns>
+            public override int GetHashCode()
+            {
+                int hash = GetBakingHashCode();
+
+                unchecked
+                {
+                    hash = hash * 23 + tint.GetHashCode();
+                    hash = hash * 23 + exposure.GetHashCode();
+
+                    hash = hash * 23 + distortionMode.GetHashCode();
+                    hash = hash * 23 + scrollDirection.GetHashCode();
+                    hash = hash * 23 + scrollSpeed.GetHashCode();
+                    hash = hash * 23 + flowmap.GetHashCode();
+
+                    hash = hash * 23 + distortionMode.GetHashCode();
+
+#if UNITY_EDITOR
+                    // In the editor, we want to rebake the texture if the texture content is modified
+                    if (flowmap.value != null)
+                        hash = hash * 23 + flowmap.value.imageContentsHash.GetHashCode();
+#endif
+                }
+
+                return hash;
+            }
         }
 
         /// <summary>Layer A.</summary>
@@ -265,6 +292,29 @@ namespace UnityEngine.Rendering.HighDefinition
                     hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
                 if (shadows)
                     hash = hash * 23 + shadowsResolution.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        /// <summary>
+        /// Returns the hash code of the CloudLayer parameters.
+        /// </summary>
+        /// <returns>The hash code of the CloudLayer parameters.</returns>
+        public override int GetHashCode()
+        {
+            int hash = 17;
+
+            unchecked
+            {
+                hash = hash * 23 + opacity.GetHashCode();
+                hash = hash * 23 + upperHemisphereOnly.GetHashCode();
+                hash = hash * 23 + layers.GetHashCode();
+                hash = hash * 23 + resolution.GetHashCode();
+
+                hash = hash * 23 + layerA.GetHashCode();
+                if (layers.value == CloudMapMode.Double)
+                    hash = hash * 23 + layerB.GetHashCode();
             }
 
             return hash;

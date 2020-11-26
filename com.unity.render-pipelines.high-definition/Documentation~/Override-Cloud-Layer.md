@@ -62,10 +62,10 @@ Only the red and green channels are used and they represent respectively horizon
 | **Lighting**                  | Check the box to enable 2D raymarching on the Cloud Map to compute lighting for the main directional light. |
 | - **Steps**                   | Use the slider to set the number of raymarching steps. |
 | - **Thickness**               | Set the thickness of the clouds. |
-| **Cast Shadows**              | Enable to have the clouds cast shadows for the main directional light. |
+| **Cast Shadows**              | Enable to have the clouds cast shadows for the main directional light.<br />The shadow texture will be set as a cookie on the light. Rotating the light around the Z-axis will rotate the shadow cookie, which may cause discrepancies with the scroll direction. |
 
 | Shadows Property              | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
-| **Shadows Opacity**           | Controls the opacity of the cloud shadows. |
-| **Shadows Tiling**            | Controls the tiling of the cloud shadows. |
-| **Shadows Resolution**        | Controls the resolution of the cloud shadows texture. |
+| **Shadow Multiplier**         | Controls the opacity of the cloud shadows. |
+| **Shadow Tint**               | Controls the tint of the cloud shadows. |
+| **Shadow Resolution**         | Controls the resolution of the cloud shadows texture. |

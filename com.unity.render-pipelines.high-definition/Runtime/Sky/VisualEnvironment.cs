@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum CloudType
     {
-        /// <summary>Cloud Layer.</summary>
+        /// <summary>Cloud Layer Unique ID.</summary>
         CloudLayer = 1,
     }
 

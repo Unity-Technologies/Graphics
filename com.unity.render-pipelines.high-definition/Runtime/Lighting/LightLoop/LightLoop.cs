@@ -751,7 +751,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
-        Light GetCurrentSunLight() { return m_CurrentSunLight; }
+        internal Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
         // Screen space shadow data
         struct ScreenSpaceShadowData
@@ -3591,8 +3591,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._NumTileClusteredY = (uint)GetNumTileClusteredY(hdCamera);
 
             // Misc
-            var cloudLayer = hdCamera.volumeStack.GetComponent<CloudLayer>();
-            cb._DirectionalShadowCookieTiling = cloudLayer == null ? 1.0f : cloudLayer.shadowsTiling.value;
             cb._EnableSSRefraction = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) ? 1u : 0u;
         }
 
@@ -3608,7 +3606,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TileAndClusterData.lightVolumeDataBuffer.SetData(m_lightList.lightsPerView[0].lightVolumes);
 
             cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
-            cmd.SetGlobalTexture(HDShaderIDs._DirectionalShadowCookie, Texture2D.whiteTexture);
             cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_TextureCaches.reflectionProbeCache.GetTexCache());
             cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache());
 

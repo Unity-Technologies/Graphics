@@ -79,9 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             m_PrecomputedData.BakeCloudShadows(builtinParams);
-
-            var cmd = builtinParams.commandBuffer;
-            cmd.SetGlobalTexture(HDShaderIDs._DirectionalShadowCookie, m_PrecomputedData.cloudShadowsRT);
+            builtinParams.sunLight.cookie = m_PrecomputedData.cloudShadowsRT;
         }
 
         public override void RenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap)
@@ -197,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (cloudLayer.CastShadows)
                     cloudShadowsRT = RTHandles.Alloc(cloudShadowsResolution, cloudShadowsResolution,
-                        colorFormat: GraphicsFormat.R16_SNorm, dimension: TextureDimension.Tex2D,
+                        colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, dimension: TextureDimension.Tex2D,
                         enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: "Cloud Shadows");
 
                 BakeCloudTexture(builtinParams);
@@ -260,12 +258,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector4 _Params = builtinParams.sunLight.transform.forward;
                 Vector4 _Params1 = builtinParams.sunLight.transform.right;
                 Vector4 _Params2 = builtinParams.sunLight.transform.up;
+                Vector4 _Params3 = cloudLayer.shadowTint.value;
                 _Params.w = 1.0f / (float)cloudShadowsResolution;
-                _Params1.w = 50.0f * cloudLayer.shadowsOpacity.value;
+                _Params3.w = cloudLayer.shadowMultiplier.value;
 
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params, _Params);
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params1, _Params1);
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params2, _Params2);
+                cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params3, _Params3);
 
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudTexture, cloudTextureRT);
                 cmd.SetComputeTextureParam(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, _CloudShadows, cloudShadowsRT);
@@ -306,6 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int threadGroupY = (cloudShadowsResolution + (groupSizeY - 1)) / groupSizeY;
 
                 cmd.DispatchCompute(s_BakeCloudShadowsCS, s_BakeCloudShadowsKernel, threadGroupX, threadGroupY, 1);
+                cloudShadowsRT.rt.IncrementUpdateCount();
             }
         }
 

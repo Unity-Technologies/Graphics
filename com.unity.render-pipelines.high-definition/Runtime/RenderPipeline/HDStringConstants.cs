@@ -153,7 +153,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NumTiles = Shader.PropertyToID("_NumTiles");
 
         public static readonly int _CookieAtlas = Shader.PropertyToID("_CookieAtlas");
-        public static readonly int _DirectionalShadowCookie = Shader.PropertyToID("_DirectionalShadowCookie");
 
         public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");
         public static readonly int _Env2DTextures = Shader.PropertyToID("_Env2DTextures");
@@ -720,6 +719,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _Params                         = Shader.PropertyToID("_Params");
         public static readonly int _Params1                        = Shader.PropertyToID("_Params1");
         public static readonly int _Params2                        = Shader.PropertyToID("_Params2");
+        public static readonly int _Params3                        = Shader.PropertyToID("_Params3");
         public static readonly int _BokehKernel                    = Shader.PropertyToID("_BokehKernel");
         public static readonly int _InputCoCTexture                = Shader.PropertyToID("_InputCoCTexture");
         public static readonly int _InputHistoryCoCTexture         = Shader.PropertyToID("_InputHistoryCoCTexture");
