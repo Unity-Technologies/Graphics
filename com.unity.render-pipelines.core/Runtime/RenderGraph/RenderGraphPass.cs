@@ -72,6 +72,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         public void AddResourceWrite(in ResourceHandle res)
         {
+            res.IncrementWriteCount();
             resourceWriteLists[res.iType].Add(res);
         }
 

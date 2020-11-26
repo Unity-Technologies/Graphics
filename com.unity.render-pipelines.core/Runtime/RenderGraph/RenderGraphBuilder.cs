@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -49,6 +50,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle ReadTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
+
+            if (input.handle.NeedToFallback() && !m_Resources.IsResourceImported(input.handle))
+            {
+                var texDimension = m_Resources.GetTextureResourceDesc(input.handle).dimension;
+                if (texDimension == TextureXR.dimension)
+                {
+                    return m_RenderGraph.defaultResources.blackTextureXR;
+                }
+                else if (texDimension == TextureDimension.Tex3D)
+                {
+                    return m_RenderGraph.defaultResources.blackTexture3DXR;
+                }
+            }
+
             m_RenderPass.AddResourceRead(input.handle);
             return input;
         }
@@ -63,6 +78,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             CheckResource(input.handle);
             // TODO RENDERGRAPH: Manage resource "version" for debugging purpose
             m_RenderPass.AddResourceWrite(input.handle);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a Texture resource to read and write to during the pass.
+        /// </summary>
+        /// <param name="input">The Texture resource to read and write to during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public TextureHandle ReadWriteTexture(in TextureHandle input)
+        {
+            CheckResource(input.handle);
+            m_RenderPass.AddResourceWrite(input.handle);
+            m_RenderPass.AddResourceRead(input.handle);
             return input;
         }
 
@@ -125,6 +153,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
+            input.handle.IncrementWriteCount();
             return input;
         }
 
