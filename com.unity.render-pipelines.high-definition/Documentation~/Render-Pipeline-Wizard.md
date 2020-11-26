@@ -16,7 +16,7 @@ You also have a button allow you to creates a local instance of the [High Defini
 
 | **Property**                               | **Description**                                              |
 | ------------------------------------------ | ------------------------------------------------------------ |
-| **Default Resources Folder**               | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#PopulatingFolder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
+| **Default Resources Folder**               | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#populating-the-default-resources-folder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
 | **Install Configuration Editable Package** | Creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.md) in the **LocalPackage** folder of your HDRP Project. |
 
 ### Populating the default resources folder
@@ -52,8 +52,8 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **Shadowmask Mode**              | Checks to make sure **Shadowmask Mode** is set to **Distance Shadowmask** at the Project level. This allows you to change the **Shadowmask Mode** on a per-[Light](Light-Component.md) level. <br />Press the **Fix** button to set the **Shadowmask Mode** to **Distance Shadowmask**. |
 | **Asset Configuration**          | Checks every configuration in this section. <br />Press the **Fix All** button to fix every configuration in this section. |
 | **- Assigned**                   | Checks to make sure you have assigned an [HDRP Asset](HDRP-Asset.md) to the **Scriptable Render Pipeline Settings** field (menu: **Edit** > **Project Settings** > **Graphics**).<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
-| **- Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.md#GeneralProperties) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
-| **- Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.md#GeneralProperties)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
+| **- Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
+| **- Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.md)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **- Diffusion Profile**          | Checks to make sure that your HDRP Asset references a [**Diffusion Profile**](Diffusion-Profile.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Default Settings** .<br />Press the **Fix** button to open a pop-up that allows you to either assign a Profile or create and assign a new one. |
 
