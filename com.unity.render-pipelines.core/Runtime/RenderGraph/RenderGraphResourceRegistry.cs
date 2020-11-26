@@ -280,7 +280,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.desc = desc;
             texResource.transientPassIndex = transientPassIndex;
-            return new TextureHandle(newHandle);
+            return new TextureHandle(newHandle, desc.fallBackToBlackTexture);
         }
 
         internal int GetTextureResourceCount()
