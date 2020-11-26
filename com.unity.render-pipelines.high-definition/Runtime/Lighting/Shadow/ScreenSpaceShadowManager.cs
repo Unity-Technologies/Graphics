@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_ClearShadowTexture;
         int m_OutputShadowTextureKernel;
         int m_OutputColorShadowTextureKernel;
+        int m_OutputSpecularShadowTextureKernel;
 
         // Directional shadow kernels
         int m_RaytracingDirectionalShadowSample;
@@ -202,6 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ClearShadowTexture = m_ScreenSpaceShadowsCS.FindKernel("ClearShadowTexture");
                 m_OutputShadowTextureKernel = m_ScreenSpaceShadowsCS.FindKernel("OutputShadowTexture");
                 m_OutputColorShadowTextureKernel = m_ScreenSpaceShadowsCS.FindKernel("OutputColorShadowTexture");
+                m_OutputSpecularShadowTextureKernel = m_ScreenSpaceShadowsCS.FindKernel("OutputSpecularShadowTexture");
                 m_RaytracingDirectionalShadowSample = m_ScreenSpaceShadowsCS.FindKernel("RaytracingDirectionalShadowSample");
                 m_RaytracingPointShadowSample = m_ScreenSpaceShadowsCS.FindKernel("RaytracingPointShadowSample");
                 m_RaytracingSpotShadowSample = m_ScreenSpaceShadowsCS.FindKernel("RaytracingSpotShadowSample");
@@ -340,6 +342,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluation parameters
             public Vector4 shadowChannelMask;
+            public Vector4 shadowChannelMask0;
+            public Vector4 shadowChannelMask1;
             public int shadowSlot;
 
             // Kernel
@@ -360,10 +364,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluation parameters
             GetShadowChannelMask(shadowSlot, shadowType, ref wsssParams.shadowChannelMask);
+            // If the light is an area, we also need to grab the individual channels
+            if (shadowType == ScreenSpaceShadowType.Area)
+            {
+                GetShadowChannelMask(shadowSlot, ScreenSpaceShadowType.GrayScale, ref wsssParams.shadowChannelMask0);
+                GetShadowChannelMask(shadowSlot + 1, ScreenSpaceShadowType.GrayScale, ref wsssParams.shadowChannelMask1);
+            }
             wsssParams.shadowSlot = shadowSlot;
 
             // Kernel
-            wsssParams.shadowKernel = (shadowType == ScreenSpaceShadowType.Color ? m_OutputColorShadowTextureKernel : m_OutputShadowTextureKernel);
+            switch (shadowType)
+            {
+                case ScreenSpaceShadowType.GrayScale:
+                {
+                    wsssParams.shadowKernel = m_OutputShadowTextureKernel;
+                }
+                break;
+                case ScreenSpaceShadowType.Area:
+                {
+                    wsssParams.shadowKernel = m_OutputSpecularShadowTextureKernel;
+                }
+                break;
+                case ScreenSpaceShadowType.Color:
+                {
+                    wsssParams.shadowKernel = m_OutputColorShadowTextureKernel;
+                }
+                break;
+            }
 
             // Other parameters
             wsssParams.screenSpaceShadowCS = m_ScreenSpaceShadowsCS;
@@ -395,6 +422,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Bind the input data
             cmd.SetComputeIntParam(wsssParams.screenSpaceShadowCS, HDShaderIDs._RaytracingShadowSlot, wsssParams.shadowSlot / 4);
             cmd.SetComputeVectorParam(wsssParams.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask, wsssParams.shadowChannelMask);
+            cmd.SetComputeVectorParam(wsssParams.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask0, wsssParams.shadowChannelMask0);
+            cmd.SetComputeVectorParam(wsssParams.screenSpaceShadowCS, HDShaderIDs._RaytracingChannelMask1, wsssParams.shadowChannelMask1);
             cmd.SetComputeTextureParam(wsssParams.screenSpaceShadowCS, wsssParams.shadowKernel, HDShaderIDs._RaytracedShadowIntegration, wsssResources.inputShadowBuffer);
 
             // Bind the output texture
