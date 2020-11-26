@@ -4,7 +4,60 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.1] - 2020-07-02
+## [7.5.2] - 2020-11-16
+
+### Added
+- Added a warning when trying to bake with static lighting being in an invalid state.
+
+### Fixed
+- Fixed a null ref exception when baking reflection probes.
+- Fixed shadow resolution settings level in the light explorer.
+- Fixed rendering of custom passes in the Custom Pass Volume inspector
+- Fixed issue with volume manager trying to access a null volume.
+- Fixed an issue that caused a null reference when deleting camera component in a prefab. (case 1244430)
+- Fixed nan in pbr sky
+- Fixed Light skin not properly applied on the LookDev when switching from Dark Skin (case 1278802)
+- Fixed Custom Post Processes affecting preview cameras.
+- Fixed serialization issue with matcap scale intensity.
+- Fixed XR shadows culling
+- Fixed volument component creation via script.
+- Fixed issue with exposure history being uninitialized on second frame.
+- Fixed error Maximum allowed thread group count is 65535 when resolution is very high. 
+- Fixed an issue with opaque material using a shader graph with Transparent SurfaceType selected. FPTL was not working for this case.
+- Fixed NullReferenceException when loading multipel scene async
+- Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
+
+### Changed
+- Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
+
+## [7.5.1] - 2020-09-02
+
+### Fixed
+- Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
+- Fixed fallback for ray tracing and light layers (1258837).
+- Fixed Sorting Priority not displayed correctly in the DrawRenderers custom pass UI.
+- Fixed default frame settings MSAA toggle for reflection probes (case 1247631)
+- Fixed regression where moving face of the probe gizmo was not moving its position anymore.
+- Remove MSAA debug mode when renderpipeline asset has no MSAA
+- Fixed issue that failed compilation when XR is disabled.
+- Fixed an issue where only one of the two lookdev views would update when changing the default lookdev volume profile
+- Fix Amplitude -> Min/Max parametrization conversion
+- Fixed sky asserts with XR multipass
+- Fixed "Screen position out of view frustum" error when camera is at exactly the planar reflection probe location.
+- Fixed issue when undoing a change in diffuse profile list after deleting the volume profile.
+- Fixed a static lighting flickering issue caused by having an active planar probe in the scene while rendering inspector preview.
+- Fixed an issue where even when set to OnDemand, the sky lighting would still be updated when changing sky parameters.
+- Fixed TAA issue and hardware dynamic resolution.
+- Fixed warning with area mesh (case 1268379)
+- Fixed an issue that lead to corrupted refraction in some scenarios on xbox.
+- Fixed issue in Material Postprocess which may fail due to empty SubAsset.
+- Fixed built-in shaders when using XR single-pass (1268962).
+
+### Changed
+- The `CustomPassLoadCameraColor` and `CustomPassSampleCameraColor` functions now returns the correct color buffer when used in after post process instead of the color pyramid (which didn't had post processes).
+
+## [7.4.3] - 2020-08-06
 
 ### Fixed
 - Fixed a bug where connections to the `Normal` slot on *Stack Lit Master* node would be lost when changing normal space. 

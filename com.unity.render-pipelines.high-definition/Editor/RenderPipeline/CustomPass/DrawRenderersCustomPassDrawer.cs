@@ -161,6 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
                 // TODO: remove all this code when the fix for SerializedReference lands
+                m_SortingCriteria.intValue = (int)(SortingCriteria)EditorGUI.EnumFlagsField(rect, Styles.sortingCriteria, (SortingCriteria)m_SortingCriteria.intValue);
                 // EditorGUI.PropertyField(rect, m_SortingCriteria, Styles.sortingCriteria);
                 m_SortingCriteria.intValue = (int)(SortingCriteria)EditorGUI.EnumPopup(rect, Styles.sortingCriteria, (SortingCriteria)m_SortingCriteria.intValue);
                 rect.y += Styles.defaultLineSpace;

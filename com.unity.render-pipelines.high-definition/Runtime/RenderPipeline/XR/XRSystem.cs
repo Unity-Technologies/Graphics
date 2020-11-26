@@ -140,6 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // custom layout in used
                 }
+#if ENABLE_VR && ENABLE_XR_MODULE
                 else if (xrEnabled && xrSupported)
                 {
                     // Disable vsync on the main display when rendering to a XR device
@@ -165,6 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         CreateLayoutLegacyStereo(camera);
                     }
                 }
+#endif
                 else
                 {
                     AddPassToFrame(camera, emptyPass);

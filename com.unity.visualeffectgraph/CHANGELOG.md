@@ -4,7 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [7.5.1] - 2020-06-08
+## [7.5.2] - 2020-11-16
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.5.1] - 2020-09-02
 ### Added
 - Added Degrees / Radians conversion subgraphs in samples
 
@@ -34,6 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimize display of inspector when there is a lot of exposed VFX properties.
 - Correctly frame the whole graph, when opening the Visual Effect Editor
 - fix issue with multiselection and objectfields [Case 1250378](https://issuetracker.unity3d.com/issues/vfx-removing-texture-asset-while-multiediting-working-incorrectly)
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
 
 ## [7.4.1] - 2020-06-03
 

@@ -2,32 +2,56 @@ project:
   name: ShaderGraph
   folder: ShaderGraph
 test_platforms:
-  - Standalone
-  - playmode
-  - editmode
+  - type: Standalone
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
+  - type: playmode
+  - type: editmode
 platforms:
   - name: Win
     apis:
-      - DX11
-      - Vulkan
+      - name: DX11
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: OSX
     apis:
-      - OpenGLCore
-      - Metal
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
   - name: Linux
     apis: 
-      - OpenGLCore
-      - Vulkan
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
       api: DX11
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - Standalone
         - editmode
         - playmode
     - platform: OSX
       api: OpenGLCore
+      build_config: mono
+      color_space: Linear
       test_platforms:
         - editmode 
 

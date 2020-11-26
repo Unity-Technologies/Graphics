@@ -216,24 +216,48 @@ namespace UnityEditor.Rendering.LookDev
         StyleSheet styleSheet = null;
         StyleSheet styleSheetLight = null;
 
+        void ReloadStyleSheets()
+        {
+            if(styleSheet == null || styleSheet.Equals(null))
+            {
+                styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
+                if(styleSheet == null || styleSheet.Equals(null))
+                {
+                    //Debug.LogWarning("[LookDev] Could not load Stylesheet.");
+                    return;
+                }
+            }
+
+            if(!rootVisualElement.styleSheets.Contains(styleSheet))
+                rootVisualElement.styleSheets.Add(styleSheet);
+
+            //Additively load Light Skin
+            if(!EditorGUIUtility.isProSkin)
+            {
+                if(styleSheetLight == null || styleSheetLight.Equals(null))
+                {
+                    styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
+                    if(styleSheetLight == null || styleSheetLight.Equals(null))
+                    {
+                        //Debug.LogWarning("[LookDev] Could not load Light skin.");
+                        return;
+                    }
+                }
+                 
+                if(!rootVisualElement.styleSheets.Contains(styleSheetLight))
+                    rootVisualElement.styleSheets.Add(styleSheetLight);
+            }
+        }
+
         void OnEnable()
         {
             //Stylesheet
             // Try to load stylesheet. Timing can be odd while upgrading packages (case 1219692).
             // In this case, it will be fixed in OnGUI. Though it can spawn error while reimporting assets.
             // Waiting for filter on stylesheet (case 1228706) to remove last error.
-            if (styleSheet == null || styleSheet.Equals(null))
-            {
-                styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss);
-                if (styleSheet != null && !styleSheet.Equals(null))
-                    rootVisualElement.styleSheets.Add(styleSheet);
-            }
-            if (!EditorGUIUtility.isProSkin && styleSheetLight != null && !styleSheetLight.Equals(null))
-            {
-                styleSheetLight = AssetDatabase.LoadAssetAtPath<StyleSheet>(Style.k_uss_personal_overload);
-                if (styleSheetLight != null && !styleSheetLight.Equals(null))
-                    rootVisualElement.styleSheets.Add(styleSheetLight);
-            }
+            // On Editor Skin change, OnEnable is called and stylesheets need to be reloaded (case 1278802).
+            if(EditorApplication.isUpdating)
+                ReloadStyleSheets();
 
             //Call the open function to configure LookDev
             // in case the window where open when last editor session finished.
@@ -681,14 +705,11 @@ namespace UnityEditor.Rendering.LookDev
                 //        rootVisualElement.styleSheets.Add(styleSheetLight);
                 //}
             }
-            else
-            {
-                //deal with missing style when domain reload...
-                if (!rootVisualElement.styleSheets.Contains(styleSheet))
-                    rootVisualElement.styleSheets.Add(styleSheet);
-                if (!EditorGUIUtility.isProSkin && !rootVisualElement.styleSheets.Contains(styleSheetLight))
-                    rootVisualElement.styleSheets.Add(styleSheetLight);
-            }
+            if(EditorApplication.isUpdating)
+                return;
+           
+            //deal with missing style on domain reload...
+            ReloadStyleSheets();
 
             // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
             // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check.
