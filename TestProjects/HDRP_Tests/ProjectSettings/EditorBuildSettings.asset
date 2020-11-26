@@ -297,6 +297,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2220_SmoothPlanarReflection.unity
     guid: d4a7e5df537f6b0468c09ce661d8791d
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2220_PlanarProbeExposure.unity
+    guid: 52c8aecb09fafca439f894462d558a70
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2301_Shadow_Mask.unity
     guid: 1029947770f955b4290bbdd8b641f7f1
   - enabled: 1
