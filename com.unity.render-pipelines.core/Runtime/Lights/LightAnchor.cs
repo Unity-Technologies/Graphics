@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEngine
 {
     /// <summary>
-    /// LightAnchor component represents Camera space based light controls around a virtual pivot point
+    /// Represents camera-space light controls around a virtual pivot point.
     /// </summary>
     [AddComponentMenu("Rendering/Light Anchor")]
     [RequireComponent(typeof(Light))]
@@ -27,8 +27,11 @@ namespace UnityEngine
         float m_Roll;
 
         /// <summary>
-        /// Camera relative Yaw between 0,180 to the right of the camera, and 0,-180 to the left
+        /// The camera-relative yaw.
         /// </summary>
+        /// <remarks>
+        /// The range is -180 through 180 inclusive. Values between 0 and 180 are to the right of the camera, and values between 0 and -180 to the left.
+        /// </remarks>
         public float yaw
         {
             get { return m_Yaw; }
@@ -36,8 +39,11 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Pitch relative to the horizon or camera depending on value of m_Space. 0,180 is down, 0,-180 is up.
+        /// The pitch relative to the horizon or camera depending on value of m_Space.
         /// </summary>
+        /// <remarks>
+        /// The range is -180 through 180 inclusive. Values between 0 and 180 are below the camera, and values between 0 and -180 are above the camera.
+        /// </remarks>
         public float pitch
         {
             get { return m_Pitch; }
@@ -45,8 +51,11 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Camera relative Roll between 0,180 to the right of the camera, and 0,-180 to the left
+        /// The camera-relative roll.
         /// </summary>
+        /// <remarks>
+        /// The range is -180 through 180 inclusive. Values between 0 and 180 are to the right of the camera, and values between 0 and -180 are to the left of the camera.
+        /// </remarks>
         public float roll
         {
             get { return m_Roll; }
@@ -54,7 +63,7 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Distance from the light's anchor point
+        /// The distance from the light's anchor point.
         /// </summary>
         public float distance
         {
@@ -63,7 +72,7 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Should Up be in World or Camera Space
+        /// Indicates whether the up vector should be in world or camera space.
         /// </summary>
         public Space frameSpace
         {
@@ -72,7 +81,7 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Position of the light's anchor point
+        /// The position of the light's anchor point.
         /// </summary>
         public Vector3 anchorPosition
         {
@@ -87,10 +96,10 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Normalizes the input angle to be in the range of -180 and 180
+        /// Normalizes the input angle to be in the range of -180 and 180.
         /// </summary>
-        /// <param name="angle">Raw input angle or rotation</param>
-        /// <returns>angle of rotation between -180 and 180</returns>
+        /// <param name="angle">Raw input angle or rotation.</param>
+        /// <returns>Returns the angle of rotation between -180 and 180.</returns>
         public static float NormalizeAngleDegree(float angle)
         {
             const float range = 360f;
@@ -101,9 +110,9 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Update Yaw, Pitch, Roll, and Distance base don world state
+        /// Updates Yaw, Pitch, Roll, and Distance based on the Transform.
         /// </summary>
-        /// <param name="camera">Camera to which light values are relative</param>
+        /// <param name="camera">The Camera to which light values are relative.</param>
         public void SynchronizeOnTransform(Camera camera)
         {
             Axes axes = GetWorldSpaceAxes(camera);
@@ -126,10 +135,10 @@ namespace UnityEngine
         }
 
         /// <summary>
-        /// Update the light's transform with respect to a given camera and anchor point
+        /// Updates the light's transform with respect to a given camera and anchor point
         /// </summary>
-        /// <param name="camera">The camera to which values are relative</param>
-        /// <param name="anchor">The light's desired anchor position</param>
+        /// <param name="camera">The camera to which values are relative.</param>
+        /// <param name="anchor">The light's anchor position.</param>
         public void UpdateTransform(Camera camera, Vector3 anchor)
         {
             var axes = GetWorldSpaceAxes(camera);
