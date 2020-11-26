@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed lookdev movement.
 - Fixed volume component tooltips using the same parameter name.
 
 ### Changed
