@@ -39,11 +39,9 @@ test_platforms:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
         - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersMedium
       - utr_flags:
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersHigh
         - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersHigh
         utr_flags_build:
         - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
-        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersHigh
         - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersHigh
   - type: playmode
     name: performance_playmode_editor
