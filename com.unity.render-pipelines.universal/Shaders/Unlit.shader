@@ -53,9 +53,6 @@ Shader "Universal Render Pipeline/Unlit"
 
             #include "UnlitInput.hlsl"
 
-            // Force enable fog fragment shader evaluation
-            #define _FOG_FRAGMENT 1
-
             struct Attributes
             {
                 float4 positionOS       : POSITION;
@@ -204,9 +201,6 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_instancing
 
             #include "UnlitInput.hlsl"
-
-            // Force enable fog fragment shader evaluation
-            #define _FOG_FRAGMENT 1
 
             struct Attributes
             {

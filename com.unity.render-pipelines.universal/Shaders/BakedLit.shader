@@ -69,9 +69,6 @@ Shader "Universal Render Pipeline/Baked Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
-            // Force enable fog fragment shader evaluation
-            #define _FOG_FRAGMENT 1
-
             struct Attributes
             {
                 float4 positionOS       : POSITION;
@@ -330,9 +327,6 @@ Shader "Universal Render Pipeline/Baked Lit"
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
-
-            // Force enable fog fragment shader evaluation
-            #define _FOG_FRAGMENT 1
 
             struct Attributes
             {
