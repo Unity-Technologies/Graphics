@@ -84,7 +84,7 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
       
       - [all]: --artifacts_path=test-results
-      - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
+      #- [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal]: --player-save-path=../../players 
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players
