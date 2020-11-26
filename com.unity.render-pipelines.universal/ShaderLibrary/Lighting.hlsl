@@ -42,15 +42,6 @@
     #define _MIXED_LIGHTING_SUBTRACTIVE
 #endif
 
-bool IsLightingFeatureEnabled(uint bitMask)
-{
-    #if defined(_DEBUG_SHADER)
-    return (_DebugLightingFeatureMask == 0) || ((_DebugLightingFeatureMask & bitMask) != 0);
-    #else
-    return true;
-    #endif
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 //                          Light Helpers                                    //
 ///////////////////////////////////////////////////////////////////////////////
