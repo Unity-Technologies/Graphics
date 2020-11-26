@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
-- Fixed issue with saving some quality settings volume overrides  (case 1293747)
+- Fixed issue with saving some quality settings in volume overrides  (case 1293747)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
