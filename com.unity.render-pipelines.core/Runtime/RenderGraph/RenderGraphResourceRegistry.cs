@@ -135,15 +135,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         DynamicArray<IRenderGraphResource>[] m_Resources = new DynamicArray<IRenderGraphResource>[(int)RenderGraphResourceType.Count];
 
-        TexturePool m_TexturePool = new TexturePool();
-        int m_TextureCreationIndex;
-        ComputeBufferPool m_ComputeBufferPool = new ComputeBufferPool();
-        DynamicArray<RendererListResource> m_RendererListResources = new DynamicArray<RendererListResource>();
-        RenderGraphDebugParams m_RenderGraphDebug;
-        RenderGraphLogger m_Logger;
-        int m_CurrentFrameIndex;
+        TexturePool                         m_TexturePool = new TexturePool();
+        int                                 m_TextureCreationIndex;
+        ComputeBufferPool                   m_ComputeBufferPool = new ComputeBufferPool();
+        DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
+        RenderGraphDebugParams              m_RenderGraphDebug;
+        RenderGraphLogger                   m_Logger;
+        int                                 m_CurrentFrameIndex;
 
-        RTHandle m_CurrentBackbuffer;
+        RTHandle                            m_CurrentBackbuffer;
 
         internal RTHandle GetTexture(in TextureHandle handle)
         {
