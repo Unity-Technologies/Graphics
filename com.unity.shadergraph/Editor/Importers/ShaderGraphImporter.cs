@@ -355,13 +355,13 @@ Shader ""Hidden/GraphErrorShader2""
                 var ports = new List<MaterialSlot>();
                 var nodes = new List<AbstractMaterialNode>();
 
-                foreach (var vertexBlock in graph.vertexContext.blocks)
+            foreach(var vertexBlock in graph.vertexContext.blocks)
                 {
                     vertexBlock.value.GetInputSlots(ports);
                     NodeUtils.DepthFirstCollectNodesFromNode(nodes, vertexBlock);
                 }
 
-                foreach (var fragmentBlock in graph.fragmentContext.blocks)
+            foreach(var fragmentBlock in graph.fragmentContext.blocks)
                 {
                     fragmentBlock.value.GetInputSlots(ports);
                     NodeUtils.DepthFirstCollectNodesFromNode(nodes, fragmentBlock);
@@ -604,14 +604,14 @@ Shader ""Hidden/GraphErrorShader2""
                 // Since we keep these around for upgrades anyway, for now it is simpler to use them
                 // Therefore we remap the output blocks back to the original Ids here
                 var originialPortIds = new int[ports.Count];
-                for (int i = 0; i < originialPortIds.Length; i++)
+            for(int i = 0; i < originialPortIds.Length; i++)
                 {
-                    if (!VFXTarget.s_BlockMap.TryGetValue((ports[i].owner as BlockNode).descriptor, out var originalId))
+                if(!VFXTarget.s_BlockMap.TryGetValue((ports[i].owner as BlockNode).descriptor, out var originalId))
                         continue;
 
                     // In Master Nodes we had a different BaseColor/Color slot id between Unlit/Lit
                     // In the stack we use BaseColor for both cases. Catch this here.
-                    if (asset.lit && originalId == ShaderGraphVfxAsset.ColorSlotId)
+                if(asset.lit && originalId == ShaderGraphVfxAsset.ColorSlotId)
                     {
                         originalId = ShaderGraphVfxAsset.BaseColorSlotId;
                     }
@@ -662,7 +662,7 @@ Shader ""Hidden/GraphErrorShader2""
                     {
                         var portPropertySet = portPropertySets[portIndex];
                         if (portPropertySet.Contains(property.objectId))
-                        {
+                {
                             portCodeIndices[portIndex].Add(codeIndex);
                             portPropertyIndices[portIndex].Add(propertyIndex);
                         }
@@ -684,7 +684,7 @@ Shader ""Hidden/GraphErrorShader2""
                     if (string.IsNullOrWhiteSpace(code))
                     {
                         continue;
-                    }
+            }
 
                     code = $"{nl}{indent}// Node: {mapping.node.name}{nl}{code}";
                     var codeIndex = codeSnippets.Count;
@@ -693,7 +693,7 @@ Shader ""Hidden/GraphErrorShader2""
                     {
                         var portNodeSet = portNodeSets[portIndex];
                         if (portNodeSet.Contains(mapping.node))
-                        {
+            {
                             portCodeIndices[portIndex].Add(codeIndex);
                         }
                     }
@@ -746,7 +746,7 @@ Shader ""Hidden/GraphErrorShader2""
                 asset.SetProperties(inputProperties);
                 asset.outputPropertyIndices = new IntArray[ports.Count];
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
-                {
+        {
                     asset.outputPropertyIndices[portIndex] = portPropertyIndices[portIndex].ToArray();
                 }
 
