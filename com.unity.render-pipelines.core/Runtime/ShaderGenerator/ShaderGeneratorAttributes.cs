@@ -320,6 +320,5 @@ namespace UnityEngine.Rendering
     /// </summary>
     public struct ShaderGenUInt4
     {
-
     }
 }

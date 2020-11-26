@@ -12,9 +12,10 @@ using static UnityEditor.Rendering.HighDefinition.DecalSurfaceOptionsUIBlock.Sty
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class DecalSurfaceInputsUIBlock : MaterialUIBlock
+    /// <summary>The UI block that represents the surface inputs for decal materials.</summary>
+    public class DecalSurfaceInputsUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
             public const string header = "Surface Inputs";
 
@@ -31,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent aoText = new GUIContent("Ambient Occlusion", "Controls the ambient occlusion of the decal.");
             public static GUIContent maskOpacityChannelText = new GUIContent("Mask Opacity Channel", "Specifies the source this Material uses as opacity for its Mask Map.");
             public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Controls the scale of the blue channel of the Mask Map. You can use this as opacity depending on the blend source you choose.");
-            public static GUIContent opacityBlueScaleText = new GUIContent("Mask Opacity", "Controls the opacity of the Mask (Metallic, Ambient Occlusion, Smoothness). You can use this as opacity depending on the blend source you choose.");            
+            public static GUIContent opacityBlueScaleText = new GUIContent("Mask Opacity", "Controls the opacity of the Mask (Metallic, Ambient Occlusion, Smoothness). You can use this as opacity depending on the blend source you choose.");
             public static GUIContent useEmissionIntensityText = new GUIContent("Use Emission Intensity", "When enabled, this Material separates emission color and intensity. This makes the Emission Map into an LDR color and exposes the Emission Intensity property.");
             public static GUIContent emissionMapText = new GUIContent("Emission Map", "Specifies a map (RGB) that the Material uses for emission.");
             public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Sets the overall strength of the emission effect.");
@@ -40,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent maskMapText = new GUIContent("Mask Map", "Specifies the Mask Map for this Material - Metal(R), Ambient Occlusion(G), Opacity(B), Smoothness(A)");
         }
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
 
         enum BlendSource
         {
@@ -141,11 +142,18 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty emissiveExposureWeight = null;
         const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
 
-        public DecalSurfaceInputsUIBlock(Expandable expandableBit)
+        /// <summary>
+        /// Constructs a DecalSurfaceInputsUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state</param>
+        public DecalSurfaceInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             baseColor = FindProperty(kBaseColor);
@@ -185,6 +193,9 @@ namespace UnityEditor.Rendering.HighDefinition
             instancing.boolValue = true;
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
@@ -213,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (materials.All(m => m.GetTexture(kNormalMap)))
             {
                 EditorGUI.indentLevel++;
-                
+
                 EditorGUI.BeginChangeCheck();
                 var normalBlendSrcValue = (int)normalBlendSrc.floatValue;
                 normalBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, normalBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);

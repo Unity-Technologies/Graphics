@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
 
         public VFXExpressionSampleSDF(VFXExpression texture, VFXExpression uvw, VFXExpression scale, VFXExpression mipLevel)
             : base(Flags.InvalidOnCPU, new VFXExpression[4] { texture, uvw, scale, mipLevel })
-        { }
+        {}
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
         sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
@@ -24,7 +24,6 @@ namespace UnityEditor.VFX
         public sealed override string GetCodeString(string[] parents)
         {
             return string.Format("GetDistanceFromSDF(VFX_SAMPLER({0}), {1}, {2}, {3}) ", parents[0], parents[1], parents[2], parents[3]);
-
         }
     }
 
@@ -38,7 +37,7 @@ namespace UnityEditor.VFX
         public VFXExpressionSampleSDFNormal(VFXExpression texture, VFXExpression inverseTRS, VFXExpression uvw, VFXExpression mipLevel)
             : base(Flags.InvalidOnCPU, new VFXExpression[4] { texture, inverseTRS, uvw, mipLevel })
 
-        { }
+        {}
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
         sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
@@ -46,10 +45,6 @@ namespace UnityEditor.VFX
         public sealed override string GetCodeString(string[] parents)
         {
             return string.Format("VFXSafeNormalize(mul(float4(GetNormalFromSDF(VFX_SAMPLER({0}), {2}, {3}),0.0f), {1}).xyz )", parents[0], parents[1], parents[2], parents[3]);
-
-
         }
     }
 }
-
-

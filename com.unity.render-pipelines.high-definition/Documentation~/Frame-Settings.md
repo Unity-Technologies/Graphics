@@ -81,7 +81,7 @@ These settings control lighting features for your rendering components. Here you
 | **Screen Space Global Illumination** | Enable the checkbox to make HDRP process Screen Space Global Illumination (SSGI). |
 | **Screen Space Ambient Occlusion** | Enable the checkbox to make HDRP process Screen Space Ambient Occlusion (SSAO). This allows HDRP to calculate SSAO for this Camera/Reflection Probe. |
 | **Transmission**                   | Enable the checkbox to make HDRP process the transmission effect. This allows subsurface scattering Materials to use transmission, for example, light transmits through a leaf with a subsurface scattering Material. |
-| **Fog**                            | Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](HDRP-Features.md#FogOverview.md) from your Scene’s Volumes. |
+| **Fog**                            | Enable the checkbox to make HDRP process atmospheric scattering. This allows your Camera/Reflection Probe to process atmospheric scattering effects such as the [fog](HDRP-Features.md#fog) from your Scene’s Volumes. |
 | - **Volumetrics**                    | Enable the checkbox to make HDRP process Volumetrics. Enabling this setting allows your rendering component to render volumetric fog and lighting. |
 | - - **Reprojection**   | Enable the checkbox to improve the quality of volumetrics at runtime. Enabling this feature causes HDRP to use several previous frames to calculate the volumetric effects. Using these previous frames helps to reduce noise and smooth out the effects. |
 | **Light Layers**                   | Enable the checkbox to make HDRP process Light Layers.       |
