@@ -137,6 +137,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ClearDepth = true;
         [SerializeField] bool m_AllowXRRendering = true;
 
+        [NonSerialized] Camera m_Camera;
         // Deprecated:
         [FormerlySerializedAs("requiresDepthTexture"), SerializeField]
         bool m_RequiresDepthTexture = false;
@@ -160,17 +161,22 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         internal new Camera camera
-        {
-            get => gameObject.GetComponent<Camera>();
-        }
-        #else
+#else
         internal Camera camera
+#endif
         {
-            get => gameObject.GetComponent<Camera>();
+            get
+            {
+                if (!m_Camera)
+                {
+                    gameObject.TryGetComponent<Camera>(out m_Camera);
+                }
+                return m_Camera;
+            }
         }
-        #endif
+
 
         /// <summary>
         /// Controls if this camera should render shadows.
@@ -308,6 +314,8 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
+                if (UniversalRenderPipeline.asset is null)
+                    return null;
                 if (!UniversalRenderPipeline.asset.ValidateRendererData(m_RendererIndex))
                 {
                     int defaultIndex = UniversalRenderPipeline.asset.m_DefaultRendererIndex;
