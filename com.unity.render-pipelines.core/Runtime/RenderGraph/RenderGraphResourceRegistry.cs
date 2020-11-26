@@ -32,9 +32,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         class IRenderGraphResource
         {
             public bool imported;
-            public int  cachedHash;
-            public int  transientPassIndex;
+            public int cachedHash;
+            public int transientPassIndex;
+            public uint writeCount;
             public bool wasReleased;
+            public bool requestFallBack;
 
             public virtual void Reset()
             {
@@ -42,6 +44,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 cachedHash = -1;
                 transientPassIndex = -1;
                 wasReleased = false;
+                requestFallBack = false;
+                writeCount = 0;
             }
 
             public virtual string GetName()
@@ -53,6 +57,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 return false;
             }
+
+            public void IncrementWriteCount()
+            {
+                writeCount++;
+            }
+
+            public bool NeedsFallBack()
+            {
+                return requestFallBack && writeCount == 0;
+            }
         }
 
         #region Resources
@@ -63,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             where ResType : class
         {
             public DescType desc;
-            public ResType  resource;
+            public ResType resource;
 
             protected RenderGraphResource()
             {
@@ -108,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal struct RendererListResource
         {
             public RendererListDesc desc;
-            public RendererList     rendererList;
+            public RendererList rendererList;
 
             internal RendererListResource(in RendererListDesc desc)
             {
@@ -121,15 +135,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         DynamicArray<IRenderGraphResource>[] m_Resources = new DynamicArray<IRenderGraphResource>[(int)RenderGraphResourceType.Count];
 
-        TexturePool                         m_TexturePool = new TexturePool();
-        int                                 m_TextureCreationIndex;
-        ComputeBufferPool                   m_ComputeBufferPool = new ComputeBufferPool();
-        DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
-        RenderGraphDebugParams              m_RenderGraphDebug;
-        RenderGraphLogger                   m_Logger;
-        int                                 m_CurrentFrameIndex;
+        TexturePool m_TexturePool = new TexturePool();
+        int m_TextureCreationIndex;
+        ComputeBufferPool m_ComputeBufferPool = new ComputeBufferPool();
+        DynamicArray<RendererListResource> m_RendererListResources = new DynamicArray<RendererListResource>();
+        RenderGraphDebugParams m_RenderGraphDebug;
+        RenderGraphLogger m_Logger;
+        int m_CurrentFrameIndex;
 
-        RTHandle                            m_CurrentBackbuffer;
+        RTHandle m_CurrentBackbuffer;
 
         internal RTHandle GetTexture(in TextureHandle handle)
         {
@@ -137,6 +151,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 return null;
 
             return GetTextureResource(handle.handle).resource;
+        }
+
+        internal bool TextureNeedsFallback(in TextureHandle handle)
+        {
+            if (!handle.IsValid())
+                return false;
+
+            return GetTextureResource(handle.handle).NeedsFallBack();
         }
 
         internal RendererList GetRendererList(in RendererListHandle handle)
@@ -191,6 +213,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             var resources = m_Resources[(int)type];
             if (index >= resources.size)
                 throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+        }
+        internal void IncrementWriteCount(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            m_Resources[res.iType][res.index].IncrementWriteCount();
         }
 
         internal string GetResourceName(in ResourceHandle res)
@@ -276,9 +303,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             ValidateTextureDesc(desc);
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
+            texResource.requestFallBack = desc.fallBackToBlackTexture;
             texResource.desc = desc;
             texResource.transientPassIndex = transientPassIndex;
-            return new TextureHandle(newHandle, desc.fallBackToBlackTexture);
+            return new TextureHandle(newHandle);
         }
 
         internal int GetTextureResourceCount()

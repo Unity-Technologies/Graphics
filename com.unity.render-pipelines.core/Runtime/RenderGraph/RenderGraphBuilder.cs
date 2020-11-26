@@ -25,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle UseColorBuffer(in TextureHandle input, int index)
         {
             CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetColorBuffer(input, index);
             return input;
         }
@@ -38,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)
         {
             CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetDepthBuffer(input, flags);
             return input;
         }
@@ -51,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle);
 
-            if (input.handle.NeedToFallback() && !m_Resources.IsResourceImported(input.handle))
+            if (!m_Resources.IsResourceImported(input.handle) && m_Resources.TextureNeedsFallback(input))
             {
                 var texDimension = m_Resources.GetTextureResourceDesc(input.handle).dimension;
                 if (texDimension == TextureXR.dimension)
@@ -76,6 +78,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle WriteTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             // TODO RENDERGRAPH: Manage resource "version" for debugging purpose
             m_RenderPass.AddResourceWrite(input.handle);
             return input;
@@ -153,7 +156,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             CheckResource(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
-            input.handle.IncrementWriteCount();
+            m_Resources.IncrementWriteCount(input.handle);
             return input;
         }
 
