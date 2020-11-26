@@ -382,7 +382,6 @@ GameObject:
   m_Component:
   - component: {fileID: 956569123}
   - component: {fileID: 956569122}
-  - component: {fileID: 956569121}
   - component: {fileID: 956569120}
   m_Layer: 0
   m_Name: CameraB
@@ -423,14 +422,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &956569121
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 956569119}
-  m_Enabled: 1
 --- !u!20 &956569122
 Camera:
   m_ObjectHideFlags: 0
@@ -498,7 +489,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1371918901}
   - component: {fileID: 1371918900}
-  - component: {fileID: 1371918899}
   - component: {fileID: 1371918898}
   m_Layer: 0
   m_Name: CameraC
@@ -539,14 +529,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &1371918899
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1371918897}
-  m_Enabled: 1
 --- !u!20 &1371918900
 Camera:
   m_ObjectHideFlags: 0

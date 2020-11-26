@@ -28,7 +28,8 @@ namespace UnityEngine.Rendering.Universal
     {
         public const string k_ShaderTagName = "UniversalPipeline";
         private static Volume s_DefaultVolume = null;
-        private static VolumeProfile defaultVolumeProfile = asset?.defaultVolumeProfile;
+        private static VolumeProfile s_DefaultVolumeProfile = asset?.defaultVolumeProfile;
+        private static bool s_LastVolumeUpdateSetting = false;
 
         private static class Profiling
         {
@@ -194,7 +195,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
 #if UNITY_2021_1_OR_NEWER
-        protected override void Render(ScriptableRenderContext renderContext,  Camera[] cameras)
+        protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
         {
             Render(renderContext, new List<Camera>(cameras));
         }
@@ -234,8 +235,8 @@ namespace UnityEngine.Rendering.Universal
             XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
 #endif
 
-
             SortCameras(cameras);
+
 #if UNITY_2021_1_OR_NEWER
             for (int i = 0; i < cameras.Count; ++i)
 #else
@@ -278,6 +279,8 @@ namespace UnityEngine.Rendering.Universal
                 EndFrameRendering(renderContext, cameras);
             }
 #endif
+
+            s_LastVolumeUpdateSetting = asset.supportsVolumeFrameworkUpdate;
         }
 
         /// <summary>
@@ -616,12 +619,12 @@ namespace UnityEngine.Rendering.Universal
 #endif
             )
             {
-                s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+                s_DefaultVolume.sharedProfile = s_DefaultVolumeProfile;
             }
 
-            if (s_DefaultVolume.sharedProfile != defaultVolumeProfile)
+            if (s_DefaultVolume.sharedProfile != s_DefaultVolumeProfile)
             {
-                s_DefaultVolume.sharedProfile = defaultVolumeProfile;
+                s_DefaultVolume.sharedProfile = s_DefaultVolumeProfile;
             }
 
             return s_DefaultVolume;
@@ -662,22 +665,39 @@ namespace UnityEngine.Rendering.Universal
             s_DefaultVolume.sharedProfile = profile;
 
             // We skip updating if the asset has volume updates disabled
-            if (additionalCameraData && !asset.supportsVolumeFrameworkUpdate)
+            if (additionalCameraData)
             {
                 // Create stack for camera
                 if (additionalCameraData.volumeStack == null)
                 {
-                    Debug.Log("Creating VolumeStack for " + additionalCameraData.gameObject.name);
-                    var newStack = VolumeManager.instance.CreateStack();
-                    VolumeManager.instance.Update(newStack, trigger, layerMask);
-                    additionalCameraData.volumeStack = newStack;
+                    additionalCameraData.volumeStack = VolumeManager.instance.CreateStack();
+                    VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
                 }
-                VolumeManager.instance.stack = additionalCameraData.volumeStack;
-                return;
-            }
 
-            VolumeManager.instance.ResetDefaultStack();
-            VolumeManager.instance.Update(trigger, layerMask);
+                // When we have volume updates per-frame disabled...
+                if (!asset.supportsVolumeFrameworkUpdate)
+                {
+                    VolumeManager.instance.stack = additionalCameraData.volumeStack;
+
+                    // If the update setting just got disabled, we need to update...
+                    if (s_LastVolumeUpdateSetting)
+                    {
+                        VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
+                    }
+
+                    // We always want to update normally in the editor when not in playmode
+                    #if UNITY_EDITOR
+                    if (Application.isPlaying)
+                    #endif
+                    {
+                        return;
+                    }
+                }
+
+                // When we want to update the volumes every frame...
+                VolumeManager.instance.ResetDefaultStack();
+                VolumeManager.instance.Update(trigger, layerMask);
+            }
         }
 
         static bool CheckPostProcessForDepth(in CameraData cameraData)
