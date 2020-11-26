@@ -22,6 +22,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         const uint kValidityMask = 0xFFFF0000;
         const uint kIndexMask = 0xFFFF;
 
+        const byte kRequestedFallbackBit = 0x80;
+        const byte kInvalidWriteCount = 0x7F;
+
+        byte m_WriteCount;
+
         uint m_Value;
 
         static uint s_CurrentValidBit = 1 << 16;
@@ -30,10 +35,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
 
-        internal ResourceHandle(int value, RenderGraphResourceType type)
+        internal ResourceHandle(int value, RenderGraphResourceType type, bool needsFallBack = false)
         {
             Debug.Assert(value <= 0xFFFF);
             m_Value = ((uint)value & kIndexMask) | s_CurrentValidBit;
+            m_WriteCount = kInvalidWriteCount;
+            m_WriteCount = needsFallBack ? (byte)(m_WriteCount | kRequestedFallbackBit) : m_WriteCount;
             this.type = type;
         }
 
@@ -42,6 +49,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             var validity = m_Value & kValidityMask;
             return validity != 0 && validity == s_CurrentValidBit;
+        }
+
+        public bool NeedToFallback()
+        {
+            bool requestedFallback =  (m_WriteCount & kRequestedFallbackBit) == kRequestedFallbackBit;
+            bool hasBeenWrittenTo = (m_WriteCount & kInvalidWriteCount) != kInvalidWriteCount;
+            return requestedFallback && !hasBeenWrittenTo;
+        }
+
+        public void IncrementWriteCount()
+        {
+            // Initialize the write count if it was invalid.
+            if ((m_WriteCount & kInvalidWriteCount) == kInvalidWriteCount)
+                m_WriteCount = (byte)(m_WriteCount & kRequestedFallbackBit);
+
+            if (m_WriteCount < kRequestedFallbackBit)
+                m_WriteCount++;
+        }
+
+        public int GetCurrentWriteCount()
+        {
+            return (m_WriteCount & kRequestedFallbackBit);
         }
 
         static public void NewFrame(int executionIndex)
@@ -74,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ResourceHandle handle;
 
-        internal TextureHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture); }
+        internal TextureHandle(int handle, bool fallBackToBlack = false) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture, fallBackToBlack); }
 
         /// <summary>
         /// Cast to RTHandle
@@ -249,6 +278,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Descriptor to determine how the texture will be in fast memory on platform that supports it.</summary>
         public FastMemoryDesc fastMemoryDesc;
 #endif
+        ///<summary>Determines whether the texture will fallback to a black texture if it is read without ever writing to it.</summary>
+        public bool fallBackToBlackTexture;
 
         // Initial state. Those should not be used in the hash
         ///<summary>Texture needs to be cleared on first use.</summary>
