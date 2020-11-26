@@ -2255,17 +2255,24 @@ namespace UnityEditor.VFX.UI
 
         public bool SelectionHasCompleteSystems()
         {
-            HashSet<VFXContextUI> selectedContexts = new HashSet<VFXContextUI>(selection.OfType<VFXContextUI>());
-            if (selectedContexts.Count() < 1)
+            HashSet<VFXContextUI> selectedContextUIs = new HashSet<VFXContextUI>(selection.OfType<VFXContextUI>());
+            if (selectedContextUIs.Count() < 1)
                 return false;
 
-            HashSet<VFXData> usedDatas = new HashSet<VFXData>(selectedContexts.Select(t => t.controller.model.GetData()).Where(t => t != null));
+            var selectedContexts = selectedContextUIs.Select(t => t.controller.model);
+            var outputContextDataFromGPUEvent = selectedContexts.OfType<VFXBasicGPUEvent>().SelectMany(o => o.outputContexts);
+            selectedContexts = selectedContexts.Concat(outputContextDataFromGPUEvent);
 
+            var selectedContextDatas = selectedContexts.Select(o => o.GetData()).Where(o => o != null);
+            var selectedContextDependencies = selectedContextDatas.SelectMany(o => o.dependenciesIn.Concat(o.dependenciesOut));
+            var allDatas = selectedContextDatas.Concat(selectedContextDependencies);
+
+            var allDatasHash = new HashSet<VFXData>(allDatas);
             foreach (var context in GetAllContexts())
             {
                 if (context.controller.model is VFXBlockSubgraphContext)
                     return false;
-                if (usedDatas.Contains(context.controller.model.GetData()) && !selectedContexts.Contains(context))
+                if (allDatasHash.Contains(context.controller.model.GetData()) && !selectedContextUIs.Contains(context))
                     return false;
             }
 
