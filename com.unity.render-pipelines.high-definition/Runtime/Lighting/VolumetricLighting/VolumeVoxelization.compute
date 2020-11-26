@@ -136,6 +136,9 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 // We have found the first density volume.
                 break;
             }
+
+            if( offset >= UINT_MAX )
+                break;
         }
 
         volumeStart += offset;
