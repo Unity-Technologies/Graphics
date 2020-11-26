@@ -1,0 +1,1 @@
+This project contains a Unity Test for URP. I am unable to upload the entire project as it is not allowing me due to file count limits. So I am just uploading the test relevant files (from the tests folder under my project's Assets).
