@@ -55,12 +55,15 @@ MonoBehaviour:
   m_MixedLightingSupported: 1
   m_DebugLevel: 0
   m_UseAdaptivePerformance: 1
+  m_DefaultVolumeProfile: {fileID: 0}
   m_ColorGradingMode: 0
   m_ColorGradingLutSize: 32
+  m_UseFastSRGBLinearConversion: 0
   m_ShadowType: 0
   m_LocalShadowsSupported: 1
   m_LocalShadowsAtlasResolution: 512
   m_MaxPixelLights: 4
   m_ShadowAtlasResolution: 2048
   m_ShaderVariantLogLevel: 0
+  m_VolumeFrameworkUpdateSupported: 1
   m_ShadowCascades: 3
