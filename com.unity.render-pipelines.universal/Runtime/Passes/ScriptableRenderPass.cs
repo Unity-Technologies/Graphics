@@ -59,62 +59,62 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering gbuffer pass.
         /// </summary>
-        BeforeRenderingGbuffer = 250,
+        BeforeRenderingGbuffer = 210,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering gbuffer pass.
         /// </summary>
-        AfterRenderingGbuffer = 300,
+        AfterRenderingGbuffer = 220,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering deferred shading pass.
         /// </summary>
-        BeforeRenderingDeferred = 350,
+        BeforeRenderingDeferred = 230,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering deferred shading pass.
         /// </summary>
-        AfterRenderingDeferred = 400,
+        AfterRenderingDeferred = 240,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering opaque objects.
         /// </summary>
-        BeforeRenderingOpaques = 450,
+        BeforeRenderingOpaques = 250,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering opaque objects.
         /// </summary>
-        AfterRenderingOpaques = 500,
+        AfterRenderingOpaques = 300,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering the sky.
         /// </summary>
-        BeforeRenderingSkybox = 550,
+        BeforeRenderingSkybox = 350,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering the sky.
         /// </summary>
-        AfterRenderingSkybox = 600,
+        AfterRenderingSkybox = 400,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering transparent objects.
         /// </summary>
-        BeforeRenderingTransparents = 650,
+        BeforeRenderingTransparents = 450,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering transparent objects.
         /// </summary>
-        AfterRenderingTransparents = 700,
+        AfterRenderingTransparents = 500,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> before rendering post-processing effects.
         /// </summary>
-        BeforeRenderingPostProcessing = 750,
+        BeforeRenderingPostProcessing = 550,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering post-processing effects but before final blit, post-processing AA effects and color grading.
         /// </summary>
-        AfterRenderingPostProcessing = 800,
+        AfterRenderingPostProcessing = 600,
 
         /// <summary>
         /// Executes a <c>ScriptableRenderPass</c> after rendering all effects.
