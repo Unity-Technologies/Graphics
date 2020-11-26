@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
