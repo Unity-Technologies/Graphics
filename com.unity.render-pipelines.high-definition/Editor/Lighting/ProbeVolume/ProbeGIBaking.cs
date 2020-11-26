@@ -173,8 +173,14 @@ namespace UnityEngine.Rendering.HighDefinition
             LoadAsset();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
+            UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
         }
-        
+
+        private static void OnLightingDataCleared()
+        {
+            Clear();
+        }
+
         static float CalculateSurfaceArea(Matrix4x4 transform, Mesh mesh) {
             var triangles = mesh.triangles;
             var vertices = mesh.vertices;
@@ -323,6 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Clear();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted += OnAdditionalProbesBakeCompleted;
+            UnityEditor.Lightmapping.lightingDataCleared -= OnLightingDataCleared;
 
             var volumeScale = refVolAuthoring.transform.localScale;
             var CellSize = refVolAuthoring.CellSize;
