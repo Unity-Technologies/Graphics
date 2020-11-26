@@ -49,7 +49,7 @@ test_platforms:
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=../../players 
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal]: --player-load-path=../../players 
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players
       
       - [all]: --artifacts_path=test-results
@@ -86,7 +86,7 @@ test_platforms:
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
       
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=../../players 
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal]: --player-save-path=../../players 
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players
       
       - [all]: --timeout=1200
@@ -98,13 +98,13 @@ test_platforms:
       - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
       - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
-      - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+      - [iPhone_Metal, OSX_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
       
       - [Win_DX11]: --extra-editor-arg="-playergraphicsapi=Direct3D11"
       - [Win_DX12]: --extra-editor-arg="-playergraphicsapi=Direct3D12"
       - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playergraphicsapi=Vulkan"
       - [Android_OpenGLES3]: --extra-editor-arg="-playergraphicsapi=OpenGLES3"
-      - [iPhone_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
+      - [iPhone_Metal, OSX_Metal]: --extra-editor-arg="-playergraphicsapi=Metal"
       
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
   
