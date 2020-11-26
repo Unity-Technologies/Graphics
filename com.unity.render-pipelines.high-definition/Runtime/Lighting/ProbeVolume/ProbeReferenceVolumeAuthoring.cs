@@ -250,8 +250,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Load debug mesh, material
                 debugMesh = Resources.Load<Mesh>("DebugProbe");
-                debugMaterial = new Material(Shader.Find("APV/InstancedProbeShader")) { enableInstancing = true };
+                debugMaterial = new Material(Shader.Find("Hidden/HDRP/InstancedProbeShader")) { enableInstancing = true };
             }
         }
+#endif
     }
 }
