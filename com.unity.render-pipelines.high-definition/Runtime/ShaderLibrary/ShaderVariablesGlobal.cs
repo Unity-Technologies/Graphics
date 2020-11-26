@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _MaxFogDistance;
         public Vector4  _FogColor; // color in rgb
         public float    _FogColorMode;
-        public float    _DensityVolumeCount;
+        public uint     _DensityVolumeCount;
         public float    _Pad1;
         public float    _Pad2;
         public Vector4  _MipFogParameters;

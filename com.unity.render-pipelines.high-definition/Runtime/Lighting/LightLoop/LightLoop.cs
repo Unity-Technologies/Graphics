@@ -2597,10 +2597,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return (Vector3)probe.influenceToWorld.GetColumn(3);
         }
 
-        static float ComputeLinearDepth(Vector3 positionWS, HDCamera hdCamera, int viewIndex)
+        static float ComputeLinearDepth(Vector3 positionWS, HDCamera hdCamera, int viewIndex, bool forceRWS = false)
         {
             Matrix4x4 viewMatrix = GetWorldToViewMatrix(hdCamera, viewIndex); // Non-RWS
-            Vector3   positionVS = viewMatrix.MultiplyPoint(positionWS);
+
+            if (forceRWS && (ShaderConfig.s_CameraRelativeRendering != 0))
+            {
+                viewMatrix.SetColumn(3, new Vector4(0, 0, 0, 1));
+            }
+
+            Vector3 positionVS = viewMatrix.MultiplyPoint(positionWS);
 
             Debug.Assert(viewMatrix.MultiplyVector(hdCamera.camera.transform.forward).z > 0, "The view space z-axis must point forward!");
 
@@ -3267,7 +3273,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
-                        float w   = ComputeLinearDepth(densityVolumes.data[densityVolumeIndex].center, hdCamera, viewIndex);
+                        // The OBB is RWS.
+                        float w   = ComputeLinearDepth(densityVolumes.data[densityVolumeIndex].center, hdCamera, viewIndex, forceRWS: true);
                         int   d   = ComputeFixedPointLogDepth(w, hdCamera.camera.farClipPlane); // Assume XR uses the same far plane for all views
                         ulong key = GenerateBoundedEntitySortingKey(densityVolumeIndex, BoundedEntityCategory.DensityVolume, d);
 
@@ -3345,6 +3352,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                 {
                     Matrix4x4 worldToViewCR = GetWorldToViewMatrix(hdCamera, viewIndex);
+
+                    if (ShaderConfig.s_CameraRelativeRendering != 0)
+                    {
+                        // The OBBs are camera-relative, the matrix is not. Fix it.
+                        worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
+                    }
 
                     int start = m_BoundedEntityCollection.GetEntitySortKeyArrayOffset(BoundedEntityCategory.DensityVolume);
                     int count = m_BoundedEntityCollection.GetEntityCount(BoundedEntityCategory.DensityVolume);

@@ -582,7 +582,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // TODO: cache these?
                     var obb = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
 
-                    // Handle camera-relative rendering.
+                    // Make the OBB camera-relative.
                     obb.center -= camOffset;
 
                     // Frustum cull on the CPU for now. TODO: do it on the GPU.
