@@ -1,1 +1,1 @@
-This project contains a Unity Test for URP. I am unable to upload the entire project as it is not allowing me due to file count limits. So I am just uploading the test relevant files (from the tests folder under my project's Assets).
+This project contains a Unity Test for URP (Editor Test only). The essential chaanges are in the files in directory named 'Essential' and are also present under 'Tests' under 'Assets'. Previous attempts were due to my unfamiliarity with GIT.
