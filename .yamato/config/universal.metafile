@@ -9,6 +9,7 @@ test_platforms:
       - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
       - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
       - [iPhone_Metal]: --timeout=1800
+      - [OSX_Metal]: --timeout=2400
   - type: playmode
   - type: editmode
   - type: playmode

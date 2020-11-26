@@ -35,6 +35,32 @@ Universal_OSX_Metal_Standalone_mono_Linear_trunk:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/universal-osx-metal.yml#Build_Universal_OSX_Metal_Standalone_mono_Linear_trunk
+         rerun: on-new-revision
+Build_Universal_OSX_Metal_Standalone_mono_Linear_trunk:
+    name: Build Universal on OSX_Metal_mono_Linear_Standalone_build_Player on version trunk
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
+      -  chmod +x TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=2400
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
 Universal_OSX_Metal_playmode_mono_Linear_trunk:
     name: Universal on OSX_Metal_playmode_mono_Linear on version trunk
     agent:
@@ -120,6 +146,35 @@ Universal_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+    dependencies:
+      -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
+      -  path: .yamato/universal-osx-metal.yml#Build_Universal_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: always
+Build_Universal_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal on OSX_Metal_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::osx
+        image: package-ci/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
+      -  chmod +x TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=/Users/bokken/Graphics/TestProjects/UniversalGraphicsTest/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=StandaloneOSX --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=2400
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+              -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
+        players:
+            paths:
+              -  "players/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:macos
          rerun: always

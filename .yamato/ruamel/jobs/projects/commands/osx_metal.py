@@ -53,7 +53,20 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
 
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    raise NotImplementedError('osx_metal: standalone_split set to true but build commands not specified')
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags_build")
+    base = [
+        f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
+        f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
+        f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"],cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
+    ]
+    for utr_args in utr_calls:
+        base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {" ".join(utr_args)}')
+    
+    if project_folder.lower() == "BoatAttack".lower():
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
+
+    return base
 
 def extra_perf_cmd(project_folder):   
     perf_list = [
