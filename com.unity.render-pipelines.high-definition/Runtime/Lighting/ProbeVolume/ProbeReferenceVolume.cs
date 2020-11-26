@@ -136,13 +136,14 @@ namespace UnityEngine.Rendering.HighDefinition
         private int m_MaxSubdivision;
         private ProbeBrickPool m_Pool;
         private ProbeBrickIndex m_Index;
-        public List<Cell> cells = new List<Cell>();
         private List<Brick>[] m_TmpBricks = new List<Brick>[2];
         private List<BrickFlags> m_TmpFlags = new List<BrickFlags>();
         private List<Chunk> m_TmpSrcChunks = new List<Chunk>();
         private List<Chunk> m_TmpDstChunks = new List<Chunk>();
         private float[] m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
+
+        public List<Cell> Cells = new List<Cell>();
 
         // index related
         Texture3D indexTex;
@@ -223,6 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Pool.Clear();
             m_Index.Clear();
+            Cells.Clear();
         }
 
 #if UNITY_EDITOR

@@ -62,11 +62,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeAsset VolumeAsset = null;
 
-        protected void Start()
+#if UNITY_EDITOR
+        void Start()
         {
             CheckInit();
         }
-        
+
         private bool ShouldCull(Vector3 cellPosition)
         {
             var refVolTranslation = this.transform.position;
@@ -90,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void CreateInstancedProbes()
         {
-            foreach (var cell in ProbeReferenceVolume.instance.cells)
+            foreach (var cell in ProbeReferenceVolume.instance.Cells)
             {
                 if (cell.sh == null || cell.sh.Length == 0)
                     continue;
@@ -175,7 +176,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cellDebugData = new List<CellInstancedDebugProbes>();
         }
 
-#if UNITY_EDITOR
         public void OnDrawGizmos()
         {
             if (DrawCells)
@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
                 Gizmos.color = Color.green;
  
-                foreach (var cell in ProbeReferenceVolume.instance.cells)
+                foreach (var cell in ProbeReferenceVolume.instance.Cells)
                 {
                     if (ShouldCull(cell.position))
                         continue;
@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Gizmos.color = Color.blue;
 
                 // Read refvol transform
-                foreach (var cell in ProbeReferenceVolume.instance.cells)
+                foreach (var cell in ProbeReferenceVolume.instance.Cells)
                 {
                     if (ShouldCull(cell.position))
                         continue;
@@ -242,7 +242,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-#endif
 
         private void CheckInit()
         {

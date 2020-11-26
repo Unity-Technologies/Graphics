@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 brickList.AddRange(cell.bricks);
                 var regId = refVol.AddBricks(brickList, dataLocation);
 
-                refVol.cells.Add(cell);
+                refVol.Cells.Add(cell);
             }
         }
 
@@ -95,13 +95,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Settings should be copied into ProbeReferenceVolume?
             var refVolAuthoring = GameObject.FindObjectOfType<ProbeReferenceVolumeAuthoring>();
 
-            var numCells = ProbeReferenceVolume.instance.cells.Count;
+            var numCells = ProbeReferenceVolume.instance.Cells.Count;
 
             var probeVolumeAsset = ProbeVolumeAsset.CreateAsset(0);
 
             for (int c = 0; c < numCells; ++c)
             {
-                var cell = ProbeReferenceVolume.instance.cells[c];
+                var cell = ProbeReferenceVolume.instance.Cells[c];
 
                 if (cell.probePositions == null)
                     continue;
@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     totalBricks += bricks.Count;
                 }
 
-                ProbeReferenceVolume.instance.cells.Add(cell);
+                ProbeReferenceVolume.instance.Cells.Add(cell);
             }
 
             if (placementHappened)
