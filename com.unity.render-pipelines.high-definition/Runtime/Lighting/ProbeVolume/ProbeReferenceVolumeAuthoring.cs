@@ -62,10 +62,39 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeAsset VolumeAsset = null;
 
+        public void LoadAsset()
+        {
+            if (VolumeAsset == null)
+                return;
+
+            var refVol = ProbeReferenceVolume.instance;
+            refVol.Clear();
+
+            foreach (var cell in VolumeAsset.cells)
+            {
+                // Push data to HDRP
+                bool compressed = false;
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
+
+                // TODO register ID of brick list
+                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
+                brickList.AddRange(cell.bricks);
+                var regId = refVol.AddBricks(brickList, dataLocation);
+
+                refVol.Cells.Add(cell);
+            }
+        }
+
 #if UNITY_EDITOR
-        void Start()
+        private void Start()
         {
             CheckInit();
+        }
+
+        private void OnValidate()
+        {
+            LoadAsset();
         }
 
         private bool ShouldCull(Vector3 cellPosition)
@@ -176,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cellDebugData = new List<CellInstancedDebugProbes>();
         }
 
-        public void OnDrawGizmos()
+        private void OnDrawGizmos()
         {
             if (DrawCells)
             {

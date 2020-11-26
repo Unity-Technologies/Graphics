@@ -50,50 +50,15 @@ namespace UnityEngine.Rendering.HighDefinition
             hdrp.AssignAPVRuntimeResources(apvRuntimeResources);
         }
 
-        static public void LoadAsset()
-        {
-            var refVolAuthoring = GameObject.FindObjectOfType<ProbeReferenceVolumeAuthoring>();
-            if (refVolAuthoring == null || refVolAuthoring.VolumeAsset == null)
-                return;
-
-            var refVol = ProbeReferenceVolume.instance;
-    
-            refVol.SetTRS(refVolAuthoring.gameObject.transform.position, refVolAuthoring.gameObject.transform.rotation, refVolAuthoring.BrickSize);
-            refVol.SetMaxSubdivision(refVolAuthoring.MaxSubdivision);
-            refVol.SetNormalBias(refVolAuthoring.NormalBias);
-
-            ProbeReferenceVolume.RuntimeResources rr = refVol.GetRuntimeResources();
-            var apvRuntimeResources = new HDRenderPipeline.APVRuntimeResources { index = rr.index, L0 = rr.L0, L1_R = rr.L1_R, L1_G = rr.L1_G, L1_B = rr.L1_B };
-            var hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            hdrp.AssignAPVRuntimeResources(apvRuntimeResources);
-
-            foreach (var cell in refVolAuthoring.VolumeAsset.cells)
-            {
-                // Push data to HDRP
-                bool compressed = false;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
-
-                // TODO register ID of brick list
-                List<Brick> brickList = new List<Brick>();
-                brickList.AddRange(cell.bricks);
-                var regId = refVol.AddBricks(brickList, dataLocation);
-
-                refVol.Cells.Add(cell);
-            }
-        }
-
-        static public void AssignAsset(ProbeVolumeAsset asset)
-        {
-            var refVolAuthoring = GameObject.FindObjectOfType<ProbeReferenceVolumeAuthoring>();
-            if (refVolAuthoring != null)
-                refVolAuthoring.VolumeAsset = asset;
-        }
-
         private static void OnAdditionalProbesBakeCompleted()
         {
             // TODO: Settings should be copied into ProbeReferenceVolume?
             var refVolAuthoring = GameObject.FindObjectOfType<ProbeReferenceVolumeAuthoring>();
+            if (refVolAuthoring == null)
+            {
+                Debug.Log("Error: No ProbeReferenceVolumeAuthoring component found.");
+                return;
+            }
 
             var numCells = ProbeReferenceVolume.instance.Cells.Count;
 
@@ -167,10 +132,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
                     UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
 
-                AssignAsset(probeVolumeAsset);
+                refVolAuthoring.VolumeAsset = probeVolumeAsset;
             }
 
-            LoadAsset();
+            refVolAuthoring.LoadAsset();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
