@@ -26,7 +26,25 @@ def cmd_playmode(project_folder, platform, api, test_platform, editor, build_con
 
 def cmd_standalone(project_folder, platform, api, test_platform, editor, build_config, color_space):
     utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder)
-    return _cmd_base(project_folder, platform, utr_calls, editor)
+
+    base = [
+        f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
+        f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr'
+    ]
+
+    for utr_args in utr_calls:
+        base.append(f'cd {TEST_PROJECTS_DIR}/{project_folder} && ./utr {" ".join(utr_args)}')
+
+    if project_folder.lower() == "BoatAttack".lower():
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
+
+    return base
 
 def cmd_standalone_build(project_folder, platform, api, test_platform, editor, build_config, color_space):
-    raise NotImplementedError('osx_metal: standalone_split set to true but build commands not specified')
+    utr_calls = get_repeated_utr_calls(test_platform, platform, api, build_config, color_space, project_folder, utr_flags_key="utr_flags_build")
+    base = _cmd_base(project_folder, platform, utr_calls, editor)
+    
+    if project_folder.lower() == "BoatAttack".lower():
+        base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
+
+    return base

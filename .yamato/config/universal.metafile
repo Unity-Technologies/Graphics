@@ -34,7 +34,6 @@ platforms:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: playmode_XR
-          - name: Standalone
     build_configs:
       - name: mono
     color_spaces:

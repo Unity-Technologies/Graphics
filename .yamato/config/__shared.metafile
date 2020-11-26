@@ -49,7 +49,7 @@ test_platforms:
       - [iPhone_Metal]: --platform=iOS
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal]: --player-load-path=../../players 
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal, OSX_OpenGlCore]: --player-load-path=../../players 
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players
       
       - [all]: --artifacts_path=test-results
@@ -62,7 +62,7 @@ test_platforms:
      
       - [Android_OpenGLES3, Android_Vulkan]: --architecture=ARM64
       #- [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal]: --player-connection-ip=auto  
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal, OSX_OpenGlCore]: --player-connection-ip=auto  
 
     utr_flags_build:
       - [all]: --testfilter=%TEST_FILTER% 
@@ -86,7 +86,7 @@ test_platforms:
       - [all]: --artifacts_path=test-results
       #- [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
       
-      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal]: --player-save-path=../../players 
+      - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan, OSX_Metal, OSX_OpenGlCore]: --player-save-path=../../players 
       - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players
       
       - [all]: --timeout=1200
@@ -211,6 +211,10 @@ platforms:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
+      standalone_build:
+        type: Unity::VM::osx
+        image: mobile/macos-10.13-testing:stable
+        flavor: b1.large
     agent_package:
       type: Unity::VM::osx
       image: package-ci/mac:stable
