@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -72,8 +72,8 @@ namespace UnityEditor.ShaderAnalysis.Internal
             ShaderBuildReport reference,
             string assetGUID)
         {
-
         }
+
         #endregion
 
         public static string referenceFolderPath
@@ -325,14 +325,14 @@ namespace UnityEditor.ShaderAnalysis.Internal
             }
 
             public GUIAction(GUIActionKind kind, string assetGUID, ShaderBuildReport report)
-            : this(kind)
+                : this(kind)
             {
                 this.report = report;
                 this.assetGUID = assetGUID;
             }
 
             public GUIAction(GUIActionKind kind, ShaderBuildReport report, ShaderBuildReport reportReference, string assetGUID)
-            : this(kind)
+                : this(kind)
             {
                 this.report = report;
                 this.reportReference = reportReference;
@@ -562,7 +562,7 @@ namespace UnityEditor.ShaderAnalysis.Internal
 
             m_BuildScrollPosition = GUILayout.BeginScrollView(m_BuildScrollPosition);
             EditorGUILayout.LabelField(UIUtils.Text(String.Format("Passes: {0}, MultiCompiles: {1}", report.programs.Count, report.compileUnits.Count)));
-            for (var i = 0 ; i < report.programs.Count ; ++i)
+            for (var i = 0; i < report.programs.Count; ++i)
             {
                 var program = report.programs[i];
                 var programHash = ComputeProgramHash(i);

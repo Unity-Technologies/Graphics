@@ -25,13 +25,13 @@ namespace UnityEditor.ShaderGraph.Internal
     }
 
     public abstract class KeywordDependentCollection<TStorage, TAll, TAllPermutations, TForPermutation, TBase, TIInstance, TISet>
-        where TAll: TISet
-        where TAllPermutations: TISet
-        where TForPermutation: TISet, TIInstance
-        where TBase: TISet, TIInstance
-        where TISet: KeywordDependentCollection.ISet<TIInstance>
-        where TIInstance: KeywordDependentCollection.IInstance
-        where TStorage: new()
+        where TAll : TISet
+        where TAllPermutations : TISet
+        where TForPermutation : TISet, TIInstance
+        where TBase : TISet, TIInstance
+        where TISet : KeywordDependentCollection.ISet<TIInstance>
+        where TIInstance : KeywordDependentCollection.IInstance
+        where TStorage : new()
     {
         TStorage m_Base = new TStorage();
         List<TStorage> m_PerPermutationIndex = new List<TStorage>();
@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         protected TStorage GetOrCreateForPermutationIndex(int index)
         {
-            while(index >= m_PerPermutationIndex.Count)
+            while (index >= m_PerPermutationIndex.Count)
                 m_PerPermutationIndex.Add(new TStorage());
 
             return m_PerPermutationIndex[index];
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         protected void SetForPermutationIndex(int index, TStorage value)
         {
-            while(index >= m_PerPermutationIndex.Count)
+            while (index >= m_PerPermutationIndex.Count)
                 m_PerPermutationIndex.Add(new TStorage());
 
             m_PerPermutationIndex[index] = value;

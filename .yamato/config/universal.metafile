@@ -14,7 +14,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-tests" 
+      - [all]: --extra-editor-arg="-xr-tests"
 platforms:
   - name: Win
     apis:
@@ -39,7 +39,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -102,6 +102,24 @@ all:
       color_space: Linear
       test_platforms:
         - editmode
+    - platform: Android
+      api: OpenGLES3
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: Android
+      api: Vulkan
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: iPhone
+      api: Metal
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - Standalone
     - project: Universal_Stereo
       all: true
     - project: Universal_Hybrid

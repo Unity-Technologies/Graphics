@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture2DArrayMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
@@ -77,7 +76,7 @@ namespace UnityEditor.ShaderGraph
     class Minimal2dArrayTextureAssetNode : IHasDependencies
     {
         [SerializeField]
-        private SerializableTextureArray m_Texture;
+        private SerializableTextureArray m_Texture = null;
 
         public void GetSourceAssetDependencies(AssetCollection assetCollection)
         {
