@@ -91,6 +91,15 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'Linux - cause [Error] Shader error in ''Deferred'':'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
@@ -104,6 +113,24 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Cause a black screen on first frame
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: black screen  on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: cause inconclusive on Yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
