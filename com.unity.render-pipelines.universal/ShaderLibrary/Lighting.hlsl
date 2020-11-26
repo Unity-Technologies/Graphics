@@ -701,7 +701,7 @@ void MixRealtimeAndBakedGI(inout Light light, inout InputData inputData)
 
 void MixRealtimeAndBakedGI(inout Light light, inout InputData inputData, AmbientOcclusionFactor aoFactor)
 {
-    //if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
     {
         inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
     }
@@ -831,7 +831,7 @@ struct LightingData
     half3 emissionColor;
 };
 
-half3 CalculateLightingColor(LightingData lightingData)
+half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
 {
     half3 lightingColor = 0;
 
@@ -850,14 +850,16 @@ half3 CalculateLightingColor(LightingData lightingData)
         lightingColor += lightingData.additionalLightsColor;
     }
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
-    {
-        lightingColor += lightingData.emissionColor;
-    }
-
     if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_VERTEX_LIGHTING))
     {
         lightingColor += lightingData.vertexLightingColor;
+    }
+
+    lightingColor *= albedo;
+
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_EMISSION))
+    {
+        lightingColor += lightingData.emissionColor;
     }
 
     return lightingColor;
@@ -865,29 +867,17 @@ half3 CalculateLightingColor(LightingData lightingData)
 
 half4 CalculateFinalColor(LightingData lightingData, half alpha)
 {
-    half3 lightingColor = CalculateLightingColor(lightingData);
+    half3 finalColor = CalculateLightingColor(lightingData, 1);
 
-    return half4(lightingColor, alpha);
+    return half4(finalColor, alpha);
 }
 
-void ApplyScreenSpaceAmbientOcclusion(inout SurfaceData surfaceData, AmbientOcclusionFactor aoFactor)
+half4 CalculateFinalColor(LightingData lightingData, half3 albedo, half alpha, float fogCoord)
 {
-    #if defined(_SCREEN_SPACE_OCCLUSION)
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
-    {
-        surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
-    }
-    #endif
-}
+    half3 lightingColor = CalculateLightingColor(lightingData, albedo);
+    half3 finalColor = MixFog(lightingColor, fogCoord);
 
-void ApplyScreenSpaceAmbientOcclusion(inout InputData inputData, AmbientOcclusionFactor aoFactor)
-{
-    #if defined(_SCREEN_SPACE_OCCLUSION)
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
-    {
-        inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
-    }
-    #endif
+    return half4(finalColor, alpha);
 }
 
 LightingData CreateLightingData(InputData inputData, SurfaceData surfaceData)
@@ -929,7 +919,7 @@ half4 CalculateShadowMask(InputData inputData)
     return shadowMask;
 }
 
-half3 CalculateLightColor(Light light, InputData inputData, SurfaceData surfaceData)
+half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData)
 {
     half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
     half3 lightColor = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
@@ -1090,20 +1080,19 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     half4 shadowMask = CalculateShadowMask(inputData);
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
     Light mainLight = GetMainLight(inputData, shadowMask, aoFactor);
-    half3 color = 0;
 
-    // NOTE: We don't apply AO to the GI here because it's done in the calculation below...
+    // NOTE: We don't apply AO to the GI here because it's done in the lighting calculation below...
     MixRealtimeAndBakedGI(mainLight, inputData);
 
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
     lightingData.giColor = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
-                                    inputData.bakedGI, aoFactor.indirectAmbientOcclusion,
-                                     inputData.normalWS, inputData.viewDirectionWS);
+                                              inputData.bakedGI, aoFactor.indirectAmbientOcclusion,
+                                              inputData.normalWS, inputData.viewDirectionWS);
     lightingData.mainLightColor = LightingPhysicallyBased(brdfData, brdfDataClearCoat,
-                                         mainLight,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
+                                                          mainLight,
+                                                          inputData.normalWS, inputData.viewDirectionWS,
+                                                          surfaceData.clearCoatMask, specularHighlightsOff);
 
     #if defined(_ADDITIONAL_LIGHTS)
 	uint pixelLightCount = GetAdditionalLightsCount();
@@ -1113,8 +1102,8 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
         lightingData.additionalLightsColor += LightingPhysicallyBased(brdfData, brdfDataClearCoat, light,
-                                         inputData.normalWS, inputData.viewDirectionWS,
-                                         surfaceData.clearCoatMask, specularHighlightsOff);
+                                                                      inputData.normalWS, inputData.viewDirectionWS,
+                                                                      surfaceData.clearCoatMask, specularHighlightsOff);
     }
     #endif
 
@@ -1176,7 +1165,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     inputData.bakedGI *= surfaceData.albedo;
 
     LightingData lightingData = CreateLightingData(inputData, surfaceData);
-    lightingData.mainLightColor += CalculateLightColor(mainLight, inputData, surfaceData);
+    lightingData.mainLightColor += CalculateBlinnPhong(mainLight, inputData, surfaceData);
 
     #if defined(_ADDITIONAL_LIGHTS)
 	uint pixelLightCount = GetAdditionalLightsCount();
@@ -1185,7 +1174,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     {
         Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
-        lightingData.additionalLightsColor += CalculateLightColor(light, inputData, surfaceData);
+        lightingData.additionalLightsColor += CalculateBlinnPhong(light, inputData, surfaceData);
     }
     #endif
 
@@ -1194,7 +1183,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
     #endif
 
     return CalculateFinalColor(lightingData, surfaceData.alpha);
-    }
+}
 
 // TODO: Legacy code - is it safe to remove this?
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha, half3 normalTS)
@@ -1241,21 +1230,14 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     #endif
 
     AmbientOcclusionFactor aoFactor = CreateAmbientOcclusionFactor(inputData, surfaceData);
-    half4 finalColor = half4(surfaceData.albedo, surfaceData.alpha);
+    LightingData lightingData = CreateLightingData(inputData, surfaceData);
 
-    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_GI))
+    if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
     {
-        finalColor.rgb *= inputData.bakedGI;
+        lightingData.giColor *= aoFactor.indirectAmbientOcclusion;
     }
 
-    //if(IsLightingFeatureEnabled(DEBUG_LIGHTING_FEATURE_AO))
-    {
-        finalColor.rgb *= aoFactor.indirectAmbientOcclusion;
-    }
-
-    finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
-
-    return finalColor;
+    return CalculateFinalColor(lightingData, surfaceData.albedo, surfaceData.alpha, inputData.fogCoord);
 }
 
 // TODO: Legacy code - is it safe to remove this?
