@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = litShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LitGUI.SetupMaterialKeywordsAndPass(mat);
+                    LitGUI.SetupLitKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
                 else if (mat.shader.name == "HDRP/LayeredLitTessellation")
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
+                    LayeredLitGUI.SetupLayeredLitKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
             }
@@ -107,14 +107,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (var mesh in meshRenderers)
             {
+                Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
                 mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(mesh);
             }
 
             var terrains = Resources.FindObjectsOfTypeAll<Terrain>();
 
             foreach (var terrain in terrains)
             {
+                Undo.RecordObject(terrain, "Terrain Layer Mask update");
                 terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(terrain);
             }
         }
 
@@ -131,13 +135,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     MeshRenderer mesh;
                     if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
                     {
+                        Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
                         mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(mesh);
                     }
 
                     Terrain terrain;
                     if (gameObj.TryGetComponent<Terrain>(out terrain))
                     {
+                        Undo.RecordObject(terrain, "Terrain Layer Mask update");
                         terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(terrain);
                     }
                 }
             }
@@ -300,7 +308,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             try
             {
-                var scenes = AssetDatabase.FindAssets("t:Scene", new string[]{ "Assets" });
+                var scenes = AssetDatabase.FindAssets("t:Scene", new string[] { "Assets" });
                 var scale = 1f / Mathf.Max(1, scenes.Length);
                 for (var i = 0; i < scenes.Length; ++i)
                 {
@@ -335,7 +343,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void ResetAllMaterialAssetsKeywords(float progressScale, float progressOffset)
         {
-            var matIds = AssetDatabase.FindAssets("t:Material", new string[]{ "Assets" }); // do not include packages
+            var matIds = AssetDatabase.FindAssets("t:Material", new string[] { "Assets" }); // do not include packages
 
             bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
@@ -432,7 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 currentRenderer.GetSharedMaterials(materialArray);
                 if (materialArray == null)
                 {
-                    Debug.LogWarning("The object "+ currentRenderer.name + " has a null material array.");
+                    Debug.LogWarning("The object " + currentRenderer.name + " has a null material array.");
                     generalErrorFlag = true;
                     continue;
                 }
@@ -486,7 +494,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
                                 || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
+                                    && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
                             // aggregate the transparency info
                             materialIsOnlyTransparent &= materialIsTransparent;

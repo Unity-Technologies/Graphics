@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,13 +12,22 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class LightUnitSlider
     {
+        protected SerializedObject m_SerializedObject;
+
         static class SliderConfig
         {
-            public const float k_IconSeparator      = 6;
+            public const float k_IconSeparator      = 0;
             public const float k_MarkerWidth        = 2;
             public const float k_MarkerHeight       = 2;
             public const float k_MarkerTooltipScale = 4;
             public const float k_ThumbTooltipSize   = 10;
+        }
+
+        protected static class SliderStyles
+        {
+            public static GUIStyle k_IconButton = new GUIStyle("IconButton");
+            public static GUIStyle k_TemperatureBorder = new GUIStyle("ColorPickerSliderBackground");
+            public static GUIStyle k_TemperatureThumb = new GUIStyle("ColorPickerHorizThumb");
         }
 
         protected readonly LightUnitSliderUIDescriptor m_Descriptor;
@@ -28,16 +37,21 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Descriptor = descriptor;
         }
 
-        public virtual void Draw(Rect rect, SerializedProperty value)
+        public void SetSerializedObject(SerializedObject serialized)
+        {
+            m_SerializedObject = serialized;
+        }
+
+        public virtual void Draw(Rect rect, SerializedProperty value, ref float floatValue)
         {
             BuildRects(rect, out var sliderRect, out var iconRect);
 
             if (m_Descriptor.clampValue)
-                ClampValue(value, m_Descriptor.sliderRange);
+                ClampValue(ref floatValue, m_Descriptor.sliderRange);
 
-            var level = CurrentRange(value.floatValue);
+            var level = CurrentRange(floatValue);
 
-            DoSlider(sliderRect, value, m_Descriptor.sliderRange, level.value);
+            DoSlider(sliderRect, ref floatValue, m_Descriptor.sliderRange, level.value);
 
             if (m_Descriptor.hasMarkers)
             {
@@ -52,9 +66,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var levelIconContent = level.content;
             var levelRange = level.value;
-            DoIcon(iconRect, levelIconContent, levelRange.y);
+            DoIcon(iconRect, levelIconContent, value, floatValue, levelRange.y);
 
-            var thumbValue = value.floatValue;
+            var thumbValue = floatValue;
             var thumbPosition = GetPositionOnSlider(thumbValue, level.value);
             var thumbTooltip = levelIconContent.tooltip;
             DoThumbTooltip(sliderRect, thumbPosition, thumbValue, thumbTooltip);
@@ -85,8 +99,8 @@ namespace UnityEditor.Rendering.HighDefinition
             iconRect.width = EditorGUIUtility.singleLineHeight;
         }
 
-        void ClampValue(SerializedProperty value, Vector2 range) =>
-            value.floatValue = Mathf.Clamp(value.floatValue, range.x, range.y);
+        void ClampValue(ref float value, Vector2 range) =>
+            value = Mathf.Clamp(value, range.x, range.y);
 
         private static Color k_DarkThemeColor = new Color32(153, 153, 153, 255);
         private static Color k_LiteThemeColor = new Color32(97, 97, 97, 255);
@@ -129,14 +143,44 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.LabelField(markerTooltipRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
-        void DoIcon(Rect rect, GUIContent icon, float range)
+        void DoIcon(Rect rect, GUIContent icon, SerializedProperty value, float floatValue, float range)
         {
+            // Draw the context menu feedback before the icon
+            GUI.Box(rect, GUIContent.none, SliderStyles.k_IconButton);
+
             var oldColor = GUI.color;
             GUI.color = Color.clear;
             EditorGUI.DrawTextureTransparent(rect, icon.image);
             GUI.color = oldColor;
 
             EditorGUI.LabelField(rect, GetLightUnitTooltip(icon.tooltip, range, m_Descriptor.unitName));
+
+            // Handle events for context menu
+            var e = Event.current;
+            if (e.type == EventType.MouseDown && e.button == 0)
+            {
+                if (rect.Contains(e.mousePosition))
+                {
+                    var menuPosition = rect.position + rect.size;
+                    DoContextMenu(menuPosition, value, floatValue);
+                    e.Use();
+                }
+            }
+        }
+
+        void DoContextMenu(Vector2 pos, SerializedProperty value, float floatValue)
+        {
+            var menu = new GenericMenu();
+
+            foreach (var preset in m_Descriptor.valueRanges)
+            {
+                // Indicate a checkmark if the value is within this preset range.
+                var isInPreset = CurrentRange(floatValue).value == preset.value;
+
+                menu.AddItem(EditorGUIUtility.TrTextContent(preset.content.tooltip), isInPreset, () => SetValueToPreset(value, preset));
+            }
+
+            menu.DropDown(new Rect(pos, Vector2.zero));
         }
 
         void DoThumbTooltip(Rect rect, float position, float value, string tooltip)
@@ -157,6 +201,16 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.LabelField(thumbMarkerRect, GetLightUnitTooltip(tooltip, value, m_Descriptor.unitName));
         }
 
+        protected virtual void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
+        {
+            m_SerializedObject?.Update();
+
+            // Set the value to the average of the preset range.
+            value.floatValue = preset.presetValue;
+
+            m_SerializedObject?.ApplyModifiedProperties();
+        }
+
         protected virtual GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
         {
             var formatValue = value < 100 ? $"{value:n}" : $"{value:n0}";
@@ -164,17 +218,17 @@ namespace UnityEditor.Rendering.HighDefinition
             return new GUIContent(string.Empty, tooltip);
         }
 
-        protected virtual void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
+        protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 valueRange)
         {
-            DoSlider(rect, value, sliderRange);
+            DoSlider(rect, ref value, sliderRange);
         }
 
         /// <summary>
         /// Draws a linear slider mapped to the min/max value range. Override this for different slider behavior (texture background, power).
         /// </summary>
-        protected virtual void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
+        protected virtual void DoSlider(Rect rect, ref float value, Vector2 sliderRange)
         {
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, sliderRange.x, sliderRange.y);
+            value = GUI.HorizontalSlider(rect, value, sliderRange.x, sliderRange.y);
         }
 
         // Remaps value in the domain { Min0, Max0 } to { Min1, Max1 } (by default, normalizes it to (0, 1).
@@ -192,55 +246,6 @@ namespace UnityEditor.Rendering.HighDefinition
         protected virtual float GetPositionOnSlider(float value)
         {
             return Remap(value, m_Descriptor.sliderRange.x, m_Descriptor.sliderRange.y);
-        }
-    }
-
-    /// <summary>
-    /// Formats the provided descriptor into an exponential slider with contextual slider markers, tooltips, and icons.
-    /// </summary>
-    class ExponentialLightUnitSlider : LightUnitSlider
-    {
-        private Vector3 m_ExponentialConstraints;
-
-        /// <summary>
-        /// Exponential slider modeled to set a f(0.5) value.
-        /// ref: https://stackoverflow.com/a/17102320
-        /// </summary>
-        void PrepareExponentialConstraints(float lo, float mi, float hi)
-        {
-            float x = lo;
-            float y = mi;
-            float z = hi;
-
-            // https://www.desmos.com/calculator/yx2yf4huia
-            m_ExponentialConstraints.x = ((x * z) - (y * y)) / (x - (2 * y) + z);
-            m_ExponentialConstraints.y = ((y - x) * (y - x)) / (x - (2 * y) + z);
-            m_ExponentialConstraints.z = 2 * Mathf.Log((z - y) / (y - x));
-        }
-
-        float ValueToSlider(float x) => Mathf.Log((x - m_ExponentialConstraints.x) / m_ExponentialConstraints.y) / m_ExponentialConstraints.z;
-        float SliderToValue(float x) => m_ExponentialConstraints.x + m_ExponentialConstraints.y * Mathf.Exp(m_ExponentialConstraints.z * x);
-
-        public ExponentialLightUnitSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
-        {
-            var halfValue = 300; // TODO: Compute the median
-            PrepareExponentialConstraints(m_Descriptor.sliderRange.x, halfValue, m_Descriptor.sliderRange.y);
-        }
-
-        protected override float GetPositionOnSlider(float value)
-        {
-            return ValueToSlider(value);
-        }
-
-        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
-        {
-            value.floatValue = ExponentialSlider(rect, value.floatValue);
-        }
-
-        float ExponentialSlider(Rect rect, float value)
-        {
-            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f);
-            return SliderToValue(internalValue);
         }
     }
 
@@ -333,36 +338,36 @@ namespace UnityEditor.Rendering.HighDefinition
             return false;
         }
 
-        void SliderOutOfBounds(Rect rect, SerializedProperty value)
+        void SliderOutOfBounds(Rect rect, ref float value)
         {
             EditorGUI.BeginChangeCheck();
-            var internalValue = GUI.HorizontalSlider(rect, value.floatValue, 0f, 1f);
+            var internalValue = GUI.HorizontalSlider(rect, value, 0f, 1f);
             if (EditorGUI.EndChangeCheck())
             {
                 Piece p = new Piece();
                 UpdatePiece(ref p, internalValue);
-                value.floatValue = SliderToValue(p, internalValue);
+                value = SliderToValue(p, internalValue);
             }
         }
 
-        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange, Vector2 valueRange)
+        protected override void DoSlider(Rect rect, ref float value, Vector2 sliderRange, Vector2 valueRange)
         {
             // Map the internal slider value to the current piecewise function
             if (!m_PiecewiseFunctionMap.TryGetValue(valueRange, out var piece))
             {
                 // Assume that if the piece is not found, that means the unit value is out of bounds.
-                SliderOutOfBounds(rect, value);
+                SliderOutOfBounds(rect, ref value);
                 return;
             }
 
             // Maintain an internal value to support a single linear continuous function
             EditorGUI.BeginChangeCheck();
-            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(piece, value.floatValue), 0f, 1f);
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(piece, value), 0f, 1f);
             if (EditorGUI.EndChangeCheck())
             {
                 // Ensure that the current function piece is being used to transform the value
                 UpdatePiece(ref piece, internalValue);
-                value.floatValue = SliderToValue(piece, internalValue);
+                value = SliderToValue(piece, internalValue);
             }
         }
     }
@@ -377,6 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition
         private SerializedHDLight m_Light;
         private Editor m_Editor;
         private LightUnit m_Unit;
+        private bool m_SpotReflectorEnabled;
 
         // Note: these should be in sync with LightUnit
         private static string[] k_UnitNames =
@@ -393,16 +399,20 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Unit = unit;
             m_Light = light;
             m_Editor = owner;
+
+            // Cache the spot reflector state as we will need to revert back to it after treating the slider as point light.
+            m_SpotReflectorEnabled = light.enableSpotReflector.boolValue;
         }
 
-        public override void Draw(Rect rect, SerializedProperty value)
+        public override void Draw(Rect rect, SerializedProperty value, ref float floatValue)
         {
             // Convert the incoming unit value into Lumen as the punctual slider is always in these terms (internally)
-            value.floatValue = UnitToLumen(value.floatValue);
+            float convertedValue = UnitToLumen(floatValue);
 
-            base.Draw(rect, value);
-
-            value.floatValue = LumenToUnit(value.floatValue);
+            EditorGUI.BeginChangeCheck();
+            base.Draw(rect, value, ref convertedValue);
+            if (EditorGUI.EndChangeCheck())
+                floatValue = LumenToUnit(convertedValue);
         }
 
         protected override GUIContent GetLightUnitTooltip(string baseTooltip, float value, string unit)
@@ -419,6 +429,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_Unit == LightUnit.Lumen)
                 return value;
 
+            // Punctual slider currently does not have any regard for spot shape/reflector.
+            // Conversions need to happen as if light is a point, and this is the only setting that influences that.
+            m_Light.enableSpotReflector.boolValue = false;
+
             return HDLightUI.ConvertLightIntensity(m_Unit, LightUnit.Lumen, m_Light, m_Editor, value);
         }
 
@@ -427,45 +441,25 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_Unit == LightUnit.Lumen)
                 return value;
 
-            if (m_Light.type == HDLightType.Spot &&
-                m_Unit != LightUnit.Lumen &&
-                m_Light.enableSpotReflector.boolValue)
-            {
-                // Note: When reflector is flagged, the util conversion for Lumen -> Candela will actually force re-use
-                // the serialized intensity, which is not what we want in this case. Because of this, we re-use the formulation
-                // in HDAdditionalLightData to correctly compute the intensity for spot reflector.
-                return ConvertLightIntensitySpotAngleLumenToUnit(value);
-            }
+            // Once again temporarily disable reflector in case we called this for tooltip or context menu preset.
+            m_Light.enableSpotReflector.boolValue = false;
 
-            return HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor, value);
+            value = HDLightUI.ConvertLightIntensity(LightUnit.Lumen, m_Unit, m_Light, m_Editor, value);
+
+            // Restore the state of spot reflector on the light.
+            m_Light.enableSpotReflector.boolValue = m_SpotReflectorEnabled;
+
+            return value;
         }
 
-        // This code is re-used from HDAdditionalLightData
-        float ConvertLightIntensitySpotAngleLumenToUnit(float value)
+        protected override void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
         {
-            var spotLightShape = m_Light.spotLightShape.GetEnumValue<SpotLightShape>();
-            var spotAngle = m_Light.settings.spotAngle.floatValue;
-            var aspectRatio = m_Light.aspectRatio.floatValue;
+            m_Light?.Update();
 
-            // If reflector is enabled all the lighting from the sphere is focus inside the solid angle of current shape
-            if (spotLightShape == SpotLightShape.Cone)
-            {
-                value = LightUtils.ConvertSpotLightLumenToCandela(value, spotAngle * Mathf.Deg2Rad, true);
-            }
-            else if (spotLightShape == SpotLightShape.Pyramid)
-            {
-                float angleA, angleB;
-                LightUtils.CalculateAnglesForPyramid(aspectRatio, spotAngle * Mathf.Deg2Rad, out angleA, out angleB);
+            // Convert to the actual unit value.
+            value.floatValue = LumenToUnit(preset.presetValue);
 
-                value = LightUtils.ConvertFrustrumLightLumenToCandela(value, angleA, angleB);
-            }
-            else // Box shape, fallback to punctual light.
-            {
-                value = LightUtils.ConvertPointLightLumenToCandela(value);
-            }
-
-            // Units so far are in Candela now, last step is to get it in terms of the actual unit.
-            return HDLightUI.ConvertLightIntensity(LightUnit.Candela, m_Unit, m_Light, m_Editor, value);
+            m_Light?.Apply();
         }
     }
 
@@ -474,9 +468,47 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class TemperatureSlider : LightUnitSlider
     {
+        private Vector3 m_ExponentialConstraints;
+
         private LightEditor.Settings m_Settings;
 
         private static Texture2D s_KelvinGradientTexture;
+
+        /// <summary>
+        /// Exponential slider modeled to set a f(0.5) value.
+        /// ref: https://stackoverflow.com/a/17102320
+        /// </summary>
+        void PrepareExponentialConstraints(float lo, float mi, float hi)
+        {
+            // float x = lo;
+            // float y = mi;
+            // float z = hi;
+            //
+            // // https://www.desmos.com/calculator/yx2yf4huia
+            // m_ExponentialConstraints.x = ((x * z) - (y * y)) / (x - (2 * y) + z);
+            // m_ExponentialConstraints.y = ((y - x) * (y - x)) / (x - (2 * y) + z);
+            // m_ExponentialConstraints.z = 2 * Mathf.Log((z - y) / (y - x));
+
+            // Warning: These are the coefficients for a system of equation fit for a continuous, monotonic curve that fits a f(0.44) value.
+            // f(0.44) is required instead of f(0.5) due to the location of the white in the temperature gradient texture.
+            // The equation is solved to get the coefficient for the following constraint for low, mid, hi:
+            // f(0)    = 1500
+            // f(0.44) = 6500
+            // f(1.0)  = 20000
+            // If for any reason the constraints are changed, then the function must be refit and the new coefficients found.
+            // Note that we can't re-use the original PowerSlider instead due to how it forces a text field, which we don't want in this case.
+            m_ExponentialConstraints.x = -3935.53965427f;
+            m_ExponentialConstraints.y =  5435.53965427f;
+            m_ExponentialConstraints.z =     1.48240556f;
+        }
+
+        protected float ValueToSlider(float x) => Mathf.Log((x - m_ExponentialConstraints.x) / m_ExponentialConstraints.y) / m_ExponentialConstraints.z;
+        protected float SliderToValue(float x) => m_ExponentialConstraints.x + m_ExponentialConstraints.y * Mathf.Exp(m_ExponentialConstraints.z * x);
+
+        protected override float GetPositionOnSlider(float value, Vector2 valueRange)
+        {
+            return ValueToSlider(value);
+        }
 
         static Texture2D GetKelvinGradientTexture(LightEditor.Settings settings)
         {
@@ -495,26 +527,48 @@ namespace UnityEditor.Rendering.HighDefinition
             return s_KelvinGradientTexture;
         }
 
-        public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor) {}
+        public TemperatureSlider(LightUnitSliderUIDescriptor descriptor) : base(descriptor)
+        {
+            var halfValue = 6500;
+            PrepareExponentialConstraints(m_Descriptor.sliderRange.x, halfValue, m_Descriptor.sliderRange.y);
+        }
 
         public void Setup(LightEditor.Settings settings)
         {
             m_Settings = settings;
         }
 
-        protected override void DoSlider(Rect rect, SerializedProperty value, Vector2 sliderRange)
+        // The serialized property for color temperature is stored in the build-in light editor, and we need to use this object to apply the update.
+        protected override void SetValueToPreset(SerializedProperty value, LightUnitSliderUIRange preset)
         {
-            SliderWithTextureNoTextField(rect, value, sliderRange, m_Settings);
+            m_Settings.Update();
+
+            base.SetValueToPreset(value, preset);
+
+            m_Settings.ApplyModifiedProperties();
+        }
+
+        protected override void DoSlider(Rect rect, ref float value, Vector2 sliderRange)
+        {
+            SliderWithTextureNoTextField(rect, ref value, sliderRange, m_Settings);
         }
 
         // Note: We could use the internal SliderWithTexture, however: the internal slider func forces a text-field (and no ability to opt-out of it).
-        void SliderWithTextureNoTextField(Rect rect, SerializedProperty value, Vector2 range, LightEditor.Settings settings)
+        void SliderWithTextureNoTextField(Rect rect, ref float value, Vector2 range, LightEditor.Settings settings)
         {
             GUI.DrawTexture(rect, GetKelvinGradientTexture(settings));
 
-            var sliderBorder = new GUIStyle("ColorPickerSliderBackground");
-            var sliderThumb = new GUIStyle("ColorPickerHorizThumb");
-            value.floatValue = GUI.HorizontalSlider(rect, value.floatValue, range.x, range.y, sliderBorder, sliderThumb);
+            EditorGUI.BeginChangeCheck();
+
+            // Draw the exponential slider that fits 6500K to the white point on the gradient texture.
+            var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, SliderStyles.k_TemperatureBorder, SliderStyles.k_TemperatureThumb);
+
+            // Map the value back into kelvin.
+            value = SliderToValue(internalValue);
+
+            // Round to nearest since so much precision is not necessary for kelvin while sliding.
+            if (EditorGUI.EndChangeCheck())
+                value = Mathf.Round(value);
         }
     }
 
@@ -540,6 +594,16 @@ namespace UnityEditor.Rendering.HighDefinition
             k_TemperatureSlider = new TemperatureSlider(LightUnitSliderDescriptors.TemperatureDescriptor);
         }
 
+        // Need to cache the serialized object on the slider, to add support for the preset selection context menu (need to apply changes to serialized)
+        // TODO: This slider drawer is getting kind of bloated. Break up the implementation into where it is actually used?
+        public void SetSerializedObject(SerializedObject serializedObject)
+        {
+            k_DirectionalLightUnitSlider.SetSerializedObject(serializedObject);
+            k_PunctualLightUnitSlider.SetSerializedObject(serializedObject);
+            k_ExposureSlider.SetSerializedObject(serializedObject);
+            k_TemperatureSlider.SetSerializedObject(serializedObject);
+        }
+
         public void Draw(HDLightType type, LightUnit lightUnit, SerializedProperty value, Rect rect, SerializedHDLight light, Editor owner)
         {
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
@@ -553,20 +617,30 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawDirectionalUnitSlider(SerializedProperty value, Rect rect)
         {
-            k_DirectionalLightUnitSlider.Draw(rect, value);
+            float val = value.floatValue;
+            k_DirectionalLightUnitSlider.Draw(rect, value, ref val);
+            if (val != value.floatValue)
+                value.floatValue = val;
         }
 
         void DrawPunctualLightUnitSlider(LightUnit lightUnit, SerializedProperty value, Rect rect, SerializedHDLight light, Editor owner)
         {
             k_PunctualLightUnitSlider.Setup(lightUnit, light, owner);
-            k_PunctualLightUnitSlider.Draw(rect, value);
+
+            float val = value.floatValue;
+            k_PunctualLightUnitSlider.Draw(rect, value, ref val);
+            if (val != value.floatValue)
+                value.floatValue = val;
         }
 
         public void DrawExposureSlider(SerializedProperty value, Rect rect)
         {
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
-                k_ExposureSlider.Draw(rect, value);
+                float val = value.floatValue;
+                k_ExposureSlider.Draw(rect, value, ref val);
+                if (val != value.floatValue)
+                    value.floatValue = val;
             }
         }
 
@@ -575,7 +649,11 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
             {
                 k_TemperatureSlider.Setup(settings);
-                k_TemperatureSlider.Draw(rect, value);
+
+                float val = value.floatValue;
+                k_TemperatureSlider.Draw(rect, value, ref val);
+                if (val != value.floatValue)
+                    value.floatValue = val;
             }
         }
     }

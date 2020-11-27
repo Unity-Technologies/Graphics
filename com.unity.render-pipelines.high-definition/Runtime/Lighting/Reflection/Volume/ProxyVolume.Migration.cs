@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_ObsoleteBoxInfiniteProjection = false;
 
         /// <summary>Serialization callback</summary>
-        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
+        void ISerializationCallbackReceiver.OnBeforeSerialize() {}
         /// <summary>Serialization callback</summary>
         void ISerializationCallbackReceiver.OnAfterDeserialize() => k_Migration.Migrate(this);
     }

@@ -53,7 +53,8 @@ namespace UnityEditor.ShaderGraph
 
             AddSlot(new Vector1MaterialSlot(kPixelDepthOffsetOutputSlotId, kPixelDepthOffsetOutputSlotName, kPixelDepthOffsetOutputSlotName, SlotType.Output, 0.0f, ShaderStageCapability.Fragment));
             AddSlot(new Vector2MaterialSlot(kParallaxUVsOutputSlotId, kParallaxUVsOutputSlotName, kParallaxUVsOutputSlotName, SlotType.Output, Vector2.zero, ShaderStageCapability.Fragment));
-            RemoveSlotsNameNotMatching(new[] {
+            RemoveSlotsNameNotMatching(new[]
+            {
                 kPixelDepthOffsetOutputSlotId,
                 kParallaxUVsOutputSlotId,
                 kHeightmapSlotId,
@@ -109,22 +110,26 @@ return objectScale;");
 
             // Then we add the functions that are specific to this node
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("// Required struct and function for the ParallaxOcclusionMapping function:");
+                s.AppendLine($"$precision ComputePerPixelHeightDisplacement_{GetVariableNameForNode()}($precision2 texOffsetCurrent, $precision lod, PerPixelHeightDisplacementParam param, TEXTURE2D_PARAM(heightTexture, heightSampler))");
+                using (s.BlockScope())
                 {
-                    s.AppendLine("// Required struct and function for the ParallaxOcclusionMapping function:");
-                    s.AppendLine($"$precision ComputePerPixelHeightDisplacement_{GetVariableNameForNode()}($precision2 texOffsetCurrent, $precision lod, PerPixelHeightDisplacementParam param)");
-                    using (s.BlockScope())
-                    {
-                        s.AppendLine("return SAMPLE_TEXTURE2D_LOD({0}, {1}, param.uv + texOffsetCurrent, lod).r;",
-                            heightmap,
-                            edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : "sampler" + heightmap);
-                    }
+                    s.AppendLine("return SAMPLE_TEXTURE2D_LOD(heightTexture, heightSampler, param.uv + texOffsetCurrent, lod).r;");
+                }
+                // heightmap,
+                // edgesSampler.Any() ? GetSlotValue(kHeightmapSamplerSlotId, generationMode) : "sampler" + heightmap);
 
-                    s.AppendLine($"#define ComputePerPixelHeightDisplacement ComputePerPixelHeightDisplacement_{GetVariableNameForNode()}");
-                    s.AppendLine($"#define POM_NAME_ID {GetVariableNameForNode()}");
-                    s.AppendLine(perPixelDisplacementInclude);
-                    s.AppendLine($"#undef ComputePerPixelHeightDisplacement");
-                    s.AppendLine($"#undef POM_NAME_ID");
-                });
+                s.AppendLine($"#define ComputePerPixelHeightDisplacement ComputePerPixelHeightDisplacement_{GetVariableNameForNode()}");
+                s.AppendLine($"#define POM_NAME_ID {GetVariableNameForNode()}");
+                s.AppendLine($"#define POM_USER_DATA_PARAMETERS , TEXTURE2D_PARAM(heightTexture, samplerState)");
+                s.AppendLine($"#define POM_USER_DATA_ARGUMENTS , TEXTURE2D_ARGS(heightTexture, samplerState)");
+                s.AppendLine(perPixelDisplacementInclude);
+                s.AppendLine($"#undef ComputePerPixelHeightDisplacement");
+                s.AppendLine($"#undef POM_NAME_ID");
+                s.AppendLine($"#undef POM_USER_DATA_PARAMETERS");
+                s.AppendLine($"#undef POM_USER_DATA_ARGUMENTS");
+            });
         }
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
@@ -134,6 +139,8 @@ return objectScale;");
             string uvs = GetSlotValue(kUVsSlotId, generationMode);
             string lod = GetSlotValue(kLodSlotId, generationMode);
             string lodThreshold = GetSlotValue(kLodThresholdSlotId, generationMode);
+            string heightmap = GetSlotValue(kHeightmapSlotId, generationMode);
+            string sampler = GetSlotValue(kHeightmapSamplerSlotId, generationMode);
 
             string tmpPOMParam = GetVariableNameForNode() + "_POM";
             string tmpViewDir = GetVariableNameForNode() + "_ViewDir";
@@ -155,7 +162,7 @@ PerPixelHeightDisplacementParam {tmpPOMParam};
 
             sb.AppendLines($@"
 $precision {tmpOutHeight};
-$precision2 {GetVariableNameForSlot(kParallaxUVsOutputSlotId)} = {uvs} + ParallaxOcclusionMapping{GetVariableNameForNode()}({lod}, {lodThreshold}, {steps}, {tmpViewDirUV}, {tmpPOMParam}, {tmpOutHeight});
+$precision2 {GetVariableNameForSlot(kParallaxUVsOutputSlotId)} = {uvs} + ParallaxOcclusionMapping{GetVariableNameForNode()}({lod}, {lodThreshold}, {steps}, {tmpViewDirUV}, {tmpPOMParam}, {tmpOutHeight}, TEXTURE2D_ARGS({heightmap}, {sampler}));
 
 $precision {GetVariableNameForSlot(kPixelDepthOffsetOutputSlotId)} = ({tmpMaxHeight} - {tmpOutHeight} * {tmpMaxHeight}) / max({tmpNdotV}, 0.0001);
 ");

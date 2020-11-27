@@ -4,4 +4,5 @@ This section contains information about changes to the High Definition Render Pi
 
 The list of pages is as follows:
 
-* [10.x](whats-new-10-0.md)
+* [10](whats-new-10.md)
+* [11](whats-new-11.md)

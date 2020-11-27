@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SubsurfaceScattering,
         SsrTracing,
         SsrReprojection,
+        SsrAccumulate,
         PrepareForTransparentSsr,
 
         // SSGI
@@ -136,6 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingIndirectDiffuseEvaluation,
         RaytracingIndirectDiffuseUpscale,
         RaytracingFilterIndirectDiffuse,
+        RaytracingIndirectDiffuseAdjustWeight,
+
         // RTSSS
         RaytracingSSS,
         RaytracingSSSTrace,
@@ -246,6 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
+        VTFeedbackDownsample,
 #endif
     }
 }

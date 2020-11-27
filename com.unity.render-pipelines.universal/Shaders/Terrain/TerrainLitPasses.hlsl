@@ -25,8 +25,8 @@ SAMPLER(sampler_TerrainHolesTexture);
 
 void ClipHoles(float2 uv)
 {
-	float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
-	clip(hole == 0.0f ? -1 : 1);
+    float hole = SAMPLE_TEXTURE2D(_TerrainHolesTexture, sampler_TerrainHolesTexture, uv).r;
+    clip(hole == 0.0f ? -1 : 1);
 }
 #endif
 
@@ -388,11 +388,21 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, alpha, brdfData);
 
+    // Baked lighting.
     half4 color;
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     color.rgb = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
     color.a = alpha;
-
     SplatmapFinalColor(color, inputData.fogCoord);
+
+    // Dynamic lighting: emulate SplatmapFinalColor() by scaling gbuffer material properties. This will not give the same results
+    // as forward renderer because we apply blending pre-lighting instead of post-lighting.
+    // Blending of smoothness and normals is also not correct but close enough?
+    brdfData.diffuse.rgb *= alpha;
+    brdfData.specular.rgb *= alpha;
+    inputData.normalWS = inputData.normalWS * alpha;
+    smoothness *= alpha;
 
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, color.rgb);
 
@@ -416,7 +426,7 @@ struct AttributesLean
     float4 position     : POSITION;
     float3 normalOS       : NORMAL;
 #ifdef _ALPHATEST_ON
-	float2 texcoord     : TEXCOORD0;
+    float2 texcoord     : TEXCOORD0;
 #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -447,19 +457,19 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
     clipPos.z = max(clipPos.z, clipPos.w * UNITY_NEAR_CLIP_VALUE);
 #endif
 
-	o.clipPos = clipPos;
+    o.clipPos = clipPos;
 
 #ifdef _ALPHATEST_ON
-	o.texcoord = v.texcoord;
+    o.texcoord = v.texcoord;
 #endif
 
-	return o;
+    return o;
 }
 
 half4 ShadowPassFragment(VaryingsLean IN) : SV_TARGET
 {
 #ifdef _ALPHATEST_ON
-	ClipHoles(IN.texcoord);
+    ClipHoles(IN.texcoord);
 #endif
     return 0;
 }
@@ -474,15 +484,15 @@ VaryingsLean DepthOnlyVertex(AttributesLean v)
     TerrainInstancing(v.position, v.normalOS);
     o.clipPos = TransformObjectToHClip(v.position.xyz);
 #ifdef _ALPHATEST_ON
-	o.texcoord = v.texcoord;
+    o.texcoord = v.texcoord;
 #endif
-	return o;
+    return o;
 }
 
 half4 DepthOnlyFragment(VaryingsLean IN) : SV_TARGET
 {
 #ifdef _ALPHATEST_ON
-	ClipHoles(IN.texcoord);
+    ClipHoles(IN.texcoord);
 #endif
 #ifdef SCENESELECTIONPASS
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly

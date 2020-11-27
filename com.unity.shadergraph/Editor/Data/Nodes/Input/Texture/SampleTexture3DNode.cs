@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
@@ -47,10 +46,10 @@ namespace UnityEditor.ShaderGraph
 
             var id = GetSlotValue(TextureInputId, generationMode);
             var result = string.Format("$precision4 {0} = SAMPLE_TEXTURE3D({1}, {2}, {3});"
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
-                    , uvName);
+                , GetVariableNameForSlot(OutputSlotId)
+                , id
+                , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
+                , uvName);
 
             sb.AppendLine(result);
         }

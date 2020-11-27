@@ -548,7 +548,7 @@ float3 PackFloat2To888(float2 f)
 // Unpack 2 float of 12bit packed into a 888
 float2 Unpack888ToFloat2(float3 x)
 {
-    uint3 i = (uint3)(x * 255.5); // +0.5 to fix precision error on iOS 
+    uint3 i = (uint3)(x * 255.5); // +0.5 to fix precision error on iOS
     // 8 bit in lo, 4 bit in hi
     uint hi = i.z >> 4;
     uint lo = i.z & 15;
@@ -567,7 +567,7 @@ float PackFloat2To8(float2 f)
     return x_y_expanded / 255.0;
 
     // above 4 lines equivalent to:
-    //return (16.0 * f.x + f.y) / 17.0; 
+    //return (16.0 * f.x + f.y) / 17.0;
 }
 
 // Unpack 2 float values from the [0, 1] range, packed in an 8 bits float from the [0, 1] range

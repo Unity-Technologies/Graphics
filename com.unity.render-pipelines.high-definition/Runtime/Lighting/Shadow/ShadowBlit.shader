@@ -37,7 +37,7 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowBlit"
 
             TEXTURE2D(_CachedShadowmapAtlas);
             float4 _BlitScaleBias;
-             
+
             Varyings Vert(Attributes input)
             {
                 Varyings output;
@@ -49,7 +49,7 @@ Shader "Hidden/ScriptableRenderPipeline/ShadowBlit"
             }
 
 
-            float Frag(Varyings input) : SV_DEPTH
+            float Frag(Varyings input) : SV_Depth
             {
                 return SAMPLE_TEXTURE2D_LOD(_CachedShadowmapAtlas, s_point_clamp_sampler, input.texcoord.xy, 0).x;
             }
