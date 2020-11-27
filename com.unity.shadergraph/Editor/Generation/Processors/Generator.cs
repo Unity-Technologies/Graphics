@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
 
         void GetTargetImplementations()
         {
-            if(m_OutputNode == null)
+            if (m_OutputNode == null)
             {
                 m_Targets = m_GraphData.activeTargets.ToArray();
             }
@@ -61,19 +61,19 @@ namespace UnityEditor.ShaderGraph
         public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> blocks, List<BlockFieldDescriptor> connectedBlocks, Target target)
         {
             var activeFields = new ActiveFields();
-            if(outputNode == null)
+            if (outputNode == null)
             {
                 bool hasDotsProperties = false;
                 m_GraphData.ForeachHLSLProperty(h =>
-                    {
-                        if (h.declaration == HLSLDeclaration.HybridPerInstance)
-                            hasDotsProperties = true;
-                    });
+                {
+                    if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                        hasDotsProperties = true;
+                });
 
                 var context = new TargetFieldContext(pass, blocks, connectedBlocks, hasDotsProperties);
                 target.GetFields(ref context);
                 var fields = GenerationUtils.GetActiveFieldsFromConditionals(context.conditionalFields.ToArray());
-                foreach(FieldDescriptor field in fields)
+                foreach (FieldDescriptor field in fields)
                     activeFields.baseInstance.Add(field);
             }
             // Preview shader
@@ -87,15 +87,15 @@ namespace UnityEditor.ShaderGraph
         void BuildShader()
         {
             var activeNodeList = Graphing.ListPool<AbstractMaterialNode>.Get();
-            if(m_OutputNode == null)
+            if (m_OutputNode == null)
             {
-                foreach(var block in m_Blocks)
+                foreach (var block in m_Blocks)
                 {
                     // IsActive is equal to if any active implementation has set active blocks
                     // This avoids another call to SetActiveBlocks on each TargetImplementation
-                    if(!block.isActive)
+                    if (!block.isActive)
                         continue;
-                    
+
                     NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, block, NodeUtils.IncludeSelf.Include);
                 }
             }
@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph
             m_GraphData.CollectShaderProperties(shaderProperties, m_Mode);
             m_GraphData.CollectShaderKeywords(shaderKeywords, m_Mode);
 
-            if(m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
+            if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 m_GraphData.AddValidationError(m_OutputNode.objectId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
 
@@ -121,13 +121,13 @@ namespace UnityEditor.ShaderGraph
                 activeNode.CollectShaderProperties(shaderProperties, m_Mode);
 
             // Collect excess shader properties from the TargetImplementation
-            foreach(var target in m_Targets)
+            foreach (var target in m_Targets)
             {
                 // TODO: Setup is required to ensure all Targets are initialized
-                // TODO: Find a way to only require this once 
+                // TODO: Find a way to only require this once
                 TargetSetupContext context = new TargetSetupContext();
                 target.Setup(ref context);
-                
+
                 target.CollectShaderProperties(shaderProperties, m_Mode);
             }
 
@@ -136,18 +136,18 @@ namespace UnityEditor.ShaderGraph
             {
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
 
-                for(int i = 0; i < m_Targets.Length; i++)
+                for (int i = 0; i < m_Targets.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext(m_assetCollection);
 
                     // Instead of setup target, we can also just do get context
                     m_Targets[i].Setup(ref context);
 
-                    foreach(var subShader in context.subShaders)
+                    foreach (var subShader in context.subShaders)
                     {
                         GenerateSubShader(i, subShader);
                     }
-                    
+
                     var customEditor = context.defaultShaderGUI;
                     if (customEditor != null && m_Targets[i].WorksWithSRP(GraphicsSettings.currentRenderPipeline))
                     {
@@ -163,7 +163,7 @@ namespace UnityEditor.ShaderGraph
 
         void GenerateSubShader(int targetIndex, SubShaderDescriptor descriptor)
         {
-            if(descriptor.passes == null)
+            if (descriptor.passes == null)
                 return;
 
             // Early out of preview generation if no passes are used in preview
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             m_Builder.AppendLine("SubShader");
-            using(m_Builder.BlockScope())
+            using (m_Builder.BlockScope())
             {
                 GenerationUtils.GenerateSubShaderTags(m_Targets[targetIndex], descriptor, m_Builder);
 
@@ -179,16 +179,16 @@ namespace UnityEditor.ShaderGraph
                 List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> currentBlockDescriptors = m_Blocks.Select(x => (x.descriptor, x.GetInputSlots<MaterialSlot>().FirstOrDefault().IsUsingDefaultValue())).ToList();
                 var connectedBlockDescriptors = m_Blocks.Where(x => x.IsSlotConnected(0)).Select(x => x.descriptor).ToList();
 
-                foreach(PassCollection.Item pass in descriptor.passes)
+                foreach (PassCollection.Item pass in descriptor.passes)
                 {
                     var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, currentBlockDescriptors, connectedBlockDescriptors, m_Targets[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
-                    if(m_Mode == GenerationMode.Preview)
+                    if (m_Mode == GenerationMode.Preview)
                         activeFields.baseInstance.Add(Fields.IsPreview);
 
                     // Check masternode fields for valid passes
-                    if(pass.TestActive(activeFields))
+                    if (pass.TestActive(activeFields))
                         GenerateShaderPass(targetIndex, pass.descriptor, activeFields, currentBlockDescriptors.Select(x => x.descriptor).ToList());
                 }
             }
@@ -197,7 +197,7 @@ namespace UnityEditor.ShaderGraph
         void GenerateShaderPass(int targetIndex, PassDescriptor pass, ActiveFields activeFields, List<BlockFieldDescriptor> currentBlockDescriptors)
         {
             // Early exit if pass is not used in preview
-            if(m_Mode == GenerationMode.Preview && !pass.useInPreview)
+            if (m_Mode == GenerationMode.Preview && !pass.useInPreview)
                 return;
 
             // --------------------------------------------------
@@ -225,7 +225,7 @@ namespace UnityEditor.ShaderGraph
             var pixelSlots = new List<MaterialSlot>();
             var vertexSlots = new List<MaterialSlot>();
 
-            if(m_OutputNode == null)
+            if (m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
                 var activeBlockContext = new TargetActiveBlockContext(currentBlockDescriptors, pass);
@@ -234,22 +234,22 @@ namespace UnityEditor.ShaderGraph
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
                 {
-                    if(passBlockMask == null)
+                    if (passBlockMask == null)
                         return;
 
-                    foreach(var blockFieldDescriptor in passBlockMask)
+                    foreach (var blockFieldDescriptor in passBlockMask)
                     {
                         // Mask blocks on active state
                         // TODO: Can we merge these?
-                        if(!activeBlockContext.activeBlocks.Contains(blockFieldDescriptor))
+                        if (!activeBlockContext.activeBlocks.Contains(blockFieldDescriptor))
                             continue;
-                        
+
                         // Attempt to get BlockNode from the stack
                         var block = contextData.blocks.FirstOrDefault(x => x.value.descriptor == blockFieldDescriptor).value;
 
                         // If the BlockNode doesnt exist in the stack we need to create one
                         // TODO: Can we do the code gen without a node instance?
-                        if(block == null)
+                        if (block == null)
                         {
                             block = new BlockNode();
                             block.Init(blockFieldDescriptor);
@@ -283,11 +283,11 @@ namespace UnityEditor.ShaderGraph
                 // Collect excess shader properties from the TargetImplementation
                 m_Targets[targetIndex].CollectShaderProperties(propertyCollector, m_Mode);
             }
-            else if(m_OutputNode is SubGraphOutputNode)
+            else if (m_OutputNode is SubGraphOutputNode)
             {
                 GenerationUtils.GetUpstreamNodesForShaderPass(m_OutputNode, pass, out vertexNodes, out pixelNodes);
                 var slot = m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
-                if(slot != null)
+                if (slot != null)
                     pixelSlots = new List<MaterialSlot>() { slot };
                 else
                     pixelSlots = new List<MaterialSlot>();
@@ -340,7 +340,7 @@ namespace UnityEditor.ShaderGraph
             // Pass Setup
 
             // Name
-            if(!string.IsNullOrEmpty(pass.displayName))
+            if (!string.IsNullOrEmpty(pass.displayName))
             {
                 spliceCommands.Add("PassName", $"Name \"{pass.displayName}\"");
             }
@@ -350,7 +350,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Tags
-            if(!string.IsNullOrEmpty(pass.lightMode))
+            if (!string.IsNullOrEmpty(pass.lightMode))
             {
                 spliceCommands.Add("LightMode", $"\"LightMode\" = \"{pass.lightMode}\"");
             }
@@ -367,14 +367,14 @@ namespace UnityEditor.ShaderGraph
             {
                 // Render states need to be separated by RenderState.Type
                 // The first passing ConditionalRenderState of each type is inserted
-                foreach(RenderStateType type in Enum.GetValues(typeof(RenderStateType)))
+                foreach (RenderStateType type in Enum.GetValues(typeof(RenderStateType)))
                 {
                     var renderStates = pass.renderStates?.Where(x => x.descriptor.type == type);
-                    if(renderStates != null)
+                    if (renderStates != null)
                     {
-                        foreach(RenderStateCollection.Item renderState in renderStates)
+                        foreach (RenderStateCollection.Item renderState in renderStates)
                         {
-                            if(renderState.TestActive(activeFields))
+                            if (renderState.TestActive(activeFields))
                             {
                                 renderStateBuilder.AppendLine(renderState.value);
 
@@ -394,11 +394,11 @@ namespace UnityEditor.ShaderGraph
             // Pragmas
             using (var passPragmaBuilder = new ShaderStringBuilder())
             {
-                if(pass.pragmas != null)
+                if (pass.pragmas != null)
                 {
-                    foreach(PragmaCollection.Item pragma in pass.pragmas)
+                    foreach (PragmaCollection.Item pragma in pass.pragmas)
                     {
-                        if(pragma.TestActive(activeFields))
+                        if (pragma.TestActive(activeFields))
                             passPragmaBuilder.AppendLine(pragma.value);
                     }
                 }
@@ -440,11 +440,11 @@ namespace UnityEditor.ShaderGraph
             // Keywords
             using (var passKeywordBuilder = new ShaderStringBuilder())
             {
-                if(pass.keywords != null)
+                if (pass.keywords != null)
                 {
-                    foreach(KeywordCollection.Item keyword in pass.keywords)
+                    foreach (KeywordCollection.Item keyword in pass.keywords)
                     {
-                        if(keyword.TestActive(activeFields))
+                        if (keyword.TestActive(activeFields))
                             passKeywordBuilder.AppendLine(keyword.value);
                     }
                 }
@@ -458,13 +458,13 @@ namespace UnityEditor.ShaderGraph
             var interpolatorBuilder = new ShaderStringBuilder();
             var passStructs = new List<StructDescriptor>();
 
-            if(pass.structs != null)
+            if (pass.structs != null)
             {
                 passStructs.AddRange(pass.structs.Select(x => x.descriptor));
 
                 foreach (StructCollection.Item shaderStruct in pass.structs)
                 {
-                    if(shaderStruct.descriptor.packFields == false)
+                    if (shaderStruct.descriptor.packFields == false)
                         continue; //skip structs that do not need interpolator packs
 
                     List<int> packedCounts = new List<int>();
@@ -511,7 +511,7 @@ namespace UnityEditor.ShaderGraph
                     passStructs.Add(packStruct);
                 }
             }
-            if(interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision
+            if (interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision
                 interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
@@ -519,17 +519,17 @@ namespace UnityEditor.ShaderGraph
 
             // Generated String Builders for all struct types
             var passStructBuilder = new ShaderStringBuilder();
-            if(passStructs != null)
+            if (passStructs != null)
             {
                 var structBuilder = new ShaderStringBuilder();
-                foreach(StructDescriptor shaderStruct in passStructs)
+                foreach (StructDescriptor shaderStruct in passStructs)
                 {
                     GenerationUtils.GenerateShaderStruct(shaderStruct, activeFields, out structBuilder);
                     structBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString()); //hard code structs to float, TODO: proper handle precision
                     passStructBuilder.Concat(structBuilder);
                 }
             }
-            if(passStructBuilder.length == 0)
+            if (passStructBuilder.length == 0)
                 passStructBuilder.AppendLine("//Pass Structs: <None>");
             spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlock());
 
@@ -575,7 +575,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Add to splice commands
-            if(vertexBuilder.length == 0)
+            if (vertexBuilder.length == 0)
                 vertexBuilder.AppendLine("// GraphVertex: <None>");
             spliceCommands.Add("GraphVertex", vertexBuilder.ToCodeBlock());
 
@@ -619,7 +619,7 @@ namespace UnityEditor.ShaderGraph
                 pixelBuilder.AppendLines(pixelGraphFunctionBuilder.ToString());
 
                 // Add to splice commands
-                if(pixelBuilder.length == 0)
+                if (pixelBuilder.length == 0)
                     pixelBuilder.AppendLine("// GraphPixel: <None>");
                 spliceCommands.Add("GraphPixel", pixelBuilder.ToCodeBlock());
             }
@@ -637,7 +637,7 @@ namespace UnityEditor.ShaderGraph
             using (var keywordBuilder = new ShaderStringBuilder())
             {
                 keywordCollector.GetKeywordsDeclaration(keywordBuilder, m_Mode);
-                if(keywordBuilder.length == 0)
+                if (keywordBuilder.length == 0)
                     keywordBuilder.AppendLine("// GraphKeywords: <None>");
                 spliceCommands.Add("GraphKeywords", keywordBuilder.ToCodeBlock());
             }
@@ -648,7 +648,7 @@ namespace UnityEditor.ShaderGraph
             using (var propertyBuilder = new ShaderStringBuilder())
             {
                 propertyCollector.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.concretePrecision);
-                if(propertyBuilder.length == 0)
+                if (propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
             }
@@ -692,7 +692,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 #endif
 
-                if(dotsInstancingOptionsBuilder.length == 0)
+                if (dotsInstancingOptionsBuilder.length == 0)
                     dotsInstancingOptionsBuilder.AppendLine("// DotsInstancingOptions: <None>");
                 spliceCommands.Add("DotsInstancingOptions", dotsInstancingOptionsBuilder.ToCodeBlock());
             }
@@ -704,11 +704,11 @@ namespace UnityEditor.ShaderGraph
             {
                 graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
 
-                if(pass.defines != null)
+                if (pass.defines != null)
                 {
-                    foreach(DefineCollection.Item define in pass.defines)
+                    foreach (DefineCollection.Item define in pass.defines)
                     {
-                        if(define.TestActive(activeFields))
+                        if (define.TestActive(activeFields))
                             graphDefines.AppendLine(define.value);
                     }
                 }
@@ -761,7 +761,7 @@ namespace UnityEditor.ShaderGraph
 
             // Debug output all active fields
 
-            using(var debugBuilder = new ShaderStringBuilder())
+            using (var debugBuilder = new ShaderStringBuilder())
             {
                 if (isDebug)
                 {
@@ -772,7 +772,7 @@ namespace UnityEditor.ShaderGraph
                         debugBuilder.AppendLine($"//{field.tag}.{field.name}");
                     }
                 }
-                if(debugBuilder.length == 0)
+                if (debugBuilder.length == 0)
                     debugBuilder.AppendLine("// <None>");
 
                 // Add to splice commands

@@ -175,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (Attribute.IsDefined(field, typeof(PackingAttribute)))
                 {
                     var packingAttributes = (PackingAttribute[])field.GetCustomAttributes(typeof(PackingAttribute), false);
-                    foreach(PackingAttribute packAttr in packingAttributes)
+                    foreach (PackingAttribute packAttr in packingAttributes)
                     {
                         displayNames.AddRange(packAttr.displayNames);
                     }
@@ -275,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 List<MaterialItem> materialItems = GetAllMaterialDatas();
 
                 // Init list
-                List < GUIContent> debugViewMaterialStringsList = new List<GUIContent>();
+                List<GUIContent> debugViewMaterialStringsList = new List<GUIContent>();
                 List<int> debugViewMaterialValuesList = new List<int>();
                 List<GUIContent> debugViewEngineStringsList = new List<GUIContent>();
                 List<int> debugViewEngineValuesList = new List<int>();
@@ -449,7 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Current Debug View Material.
         /// </summary>
-        public int[] debugViewMaterial {
+        public int[] debugViewMaterial
+        {
             get => m_DebugViewMaterial;
             internal set
             {
@@ -619,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if Material debug is enabled.</returns>
         public bool IsDebugViewMaterialEnabled()
         {
-            int size = m_DebugViewMaterial?[0] ?? 0;
+            int size = m_DebugViewMaterial ? [0] ?? 0;
             bool enabled = false;
             for (int i = 1; i <= size; ++i)
             {

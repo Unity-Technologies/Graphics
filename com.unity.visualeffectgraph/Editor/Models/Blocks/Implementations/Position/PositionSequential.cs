@@ -14,7 +14,8 @@ namespace UnityEditor.VFX.Block
 
             foreach (var shape in shapes)
             {
-                yield return new[] {
+                yield return new[]
+                {
                     new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite),
                     new KeyValuePair<string, object>("shape", shape)
                 };
@@ -67,7 +68,7 @@ namespace UnityEditor.VFX.Block
         [Tooltip("Specifies how the sequence should behave at the end. It can either wrap back to the beginning, clamp, or continue in a mirrored direction.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
-        public override string name { get { return string.Format("{0} Position (Sequential : {1})",VFXBlockUtility.GetNameString(compositionPosition), shape); } }
+        public override string name { get { return string.Format("{0} Position (Sequential : {1})", VFXBlockUtility.GetNameString(compositionPosition), shape); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
@@ -166,12 +167,11 @@ namespace UnityEditor.VFX.Block
                 if (writePosition)
                 {
                     commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesWritePosition"));
-                    if(compositionPosition == AttributeCompositionMode.Blend)
+                    if (compositionPosition == AttributeCompositionMode.Blend)
                         commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesBlendPosition"));
 
                     if (compositionDirection == AttributeCompositionMode.Blend)
                         commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesBlendDirection"));
-
                 }
 
                 if (writeTargetPosition)
@@ -187,7 +187,6 @@ namespace UnityEditor.VFX.Block
                     case SequentialShape.Circle: commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesCircle")); break;
                     case SequentialShape.ThreeDimensional: commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesThreeDimensional")); break;
                 }
-
 
 
                 return commonProperties;
@@ -217,8 +216,8 @@ namespace UnityEditor.VFX.Block
 
                 if (writePosition)
                 {
-                    yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
-                    yield return new VFXAttributeInfo(VFXAttribute.Direction, compositionDirection == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.Direction, compositionDirection == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
                 }
 
                 if (writeTargetPosition)
@@ -286,7 +285,6 @@ namespace UnityEditor.VFX.Block
 
                     if (compositionDirection == AttributeCompositionMode.Blend)
                         yield return expressions.FirstOrDefault(o => o.name == "blendDirection");
-
                 }
 
                 if (writeTargetPosition)
@@ -310,7 +308,6 @@ namespace UnityEditor.VFX.Block
                     source += VFXBlockUtility.GetComposeString(compositionPosition, "position", s_computedPosition, "blendPosition");
                     source += "\n";
                     source += VFXBlockUtility.GetComposeString(compositionDirection, "direction", s_computedDirection, "blendDirection");
-
                 }
 
                 if (writeTargetPosition)

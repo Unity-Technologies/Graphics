@@ -30,7 +30,7 @@ void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, Att
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
 
-	// The first thing that we should do is grab the intersection vertice
+    // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
@@ -58,7 +58,7 @@ void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, Att
     float3 positionOS = ObjectRayOrigin() + ObjectRayDirection() * rayIntersection.t;
     float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
     rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
-    
+
     #if HAS_REFRACTION
         rayIntersection.color *= lerp(surfaceData.transmittanceColor, float3(0.0, 0.0, 0.0), 1.0 - surfaceData.transmittanceMask);
     #else

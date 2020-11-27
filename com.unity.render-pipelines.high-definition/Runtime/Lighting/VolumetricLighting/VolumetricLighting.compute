@@ -35,7 +35,7 @@
 #define USE_DEPTH_BUFFER        1 // Accounts for opaque geometry along the camera ray
 
 // Filter out lights that are not meant to be affecting volumetric once per thread rather than per voxel. This has the downside that it limits the max processable lights to MAX_SUPPORTED_LIGHTS
-// which might be lower than the max number of lights that might be in the big tile. 
+// which might be lower than the max number of lights that might be in the big tile.
 #define PRE_FILTER_LIGHT_LIST   1 && defined(USE_BIG_TILE_LIGHTLIST)
 
 //--------------------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ TEXTURE2D_X(_MaxZMaskTexture);
 
 #if PRE_FILTER_LIGHT_LIST
 
-#define MAX_SUPPORTED_LIGHTS min(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE) 
+#define MAX_SUPPORTED_LIGHTS min(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
 groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
 
 #endif
@@ -268,7 +268,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint groupIdx
             uint lightIndex = FetchIndex(lightStart, lightOffset);
 #endif
             LightData light = _LightDatas[lightIndex];
-                
+
 
             if (light.lightType >= GPULIGHTTYPE_PROJECTOR_BOX) { break; }
 
@@ -783,7 +783,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     uint2 tileCoord = pixelCoord / TILE_SIZE_BIG_TILE;
 #endif
     uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
-	// This clamp is important as _VBufferVoxelSize can have float value which can cause en overflow (Crash on Vulkan and Metal)
+    // This clamp is important as _VBufferVoxelSize can have float value which can cause en overflow (Crash on Vulkan and Metal)
     tileIndex = min(tileIndex, _NumTileBigTileX * _NumTileBigTileY);
 
     // Do not jitter 'voxelCoord' else. It's expected to correspond to the center of the voxel.

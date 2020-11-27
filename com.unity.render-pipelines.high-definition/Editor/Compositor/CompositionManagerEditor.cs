@@ -80,7 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             {
                 return false;
             }
-            
+
             m_SerializedLayerProperties = new List<SerializedCompositionLayer>();
             m_SerializedShaderProperties = new List<SerializedShaderProperty>();
 
@@ -193,10 +193,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 var serializedLayerList = m_SerializedProperties.layerList;
                 m_layerList = new ReorderableList(m_SerializedProperties.compositorSO, serializedLayerList, true, false, true, true);
 
-                // Pre-select the "default" item in the list (used to remember the last selected item when re-creating the Editor) 
+                // Pre-select the "default" item in the list (used to remember the last selected item when re-creating the Editor)
                 if (defaultSelection >= 0)
                 {
-                    m_layerList.index = Math.Min(defaultSelection, m_layerList.count-1);
+                    m_layerList.index = Math.Min(defaultSelection, m_layerList.count - 1);
                 }
 
                 m_layerList.drawHeaderCallback = (Rect rect) =>
@@ -221,7 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     if (!m_compositionManager.ValidateLayerListOrder(oldIndex, newIndex))
                     {
                         // The new position is invalid, so set the currently selected layer to the old/starting position s
-                        m_layerList.index = oldIndex; 
+                        m_layerList.index = oldIndex;
                     }
                 };
 
@@ -335,7 +335,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 m_compositionManager.UpdateLayerSetup();
             }
         }
- 
+
         void DrawLayerProperties(Rect rect, SerializedCompositionLayer serializedProperties, int layerIndex, RenderTexture preview = null)
         {
             if (serializedProperties == null)
@@ -366,7 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                     m_filterList.drawElementCallback = (Rect r, int index, bool isActive, bool isFocused) =>
                     {
                         if (index < m_SerializedLayerProperties[m_layerList.index].filterList.Count)
-                        { 
+                        {
                             var serializedFilter = m_SerializedLayerProperties[m_layerList.index].filterList[index];
                             CompositionFilterUI.Draw(r, serializedFilter);
                         }
@@ -399,8 +399,5 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 CompositionLayerUI.DrawStackedLayerProperties(rect, serializedProperties, m_filterList);
             }
         }
-
     }
 }
-
-

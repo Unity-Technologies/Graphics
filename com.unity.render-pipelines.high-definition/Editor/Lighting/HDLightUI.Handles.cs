@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Handles.DrawWireDisc(Vector3.forward * shadowDiscDistance, Vector3.forward, shadowDiscRadius);
             }
         }
-        
+
         static void DrawConeWireframe(float radius, float height)
         {
             var rangeCenter = Vector3.forward * height;
@@ -243,7 +243,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return new Vector2(halfWidth * 2f, halfHeight * 2f);
         }
-        
+
         //copy of CoreLightEditorUtilities
         static Vector3[] GetFrustrumProjectedRectAngles(float distance, float aspect, float tanFOV)
         {
@@ -305,7 +305,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var endAngles = GetSphericalProjectedRectAngles(maxRange, aspect, tanfov);
             var planProjectedCrossNormal0 = new Vector3(endAngles[0].y, -endAngles[0].x, 0).normalized;
             var planProjectedCrossNormal1 = new Vector3(endAngles[1].y, -endAngles[1].x, 0).normalized;
-            Vector3[] faceNormals = new[] {
+            Vector3[] faceNormals = new[]
+            {
                 Vector3.right - Vector3.Dot((endAngles[3] + endAngles[0]).normalized, Vector3.right) * (endAngles[3] + endAngles[0]).normalized,
                 Vector3.up    - Vector3.Dot((endAngles[0] + endAngles[1]).normalized, Vector3.up)    * (endAngles[0] + endAngles[1]).normalized,
                 Vector3.left  - Vector3.Dot((endAngles[1] + endAngles[2]).normalized, Vector3.left)  * (endAngles[1] + endAngles[2]).normalized,
@@ -315,7 +316,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 planProjectedCrossNormal1 - Vector3.Dot((endAngles[0] + endAngles[2]).normalized, planProjectedCrossNormal1)  * (endAngles[0] + endAngles[2]).normalized,
             };
 
-            float[] faceAngles = new[] {
+            float[] faceAngles = new[]
+            {
                 Vector3.Angle(endAngles[3], endAngles[0]),
                 Vector3.Angle(endAngles[0], endAngles[1]),
                 Vector3.Angle(endAngles[1], endAngles[2]),
@@ -336,7 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Handles.DrawLine(startAngles[2], endAngles[2]);
             Handles.DrawLine(startAngles[3], endAngles[3]);
         }
-        
+
         static Vector3[] GetSphericalProjectedRectAngles(float distance, float aspect, float tanFOV)
         {
             var angles = GetFrustrumProjectedRectAngles(distance, aspect, tanFOV);
@@ -715,7 +717,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Evaluate the half dimensions of the rectangular area light
                     float halfWidth = src.shapeWidth * 0.5f;
                     float halfHeight = src.shapeHeight * 0.5f;
-                    
+
                     // Evaluate the dimensions of the extended area light
                     float extendedWidth = Mathf.Tan(angle) * depth + halfWidth;
                     float extendedHeight = Mathf.Tan(angle) * depth + halfHeight;
