@@ -296,7 +296,7 @@ float EvalShadow_CascadedDepth_Dither(HDShadowContext shadowContext, Texture2D t
 
         /* We select what split we need to sample from */
         float nextSplit = min(shadowSplitIndex + 1, cascadeCount - 1);
-        bool evalNextCascade = nextSplit != shadowSplitIndex && step(InterleavedGradientNoise(positionSS.xy, _TaaFrameInfo.z), alpha);
+        bool evalNextCascade = nextSplit != shadowSplitIndex && alpha > 0 && step(InterleavedGradientNoise(positionSS.xy, _TaaFrameInfo.z), alpha);
 
         if (evalNextCascade)
         {
