@@ -54,23 +54,23 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### If trunk track changes:
   - Change `trunk_track` in `_editor.metafile`
 
-### Custom test platforms:
-- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
-- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
-- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
-- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
-- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
+### Custom test platforms and UTR flags:
+- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. Their corresponding base UTR flags are found in `config/_shared.metafile`
+- These base test platforms can be extended/customized in project metafiles as shown below. If name not specified, name gets set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
+- UTR flags specified by `[all]` are applied for all platform/api cases, but the list `[platform_api, platform_api, ...]` can be used specific cases.
+- Duplicate UTR flags are reduced to the last one, with order maintained within the metafile itself, but _shared.metafile being read before project metafile.
+- Example: extending the default playmode for a specific project. In this case all platforms/apis get timeout of 1200, whereas OSX_Metal gets 2400. Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
   ```
     - type: playmode
-      name: playmode_perf_build
+      name: playmode_new
       utr_flags:
-        - --scripting-backend=il2cpp
-        - --timeout=1200
-        - --performance-project-id=URP_Performance
-        - --testfilter=Build
-        - --suite=Editor
+        - [all]: --timeout=1200
+        - [OSX_Metal]: --timeout=2400
+        - [all]: --reruncount=2
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --platform=StandaloneWindows64
+        - [Linux_OpenGlCore, Linux_Vulkan]: --platform=StandaloneLinux64
   ```
-  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
+  If this platform should not be included eg for IPhone, then specify it under the platform
   ```
   iPhone:
     name: iPhone
@@ -78,69 +78,35 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
     apis:
       - name: Metal
         exclude_test_platforms:
-        - editmode
-        - ...
-        - playmode_perf_build
+        - playmode_new
   ```
 
-
-### Custom test platforms:
-- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
-- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
-- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
-- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
-- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
-  ```
-    - type: playmode
-      name: playmode_perf_build
-      utr_flags:
-        - --scripting-backend=il2cpp
-        - --timeout=1200
-        - --performance-project-id=URP_Performance
-        - --testfilter=Build
-        - --suite=Editor
-  ```
-  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
-  ```
-  iPhone:
-    name: iPhone
-    os: ios
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-        - editmode
-        - ...
-        - playmode_perf_build
-  ```
+### Variables
+Some jobs benefit from Yamato variables, which can be edited in Yamato UI. 
+- `CUSTOM_REVISION`: used by all custom revision jobs, specifies against which unity revision to run the job
+- `TEST_FILTER`: used by project jobs (incl _All [project>] CI_), and applies for all standalone build/playmode/editmode jobs, for which the testfilter is not hardcoded in the metafile. Default value is `.*` (run all tests). To check if a testfilter is hardcoded or the variable is used, simply check if the `utr` command in the job yml references the variable or not.
 
 
-### Custom test platforms:
-- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
-- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
-- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
-- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
-- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
+### Repeated UTR runs
+- You can run UTR multiple times within a single job by specifying `utr_repeat` section under a test_platform in project metafile, and specifying the additional/different set of UTR flags used for each run. Each block corresponding to a list item (specified by `-`) corresponds to one UTR run. For non-standalone-builds, leave out the `utr_flags_build` section. If this section is not specified, then UTR is called once with the flags retrieved as usual.
   ```
-    - type: playmode
-      name: playmode_perf_build
-      utr_flags:
-        - --scripting-backend=il2cpp
-        - --timeout=1200
-        - --performance-project-id=URP_Performance
-        - --testfilter=Build
-        - --suite=Editor
-  ```
-  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
-  ```
-  iPhone:
-    name: iPhone
-    os: ios
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-        - editmode
-        - ...
-        - playmode_perf_build
+  - type: Standalone
+    is_performance: True
+    utr_flags:
+      - [all]: --report-performance-data
+    utr_flags_build:
+      - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
+    utr_repeat:
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
   ```
 
 
@@ -200,10 +166,6 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 - Why does OpenGLCore not have standalone? Because the GPU is simulated and this job is too resource heavy for these machines
 - What happens to editor pinning if ABV is red? If ABV is red, then editor pinning merge job fails, i.e. the target branch (on which ABV runs) will not get editor revisions updated automatically. To remedy this, there are 2 merge jobs, one postfixed with \[ABV\] (triggered automatically, dependent on ABV), other with \[manual\] (triggered manually, not dependent on ABV). If editor revisions must be updated despite the red ABV, then the manual job must be triggered.
 - How to UTR flags work? UTR flag order is preserved while parsing in metafiles, and shared metafile is parsed before project metafile. Thus, if shared metafile has `[all]: --timeout=1200, [Win_DX11, Win_DX12]: --timeout=3000` and project metafile has `[Win_DX11]: --timeout=5000`, this will result in DX11 having 5000, DX12 having 3000, and everything else 1200. Note that flags end up alphabetically sorted in the final ymls.
-- How are nested UTR flags overriden? Flags are overriden if they are specified multiple times: checking if a flag is already specified is done by checking the flag 'key', which is the flag without its value. This applies also for nested keys, see below cases that are supported (refer to _utr_utils.py_ for implementation logic):
-  - `--timeout=1800`: key is `--timeout`
-  - `--extra-editor-arg="-executemethod CustomBuild.BuildLinuxOpenGlCoreLinear"`: key is `--extra-editor-arg="-executemethod`
-  - `--extra-editor-arg="-playergraphicsapi=Direct3D11"`: key is `--extra-editor-arg="-playergraphicsapi"`
 
 
 # Configuration files (metafiles)
@@ -582,6 +544,17 @@ test_platforms:
       - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
       - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
       - [iPhone_Metal]: --timeout=1800
+    utr_repeat: # run utr multiple times inside the same job, but with different flags. Each block specified by - in the list below corresponds to one UTR run.
+      - utr_flags: # valid for standalone/editmode/playmode
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        utr_flags_build: # valid only for standalone build jobs
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
   - type: playmode
   - type: editmode
   - type: playmode

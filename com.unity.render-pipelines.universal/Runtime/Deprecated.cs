@@ -31,13 +31,14 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                switch(shadowCascadeCount)
+                switch (shadowCascadeCount)
                 {
                     case 1: return ShadowCascadesOption.NoCascades;
                     case 2: return ShadowCascadesOption.TwoCascades;
                     case 4: return ShadowCascadesOption.FourCascades;
                     default: throw new InvalidOperationException("Cascade count is not compatible with obsolete API, please use shadowCascadeCount instead.");
-                };
+                }
+                ;
             }
             set
             {

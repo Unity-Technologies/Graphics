@@ -19,7 +19,6 @@ namespace UnityEditor.ShaderGraph
             name = "Reciprocal";
         }
 
-
         [SerializeField]
         private ReciprocalMethod m_ReciprocalMethod = ReciprocalMethod.Default;
 
@@ -53,7 +52,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = 1.0/In;
 }
@@ -65,7 +64,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = rcp(In);
 }

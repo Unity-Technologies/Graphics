@@ -5,14 +5,14 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         _MainTex("Albedo(RGB), Smoothness(A)", 2D) = "white" {}
         _MetallicTex ("Metallic (R)", 2D) = "black" {}
-		[HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
+        [HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
     }
 
-	HLSLINCLUDE
+    HLSLINCLUDE
 
-	#pragma multi_compile_fragment __ _ALPHATEST_ON
+    #pragma multi_compile_fragment __ _ALPHATEST_ON
 
-	ENDHLSL
+    ENDHLSL
 
     SubShader
     {

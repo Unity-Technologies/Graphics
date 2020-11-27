@@ -289,6 +289,10 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
+        /// <summary>
+        /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
+        /// </summary>
+        public bool useFastSRGBLinearConversion;
     }
 
     public static class ShaderKeywordStrings
@@ -310,6 +314,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa8 = "_DEPTH_MSAA_8";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+        internal static readonly string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
@@ -420,19 +425,21 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
+        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int)camera1.depth - (int)camera2.depth; };
 #if UNITY_2021_1_OR_NEWER
         void SortCameras(List<Camera> cameras)
         {
             if (cameras.Count > 1)
                 cameras.Sort(cameraComparison);
         }
+
 #else
         void SortCameras(Camera[] cameras)
         {
             if (cameras.Length > 1)
                 Array.Sort(cameras, cameraComparison);
         }
+
 #endif
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,

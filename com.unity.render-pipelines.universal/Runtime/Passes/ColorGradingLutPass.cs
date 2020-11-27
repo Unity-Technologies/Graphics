@@ -100,19 +100,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     shadowsMidtonesHighlights.highlightsEnd.value
                 );
 
-                var (shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
+                var(shadows, midtones, highlights) = ColorUtils.PrepareShadowsMidtonesHighlights(
                     shadowsMidtonesHighlights.shadows.value,
                     shadowsMidtonesHighlights.midtones.value,
                     shadowsMidtonesHighlights.highlights.value
                 );
 
-                var (lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
+                var(lift, gamma, gain) = ColorUtils.PrepareLiftGammaGain(
                     liftGammaGain.lift.value,
                     liftGammaGain.gamma.value,
                     liftGammaGain.gain.value
                 );
 
-                var (splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
+                var(splitShadows, splitHighlights) = ColorUtils.PrepareSplitToning(
                     splitToning.shadows.value,
                     splitToning.highlights.value,
                     splitToning.balance.value
