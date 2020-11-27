@@ -377,7 +377,7 @@ bool TryLoadDensityVolumeData(uint i, uint tile, uint zBin, out DensityVolumeDat
     if (TryFindEntityIndex(i, tile, zBin, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, entityIndex))
     {
         success = true;
-        data    = _DensityVolumeData[i];
+        data    = _DensityVolumeData[entityIndex];
     }
 
     return success;
@@ -391,7 +391,7 @@ bool TryLoadDensityVolumeData(uint i, uint tile, uint2 zBinRange, out DensityVol
     if (TryFindEntityIndex(i, tile, zBinRange, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME, entityIndex))
     {
         success = true;
-        data    = _DensityVolumeData[i];
+        data    = _DensityVolumeData[entityIndex];
     }
 
     return success;
