@@ -804,6 +804,12 @@ namespace UnityEditor.Rendering.Universal
             else if (!rpAsset.ValidateRendererData(selectedRendererOption))
             {
                 EditorGUILayout.HelpBox(Styles.missingRendererWarning, MessageType.Warning);
+                var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
+                if (GUI.Button(rect, "Select Render Pipeline Asset"))
+                {
+                    Selection.activeObject = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(AssetDatabase.GetAssetPath(UniversalRenderPipeline.asset));
+                }
+                GUILayout.Space(5);
             }
 
             if (EditorGUI.EndChangeCheck())
