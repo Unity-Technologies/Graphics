@@ -54,65 +54,6 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ### If trunk track changes:
   - Change `trunk_track` in `_editor.metafile`
 
-### Custom test platforms:
-- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
-- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
-- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
-- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
-- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
-  ```
-    - type: playmode
-      name: playmode_perf_build
-      utr_flags:
-        - --scripting-backend=il2cpp
-        - --timeout=1200
-        - --performance-project-id=URP_Performance
-        - --testfilter=Build
-        - --suite=Editor
-  ```
-  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
-  ```
-  iPhone:
-    name: iPhone
-    os: ios
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-        - editmode
-        - ...
-        - playmode_perf_build
-  ```
-
-
-### Custom test platforms:
-- There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
-- If name not specified, name it set to type. Name is used for creating Yamato job ids and excluding testplatforms. If setting up e.g. two playmode types with different flags, renaming must be used, otherwise (due to matching job id) one job overrides the other.
-- If a specific platform requires flags different from what is marked in `utr_utils.py`, they are to be configured in the corresponding platform cmd file. Either _a)_ override flag value with the optional parameters _b)_ cancel the flag by overriding with `None` (make sure the function expects such value for such flag though), or _c)_ append additional platform specific flags to the utr_flags list 
-- Exclude testplatforms for platforms by specifying the testplatform NAME (not type) in `__shared.metafile`
-- Example: extending the default playmode for a specific project performance tests (this takes base playmode flags, and appends these for all platforms, unless specified otherwise in platform cmd file.) Note: when adding extra args to a standalone job, build flags can be specified separately by `utr_flags_build` (scroll down to see project metafile docs)
-  ```
-    - type: playmode
-      name: playmode_perf_build
-      utr_flags:
-        - --scripting-backend=il2cpp
-        - --timeout=1200
-        - --performance-project-id=URP_Performance
-        - --testfilter=Build
-        - --suite=Editor
-  ```
-  If this platform should not be included eg for IPhone, then specify it in `__shared.metafile` like
-  ```
-  iPhone:
-    name: iPhone
-    os: ios
-    apis:
-      - name: Metal
-        exclude_test_platforms:
-        - editmode
-        - ...
-        - playmode_perf_build
-  ```
-
 
 ### Custom test platforms:
 - There are 3 base test platforms to choose from: standalone (build), playmode, editmode. These can be extended by renaming them, and/or adding additional utr on top of existing ones. Their corresponding base UTR flags are found in `ruamel/jobs/shared/utr_utils.py`
@@ -141,6 +82,31 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
         - editmode
         - ...
         - playmode_perf_build
+  ```
+
+### Repeated UTR runs
+- You can run UTR multiple times within a single job by specifying `utr_repeat` section under a test_platform in project metafile, and specifying the additional/different set of UTR flags used for each run. Each block corresponding to a list item (specified by `-`) corresponds to one UTR run. For non-standalone-builds, leave out the `utr_flags_build` section. If this section is not specified, then UTR is called once with the flags retrieved as usual. The `apply` section corresponds to list of platforms/apis for which this repeated block applies.
+  ```
+  - type: Standalone
+    is_performance: True
+    - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersLow
+        utr_flags_build:
+        - [all]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersLow
+  - type: playmode
+     - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Low
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Medium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
   ```
 
 
