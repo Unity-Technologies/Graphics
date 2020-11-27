@@ -181,6 +181,7 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
             // The part (2) below will be actually executed during every function call.
             while (i < n)
             {
+                // Walk the list of entity indices of the tile.
                 uint tileEntityPair  = TILE_BUFFER[tileBufferBodyIndex + (i / 2)];        // 16-bit indices
                 uint tileEntityIndex = BitFieldExtract(tileEntityPair, 16 * (i & 1), 16); // First Lo, then Hi bits
 
@@ -199,6 +200,7 @@ uint TryFindEntityIndex(inout uint i, uint tile, uint2 zBinRange, uint category,
                 }
                 else // if (zBinEntityIndexRange.y < tileEntityIndex)
                 {
+                    // (tileEntityIndex == UINT16_MAX) signifies a terminator.
                     break;    // Avoid incrementing 'i' further
                 }
             }
@@ -341,7 +343,7 @@ bool TryLoadReflectionProbeData(inout uint i, uint tile, uint2 zBinRange, out En
     return success;
 }
 
-bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
+bool TryLoadDecalData(inout uint i, uint tile, uint zBin, out DecalData data)
 {
     bool success = false;
 
@@ -355,7 +357,7 @@ bool TryLoadDecalData(uint i, uint tile, uint zBin, out DecalData data)
     return success;
 }
 
-bool TryLoadDecalData(uint i, uint tile, uint2 zBinRange, out DecalData data)
+bool TryLoadDecalData(inout uint i, uint tile, uint2 zBinRange, out DecalData data)
 {
     bool success = false;
 
@@ -369,7 +371,7 @@ bool TryLoadDecalData(uint i, uint tile, uint2 zBinRange, out DecalData data)
     return success;
 }
 
-bool TryLoadDensityVolumeData(uint i, uint tile, uint zBin, out DensityVolumeData data)
+bool TryLoadDensityVolumeData(inout uint i, uint tile, uint zBin, out DensityVolumeData data)
 {
     bool success = false;
 
@@ -383,7 +385,7 @@ bool TryLoadDensityVolumeData(uint i, uint tile, uint zBin, out DensityVolumeDat
     return success;
 }
 
-bool TryLoadDensityVolumeData(uint i, uint tile, uint2 zBinRange, out DensityVolumeData data)
+bool TryLoadDensityVolumeData(inout uint i, uint tile, uint2 zBinRange, out DensityVolumeData data)
 {
     bool success = false;
 

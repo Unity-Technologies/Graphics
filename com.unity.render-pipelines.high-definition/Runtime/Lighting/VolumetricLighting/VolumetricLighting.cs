@@ -835,9 +835,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.volumetricLightingCS = m_VolumetricLightingCS;
             parameters.volumetricLightingCS.shaderKeywords = null;
 
-            if(!parameters.tiledLighting)
+            if(parameters.tiledLighting)
             {
-                parameters.volumetricLightingCS.EnableKeyword("LIGHTLOOP_DISABLE_TILE_AND_CLUSTER");
+                parameters.volumetricLightingCS.EnableKeyword("COARSE_BINNING");
             }
 
             if(parameters.enableReprojection)
