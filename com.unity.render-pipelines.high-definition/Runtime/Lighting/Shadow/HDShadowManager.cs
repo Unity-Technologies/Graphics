@@ -312,6 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowDataBuffer = new ComputeBuffer(Mathf.Max(initParams.maxShadowRequests, 1), System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
             m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
             m_MaxShadowRequests = initParams.maxShadowRequests;
+            m_ShadowRequestCount = 0;
 
             if (initParams.maxShadowRequests == 0)
                 return;
