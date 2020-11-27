@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         {}
 
         public DefaultMaterialSlot(int slotId, string displayName, string shaderOutputName,
-                                    ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+                                   ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, stageCapability, hidden: hidden)
         {}
 

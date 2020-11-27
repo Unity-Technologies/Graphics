@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(4, Binding.None)] out Vector1 Cells)
         {
             return
-                @"
+@"
 {
     $precision2 g = floor(UV * CellDensity);
     $precision2 f = frac(UV * CellDensity);

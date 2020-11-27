@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Number of slices of the volumetric buffer (3D texture) along the camera's focal axis.</summary>
         [Tooltip("Number of slices of the volumetric buffer (3D texture) along the camera's focal axis.")]
         public ClampedIntParameter volumeSliceCount = new ClampedIntParameter(64, 1, maxFogSliceCount);
-        
+
         /// <summary>Defines the performance to quality ratio of the volumetric fog. A value of 0 being the least resource-intensive and a value of 1 being the highest quality.</summary>
         /// <remarks>Try to minimize this value to find a compromise between quality and performance. </remarks>
         public float volumetricFogBudget
@@ -247,7 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
     sealed class FogTypeParameter : VolumeParameter<FogType>
     {
         public FogTypeParameter(FogType value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">Fog Color Parameter.</param>
         /// <param name="overrideState">Initial override state.</param>
         public FogColorParameter(FogColorMode value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -292,7 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public FogControlParameter(FogControl value, bool overrideState = false) : base(value, overrideState) { }
+        public FogControlParameter(FogControl value, bool overrideState = false) : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -329,6 +329,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public FogDenoisingModeParameter(FogDenoisingMode value, bool overrideState = false) : base(value, overrideState) { }
+        public FogDenoisingModeParameter(FogDenoisingMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

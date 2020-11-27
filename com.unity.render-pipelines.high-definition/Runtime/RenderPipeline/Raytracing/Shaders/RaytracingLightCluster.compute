@@ -80,7 +80,7 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
         {
             // When the shape we are processing is a sphere, the radius is stored in the three channels
             float squareRange = currentLight.range.x * currentLight.range.x;
-            
+
             // So basically we need to flag this cell if one of the corners of the cell happens to be in the sphere
             for(uint cIdx = 0; cIdx < 8; ++cIdx)
             {
@@ -94,8 +94,8 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
             }
 
             // One additional case that we need to check is: Is the light inside the cell?
-            if (!intersects) 
-            {    
+            if (!intersects)
+            {
                 float3 distanceToCenter = abs(cellCenterPosition - currentLight.position) * 2.0;
                 intersects = (distanceToCenter.x < _ClusterCellSize.x) && (distanceToCenter.y < _ClusterCellSize.y) && (distanceToCenter.z < _ClusterCellSize.z);
             }
