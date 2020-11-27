@@ -27,6 +27,9 @@ float3x3 RotationFromAxisAngle(float3 A, float sinAngle, float cosAngle)
 // Solver
 //-----------------------------------------------------------------------------
 
+// Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
+// Returns 'false' if there are no real roots, 'true' otherwise.
+// Ensures that roots.x <= roots.y.
 bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 {
     float det = Sq(b) - 4.0 * a * c;
