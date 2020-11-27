@@ -726,11 +726,16 @@ namespace UnityEngine.Rendering.Universal
 
         bool PlatformRequiresExplicitMsaaResolve()
         {
-            // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
-            // TODO: should also be valid on Metal MacOS/Editor, but currently not working as expected. Remove the "mobile only" requirement once trunk has a fix.
-
-            return !SystemInfo.supportsMultisampleAutoResolve &&
-                   !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && Application.isMobilePlatform);
+            #if UNITY_EDITOR
+                // In the editor play-mode we use a Game View Render Texture, with
+                // samples count forced to 1 so we always need to do an explicit MSAA resolve.
+                return true;
+            #else
+                // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
+                // TODO: should also be valid on Metal MacOS/Editor, but currently not working as expected. Remove the "mobile only" requirement once trunk has a fix.
+                return !SystemInfo.supportsMultisampleAutoResolve
+                        && !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && Application.isMobilePlatform);
+            #endif
         }
 
         /// <summary>

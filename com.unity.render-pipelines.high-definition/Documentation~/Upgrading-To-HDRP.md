@@ -96,7 +96,7 @@ To set up lighting in your HDRP Project:
 
     1. Open the Lighting window (menu: **Window > Rendering > Lighting Settings**).
 
-    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile) that the Sky and Fog Volume uses.
+    2. For the **Profile** property, select the same [Volume Profile](Volume-Profile.md) that the Sky and Fog Volume uses.
 
     3. For the **Static Lighting Sky** property, select **PhysicallyBasedSky**.
 
