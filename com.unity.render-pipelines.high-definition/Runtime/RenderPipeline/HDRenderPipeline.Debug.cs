@@ -637,7 +637,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                     {
-                        CoreUtils.SetRenderTarget(ctx.cmd, data.output);
                         if (data.mipIndex != -1)
                             HDUtils.BlitCameraTexture(ctx.cmd, data.input, data.output, data.mipIndex);
                         else
