@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AffectsAO = true;
+        bool m_AffectsAO = false;
         public bool affectsAO
         {
             get => m_AffectsAO;
@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_AffectsEmission = true;
+        bool m_AffectsEmission = false;
         public bool affectsEmission
         {
             get => m_AffectsEmission;
@@ -61,5 +61,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_DrawOrder;
             set => m_DrawOrder = value;
         }
+
+        [SerializeField]
+        bool m_SupportLodCrossFade;
+        public bool supportLodCrossFade
+        {
+            get => m_SupportLodCrossFade;
+            set => m_SupportLodCrossFade = value;
+        }
+
+        public bool affectsMaskmap => affectsSmoothness || affectsMetal || affectsAO;
     }
 }

@@ -132,7 +132,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube: return "TextureCube";
                 case VFXValueType.TextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.Matrix4x4: return "float4x4";
-                case VFXValueType.Mesh: return "Buffer<float>";
+                case VFXValueType.Mesh: return "ByteAddressBuffer";
                 case VFXValueType.Boolean: return "bool";
             }
             throw new NotImplementedException(type.ToString());
@@ -334,6 +334,10 @@ namespace UnityEditor.VFX
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
         {
+            if (parents.Length > 4)
+            {
+                throw new System.ArgumentException("An expression can only take up to 4 parent expressions");
+            }
             m_Parents = parents;
             SimplifyWithCacheParents();
 
@@ -344,6 +348,10 @@ namespace UnityEditor.VFX
         // Only do that when constructing an instance if needed
         private void Initialize(VFXExpression[] parents)
         {
+            if (parents.Length > 4)
+            {
+                throw new System.ArgumentException("An expression can only take up to 4 parent expressions");
+            }
             m_Parents = parents;
             SimplifyWithCacheParents();
 
@@ -402,7 +410,7 @@ namespace UnityEditor.VFX
         {
             var addOperands = additionnalOperands;
             if (parents.Length + addOperands.Length > 4)
-                throw new Exception("Too much parameter for expression : " + this);
+                throw new Exception("Too many parameters for expression : " + this);
 
             var data = new Operands(-1);
             if (graph != null)
@@ -545,10 +553,9 @@ namespace UnityEditor.VFX
 
                     const Flags propagatedFlags = Flags.NotCompilableOnCPU | Flags.InvalidConstant | Flags.PerSpawn;
                     m_Flags |= parent.m_Flags & propagatedFlags;
-                    
+
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
-
                 }
                 if (foldable)
                     m_Flags |= Flags.Foldable;

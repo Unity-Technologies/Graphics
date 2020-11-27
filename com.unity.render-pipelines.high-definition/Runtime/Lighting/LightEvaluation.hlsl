@@ -1,3 +1,6 @@
+#ifndef UNITY_LIGHT_EVALUATION_INCLUDED
+#define UNITY_LIGHT_EVALUATION_INCLUDED
+
 // This files include various function uses to evaluate lights
 // use #define LIGHT_EVALUATION_NO_HEIGHT_FOG to disable Height fog attenuation evaluation
 // use #define LIGHT_EVALUATION_NO_COOKIE to disable cookie evaluation
@@ -335,7 +338,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
         if (lightType != GPULIGHTTYPE_PROJECTOR_PYRAMID && lightType != GPULIGHTTYPE_PROJECTOR_BOX)
         {
-            isInBounds = isInBounds & dot(positionCS, positionCS) <= light.iesCut * light.iesCut;
+            isInBounds = isInBounds && (dot(positionCS, positionCS) <= light.iesCut * light.iesCut);
         }
 
         float2 positionNDC = positionCS * 0.5 + 0.5;
@@ -522,7 +525,18 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 // Environment map share function
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Reflection/VolumeProjection.hlsl"
 
-void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData light, int influenceShapeType, inout float3 R, inout float weight)
+// From Moving Frostbite to PBR document
+// This function fakes the roughness based integration of reflection probes by adjusting the roughness value
+float ComputeDistanceBaseRoughness(float distIntersectionToShadedPoint, float distIntersectionToProbeCenter, float perceptualRoughness)
+{
+    float newPerceptualRoughness = clamp(distIntersectionToShadedPoint / distIntersectionToProbeCenter * perceptualRoughness, 0, perceptualRoughness);
+    return lerp(newPerceptualRoughness, perceptualRoughness, perceptualRoughness);
+}
+
+// return projectionDistance, can be used in ComputeDistanceBaseRoughness formula
+// return in R the unormalized corrected direction which is used to fetch cubemap but also its length represent the distance of the capture point to the intersection
+// Length R can be reuse as a parameter of ComputeDistanceBaseRoughness for distIntersectionToProbeCenter
+float EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData light, int influenceShapeType, inout float3 R, inout float weight)
 {
     // Guideline for reflection volume: In HDRenderPipeline we separate the projection volume (the proxy of the scene) from the influence volume (what pixel on the screen is affected)
     // However we add the constrain that the shape of the projection and influence volume is the same (i.e if we have a sphere shape projection volume, we have a shape influence).
@@ -564,6 +578,20 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // Smooth weighting
     weight = Smoothstep01(weight);
     weight *= light.weight;
+
+    return projectionDistance;
+}
+
+// Call SampleEnv function with distance based roughness
+float4 SampleEnvWithDistanceBaseRoughness(LightLoopContext lightLoopContext, PositionInputs posInput, EnvLightData lightData, float3 R, float perceptualRoughness, float intersectionDistance, int sliceIdx = 0)
+{
+    // Only apply distance based roughness for non-sky reflection probe
+    if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES && IsEnvIndexCubemap(lightData.envIndex))
+    {
+        perceptualRoughness = ComputeDistanceBaseRoughness(intersectionDistance, length(R), perceptualRoughness);
+    }
+
+    return SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(perceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC, sliceIdx);
 }
 
 void InversePreExposeSsrLighting(inout float4 ssrLighting)
@@ -582,3 +610,5 @@ void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
     ssrLighting.rgb *= ssrLighting.a;
 }
 #endif
+
+#endif // UNITY_LIGHT_EVALUATION_INCLUDED

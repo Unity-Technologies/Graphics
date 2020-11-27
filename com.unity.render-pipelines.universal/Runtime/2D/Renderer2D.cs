@@ -11,6 +11,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         PostProcessPass m_FinalPostProcessPass;
+        Light2DCullResult m_LightCullResult;
+
+        private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
 
         bool m_UseDepthStencilBuffer = true;
         bool m_CreateColorTexture;
@@ -22,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         readonly RenderTargetHandle k_ColorGradingLutHandle;
 
         Material m_BlitMaterial;
+        Material m_SamplingMaterial;
 
         Renderer2DData m_Renderer2DData;
 
@@ -31,9 +35,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public Renderer2D(Renderer2DData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.blitShader);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingOpaques, data.postProcessData);
-            m_Render2DLightingPass = new Render2DLightingPass(data);
+            m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
@@ -53,11 +58,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 cameraStacking = true,
             };
+
+            m_LightCullResult = new Light2DCullResult();
+            m_Renderer2DData.lightCullResult = m_LightCullResult;
         }
 
         protected override void Dispose(bool disposing)
         {
-            CoreUtils.Destroy(m_BlitMaterial);
+            // always dispose unmanaged resources
+            m_PostProcessPass.Cleanup();
+            m_FinalPostProcessPass.Cleanup();
+            m_ColorGradingLutPass.Cleanup();
         }
 
         public Renderer2DData GetRenderer2DData()
@@ -84,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || !cameraData.isDefaultViewport
                     || !m_UseDepthStencilBuffer
                     || !cameraData.resolveFinalTarget
+                    || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
 
                 m_CreateDepthTexture = !cameraData.resolveFinalTarget && m_UseDepthStencilBuffer;
@@ -155,8 +167,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderTargetHandle colorTargetHandle;
             RenderTargetHandle depthTargetHandle;
 
-            CommandBuffer cmd = CommandBufferPool.Get("Create Camera Textures");
-            CreateRenderTextures(ref cameraData, ppcUsesOffscreenRT, colorTextureFilterMode, cmd, out colorTargetHandle, out depthTargetHandle);
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                CreateRenderTextures(ref cameraData, ppcUsesOffscreenRT, colorTextureFilterMode, cmd,
+                    out colorTargetHandle, out depthTargetHandle);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -169,6 +185,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
+            var hasValidDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
+            m_Render2DLightingPass.Setup(hasValidDepth);
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
@@ -213,6 +231,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cullingParameters.cullingOptions = CullingOptions.None;
             cullingParameters.isOrthographic = cameraData.camera.orthographic;
             cullingParameters.shadowDistance = 0.0f;
+            m_LightCullResult.SetupCulling(ref cullingParameters, cameraData.camera);
         }
 
         public override void FinishRendering(CommandBuffer cmd)

@@ -1,6 +1,7 @@
 #ifndef UNITY_PATH_TRACING_BSDF_INCLUDED
 #define UNITY_PATH_TRACING_BSDF_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface.hlsl"
 
 #define DELTA_PDF 1000000.0
@@ -478,7 +479,7 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         // Evaluate the length of our steps
         rayDesc.TMax = -log(1.0 - distSample) / sigmaT[channelIdx];
 
-        // Sample our next sepath segment direction
+        // Sample our next path segment direction
         rayDesc.Direction = walkIdx ?
             SampleSphereUniform(dirSample0, dirSample1) : SampleHemisphereCosine(dirSample0, dirSample1, -normal);
 
@@ -489,7 +490,7 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
                  RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDesc, intersection);
 
-        // Define if we did a hit
+        // Check if we hit something
         hit = intersection.t > 0.0;
 
         // How much did the ray travel?
@@ -513,10 +514,24 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     while (!hit && walkIdx < MAX_WALK_STEPS);
 
     // Set the exit intersection position and normal
-    result.exitPosition = rayDesc.Origin;
-    result.exitNormal = intersection.value;
+    if (!hit)
+    {
+        result.exitPosition = position;
+        result.exitNormal = normal;
+        result.throughput = diffuseColor;
 
-    return hit;
+        // By not returning false here, we default to a diffuse BRDF when an intersection is not found;
+        // this is physically wrong, but may prove more convenient for a user, as results will look
+        // like diffuse instead of getting slightly darker when the mean free path becomes shorter.
+        //return false;
+    }
+    else
+    {
+        result.exitPosition = rayDesc.Origin;
+        result.exitNormal = intersection.value;
+    }
+
+    return true;
 }
 
 } // namespace SSS

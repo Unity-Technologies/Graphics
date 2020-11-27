@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // We don't want distortion in Lit
             new TransparencyUIBlock(MaterialUIBlock.Expandable.Transparency, features: TransparencyUIBlock.Features.All & ~TransparencyUIBlock.Features.Distortion),
             new EmissionUIBlock(MaterialUIBlock.Expandable.Emissive),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.StandardLit),
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -65,30 +65,11 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kCoatMask = "_CoatMask";
         protected const string kCoatMaskMap = "_CoatMaskMap";
 
-        protected MaterialProperty emissiveColorMode = null;
-        protected const string kEmissiveColorMode = "_EmissiveColorMode";
-        protected MaterialProperty emissiveColor = null;
-        protected const string kEmissiveColor = "_EmissiveColor";
         protected MaterialProperty emissiveColorMap = null;
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
-        protected MaterialProperty albedoAffectEmissive = null;
-        protected const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
+
         protected MaterialProperty UVEmissive = null;
         protected const string kUVEmissive = "_UVEmissive";
-        protected MaterialProperty TexWorldScaleEmissive = null;
-        protected const string kTexWorldScaleEmissive = "_TexWorldScaleEmissive";
-        protected MaterialProperty UVMappingMaskEmissive = null;
-        protected const string kUVMappingMaskEmissive = "_UVMappingMaskEmissive";
-        protected MaterialProperty emissiveIntensity = null;
-        protected const string kEmissiveIntensity = "_EmissiveIntensity";
-        protected MaterialProperty emissiveColorLDR = null;
-        protected const string kEmissiveColorLDR = "_EmissiveColorLDR";
-        protected MaterialProperty emissiveIntensityUnit = null;
-        protected const string kEmissiveIntensityUnit = "_EmissiveIntensityUnit";
-        protected MaterialProperty emissiveExposureWeight = null;
-        protected const string kemissiveExposureWeight = "_EmissiveExposureWeight";
-        protected MaterialProperty useEmissiveIntensity = null;
-        protected const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
 
         protected const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
@@ -104,7 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BaseLitGUI.SetupBaseLitKeywords(material);
             BaseLitGUI.SetupBaseLitMaterialPass(material);
             bool receiveSSR = material.GetSurfaceType() == SurfaceType.Opaque ? (material.HasProperty(kReceivesSSR) ? material.GetInt(kReceivesSSR) != 0 : false)
-                                                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
+                : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
             if (material.HasProperty(kNormalMapSpace))
@@ -206,12 +187,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty(kRefractionModel))
             {
-                var refractionModelValue = (ScreenSpaceRefraction.RefractionModel)material.GetFloat(kRefractionModel);
-                // We can't have refraction in pre-refraction queue and the material needs to be transparent
                 var canHaveRefraction = material.GetSurfaceType() == SurfaceType.Transparent && !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
-                CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
-                CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
-                CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
             }
 

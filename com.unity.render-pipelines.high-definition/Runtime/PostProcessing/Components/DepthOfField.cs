@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Depth Of Field effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Depth Of Field")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Depth-of-Field" + Documentation.endURL)]
     public sealed class DepthOfField : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
@@ -205,6 +206,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// When enabled, HDRP uses a more accurate but slower physically based method to compute the depth of field effect.
+        /// </summary>
+        public bool physicallyBased
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_PhysicallyBased.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.levelAndOverride.level;
+                    return GetPostProcessingQualitySettings().DoFPhysicallyBased[qualityLevel];
+                }
+            }
+            set { m_PhysicallyBased.value = value; }
+        }
+
+        /// <summary>
         /// Specifies the resolution at which HDRP processes the depth of field effect.
         /// </summary>
         /// <seealso cref="DepthOfFieldResolution"/>
@@ -257,6 +278,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("resolution")]
         DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
 
+        [SerializeField]
+        BoolParameter m_PhysicallyBased = new BoolParameter(false);
+
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
         /// </summary>
@@ -292,7 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public DepthOfFieldModeParameter(DepthOfFieldMode value, bool overrideState = false) : base(value, overrideState) { }
+        public DepthOfFieldModeParameter(DepthOfFieldMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -306,6 +330,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public DepthOfFieldResolutionParameter(DepthOfFieldResolution value, bool overrideState = false) : base(value, overrideState) { }
+        public DepthOfFieldResolutionParameter(DepthOfFieldResolution value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

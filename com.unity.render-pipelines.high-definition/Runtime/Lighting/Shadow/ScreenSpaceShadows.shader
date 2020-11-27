@@ -56,7 +56,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
             float3 L = -light.forward;
 
-            // We also need the normal 
+            // We also need the normal
             NormalData normalData;
             DecodeFromNormalBuffer(posInput.positionSS.xy, normalData);
             float3 normalWS = normalData.normalWS;

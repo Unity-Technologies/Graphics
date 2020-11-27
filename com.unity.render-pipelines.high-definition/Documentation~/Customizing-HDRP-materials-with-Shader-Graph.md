@@ -15,7 +15,7 @@ HDRP includes the following Shader Graphs:
 - StackLit
 - Unlit
 
-The [Lit](Lit-Shader.html), [LayeredLit](Layered-Lit-Shader.html), and [Unlit](Unlit-Shader.html) Shaders are available as standard Shaders (without Shader Graph). This means that you can use them without creating a Shader Graph instance, and edit them in the Inspector. To use these, select a Material to view it in the Inspector and click on the **Shader** drop-down. Go to the **HDRP** section to see a list of every HDRP Shader that does not require a Shader Graph instance.
+The [Lit](Lit-Shader.md), [LayeredLit](Layered-Lit-Shader.md), and [Unlit](Unlit-Shader.md) Shaders are available as standard Shaders (without Shader Graph). This means that you can use them without creating a Shader Graph instance, and edit them in the Inspector. To use these, select a Material to view it in the Inspector and click on the **Shader** drop-down. Go to the **HDRP** section to see a list of every HDRP Shader that does not require a Shader Graph instance.
 
 <a name="Creation"></a>
 
@@ -36,8 +36,8 @@ To create a Material that uses a Shader Graph (for example, a StackLit Graph), f
 To edit properties for Materials that use Shader Graphs, the Inspector window only allows access to a limited number of properties. To edit all Material properties, you must directly edit the Shader Graph's Master Node.
 
 1. Double-click on the Shader Graph Asset to open it. The window displays the Master Node and a list of the available inputs. See these in the **Surface Inputs** section of the screenshot below.
-2. To expose the rest of the properties, click on the cog in the top right of the Master Node. See these other properties in the **Surface Options** section of the screenshot below.
-3. Edit the values for the cog's properties in the same way as you would do in the Inspector window. The list of inputs on the Master Node, and the available properties in the cog's list, changes depending on what options you select.
+2. To expose the rest of the properties, click on the gear in the top right of the Master Node. See these other properties in the **Surface Options** section of the screenshot below.
+3. Edit the values for the gear's properties in the same way as you would do in the Inspector window. The list of inputs on the Master Node, and the available properties in the gear's list, changes depending on what options you select.
 
 ![](Images/CreatingAndEditingHDRPShaderGraphs1.png)
 

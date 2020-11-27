@@ -76,10 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var settings = CoreEditorUtils.CreateGameObject(parent, "Sky and Fog Volume");
-            GameObjectUtility.SetParentAndAlign(settings, menuCommand.context as GameObject);
-            Undo.RegisterCreatedObjectUndo(settings, "Create " + settings.name);
-            Selection.activeObject = settings;
+            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Volume", parent);
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
@@ -101,6 +98,57 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
             MaterialReimporter.ReimportAllMaterials();
+        }
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Loaded Mesh Renderers and Terrains")]
+        internal static void UpgradeDefaultRenderingLayerMask()
+        {
+            var meshRenderers = Resources.FindObjectsOfTypeAll<MeshRenderer>();
+
+            foreach (var mesh in meshRenderers)
+            {
+                Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
+                mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(mesh);
+            }
+
+            var terrains = Resources.FindObjectsOfTypeAll<Terrain>();
+
+            foreach (var terrain in terrains)
+            {
+                Undo.RecordObject(terrain, "Terrain Layer Mask update");
+                terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(terrain);
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Add Decal Layer Default to Selected Mesh Renderers and Terrains")]
+        internal static void UpgradeDefaultRenderingLayerMaskForSelection()
+        {
+            var selection = UnityEditor.Selection.objects;
+
+            foreach (var obj in selection)
+            {
+                if (obj is GameObject)
+                {
+                    GameObject gameObj = obj as GameObject;
+                    MeshRenderer mesh;
+                    if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
+                    {
+                        Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
+                        mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(mesh);
+                    }
+
+                    Terrain terrain;
+                    if (gameObj.TryGetComponent<Terrain>(out terrain))
+                    {
+                        Undo.RecordObject(terrain, "Terrain Layer Mask update");
+                        terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(terrain);
+                    }
+                }
+            }
         }
 
         class DoCreateNewAsset<TAssetType> : ProjectWindowCallback.EndNameEditAction where TAssetType : ScriptableObject
@@ -260,7 +308,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             try
             {
-                var scenes = AssetDatabase.FindAssets("t:Scene", new string[]{ "Assets" });
+                var scenes = AssetDatabase.FindAssets("t:Scene", new string[] { "Assets" });
                 var scale = 1f / Mathf.Max(1, scenes.Length);
                 for (var i = 0; i < scenes.Length; ++i)
                 {
@@ -295,7 +343,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void ResetAllMaterialAssetsKeywords(float progressScale, float progressOffset)
         {
-            var matIds = AssetDatabase.FindAssets("t:Material", new string[]{ "Assets" }); // do not include packages
+            var matIds = AssetDatabase.FindAssets("t:Material", new string[] { "Assets" }); // do not include packages
 
             bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
@@ -392,7 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 currentRenderer.GetSharedMaterials(materialArray);
                 if (materialArray == null)
                 {
-                    Debug.LogWarning("The object "+ currentRenderer.name + " has a null material array.");
+                    Debug.LogWarning("The object " + currentRenderer.name + " has a null material array.");
                     generalErrorFlag = true;
                     continue;
                 }
@@ -422,6 +470,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
                 }
 
+                // Check the number of sub-meshes
+                if (numSubMeshes >= 32)
+                {
+                    Debug.LogWarning("The object " + currentRenderer.name + " has more than 32 sub-meshes. Above this limit, the cutoff and double sided flags may not match the one defined in the materials.");
+                    generalErrorFlag = true;
+                    continue;
+                }
+
                 bool materialIsOnlyTransparent = true;
                 bool hasTransparentSubMaterial = false;
 
@@ -438,7 +494,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
                                 || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
+                                    && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
                             // aggregate the transparency info
                             materialIsOnlyTransparent &= materialIsTransparent;

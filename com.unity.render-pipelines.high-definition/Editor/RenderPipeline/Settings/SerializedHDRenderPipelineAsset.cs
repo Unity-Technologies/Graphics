@@ -3,7 +3,6 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-
     class SerializedHDRenderPipelineAsset
     {
         public SerializedObject serializedObject;
@@ -16,6 +15,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty allowShaderVariantStripping;
         public SerializedProperty enableSRPBatcher;
         public SerializedProperty shaderVariantLogLevel;
+        public SerializedProperty lensAttenuation;
+        public SerializedProperty useRenderGraph;
         public SerializedRenderPipelineSettings renderPipelineSettings;
         public SerializedFrameSettings defaultFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
@@ -59,6 +60,8 @@ namespace UnityEditor.Rendering.HighDefinition
             allowShaderVariantStripping = serializedObject.Find((HDRenderPipelineAsset s) => s.allowShaderVariantStripping);
             enableSRPBatcher = serializedObject.Find((HDRenderPipelineAsset s) => s.enableSRPBatcher);
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineAsset s) => s.shaderVariantLogLevel);
+            lensAttenuation = serializedObject.FindProperty("m_LensAttenuation");
+            useRenderGraph = serializedObject.FindProperty("m_UseRenderGraph");
 
             renderPipelineSettings = new SerializedRenderPipelineSettings(serializedObject.FindProperty("m_RenderPipelineSettings"));
             defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset

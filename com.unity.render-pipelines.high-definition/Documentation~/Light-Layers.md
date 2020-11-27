@@ -6,10 +6,10 @@ The High Definition Render Pipeline (HDRP) allows you to use Light Layers, which
 
 ## Enabling Light Layers
 
-To use Light Layers, you must enable them in your Project’s [HDRP Asset](HDRP-Asset.html). You can then enable Light Layers in your default [Frame Settings](Frame-Settings.html) to set your Cameras to process Light Layers.
+To use Light Layers, you must enable them in your Project’s [HDRP Asset](HDRP-Asset.md). You can then enable Light Layers in your default [Frame Settings](Frame-Settings.md) to set your Cameras to process Light Layers.
 
 1. Select the HDRP Asset in the Project window and, in the Inspector, go to **Lighting > Light Layers** and enable the **Enable** checkbox.
-2. To enable Light Layers in the default Frame Settings for all Cameras, in your HDRP Asset, go to the **Default Frame Settings For** section, select **Camera** from the drop-down and, in the **Lighting** section, enable the **Light Layers** checkbox. 
+2. To enable Light Layers in the default Frame Settings for all Cameras, in the [Default Settings Windows](Default-Settings-Window.md), go to the **Default Frame Settings For** section, select **Camera** from the drop-down and, in the **Lighting** section, enable the **Light Layers** checkbox. 
 
 To override the Frame Settings for Cameras and set Light Layers on an individual basis:
 
@@ -22,16 +22,16 @@ To override the Frame Settings for Cameras and set Light Layers on an individual
 After you enable Light Layers, you can then use them to decouple Meshes from certain Lights in your Scene. To do this:
 
 1. Click on a Light in the Hierarchy or the Scene view to view it in the Inspector.
-2. Expose [more options](More-Options.html) in the **General** section to expose the **Light Layer** property.
+2. Expose [more options](More-Options.md) in the **General** section to expose the **Light Layer** property.
 3. Use the **Light Layer** property drop-down to select which Light Layers this Light affects.
-4. Click on a Mesh Renderer in the Hierarchy or the Scene view to view it in the Inspector.
-5. Use the **Rendering Layer Mask** drop-down to select which Light Layers affect this Mesh Renderer. When you enable Light Layers, a Light only affects a Mesh Renderer if they both use a matching Light Layer.
+4. Click on a Mesh Renderer or Terrain in the Hierarchy or the Scene view to view it in the Inspector.
+5. Use the **Rendering Layer Mask** drop-down (See [MeshRenderer](https://docs.unity3d.com/Manual/class-MeshRenderer.html) for GameObjects or [OtherSettings](https://docs.unity3d.com/Manual/terrain-OtherSettings.html) for Terrain) to select which Light Layers affect this Mesh Renderer or Terrain. When you enable Light Layers, a Light only affects a Mesh Renderer or Terrain if they both use a matching Light Layer.
 
 <a name="ShadowLightLayers"></a>
 
 ## Shadow Light Layers
 
-When using Light Layers, Meshes only cast shadows for [Lights](Light-Component.html) on the same Light Layer as them. This is because HDRP synchronizes Light Layers and shadow Light Layers by default, so every Mesh that receives light, also casts shadows for it. To make a Mesh cast shadows without the Light also affecting its lighting, you must decouple the shadow Light Layers from that Light's Light Layers.
+When using Light Layers, Meshes only cast shadows for [Lights](Light-Component.md) on the same Light Layer as them. This is because HDRP synchronizes Light Layers and shadow Light Layers by default, so every Mesh that receives light, also casts shadows for it. To make a Mesh cast shadows without the Light also affecting its lighting, you must decouple the shadow Light Layers from that Light's Light Layers.
 
 To do this:
 
@@ -42,7 +42,7 @@ You can now use the **Light Layers** drop-down in the **Shadows** section to set
 
 ## Renaming Light Layers
 
-By default, in the UI for Lights and Mesh Renderers, Light Layers are named **Light Layer 1-7**. To more easily differentiate between them, you can give each Light Layer a specific name. To do this, open your [HDRP Asset](HDRP-Asset.html) and go to **Lighting > Light Layers**. Here you can set the name of each Light Layer individually.
+By default, in the UI for Lights, Mesh Renderers or Terrain, Light Layers are named **Light Layer 1-7**. To more easily differentiate between them, you can give each Light Layer a specific name. To do this, open the [Default Settings Windows](Default-Settings-Window.md), and go to **Light Layer Names**. Here you can set the name of each Light Layer individually.
 
 ## Example scenario for Light Layers
 

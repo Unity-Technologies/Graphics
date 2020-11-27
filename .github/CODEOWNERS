@@ -15,7 +15,7 @@
 # Test systems
 /.yamato/ @Unity-Technologies/gfx-sdets
 /katana-ci/ @Unity-Technologies/gfx-sdets
-/git-hooks/ @Unity-Technologies/gfx-sdets
+/Tools/ @Unity-Technologies/gfx-sdets
 /com.unity.testframework.graphics/ @Unity-Technologies/gfx-sdets
 
 # LWRP (Legacy)

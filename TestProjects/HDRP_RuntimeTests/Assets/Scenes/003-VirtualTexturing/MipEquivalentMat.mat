@@ -34,11 +34,19 @@ Material:
         m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_51eefc38dcc4408a923b51c61e8f4f91_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_7032e348c09b4bd2847d7f3ab68e4a74_Texture_1:
         m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_b9272dbf7677451397e03e6b774a0cd6_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_bd955fec3ab045a7a970693537a18b9b_Texture_1:
         m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -56,6 +64,7 @@ Material:
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
+    - _AlphaToMaskInspectorValue: 0
     - _BlendMode: 0
     - _CullMode: 2
     - _CullModeForward: 2
@@ -109,4 +118,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 5
+  version: 11

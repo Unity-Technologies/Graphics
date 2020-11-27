@@ -7,13 +7,16 @@ using UnityEngine.Rendering.HighDefinition;
 using System;
 using System.Linq;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "Diffusion Profile")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.DiffusionProfileNode")]
     [FormerName("UnityEditor.ShaderGraph.DiffusionProfileNode")]
-    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode
+    [HasDependencies(typeof(DiffusionProfileNode))]
+    class DiffusionProfileNode : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode, IHasDependencies
     {
         public DiffusionProfileNode()
         {
@@ -61,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             set
             {
                 if (m_DiffusionProfileAsset == value)
-                    return ;
+                    return;
 
                 var serializedProfile = new DiffusionProfileSerializer();
                 serializedProfile.diffusionProfileAsset = value;
@@ -92,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_DiffusionProfile.selectedEntry != 0)
             {
                 // Can't reliably retrieve the slot value from here so we warn the user that we probably loose his diffusion profile reference
-                Debug.LogError("Failed to upgrade the diffusion profile node value, reseting to default value."+
+                Debug.LogError("Failed to upgrade the diffusion profile node value, reseting to default value." +
                     "\nTo remove this message save the shader graph with the new diffusion profile reference.");
                 m_DiffusionProfile.selectedEntry = 0;
             }
@@ -110,18 +113,22 @@ namespace UnityEditor.Rendering.HighDefinition
             sb.AppendLine(string.Format("float {0} = asfloat(uint({1}));", GetVariableNameForSlot(0), hash));
         }
 
-        public override void Setup()
+        public AbstractShaderProperty AsShaderProperty()
         {
-            base.Setup();
+            var prop = new DiffusionProfileShaderProperty { value = diffusionProfile };
+            if (diffusionProfile != null)
+                prop.displayName = diffusionProfile.name;
+            return prop;
+        }
 
-            var hdPipelineAsset = HDRenderPipeline.currentAsset;
+        public int outputSlotId => kOutputSlotId;
 
-            if (hdPipelineAsset == null)
-                return;
-
-            if (diffusionProfile != null && !hdPipelineAsset.diffusionProfileSettingsList.Any(d => d == diffusionProfile))
+        public void GetSourceAssetDependencies(AssetCollection assetCollection)
+        {
+            if ((diffusionProfile != null) && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(diffusionProfile, out string guid, out long localId))
             {
-                //owner.AddSetupError(tempId, $"Diffusion profile '{diffusionProfile.name}' is not referenced in the current HDRP asset", ShaderCompilerMessageSeverity.Warning);
+                // diffusion profile is a ScriptableObject, so this is an artifact dependency
+                assetCollection.AddAssetDependency(new GUID(guid), AssetCollection.Flags.ArtifactDependency | AssetCollection.Flags.IncludeInExportPackage);
             }
         }
     }

@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
@@ -30,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (valueChangedCallback != null)
             {
-                var textField = (TextField) propertyTextField;
+                var textField = (TextField)propertyTextField;
                 textField.RegisterValueChangedCallback(evt => valueChangedCallback(evt.newValue));
             }
 
@@ -45,7 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
                 newStringValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newStringValue}),
-                (string) propertyInfo.GetValue(actualObject),
+                (string)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }

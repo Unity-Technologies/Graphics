@@ -27,6 +27,8 @@ ${VFXEnd}
 ${VFXBegin:VFXPassDepthCommonFragmentLit}
 #if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 ${VFXPassVelocityDefine}
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+${VFXPassShadowDefine}
 #else
 ${VFXPassDepthDefine}
 #endif
@@ -102,7 +104,7 @@ void frag(ps_input i
            #endif
            SurfaceData surface = (SurfaceData)0;
            surface.normalWS = normalWS;
-           EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), i.VFX_VARYING_POSCS.xy, outNormalBuffer);
+           EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surface), outNormalBuffer);
         #endif
 	#endif
 
@@ -120,6 +122,8 @@ void frag(ps_input i
 		// We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
 		outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
 	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+		//void
+	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
 		//void
 	#else
 		#error VFX_PASSDEPTH undefined

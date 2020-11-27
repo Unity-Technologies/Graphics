@@ -1,4 +1,4 @@
-// Performs fading at the edge of the screen. 
+// Performs fading at the edge of the screen.
 float EdgeOfScreenFade(float2 coordNDC, float fadeRcpLength)
 {
     float2 coordCS = coordNDC * 2 - 1;

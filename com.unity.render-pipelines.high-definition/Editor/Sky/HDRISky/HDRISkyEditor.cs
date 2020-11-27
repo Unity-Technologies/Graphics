@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float max = Mathf.Max(hdriIntensity.r, hdriIntensity.g, hdriIntensity.b);
             if (max == 0.0f)
                 max = 1.0f;
-            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r/max, hdriIntensity.g/max, hdriIntensity.b/max);
+            m_UpperHemisphereLuxColor.value.vector3Value = new Vector3(hdriIntensity.r / max, hdriIntensity.g / max, hdriIntensity.b / max);
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
 
@@ -126,9 +126,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!map.overrideState.boolValue || map.value.objectReferenceValue == null)
                 return false;
             var tex = map.value.objectReferenceValue;
-            if (tex.GetType() == typeof(RenderTexture))
-                return (tex as RenderTexture).dimension != TextureDimension.Tex2D;
-            return tex.GetType() != typeof(Texture2D);
+            if (!tex.GetType().IsSubclassOf(typeof(Texture)))
+                return true;
+            return (tex as Texture).dimension != TextureDimension.Tex2D;
         }
 
         public override void OnInspectorGUI()

@@ -6,6 +6,41 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareOpaqueTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ParticlesInstancing.hlsl"
+
+struct ParticleParams
+{
+    float4 positionWS;
+    float4 vertexColor;
+    float4 projectedPosition;
+    half4 baseColor;
+    float3 blendUv;
+    float2 uv;
+};
+
+void InitParticleParams(VaryingsParticle input, out ParticleParams output)
+{
+    output = (ParticleParams) 0;
+    output.uv = input.texcoord;
+    output.vertexColor = input.color;
+
+    #if defined(_FLIPBOOKBLENDING_ON)
+        output.blendUv = input.texcoord2AndBlend;
+    #else
+        output.blendUv = float3(0,0,0);
+    #endif
+
+    #if !defined(PARTICLES_EDITOR_META_PASS)
+        output.positionWS = input.positionWS;
+        output.baseColor = _BaseColor;
+
+        #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
+            output.projectedPosition = input.projectedPosition;
+        #else
+            output.projectedPosition = float4(0,0,0,0);
+        #endif
+    #endif
+}
 
 // Pre-multiplied alpha helper
 #if defined(_ALPHAPREMULTIPLY_ON)
@@ -54,7 +89,21 @@ float SoftParticles(float near, float far, float4 projection)
     {
         float sceneZ = LinearEyeDepth(SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_CameraDepthTexture, UnityStereoTransformScreenSpaceTex(projection.xy / projection.w)).r, _ZBufferParams);
         float thisZ = LinearEyeDepth(projection.z / projection.w, _ZBufferParams);
-        fade = saturate (far * ((sceneZ - near) - thisZ));
+        fade = saturate(far * ((sceneZ - near) - thisZ));
+    }
+    return fade;
+}
+
+// Soft particles - returns alpha value for fading particles based on the depth to the background pixel
+float SoftParticles(float near, float far, ParticleParams params)
+{
+    float fade = 1;
+    if (near > 0.0 || far > 0.0)
+    {
+        float rawDepth = SampleSceneDepth(params.projectedPosition.xy / params.projectedPosition.w);
+        float sceneZ = LinearEyeDepth(rawDepth, _ZBufferParams);
+        float thisZ = LinearEyeDepth(params.positionWS.xyz, GetWorldToViewMatrix());
+        fade = saturate(far * ((sceneZ - near) - thisZ));
     }
     return fade;
 }
@@ -108,6 +157,72 @@ half3 SampleNormalTS(float2 uv, float3 blendUv, TEXTURE2D_PARAM(bumpMap, sampler
 #else
     return half3(0.0h, 0.0h, 1.0h);
 #endif
+}
+
+half4 GetParticleColor(half4 color)
+{
+#if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+#if !defined(UNITY_PARTICLE_INSTANCE_DATA_NO_COLOR)
+    UNITY_PARTICLE_INSTANCE_DATA data = unity_ParticleInstanceData[unity_InstanceID];
+    color = lerp(half4(1.0, 1.0, 1.0, 1.0), color, unity_ParticleUseMeshColors);
+    color *= UnpackFromR8G8B8A8(data.color);
+#endif
+#endif
+    return color;
+}
+
+void GetParticleTexcoords(out float2 outputTexcoord, out float3 outputTexcoord2AndBlend, in float4 inputTexcoords, in float inputBlend)
+{
+#if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+    if (unity_ParticleUVShiftData.x != 0.0)
+    {
+        UNITY_PARTICLE_INSTANCE_DATA data = unity_ParticleInstanceData[unity_InstanceID];
+
+        float numTilesX = unity_ParticleUVShiftData.y;
+        float2 animScale = unity_ParticleUVShiftData.zw;
+#ifdef UNITY_PARTICLE_INSTANCE_DATA_NO_ANIM_FRAME
+        float sheetIndex = 0.0;
+#else
+        float sheetIndex = data.animFrame;
+#endif
+
+        float index0 = floor(sheetIndex);
+        float vIdx0 = floor(index0 / numTilesX);
+        float uIdx0 = floor(index0 - vIdx0 * numTilesX);
+        float2 offset0 = float2(uIdx0 * animScale.x, (1.0 - animScale.y) - vIdx0 * animScale.y); // Copied from built-in as is and it looks like upside-down flip
+
+        outputTexcoord = inputTexcoords.xy * animScale.xy + offset0.xy;
+
+#ifdef _FLIPBOOKBLENDING_ON
+        float index1 = floor(sheetIndex + 1.0);
+        float vIdx1 = floor(index1 / numTilesX);
+        float uIdx1 = floor(index1 - vIdx1 * numTilesX);
+        float2 offset1 = float2(uIdx1 * animScale.x, (1.0 - animScale.y) - vIdx1 * animScale.y);
+
+        outputTexcoord2AndBlend.xy = inputTexcoords.xy * animScale.xy + offset1.xy;
+        outputTexcoord2AndBlend.z = frac(sheetIndex);
+#endif
+    }
+    else
+#endif
+    {
+        outputTexcoord = inputTexcoords.xy;
+#ifdef _FLIPBOOKBLENDING_ON
+        outputTexcoord2AndBlend.xy = inputTexcoords.zw;
+        outputTexcoord2AndBlend.z = inputBlend;
+#endif
+    }
+
+#ifndef _FLIPBOOKBLENDING_ON
+    outputTexcoord2AndBlend.xy = inputTexcoords.xy;
+    outputTexcoord2AndBlend.z = 0.5;
+#endif
+}
+
+void GetParticleTexcoords(out float2 outputTexcoord, in float2 inputTexcoord)
+{
+    float3 dummyTexcoord2AndBlend = 0.0;
+    GetParticleTexcoords(outputTexcoord, dummyTexcoord2AndBlend, inputTexcoord.xyxy, 0.0);
 }
 
 #endif // UNIVERSAL_PARTICLES_INCLUDED

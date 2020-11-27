@@ -26,16 +26,19 @@ namespace UnityEditor.ShaderGraph
             [SerializeField]
             string m_FunctionSource = null;
 
-            public void GetSourceAssetDependencies(List<string> paths)
+            public void GetSourceAssetDependencies(AssetCollection assetCollection)
             {
                 if (m_SourceType == HlslSourceType.File)
                 {
                     m_FunctionSource = UpgradeFunctionSource(m_FunctionSource);
                     if (IsValidFunction(m_SourceType, m_FunctionName, m_FunctionSource, null))
                     {
-                        var assetPath = AssetDatabase.GUIDToAssetPath(m_FunctionSource);
-                        if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
-                            paths.Add(assetPath);
+                        if (GUID.TryParse(m_FunctionSource, out GUID guid))
+                        {
+                            // as this is just #included into the generated .shader file
+                            // it doesn't actually need to be a dependency, other than for export package
+                            assetCollection.AddAssetDependency(guid, AssetCollection.Flags.IncludeInExportPackage);
+                        }
                     }
                 }
             }
@@ -103,9 +106,9 @@ namespace UnityEditor.ShaderGraph
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetOutputSlots<MaterialSlot>(slots);
 
-            if(!IsValidFunction())
+            if (!IsValidFunction())
             {
-                if(generationMode == GenerationMode.Preview && slots.Count != 0)
+                if (generationMode == GenerationMode.Preview && slots.Count != 0)
                 {
                     slots.OrderBy(s => s.id);
                     sb.AppendLine("{0} {1};",
@@ -148,7 +151,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            if(!IsValidFunction())
+            if (!IsValidFunction())
                 return;
 
             switch (sourceType)
@@ -159,7 +162,7 @@ namespace UnityEditor.ShaderGraph
                         string path = AssetDatabase.GUIDToAssetPath(functionSource);
 
                         // This is required for upgrading without console errors
-                        if(string.IsNullOrEmpty(path))
+                        if (string.IsNullOrEmpty(path))
                             path = functionSource;
 
                         string hash;
@@ -244,18 +247,18 @@ namespace UnityEditor.ShaderGraph
         {
             bool validFunctionName = !string.IsNullOrEmpty(functionName) && functionName != k_DefaultFunctionName;
 
-            if(sourceType == HlslSourceType.String)
+            if (sourceType == HlslSourceType.String)
             {
                 bool validFunctionBody = !string.IsNullOrEmpty(functionBody) && functionBody != k_DefaultFunctionBody;
                 return validFunctionName & validFunctionBody;
             }
             else
             {
-                if(!validFunctionName || string.IsNullOrEmpty(functionSource) || functionSource == k_DefaultFunctionSource)
+                if (!validFunctionName || string.IsNullOrEmpty(functionSource) || functionSource == k_DefaultFunctionSource)
                     return false;
 
                 string path = AssetDatabase.GUIDToAssetPath(functionSource);
-                if(string.IsNullOrEmpty(path))
+                if (string.IsNullOrEmpty(path))
                     path = functionSource;
 
                 string extension = Path.GetExtension(path);
@@ -281,38 +284,44 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
-            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            if (sourceType == HlslSourceType.File)
             {
-                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
-            }
-            if(sourceType == HlslSourceType.File)
-            {
-                if(!string.IsNullOrEmpty(functionSource))
+                if (!string.IsNullOrEmpty(functionSource))
                 {
                     string path = AssetDatabase.GUIDToAssetPath(functionSource);
-                    if(!string.IsNullOrEmpty(path))
+                    if (!string.IsNullOrEmpty(path))
                     {
                         string extension = path.Substring(path.LastIndexOf('.'));
-                        if(!s_ValidExtensions.Contains(extension))
+                        if (!s_ValidExtensions.Contains(extension))
                         {
                             owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
                         }
+                        else
+                        {
+                            owner.ClearErrorsForNode(this);
+                        }
                     }
                 }
+            }
+            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            {
+                owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
             ValidateSlotName();
 
             base.ValidateNode();
         }
 
-        public void Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencies)
         {
             if (changedFileDependencies.Contains(m_FunctionSource))
             {
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
                 Dirty(ModificationScope.Graph);
+                return true;
             }
+            return false;
         }
 
         public static string UpgradeFunctionSource(string functionSource)
@@ -322,11 +331,11 @@ namespace UnityEditor.ShaderGraph
             // If asset can be loaded from path then get its guid
             // Otherwise it was the default string so set to empty
             Guid guid;
-            if(!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
+            if (!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
             {
                 string guidString = string.Empty;
                 TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
-                if(textAsset != null)
+                if (textAsset != null)
                 {
                     long localId;
                     AssetDatabase.TryGetGUIDAndLocalFileIdentifier(textAsset, out guidString, out localId);

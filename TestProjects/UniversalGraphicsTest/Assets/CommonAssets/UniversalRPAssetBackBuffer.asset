@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
+  m_Name: UniversalRPAssetBackBuffer
+  m_EditorClassIdentifier: 
+  k_AssetVersion: 5
+  k_AssetPreviousVersion: 5
+  m_RendererType: 1
+  m_RendererData: {fileID: 0}
+  m_RendererDataList:
+  - {fileID: 11400000, guid: f59607d3476b54858a594ea904187fb5, type: 2}
+  - {fileID: 11400000, guid: 676c15eaf197b43079a39998e6c23816, type: 2}
+  - {fileID: 11400000, guid: d64ea0335006ff349b4370486ce0a18f, type: 2}
+  - {fileID: 11400000, guid: d5955759d603da64a9b41edf667c7011, type: 2}
+  - {fileID: 11400000, guid: e46834cadfc4eb241bd46a362765a390, type: 2}
+  - {fileID: 11400000, guid: 00d10fe6866821340b490e3b5b5c19f6, type: 2}
+  - {fileID: 11400000, guid: 25dd23104304c1c44af89227207beefb, type: 2}
+  - {fileID: 11400000, guid: cf6f9a77b024a423386dd9c195cae7cd, type: 2}
+  - {fileID: 11400000, guid: 49c4dd4fd60354b50bf12ea3c22e233e, type: 2}
+  - {fileID: 11400000, guid: a1279a4e92c2a4dd3b60baa458c01606, type: 2}
+  m_DefaultRendererIndex: 0
+  m_RequireDepthTexture: 0
+  m_RequireOpaqueTexture: 0
+  m_OpaqueDownsampling: 1
+  m_SupportsTerrainHoles: 0
+  m_SupportsHDR: 0
+  m_MSAA: 1
+  m_RenderScale: 1
+  m_MainLightRenderingMode: 1
+  m_MainLightShadowsSupported: 1
+  m_MainLightShadowmapResolution: 2048
+  m_AdditionalLightsRenderingMode: 1
+  m_AdditionalLightsPerObjectLimit: 8
+  m_AdditionalLightShadowsSupported: 1
+  m_AdditionalLightsShadowmapResolution: 512
+  m_ShadowDistance: 50
+  m_ShadowCascades: 2
+  m_Cascade2Split: 0.25
+  m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
+  m_ShadowDepthBias: 1
+  m_ShadowNormalBias: 1
+  m_SoftShadowsSupported: 1
+  m_UseSRPBatcher: 1
+  m_SupportsDynamicBatching: 0
+  m_MixedLightingSupported: 1
+  m_DebugLevel: 0
+  m_UseAdaptivePerformance: 1
+  m_ColorGradingMode: 0
+  m_ColorGradingLutSize: 32
+  m_ShadowType: 0
+  m_LocalShadowsSupported: 1
+  m_LocalShadowsAtlasResolution: 512
+  m_MaxPixelLights: 4
+  m_ShadowAtlasResolution: 2048
+  m_ShaderVariantLogLevel: 0
