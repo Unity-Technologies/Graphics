@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Hair;
         protected override string subShaderInclude => CoreIncludes.kHair;
