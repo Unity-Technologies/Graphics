@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MappingMask = FindProperty(m_MappingMaskText);
             m_PlanarSpace = FindProperty(m_PlanarSpaceText);
 
-            m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);    
+            m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);
         }
 
         public override void OnGUI()

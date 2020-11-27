@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return m_PreviewTexture;
         }
     }
-    
+
     [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
     class HDCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
     {

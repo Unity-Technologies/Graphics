@@ -72,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent lightTypeGlobal = new GUIContent("Global", Resources.Load("InspectorIcons/GlobalLight") as Texture);
             public static GUIContent[] lightTypeOptions = new GUIContent[] { lightTypeFreeform, lightTypeSprite, lightTypePoint, lightTypeGlobal };
 
-            
+
             public static GUIContent blendingSettingsFoldout = EditorGUIUtility.TrTextContent("Blending", "Options used for blending");
             public static GUIContent shadowsSettingsFoldout = EditorGUIUtility.TrTextContent("Shadows", "Options used for shadows");
             public static GUIContent volumetricSettingsFoldout = EditorGUIUtility.TrTextContent("Volumetric", "Options used for volumetric lighting");
@@ -184,7 +184,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 foreach (Object targetObj in serializedObject.targetObjects)
                 {
                     Light2D light2d = (Light2D)targetObj;
-                    if(!m_ModifiedLights.Contains(light2d))
+                    if (!m_ModifiedLights.Contains(light2d))
                         m_ModifiedLights.Add(light2d);
                 }
             }
@@ -275,13 +275,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void OnDestroy()
         {
-            if(m_ModifiedLights != null && m_ModifiedLights.Count > 0)
+            if (m_ModifiedLights != null && m_ModifiedLights.Count > 0)
             {
                 foreach (Light2D light in m_ModifiedLights)
                 {
                     SendModifiedAnalytics(m_Analytics, light);
                 }
-            } 
+            }
         }
 
         void DrawBlendingGroup()
@@ -344,7 +344,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-
         void DrawFoldouts()
         {
             DrawBlendingGroup();
@@ -400,7 +399,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             EditorGUI.BeginDisabledGroup(!boolProperty.boolValue);
             EditorGUILayout.PropertyField(property, label);
             EditorGUI.EndDisabledGroup();
-            
+
             EditorGUILayout.EndHorizontal();
 
             EditorGUI.indentLevel = savedIndentLevel;
@@ -471,7 +470,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void DrawParametricDeprecated(SerializedObject serializedObject)
         {
-
             GUIContent buttonText = targets.Length > 1 ? Styles.deprecatedParametricLightButtonMulti : Styles.deprecatedParametricLightButtonSingle;
             GUIContent helpText = targets.Length > 1 ? Styles.deprecatedParametricLightWarningMulti : Styles.deprecatedParametricLightWarningSingle;
             string dialogText = targets.Length > 1 ? Styles.deprecatedParametricLightDialogTextMulti : Styles.deprecatedParametricLightDialogTextSingle;
@@ -494,7 +492,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 }
             }
             EditorGUILayout.Space();
-            EditorGUILayout.HelpBox(Styles.deprecatedParametricLightInstructions);  
+            EditorGUILayout.HelpBox(Styles.deprecatedParametricLightInstructions);
         }
 
         bool DrawLightCommon()
@@ -519,7 +517,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 m_LightIntensity.floatValue = Mathf.Max(m_LightIntensity.floatValue, 0);
 
             return meshChanged;
-
         }
 
         void DrawSpotLight(SerializedObject serializedObject)
@@ -528,7 +525,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             DrawInnerAndOuterSpotAngle(m_PointInnerAngle, m_PointOuterAngle, Styles.InnerOuterSpotAngle);
             EditorGUILayout.Slider(m_FalloffIntensity, 0, 1, Styles.generalFalloffIntensity);
 
-            if(m_DeprecatedPointLightSprite.objectReferenceValue != null)
+            if (m_DeprecatedPointLightSprite.objectReferenceValue != null)
                 EditorGUILayout.PropertyField(m_DeprecatedPointLightSprite, Styles.pointLightSprite);
 
             m_SortingLayerDropDown.OnTargetSortingLayers(serializedObject, targets, Styles.generalSortingLayerPrefixLabel, AnalyticsTrackChanges);
@@ -710,59 +707,59 @@ namespace UnityEditor.Experimental.Rendering.Universal
             switch (light.lightType)
             {
                 case Light2D.LightType.Point:
-                    {
-                        Undo.RecordObject(light.transform, "Edit Point Light Transform");
-                        Undo.RecordObject(light, "Edit Point Light");
+                {
+                    Undo.RecordObject(light.transform, "Edit Point Light Transform");
+                    Undo.RecordObject(light, "Edit Point Light");
 
-                        DrawRangeHandles(light);
-                        DrawAngleHandles(light);
+                    DrawRangeHandles(light);
+                    DrawAngleHandles(light);
 
-                        if (GUI.changed)
-                            EditorUtility.SetDirty(light);
-                    }
-                    break;
+                    if (GUI.changed)
+                        EditorUtility.SetDirty(light);
+                }
+                break;
                 case Light2D.LightType.Sprite:
+                {
+                    var cookieSprite = light.lightCookieSprite;
+                    if (cookieSprite != null)
                     {
-                        var cookieSprite = light.lightCookieSprite;
-                        if (cookieSprite != null)
-                        {
-                            Vector3 min = cookieSprite.bounds.min;
-                            Vector3 max = cookieSprite.bounds.max;
+                        Vector3 min = cookieSprite.bounds.min;
+                        Vector3 max = cookieSprite.bounds.max;
 
-                            Vector3 v0 = t.TransformPoint(new Vector3(min.x, min.y));
-                            Vector3 v1 = t.TransformPoint(new Vector3(max.x, min.y));
-                            Vector3 v2 = t.TransformPoint(new Vector3(max.x, max.y));
-                            Vector3 v3 = t.TransformPoint(new Vector3(min.x, max.y));
+                        Vector3 v0 = t.TransformPoint(new Vector3(min.x, min.y));
+                        Vector3 v1 = t.TransformPoint(new Vector3(max.x, min.y));
+                        Vector3 v2 = t.TransformPoint(new Vector3(max.x, max.y));
+                        Vector3 v3 = t.TransformPoint(new Vector3(min.x, max.y));
 
-                            Handles.DrawLine(v0, v1);
-                            Handles.DrawLine(v1, v2);
-                            Handles.DrawLine(v2, v3);
-                            Handles.DrawLine(v3, v0);
-                        }
+                        Handles.DrawLine(v0, v1);
+                        Handles.DrawLine(v1, v2);
+                        Handles.DrawLine(v2, v3);
+                        Handles.DrawLine(v3, v0);
                     }
-                    break;
+                }
+                break;
                 case Light2D.LightType.Freeform:
+                {
+                    // Draw the falloff shape's outline
+                    List<Vector2> falloffShape = light.GetFalloffShape();
+                    Handles.color = Color.white;
+
+                    for (int i = 0; i < falloffShape.Count - 1; ++i)
                     {
-                        // Draw the falloff shape's outline
-                        List<Vector2> falloffShape = light.GetFalloffShape();
-                        Handles.color = Color.white;
-
-                        for (int i = 0; i < falloffShape.Count - 1; ++i)
-                        {
-                            Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
-                        }
-
-                        Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
-
-                        for (int i = 0; i < light.shapePath.Length - 1; ++i)
-                        {
-                            Handles.DrawLine(t.TransformPoint(light.shapePath[i]),
-                                t.TransformPoint(light.shapePath[i + 1]));
-                        }
-
-                        Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
+                        Handles.DrawLine(t.TransformPoint(falloffShape[i]), t.TransformPoint(falloffShape[i + 1]));
                     }
-                    break;
+
+                    Handles.DrawLine(t.TransformPoint(falloffShape[falloffShape.Count - 1]), t.TransformPoint(falloffShape[0]));
+
+                    for (int i = 0; i < light.shapePath.Length - 1; ++i)
+                    {
+                        Handles.DrawLine(t.TransformPoint(light.shapePath[i]),
+                            t.TransformPoint(light.shapePath[i + 1]));
+                    }
+
+                    Handles.DrawLine(t.TransformPoint(light.shapePath[light.shapePath.Length - 1]), t.TransformPoint(light.shapePath[0]));
+                }
+                break;
             }
         }
 
@@ -787,32 +784,30 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     switch (m_LightType.intValue)
                     {
                         case (int)Light2D.LightType.Point:
-                            {
-
-                                DrawSpotLight(serializedObject);
-                            }
-                            break;
+                        {
+                            DrawSpotLight(serializedObject);
+                        }
+                        break;
                         case (int)Light2D.LightType.Freeform:
-                            {
-                                DrawShapeLight(serializedObject);
-                            }
-                            break;
+                        {
+                            DrawShapeLight(serializedObject);
+                        }
+                        break;
                         case (int)Light2D.LightType.Sprite:
-                            {
-                                DrawSpriteLight(serializedObject);
-                            }
-                            break;
+                        {
+                            DrawSpriteLight(serializedObject);
+                        }
+                        break;
                         case (int)Light2D.LightType.Global:
-                            {
-
-                                DrawGlobalLight(serializedObject);
-                            }
-                            break;
+                        {
+                            DrawGlobalLight(serializedObject);
+                        }
+                        break;
                         case (int)Light2D.DeprecatedLightType.Parametric:
-                            {
-                                DrawParametricDeprecated(serializedObject);
-                            }
-                            break;
+                        {
+                            DrawParametricDeprecated(serializedObject);
+                        }
+                        break;
                     }
 
                     AnalyticsTrackChanges(serializedObject);
@@ -827,10 +822,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             {
                 EditorGUILayout.HelpBox(Styles.renderPipelineUnassignedWarning);
 
-                if(meshChanged)
+                if (meshChanged)
                     lightObject.UpdateMesh(true);
             }
         }
-
     }
 }

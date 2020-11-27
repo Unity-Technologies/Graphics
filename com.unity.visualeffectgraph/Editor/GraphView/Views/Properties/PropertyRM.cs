@@ -97,8 +97,8 @@ namespace UnityEditor.VFX.UI
         {}
 
 
-        void IPropertyRMProvider.StartLiveModification() { }
-        void IPropertyRMProvider.EndLiveModification() { }
+        void IPropertyRMProvider.StartLiveModification() {}
+        void IPropertyRMProvider.EndLiveModification() {}
     }
 
     abstract class PropertyRM : VisualElement
@@ -503,7 +503,6 @@ namespace UnityEditor.VFX.UI
             m_Field.AddToClassList("fieldContainer");
             m_Field.OnValueChanged += OnValueChanged;
             Add(m_Field);
-
         }
 
         public void OnValueChanged()

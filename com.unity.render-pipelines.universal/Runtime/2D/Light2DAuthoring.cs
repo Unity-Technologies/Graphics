@@ -4,10 +4,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     public sealed partial class Light2D
     {
-
 #if UNITY_EDITOR
         private const string s_IconsPath = "Packages/com.unity.render-pipelines.universal/Editor/2D/Resources/SceneViewIcons/";
-        private static readonly string[] s_LightIconFileNames = new []
+        private static readonly string[] s_LightIconFileNames = new[]
         {
             "ParametricLight.png",
             "FreeformLight.png",
@@ -31,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             return LightUtility.GetOutlinePath(m_ShapePath, m_ShapeLightFalloffSize);
         }
-#endif
 
+#endif
     }
 }
