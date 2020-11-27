@@ -59,20 +59,723 @@ VisualEffectResource:
   m_PrefabAsset: {fileID: 0}
   m_Name: Jumping Cubes
   m_Graph: {fileID: 114350483966674976}
-  m_ShaderSources: []
+  m_ShaderSources:
+  - compute: 1
+    name: '[System 1]Update Particle'
+    source: "#pragma kernel CSMain\n#define NB_THREADS_PER_GROUP 64\n#define HAS_ATTRIBUTES
+      1\n#define VFX_PASSDEPTH_ACTUAL (0)\n#define VFX_PASSDEPTH_MOTION_VECTOR (1)\n#define
+      VFX_PASSDEPTH_SELECTION (2)\n#define VFX_PASSDEPTH_SHADOW (3)\n#define VFX_USE_POSITION_CURRENT
+      1\n#define VFX_USE_LIFETIME_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define
+      VFX_USE_ALIVE_CURRENT 1\n#define VFX_HAS_INDIRECT_DRAW 1\n#define VFX_LOCAL_SPACE
+      1\n#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\n\nCBUFFER_START(parameters)\n   
+      float deltaTime_b;\n    uint3 PADDING_0;\nCBUFFER_END\n\nstruct Attributes\n{\n   
+      float3 position;\n    float lifetime;\n    float age;\n    bool alive;\n};\n\nstruct
+      SourceAttributes\n{\n};\n\n\n\n\n#define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT
+      && !HAS_STRIPS)\n\nRWByteAddressBuffer attributeBuffer;\n\n#if USE_DEAD_LIST\nRWStructuredBuffer<uint>
+      deadListOut;\n#endif\n\n#if VFX_HAS_INDIRECT_DRAW\nRWStructuredBuffer<uint>
+      indirectBuffer;\n#endif\n\n#if HAS_STRIPS\nRWBuffer<uint> stripDataBuffer;\n#endif\n\n#if
+      VFX_USE_STRIPALIVE_CURRENT\nBuffer<uint> attachedStripDataBuffer;\n#endif\n\nCBUFFER_START(updateParams)\n   
+      uint nbMax;\n\tuint dispatchWidth;\n\tuint systemSeed;\nCBUFFER_END\n\n#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl\"\n#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"\n\n\n\nvoid
+      SetAttribute_CAC29747(inout float3 position, float3 Position) /*attribute:position
+      Composition:Overwrite Source:Slot Random:Off channels:XYZ */\n{\n    position
+      = Position;\n}\nvoid Age(inout float age, float deltaTime)\n{\n    age += deltaTime;\n}\nvoid
+      Reap(float age, float lifetime, inout bool alive)\n{\n    if(age > lifetime)
+      { alive = false; }\n}\n\n\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3
+      groupId          : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n\tuint
+      id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth
+      * NB_THREADS_PER_GROUP;\n\tuint index = id;\n\tif (id < nbMax)\n\t{\n       
+      Attributes attributes = (Attributes)0;\n\t\tSourceAttributes sourceAttributes
+      = (SourceAttributes)0;\n\n#if VFX_USE_ALIVE_CURRENT\n\t\tattributes.alive =
+      (attributeBuffer.Load((index * 0x1 + 0x70000) << 2));\n\t\t\n\n\t\tif (attributes.alive)\n\t\t{\n\t\t\tattributes.position
+      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\tattributes.lifetime
+      = asfloat(attributeBuffer.Load((index * 0x1 + 0x40000) << 2));\n\t\t\tattributes.age
+      = asfloat(attributeBuffer.Load((index * 0x1 + 0x60000) << 2));\n\t\t\t\n\n\n//
+      Initialize built-in needed attributes\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\t\tattributes.oldPosition
+      = attributes.position;\n#endif\n#if HAS_STRIPS\n            const StripData
+      stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);\n           
+      InitStripAttributes(index, attributes, stripData);\n#endif\n\t\t\t\n\t\t\t{\n\t\t\t   
+      float tmp_v = attributes.position[0];\n\t\t\t    float tmp_y = attributes.age
+      / attributes.lifetime;\n\t\t\t    float tmp_ba = tmp_y * (float)6.28318548;\n\t\t\t   
+      float tmp_bb = cos(tmp_ba);\n\t\t\t    float tmp_bc = (float)1 - tmp_bb;\n\t\t\t   
+      float tmp_be = tmp_bc / (float)2;\n\t\t\t    float tmp_bg = tmp_be * (float)8.31999969;\n\t\t\t   
+      float tmp_bh = (float)-4.15999985 + tmp_bg;\n\t\t\t    float tmp_bi = attributes.position[2];\n\t\t\t   
+      float3 tmp_bj = float3(tmp_v, tmp_bh, tmp_bi);\n\t\t\t    SetAttribute_CAC29747(
+      /*inout */attributes.position, tmp_bj);\n\t\t\t}\n\t\t\tAge( /*inout */attributes.age,
+      deltaTime_b);\n\t\t\tReap(attributes.age, attributes.lifetime,  /*inout */attributes.alive);\n\t\t\t\n\n\n\t\t\tif
+      (attributes.alive)\n\t\t\t{\n\t\t\t\tattributeBuffer.Store3((index * 0x4 +
+      0x0) << 2,asuint(attributes.position));\n\t\t\t\tattributeBuffer.Store((index
+      * 0x1 + 0x60000) << 2,asuint(attributes.age));\n\t\t\t\t\n\n#if VFX_HAS_INDIRECT_DRAW\n               
+      uint indirectIndex = indirectBuffer.IncrementCounter();\n\t\t\t\tindirectBuffer[indirectIndex]
+      = index;\n#endif\n\n#if HAS_STRIPS\t\t\t\n\t\t\t\tuint relativeIndexInStrip
+      = GetRelativeIndex(index, stripData);\n\t\t\t\tInterlockedMin(STRIP_DATA(STRIP_MIN_ALIVE,
+      stripData.stripIndex), relativeIndexInStrip);\n\t\t\t\tInterlockedMax(STRIP_DATA(STRIP_MAX_ALIVE,
+      stripData.stripIndex), relativeIndexInStrip);\n#endif\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tattributeBuffer.Store((index
+      * 0x1 + 0x70000) << 2,uint(attributes.alive));\n\t\t\t\t\n\n#if USE_DEAD_LIST
+      && !VFX_USE_STRIPALIVE_CURRENT\n\t\t\t\tuint deadIndex = deadListOut.IncrementCounter();\n\t\t\t\tdeadListOut[deadIndex]
+      = index;\n#endif\n\t\t\t}\n\t\t}\n#if USE_DEAD_LIST && VFX_USE_STRIPALIVE_CURRENT\n       
+      else if (attributes.stripAlive)\n        {\n            if (STRIP_DATA_X(attachedStripDataBuffer,
+      STRIP_MIN_ALIVE, index) == ~1) // Attached strip is no longer alive, recycle
+      the particle \n            {\n                uint deadIndex = deadListOut.IncrementCounter();\n\t\t\t\tdeadListOut[deadIndex]
+      = index;\n                attributes.stripAlive = false;\n                \n           
+      }            \n        }\n#endif\n#else\n\t\tattributes.position = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x0) << 2));\n\t\tattributes.lifetime = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x40000) << 2));\n\t\tattributes.age = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x60000) << 2));\n\t\tattributes.alive = (attributeBuffer.Load((index
+      * 0x1 + 0x70000) << 2));\n\t\t\n\n\t\t\n#if VFX_USE_OLDPOSITION_CURRENT\n\t\tattributes.oldPosition
+      = attributes.position;\n#endif\n#if HAS_STRIPS\n        const StripData stripData
+      = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);\n       
+      InitStripAttributes(index, attributes, stripData);\n#endif\n\t\t\n\t\t{\n\t\t   
+      float tmp_v = attributes.position[0];\n\t\t    float tmp_y = attributes.age
+      / attributes.lifetime;\n\t\t    float tmp_ba = tmp_y * (float)6.28318548;\n\t\t   
+      float tmp_bb = cos(tmp_ba);\n\t\t    float tmp_bc = (float)1 - tmp_bb;\n\t\t   
+      float tmp_be = tmp_bc / (float)2;\n\t\t    float tmp_bg = tmp_be * (float)8.31999969;\n\t\t   
+      float tmp_bh = (float)-4.15999985 + tmp_bg;\n\t\t    float tmp_bi = attributes.position[2];\n\t\t   
+      float3 tmp_bj = float3(tmp_v, tmp_bh, tmp_bi);\n\t\t    SetAttribute_CAC29747(
+      /*inout */attributes.position, tmp_bj);\n\t\t}\n\t\tAge( /*inout */attributes.age,
+      deltaTime_b);\n\t\tReap(attributes.age, attributes.lifetime,  /*inout */attributes.alive);\n\t\t\n\n\t\tattributeBuffer.Store3((index
+      * 0x4 + 0x0) << 2,asuint(attributes.position));\n\t\tattributeBuffer.Store((index
+      * 0x1 + 0x60000) << 2,asuint(attributes.age));\n\t\tattributeBuffer.Store((index
+      * 0x1 + 0x70000) << 2,uint(attributes.alive));\n\t\t\n\n#if VFX_HAS_INDIRECT_DRAW\n       
+      uint indirectIndex = indirectBuffer.IncrementCounter();\n\t\tindirectBuffer[indirectIndex]
+      = index;\n#endif\n#endif\n\t}\n}\n"
+  - compute: 1
+    name: '[System 1]Initialize Particle'
+    source: "#pragma kernel CSMain\n#define NB_THREADS_PER_GROUP 64\n#define HAS_ATTRIBUTES
+      1\n#define VFX_PASSDEPTH_ACTUAL (0)\n#define VFX_PASSDEPTH_MOTION_VECTOR (1)\n#define
+      VFX_PASSDEPTH_SELECTION (2)\n#define VFX_PASSDEPTH_SHADOW (3)\n#define VFX_USE_POSITION_CURRENT
+      1\n#define VFX_USE_SEED_CURRENT 1\n#define VFX_USE_LIFETIME_CURRENT 1\n#define
+      VFX_USE_SIZE_CURRENT 1\n#define VFX_USE_AGE_CURRENT 1\n#define VFX_USE_ALIVE_CURRENT
+      1\n#define VFX_LOCAL_SPACE 1\n#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\n\n\nstruct
+      Attributes\n{\n    float3 position;\n    uint seed;\n    float lifetime;\n   
+      float size;\n    float age;\n    bool alive;\n};\n\nstruct SourceAttributes\n{\n};\n\n\n\n\n#define
+      USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)\n\nRWByteAddressBuffer
+      attributeBuffer;\nByteAddressBuffer sourceAttributeBuffer;\n\nCBUFFER_START(initParams)\n#if
+      !VFX_USE_SPAWNER_FROM_GPU\n    uint nbSpawned;\t\t\t\t\t// Numbers of particle
+      spawned\n    uint spawnIndex;\t\t\t\t// Index of the first particle spawned\n   
+      uint dispatchWidth;\n#else\n    uint offsetInAdditionalOutput;\n\tuint nbMax;\n#endif\n\tuint
+      systemSeed;\nCBUFFER_END\n\n#if USE_DEAD_LIST\nRWStructuredBuffer<uint> deadListIn;\nByteAddressBuffer
+      deadListCount; // This is bad to use a SRV to fetch deadList count but Unity
+      API currently prevent from copying to CB\n#endif\n\n#if VFX_USE_SPAWNER_FROM_GPU\nStructuredBuffer<uint>
+      eventList;\nByteAddressBuffer inputAdditional;\n#endif\n\n#if HAS_STRIPS\nRWBuffer<uint>
+      stripDataBuffer;\n#endif\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl\"\n#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"\n\n\n\nvoid
+      PositionLine_0(inout float3 position, inout uint seed, float3 line_start, float3
+      line_end, float volumeFactor) /*positionMode:Surface spawnMode:Random */\n{\n   
+      position += lerp(line_start, line_end, RAND);\n}\nvoid SetAttribute_F0142CB9(inout
+      float lifetime, float Lifetime) /*attribute:lifetime Composition:Overwrite
+      Source:Slot Random:Off channels:XYZ */\n{\n    lifetime = Lifetime;\n}\nvoid
+      SetAttribute_3278B22F(inout float size, float Size) /*attribute:size Composition:Overwrite
+      Source:Slot Random:Off channels:XYZ */\n{\n    size = Size;\n}\n\n\n\n// Due
+      to a bug in HLSL compiler, disable spurious \"unitialized variable\" due to
+      mid function return statement\n#pragma warning(push)\n#pragma warning(disable
+      : 4000)\n#if HAS_STRIPS\nbool GetParticleIndex(inout uint particleIndex, uint
+      stripIndex)\n{\n\tuint relativeIndex;\n\tInterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX,
+      stripIndex), 1, relativeIndex);\n\tif (relativeIndex >= PARTICLE_PER_STRIP_COUNT)
+      // strip is full\n\t{\n\t\tInterlockedAdd(STRIP_DATA(STRIP_NEXT_INDEX, stripIndex),
+      -1); // Remove previous increment\n\t\treturn false;\n\t}\n\n\tparticleIndex
+      = stripIndex * PARTICLE_PER_STRIP_COUNT + ((STRIP_DATA(STRIP_FIRST_INDEX, stripIndex)
+      + relativeIndex) % PARTICLE_PER_STRIP_COUNT);\n    return true;\n}\n#endif\n#pragma
+      warning(pop)\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid CSMain(uint3 groupId         
+      : SV_GroupID,\n            uint3 groupThreadId    : SV_GroupThreadID)\n{\n   
+      uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;\n#if !VFX_USE_SPAWNER_FROM_GPU\n   
+      id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n#endif\n\n#if VFX_USE_SPAWNER_FROM_GPU\n   
+      uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput * 2 + 0)
+      << 2);\n    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput
+      * 2 + 1) << 2) - maxThreadId;\n#else\n    uint maxThreadId = nbSpawned;\n   
+      uint currentSpawnIndex = spawnIndex;\n#endif\n\n#if USE_DEAD_LIST\n    maxThreadId
+      = min(maxThreadId, deadListCount.Load(0x0));\n#elif VFX_USE_SPAWNER_FROM_GPU\n   
+      maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped
+      on CPU\n#endif\n\n    if (id < maxThreadId)\n    {\n#if VFX_USE_SPAWNER_FROM_GPU\n       
+      int sourceIndex = eventList[id];\n#endif\n\t\tuint particleIndex = id + currentSpawnIndex;\n\t\t\n#if
+      !VFX_USE_SPAWNER_FROM_GPU\n        int sourceIndex = 0;\n        /*//Loop with
+      1 iteration generate a wrong IL Assembly (and actually, useless code)\n       
+      uint currentSumSpawnCount = 0u;\n        for (sourceIndex=0; sourceIndex<1;
+      sourceIndex++)\n        {\n            currentSumSpawnCount += uint(asfloat(sourceAttributeBuffer.Load((sourceIndex
+      * 0x1 + 0x0) << 2)));\n            if (id < currentSumSpawnCount)\n           
+      {\n                break;\n            }\n        }\n        */\n        \n\n#endif\n\n\t\tAttributes
+      attributes = (Attributes)0;\n\t\tSourceAttributes sourceAttributes = (SourceAttributes)0;\n\t\t\n       
+      attributes.position = float3(0, 0, 0);\n        attributes.seed = (uint)0;\n       
+      attributes.lifetime = (float)1;\n        attributes.size = (float)0.100000001;\n       
+      attributes.age = (float)0;\n        attributes.alive = (bool)true;\n       
+      \n\n#if VFX_USE_PARTICLEID_CURRENT\n         attributes.particleId = particleIndex;\n#endif\n#if
+      VFX_USE_SEED_CURRENT\n        attributes.seed = WangHash(particleIndex ^ systemSeed);\n#endif\n#if
+      VFX_USE_SPAWNINDEX_CURRENT\n        attributes.spawnIndex = id;\n#endif\n#if
+      HAS_STRIPS\n#if !VFX_USE_SPAWNER_FROM_GPU\n\t\t\n#else\n        uint stripIndex
+      = sourceIndex;\n#endif\n\t\tstripIndex = min(stripIndex, STRIP_COUNT);\n\n       
+      if (!GetParticleIndex(particleIndex, stripIndex))\n            return;\n\n       
+      const StripData stripData = GetStripDataFromStripIndex(stripIndex, PARTICLE_PER_STRIP_COUNT);\n\t\tInitStripAttributes(particleIndex,
+      attributes, stripData);\n\t\t// TODO Change seed to be sure we're deterministic
+      on random with strip\n#endif\n        \n        {\n            PositionLine_0(
+      /*inout */attributes.position,  /*inout */attributes.seed, float3(-10.5704613,
+      0, 0.461450577), float3(10.2141409, 0, -0.114893913), (float)1);\n        }\n       
+      {\n            SetAttribute_F0142CB9( /*inout */attributes.lifetime, (float)2);\n       
+      }\n        {\n            SetAttribute_3278B22F( /*inout */attributes.size,
+      (float)0.910000026);\n        }\n        \n\n\t\t\n#if VFX_USE_ALIVE_CURRENT\n       
+      if (attributes.alive)\n#endif       \n        {\n#if USE_DEAD_LIST\n\t       
+      uint deadIndex = deadListIn.DecrementCounter();\n            uint index = deadListIn[deadIndex];\n#else\n           
+      uint index = particleIndex;\n#endif\n            attributeBuffer.Store3((index
+      * 0x4 + 0x0) << 2,asuint(attributes.position));\n            attributeBuffer.Store((index
+      * 0x1 + 0x40000) << 2,asuint(attributes.lifetime));\n            attributeBuffer.Store((index
+      * 0x1 + 0x50000) << 2,asuint(attributes.size));\n            attributeBuffer.Store((index
+      * 0x1 + 0x60000) << 2,asuint(attributes.age));\n            attributeBuffer.Store((index
+      * 0x1 + 0x70000) << 2,uint(attributes.alive));\n            \n\n        }\n   
+      }\n}\n"
+  - compute: 0
+    name: '[System 1]Output Particle Cube'
+    source: "Shader \"Hidden/VFX/Jumping Cubes/System 1/Output Particle Cube\"\n{\n\tSubShader\n\t{\t\n\t\tCull
+      Back\n\t\t\n\t\tTags { \"Queue\"=\"Transparent+0\" \"IgnoreProjector\"=\"True\"
+      \"RenderType\"=\"Transparent\" }\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\tBlend
+      SrcAlpha OneMinusSrcAlpha \n\t\tZTest LEqual\n\t\tZWrite Off\n\t\tCull Back\n\t\t\n\t\n\t\t\t\n\t\tHLSLINCLUDE\n\t\t\n\t\t#define
+      NB_THREADS_PER_GROUP 64\n\t\t#define HAS_ATTRIBUTES 1\n\t\t#define VFX_PASSDEPTH_ACTUAL
+      (0)\n\t\t#define VFX_PASSDEPTH_MOTION_VECTOR (1)\n\t\t#define VFX_PASSDEPTH_SELECTION
+      (2)\n\t\t#define VFX_PASSDEPTH_SHADOW (3)\n\t\t#define VFX_USE_POSITION_CURRENT
+      1\n\t\t#define VFX_USE_SIZE_CURRENT 1\n\t\t#define VFX_USE_COLOR_CURRENT 1\n\t\t#define
+      VFX_USE_ALPHA_CURRENT 1\n\t\t#define VFX_USE_ALIVE_CURRENT 1\n\t\t#define VFX_USE_AXISX_CURRENT
+      1\n\t\t#define VFX_USE_AXISY_CURRENT 1\n\t\t#define VFX_USE_AXISZ_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEX_CURRENT 1\n\t\t#define VFX_USE_ANGLEY_CURRENT 1\n\t\t#define
+      VFX_USE_ANGLEZ_CURRENT 1\n\t\t#define VFX_USE_PIVOTX_CURRENT 1\n\t\t#define
+      VFX_USE_PIVOTY_CURRENT 1\n\t\t#define VFX_USE_PIVOTZ_CURRENT 1\n\t\t#define
+      VFX_USE_SCALEX_CURRENT 1\n\t\t#define VFX_USE_SCALEY_CURRENT 1\n\t\t#define
+      VFX_USE_SCALEZ_CURRENT 1\n\t\t#define VFX_COLORMAPPING_DEFAULT 1\n\t\t#define
+      IS_TRANSPARENT_PARTICLE 1\n\t\t#define VFX_BLENDMODE_ALPHA 1\n\t\t#define VFX_HAS_INDIRECT_DRAW
+      1\n\t\t#define VFX_BYPASS_EXPOSURE 1\n\t\t#define USE_DEAD_LIST_COUNT 1\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t\n\t\t#define
+      VFX_LOCAL_SPACE 1\n\t\t#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\t\t\n\n\t\t\n\t\tstruct
+      Attributes\n\t\t{\n\t\t    float3 position;\n\t\t    float size;\n\t\t    float3
+      color;\n\t\t    float alpha;\n\t\t    bool alive;\n\t\t    float3 axisX;\n\t\t   
+      float3 axisY;\n\t\t    float3 axisZ;\n\t\t    float angleX;\n\t\t    float
+      angleY;\n\t\t    float angleZ;\n\t\t    float pivotX;\n\t\t    float pivotY;\n\t\t   
+      float pivotZ;\n\t\t    float scaleX;\n\t\t    float scaleY;\n\t\t    float
+      scaleZ;\n\t\t};\n\t\t\n\t\tstruct SourceAttributes\n\t\t{\n\t\t};\n\t\t\n\t\tTexture2D
+      mainTexture;\n\t\tSamplerState samplermainTexture;\n\t\tfloat4 mainTexture_TexelSize;\n\t\t\n\t\t\n\n\t\t\n\t\t#define
+      VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)\n\t\t#if
+      HAS_STRIPS\n\t\t#define VFX_OPTIONAL_INTERPOLATION \n\t\t#else\n\t\t#define
+      VFX_OPTIONAL_INTERPOLATION nointerpolation\n\t\t#endif\n\t\t\n\t\tByteAddressBuffer
+      attributeBuffer;\t\n\t\t\n\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\tStructuredBuffer<uint>
+      indirectBuffer;\t\n\t\t#endif\t\n\t\t\n\t\t#if USE_DEAD_LIST_COUNT\n\t\tByteAddressBuffer
+      deadListCount;\n\t\t#endif\n\t\t\n\t\t#if HAS_STRIPS\n\t\tBuffer<uint> stripDataBuffer;\n\t\t#endif\n\t\t\n\t\t#if
+      WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS\n\t\tByteAddressBuffer
+      elementToVFXBufferPrevious;\n\t\t#endif\n\t\t\n\t\tCBUFFER_START(outputParams)\n\t\t\tfloat
+      nbMax;\n\t\t\tfloat systemSeed;\n\t\tCBUFFER_END\n\t\t\n\t\t// Helper macros
+      to always use a valid instanceID\n\t\t#if defined(UNITY_STEREO_INSTANCING_ENABLED)\n\t\t\t#define
+      VFX_DECLARE_INSTANCE_ID     UNITY_VERTEX_INPUT_INSTANCE_ID\n\t\t\t#define VFX_GET_INSTANCE_ID(i)     
+      unity_InstanceID\n\t\t#else\n\t\t\t#define VFX_DECLARE_INSTANCE_ID     uint
+      instanceID : SV_InstanceID;\n\t\t\t#define VFX_GET_INSTANCE_ID(i)      i.instanceID\n\t\t#endif\n\t\t\n\t\tENDHLSL\n\t\t\n\n       
+      Pass\n        {\t\t\n        \tTags { \"LightMode\"=\"SceneSelectionPass\"
+      }\n        \n        \tZWrite On\n        \tBlend Off\n        \t\n       
+      \tHLSLPROGRAM\n        \t#define VFX_PASSDEPTH VFX_PASSDEPTH_SELECTION\n       
+      \t#pragma target 4.5\n        \t\n        \tstruct ps_input\n        \t{\n       
+      \t\tfloat4 pos : SV_POSITION;\n        \t\t#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT\n       
+      \t\t// x: alpha\n        \t\t// y: alpha threshold\n        \t\tnointerpolation
+      float2 builtInInterpolants : TEXCOORD1;\n        \t\t#endif\n        \t\t#if
+      VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR\n        \t\tfloat4 cPosPrevious
+      : TEXCOORD2;\n        \t\tfloat4 cPosNonJiterred : TEXCOORD3;\n        \t\t#endif\n       
+      \t\n        \t\tUNITY_VERTEX_OUTPUT_STEREO\n        \t};\n        \t\n       
+      \t#define VFX_VARYING_PS_INPUTS ps_input\n        \t#define VFX_VARYING_POSCS
+      pos\n        \t#define VFX_VARYING_ALPHA builtInInterpolants.x\n        \t#define
+      VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n        \t#if VFX_PASSDEPTH
+      == VFX_PASSDEPTH_MOTION_VECTOR\n        \t#define VFX_VARYING_VELOCITY_CPOS
+      cPosNonJiterred\n        \t#define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious\n       
+      \t#endif\n        \t\n        \t#undef VFX_USE_RIM_LIGHT\n        \t\n       
+      \t#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR\n        \t#define SHADERPASS
+      SHADERPASS_MOTION_VECTORS\n        \t#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
+      || VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION\n        \t#define SHADERPASS SHADERPASS_DEPTH_ONLY\n       
+      \t#endif\n        \t\n        \t#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))\n       
+      \t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS must be defined.\n       
+      \t#endif\n        \t\n        \t#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl\"\n       
+      \t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"\n       
+      \t\n\n        \t\n        \t\n        \tstruct vs_input\n        \t{\n       
+      \t\tVFX_DECLARE_INSTANCE_ID\n        \t};\n        \t\n        \t#pragma vertex
+      vert\n        \tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input
+      i)\n        \t{\n        \t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n       
+      \t\t\n        \t\tUNITY_SETUP_INSTANCE_ID(i);\n        \t\tUNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);\n       
+      \t\n        \t\tuint index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;\n       
+      \t\t\n        \t\t\n        \t\t\t\tuint deadCount = 0;\n        \t\t\t\t#if
+      USE_DEAD_LIST_COUNT\n        \t\t\t\tdeadCount = deadListCount.Load(0);\n       
+      \t\t\t\t#endif\t\n        \t\t\t\tif (index >= asuint(nbMax) - deadCount)\n       
+      \t\t\t\t#if USE_GEOMETRY_SHADER\n        \t\t\t\t\treturn; // cull\n       
+      \t\t\t\t#else\n        \t\t\t\t\treturn o; // cull\n        \t\t\t\t#endif\n       
+      \t\t\t\t\n        \t\t\t\tAttributes attributes = (Attributes)0;\n        \t\t\t\tSourceAttributes
+      sourceAttributes = (SourceAttributes)0;\n        \t\t\t\t\n        \t\t\t\t#if
+      VFX_HAS_INDIRECT_DRAW\n        \t\t\t\tindex = indirectBuffer[index];\n       
+      \t\t\t\tattributes.position = asfloat(attributeBuffer.Load3((index * 0x4 +
+      0x0) << 2));\n        \t\t\t\tattributes.size = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x50000) << 2));\n        \t\t\t\tattributes.color = float3(1, 1, 1);\n       
+      \t\t\t\tattributes.alpha = (float)1;\n        \t\t\t\tattributes.alive = (attributeBuffer.Load((index
+      * 0x1 + 0x70000) << 2));\n        \t\t\t\tattributes.axisX = float3(1, 0, 0);\n       
+      \t\t\t\tattributes.axisY = float3(0, 1, 0);\n        \t\t\t\tattributes.axisZ
+      = float3(0, 0, 1);\n        \t\t\t\tattributes.angleX = (float)0;\n       
+      \t\t\t\tattributes.angleY = (float)0;\n        \t\t\t\tattributes.angleZ =
+      (float)0;\n        \t\t\t\tattributes.pivotX = (float)0;\n        \t\t\t\tattributes.pivotY
+      = (float)0;\n        \t\t\t\tattributes.pivotZ = (float)0;\n        \t\t\t\tattributes.scaleX
+      = (float)1;\n        \t\t\t\tattributes.scaleY = (float)1;\n        \t\t\t\tattributes.scaleZ
+      = (float)1;\n        \t\t\t\t\n        \t\t\n        \t\t\t\t#else\n       
+      \t\t\t\tattributes.alive = (attributeBuffer.Load((index * 0x1 + 0x70000) <<
+      2));\n        \t\t\t\t\n        \t\t\n        \t\t\t\t#if !HAS_STRIPS\n       
+      \t\t\t\tif (!attributes.alive)\n        \t\t\t\t\treturn o;\n        \t\t\t\t#endif\n       
+      \t\t\t\t\t\n        \t\t\t\tattributes.position = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x0) << 2));\n        \t\t\t\tattributes.size = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x50000) << 2));\n        \t\t\t\tattributes.color = float3(1, 1, 1);\n       
+      \t\t\t\tattributes.alpha = (float)1;\n        \t\t\t\tattributes.axisX = float3(1,
+      0, 0);\n        \t\t\t\tattributes.axisY = float3(0, 1, 0);\n        \t\t\t\tattributes.axisZ
+      = float3(0, 0, 1);\n        \t\t\t\tattributes.angleX = (float)0;\n       
+      \t\t\t\tattributes.angleY = (float)0;\n        \t\t\t\tattributes.angleZ =
+      (float)0;\n        \t\t\t\tattributes.pivotX = (float)0;\n        \t\t\t\tattributes.pivotY
+      = (float)0;\n        \t\t\t\tattributes.pivotZ = (float)0;\n        \t\t\t\tattributes.scaleX
+      = (float)1;\n        \t\t\t\tattributes.scaleY = (float)1;\n        \t\t\t\tattributes.scaleZ
+      = (float)1;\n        \t\t\t\t\n        \t\t\n        \t\t\t\t#endif\n       
+      \t\t\t\t\n        \t\t\t\t// Initialize built-in needed attributes\n       
+      \t\t\t\t#if HAS_STRIPS\n        \t\t\t\tInitStripAttributes(index, attributes,
+      stripData);\n        \t\t\t\t#endif\n        \t\t\t\t\n        \t\t\n       
+      \t\t\t\t\n        \t\tif (!attributes.alive)\n        \t\t\treturn o;\n       
+      \t\t\n        \t\tfloat3 offsets = (float3)0;\n        \t\toffsets.x = float(id
+      & 1);\n        \t\toffsets.y = float((id & 2) >> 1);\n        \t\toffsets.z
+      = float((id & 6) >> 2);\n        \t\toffsets -= 0.5f;\n        \t\t\n       
+      \t\t\n        \t\t\t\tfloat3 size3 = float3(attributes.size,attributes.size,attributes.size);\n       
+      \t\t\t\t#if VFX_USE_SCALEX_CURRENT\n        \t\t\t\tsize3.x *= attributes.scaleX;\n       
+      \t\t\t\t#endif\n        \t\t\t\t#if VFX_USE_SCALEY_CURRENT\n        \t\t\t\tsize3.y
+      *= attributes.scaleY;\n        \t\t\t\t#endif\n        \t\t\t\t#if VFX_USE_SCALEZ_CURRENT\n       
+      \t\t\t\tsize3.z *= attributes.scaleZ;\n        \t\t\t\t#endif\n        \t\t\t\t\n       
+      \t\t\n        \t\tfloat3x3 rot = GetEulerMatrix(radians(float3(attributes.angleX,attributes.angleY,attributes.angleZ)));\n       
+      \t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n        \t\t\tattributes.axisX,\n       
+      \t\t\tattributes.axisY,\n        \t\t\tattributes.axisZ,\n        \t\t\trot,\n       
+      \t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n       
+      \t\t\tsize3,\n        \t\t\tattributes.position);\n        \t\n        \t\tfloat3
+      inputVertexPosition = offsets;\n        \t\tfloat3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n       
+      \t\tfloat3 vPosWS = TransformPositionVFXToWorld(vPos);\n        \t\t\n       
+      \t#ifdef VFX_VARYING_POSWS\n        \t\to.VFX_VARYING_POSWS = vPosWS;\n       
+      \t#endif\n        \t#ifdef VFX_VARYING_OFFSETS\n        \t\to.VFX_VARYING_OFFSETS
+      = offsets * 2.0f;\n        \t#endif\n        \t#ifdef VFX_VARYING_FACEID\n       
+      \t\to.VFX_VARYING_FACEID = (id & 7) % 5;\n        \t#endif\n        \t#if defined(VFX_VARYING_ROTX)
+      && defined(VFX_VARYING_ROTY)\n        \t\trot = mul(transpose(float3x3(attributes.axisX,attributes.axisY,attributes.axisZ)),rot);\n       
+      \t#ifdef VFX_LOCAL_SPACE \n        \t\trot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);\n       
+      \t#endif\n        \t\to.VFX_VARYING_ROTX = rot[0];\n        \t\to.VFX_VARYING_ROTY
+      = rot[1];\n        \t#endif\n        \t\to.VFX_VARYING_POSCS = VFXTransformPositionWorldToClip(vPosWS);\n       
+      \t\t\n        \t\t\n        \t\t\t\t#if defined(VFX_VARYING_VELOCITY_CPOS)
+      && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n        \t\t\t\tfloat4x4 previousElementToVFX
+      = (float4x4)0;\n        \t\t\t\tpreviousElementToVFX[3] = float4(0,0,0,1);\n       
+      \t\t\t\t\n        \t\t\t\tUNITY_UNROLL\n        \t\t\t\tfor (int itIndexMatrixRow
+      = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)\n        \t\t\t\t{\n       
+      \t\t\t\t\tUNITY_UNROLL\n        \t\t\t\t\tfor (int itIndexMatrixCol = 0; itIndexMatrixCol
+      < 4; ++itIndexMatrixCol)\n        \t\t\t\t\t{\n        \t\t\t\t\t\tuint itIndexMatrix
+      = itIndexMatrixCol * 4 + itIndexMatrixRow;\n        \t\t\t\t\t\tuint read =
+      elementToVFXBufferPrevious.Load((index * 16 + itIndexMatrix) << 2);\n       
+      \t\t\t\t\t\tpreviousElementToVFX[itIndexMatrixRow][itIndexMatrixCol] = asfloat(read);\n       
+      \t\t\t\t\t}\n        \t\t\t\t}\n        \t\t\t\t\n        \t\t\t\tuint previousFrameIndex
+      = elementToVFXBufferPrevious.Load((index * 16 + 15) << 2);\n        \t\t\t\to.VFX_VARYING_VELOCITY_CPOS
+      = o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = float4(0.0f, 0.0f, 0.0f, 1.0f);\n       
+      \t\t\t\tif (asuint(currentFrameIndex) - previousFrameIndex == 1u)\n       
+      \t\t\t\t{\n        \t\t\t\t\tfloat3 oldvPos = mul(previousElementToVFX,float4(inputVertexPosition,
+      1.0f)).xyz;\n        \t\t\t\t\to.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = TransformPositionVFXToPreviousClip(oldvPos);\n       
+      \t\t\t\t\to.VFX_VARYING_VELOCITY_CPOS = TransformPositionVFXToNonJitteredClip(vPos);\n       
+      \t\t\t\t}\n        \t\t\t\t#endif\n        \t\t\t\t\n        \t\n        \t\t\n       
+      \t\t\t\t#if VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\n        \t\t\t\to.VFX_VARYING_COLOR
+      = attributes.color;\n        \t\t\t\t#endif\n        \t\t\t\t#if VFX_USE_ALPHA_CURRENT
+      && defined(VFX_VARYING_ALPHA) \n        \t\t\t\to.VFX_VARYING_ALPHA = attributes.alpha;\n       
+      \t\t\t\t#endif\n        \t\t\t\t\n        \t\t\t\t#ifdef VFX_VARYING_EXPOSUREWEIGHT\n       
+      \t\t\t\t\n        \t\t\t\to.VFX_VARYING_EXPOSUREWEIGHT = exposureWeight;\n       
+      \t\t\t\t#endif\n        \t\t\t\t\n        \t\t\t\t#if USE_SOFT_PARTICLE &&
+      defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n        \t\t\t\t\n       
+      \t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE = invSoftParticlesFadeDistance;\n       
+      \t\t\t\t#endif\n        \t\t\t\t\n        \t\t\t\t#if (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD)
+      && (!VFX_SHADERGRAPH || !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n       
+      \t\t\t\t\n        \t\t\t\to.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;\n       
+      \t\t\t\t#endif\n        \t\t\t\t\n        \t\t\t\t#if USE_UV_SCALE_BIAS\n       
+      \t\t\t\t\n        \t\t\t\t\n        \t\t\t\t#if defined (VFX_VARYING_UV)\n       
+      \t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;\n       
+      \t\t\t\t#endif\n        \t\t\t\t#endif\n        \t\t\t\t\n        \t\t\t\t#if
+      defined(VFX_VARYING_POSWS)\n        \t\t\t\to.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);\n       
+      \t\t\t\t#endif\n        \t\t\t\t\n        \t\t\n        \t\t\n        \t\t#if
+      USE_UV_SCALE_BIAS && defined(VFX_VARYING_UV_SCALE) && defined(VFX_VARYING_UV_BIAS)\n       
+      \t\to.VFX_VARYING_UV_SCALE = uvScale;\n        \t\to.VFX_VARYING_UV_BIAS =
+      uvBias;\n        \t\t#endif\n        \t\t\n        \t\t#if USE_FLIPBOOK\n       
+      \t\t\n        \t\t\n        \t\t#ifdef VFX_VARYING_TEXINDEX\n        \t\to.VFX_VARYING_TEXINDEX
+      = attributes.texIndex;\n        \t\t#endif\n        \t\t\n        \t\t#if defined(VFX_VARYING_FLIPBOOKSIZE)
+      && defined(VFX_VARYING_INVFLIPBOOKSIZE)\n        \t\to.VFX_VARYING_FLIPBOOKSIZE
+      = flipBookSize;\n        \t\to.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;\n       
+      \t\t#endif\n        \t\t#ifdef VFX_VARYING_TEXINDEX\n        \t\t#if USE_FLIPBOOK_MOTIONVECTORS
+      && defined(VFX_VARYING_MOTIONVECTORSCALE)\n        \t\t\n        \t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n        \t\t#endif\n        \t\t#endif\n       
+      \t\t#endif\n        \t\n        \t\t\n        \t\n        \t\treturn o;\n       
+      \t}\n        \t\n        \t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"\n       
+      \t\n        \tfloat3 VFXCubeGetLocalNormal(VFX_VARYING_PS_INPUTS i)\n       
+      \t{\n        \t#ifdef VFX_VARYING_OFFSETS\n        \t\t//float3 s = i.VFX_VARYING_OFFSETS
+      > 0 ? 1.0f : -1.0f;\n        \t\t//return s * (step(1.0f,s * i.VFX_VARYING_OFFSETS
+      + 1e-5));\n        \t\treturn int3(i.VFX_VARYING_OFFSETS * 1.00001f); // cast
+      uses round_z\n        \t#else\n        \t\treturn 0.0f;\n        \t#endif\n       
+      \t}\n        \t\n        \tfloat3 VFXCubeTransformNormalTS(float3 faceNormal,float3
+      normal)\n        \t{\n        \t\tfloat3x3 tbn = float3x3(faceNormal.zyx,faceNormal.xzy,faceNormal.xyz);\n       
+      \t\treturn mul(tbn,normal);\n        \t}\n        \t\n        \tfloat3 VFXCubeTransformNormalTS(VFX_VARYING_PS_INPUTS
+      i,float3 normal,bool frontFace = true)\n        \t{\n        \t#if defined(VFX_VARYING_OFFSETS)
+      && defined(VFX_VARYING_FACEID)\n        \t\tfloat3x3 tbn;\n        \t\tfloat3
+      faceNormal = VFXCubeGetLocalNormal(i);\n        \t\tif (i.VFX_VARYING_FACEID
+      == 0)\n        \t\t\ttbn = float3x3(-faceNormal.zxy,faceNormal.yzx * faceNormal.yzx,faceNormal.xyz);\n       
+      \t\telse if (i.VFX_VARYING_FACEID == 1)\n        \t\t\ttbn = float3x3(faceNormal.yxz,
+      faceNormal.xzy, float3(0, 1, 0));\n        \t\telse\n        \t\t\ttbn = float3x3(faceNormal.yzx,
+      float3(0,1,0),faceNormal.xyz);\n        \t#ifdef USE_DOUBLE_SIDED\n       
+      \t\tfloat multiplier = frontFace ? 1.0f : -1.0f;\n        \t\ttbn[0] *= multiplier;\n       
+      \t\ttbn[2] *= multiplier;\n        \t#endif\n        \t\treturn mul(tbn, normal);\n       
+      \t#else\n        \t\treturn normal;\n        \t#endif\n        \t}\n       
+      \t\n        \tfloat3 VFXCubeTransformNormalWS(VFX_VARYING_PS_INPUTS i,float3
+      normal)\n        \t{\n        \t#if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)\n       
+      \t\tfloat3x3 rot = float3x3(i.rotX,i.rotY,cross(i.rotX,i.rotY));\n        \t\treturn
+      mul(rot,normal);\n        \t#else\n        \t\treturn normal;\n        \t#endif\n       
+      \t}\n        \t\n        \tfloat2 VFXCubeGetUV(VFX_VARYING_PS_INPUTS i) \n       
+      \t{\n        \t#if defined(VFX_VARYING_OFFSETS) && defined(VFX_VARYING_FACEID)\n       
+      \t\tfloat2 uv;\n        \t\tif (i.VFX_VARYING_FACEID == 0)\n        \t\t\tuv
+      = i.VFX_VARYING_OFFSETS.xy * float2(-i.VFX_VARYING_OFFSETS.z,1);\n        \t\telse
+      if (i.VFX_VARYING_FACEID == 1)\n        \t\t\tuv = i.VFX_VARYING_OFFSETS.xz
+      * float2(i.VFX_VARYING_OFFSETS.y,1);\n        \t\telse\n        \t\t\tuv =
+      i.VFX_VARYING_OFFSETS.zy * float2(i.VFX_VARYING_OFFSETS.x,1);\n        \t\treturn
+      uv * 0.5f + 0.5f;\n        \t#else\n        \t\treturn 0.0f;\n        \t#endif\n       
+      \t}\n        \t\n        \t\t\n        \t#define VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH
+      0\n        \t\n        \t\t\t\n        \t\t\t#ifndef VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH\n       
+      \t\t\t#define VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH 0\n       
+      \t\t\t#endif\n        \t\t\t\n        \t\t\t#ifdef VFX_SHADERGRAPH\n       
+      \t\t\t\n        \t\t\t#endif\n        \t\t\t\n        \t\t\t#if VFX_PASSDEPTH
+      == VFX_PASSDEPTH_SELECTION\n        \t\t\tint _ObjectId;\n        \t\t\tint
+      _PassValue;\n        \t\t\t#endif\n        \t\t\t\n        \t\t\t#pragma fragment
+      frag\n        \t\t\tvoid frag(ps_input i\n        \t\t\t#if VFX_PASSDEPTH ==
+      VFX_PASSDEPTH_MOTION_VECTOR\n        \t\t\t    #ifdef WRITE_MSAA_DEPTH\n       
+      \t\t\t    // We need the depth color as SV_Target0 for alpha to coverage\n       
+      \t\t\t    , out float4 outDepthColor : SV_Target0\n        \t\t\t    , out
+      float4 outMotionVector : SV_Target1\n        \t\t\t    #else\n        \t\t\t   
+      // When no MSAA, the motion vector is always the first buffer\n        \t\t\t   
+      , out float4 outMotionVector : SV_Target0\n        \t\t\t    #endif\n       
+      \t\t\t#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL\n        \t\t\t    #ifdef
+      WRITE_MSAA_DEPTH\n        \t\t\t    , out float4 outDepthColor : SV_Target0\n       
+      \t\t\t    #else\n        \t\t\t    , out float4 dummy : SV_Target0\n       
+      \t\t\t    #endif\n        \t\t\t#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION\n       
+      \t\t\t    , out float4 outSelection : SV_Target0\n        \t\t\t#elif VFX_PASSDEPTH
+      == VFX_PASSDEPTH_SHADOW\n        \t\t\t    , out float4 dummy : SV_Target0\n       
+      \t\t\t#endif\n        \t\t\t)\n        \t\t\t{\n        \t\t\t\tUNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);\n       
+      \t\t\t\tVFXTransformPSInputs(i);\n        \t\t\t    #ifdef VFX_SHADERGRAPH\n       
+      \t\t\t        \n        \t\t\t        \n        \t\t\t        float alpha =
+      OUTSG.;\n        \t\t\t    #else\n        \t\t\t        float alpha = VFXGetFragmentColor(i).a;\n       
+      \t\t\t\t\t#if VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH\n       
+      \t\t\t\t\t\talpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;\n       
+      \t\t\t\t\t#endif\n        \t\t\t    #endif\n        \t\t\t\tVFXClipFragmentColor(alpha,i);\n       
+      \t\t\t\n        \t\t\t\t#ifdef WRITE_MSAA_DEPTH\n        \t\t\t\t\toutDepthColor
+      = i.VFX_VARYING_POSCS.z;\n        \t\t\t\t\t#if VFX_USE_ALPHA_TO_MASK\n       
+      \t\t\t\t\t\toutDepthColor.a = alpha;\n        \t\t\t\t\t#endif\n        \t\t\t\t#endif\n       
+      \t\t\t\n        \t\t\t\t#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR\n       
+      \t\t\t\t\t\n        \t\t\t\t\t\t\tfloat2 velocity = (i.VFX_VARYING_VELOCITY_CPOS.xy/i.VFX_VARYING_VELOCITY_CPOS.w)
+      - (i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy/i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.w);\n       
+      \t\t\t\t\t\t\t#if UNITY_UV_STARTS_AT_TOP\n        \t\t\t\t\t\t\t\tvelocity.y
+      = -velocity.y;\n        \t\t\t\t\t\t\t#endif\n        \t\t\t\t\t\t\tfloat4
+      encodedMotionVector = 0.0f;\n        \t\t\t\t\t\t\tVFXEncodeMotionVector(velocity
+      * 0.5f, encodedMotionVector);\n        \t\t\t\t\t\t\t\n        \t\t\t\t\toutMotionVector
+      = encodedMotionVector;\n        \t\t\t\t#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION\n       
+      \t\t\t\t\toutSelection = float4(_ObjectId, _PassValue, 1.0, 1.0);\n       
+      \t\t\t\t#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL\n        \t\t\t\t\t#ifndef
+      WRITE_MSAA_DEPTH\n        \t\t\t\t\t\tdummy = (float4)0;\n        \t\t\t\t\t#endif\n       
+      \t\t\t\t#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW\n        \t\t\t\t\tdummy
+      = (float4)0;\n        \t\t\t\t#else\n        \t\t\t\t\t#error VFX_PASSDEPTH
+      undefined \n        \t\t\t\t#endif\n        \t\t\t}\n        \t\t\t\n       
+      \t\n        \n        \tENDHLSL\n        }\n        \n\n\t\t\n\t\t\n\t\t//
+      Forward pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ForwardOnly\"
+      }\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma target 4.5\n\t\t\t#pragma multi_compile
+      _ DEBUG_DISPLAY\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos
+      : SV_POSITION;\n\t\t\t\tfloat3 offsets : TEXCOORD0;\n\t\t\t\t#if VFX_NEEDS_COLOR_INTERPOLATOR\n\t\t\t\tnointerpolation
+      float4 color : COLOR0;\n\t\t\t\t#endif\n\t\t\t\t#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
+      || WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\t// x: inverse soft particles fade
+      distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\tnointerpolation float2 builtInInterpolants
+      : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t//
+      x: motion vectors scale X\n\t\t\t\t// y: motion vectors scale Y\n\t\t\t\tnointerpolation
+      float2 builtInInterpolants2 : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\tnointerpolation
+      uint faceID : TEXCOORD3;\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
+      posWS : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\tnointerpolation
+      float4 scaleBias : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if USE_FLIPBOOK\n\t\t\t\tnointerpolation
+      float4 flipBookSize : TEXCOORD6;\n\t\t\t\tnointerpolation float texIndex :
+      TEXCOORD7;\n\t\t\t\t#endif\n\t\t\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
+      cPosPrevious : TEXCOORD7;\n\t\t\t\tfloat4 cPosNonJiterred : TEXCOORD8;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\tUNITY_VERTEX_OUTPUT_STEREO\n\t\t\t};\n\t\t\t\n\t\t\tstruct
+      ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
+      outMotionVector : SV_Target1;\n\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
+      ps_input\n\t\t#define VFX_VARYING_POSCS pos\n\t\t#define VFX_VARYING_COLOR
+      color.rgb\n\t\t#define VFX_VARYING_ALPHA color.a\n\t\t#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+      builtInInterpolants.x\n\t\t#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y\n\t\t#define
+      VFX_VARYING_OFFSETS offsets\n\t\t#define VFX_VARYING_FACEID faceID\n\t\t#if
+      VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t#define VFX_VARYING_POSWS posWS\n\t\t#endif\n\t\t#if
+      USE_UV_SCALE_BIAS\n\t\t#define VFX_VARYING_UV_SCALE scaleBias.xy\n\t\t#define
+      VFX_VARYING_UV_BIAS scaleBias.zw\n\t\t#endif\n\t\t#if USE_FLIPBOOK\n\t\t#define
+      VFX_VARYING_TEXINDEX texIndex\n\t\t#define VFX_VARYING_FLIPBOOKSIZE flipBookSize.xy\n\t\t#define
+      VFX_VARYING_INVFLIPBOOKSIZE flipBookSize.zw\n\t\t#endif\n\t\t#if USE_FLIPBOOK_MOTIONVECTORS\n\t\t#define
+      VFX_VARYING_MOTIONVECTORSCALE builtInInterpolants2.xy\t\n\t\t#endif\n\t\t\t\t\t\t\t\t\t\t\n\t\t#if
+      WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t#define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred\n\t\t#define
+      VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious\n\t\t#endif\n\t\t\n\t\t\t#define
+      SHADERPASS SHADERPASS_FORWARD_UNLIT\n\t\t\t#if !(defined(VFX_VARYING_PS_INPUTS)
+      && defined(VFX_VARYING_POSCS))\n\t\t\t#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS
+      must be defined.\n\t\t\t#endif\n\t\t\t\n\t\t\t#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXCommon.hlsl\"\n\t\t\t#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"\n\t\t\t\n\n\t\t\t\n\t\t\t\n\t\t\tstruct
+      vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#pragma
+      vertex vert\n\t\t\tVFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input
+      i)\n\t\t\t{\n\t\t\t\tVFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;\n\t\t\t\t\n\t\t\t\tUNITY_SETUP_INSTANCE_ID(i);\n\t\t\t\tUNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);\n\t\t\t\n\t\t\t\tuint
+      index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tuint
+      deadCount = 0;\n\t\t\t\t\t\t#if USE_DEAD_LIST_COUNT\n\t\t\t\t\t\tdeadCount
+      = deadListCount.Load(0);\n\t\t\t\t\t\t#endif\t\n\t\t\t\t\t\tif (index >= asuint(nbMax)
+      - deadCount)\n\t\t\t\t\t\t#if USE_GEOMETRY_SHADER\n\t\t\t\t\t\t\treturn; //
+      cull\n\t\t\t\t\t\t#else\n\t\t\t\t\t\t\treturn o; // cull\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\tAttributes
+      attributes = (Attributes)0;\n\t\t\t\t\t\tSourceAttributes sourceAttributes
+      = (SourceAttributes)0;\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if VFX_HAS_INDIRECT_DRAW\n\t\t\t\t\t\tindex
+      = indirectBuffer[index];\n\t\t\t\t\t\tattributes.position = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x0) << 2));\n\t\t\t\t\t\tattributes.size = asfloat(attributeBuffer.Load((index
+      * 0x1 + 0x50000) << 2));\n\t\t\t\t\t\tattributes.color = float3(1, 1, 1);\n\t\t\t\t\t\tattributes.alpha
+      = (float)1;\n\t\t\t\t\t\tattributes.alive = (attributeBuffer.Load((index *
+      0x1 + 0x70000) << 2));\n\t\t\t\t\t\tattributes.axisX = float3(1, 0, 0);\n\t\t\t\t\t\tattributes.axisY
+      = float3(0, 1, 0);\n\t\t\t\t\t\tattributes.axisZ = float3(0, 0, 1);\n\t\t\t\t\t\tattributes.angleX
+      = (float)0;\n\t\t\t\t\t\tattributes.angleY = (float)0;\n\t\t\t\t\t\tattributes.angleZ
+      = (float)0;\n\t\t\t\t\t\tattributes.pivotX = (float)0;\n\t\t\t\t\t\tattributes.pivotY
+      = (float)0;\n\t\t\t\t\t\tattributes.pivotZ = (float)0;\n\t\t\t\t\t\tattributes.scaleX
+      = (float)1;\n\t\t\t\t\t\tattributes.scaleY = (float)1;\n\t\t\t\t\t\tattributes.scaleZ
+      = (float)1;\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#else\n\t\t\t\t\t\tattributes.alive
+      = (attributeBuffer.Load((index * 0x1 + 0x70000) << 2));\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      !HAS_STRIPS\n\t\t\t\t\t\tif (!attributes.alive)\n\t\t\t\t\t\t\treturn o;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\t\n\t\t\t\t\t\tattributes.position
+      = asfloat(attributeBuffer.Load3((index * 0x4 + 0x0) << 2));\n\t\t\t\t\t\tattributes.size
+      = asfloat(attributeBuffer.Load((index * 0x1 + 0x50000) << 2));\n\t\t\t\t\t\tattributes.color
+      = float3(1, 1, 1);\n\t\t\t\t\t\tattributes.alpha = (float)1;\n\t\t\t\t\t\tattributes.axisX
+      = float3(1, 0, 0);\n\t\t\t\t\t\tattributes.axisY = float3(0, 1, 0);\n\t\t\t\t\t\tattributes.axisZ
+      = float3(0, 0, 1);\n\t\t\t\t\t\tattributes.angleX = (float)0;\n\t\t\t\t\t\tattributes.angleY
+      = (float)0;\n\t\t\t\t\t\tattributes.angleZ = (float)0;\n\t\t\t\t\t\tattributes.pivotX
+      = (float)0;\n\t\t\t\t\t\tattributes.pivotY = (float)0;\n\t\t\t\t\t\tattributes.pivotZ
+      = (float)0;\n\t\t\t\t\t\tattributes.scaleX = (float)1;\n\t\t\t\t\t\tattributes.scaleY
+      = (float)1;\n\t\t\t\t\t\tattributes.scaleZ = (float)1;\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t//
+      Initialize built-in needed attributes\n\t\t\t\t\t\t#if HAS_STRIPS\n\t\t\t\t\t\tInitStripAttributes(index,
+      attributes, stripData);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\tif
+      (!attributes.alive)\n\t\t\t\t\treturn o;\n\t\t\t\t\n\t\t\t\tfloat3 offsets
+      = (float3)0;\n\t\t\t\toffsets.x = float(id & 1);\n\t\t\t\toffsets.y = float((id
+      & 2) >> 1);\n\t\t\t\toffsets.z = float((id & 6) >> 2);\n\t\t\t\toffsets -=
+      0.5f;\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\tfloat3 size3 = float3(attributes.size,attributes.size,attributes.size);\n\t\t\t\t\t\t#if
+      VFX_USE_SCALEX_CURRENT\n\t\t\t\t\t\tsize3.x *= attributes.scaleX;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
+      VFX_USE_SCALEY_CURRENT\n\t\t\t\t\t\tsize3.y *= attributes.scaleY;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if
+      VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3x3
+      rot = GetEulerMatrix(radians(float3(attributes.angleX,attributes.angleY,attributes.angleZ)));\n\t\t\t\tfloat4x4
+      elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\trot,\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\n\t\t\t\tfloat3
+      inputVertexPosition = offsets;\n\t\t\t\tfloat3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat3
+      vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t#ifdef VFX_VARYING_POSWS\n\t\t\t\to.VFX_VARYING_POSWS
+      = vPosWS;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_OFFSETS\n\t\t\t\to.VFX_VARYING_OFFSETS
+      = offsets * 2.0f;\n\t\t\t#endif\n\t\t\t#ifdef VFX_VARYING_FACEID\n\t\t\t\to.VFX_VARYING_FACEID
+      = (id & 7) % 5;\n\t\t\t#endif\n\t\t\t#if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)\n\t\t\t\trot
+      = mul(transpose(float3x3(attributes.axisX,attributes.axisY,attributes.axisZ)),rot);\n\t\t\t#ifdef
+      VFX_LOCAL_SPACE \n\t\t\t\trot = mul((float3x3)VFXGetObjectToWorldMatrix(),rot);\n\t\t\t#endif\n\t\t\t\to.VFX_VARYING_ROTX
+      = rot[0];\n\t\t\t\to.VFX_VARYING_ROTY = rot[1];\n\t\t\t#endif\n\t\t\t\to.VFX_VARYING_POSCS
+      = VFXTransformPositionWorldToClip(vPosWS);\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
+      previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
+      float4(0,0,0,1);\n\t\t\t\t\t\t\n\t\t\t\t\t\tUNITY_UNROLL\n\t\t\t\t\t\tfor (int
+      itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tUNITY_UNROLL\n\t\t\t\t\t\t\tfor
+      (int itIndexMatrixCol = 0; itIndexMatrixCol < 4; ++itIndexMatrixCol)\n\t\t\t\t\t\t\t{\n\t\t\t\t\t\t\t\tuint
+      itIndexMatrix = itIndexMatrixCol * 4 + itIndexMatrixRow;\n\t\t\t\t\t\t\t\tuint
+      read = elementToVFXBufferPrevious.Load((index * 16 + itIndexMatrix) << 2);\n\t\t\t\t\t\t\t\tpreviousElementToVFX[itIndexMatrixRow][itIndexMatrixCol]
+      = asfloat(read);\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\t\tuint
+      previousFrameIndex = elementToVFXBufferPrevious.Load((index * 16 + 15) << 2);\n\t\t\t\t\t\to.VFX_VARYING_VELOCITY_CPOS
+      = o.VFX_VARYING_VELOCITY_CPOS_PREVIOUS = float4(0.0f, 0.0f, 0.0f, 1.0f);\n\t\t\t\t\t\tif
+      (asuint(currentFrameIndex) - previousFrameIndex == 1u)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tfloat3
+      oldvPos = mul(previousElementToVFX,float4(inputVertexPosition, 1.0f)).xyz;\n\t\t\t\t\t\t\to.VFX_VARYING_VELOCITY_CPOS_PREVIOUS
+      = TransformPositionVFXToPreviousClip(oldvPos);\n\t\t\t\t\t\t\to.VFX_VARYING_VELOCITY_CPOS
+      = TransformPositionVFXToNonJitteredClip(vPos);\n\t\t\t\t\t\t}\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
+      VFX_USE_COLOR_CURRENT && defined(VFX_VARYING_COLOR)\n\t\t\t\t\t\to.VFX_VARYING_COLOR
+      = attributes.color;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#if VFX_USE_ALPHA_CURRENT
+      && defined(VFX_VARYING_ALPHA) \n\t\t\t\t\t\to.VFX_VARYING_ALPHA = attributes.alpha;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#ifdef
+      VFX_VARYING_EXPOSUREWEIGHT\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_EXPOSUREWEIGHT
+      = exposureWeight;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_SOFT_PARTICLE
+      && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
+      = invSoftParticlesFadeDistance;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && (!VFX_SHADERGRAPH ||
+      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      = alphaThreshold;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      defined (VFX_VARYING_UV)\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy
+      * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
+      defined(VFX_VARYING_POSWS)\n\t\t\t\t\t\to.VFX_VARYING_POSWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t#if
+      USE_UV_SCALE_BIAS && defined(VFX_VARYING_UV_SCALE) && defined(VFX_VARYING_UV_BIAS)\n\t\t\t\to.VFX_VARYING_UV_SCALE
+      = uvScale;\n\t\t\t\to.VFX_VARYING_UV_BIAS = uvBias;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if
+      USE_FLIPBOOK\n\t\t\t\t\n\t\t\t\t\n\t\t\t\t#ifdef VFX_VARYING_TEXINDEX\n\t\t\t\to.VFX_VARYING_TEXINDEX
+      = attributes.texIndex;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if defined(VFX_VARYING_FLIPBOOKSIZE)
+      && defined(VFX_VARYING_INVFLIPBOOKSIZE)\n\t\t\t\to.VFX_VARYING_FLIPBOOKSIZE
+      = flipBookSize;\n\t\t\t\to.VFX_VARYING_INVFLIPBOOKSIZE = invFlipBookSize;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      VFX_VARYING_TEXINDEX\n\t\t\t\t#if USE_FLIPBOOK_MOTIONVECTORS && defined(VFX_VARYING_MOTIONVECTORSCALE)\n\t\t\t\t\n\t\t\t\to.VFX_VARYING_MOTIONVECTORSCALE
+      = motionVectorScale * invFlipBookSize;\n\t\t\t\t#endif\n\t\t\t\t#endif\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\n\t\t\t\treturn
+      o;\n\t\t\t}\n\t\t\t\n\t\t\t#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"\n\t\t\t\n\t\t\tfloat3
+      VFXCubeGetLocalNormal(VFX_VARYING_PS_INPUTS i)\n\t\t\t{\n\t\t\t#ifdef VFX_VARYING_OFFSETS\n\t\t\t\t//float3
+      s = i.VFX_VARYING_OFFSETS > 0 ? 1.0f : -1.0f;\n\t\t\t\t//return s * (step(1.0f,s
+      * i.VFX_VARYING_OFFSETS + 1e-5));\n\t\t\t\treturn int3(i.VFX_VARYING_OFFSETS
+      * 1.00001f); // cast uses round_z\n\t\t\t#else\n\t\t\t\treturn 0.0f;\n\t\t\t#endif\n\t\t\t}\n\t\t\t\n\t\t\tfloat3
+      VFXCubeTransformNormalTS(float3 faceNormal,float3 normal)\n\t\t\t{\n\t\t\t\tfloat3x3
+      tbn = float3x3(faceNormal.zyx,faceNormal.xzy,faceNormal.xyz);\n\t\t\t\treturn
+      mul(tbn,normal);\n\t\t\t}\n\t\t\t\n\t\t\tfloat3 VFXCubeTransformNormalTS(VFX_VARYING_PS_INPUTS
+      i,float3 normal,bool frontFace = true)\n\t\t\t{\n\t\t\t#if defined(VFX_VARYING_OFFSETS)
+      && defined(VFX_VARYING_FACEID)\n\t\t\t\tfloat3x3 tbn;\n\t\t\t\tfloat3 faceNormal
+      = VFXCubeGetLocalNormal(i);\n\t\t\t\tif (i.VFX_VARYING_FACEID == 0)\n\t\t\t\t\ttbn
+      = float3x3(-faceNormal.zxy,faceNormal.yzx * faceNormal.yzx,faceNormal.xyz);\n\t\t\t\telse
+      if (i.VFX_VARYING_FACEID == 1)\n\t\t\t\t\ttbn = float3x3(faceNormal.yxz, faceNormal.xzy,
+      float3(0, 1, 0));\n\t\t\t\telse\n\t\t\t\t\ttbn = float3x3(faceNormal.yzx, float3(0,1,0),faceNormal.xyz);\n\t\t\t#ifdef
+      USE_DOUBLE_SIDED\n\t\t\t\tfloat multiplier = frontFace ? 1.0f : -1.0f;\n\t\t\t\ttbn[0]
+      *= multiplier;\n\t\t\t\ttbn[2] *= multiplier;\n\t\t\t#endif\n\t\t\t\treturn
+      mul(tbn, normal);\n\t\t\t#else\n\t\t\t\treturn normal;\n\t\t\t#endif\n\t\t\t}\n\t\t\t\n\t\t\tfloat3
+      VFXCubeTransformNormalWS(VFX_VARYING_PS_INPUTS i,float3 normal)\n\t\t\t{\n\t\t\t#if
+      defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)\n\t\t\t\tfloat3x3 rot
+      = float3x3(i.rotX,i.rotY,cross(i.rotX,i.rotY));\n\t\t\t\treturn mul(rot,normal);\n\t\t\t#else\n\t\t\t\treturn
+      normal;\n\t\t\t#endif\n\t\t\t}\n\t\t\t\n\t\t\tfloat2 VFXCubeGetUV(VFX_VARYING_PS_INPUTS
+      i) \n\t\t\t{\n\t\t\t#if defined(VFX_VARYING_OFFSETS) && defined(VFX_VARYING_FACEID)\n\t\t\t\tfloat2
+      uv;\n\t\t\t\tif (i.VFX_VARYING_FACEID == 0)\n\t\t\t\t\tuv = i.VFX_VARYING_OFFSETS.xy
+      * float2(-i.VFX_VARYING_OFFSETS.z,1);\n\t\t\t\telse if (i.VFX_VARYING_FACEID
+      == 1)\n\t\t\t\t\tuv = i.VFX_VARYING_OFFSETS.xz * float2(i.VFX_VARYING_OFFSETS.y,1);\n\t\t\t\telse\n\t\t\t\t\tuv
+      = i.VFX_VARYING_OFFSETS.zy * float2(i.VFX_VARYING_OFFSETS.x,1);\n\t\t\t\treturn
+      uv * 0.5f + 0.5f;\n\t\t\t#else\n\t\t\t\treturn 0.0f;\n\t\t\t#endif\n\t\t\t}\n\t\t\t\n\t\t\t\n\t\t\t\t\n\t\t\t#pragma
+      fragment frag\n\t\t\tps_output frag(ps_input i)\n\t\t\t{\n\t\t\t\tUNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);\n\t\t\t\tps_output
+      o = (ps_output)0;\n\t\t\t\tVFXTransformPSInputs(i);\n\t\t\t\to.color = VFXGetFragmentColor(i);\n\t\t\t\t\n\t\t\t\to.color
+      *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i));\n\t\t\t\to.color
+      = VFXApplyFog(o.color,i);\n\t\t\t\tVFXClipFragmentColor(o.color.a,i);\n\t\t\n\t\t#if
+      WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\t\n\t\t\t\t\t\tfloat2 velocity = (i.VFX_VARYING_VELOCITY_CPOS.xy/i.VFX_VARYING_VELOCITY_CPOS.w)
+      - (i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.xy/i.VFX_VARYING_VELOCITY_CPOS_PREVIOUS.w);\n\t\t\t\t\t\t#if
+      UNITY_UV_STARTS_AT_TOP\n\t\t\t\t\t\t\tvelocity.y = -velocity.y;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\tfloat4
+      encodedMotionVector = 0.0f;\n\t\t\t\t\t\tVFXEncodeMotionVector(velocity * 0.5f,
+      encodedMotionVector);\n\t\t\t\t\t\t\n\t\t\t\to.outMotionVector = encodedMotionVector;\n\t\t\t\to.outMotionVector.a
+      = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping
+      for motion vector pass\n\t\t#endif\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t\n\t}\n}\n"
+  - compute: 1
+    name: '[System 1]CameraSort'
+    source: "#pragma kernel CSMain\n#define NB_THREADS_PER_GROUP 64\n#define HAS_ATTRIBUTES
+      1\n#define VFX_PASSDEPTH_ACTUAL (0)\n#define VFX_PASSDEPTH_MOTION_VECTOR (1)\n#define
+      VFX_PASSDEPTH_SELECTION (2)\n#define VFX_PASSDEPTH_SHADOW (3)\n#define VFX_USE_POSITION_CURRENT
+      1\n#define USE_DEAD_LIST_COUNT 1\n#define VFX_LOCAL_SPACE 1\n#include \"Packages/com.unity.render-pipelines.high-definition/Runtime/VFXGraph/Shaders/VFXDefines.hlsl\"\n\n\nCBUFFER_START(parameters)\n   
+      float4x4 localToWorld;\nCBUFFER_END\n\nstruct Attributes\n{\n    float3 position;\n};\n\nstruct
+      SourceAttributes\n{\n};\n\n\n\n#include \"Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl\"\n#include
+      \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"\n\n\n\nCBUFFER_START(params)\n   
+      uint nbMax;\n    uint dispatchWidth;\nCBUFFER_END\n\nCBUFFER_START(cameraParams)\n   
+      float3 cameraPosition;\nCBUFFER_END\n\nByteAddressBuffer attributeBuffer;\nStructuredBuffer<uint>
+      inputBuffer;\n\n#if USE_DEAD_LIST_COUNT\nByteAddressBuffer deadListCount;\n#endif\n\nstruct
+      Kvp\n{\n\tfloat sortKey;\n\tuint index;\n};\n\nRWStructuredBuffer<Kvp> outputBuffer;\n\n[numthreads(NB_THREADS_PER_GROUP,1,1)]\nvoid
+      CSMain(uint3 groupId          : SV_GroupID,\n            uint3 groupThreadId   
+      : SV_GroupThreadID)\n{\n\tuint threshold = nbMax;\n#if USE_DEAD_LIST_COUNT\n\tthreshold
+      -= deadListCount.Load(0);\n#endif\n\tuint id = groupThreadId.x + groupId.x
+      * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;\n\tif
+      (id < threshold)\n\t{\n\t\tuint index = inputBuffer[id];\n\t\t\n\t\tAttributes
+      attributes = (Attributes)0;\n\t\tattributes.position = asfloat(attributeBuffer.Load3((index
+      * 0x4 + 0x0) << 2));\n\t\t\n\n\t\t\n#if VFX_LOCAL_SPACE\n\t\tfloat3 wPos =
+      mul(localToWorld,float4(attributes.position,1.0f)).xyz;\n#else\n\t\tfloat3
+      wPos = attributes.position;\n#endif\n\t\tfloat3 camToPos = wPos - cameraPosition;\n\t\t\n\t\tKvp
+      kvp;\n\t\tkvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera\n\t\tkvp.index
+      = index;\n\n\t\toutputBuffer[id] = kvp;\n\t}\n}\n"
   m_Infos:
     m_Expressions:
-      m_Expressions: []
-      m_NeedsLocalToWorld: 0
+      m_Expressions:
+      - op: 1
+        valueIndex: 0
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 1
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 2
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 3
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 4
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 5
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 8
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 11
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 6
+        valueIndex: 12
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: -1
+      - op: 1
+        valueIndex: 13
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 16
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 19
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
+      - op: 1
+        valueIndex: 20
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 7
+      - op: 9
+        valueIndex: 21
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: -1
+      m_NeedsLocalToWorld: 1
       m_NeedsWorldToLocal: 0
       m_NeededMainCameraBuffers: 0
     m_PropertySheet:
       m_Float:
-        m_Array: []
+        m_Array:
+        - m_ExpressionIndex: 0
+          m_Value: 6.2831855
+        - m_ExpressionIndex: 1
+          m_Value: 1
+        - m_ExpressionIndex: 2
+          m_Value: 2
+        - m_ExpressionIndex: 3
+          m_Value: 8.32
+        - m_ExpressionIndex: 4
+          m_Value: -4.16
+        - m_ExpressionIndex: 7
+          m_Value: 10
+        - m_ExpressionIndex: 11
+          m_Value: 0.91
       m_Vector2f:
         m_Array: []
       m_Vector3f:
-        m_Array: []
+        m_Array:
+        - m_ExpressionIndex: 5
+          m_Value: {x: 0.2278862, y: -0.36239195, z: 0.37137103}
+        - m_ExpressionIndex: 6
+          m_Value: {x: 22.307121, y: 11.0152235, z: 1.7427421}
+        - m_ExpressionIndex: 9
+          m_Value: {x: -10.570461, y: 0, z: 0.46145058}
+        - m_ExpressionIndex: 10
+          m_Value: {x: 10.214141, y: 0, z: -0.11489391}
       m_Vector4f:
         m_Array: []
       m_Uint:
@@ -86,14 +789,115 @@ VisualEffectResource:
       m_Gradient:
         m_Array: []
       m_NamedObject:
-        m_Array: []
+        m_Array:
+        - m_ExpressionIndex: 12
+          m_Value: {fileID: 0}
       m_Bool:
         m_Array: []
     m_ExposedExpressions: []
-    m_Buffers: []
+    m_Buffers:
+    - type: 1
+      size: 524288
+      layout:
+      - name: position
+        type: 3
+        offset:
+          bucket: 0
+          structure: 4
+          element: 0
+      - name: lifetime
+        type: 1
+        offset:
+          bucket: 262144
+          structure: 1
+          element: 0
+      - name: size
+        type: 1
+        offset:
+          bucket: 327680
+          structure: 1
+          element: 0
+      - name: age
+        type: 1
+        offset:
+          bucket: 393216
+          structure: 1
+          element: 0
+      - name: alive
+        type: 17
+        offset:
+          bucket: 458752
+          structure: 1
+          element: 0
+      capacity: 65536
+      stride: 4
+    - type: 1
+      size: 1
+      layout:
+      - name: spawnCount
+        type: 1
+        offset:
+          bucket: 0
+          structure: 1
+          element: 0
+      capacity: 1
+      stride: 4
+    - type: 4
+      size: 65536
+      layout: []
+      capacity: 0
+      stride: 4
+    - type: 1
+      size: 1
+      layout: []
+      capacity: 0
+      stride: 4
+    - type: 4
+      size: 65536
+      layout: []
+      capacity: 0
+      stride: 4
+    - type: 0
+      size: 65536
+      layout: []
+      capacity: 0
+      stride: 8
+    - type: 0
+      size: 65536
+      layout: []
+      capacity: 0
+      stride: 8
     m_TemporaryBuffers: []
-    m_CPUBuffers: []
-    m_Events: []
+    m_CPUBuffers:
+    - capacity: 1
+      stride: 1
+      layout:
+      - name: spawnCount
+        type: 1
+        offset:
+          bucket: 0
+          structure: 1
+          element: 0
+      initialData:
+        data: 00000000
+    - capacity: 1
+      stride: 1
+      layout:
+      - name: spawnCount
+        type: 1
+        offset:
+          bucket: 0
+          structure: 1
+          element: 0
+      initialData:
+        data: 00000000
+    m_Events:
+    - name: OnPlay
+      playSystems: 00000000
+      stopSystems: 
+    - name: OnStop
+      playSystems: 
+      stopSystems: 00000000
     m_RuntimeVersion: 10
     m_RendererSettings:
       motionVectorGenerationMode: 0
@@ -106,7 +910,122 @@ VisualEffectResource:
     m_PreWarmDeltaTime: 0.05
     m_PreWarmStepCount: 0
     m_InitialEventName: OnPlay
-  m_Systems: []
+  m_Systems:
+  - type: 0
+    flags: 0
+    capacity: 0
+    layer: 4294967295
+    buffers:
+    - nameId: spawner_output
+      index: 1
+    values: []
+    tasks:
+    - type: 268435456
+      buffers: []
+      temporaryBuffers: []
+      values:
+      - nameId: Rate
+        index: 7
+      params: []
+      processor: {fileID: 0}
+      shaderSourceIndex: -1
+  - type: 1
+    flags: 3
+    capacity: 65536
+    layer: 4294967295
+    buffers:
+    - nameId: attributeBuffer
+      index: 0
+    - nameId: sourceAttributeBuffer
+      index: 1
+    - nameId: deadList
+      index: 2
+    - nameId: deadListCount
+      index: 3
+    - nameId: spawner_input
+      index: 1
+    - nameId: indirectBuffer
+      index: 4
+    - nameId: sortBufferA
+      index: 5
+    - nameId: sortBufferB
+      index: 6
+    values:
+    - nameId: bounds_center
+      index: 5
+    - nameId: bounds_size
+      index: 6
+    tasks:
+    - type: 536870912
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: deadListIn
+        index: 2
+      - nameId: deadListCount
+        index: 3
+      - nameId: sourceAttributeBuffer
+        index: 1
+      temporaryBuffers: []
+      values: []
+      params:
+      - nameId: bounds_center
+        index: 5
+      - nameId: bounds_size
+        index: 6
+      processor: {fileID: 0}
+      shaderSourceIndex: 1
+    - type: 805306368
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: deadListOut
+        index: 2
+      - nameId: indirectBuffer
+        index: 4
+      temporaryBuffers: []
+      values:
+      - nameId: deltaTime_b
+        index: 8
+      params: []
+      processor: {fileID: 0}
+      shaderSourceIndex: 0
+    - type: 805306369
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: inputBuffer
+        index: 4
+      - nameId: outputBuffer
+        index: 5
+      - nameId: deadListCount
+        index: 3
+      temporaryBuffers: []
+      values:
+      - nameId: localToWorld
+        index: 13
+      params: []
+      processor: {fileID: 0}
+      shaderSourceIndex: 3
+    - type: 1073741827
+      buffers:
+      - nameId: attributeBuffer
+        index: 0
+      - nameId: indirectBuffer
+        index: 4
+      - nameId: deadListCount
+        index: 3
+      temporaryBuffers: []
+      values:
+      - nameId: mainTexture
+        index: 12
+      params:
+      - nameId: sortPriority
+        index: 0
+      - nameId: indirectDraw
+        index: 1
+      processor: {fileID: 0}
+      shaderSourceIndex: 2
 --- !u!114 &8926484042661614538
 MonoBehaviour:
   m_ObjectHideFlags: 0
