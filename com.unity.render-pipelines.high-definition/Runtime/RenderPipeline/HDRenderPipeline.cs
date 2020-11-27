@@ -399,7 +399,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
 
 #if UNITY_EDITOR
-            m_Asset.EvaluateSettings();
+            // If defaultAsset is not ready (can happen due to loading order issue), then we should return
+            // There is a similar check in Render()
+            if (HDRenderPipeline.defaultAsset == null)
+                return;
 
             UpgradeResourcesIfNeeded();
 
@@ -769,19 +772,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RaytracingGBufferManager.CreateBuffers();
                 m_RayCountManager.InitializeNonRenderGraphResources();
-
-                if (m_Asset.currentPlatformRenderPipelineSettings.supportSSGI)
-                {
-                    m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
-                    m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
-                    m_IndirectDiffuseBuffer2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer2");
-                    m_IndirectDiffuseBuffer3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer3");
-                    m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
-                }
-
                 m_RayTracingLightCluster.InitializeNonRenderGraphResources();
 
                 m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
+            }
+
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportSSGI)
+            {
+                m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
+                m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
+                m_IndirectDiffuseBuffer2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer2");
+                m_IndirectDiffuseBuffer3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer3");
+                m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
             }
         }
 
@@ -847,24 +849,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RaytracingGBufferManager.DestroyBuffers();
                 m_RayCountManager.CleanupNonRenderGraphResources();
-
-                if (m_IndirectDiffuseBuffer0 != null)
-                    RTHandles.Release(m_IndirectDiffuseBuffer0);
-                if (m_IndirectDiffuseBuffer1 != null)
-                    RTHandles.Release(m_IndirectDiffuseBuffer1);
-                if (m_IndirectDiffuseBuffer2 != null)
-                    RTHandles.Release(m_IndirectDiffuseBuffer2);
-                if (m_IndirectDiffuseBuffer3 != null)
-                    RTHandles.Release(m_IndirectDiffuseBuffer3);
-                if (m_IndirectDiffuseHitPointBuffer != null)
-                    RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
-
                 m_RayTracingLightCluster.CleanupNonRenderGraphResources();
 
                 RTHandles.Release(m_FlagMaskTextureRT);
 
                 RaytracingManagerCleanupNonRenderGraphResources();
             }
+
+            RTHandles.Release(m_IndirectDiffuseBuffer0);
+            RTHandles.Release(m_IndirectDiffuseBuffer1);
+            RTHandles.Release(m_IndirectDiffuseBuffer2);
+            RTHandles.Release(m_IndirectDiffuseBuffer3);
+            RTHandles.Release(m_IndirectDiffuseHitPointBuffer);
         }
 
         void SetRenderingFeatures()
