@@ -399,7 +399,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
 
 #if UNITY_EDITOR
-            m_Asset.EvaluateSettings();
+            // If defaultAsset is not ready (can happen due to loading order issue), then we should return
+            // There is a similar check in Render()
+            if (HDRenderPipeline.defaultAsset == null)
+                return;
 
             UpgradeResourcesIfNeeded();
 
