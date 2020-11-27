@@ -286,8 +286,8 @@ namespace UnityEngine.Rendering.Universal
             if (m_RendererDataList == null)
                 m_RendererDataList = new ScriptableRendererData[1];
 
-            // If no data we can't create pipeline instance
-            if (m_RendererDataList[0] == null)
+            // If no default data we can't create pipeline instance
+            if (m_RendererDataList[m_DefaultRendererIndex] == null)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
