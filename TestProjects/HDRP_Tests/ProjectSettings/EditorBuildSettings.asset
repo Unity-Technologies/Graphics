@@ -668,4 +668,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2317_Mixed_Cached_ShadowMap_Point.unity
     guid: f0256a9b31ae76e45bb04cfbbd6799ec
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1713_MeshDecalViewBias.unity
+    guid: 0adc2fcc221085f45ba4dce7e4afae0d
   m_configObjects: {}
