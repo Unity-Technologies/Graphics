@@ -91,15 +91,6 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: 'Linux - cause [Error] Shader error in ''Deferred'':'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
     GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
