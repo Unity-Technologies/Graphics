@@ -9,9 +9,12 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class LayeringOptionsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents layering options for materials.
+    /// </summary>
+    public class LayeringOptionsUIBlock : MaterialUIBlock
     {
-        public static class Styles
+        internal static class Styles
         {
             public const string header = "Layering Options";
             public static readonly GUIContent layerInfluenceMapMaskText = EditorGUIUtility.TrTextContent("Layer Influence Mask", "Specifies the Layer Influence Mask for this Material.");
@@ -35,19 +38,27 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty useMainLayerInfluence = null;
         const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         int         m_LayerIndex;
 
         // Density/opacity mode
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kOpacityAsDensity = "_OpacityAsDensity";
 
-        public LayeringOptionsUIBlock(Expandable expandableBit, int layerIndex)
+        /// <summary>
+        /// Constructs a LayeringOptionsUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        /// <param name="layerIndex">Current layer index. For non-layered shader, indicate 0.</param>
+        public LayeringOptionsUIBlock(ExpandableBit expandableBit, int layerIndex)
         {
             m_ExpandableBit = expandableBit;
             m_LayerIndex = layerIndex;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence);
@@ -64,6 +75,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             // We're using a subheader here because we know that layering options are only used within layers

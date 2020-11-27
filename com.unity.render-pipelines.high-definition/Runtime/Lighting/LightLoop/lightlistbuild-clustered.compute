@@ -233,7 +233,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         for(int i=0; i<g_iNumSamplesMSAA; i++)
         {
         const float fDpth = FetchDepthMSAA(uPixCrd, i);
-        const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
+		#if defined(SHADER_API_METAL) // GetSamplePosition isn't supported on Metal yet in Unity. TODO: remove when support is added
+        const float2 fracSampleCoord = float2(0.0, 0.0);
+		#else
+		const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;     // this is optimized away when USE_OBLIQUE_MODE is NOT set.
+		#endif
 #else
         const float fDpth = FetchDepth(uPixCrd);
         const float2 fracSampleCoord = float2(0.5,0.5);
