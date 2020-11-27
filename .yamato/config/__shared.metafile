@@ -6,6 +6,7 @@ editors: # applied for all yml files
     name: trunk
     rerun_strategy: on-new-revision
     editor_pinning: True
+    editor_pinning_use_abv: True
     abv_pr: False
     nightly: True
     weekly: True
