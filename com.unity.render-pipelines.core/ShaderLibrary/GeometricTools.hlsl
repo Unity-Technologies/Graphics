@@ -160,8 +160,8 @@ bool IntersectRayCone(float3 rayOrigin,  float3 rayDirection,
     // Check whether we have at least 1 root.
     bool hit = SolveQuadraticEquation(a, 2 * b, c, roots);
 
-    tEntr = min(roots.x, roots.y);
-    tExit = max(roots.x, roots.y);
+    tEntr = roots.x;
+    tExit = roots.y;
     float3 pEntr = o + tEntr * d;
     float3 pExit = o + tExit * d;
 
