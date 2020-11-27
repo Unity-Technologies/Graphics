@@ -7,6 +7,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
+using UnityEditor.ShaderGraph.Drawing.Views;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -22,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public const int k_KeywordSectionIndex = 1;
         const string k_styleName = "Blackboard";
 
-        public Blackboard blackboard { get; private set; }
+        public SGBlackboard blackboard { get; private set; }
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
@@ -42,9 +43,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_InputRows = new Dictionary<ShaderInput, BlackboardRow>();
 
-            blackboard = new Blackboard()
+            blackboard = new SGBlackboard()
             {
-                scrollable = true,
                 subTitle = FormatPath(graph.path),
                 editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,
@@ -172,7 +172,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return string.Join("/", newStrings.ToArray());
         }
 
-        void MoveItemRequested(Blackboard blackboard, int newIndex, VisualElement visualElement)
+        void MoveItemRequested(SGBlackboard blackboard, int newIndex, VisualElement visualElement)
         {
             var input = visualElement.userData as ShaderInput;
             if (input == null)
@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void AddItemRequested(Blackboard blackboard)
+        void AddItemRequested(SGBlackboard blackboard)
         {
             var gm = new GenericMenu();
             AddPropertyItems(gm);
@@ -257,7 +257,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
+        void EditTextRequested(SGBlackboard blackboard, VisualElement visualElement, string newText)
         {
             var field = (BlackboardFieldView)visualElement;
             var input = (ShaderInput)field.userData;
