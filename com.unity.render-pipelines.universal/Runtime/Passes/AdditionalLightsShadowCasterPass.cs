@@ -195,6 +195,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_IssuedMessageAboutShadowSlicesTooMany = false;
 
+        Vector4 m_MainLightShadowParams; // Shadow Fade parameters _MainLightShadowParams.zw are actually also used by AdditionalLights
+
         public bool Setup(ref RenderingData renderingData)
         {
             using var profScope = new ProfilingScope(null, m_ProfilingSetupSampler);
@@ -203,6 +205,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_ShadowmapWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
             m_ShadowmapHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
+
+            // In order to apply shadow fade to AdditionalLights, we need to set constants _MainLightShadowParams.zw used by function GetShadowFade in Shadows.hlsl.
+            // However, we also have to make sure not to override _MainLightShadowParams.xy constants, that are used by MainLight only. Therefore we need to store these values in m_MainLightShadowParams and set them again during SetupAdditionalLightsShadowReceiverConstants.
+            m_MainLightShadowParams = ShadowUtils.GetMainLightShadowParams(ref renderingData);
 
             var visibleLights = renderingData.lightData.visibleLights;
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
@@ -522,6 +528,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
 
             cmd.SetGlobalTexture(m_AdditionalLightsShadowmap.id, m_AdditionalLightsShadowmapTexture);
+
+            // set shadow fade (shadow distance) parameters
+            ShadowUtils.SetupShadowReceiverConstantBuffer(cmd, m_MainLightShadowParams);
 
             if (m_UseStructuredBuffer)
             {

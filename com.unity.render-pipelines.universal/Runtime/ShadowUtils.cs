@@ -231,6 +231,35 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector("_LightPosition", new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, 1.0f));
         }
 
+        internal static Vector4 GetMainLightShadowParams(ref RenderingData renderingData)
+        {
+            // Main Light shadow params
+            float mainLightShadowStrength = 0f;
+            float mainLightSoftShadowsProp = 0f;
+            if (renderingData.lightData.mainLightIndex != -1)
+            {
+                mainLightShadowStrength = renderingData.lightData.visibleLights[renderingData.lightData.mainLightIndex].light.shadowStrength;
+
+                if (renderingData.lightData.visibleLights[renderingData.lightData.mainLightIndex].light.shadows == LightShadows.Soft && renderingData.shadowData.supportsSoftShadows)
+                    mainLightSoftShadowsProp = 1f;
+            }
+
+            // Shadow params used by both MainLight and AdditionalLights
+            float maxShadowDistance = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
+            //To make the shadow fading fit into a single MAD instruction:
+            //distanceCamToPixel2 * oneOverFadeDist + minusStartFade (single MAD)
+            float startFade = maxShadowDistance * 0.9f;
+            float oneOverFadeDist = 1 / (maxShadowDistance - startFade);
+            float minusStartFade = -startFade * oneOverFadeDist;
+
+            return new Vector4(mainLightShadowStrength, mainLightSoftShadowsProp, oneOverFadeDist, minusStartFade);
+        }
+
+        internal static void SetupShadowReceiverConstantBuffer(CommandBuffer cmd, Vector4 mainLightShadowParams)
+        {
+            cmd.SetGlobalVector("_MainLightShadowParams", mainLightShadowParams);
+        }
+
         public static RenderTexture GetTemporaryShadowTexture(int width, int height, int bits)
         {
             var shadowTexture = RenderTexture.GetTemporary(width, height, bits, m_ShadowmapFormat);
