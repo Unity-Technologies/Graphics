@@ -186,6 +186,11 @@ namespace UnityEngine.Rendering.Universal
             const string m_ProfilerTag = "Restore Shadow Keywords Pass";
             private ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
 
+            public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+            {
+                ConfigureTarget(BuiltinRenderTextureType.CurrentActive);
+            }
+
             public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
             {
                 CommandBuffer cmd = CommandBufferPool.Get();
