@@ -24,21 +24,24 @@ test_platforms:
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>" 
     utr_repeat:
-      - utr_flags:
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
         - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersLow
         utr_flags_build:
         - [all]: --testfilter=Low
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
         - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersLow
-      - utr_flags:
+      - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        utr_flags:
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
         - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersMedium
         utr_flags_build:
         - [all]: --testfilter=Medium
         - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
         - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersMedium
-      - utr_flags:
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        utr_flags:
         - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersHigh
         utr_flags_build:
         - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
@@ -58,11 +61,14 @@ test_platforms:
       - [all]: --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
     utr_repeat:
-      - utr_flags:
+      - apply: [all]
+        utr_flags:
         - [all]: --testfilter=Low
-      - utr_flags:
+      - apply: [all]
+        utr_flags:
         - [all]: --testfilter=Medium
-      - utr_flags:
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
         - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
   - type: editmode
     name: performance_build_editmode
@@ -82,11 +88,14 @@ test_platforms:
       - [Android_Vulkan, Android_OpenGLES3]: --extra-editor-arg="-buildtarget" --extra-editor-arg="Android"
       - [all]: --extra-editor-arg="-scriptingbackend=<SCRIPTING_BACKEND>"
     utr_repeat:
-      - utr_flags:
+      - apply: [all]
+        utr_flags:
         - [all]: --testfilter=Low
-      - utr_flags:
+      - apply: [all]
+        utr_flags:
         - [all]: --testfilter=Medium
-      - utr_flags:
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
         - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
 platforms:
   - name: Win
