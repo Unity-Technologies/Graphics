@@ -881,25 +881,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
 
-                // Now, see if we have a lighting override
-                // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
-                VolumeManager.instance.Update(skyManager.lightingOverrideVolumeStack, volumeAnchor, skyManager.lightingOverrideLayerMask);
-                if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(skyManager.lightingOverrideLayerMask))
-                {
-                    SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
-                    if (m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
-                    {
-                        // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
-                        // Resetting the visual sky hash will ensure that.
-                        visualSky.skyParametersHash = -1;
-                    }
+                lightingSky = visualSky;
 
-                    m_LightingOverrideSky.skySettings = newSkyOverride;
-                    lightingSky = m_LightingOverrideSky;
-                }
-                else
+                if (skyManager.lightingOverrideLayerMask != 0)
                 {
-                    lightingSky = visualSky;
+                    // Now, see if we have a lighting override
+                    // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
+                    VolumeManager.instance.Update(skyManager.lightingOverrideVolumeStack, volumeAnchor, skyManager.lightingOverrideLayerMask);
+                    if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(skyManager.lightingOverrideLayerMask))
+                    {
+                        SkySettings newSkyOverride = SkyManager.GetSkySetting(skyManager.lightingOverrideVolumeStack);
+                        if (m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
+                        {
+                            // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
+                            // Resetting the visual sky hash will ensure that.
+                            visualSky.skyParametersHash = -1;
+                        }
+
+                        m_LightingOverrideSky.skySettings = newSkyOverride;
+                        lightingSky = m_LightingOverrideSky;
+                    }
                 }
             }
         }

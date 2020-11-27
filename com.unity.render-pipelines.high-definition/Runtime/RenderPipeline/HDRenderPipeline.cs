@@ -1595,7 +1595,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Time     = Time.time;                     // Does NOT take the 'animateMaterials' setting into account.
                 m_LastTime = Mathf.Min(m_Time, m_LastTime); // Guard against broken Unity behavior. Should not be necessary.
 
-                m_ProbeCameraCache.ClearCamerasUnusedFor(2, m_FrameCount);
                 HDCamera.CleanUnused();
             }
 
@@ -1616,6 +1615,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
             }
 
+#if UNITY_EDITOR
+            UnityEditor.EditorMaterialUtility.disableApplyMaterialPropertyDrawers = true;
+#endif
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
@@ -1966,10 +1968,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount, CameraType.Reflection);
-                        var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
 
-                        if (additionalCameraData == null)
+                        if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
+                        {
                             additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                        }
                         additionalCameraData.hasPersistentHistory = true;
 
                         // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
@@ -2295,6 +2298,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
+
+#if UNITY_EDITOR
+            UnityEditor.EditorMaterialUtility.disableApplyMaterialPropertyDrawers = false;
+#endif
 
             if (m_EnableRenderGraph)
                 m_RenderGraph.EndFrame();
