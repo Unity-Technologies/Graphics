@@ -37,17 +37,14 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Reflection Probe
+        m_Untranslated: Congratulations!
       Text:
-        m_Untranslated: 'In a complex room like room 2, with curved walls, a sloped
-          ceiling, and a wide range of lighting strength, it requires a large number
-          of probes to reach a high reflective quality.
+        m_Untranslated: 'You have finished the <b>Materialss</b> tutorial. For more
+          information check out Reflection Probes  <a href="https://docs.unity3d.com/Manual/class-ReflectionProbe.htmll">documentation</a>.
 
-          The size of the
-          probe directly influences how probes are sorted: smaller local Reflection
-          Probes tend to have a higher importance than larger ones.
 
-'
+          Note:
+          You do not need to save in order to follow other tutorials.'
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

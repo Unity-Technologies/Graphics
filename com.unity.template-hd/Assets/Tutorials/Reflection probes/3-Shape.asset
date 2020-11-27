@@ -42,12 +42,7 @@ MonoBehaviour:
         m_Untranslated: "You can switch between different types of shapes for the
           reflection probe, such as box and sphere. A box shape will be useful for
           setting up reflections for an indoor environment like a room, whereas a
-          spherical shape is good to use when it\u2019s an open space.\n\n1. Make
-          sure that you have the <b>Gizmos</b> turned on for this tutorial\n1. In
-          the <i>Hierarchy</i> window expand <b>Lightning->Reflection Probes->Room2
-          </b>\n2. Select <b>Reflection Probe Room 2 Main A</b> gameobject\n3. Set
-          the <b>Shape</b> to Sphere and back to Box\n\nUse the blend distance to
-          smooth the edge of the faces of the reflection probe.\r\n"
+          spherical shape is good to use when it\u2019s an open space."
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

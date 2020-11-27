@@ -37,7 +37,7 @@ MonoBehaviour:
         m_UnmaskedViews: []
     - m_Type: 0
       Title:
-        m_Untranslated: Reflection Probe
+        m_Untranslated: Reflection Probes
       Text:
         m_Untranslated: A Reflection Probe is like a camera that captures a spherical
           view of its surroundings in all directions. The image is then stored as

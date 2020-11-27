@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 0-Reflection Probes
   m_EditorClassIdentifier: 
   TutorialTitle:
-    m_Untranslated: New Tutorial
+    m_Untranslated: Reflection Probes
   m_TutorialTitle: 
   m_LessonId: 0
   m_Version: 1
@@ -45,4 +45,6 @@ MonoBehaviour:
     - {fileID: 11400000, guid: f4d6b0802eb2b594fb9f50f7791c924c, type: 2}
     - {fileID: 11400000, guid: 6095fcfd0c49b0f47bb3279aa67391c5, type: 2}
     - {fileID: 11400000, guid: ffdb5865c80de1646b9d883724c177b8, type: 2}
+    - {fileID: 11400000, guid: 545b9570f94040b4c9fbdefbbeaa484e, type: 2}
+    - {fileID: 11400000, guid: 3eaea39409b7d6e4f944faa2a68245d9, type: 2}
     - {fileID: 11400000, guid: 84033c599eb6ff24ca2c9816698fc94a, type: 2}

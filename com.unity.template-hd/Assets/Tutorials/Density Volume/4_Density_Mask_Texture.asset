@@ -43,7 +43,8 @@ MonoBehaviour:
           interior of the Volume. The Density Volume only uses the alpha channel
           of the texture. The value of the texture acts as a density multiplier.
           A value of 0 in the Texture results in a Volume of 0 density, and the texture
-          value of 1 results in the original constant (homogeneous) volume.
+          value of 1 results in the original constant (homogeneous) volume. Currently,
+          HDRP supports 3D textures at a resolution of 32x32x32.
 
 
           Set

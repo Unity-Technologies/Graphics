@@ -43,7 +43,7 @@ MonoBehaviour:
           Profile. By default Unity comes with Foliage and Skin.\n\n1) In the <i>Project</i>
           window open <b>Settings->DiffusionProfiles</b> folder\n2) Open <b>Bamboo
           Leaves</b> \n3) Go to <i>Inspector</i> window and decrease the <b>Transmission
-          tin</b> color intensity slider to -1.8 and back\n\nThe intensity slider
+          thin</b> color intensity slider to -1.8 and back\n\nThe intensity slider
           allows us to quickly adjust the amount of light passing through materials
           that are sharing this Diffusion profile.\n"
       m_Summary: 
