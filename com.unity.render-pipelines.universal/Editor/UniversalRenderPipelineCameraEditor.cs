@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
             public static readonly string mssaDisabledWarning = "Anti-aliasing is disabled in the Universal Render Pipeline asset.";
 
-            public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
+            public static readonly string missingRendererWarning = "The currently selected Renderer is missing from the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
 
             public static GUIContent[] cameraBackgroundType =
@@ -484,9 +484,9 @@ namespace UnityEditor.Rendering.Universal
             DrawRenderingSettings(camType, rpAsset);
             DrawEnvironmentSettings(camType);
 
-            // Settings only relevant to base cameras
             if (camType == CameraRenderType.Base)
             {
+                // Settings only relevant to base cameras
                 DrawOutputSettings(rpAsset);
                 DrawStackSettings();
             }
@@ -659,6 +659,12 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateCameras();
+
+                // ScriptableRenderContext.SetupCameraProperties still depends on camera target texture
+                // In order for overlay camera not to override base camera target texture we null it here
+                CameraRenderType camType = (CameraRenderType)m_AdditionalCameraDataCameraTypeProp.intValue;
+                if (camType == CameraRenderType.Overlay && settings.targetTexture.objectReferenceValue != null)
+                    settings.targetTexture.objectReferenceValue = null;
             }
         }
 
