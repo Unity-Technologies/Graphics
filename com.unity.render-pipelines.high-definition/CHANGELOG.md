@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with opaque material using a shader graph with Transparent SurfaceType selected. FPTL was not working for this case.
 - Fixed NullReferenceException when loading multipel scene async
 - Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
+- Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
 
 ### Changed
 - Removed XRSystemTests. The GC verification is now done during playmode tests (case 1285012).
