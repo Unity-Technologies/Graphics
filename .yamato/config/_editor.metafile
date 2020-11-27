@@ -55,6 +55,9 @@ versions_file_header: |
 
 green_revision_jobs:
 ### MERGING
-  - all universal ci - trunk
   - _ABV for SRP repository - trunk
-  - All URP_Performance_BoatAttack CI - trunk
+  - All Universal CI - trunk
+  - All HDRP CI - trunk
+  - All ShaderGraph CI - trunk
+  - All VFX_HDRP CI - trunk
+  - All VFX_URP CI - trunk
