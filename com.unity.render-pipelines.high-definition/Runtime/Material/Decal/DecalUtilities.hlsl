@@ -178,10 +178,9 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, inout float alpha)
 
     uint decalLayerMask = GetMeshRenderingDecalLayer();
 
-    DecalData decalData;
-
     uint i = 0;
 
+    DecalData decalData;
     while (TryLoadDecalData(i, tile, zBin, decalData))
     {
         if ((decalData.decalLayerMask & decalLayerMask) != 0)
