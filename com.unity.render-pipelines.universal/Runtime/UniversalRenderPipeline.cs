@@ -302,6 +302,11 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.xr.enabled)
             {
                 cullingParams = cameraData.xr.cullingParams;
+
+                // Sync the FOV on the camera to match the projection from the XR device
+                if (!cameraData.camera.usePhysicalProperties)
+                    cameraData.camera.fieldOfView = Mathf.Rad2Deg * Mathf.Atan(1.0f / cullingParams.stereoProjectionMatrix.m11) * 2.0f;
+
                 return true;
             }
 #endif
@@ -1052,6 +1057,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Used when subtractive mode is selected
             Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
+
+            // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
+            Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER

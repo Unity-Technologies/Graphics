@@ -92,6 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public MotionBlurParameters parameters;
             public TextureHandle source;
             public TextureHandle destination;
+            public TextureHandle depthBuffer;
             public TextureHandle motionVecTexture;
             public TextureHandle preppedMotionVec;
             public TextureHandle minMaxTileVel;
@@ -642,7 +643,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle MotionBlurPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle motionVectors, TextureHandle source)
+        TextureHandle MotionBlurPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle motionVectors, TextureHandle source)
         {
             if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
             {
@@ -652,6 +653,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.parameters = PrepareMotionBlurParameters(hdCamera);
 
                     passData.motionVecTexture = builder.ReadTexture(motionVectors);
+                    passData.depthBuffer = builder.ReadTexture(depthTexture);
 
                     Vector2 tileTexScale = new Vector2((float)passData.parameters.tileTargetSize.x / hdCamera.actualWidth, (float)passData.parameters.tileTargetSize.y / hdCamera.actualHeight);
 
@@ -684,6 +686,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         DoMotionBlur(data.parameters, ctx.cmd, data.source,
                                                                data.destination,
+                                                               data.depthBuffer,
                                                                data.motionVecTexture,
                                                                data.preppedMotionVec,
                                                                data.minMaxTileVel,
@@ -1027,7 +1030,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)
-                source = MotionBlurPass(renderGraph, hdCamera, motionVectors, source);
+                source = MotionBlurPass(renderGraph, hdCamera, depthBuffer, motionVectors, source);
 
                 // Panini projection is done as a fullscreen pass after all depth-based effects are
                 // done and before bloom kicks in
