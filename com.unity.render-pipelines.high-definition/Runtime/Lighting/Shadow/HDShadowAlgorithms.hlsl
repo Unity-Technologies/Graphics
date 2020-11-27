@@ -206,12 +206,15 @@ int EvalShadow_GetSplitIndex(HDShadowContext shadowContext, int index, float3 po
 
     // The above code will generate transitions on the whole cascade sphere boundary.
     // It means that depending on the light and camera direction, sometimes the transition appears on the wrong side of the cascade
-    // To avoid that we attenuate the effect (lerp to 0.0) when view direction and cascade center to pixel vector face opposite directions.
+    // To avoid that we attenuate the effect (lerp very sharply to 0.0) when view direction and cascade center to pixel vector face opposite directions.
     // This way you only get fade out on the right side of the cascade.
     float3 viewDir = GetWorldSpaceViewDir(positionWS);
-    float  cascDot = dot(viewDir, wposDir);
-    alpha = lerp(alpha, 0.0, saturate(cascDot * 4.0));
 
+    float  cascDot = dot(viewDir, wposDir);
+    // At high border sizes the sharp lerp is noticeable, hence we need to lerp how sharpenss factor
+    // if we are below 80% we keep the very sharp transition.
+    float lerpSharpness = 8.0f + 512.0f * smoothstep(1.0f, 0.7f, border);// lerp(1024.0f, 8.0f, saturate(border - 0.8) / 0.2f);
+    alpha = lerp(alpha, 0.0, saturate(cascDot * lerpSharpness));
     return shadowSplitIndex;
 }
 
