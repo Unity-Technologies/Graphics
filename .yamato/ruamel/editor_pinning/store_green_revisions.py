@@ -66,6 +66,7 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
     for job_name in green_revision_jobs:
         jobs = [node for node in dependency_tree["nodes"] if node["name"].lower()==job_name.lower()] 
         if len(jobs) == 0:
+            print(f'Skipped "{job_name}" [not found in dependency tree]')
             continue
 
         job = jobs[0]
@@ -79,7 +80,7 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
             last_green_job_revisions[job_name]["last_green_revisions"] = ordereddict_to_dict(revisions)
             is_updated = True
         else:
-            print(f'Skipped "{job_name}"')
+            print(f'Skipped "{job_name}" [job status: {job["status"]}]')
 
     if is_updated: # at least one project got updated
         last_green_job_revisions = ordereddict_to_dict(last_green_job_revisions)

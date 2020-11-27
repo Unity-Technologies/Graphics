@@ -1,5 +1,5 @@
 all_universal_ci_-_trunk:
-  updated_at: '2020-11-27 14:17:53.491313'
+  updated_at: '2020-11-27 14:30:01.021490'
   last_green_revisions:
     android:
       revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
@@ -17,7 +17,7 @@ all_universal_ci_-_trunk:
       revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
       version: ''
 all_shadergraph_ci_-_trunk:
-  updated_at: '2020-11-27 14:17:53.491313'
+  updated_at: '2020-11-27 14:30:01.021490'
   last_green_revisions:
     android:
       revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
@@ -35,7 +35,7 @@ all_shadergraph_ci_-_trunk:
       revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
       version: ''
 all_vfx_hdrp_ci_-_trunk:
-  updated_at: '2020-11-27 14:17:53.491313'
+  updated_at: '2020-11-27 14:30:01.021490'
   last_green_revisions:
     android:
       revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
@@ -53,7 +53,7 @@ all_vfx_hdrp_ci_-_trunk:
       revision: fdd63b12dbc05087a52bda9167f868f3fc105d49
       version: ''
 all_vfx_urp_ci_-_trunk:
-  updated_at: '2020-11-27 14:17:53.491313'
+  updated_at: '2020-11-27 14:30:01.021490'
   last_green_revisions:
     android:
       revision: fdd63b12dbc05087a52bda9167f868f3fc105d49

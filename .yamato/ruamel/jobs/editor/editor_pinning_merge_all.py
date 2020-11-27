@@ -13,18 +13,32 @@ class Editor_PinningMergeAllJob():
 
 
     def get_job_definition(self, editors, agent, target_branch, target_branch_editor_ci, ci):
-    
         
+        # commands: uncomment and use it to store green revisions per jobs if needed
+        commands = [
+            f'sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple',# Remove when the image has this preinstalled.
+            f'python3 -m pipenv install --dev', 
+            f'echo "Running on \'$GIT_BRANCH\', committing/pushing to \'{target_branch}\'',
+            f'git config --global user.name "noreply@unity3d.com"',
+            f'git config --global user.email "noreply@unity3d.com"', 
+        ]
+        for editor in editors:
+            if not editor['editor_pinning']:
+                continue
+            commands.append(f'pipenv run python3 .yamato/ruamel/editor_pinning/store_green_revisions.py --target-branch { target_branch } --track {editor["track"]} --jobid $YAMATO_JOB_ID --apikey $YAMATO_KEY')
+
+
+        # dependencies
         abv_markers = []
         dependencies = []
         for editor in editors:
             if not editor['editor_pinning']:
                 continue
             
-            if ci:
+            if ci: # for ci workflows use the abv dependency (true/false) marked in metafile
                 abv_markers.append(f'[{editor["track"]} ABV]' if editor['editor_pinning_use_abv'] else f'[{editor["track"]} no ABV]')
                 dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], editor["editor_pinning_use_abv"])}')
-            else:
+            else: # for manual workflow always disable ABV dependency, since the manual job is a 'force update' 
                 abv_markers.append(f'[{editor["track"]} no ABV]')
                 dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], False)}')
 
@@ -37,10 +51,8 @@ class Editor_PinningMergeAllJob():
         job.set_name(job_name)
         if ci:
             job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions*.metafile"')
-        
-        
-        #job.set_agent(agent)
         job.add_var_custom('CI', True)
         job.add_dependencies(dependencies)
-        #job.add_commands(commands)
+        job.set_agent(agent)
+        job.add_commands(commands)
         return job
