@@ -648,8 +648,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -743,10 +742,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -776,7 +772,9 @@ VisualEffectResource:
       && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
       = invSoftParticlesFadeDistance;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && (!VFX_SHADERGRAPH ||
-      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\tfloat
+      alphaThreshold = (float)0;\n\t\t\t\t\t\t{\n\t\t\t\t\t\t    \n\t\t\t\t\t\t   
+      alphaThreshold = (float)0.5;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
       = alphaThreshold;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       defined (VFX_VARYING_UV)\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy
       * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -937,8 +935,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -1032,10 +1029,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -1065,7 +1059,9 @@ VisualEffectResource:
       && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
       = invSoftParticlesFadeDistance;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && (!VFX_SHADERGRAPH ||
-      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\tfloat
+      alphaThreshold = (float)0;\n\t\t\t\t\t\t{\n\t\t\t\t\t\t    \n\t\t\t\t\t\t   
+      alphaThreshold = (float)0.5;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
       = alphaThreshold;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       defined (VFX_VARYING_UV)\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy
       * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -1189,7 +1185,7 @@ VisualEffectResource:
       o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f;
       //Independant clipping for motion vector pass\n\t\t#endif\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
       Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
-      }\n\t\t\n\t\t\tZClip [_ZClip]\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE\n\t\t\t#define
       USE_ALPHA_TEST 1\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_PASSDEPTH VFX_PASSDEPTH_SHADOW\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
@@ -1223,8 +1219,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -1318,10 +1313,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -1351,7 +1343,9 @@ VisualEffectResource:
       && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
       = invSoftParticlesFadeDistance;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && (!VFX_SHADERGRAPH ||
-      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\tfloat
+      alphaThreshold = (float)0;\n\t\t\t\t\t\t{\n\t\t\t\t\t\t    \n\t\t\t\t\t\t   
+      alphaThreshold = (float)0.5;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
       = alphaThreshold;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       defined (VFX_VARYING_UV)\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy
       * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -1550,8 +1544,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -1646,10 +1639,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -1841,8 +1831,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -1937,10 +1926,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -2093,7 +2079,7 @@ VisualEffectResource:
       o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f;
       //Independant clipping for motion vector pass\n\t\t#endif\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
       Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
-      }\n\t\t\n\t\t\tZClip [_ZClip]\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE\n\t\t\t#define
       USE_ALPHA_TEST 1\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_PASSDEPTH VFX_PASSDEPTH_SHADOW\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
@@ -2129,8 +2115,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -2225,10 +2210,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -2454,8 +2436,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -2549,10 +2530,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -2742,8 +2720,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -2837,10 +2814,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -2993,7 +2967,7 @@ VisualEffectResource:
       o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f;
       //Independant clipping for motion vector pass\n\t\t#endif\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
       Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
-      }\n\t\t\n\t\t\tZClip [_ZClip]\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE\n\t\t\t#define
       USE_ALPHA_TEST 1\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_PASSDEPTH VFX_PASSDEPTH_SHADOW\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
@@ -3027,8 +3001,7 @@ VisualEffectResource:
       Composition:Add Source:Slot Random:Off channels:XYZ */\n\t\t\t{\n\t\t\t   
       position += Position;\n\t\t\t}\n\t\t\t\n\n\t\t\t\n\t\t\t#if defined(HAS_STRIPS)
       && !defined(VFX_PRIMITIVE_QUAD)\n\t\t\t#error VFX_PRIMITIVE_QUAD must be defined
-      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_NON_UNIFORM_SCALE
-      VFX_LOCAL_SPACE\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
+      when HAS_STRIPS is.\n\t\t\t#endif\n\t\t\t\n\t\t\tstruct vs_input\n\t\t\t{\n\t\t\t\tVFX_DECLARE_INSTANCE_ID\n\t\t\t};\n\t\t\t\n\t\t\t#if
       HAS_STRIPS\n\t\t\t#define PARTICLE_IN_EDGE (id & 1)\n\t\t\t\n\t\t\tfloat3 GetParticlePosition(uint
       index)\n\t\t\t{\n\t\t\t\tstruct Attributes attributes = (Attributes)0;\n\t\t\t\tattributes.position
       = asfloat(attributeBuffer.Load3((index * 0x8 + 0x0) << 2));\n\t\t\t\t\n\n\t\t\t\treturn
@@ -3122,10 +3095,7 @@ VisualEffectResource:
       1.0f)).xyz;\n\t\t\t\n\t\t\t\to.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);\n\t\t\t   
       \n\t\t\t    float3 vPosWS = TransformPositionVFXToWorld(vPos);\n\t\t\t\t\n\t\t\t   
       #ifdef VFX_VARYING_POSWS\n\t\t\t        o.VFX_VARYING_POSWS = vPosWS;\n\t\t\t   
-      #endif\n\t\t\t\t\n\t\t\t#if VFX_NON_UNIFORM_SCALE\n\t\t\t\tfloat3x3 elementToVFX_N
-      = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t#else\n\t\t\t\tfloat3x3
-      elementToVFX_N = (float3x3)elementToVFX;\n\t\t\t#endif\n\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));\n\t\t\t\t#ifdef
+      #endif\n\t\t\t\n\t\t\t\tfloat3 normalWS = normalize(TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz)));\n\t\t\t\t#ifdef
       VFX_VARYING_NORMAL\n\t\t\t\tfloat normalFlip = (size3.x * size3.y * size3.z)
       < 0 ? -1 : 1;\n\t\t\t\to.VFX_VARYING_NORMAL = normalFlip * normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = normalize(TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz)));\n\t\t\t\t#endif\n\t\t\t\t#ifdef
@@ -3408,12 +3378,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -3437,7 +3405,9 @@ VisualEffectResource:
       && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
       = invSoftParticlesFadeDistance;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && (!VFX_SHADERGRAPH ||
-      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\tfloat
+      alphaThreshold = (float)0;\n\t\t\t\t\t\t{\n\t\t\t\t\t\t    \n\t\t\t\t\t\t   
+      alphaThreshold = (float)0.5;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
       = alphaThreshold;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       defined (VFX_VARYING_UV)\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy
       * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -3571,14 +3541,14 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT
       || WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\t// x: inverse soft particles fade
       distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t// z: frame blending factor\n\t\t\t\t//
-      w: exposure weight\n\t\t\t\tnointerpolation float4 builtInInterpolants : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if
+      w: exposure weight\n\t\t\t\tnointerpolation float4 builtInInterpolants : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#if
       USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t// x: motion vectors scale X\n\t\t\t\t//
       y: motion vectors scale Y\n\t\t\t\tnointerpolation float2 builtInInterpolants2
-      : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
-      posWS : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
-      cPosPrevious : TEXCOORD7;\n\t\t\t\tfloat4 cPosNonJiterred : TEXCOORD8;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if
-      SHADERGRAPH_NEEDS_NORMAL_FORWARD\n\t\t\t\tfloat3 normal : TEXCOORD9;\n\t\t\t\t#endif\n\t\t\t\t#if
-      SHADERGRAPH_NEEDS_TANGENT_FORWARD\n\t\t\t\tfloat4 tangent : TEXCOORD10;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t       
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
+      posWS : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
+      cPosPrevious : TEXCOORD5;\n\t\t\t\tfloat4 cPosNonJiterred : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if
+      SHADERGRAPH_NEEDS_NORMAL_FORWARD\n\t\t\t\tfloat3 normal : TEXCOORD7;\n\t\t\t\t#endif\n\t\t\t\t#if
+      SHADERGRAPH_NEEDS_TANGENT_FORWARD\n\t\t\t\tfloat4 tangent : TEXCOORD8;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t       
       VFX_OPTIONAL_INTERPOLATION float4 Color_test : NORMAL0;\n\t\t        \n\n\t\t\n\t\t\t\tUNITY_VERTEX_OUTPUT_STEREO\n\t\t\t};\n\t\t\t\n\t\t\tstruct
       ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
       outMotionVector : SV_Target1;\n\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
@@ -3654,12 +3624,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -3683,7 +3651,9 @@ VisualEffectResource:
       && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
       = invSoftParticlesFadeDistance;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && (!VFX_SHADERGRAPH ||
-      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\tfloat
+      alphaThreshold = (float)0;\n\t\t\t\t\t\t{\n\t\t\t\t\t\t    \n\t\t\t\t\t\t   
+      alphaThreshold = (float)0.5;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
       = alphaThreshold;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       defined (VFX_VARYING_UV)\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy
       * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -3806,7 +3776,7 @@ VisualEffectResource:
       = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping
       for motion vector pass\n\t\t#endif\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
       Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
-      }\n\t\t\n\t\t\tZClip [_ZClip]\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE\n\t\t\t#define
       USE_ALPHA_TEST 1\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_PASSDEPTH VFX_PASSDEPTH_SHADOW\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
@@ -3897,12 +3867,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -3926,7 +3894,9 @@ VisualEffectResource:
       && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE
       = invSoftParticlesFadeDistance;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && (!VFX_SHADERGRAPH ||
-      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
+      !HAS_SHADERGRAPH_PARAM_ALPHATHRESHOLD) && defined(VFX_VARYING_ALPHATHRESHOLD)\n\t\t\t\t\t\tfloat
+      alphaThreshold = (float)0;\n\t\t\t\t\t\t{\n\t\t\t\t\t\t    \n\t\t\t\t\t\t   
+      alphaThreshold = (float)0.5;\n\t\t\t\t\t\t}\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\t\t\to.VFX_VARYING_ALPHATHRESHOLD
       = alphaThreshold;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if USE_UV_SCALE_BIAS\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
       defined (VFX_VARYING_UV)\n\t\t\t\t\t\to.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy
       * uvScale + uvBias;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\t\t#if
@@ -4177,12 +4147,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -4339,14 +4307,14 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT
       || WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\t// x: inverse soft particles fade
       distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t// z: frame blending factor\n\t\t\t\t//
-      w: exposure weight\n\t\t\t\tnointerpolation float4 builtInInterpolants : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if
+      w: exposure weight\n\t\t\t\tnointerpolation float4 builtInInterpolants : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#if
       USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t// x: motion vectors scale X\n\t\t\t\t//
       y: motion vectors scale Y\n\t\t\t\tnointerpolation float2 builtInInterpolants2
-      : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
-      posWS : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
-      cPosPrevious : TEXCOORD7;\n\t\t\t\tfloat4 cPosNonJiterred : TEXCOORD8;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if
-      SHADERGRAPH_NEEDS_NORMAL_FORWARD\n\t\t\t\tfloat3 normal : TEXCOORD9;\n\t\t\t\t#endif\n\t\t\t\t#if
-      SHADERGRAPH_NEEDS_TANGENT_FORWARD\n\t\t\t\tfloat4 tangent : TEXCOORD10;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t       
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
+      posWS : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
+      cPosPrevious : TEXCOORD5;\n\t\t\t\tfloat4 cPosNonJiterred : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if
+      SHADERGRAPH_NEEDS_NORMAL_FORWARD\n\t\t\t\tfloat3 normal : TEXCOORD7;\n\t\t\t\t#endif\n\t\t\t\t#if
+      SHADERGRAPH_NEEDS_TANGENT_FORWARD\n\t\t\t\tfloat4 tangent : TEXCOORD8;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t       
       VFX_OPTIONAL_INTERPOLATION float4 Color_test : NORMAL0;\n\t\t        \n\n\t\t\n\t\t\t\tUNITY_VERTEX_OUTPUT_STEREO\n\t\t\t};\n\t\t\t\n\t\t\tstruct
       ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
       outMotionVector : SV_Target1;\n\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
@@ -4422,12 +4390,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -4573,7 +4539,7 @@ VisualEffectResource:
       = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping
       for motion vector pass\n\t\t#endif\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
       Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
-      }\n\t\t\n\t\t\tZClip [_ZClip]\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE\n\t\t\t#define
       USE_ALPHA_TEST 1\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_PASSDEPTH VFX_PASSDEPTH_SHADOW\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
@@ -4664,12 +4630,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -4946,12 +4910,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -5108,14 +5070,14 @@ VisualEffectResource:
       USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT
       || WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\t// x: inverse soft particles fade
       distance\n\t\t\t\t// y: alpha threshold\n\t\t\t\t// z: frame blending factor\n\t\t\t\t//
-      w: exposure weight\n\t\t\t\tnointerpolation float4 builtInInterpolants : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t#if
+      w: exposure weight\n\t\t\t\tnointerpolation float4 builtInInterpolants : TEXCOORD1;\n\t\t\t\t#endif\n\t\t\t\t#if
       USE_FLIPBOOK_MOTIONVECTORS\n\t\t\t\t// x: motion vectors scale X\n\t\t\t\t//
       y: motion vectors scale Y\n\t\t\t\tnointerpolation float2 builtInInterpolants2
-      : TEXCOORD5;\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
-      posWS : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
-      cPosPrevious : TEXCOORD7;\n\t\t\t\tfloat4 cPosNonJiterred : TEXCOORD8;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if
-      SHADERGRAPH_NEEDS_NORMAL_FORWARD\n\t\t\t\tfloat3 normal : TEXCOORD9;\n\t\t\t\t#endif\n\t\t\t\t#if
-      SHADERGRAPH_NEEDS_TANGENT_FORWARD\n\t\t\t\tfloat4 tangent : TEXCOORD10;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t       
+      : TEXCOORD2;\n\t\t\t\t#endif\n\t\t\t\t#if VFX_NEEDS_POSWS_INTERPOLATOR\n\t\t\t\tfloat3
+      posWS : TEXCOORD4;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
+      cPosPrevious : TEXCOORD5;\n\t\t\t\tfloat4 cPosNonJiterred : TEXCOORD6;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t\t\t#if
+      SHADERGRAPH_NEEDS_NORMAL_FORWARD\n\t\t\t\tfloat3 normal : TEXCOORD7;\n\t\t\t\t#endif\n\t\t\t\t#if
+      SHADERGRAPH_NEEDS_TANGENT_FORWARD\n\t\t\t\tfloat4 tangent : TEXCOORD8;\n\t\t\t\t#endif\n\t\t\t\t\n\t\t       
       VFX_OPTIONAL_INTERPOLATION float4 Color_test : NORMAL0;\n\t\t        \n\n\t\t\n\t\t\t\tUNITY_VERTEX_OUTPUT_STEREO\n\t\t\t};\n\t\t\t\n\t\t\tstruct
       ps_output\n\t\t\t{\n\t\t\t\tfloat4 color : SV_Target0;\n\t\t#if WRITE_MOTION_VECTOR_IN_FORWARD\n\t\t\t\tfloat4
       outMotionVector : SV_Target1;\n\t\t#endif\n\t\t\t};\n\t\t\n\t\t#define VFX_VARYING_PS_INPUTS
@@ -5194,12 +5156,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -5345,7 +5305,7 @@ VisualEffectResource:
       = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping
       for motion vector pass\n\t\t#endif\n\t\t\t\treturn o;\n\t\t\t}\n\t\t\tENDHLSL\n\t\t}\n\t\t\n\n\t\t//
       Shadow pass\n\t\tPass\n\t\t{\t\t\n\t\t\tTags { \"LightMode\"=\"ShadowCaster\"
-      }\n\t\t\n\t\t\tZClip [_ZClip]\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
+      }\n\t\t\n\t\t\tZWrite On\n\t\t\tBlend Off\n\t\t\t\n\t\t\tHLSLPROGRAM\n\t\t\t#pragma
       target 4.5\n\t\t\t#if !USE_ALPHA_TEST && IS_TRANSPARENT_PARTICLE\n\t\t\t#define
       USE_ALPHA_TEST 1\n\t\t\t#endif\n\t\t\t\n\t\t\t#define VFX_PASSDEPTH VFX_PASSDEPTH_SHADOW\n\t\t\t#pragma
       target 4.5\n\t\t\t\n\t\t\tstruct ps_input\n\t\t\t{\n\t\t\t\tfloat4 pos : SV_POSITION;\n\t\t\t\t#if
@@ -5439,12 +5399,10 @@ VisualEffectResource:
       VFX_USE_SCALEZ_CURRENT\n\t\t\t\t\t\tsize3.z *= attributes.scaleZ;\n\t\t\t\t\t\t#endif\n\t\t\t\t\t\t\n\t\t\t\t\n\t\t\t\tfloat3
       inputVertexPosition = i.pos;\n\t\t\t\tfloat4x4 elementToVFX = GetElementToVFXMatrix(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tfloat3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),\n\t\t\t\t\tsize3,\n\t\t\t\t\tattributes.position);\n\t\t\t\t\t\n\t\t\t\tfloat3
       vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;\n\t\t\t\tfloat4
-      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\t//
-      TODO This is needed only if in local space (to handle non uniform scale) or
-      if scale attributes are stored/written (no way to know atm)\n\t\t\t\tfloat3x3
-      elementToVFX_N = GetElementToVFXMatrixNormal(\n\t\t\t\t\tattributes.axisX,\n\t\t\t\t\tattributes.axisY,\n\t\t\t\t\tattributes.axisZ,\n\t\t\t\t\tfloat3(attributes.angleX,attributes.angleY,attributes.angleZ),\n\t\t\t\t\tsize3);\n\t\t\t\t\t\t\n\t\t\t\tfloat3
-      normalWS = normalize(TransformNormalVFXToWorld(mul(elementToVFX_N, i.normal)));\n\t\t\t\t#ifdef
-      VFX_VARYING_NORMAL\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
+      csPos = TransformPositionVFXToClip(vPos);\n\t\t\t\to.VFX_VARYING_POSCS = csPos;\n\t\t\t\t\n\t\t\t\tfloat3
+      normalWS = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,
+      i.normal)));\n\t\t\t\t#ifdef VFX_VARYING_NORMAL // TODO Should use inverse
+      transpose\n\t\t\t\to.VFX_VARYING_NORMAL = normalWS;\n\t\t\t\t#endif\n\t\t\t\t#ifdef
       VFX_VARYING_TANGENT\n\t\t\t\to.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);\n\t\t\t\t#endif\n\t\t\t\n\t\t\t\t\n\t\t\t\t\t\t#if
       defined(VFX_VARYING_VELOCITY_CPOS) && defined(VFX_VARYING_VELOCITY_CPOS_PREVIOUS)\n\t\t\t\t\t\tfloat4x4
       previousElementToVFX = (float4x4)0;\n\t\t\t\t\t\tpreviousElementToVFX[3] =
@@ -5645,25 +5603,25 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: 3
       - op: 1
-        valueIndex: 28
+        valueIndex: 30
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 3
       - op: 1
-        valueIndex: 31
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 3
-      - op: 1
-        valueIndex: 34
+        valueIndex: 33
         data[0]: -1
         data[1]: -1
         data[2]: -1
         data[3]: 4
+      - op: 1
+        valueIndex: 37
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 1
       - op: 1
         valueIndex: 38
         data[0]: -1
@@ -5730,7 +5688,7 @@ VisualEffectResource:
     m_PropertySheet:
       m_Float:
         m_Array:
-        - m_ExpressionIndex: 8
+        - m_ExpressionIndex: 11
           m_Value: 0.5
         - m_ExpressionIndex: 13
           m_Value: 1.5
@@ -5748,9 +5706,9 @@ VisualEffectResource:
           m_Value: {x: -0.75, y: 3, z: 0}
         - m_ExpressionIndex: 6
           m_Value: {x: -3, y: 0, z: 0}
-        - m_ExpressionIndex: 9
+        - m_ExpressionIndex: 8
           m_Value: {x: -3, y: -3, z: 0}
-        - m_ExpressionIndex: 10
+        - m_ExpressionIndex: 9
           m_Value: {x: 1, y: 1, z: 1}
         - m_ExpressionIndex: 12
           m_Value: {x: -3, y: 3, z: 0}
@@ -5772,7 +5730,7 @@ VisualEffectResource:
           m_Value: {x: 0.000607054, y: 0.3813261, z: 0.07818743, w: 1}
         - m_ExpressionIndex: 7
           m_Value: {x: 0.1070231, y: 0.04373504, z: 0.3049874, w: 1}
-        - m_ExpressionIndex: 11
+        - m_ExpressionIndex: 10
           m_Value: {x: 1, y: 1, z: 1, w: 1}
         - m_ExpressionIndex: 21
           m_Value: {x: 0.84687346, y: 0.035601325, z: 0.10946172, w: 1}
@@ -6360,6 +6318,7 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
+  - {fileID: 8926484042661615176}
   - {fileID: 8926484042661615177}
   m_OutputSlots: []
   m_Label: 0_0
@@ -7541,6 +7500,7 @@ MonoBehaviour:
   m_InputSlots:
   - {fileID: 8926484042661614900}
   - {fileID: 8926484042661614901}
+  - {fileID: 8926484042661615192}
   - {fileID: 8926484042661615193}
   m_OutputSlots: []
   m_Label: 0_1
@@ -8913,6 +8873,52 @@ MonoBehaviour:
       m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &8926484042661615176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661615176}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614581}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.5
+    m_Space: 2147483647
+  m_Property:
+    name: alphaThreshold
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes:
+    - m_Type: 0
+      m_Min: 0
+      m_Max: 1
+      m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: Alpha threshold used for pixel clipping
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &8926484042661615177
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9421,6 +9427,52 @@ MonoBehaviour:
       m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
     attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
+--- !u!114 &8926484042661615192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 8926484042661615192}
+  m_MasterData:
+    m_Owner: {fileID: 8926484042661614899}
+    m_Value:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 0.5
+    m_Space: 2147483647
+  m_Property:
+    name: alphaThreshold
+    m_serializedType:
+      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+    attributes:
+    - m_Type: 0
+      m_Min: 0
+      m_Max: 1
+      m_Tooltip: 
+      m_Regex: 
+      m_RegexMaxLength: 0
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: Alpha threshold used for pixel clipping
+      m_Regex: 
+      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &8926484042661615193
