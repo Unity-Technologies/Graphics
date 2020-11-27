@@ -27,17 +27,15 @@ float3x3 RotationFromAxisAngle(float3 A, float sinAngle, float cosAngle)
 // Solver
 //-----------------------------------------------------------------------------
 
-// Solves the quadratic equation of the form: a*t^2 + b*t + c = 0.
-// Returns 'false' if there are no real roots, 'true' otherwise.
-// Numerically stable.
-// Ref: Numerical Recipes in C++ (3rd Edition)
 bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 {
-    float d = b * b - 4 * a * c;
-    float q = -0.5 * (b + CopySign(sqrt(d), b));
-    roots   = float2(c / q, q / a);
+    float det = Sq(b) - 4.0 * a * c;
 
-    return (d >= 0);
+    float sqrtDet = sqrt(det);
+    roots.x = (-b - sign(a) * sqrtDet) / (2.0 * a);
+    roots.y = (-b + sign(a) * sqrtDet) / (2.0 * a);
+
+    return (det >= 0.0);
 }
 
 //-----------------------------------------------------------------------------
