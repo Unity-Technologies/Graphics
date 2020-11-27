@@ -76,7 +76,7 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
             if not last_green_job_revisions.get(job_name):
                 last_green_job_revisions[job_name] = {}
             last_green_job_revisions[job_name]["updated_at"] = updated_at
-            last_green_job_revisions[job_name]["last_green_revisions"] = revisions
+            last_green_job_revisions[job_name]["last_green_revisions"] = ordereddict_to_dict(revisions)
             is_updated = True
         else:
             print(f'Skipped "{job_name}"')
