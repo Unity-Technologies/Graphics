@@ -118,10 +118,10 @@ editor-pinning-merge-all:
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk
 editor-pinning-merge-all-ci:
-    name: Merge all [CI][trunk ABV]
+    name: Merge all [CI][trunk no ABV]
     triggers:
         expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions*.metafile"
     variables:
         CI: true
     dependencies:
-      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk-abv
+      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk
