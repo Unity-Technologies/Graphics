@@ -114,12 +114,12 @@ namespace UnityEditor.VFX.Test
             var f0Exp = VFXValue.Constant(f0);
             var f1Exp = VFXValue.Constant(f1);
 
-            var equalExp = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Equal, f0Exp, f1Exp);
-            var notEqualExp = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.NotEqual, f0Exp, f1Exp);
-            var lessExp = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Less, f0Exp, f1Exp);
-            var lessOrEqualExp = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.LessOrEqual, f0Exp, f1Exp);
-            var greater = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.Greater, f0Exp, f1Exp);
-            var greaterOrEqual = new VFXExpressionCondition(VFXValueType.Float, VFXCondition.GreaterOrEqual, f0Exp, f1Exp);
+            var equalExp = new VFXExpressionCondition(VFXCondition.Equal, f0Exp, f1Exp);
+            var notEqualExp = new VFXExpressionCondition(VFXCondition.NotEqual, f0Exp, f1Exp);
+            var lessExp = new VFXExpressionCondition(VFXCondition.Less, f0Exp, f1Exp);
+            var lessOrEqualExp = new VFXExpressionCondition(VFXCondition.LessOrEqual, f0Exp, f1Exp);
+            var greater = new VFXExpressionCondition(VFXCondition.Greater, f0Exp, f1Exp);
+            var greaterOrEqual = new VFXExpressionCondition(VFXCondition.GreaterOrEqual, f0Exp, f1Exp);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var resultA = context.Compile(equalExp);
@@ -235,53 +235,6 @@ namespace UnityEditor.VFX.Test
             var reduced = context.Compile(xValue);
 
             Assert.AreEqual(new Vector4(1, 0, 0, 0), reduced.Get<Vector4>());
-        }
-
-
-        [Test]
-        public void OuputExpression_From_Slot_Mesh_Should_Be_Invalid_Constant()
-        {
-            var source = ScriptableObject.CreateInstance<VFXInlineOperator>();
-            source.SetSettingValue("m_Type", (SerializableType)typeof(Mesh));
-            var expressionOutput = source.outputSlots[0].GetExpression();
-
-            var context = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding);
-            var reduced = context.Compile(expressionOutput);
-
-            Assert.IsTrue(expressionOutput.Is(VFXExpression.Flags.InvalidConstant));
-        }
-
-        [Test]
-        public void OuputExpression_From_Slot_Mesh_Should_Be_Invalid_Constant_Propagation()
-        {
-            var source = ScriptableObject.CreateInstance<VFXInlineOperator>();
-            source.SetSettingValue("m_Type", (SerializableType)typeof(Mesh));
-
-            var meshCount = ScriptableObject.CreateInstance<Operator.MeshVertexCount>();
-            meshCount.inputSlots[0].Link(source.outputSlots[0]);
-
-            var add = ScriptableObject.CreateInstance<Operator.Add>();
-            add.SetOperandType(0, typeof(uint));
-            add.SetOperandType(1, typeof(uint));
-            add.inputSlots[1].value = 8u;
-
-            var expressionOutputBefore = add.outputSlots[0].GetExpression();
-            var contextBefore = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding); //Used by runtime
-            var reducedBeforeLink = contextBefore.Compile(expressionOutputBefore);
-
-            bool success = add.inputSlots[0].Link(meshCount.outputSlots[0]);
-            Assert.IsTrue(success);
-
-            var expressionOutputAfter = add.outputSlots[0].GetExpression();
-            var contextAfter = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding); //Used by runtime
-            var reducedAfterLink = contextAfter.Compile(expressionOutputAfter);
-
-            var contextAfterCPUEvaluation = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding); //Used by GUI
-            var reducedAfterLinkCPUEvaluation = contextAfterCPUEvaluation.Compile(expressionOutputAfter);
-
-            Assert.IsAssignableFrom(typeof(VFXValue<uint>), reducedBeforeLink);
-            Assert.IsAssignableFrom(typeof(VFXExpressionAdd), reducedAfterLink);
-            Assert.IsAssignableFrom(typeof(VFXValue<uint>), reducedAfterLinkCPUEvaluation);
         }
 
         [Test]
