@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
