@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using Unity.Collections;
@@ -1588,13 +1588,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (visLightIndex == mainLightIndex)
                 {
                     hasDeferredShadows = vl.light && vl.light.shadows != LightShadows.None;
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS, false);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, false);
                 }
                 else
                 {
                     int shadowLightIndex = m_AdditionalLightsShadowCasterPass != null ? m_AdditionalLightsShadowCasterPass.GetShadowLightIndexFromLightIndex(visLightIndex) : -1;
                     hasDeferredShadows = vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0;
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS, hasDeferredShadows);
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredShadows);
 
                     cmd.SetGlobalInt(ShaderConstants._ShadowLightIndex, shadowLightIndex);
                 }
@@ -1615,7 +1615,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 isFirstLight = false;
             }
 
-            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._DIRECTIONAL);
         }
@@ -1654,7 +1654,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasDeferredAdditionalLightShadows = vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0;
                 bool hasSoftShadow = hasDeferredAdditionalLightShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS, hasDeferredAdditionalLightShadows);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredAdditionalLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
                 cmd.SetGlobalVector(ShaderConstants._LightPosWS, lightPos);
@@ -1672,7 +1672,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_SphereMesh, transformMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
 
-            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._POINT);
         }
@@ -1709,7 +1709,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bool hasDeferredAdditionalLightShadows = vl.light && vl.light.shadows != LightShadows.None && shadowLightIndex >= 0;
                 bool hasSoftShadow = hasDeferredAdditionalLightShadows && renderingData.shadowData.supportsSoftShadows && vl.light.shadows == LightShadows.Soft;
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS, hasDeferredAdditionalLightShadows);
+                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredAdditionalLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
                 cmd.SetGlobalVector(ShaderConstants._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
@@ -1731,7 +1731,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.DrawMesh(m_HemisphereMesh, vl.localToWorldMatrix, m_StencilDeferredMaterial, 0, m_StencilDeferredPasses[(int)StencilDeferredPasses.PunctualSimpleLit]);
             }
 
-            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_ADDITIONAL_LIGHT_SHADOWS);
+            cmd.DisableShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
             cmd.DisableShaderKeyword(ShaderKeywordStrings.SoftShadows);
             cmd.DisableShaderKeyword(ShaderKeywordStrings._SPOT);
         }

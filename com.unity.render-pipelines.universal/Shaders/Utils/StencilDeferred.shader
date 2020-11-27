@@ -32,9 +32,9 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     // When rendering deferred lights, we need to set/unset this flag dynamically for each deferred
     // light, however there is no way to restore the value of the keyword, whch is needed by the
     // forward transparent pass. The workaround is to use a new shader keyword
-    // _DEFERRED_ADDITIONAL_LIGHT_SHADOWS to set _ADDITIONAL_LIGHT_SHADOWS as a #define, so that
+    // _DEFERRED_LIGHT_SHADOWS to set _ADDITIONAL_LIGHT_SHADOWS as a #define, so that
     // the "state" of the keyword itself is unchanged.
-    #ifdef _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+    #ifdef _DEFERRED_LIGHT_SHADOWS
     #define _ADDITIONAL_LIGHT_SHADOWS 1
     #endif
 
@@ -204,7 +204,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                 unityLight.shadowAttenuation = 1.0;
                 unityLight.color = _LightColor.rgb;
 
-                #if defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
+                #if defined(_DEFERRED_LIGHT_SHADOWS)
                     if (!materialReceiveShadowsOff)
                         unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, shadowMask, _LightOcclusionProbInfo);
                 #endif
@@ -341,7 +341,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
@@ -382,7 +382,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
@@ -426,7 +426,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
@@ -471,7 +471,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
