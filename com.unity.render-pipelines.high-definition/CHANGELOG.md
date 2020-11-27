@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ghosting in RTGI and RTAO when denoising is enabled and the RTHandle size is not equal to the Viewport size (case 1291654).
 - Fixed alpha output when atmospheric scattering is enabled.
 - Fixed issue with TAA history sharpening when view is downsampled.
+- Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
