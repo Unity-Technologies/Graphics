@@ -3824,6 +3824,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DBufferRender)))
             {
+                bool supportDecalLayer = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers);
                 var parameters = PrepareRenderDBufferParameters(hdCamera);
                 RenderDBuffer(parameters,
                     m_DbufferManager.GetBuffersRTI(),
@@ -3831,7 +3832,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_SharedRTManager.GetDepthStencilBuffer(),
                     canReadBoundDepthBuffer ? m_SharedRTManager.GetDepthStencilBuffer() : m_SharedRTManager.GetDepthTexture(),
                     RendererList.Create(PrepareMeshDecalsRendererList(cullingResults, hdCamera, parameters.use4RTs)),
-                    m_SharedRTManager.GetDecalPrepassBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
+                    supportDecalLayer ? m_SharedRTManager.GetDecalPrepassBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)) : TextureXR.GetBlackTexture(),
                     renderContext, cmd);
 
                 m_DbufferManager.BindBufferAsTextures(cmd);
@@ -3984,11 +3985,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetRenderTarget(cmd, m_Dbuffer3RtIds, depthStencilBuffer); // do not clear anymore
             }
 
-            if (parameters.useDecalLayers)
-                cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, decalPrepassBuffer);
-            else
-                cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, TextureXR.GetBlackTexture());
-
+            cmd.SetGlobalTexture(HDShaderIDs._DecalPrepassTexture, decalPrepassBuffer);
             cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
 
             CoreUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);

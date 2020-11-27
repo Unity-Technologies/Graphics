@@ -64,6 +64,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     return m_RenderGraph.defaultResources.blackTexture3DXR;
                 }
+                else
+                {
+                    return m_RenderGraph.defaultResources.blackTexture;
+                }
             }
 
             m_RenderPass.AddResourceRead(input.handle);
@@ -92,6 +96,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle ReadWriteTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
+            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.AddResourceWrite(input.handle);
             m_RenderPass.AddResourceRead(input.handle);
             return input;

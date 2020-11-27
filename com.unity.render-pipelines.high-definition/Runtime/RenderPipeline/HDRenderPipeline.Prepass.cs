@@ -799,10 +799,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareRenderDBufferParameters(hdCamera);
                 passData.meshDecalsRendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)));
                 SetupDBufferTargets(renderGraph, passData, use4RTs, ref output, builder);
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers))
-                {
-                    passData.decalBuffer = builder.ReadTexture(decalBuffer);
-                }
+                passData.decalBuffer = builder.ReadTexture(decalBuffer);
                 passData.depthTexture = canReadBoundDepthBuffer ? builder.ReadTexture(output.resolvedDepthBuffer) : builder.ReadTexture(output.depthPyramidTexture);
 
                 builder.SetRenderFunc(
