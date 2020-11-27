@@ -252,6 +252,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             windowDockingLayout.ApplyPosition(this);
         }
 
+        protected void AddStyleSheetFromPath(string styleSheetPath)
+        {
+            StyleSheet sheetAsset = AssetDatabase.LoadAssetAtPath<StyleSheet>(styleSheetPath);;
+
+            if (sheetAsset == null)
+            {
+                Debug.LogWarning(string.Format("Style sheet not found for path \"{0}\"", styleSheetPath));
+                return;
+            }
+            styleSheets.Add(sheetAsset);
+        }
+
         void SerializeLayout()
         {
             windowDockingLayout.size = layout.size;
@@ -269,6 +281,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         void OnWindowResize(MouseUpEvent upEvent)
         {
+
         }
     }
     #endregion
