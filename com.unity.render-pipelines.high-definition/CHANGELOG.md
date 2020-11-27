@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volume component tooltips using the same parameter name.
 - Fixed issue with saving some quality settings in volume overrides  (case 1293747)
 - Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
+- Fixed SSGI texture allocation when not using the RenderGraph.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
