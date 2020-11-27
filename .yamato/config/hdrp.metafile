@@ -71,11 +71,11 @@ all:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - editmode
+        #- editmode
         - playmode
         - playmode_XR
         - playmode_NonRenderGraph
-        - Standalone
+        #- Standalone
     - platform: Win
       api: DX12
       build_config: mono
@@ -83,15 +83,15 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        - Standalone
+        #- Standalone
     - platform: Win
       api: Vulkan
       build_config: mono
       color_space: Linear
       test_platforms:
         - playmode
-        - playmode_XR
-        - Standalone
+        #- playmode_XR
+        #- Standalone
     - platform: OSX
       api: Metal
       build_config: mono
@@ -104,9 +104,9 @@ all:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - editmode
+        #- editmode
         - playmode
-        - Standalone
+        #- Standalone
     - project: HDRP_DXR
       platform: Win
       api: DX12
@@ -114,7 +114,7 @@ all:
       color_space: Linear
       test_platforms:
         - playmode
-        - playmode_XR
-        - playmode_NonRenderGraph
+        #- playmode_XR
+        #- playmode_NonRenderGraph
     - project: HDRP_Hybrid
       all: true
