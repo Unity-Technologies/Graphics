@@ -11,11 +11,13 @@ void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, S
     float3 emissiveRcpExposure = builtinData.emissiveColor * GetInverseCurrentExposureMultiplier();
     builtinData.emissiveColor = lerp(emissiveRcpExposure, builtinData.emissiveColor, _EmissiveExposureWeight);
 
+#ifndef LAYERED_LIT_SHADER
 #if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0.xy).rgb;
     distortion.rg = distortion.rg * _DistortionVectorScale.xx + _DistortionVectorBias.xx;
     builtinData.distortion = distortion.rg * _DistortionScale;
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
+#endif
 #endif
 
     builtinData.depthOffset = depthOffset;

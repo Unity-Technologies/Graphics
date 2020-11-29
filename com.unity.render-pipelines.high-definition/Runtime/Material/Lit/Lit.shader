@@ -274,10 +274,6 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
-    // custom-begin:
-    #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
-    // custom-end
-
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
@@ -358,8 +354,9 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            //#pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION            
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // Note: Require _SelectionID variable
 
@@ -396,8 +393,9 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            //#pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // Note: Require _ObjectId and _PassValue variables
 
@@ -442,14 +440,15 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            //#pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
             #pragma multi_compile _ LIGHT_LAYERS
@@ -493,8 +492,9 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            //#pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // Lightmap memo
             // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light,
@@ -533,8 +533,9 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            //#pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_SHADOWS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -575,14 +576,15 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             // In deferred, depth only pass don't output anything.
             // In forward it output the normal buffer
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_DECAL_BUFFER
-            #pragma multi_compile _ WRITE_MSAA_DEPTH
+            //#pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -628,12 +630,13 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ WRITE_NORMAL_BUFFER
             #pragma multi_compile _ WRITE_DECAL_BUFFER
-            #pragma multi_compile _ WRITE_MSAA_DEPTH
+            //#pragma multi_compile _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -676,8 +679,9 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_PREPASS
 
@@ -721,14 +725,15 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            //#pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
@@ -796,14 +801,15 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            //#pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
@@ -865,8 +871,9 @@ Shader "HDRP/Lit"
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma multi_compile _ _ENABLE_DISSOLVE_ON_OCCLUSION
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -895,7 +902,7 @@ Shader "HDRP/Lit"
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_CONSTANT
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -924,7 +931,7 @@ Shader "HDRP/Lit"
 
             #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //#pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define SHADERPASS SHADERPASS_FULL_SCREEN_DEBUG
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -954,8 +961,8 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_INDIRECT
 
@@ -998,8 +1005,8 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_FORWARD
 
@@ -1039,8 +1046,8 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ MINIMAL_GBUFFER
 
             #define SHADERPASS SHADERPASS_RAYTRACING_GBUFFER
@@ -1104,8 +1111,8 @@ Shader "HDRP/Lit"
             #pragma raytracing surface_shader
 
             #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            //#pragma multi_compile _ LIGHTMAP_ON
+            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_RAYTRACING_SUB_SURFACE
 

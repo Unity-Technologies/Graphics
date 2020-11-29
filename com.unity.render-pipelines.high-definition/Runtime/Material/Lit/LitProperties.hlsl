@@ -106,12 +106,6 @@ float _AlphaCutoffShadow;
 float _AlphaCutoffPrepass;
 float _AlphaCutoffPostpass;
 float4 _DoubleSidedConstants;
-float _DistortionScale;
-float _DistortionVectorScale;
-float _DistortionVectorBias;
-float _DistortionBlurScale;
-float _DistortionBlurRemapMin;
-float _DistortionBlurRemapMax;
 float _BlendMode;
 float _EnableBlendModePreserveSpecularLighting;
 
@@ -162,6 +156,13 @@ float _DissolveOnOcclusionOpacity;
 // custom-end
 
 #ifndef LAYERED_LIT_SHADER
+
+float _DistortionScale;
+float _DistortionVectorScale;
+float _DistortionVectorBias;
+float _DistortionBlurScale;
+float _DistortionBlurRemapMin;
+float _DistortionBlurRemapMax;
 
 // Set of users variables
 float4 _BaseColor;
@@ -379,6 +380,7 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap1)
     UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap2)
     UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap3)
+    UNITY_DOTS_INSTANCED_PROP(float, _DissolveOnOcclusionOpacity)
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor0              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor0)
@@ -453,6 +455,7 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _ThicknessRemap1         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap1)
 #define _ThicknessRemap2         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap2)
 #define _ThicknessRemap3         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap3)
+#define _DissolveOnOcclusionOpacity        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DissolveOnOcclusionOpacity)
 
 #else
 
@@ -475,6 +478,7 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _DiffusionProfileHash)
     UNITY_DOTS_INSTANCED_PROP(float , _Thickness)
     UNITY_DOTS_INSTANCED_PROP(float4, _ThicknessRemap)
+    UNITY_DOTS_INSTANCED_PROP(float, _DissolveOnOcclusionOpacity)
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
 #define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__BaseColor)
@@ -496,6 +500,7 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _DiffusionProfileHash   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__DiffusionProfileHash)
 #define _Thickness              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float , Metadata__Thickness)
 #define _ThicknessRemap         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4, Metadata__ThicknessRemap)
+#define _DissolveOnOcclusionOpacity         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float, Metadata__DissolveOnOcclusionOpacity)
 
 #endif
 #endif
