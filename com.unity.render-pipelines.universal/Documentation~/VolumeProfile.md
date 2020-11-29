@@ -2,11 +2,11 @@
 
 A Volume Profile is a [Scriptable Object](https://docs.unity3d.com/Manual/class-ScriptableObject.html) which contains properties that [Volumes](Volumes.md) use to determine how to render the Scene environment for Cameras they affect. A Volume references a Volume Profile in its **Profile** field and uses values from the Volume Profile it references.
 
-A Volume Profile organizes its properties into structures which control different environment settings. These structures all have default values that you can use, but you can use [Volume Overrides](VolumeComponents.md) to override these values and customize the environment settings.
+A Volume Profile organizes its properties into structures which control different environment settings. These structures all have default values that you can use, but you can use [Volume Overrides](VolumeOverrides.md) to override these values and customize the environment settings.
 
 ##Create and custom a Volume Profile
 
-There are multiple ways to create a Volume Profile. Unity creates, and links, a Volume Profile automatically when you create a **Scene Settings** GameObject (menu: **Rendering** &gt; **Scene Settings**). You can also create a Volume Profile manually. Navigate to menu: **Assets** &gt; **Create** &gt; **Volume Profile**.
+There are multiple ways to create a Volume Profile. Unity creates, and links, a Volume Profile automatically when you create a **Scene Settings** GameObject (menu: **Rendering > Scene Settings**). You can also create a Volume Profile manually. Navigate to menu: **Assets > Create > Volume Profile**.
 
 Open the Volume Profile in the Inspector to edit its properties. To do this, you can either:
 

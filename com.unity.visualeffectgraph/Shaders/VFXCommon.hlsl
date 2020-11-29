@@ -361,6 +361,13 @@ float SampleCurve(float4 curveData,float u)
 ///////////
 // Utils //
 ///////////
+float4x4 VFXCreateMatrixFromColumns(float4 i, float4 j, float4 k, float4 o)
+{
+    return float4x4(i.x, j.x, k.x, o.x,
+                    i.y, j.y, k.y, o.y,
+                    i.z, j.z, k.z, o.z,
+                    i.w, j.w, k.w, o.w);
+}
 
 // Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
 // Inverts upper left by calculating its determinant and multiplying it to the symmetric
