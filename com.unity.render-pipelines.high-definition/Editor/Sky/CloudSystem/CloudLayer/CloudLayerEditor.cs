@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         SerializedDataParameter m_Opacity, m_UpperHemisphereOnly, m_LayerCount;
-        SerializedDataParameter m_Resolution, m_ShadowsResolution;
+        SerializedDataParameter m_Resolution, m_ShadowResolution;
         SerializedDataParameter m_ShadowMultiplier, m_ShadowTint;
         CloudMapParameter[] m_Layers;
 
@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_ShadowMultiplier = Unpack(o.Find(x => x.shadowMultiplier));
             m_ShadowTint = Unpack(o.Find(x => x.shadowTint));
-            m_ShadowsResolution = Unpack(o.Find(x => x.shadowsResolution));
+            m_ShadowResolution = Unpack(o.Find(x => x.shadowResolution));
 
             m_Layers = new CloudMapParameter[]
             {
@@ -144,16 +144,16 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_LayerCount.value.intValue == (int)CloudMapMode.Double)
                 PropertyField(m_Layers[1], "Layer B");
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Cloud Shadows", EditorStyles.miniLabel);
-
             var sun = HDRenderPipeline.currentPipeline.GetCurrentSunLight();
             if (sun != null)
             {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Cloud Shadows", EditorStyles.miniLabel);
+
                 PropertyField(m_ShadowMultiplier);
                 PropertyField(m_ShadowTint);
                 if (isInAdvancedMode)
-                    PropertyField(m_ShadowsResolution);
+                    PropertyField(m_ShadowResolution);
 
                 bool shadows = CastShadows;
                 if (prevShadows && !shadows)

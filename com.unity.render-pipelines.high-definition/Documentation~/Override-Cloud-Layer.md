@@ -14,17 +14,16 @@ After you add a **Cloud Layer** override, you must set the Volume to use **Cloud
 To enable the **Cloud Layer** override, you must assign a Cloud Map. You can refer to the [Cloud Map](#CloudMap) section to learn about the cloud map format or how to find the example cloud map texture.
 
 The Cloud Layer will bake the cloud map to an intermediate texture, which is recomputed everytime a parameter changes. The resolution of the baked texture is determined by the **Resolution** parameter in the advanced settings of the inspector.
-Clouds shadows are also baked to a separate texture whose resolution is set by the **Shadows Resolution** parameter.
+Clouds shadows are also baked to a separate texture whose resolution is set by the **Shadow Resolution** parameter.
 
 <a name="CloudMap"></a>
 
 ## About the Cloud Map
 
 The Cloud Map is a 2D RGBA texture in LatLong layout (sometimes called Cylindrical or Equirectangular) where each channel contains a cloud opacity. For rendering, the 4 channels are mixed together using the **Opacity RGBA** parameters of the volume override. This allows to change the aspects of the clouds using a single texture and the volume framework.
+If **Upper Hemisphere Only** is checked, the map is interpreted as being the upper half of a LatLong texture. This means that clouds will only cover the sky above the horizon.
 
 HDRP includes an example Cloud Map named `DefaultCloudMap`. This texture contains cumulus clouds in the red channel, stratus clouds in the green channel, cirrus clouds in the blue channel and wispy clouds in the alpha channel.
-
-If **Upper Hemisphere Only** is checked, the map is interpreted as being the upper half of a LatLong texture. This means that clouds will only cover the sky above the horizon.
 
 <a name="CustomizingFlowmap"></a>
 
@@ -53,7 +52,7 @@ Only the red and green channels are used and they represent respectively horizon
 | - **Opacity B**               | Opacity of the blue layer. |
 | - **Opacity A**               | Opacity of the alpha layer. |
 | **Rotation**                  | Use the slider to set the angle to rotate the Cloud Layer, in degrees. |
-| **Tint**                      | Specifies a color that HDRP uses to tint the Cloud Layer. |
+| **Tint**                      | Specify a color that HDRP uses to tint the Cloud Layer. |
 | **Exposure**                  | Set the amount of light per unit area that HDRP applies to the cloud layer. |
 | **Distortion Mode**           | Use the dropdown to choose the distortion mode for simulating cloud motion.<br />&#8226; **None**: No distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the provided flowmap. |
 | - **Scroll direction**        | Use the slider to set the scrolling direction for the distortion. |
@@ -62,7 +61,7 @@ Only the red and green channels are used and they represent respectively horizon
 | **Lighting**                  | Check the box to enable 2D raymarching on the Cloud Map to compute lighting for the main directional light. |
 | - **Steps**                   | Use the slider to set the number of raymarching steps. |
 | - **Thickness**               | Set the thickness of the clouds. |
-| **Cast Shadows**              | Enable to have the clouds cast shadows for the main directional light.<br />The shadow texture will be set as a cookie on the light. Rotating the light around the Z-axis will rotate the shadow cookie, which may cause discrepancies with the scroll direction. |
+| **Cast Shadows**              | Enable to have the clouds cast shadows for the main directional light.<br />The shadow texture will be set as a cookie on the light. Warning: Rotating the light around the Z-axis will rotate the shadow cookie, which may cause discrepancies with the scroll direction. |
 
 | Shadows Property              | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |

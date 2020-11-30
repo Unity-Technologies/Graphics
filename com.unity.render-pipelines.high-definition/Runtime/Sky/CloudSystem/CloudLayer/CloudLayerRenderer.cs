@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var cloudLayer = builtinParams.cloudSettings as CloudLayer;
 
                 int cloudResolution = (int)cloudLayer.resolution.value;
-                int cloudShadowsResolution = (int)cloudLayer.shadowsResolution.value;
+                int cloudShadowsResolution = (int)cloudLayer.shadowResolution.value;
 
                 cloudTextureRT = RTHandles.Alloc(cloudResolution, cloudLayer.upperHemisphereOnly.value ? cloudResolution / 2 : cloudResolution,
                     cloudLayer.NumLayers, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureDimension.Tex2DArray,
@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var cmd = builtinParams.commandBuffer;
                 var cloudLayer = builtinParams.cloudSettings as CloudLayer;
-                int cloudShadowsResolution = (int)cloudLayer.shadowsResolution.value;
+                int cloudShadowsResolution = (int)cloudLayer.shadowResolution.value;
 
                 Vector4 _Params = builtinParams.sunLight.transform.forward;
                 Vector4 _Params1 = builtinParams.sunLight.transform.right;

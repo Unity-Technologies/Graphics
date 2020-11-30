@@ -107,9 +107,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Controls the tint of the cloud shadows.</summary>
         [Tooltip("Controls the tint of the cloud shadows.")]
         public ColorParameter shadowTint = new ColorParameter(Color.black, false, false, true);
-        /// <summary>Choose the resolution of the texturefor the cloud shadows.</summary>
+        /// <summary>Choose the resolution of the texture for the cloud shadows.</summary>
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
-        public CloudLayerEnumParameter<CloudShadowsResolution> shadowsResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.CloudShadowsResolution128);
+        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.CloudShadowsResolution128);
 
 
         /// <summary>
@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (lighting)
                     hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
                 if (shadows)
-                    hash = hash * 23 + shadowsResolution.GetHashCode();
+                    hash = hash * 23 + shadowResolution.GetHashCode();
             }
 
             return hash;
