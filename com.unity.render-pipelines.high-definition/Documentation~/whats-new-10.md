@@ -215,7 +215,7 @@ Planar reflection probe filtering is a process that combines the result of plana
 
 ![](Images/DistanceBaseRoughness-Feature.png)
 
-Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object.
+Reflection Probe can now fake the increasing preceive bluriness of a surface reflection with distance from the object. This option is disabled by default and need to be enabled on the Reflection Probe.
 
 ### Screen space reflection
 

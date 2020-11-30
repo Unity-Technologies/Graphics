@@ -267,6 +267,10 @@ namespace UnityEditor.Rendering.HighDefinition
                             true
                             );
                 }
+
+                // Don't display distanceBasedRoughness if the projection is infinite (as in this case we force distanceBasedRoughness to be 0 in code)
+                if (owner is HDReflectionProbeEditor && !(serialized.proxyVolume.objectReferenceValue == null && serialized.probeSettings.proxyUseInfluenceVolumeAsProxyVolume.boolValue == false))
+                    EditorGUILayout.PropertyField(serialized.probeSettings.distanceBasedRoughness, EditorGUIUtility.TrTextContent("Distance Based Roughness", "When enabled, HDRP uses the assigned Proxy Volume to calculate distance based roughness for reflections. This produces more physically-accurate results if the Proxy Volume closely matches the environment."));
             }
 
             static readonly string[] k_BakeCustomOptionText = { "Bake as new Cubemap..." };
