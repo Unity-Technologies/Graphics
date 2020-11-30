@@ -1964,8 +1964,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     capturePosition = cameraPositionSettings.position;
                     envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
 
-                    // Propagate the distance based information to the env light data
-                    envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness ? 1.0f : 0.0f;
+                    // Propagate the distance based information to the env light data (only if we are not an infinite projection)
+                    envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness && !probe.isProjectionInfinite ? 1.0f : 0.0f;
 
                     break;
                 }
