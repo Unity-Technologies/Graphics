@@ -23,8 +23,8 @@ def editor_job_id_target_to_ci():
 def editor_job_id_merge_revisions(editor_track, abv):
     return f'editor-pinning-merge-revisions-{editor_track}-abv' if abv else f'editor-pinning-merge-revisions-{editor_track}'
 
-def editor_job_id_merge_all(abv):
-    return f'editor-pinning-merge-all-abv' if abv else f'editor-pinning-merge-all'
+def editor_job_id_merge_all(ci):
+    return f'editor-pinning-merge-all-ci' if ci else f'editor-pinning-merge-all'
 
 # package specific
 def packages_filepath():
