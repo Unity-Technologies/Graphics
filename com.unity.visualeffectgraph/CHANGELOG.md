@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.5.2] - 2020-11-16
 ### Fixed
+- GPU Evaluation of Construct Matrix
+- Random Per-Component on Set Attribute in Spawn Context [Case 1279294](https://issuetracker.unity3d.com/product/unity/issues/guid/1279294/)
+- Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
+- Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
+- Forbid creation of context in VisualEffectSubgraphBlock through edge dropping. No context should be allowed.
+- Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
+- Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
+- Fix for VisualEffect prefab override window [Case 1242693](https://issuetracker.unity3d.com/product/unity/issues/guid/1242693/)
+- Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
+- Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
+- Fix edited operator being collapsed [Case 1270517](https://issuetracker.unity3d.com/product/unity/issues/guid/1270517/)
+- Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
+- Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
 - Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 
 ## [7.5.1] - 2020-09-02
