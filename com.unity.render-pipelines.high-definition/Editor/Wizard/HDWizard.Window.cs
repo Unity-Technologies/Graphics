@@ -44,7 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
             public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
-            public const string hdrpVersionLast = "You are using High-Definition Render Pipeline lastest {0} version."; //{0} will be replaced when displayed by the version number.
+            public const string hdrpVersionLast = "You are using High-Definition Render Pipeline latest {0} version."; //{0} will be replaced when displayed by the version number.
             public const string hdrpVersionNotLast = "You are using High-Definition Render Pipeline {0} version. A new {1} version is available."; //{0} and {1} will be replaced when displayed by the version number.
             public const string hdrpVersionWithLocalPackage = "You are using High-Definition Render Pipeline local {0} version. Last packaged version available is {1}."; //{0} and {1} will be replaced when displayed by the version number.
             public const string hdrpVersionChecking = "Checking last version available for High-Definition Render Pipeline.";
