@@ -20,7 +20,7 @@ namespace UnityEngine
         [SerializeField]
         float m_Distance = 3;
         [SerializeField]
-        Space m_FrameSpace = Space.World;
+        UpDirection m_FrameSpace = UpDirection.World;
 
         float m_Yaw;
         float m_Pitch;
@@ -72,9 +72,18 @@ namespace UnityEngine
         }
 
         /// <summary>
+        /// Enum to describes to up vector for the Light Anchor
+        /// </summary>
+        public enum UpDirection
+        {
+            World = Space.World,
+            Local = Space.Self
+        }
+
+        /// <summary>
         /// Indicates whether the up vector should be in world or camera space.
         /// </summary>
-        public Space frameSpace
+        public UpDirection frameSpace
         {
             get { return m_FrameSpace; }
             set { m_FrameSpace = value; }
@@ -130,7 +139,6 @@ namespace UnityEngine
 
             yaw = extractedYaw;
             pitch = extractedPitch;
-            roll = transform.rotation.eulerAngles.z;
             distance = extractedDistance;
         }
 
@@ -148,7 +156,7 @@ namespace UnityEngine
         Axes GetWorldSpaceAxes(Camera camera)
         {
             Matrix4x4 viewToWorld = camera.cameraToWorldMatrix;
-            if (m_FrameSpace == Space.World)
+            if (m_FrameSpace == UpDirection.World)
             {
                 Vector3 viewUp = (Vector3)(Camera.main.worldToCameraMatrix * Vector3.up);
                 Quaternion worldTilt = Quaternion.FromToRotation(Vector3.up, viewUp);

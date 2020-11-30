@@ -113,7 +113,7 @@ namespace UnityEditor
 
                         var localRect = EditorGUILayout.GetControlRect(false, widgetHeight);
                         oldValue = m_Roll;
-                        usedColor = Color.red;
+                        usedColor = Color.grey;
                         usedColor.a = 0.2f;
                         m_Roll = AngleField(localRect, "Roll", m_Roll, -90, usedColor, enabledKnob);
                     }
@@ -149,7 +149,7 @@ namespace UnityEditor
                 distanceChanged = oldValue != m_Distance;
 
                 var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                Space newSpace = (Space)EditorGUI.EnumPopup(dropRect, EditorGUIUtility.TrTextContent("Frame Space"), firstManipulator.frameSpace);
+                LightAnchor.UpDirection newSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, styles.spaceProperty, firstManipulator.frameSpace);
                 upSpaceChanged = firstManipulator.frameSpace != newSpace;
                 firstManipulator.frameSpace = newSpace;
 
@@ -677,7 +677,7 @@ namespace UnityEditor
             presetTextureFillRight = new GUIContent(Resources.Load<Texture2D>("PresetFill_Right"), "Fill Right");
 
             distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
-            spaceProperty = new GUIContent("Space", "Should the light's Up vector be in World space (enabled) or Camera space (disabled)");
+            spaceProperty = new GUIContent("Up direction", "The space that the up direction of the anchor is defined in");
 
             angleSubContent = new[]
             {

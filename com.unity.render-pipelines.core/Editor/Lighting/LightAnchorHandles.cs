@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEditor.GUIFramework;
 
 namespace UnityEditor
 {
@@ -8,9 +7,6 @@ namespace UnityEditor
     /// </summary>
     public class LightAnchorHandles
     {
-        GUIState m_GUIState = new GUIState();
-        GUISystem m_GUISystem;
-
         /// <summary>
         /// The light position
         /// </summary>
@@ -25,60 +21,6 @@ namespace UnityEditor
         /// </summary>
         public LightAnchorHandles()
         {
-            m_GUISystem = new GUISystem(m_GUIState);
-
-            var lightControl = new GenericControl("Light")
-            {
-                getPosition = (index) => lightPosition,
-                getDistance = (guiState, index) =>
-                {
-                    return guiState.DistanceToCircle(lightPosition, guiState.GetHandleSize(lightPosition) * 5f);
-                },
-                getForward = (index) => GetForward(),
-                getUp = (index) => GetUp(),
-                getRight = (index) => GetRight(),
-                onRepaint = (guiState, control, index) =>
-                {
-                    Handles.color = Color.yellow;
-                    Handles.DrawDottedLine(lightPosition, anchorPosition, 2f);
-                }
-            };
-
-            var startLightPosition = Vector3.zero;
-            var startAnchorPosittion = Vector3.zero;
-            var distanceSlider = new SliderAction(lightControl)
-            {
-                onClick = (guiState, control) =>
-                {
-                    startLightPosition = lightPosition;
-                    startAnchorPosittion = anchorPosition;
-                },
-                onSliderChanged = (guiState, control, position) =>
-                {
-                    var ray = HandleUtility.GUIPointToWorldRay(guiState.mousePosition);
-
-                    Vector3 worldPoint; float newDistance; float t;
-                    if (DistanceRayLine(ray, startAnchorPosittion, startLightPosition, out worldPoint, out newDistance, out t))
-                    {
-                        t = Mathf.Max(0f, t);
-                        var magnitude = ((startLightPosition - startAnchorPosittion) * t).magnitude;
-                        magnitude = Mathf.Max(1f, magnitude);
-                        lightPosition = (startLightPosition - startAnchorPosittion).normalized * magnitude + startAnchorPosittion;
-                    }
-                }
-            };
-
-            var anchorManipulator = new HandlesManipulator()
-            {
-                onGui = (guiState) =>
-                {
-                    anchorPosition = Handles.PositionHandle(anchorPosition, Quaternion.identity);
-                }
-            };
-
-            m_GUISystem.AddControl(lightControl);
-            m_GUISystem.AddAction(distanceSlider);
-            m_GUISystem.AddManipulator(anchorManipulator);
         }
 
         /// <summary>
@@ -86,7 +28,23 @@ namespace UnityEditor
         /// </summary>
         public void OnGUI()
         {
-            m_GUISystem.OnGUI();
+            Handles.color = Color.yellow;
+            Handles.DrawDottedLine(lightPosition, anchorPosition, 2f);
+
+            var ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+
+            var startLightPosition = Vector3.zero;
+            var startAnchorPosittion = Vector3.zero;
+            Vector3 worldPoint; float newDistance; float t;
+            if (DistanceRayLine(ray, startAnchorPosittion, startLightPosition, out worldPoint, out newDistance, out t))
+            {
+                t = Mathf.Max(0f, t);
+                var magnitude = ((startLightPosition - startAnchorPosittion) * t).magnitude;
+                magnitude = Mathf.Max(1f, magnitude);
+                lightPosition = (startLightPosition - startAnchorPosittion).normalized * magnitude + startAnchorPosittion;
+            }
+
+            anchorPosition = Handles.PositionHandle(anchorPosition, Quaternion.identity);
         }
 
         private Vector3 GetForward()
