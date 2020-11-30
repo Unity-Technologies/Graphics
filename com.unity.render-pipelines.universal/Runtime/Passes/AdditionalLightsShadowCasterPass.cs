@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     var resolution = m_SortedShadowResolutionRequests[shadowRequestIndex].requestedResolution / shadowSlicesScaleFactor;
 
-                    if (resolution <= MinimalPunctualLightShadowResolution(m_SortedShadowResolutionRequests[shadowRequestIndex].softShadow))
+                    if (resolution < MinimalPunctualLightShadowResolution(m_SortedShadowResolutionRequests[shadowRequestIndex].softShadow))
                     {
                         tooManyShadows = true;
                         break;
