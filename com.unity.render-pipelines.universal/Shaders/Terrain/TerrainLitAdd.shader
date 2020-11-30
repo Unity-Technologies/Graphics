@@ -33,14 +33,14 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
         [HideInInspector] _BaseMap("BaseMap (RGB)", 2D) = "white" {}
         [HideInInspector] _BaseColor("Main Color", Color) = (1,1,1,1)
 
-		[HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
+        [HideInInspector] _TerrainHolesTexture("Holes Map (RGB)", 2D) = "white" {}
     }
 
-	HLSLINCLUDE
+    HLSLINCLUDE
 
-	#pragma multi_compile_fragment __ _ALPHATEST_ON
+    #pragma multi_compile_fragment __ _ALPHATEST_ON
 
-	ENDHLSL
+    ENDHLSL
 
     SubShader
     {
@@ -64,7 +64,8 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
-            #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+            #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------

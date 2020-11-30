@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public SampleVirtualTextureNode() : this(false, false)
-        { }
+        {}
 
         public SampleVirtualTextureNode(bool isLod = false, bool noResolve = false)
         {
@@ -283,7 +283,15 @@ namespace UnityEditor.ShaderGraph
             base.ValidateNode();
             if (!IsSlotConnected(VirtualTextureInputId))
             {
-                owner.AddValidationError(objectId, k_NoPropertyConnected, ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, k_NoPropertyConnected);
+            }
+            else
+            {
+                var vtProp = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProp == null)
+                {
+                    owner.AddValidationError(objectId, $"VT slot is not connected to a valid VirtualTexture property");
+                }
             }
         }
 

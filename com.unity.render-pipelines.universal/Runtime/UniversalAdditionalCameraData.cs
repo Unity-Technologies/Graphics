@@ -123,8 +123,8 @@ namespace UnityEngine.Rendering.Universal
         CameraOverrideOption m_RequiresOpaqueTextureOption = CameraOverrideOption.UsePipelineSettings;
 
         [SerializeField] CameraRenderType m_CameraType = CameraRenderType.Base;
-		[SerializeField] List<Camera> m_Cameras = new List<Camera>();
-		[SerializeField] int m_RendererIndex = -1;
+        [SerializeField] List<Camera> m_Cameras = new List<Camera>();
+        [SerializeField] int m_RendererIndex = -1;
 
         [SerializeField] LayerMask m_VolumeLayerMask = 1; // "Default"
         [SerializeField] Transform m_VolumeTrigger = null;
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("requiresColorTexture"), SerializeField]
         bool m_RequiresColorTexture = false;
 
-        [HideInInspector] [SerializeField] float m_Version = 2;
+        [HideInInspector][SerializeField] float m_Version = 2;
 
         public float version => m_Version;
 
@@ -222,8 +222,22 @@ namespace UnityEngine.Rendering.Universal
                     Debug.LogWarning(string.Format("{0}: This camera has a ScriptableRenderer that doesn't support camera stacking. Camera stack is null.", camera.name));
                     return null;
                 }
-
                 return m_Cameras;
+            }
+        }
+
+        internal void UpdateCameraStack()
+        {
+#if UNITY_EDITOR
+            Undo.RecordObject(this, "Update camera stack");
+#endif
+            int prev = m_Cameras.Count;
+            m_Cameras.RemoveAll(cam => cam == null);
+            int curr = m_Cameras.Count;
+            int removedCamsCount = prev - curr;
+            if (removedCamsCount != 0)
+            {
+                Debug.LogWarning(name + ": " + removedCamsCount + " camera overlay" + (removedCamsCount > 1 ? "s" : "") + " no longer exists and will be removed from the camera stack.");
             }
         }
 

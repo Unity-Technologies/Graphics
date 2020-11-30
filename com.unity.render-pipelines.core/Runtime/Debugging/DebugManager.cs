@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering
             {
                 if (value)
                 {
-                    m_Root = UnityObject.Instantiate(Resources.Load<Transform>("DebugUI Canvas")).gameObject;
+                    m_Root = UnityObject.Instantiate(Resources.Load<Transform>("DebugUICanvas")).gameObject;
                     m_Root.name = "[Debug Canvas]";
                     m_Root.transform.localPosition = Vector3.zero;
                     m_RootUICanvas = m_Root.GetComponent<DebugUIHandlerCanvas>();
@@ -209,7 +209,7 @@ namespace UnityEngine.Rendering
 
                 if (uiManager == null)
                 {
-                    m_PersistentRoot = UnityObject.Instantiate(Resources.Load<Transform>("DebugUI Persistent Canvas")).gameObject;
+                    m_PersistentRoot = UnityObject.Instantiate(Resources.Load<Transform>("DebugUIPersistentCanvas")).gameObject;
                     m_PersistentRoot.name = "[Debug Canvas - Persistent]";
                     m_PersistentRoot.transform.localPosition = Vector3.zero;
                 }

@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline
     {
-        public TextureHandle CreateScreenSpaceShadowTextureArray(RenderGraph renderGraph)
+        internal TextureHandle CreateScreenSpaceShadowTextureArray(RenderGraph renderGraph)
         {
             int numShadowTextures = Math.Max((int)Math.Ceiling(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
             GraphicsFormat graphicsFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 name = "ScreenSpaceShadowArrayBuffer"
             });
         }
-
 
         class ScreenSpaceShadowDebugPassData
         {
@@ -41,16 +40,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareSSShadowDebugParameters(hdCamera, (int)m_CurrentDebugDisplaySettings.data.screenSpaceShadowIndex);
                 passData.screenSpaceShadowArray = builder.ReadTexture(screenSpaceShadowArray);
                 passData.outputBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "EvaluateShadowDebug" }));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "EvaluateShadowDebug" }));
 
                 builder.SetRenderFunc(
-                (ScreenSpaceShadowDebugPassData data, RenderGraphContext context) =>
-                {
-                    SSShadowDebugResources resources = new SSShadowDebugResources();
-                    resources.screenSpaceShadowArray = data.screenSpaceShadowArray;
-                    resources.outputBuffer = data.outputBuffer;
-                    ExecuteShadowDebugView(context.cmd, data.parameters, resources);
-                });
+                    (ScreenSpaceShadowDebugPassData data, RenderGraphContext context) =>
+                    {
+                        SSShadowDebugResources resources = new SSShadowDebugResources();
+                        resources.screenSpaceShadowArray = data.screenSpaceShadowArray;
+                        resources.outputBuffer = data.outputBuffer;
+                        ExecuteShadowDebugView(context.cmd, data.parameters, resources);
+                    });
                 return passData.outputBuffer;
             }
         }
@@ -72,13 +71,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.outputShadowArrayBuffer = builder.WriteTexture(builder.ReadTexture(screenSpaceShadowArray));
 
                 builder.SetRenderFunc(
-                (WriteScreenSpaceShadowPassData data, RenderGraphContext context) =>
-                {
-                    WriteScreenSpaceShadowResources resources = new WriteScreenSpaceShadowResources();
-                    resources.inputShadowBuffer = data.inputShadowBuffer;
-                    resources.outputShadowArrayBuffer = data.outputShadowArrayBuffer;
-                    ExecuteWriteScreenSpaceShadow(context.cmd, data.parameters, resources);
-                });
+                    (WriteScreenSpaceShadowPassData data, RenderGraphContext context) =>
+                    {
+                        WriteScreenSpaceShadowResources resources = new WriteScreenSpaceShadowResources();
+                        resources.inputShadowBuffer = data.inputShadowBuffer;
+                        resources.outputShadowArrayBuffer = data.outputShadowArrayBuffer;
+                        ExecuteWriteScreenSpaceShadow(context.cmd, data.parameters, resources);
+                    });
             }
         }
 
@@ -98,18 +97,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (currentLight.lightType)
                 {
                     case GPULightType.Rectangle:
-                        {
-                            RenderAreaScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
-                                                        prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
-                        }
-                        break;
+                    {
+                        RenderAreaScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
+                            prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
+                    }
+                    break;
                     case GPULightType.Point:
                     case GPULightType.Spot:
-                        {
-                            RenderPunctualScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
-                                                            prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
-                        }
-                        break;
+                    {
+                        RenderPunctualScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
+                            prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
+                    }
+                    break;
                 }
             }
             return true;
@@ -156,9 +155,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderLightScreenSpaceShadows(renderGraph, hdCamera, prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowTexture);
                 }
 
-                // We render the debug view
-                // TODO: The texture is currently unused, make usage of it
-                EvaluateShadowDebugView(renderGraph, hdCamera, screenSpaceShadowTexture);
+                // We render the debug view, if the texture is not used, it is not evaluated anyway
+                TextureHandle screenSpaceShadowDebug = EvaluateShadowDebugView(renderGraph, hdCamera, screenSpaceShadowTexture);
+                PushFullScreenDebugTexture(m_RenderGraph, screenSpaceShadowDebug, FullScreenDebugMode.ScreenSpaceShadows);
 
                 return screenSpaceShadowTexture;
             }

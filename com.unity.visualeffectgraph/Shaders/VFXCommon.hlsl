@@ -21,6 +21,18 @@
 
 #pragma warning(disable : 3557) // disable warning for auto unrolling of single iteration loop
 
+// Pi variables are redefined here as UnityCG.cginc, this include isn't mandatory anymore.
+#ifndef UNITY_CG_INCLUDED
+#define UNITY_PI            3.14159265359f
+#define UNITY_TWO_PI        6.28318530718f
+#define UNITY_FOUR_PI       12.56637061436f
+#define UNITY_INV_PI        0.31830988618f
+#define UNITY_INV_TWO_PI    0.15915494309f
+#define UNITY_INV_FOUR_PI   0.07957747155f
+#define UNITY_HALF_PI       1.57079632679f
+#define UNITY_INV_HALF_PI   0.636619772367f
+#endif
+
 struct VFXSampler2D
 {
     Texture2D t;
@@ -444,10 +456,22 @@ float HalfTexelOffset(float f)
     return (a * f) + b;
 }
 
-float4 SampleGradient(float v, float u)
+float SnapToTexel(float f)
 {
-    float2 uv = float2(HalfTexelOffset(saturate(u)), v);
+    const float kInvTextureWidth = 1.0f / 128.0f;
+    return f - fmod(f, kInvTextureWidth) + 0.5f * kInvTextureWidth;
+}
+
+float4 SampleGradient(float2 gradientData, float u)
+{
+    float2 uv = float2(HalfTexelOffset(saturate(u)), gradientData.x);
+    if (gradientData.y > 0.5f) uv.x = SnapToTexel(uv.x);
     return bakedTexture.SampleLevel(samplerbakedTexture, uv, 0);
+}
+
+float4 SampleGradient(float gradientData, float u)
+{
+    return SampleGradient(float2(gradientData, 0.0f), u);
 }
 
 float SampleCurve(float4 curveData, float u)
@@ -471,6 +495,13 @@ float SampleCurve(float4 curveData, float u)
 ///////////
 // Utils //
 ///////////
+float4x4 VFXCreateMatrixFromColumns(float4 i, float4 j, float4 k, float4 o)
+{
+    return float4x4(i.x, j.x, k.x, o.x,
+                    i.y, j.y, k.y, o.y,
+                    i.z, j.z, k.z, o.z,
+                    i.w, j.w, k.w, o.w);
+}
 
 // Invert 3D transformation matrix (not perspective). Adapted from graphics gems 2.
 // Inverts upper left by calculating its determinant and multiplying it to the symmetric

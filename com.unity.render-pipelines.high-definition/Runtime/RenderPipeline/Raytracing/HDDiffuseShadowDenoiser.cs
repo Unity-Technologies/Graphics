@@ -158,8 +158,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public void DenoiseBufferDirectional(CommandBuffer cmd, HDCamera hdCamera,
-                                    RTHandle noisyBuffer, RTHandle distanceBuffer, RTHandle outputBuffer,
-                                    int kernelSize, float angularDiameter, bool singleChannel = true)
+            RTHandle noisyBuffer, RTHandle distanceBuffer, RTHandle outputBuffer,
+            int kernelSize, float angularDiameter, bool singleChannel = true)
         {
             // Request the intermediate buffer we need
             RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
@@ -181,9 +181,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseBufferDirectional(RenderGraph renderGraph, HDCamera hdCamera,
-                            TextureHandle depthBuffer, TextureHandle normalBuffer,
-                            TextureHandle noisyBuffer, TextureHandle distanceBuffer,
-                            int kernelSize, float angularDiameter, bool singleChannel = true)
+            TextureHandle depthBuffer, TextureHandle normalBuffer,
+            TextureHandle noisyBuffer, TextureHandle distanceBuffer,
+            int kernelSize, float angularDiameter, bool singleChannel = true)
         {
             using (var builder = renderGraph.AddRenderPass<DiffuseShadowDenoiserDirectionalPassData>("TemporalDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
@@ -201,27 +201,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary buffers
                 passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
 
                 // Output buffer
                 passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" })));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" })));
 
 
                 builder.SetRenderFunc(
-                (DiffuseShadowDenoiserDirectionalPassData data, RenderGraphContext ctx) =>
-                {
-                    DiffuseShadowDirectionalDenoiserResources resources = new DiffuseShadowDirectionalDenoiserResources();
-                    resources.depthStencilBuffer = data.depthStencilBuffer;
-                    resources.normalBuffer = data.normalBuffer;
-                    resources.distanceBuffer = data.distanceBuffer;
-                    resources.noisyBuffer = data.noisyBuffer;
+                    (DiffuseShadowDenoiserDirectionalPassData data, RenderGraphContext ctx) =>
+                    {
+                        DiffuseShadowDirectionalDenoiserResources resources = new DiffuseShadowDirectionalDenoiserResources();
+                        resources.depthStencilBuffer = data.depthStencilBuffer;
+                        resources.normalBuffer = data.normalBuffer;
+                        resources.distanceBuffer = data.distanceBuffer;
+                        resources.noisyBuffer = data.noisyBuffer;
 
-                    resources.intermediateBuffer = data.intermediateBuffer;
+                        resources.intermediateBuffer = data.intermediateBuffer;
 
-                    resources.outputBuffer = data.outputBuffer;
-                    ExecuteDiffuseShadowDirectionalDenoiser(ctx.cmd, data.parameters, resources);
-                });
+                        resources.outputBuffer = data.outputBuffer;
+                        ExecuteDiffuseShadowDirectionalDenoiser(ctx.cmd, data.parameters, resources);
+                    });
                 return passData.outputBuffer;
             }
         }
@@ -259,6 +259,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluation parameters
             dssdParams.cameraFov = hdCamera.camera.fieldOfView * Mathf.PI / 180.0f;
             dssdParams.lightPosition = lightPosition;
+            // Make sure the position is in the right space before injecting it
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+            {
+                dssdParams.lightPosition -= hdCamera.camera.transform.position;
+            }
             dssdParams.lightRadius = lightRadius;
             dssdParams.kernelSize = kernelSize;
 
@@ -339,8 +344,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public void DenoiseBufferSphere(CommandBuffer cmd, HDCamera hdCamera,
-                            RTHandle noisyBuffer, RTHandle distanceBuffer, RTHandle outputBuffer,
-                            int kernelSize, Vector3 lightPosition, float lightRadius)
+            RTHandle noisyBuffer, RTHandle distanceBuffer, RTHandle outputBuffer,
+            int kernelSize, Vector3 lightPosition, float lightRadius)
         {
             // Request the intermediate buffers that we need
             RTHandle intermediateBuffer = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
@@ -362,9 +367,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TextureHandle DenoiseBufferSphere(RenderGraph renderGraph, HDCamera hdCamera,
-                            TextureHandle depthBuffer, TextureHandle normalBuffer,
-                            TextureHandle noisyBuffer, TextureHandle distanceBuffer,
-                            int kernelSize, Vector3 lightPosition, float lightRadius)
+            TextureHandle depthBuffer, TextureHandle normalBuffer,
+            TextureHandle noisyBuffer, TextureHandle distanceBuffer,
+            int kernelSize, Vector3 lightPosition, float lightRadius)
         {
             using (var builder = renderGraph.AddRenderPass<DiffuseShadowDenoiserSpherePassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
             {
@@ -382,27 +387,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Temporary buffers
                 passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
 
                 // Output buffer
                 passData.outputBuffer = builder.ReadTexture(builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" })));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" })));
 
 
                 builder.SetRenderFunc(
-                (DiffuseShadowDenoiserSpherePassData data, RenderGraphContext ctx) =>
-                {
-                    DiffuseShadowSphereDenoiserResources resources = new DiffuseShadowSphereDenoiserResources();
-                    resources.depthStencilBuffer = data.depthStencilBuffer;
-                    resources.normalBuffer = data.normalBuffer;
-                    resources.distanceBuffer = data.distanceBuffer;
-                    resources.noisyBuffer = data.noisyBuffer;
+                    (DiffuseShadowDenoiserSpherePassData data, RenderGraphContext ctx) =>
+                    {
+                        DiffuseShadowSphereDenoiserResources resources = new DiffuseShadowSphereDenoiserResources();
+                        resources.depthStencilBuffer = data.depthStencilBuffer;
+                        resources.normalBuffer = data.normalBuffer;
+                        resources.distanceBuffer = data.distanceBuffer;
+                        resources.noisyBuffer = data.noisyBuffer;
 
-                    resources.intermediateBuffer = data.intermediateBuffer;
+                        resources.intermediateBuffer = data.intermediateBuffer;
 
-                    resources.outputBuffer = data.outputBuffer;
-                    ExecuteDiffuseShadowSphereDenoiser(ctx.cmd, data.parameters, resources);
-                });
+                        resources.outputBuffer = data.outputBuffer;
+                        ExecuteDiffuseShadowSphereDenoiser(ctx.cmd, data.parameters, resources);
+                    });
                 return passData.outputBuffer;
             }
         }

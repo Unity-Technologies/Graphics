@@ -25,19 +25,80 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RenderPassEvent
     {
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering any other passes in the pipeline.
+        /// Camera matrices and stereo rendering are not setup this point.
+        /// You can use this to draw to custom input textures used later in the pipeline, f.ex LUT textures.
+        /// </summary>
         BeforeRendering = 0,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering shadowmaps.
+        /// Camera matrices and stereo rendering are not setup this point.
+        /// </summary>
         BeforeRenderingShadows = 50,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering shadowmaps.
+        /// Camera matrices and stereo rendering are not setup this point.
+        /// </summary>
         AfterRenderingShadows = 100,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering prepasses, f.ex, depth prepass.
+        /// Camera matrices and stereo rendering are already setup at this point.
+        /// </summary>
         BeforeRenderingPrepasses = 150,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering prepasses, f.ex, depth prepass.
+        /// Camera matrices and stereo rendering are already setup at this point.
+        /// </summary>
         AfterRenderingPrePasses = 200,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering opaque objects.
+        /// </summary>
         BeforeRenderingOpaques = 250,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering opaque objects.
+        /// </summary>
         AfterRenderingOpaques = 300,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering the sky.
+        /// </summary>
         BeforeRenderingSkybox = 350,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering the sky.
+        /// </summary>
         AfterRenderingSkybox = 400,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering transparent objects.
+        /// </summary>
         BeforeRenderingTransparents = 450,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering transparent objects.
+        /// </summary>
         AfterRenderingTransparents = 500,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> before rendering post-processing effects.
+        /// </summary>
         BeforeRenderingPostProcessing = 550,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering post-processing effects but before final blit, post-processing AA effects and color grading.
+        /// </summary>
         AfterRenderingPostProcessing = 600,
+
+        /// <summary>
+        /// Executes a <c>ScriptableRenderPass</c> after rendering all effects.
+        /// </summary>
         AfterRendering = 1000,
     }
 
@@ -82,10 +143,12 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
+        /// A ProfilingSampler for the entire pass. Used by higher level objects such as ScriptableRenderer etc.
+        protected internal ProfilingSampler profilingSampler { get; set; }
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
+        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -94,12 +157,13 @@ namespace UnityEngine.Rendering.Universal
         public ScriptableRenderPass()
         {
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
-            m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
+            m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget, 0, 0, 0, 0, 0, 0, 0};
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
+            profilingSampler = new ProfilingSampler(nameof(ScriptableRenderPass));
         }
 
         /// <summary>
@@ -138,7 +202,7 @@ namespace UnityEngine.Rendering.Universal
             overrideCameraTarget = true;
 
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
-            if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
+            if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
 
             m_ColorAttachments = colorAttachments;
@@ -219,7 +283,6 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
         public virtual void OnCameraCleanup(CommandBuffer cmd)
         {
-
         }
 
         /// <summary>
@@ -303,12 +366,12 @@ namespace UnityEngine.Rendering.Universal
             return settings;
         }
 
-        public static bool operator <(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        public static bool operator<(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent < rhs.renderPassEvent;
         }
 
-        public static bool operator >(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
+        public static bool operator>(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }

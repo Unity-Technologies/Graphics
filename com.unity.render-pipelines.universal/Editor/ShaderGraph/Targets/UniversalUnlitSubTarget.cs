@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalUnlitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
-        const string kAssetGuid = "97c3f7dcb477ec842aa878573640313a";
+        static readonly GUID kSourceCodeGuid = new GUID("97c3f7dcb477ec842aa878573640313a"); // UniversalUnlitSubTarget.cs
 
         public UniversalUnlitSubTarget()
         {
@@ -23,11 +23,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
             // Process SubShaders
             SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
-            for(int i = 0; i < subShaders.Length; i++)
+            for (int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
                 subShaders[i].renderType = target.renderType;
@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
-            if(!(masterNode is UnlitMasterNode1 unlitMasterNode))
+            if (!(masterNode is UnlitMasterNode1 unlitMasterNode))
                 return false;
 
             // Set blockmap
@@ -119,7 +119,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return true;
         }
 
-#region SubShader
+        #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
@@ -162,9 +162,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 }
             }
         }
-#endregion
+        #endregion
 
-#region Pass
+        #region Pass
         static class UnlitPasses
         {
             public static PassDescriptor Unlit = new PassDescriptor
@@ -193,9 +193,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 includes = UnlitIncludes.Unlit,
             };
         }
-#endregion
+        #endregion
 
-#region Keywords
+        #region Keywords
         static class UnlitKeywords
         {
             public static KeywordCollection Unlit = new KeywordCollection
@@ -205,9 +205,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.SampleGI },
             };
         }
-#endregion
+        #endregion
 
-#region Includes
+        #region Includes
         static class UnlitIncludes
         {
             const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
@@ -223,6 +223,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kUnlitPass, IncludeLocation.Postgraph },
             };
         }
-#endregion
+        #endregion
     }
 }

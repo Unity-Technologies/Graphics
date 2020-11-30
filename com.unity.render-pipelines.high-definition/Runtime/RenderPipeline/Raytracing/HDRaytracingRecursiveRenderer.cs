@@ -23,10 +23,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 depthState = new DepthState(false, CompareFunction.LessEqual),
                 mask = RenderStateMask.Depth
             };
-            m_FlagMaskTextureRT = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "FlagMaskTexture");
         }
 
-        public TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
+        internal TextureHandle CreateFlagMaskTexture(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
@@ -36,11 +35,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 useMipMap = true,
                 name = "FlagMaskTexture"
             });
-        }
-
-        void ReleaseRecursiveRenderer()
-        {
-            RTHandles.Release(m_FlagMaskTextureRT);
         }
 
         struct RecursiveRendererParameters
@@ -197,19 +191,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Right now the debug buffer is written to independently of what is happening. This must be changed
                 // TODO RENDERGRAPH
                 passData.debugBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Recursive Rendering Debug Texture" }));
 
                 builder.SetRenderFunc(
-                (RecursiveRenderingPassData data, RenderGraphContext ctx) =>
-                {
-                    RecursiveRendererResources rrResources = new RecursiveRendererResources();
-                    rrResources.depthStencilBuffer = data.depthStencilBuffer;
-                    rrResources.flagMask = data.flagMask;
-                    rrResources.debugBuffer = data.debugBuffer;
-                    rrResources.rayCountTexture = data.rayCountTexture;
-                    rrResources.outputBuffer = data.outputBuffer;
-                    ExecuteRecursiveRendering(ctx.cmd, data.parameters, rrResources);
-                });
+                    (RecursiveRenderingPassData data, RenderGraphContext ctx) =>
+                    {
+                        RecursiveRendererResources rrResources = new RecursiveRendererResources();
+                        rrResources.depthStencilBuffer = data.depthStencilBuffer;
+                        rrResources.flagMask = data.flagMask;
+                        rrResources.debugBuffer = data.debugBuffer;
+                        rrResources.rayCountTexture = data.rayCountTexture;
+                        rrResources.outputBuffer = data.outputBuffer;
+                        ExecuteRecursiveRendering(ctx.cmd, data.parameters, rrResources);
+                    });
+
+                PushFullScreenDebugTexture(m_RenderGraph, passData.debugBuffer, FullScreenDebugMode.RecursiveRayTracing);
 
                 return passData.outputBuffer;
             }

@@ -131,7 +131,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 serializedObject.ApplyModifiedProperties();
 
-                if (scope.changed)
+                // NOTE: We cannot change only upon scope changed since there is no callback when Reset is triggered for Editor and the scope is not changed when Reset is called.
+                // The following operations are not super cheap, but are not overly expensive, so we instead trigger the change every time inspector is drawn.
+                //    if (scope.changed)
                 {
                     // Validate and update the cache for this profile only
                     profile.objReference.Validate();
@@ -153,7 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float r = obj.filterRadius;
             var   S = obj.shapeParam;
 
-            m_ProfileMaterial.SetFloat( HDShaderIDs._MaxRadius,  r);
+            m_ProfileMaterial.SetFloat(HDShaderIDs._MaxRadius,  r);
             m_ProfileMaterial.SetVector(HDShaderIDs._ShapeParam, S);
 
             // Draw the profile.

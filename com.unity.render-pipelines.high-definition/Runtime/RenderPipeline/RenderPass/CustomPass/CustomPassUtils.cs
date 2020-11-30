@@ -68,7 +68,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="destination">Destination buffer of the downsample</param>
         /// <param name="sourceMip">Source mip level to sample from.</param>
         /// <param name="destMip">Destination mip level to write to.</param>
-        /// <param name="ctx">Custom Pass Context</param>
         public static void DownSample(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0)
             => DownSample(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip);
 
@@ -87,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Check if the texture provided is at least half of the size of source.
             if (destination.rt.width < source.rt.width / 2 || destination.rt.height < source.rt.height / 2)
                 Debug.LogError("Destination for DownSample is too small, it needs to be at least half as big as source.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"DownSample is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, downSampleSampler))
@@ -128,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't copy the buffer. Source has to be different from the destination.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"Copy is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, copySampler))
@@ -217,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (source == destination)
                 Debug.LogError("Can't blur the buffer. Source has to be different from the destination.");
-            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1) 
+            if (source.rt.antiAliasing > 1 || destination.rt.antiAliasing > 1)
                 Debug.LogError($"GaussianBlur is not supported with MSAA buffers");
 
             using (new ProfilingScope(ctx.cmd, horizontalBlurSampler))
@@ -334,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="weightCount">number of weights you want to generate</param>
         /// <returns>a GPU compute buffer containing the weights</returns>
         internal static ComputeBuffer GetGaussianWeights(int weightCount)
-		{
+        {
             float[] weights;
             ComputeBuffer gpuWeights;
 
@@ -342,32 +341,32 @@ namespace UnityEngine.Rendering.HighDefinition
                 return gpuWeights;
 
             weights = new float[weightCount];
-			float integrationBound = 3;
-			float p = -integrationBound;
+            float integrationBound = 3;
+            float p = -integrationBound;
             float c = 0;
             float step = (1.0f / (float)weightCount) * integrationBound * 2;
-			for (int i = 0; i < weightCount; i++)
-			{
-				float w = (Gaussian(p) / (float)weightCount) * integrationBound * 2;
+            for (int i = 0; i < weightCount; i++)
+            {
+                float w = (Gaussian(p) / (float)weightCount) * integrationBound * 2;
                 weights[i] = w;
-				p += step;
+                p += step;
                 c += w;
-			}
+            }
 
-			// Gaussian function
-			float Gaussian(float x, float sigma = 1)
-			{
-				float a = 1.0f / Mathf.Sqrt(2 * Mathf.PI * sigma * sigma);
-				float b = Mathf.Exp(-(x * x) / (2 * sigma * sigma));
-				return a * b;
-			}
+            // Gaussian function
+            float Gaussian(float x, float sigma = 1)
+            {
+                float a = 1.0f / Mathf.Sqrt(2 * Mathf.PI * sigma * sigma);
+                float b = Mathf.Exp(-(x * x) / (2 * sigma * sigma));
+                return a * b;
+            }
 
             gpuWeights = new ComputeBuffer(weights.Length, sizeof(float));
             gpuWeights.SetData(weights);
             gaussianWeightsCache[weightCount] = gpuWeights;
 
             return gpuWeights;
-		}
+        }
 
         /// <summary>
         /// Convert a Custom Pass render queue type to a RenderQueueRange that can be used in DrawRenderers
@@ -409,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_Context = ctx;
                 if (ctx.hdCamera.xr.enabled)
-                    m_Context.hdCamera.xr.StartSinglePass(ctx.cmd);
+                    m_Context.hdCamera.xr.StopSinglePass(ctx.cmd);
             }
 
             /// <summary>
@@ -418,7 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
             void IDisposable.Dispose()
             {
                 if (m_Context.hdCamera.xr.enabled)
-                    m_Context.hdCamera.xr.StopSinglePass(m_Context.cmd);
+                    m_Context.hdCamera.xr.StartSinglePass(m_Context.cmd);
             }
         }
 
@@ -579,7 +578,7 @@ namespace UnityEngine.Rendering.HighDefinition
             block.SetVector(HDShaderIDs._ViewPortSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));
             block.SetVector(HDShaderIDs._ViewportScaleBias, new Vector4(1.0f / destScaleBias.x, 1.0f / destScaleBias.y, destScaleBias.z, destScaleBias.w));
         }
-        
+
         static void SetSourceSize(MaterialPropertyBlock block, RTHandle source)
         {
             Vector2 sourceSize = source.GetScaledSize(source.rtHandleProperties.currentViewportSize);
