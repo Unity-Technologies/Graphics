@@ -27,10 +27,10 @@ namespace UnityEditor.Rendering.Universal
             public readonly GUIContent DisabledLightWarning = EditorGUIUtility.TrTextContent("Lighting has been disabled in at least one Scene view. Any changes applied to lights in the Scene will not be updated in these views until Lighting has been enabled again.");
             public readonly GUIContent SunSourceWarning = EditorGUIUtility.TrTextContent("This light is set as the current Sun Source, which requires a directional light. Go to the Lighting Window's Environment settings to edit the Sun Source.");
 
-            public readonly GUIContent ShadowsNotSupportedWarning = EditorGUIUtility.TrTextContent("Realtime shadows for point lights are not supported. Either disable shadows or set the light mode to Baked.");
             public static readonly GUIContent ShadowRealtimeSettings = EditorGUIUtility.TrTextContent("Realtime Shadows", "Settings for realtime direct shadows.");
             public static readonly GUIContent ShadowStrength = EditorGUIUtility.TrTextContent("Strength", "Controls how dark the shadows cast by the light will be.");
             public static readonly GUIContent ShadowNearPlane = EditorGUIUtility.TrTextContent("Near Plane", "Controls the value for the near clip plane when rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
+            public static readonly GUIContent ShadowNormalBias = EditorGUIUtility.TrTextContent("Normal", "Controls the distance shadow caster vertices are offset along their normals when rendering shadow maps. Currently ignored for Point Lights.");
 
             public static GUIContent shadowBias = EditorGUIUtility.TrTextContent("Bias", "Select if the Bias should use the settings from the Pipeline Asset or Custom settings.");
             public static int[] optionDefaultValues = { 0, 1 };
@@ -54,8 +54,8 @@ namespace UnityEditor.Rendering.Universal
         public bool dirOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Directional; } }
         public bool areaOptionsValue { get { return typeIsSame && (lightProperty.type == LightType.Rectangle || lightProperty.type == LightType.Disc); } }
 
-        // Point light realtime shadows not supported
-        public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && lightProperty.type != LightType.Point && !settings.isCompletelyBaked); } }
+        //  Area light shadows not supported
+        public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && !settings.isCompletelyBaked); } }
         public bool bakedShadowRadius { get { return typeIsSame && (lightProperty.type == LightType.Point || lightProperty.type == LightType.Spot) && settings.isBakedOrMixed; } }
         public bool bakedShadowAngle { get { return typeIsSame && lightProperty.type == LightType.Directional && settings.isBakedOrMixed; } }
         public bool shadowOptionsValue { get { return shadowTypeIsSame && lightProperty.shadows != LightShadows.None; } }
@@ -65,16 +65,6 @@ namespace UnityEditor.Rendering.Universal
         public bool showLightBounceIntensity { get { return true; } }
 
         public bool isShadowEnabled { get { return settings.shadowsType.intValue != 0; } }
-
-        public bool realtimeShadowsWarningValue
-        {
-            get
-            {
-                return typeIsSame && lightProperty.type == LightType.Point &&
-                    shadowTypeIsSame && isShadowEnabled &&
-                    lightmappingTypeIsSame && !settings.isCompletelyBaked;
-            }
-        }
 
         UniversalAdditionalLightData m_AdditionalLightData;
         SerializedObject m_AdditionalLightDataSO;
@@ -254,7 +244,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
-                EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, "Normal");
+                EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
                 EditorGUI.indentLevel--;
 
                 m_AdditionalLightDataSO.ApplyModifiedProperties();
@@ -321,9 +311,6 @@ namespace UnityEditor.Rendering.Universal
 
             if (bakingWarningValue)
                 EditorGUILayout.HelpBox(s_Styles.BakingWarning.text, MessageType.Warning);
-
-            if (realtimeShadowsWarningValue)
-                EditorGUILayout.HelpBox(s_Styles.ShadowsNotSupportedWarning.text, MessageType.Warning);
 
             EditorGUILayout.Space();
         }
