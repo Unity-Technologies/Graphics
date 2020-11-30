@@ -1167,6 +1167,39 @@ namespace UnityEditor.VFX.Test
             VFXValueType.Matrix4x4
         };
 
+        public struct VFXNullableTest
+        {
+            internal VFXValueType type;
+            public override string ToString()
+            {
+                return type.ToString();
+            }
+        }
+
+        private static bool IsTypeNullable(Type type)
+        {
+            if (!type.IsValueType)
+                return true;
+            if (Nullable.GetUnderlyingType(type) != null)
+                return true; 
+            return false;
+        }
+
+#pragma warning disable 0414
+        private static VFXNullableTest[] nullableTestCase = s_supportedValueType.Where(o => IsTypeNullable(VFXValue.TypeToType(o))).Select(o => new VFXNullableTest() { type = o }).ToArray();
+#pragma warning restore 0414
+
+        [UnityTest]
+        public IEnumerator Check_SetNullable_Throw_An_Exception_While_Using_Null([ValueSource("nullableTestCase")] VFXNullableTest valueType)
+        {
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            yield return null;
+            Assert.Throws<System.ArgumentNullException>(() => fnSet_UsingBindings(valueType.type, vfx, "null", null));
+        }
+
         [UnityTest]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("trueOrFalse")] bool linkMode, [ValueSource("trueOrFalse")] bool bindingModes)
         {
