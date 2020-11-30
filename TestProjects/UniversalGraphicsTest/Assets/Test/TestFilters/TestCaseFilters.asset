@@ -161,3 +161,12 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS 059 issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0feef353efdf045989e9c2b501774338, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS 044 issue
