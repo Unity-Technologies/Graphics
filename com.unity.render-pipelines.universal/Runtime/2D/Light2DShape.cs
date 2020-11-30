@@ -17,27 +17,27 @@ namespace UnityEngine.Experimental.Rendering.Universal
         LightType m_PreviousLightType                         = LightType.Parametric;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public int              shapeLightParametricSides       => m_ShapeLightParametricSides;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public float            shapeLightParametricAngleOffset => m_ShapeLightParametricAngleOffset;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public float            shapeLightParametricRadius      => m_ShapeLightParametricRadius;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public float            shapeLightFalloffSize           => m_ShapeLightFalloffSize;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public Vector3[] shapePath
         {

@@ -13,7 +13,7 @@ using UnityEditor.ProjectWindowCallback;
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
@@ -21,22 +21,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
     public partial class Renderer2DData : ScriptableRendererData
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public enum Renderer2DDefaultMaterialType
         {
             /// <summary>
-            /// 
+            ///
             /// </summary>
             Lit,
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             Unlit,
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             Custom
         }
@@ -109,14 +109,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private Texture2D m_FallOffLookup = null;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public float hdrEmulationScale => m_HDREmulationScale;
 
         internal float lightRenderTextureScale => m_LightRenderTextureScale;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public Light2DBlendStyle[] lightBlendStyles => m_LightBlendStyles;
 
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal Downsampling cameraSortingLayerDownsamplingMethod => m_CameraSortingLayerDownsamplingMethod;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns></returns>
         protected override ScriptableRenderer Create()
@@ -156,7 +156,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         protected override void OnEnable()
         {

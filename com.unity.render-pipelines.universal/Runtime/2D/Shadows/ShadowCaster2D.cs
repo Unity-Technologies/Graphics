@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         protected void OnEnable()
         {
@@ -137,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         protected void OnDisable()
         {
@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void Update()
         {

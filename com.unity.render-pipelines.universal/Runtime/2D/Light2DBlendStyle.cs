@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [Serializable]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")] public struct Light2DBlendStyle
@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public string name;
 

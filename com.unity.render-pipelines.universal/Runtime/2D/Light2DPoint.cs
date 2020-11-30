@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] float m_PointLightOuterRadius = 1.0f;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public float pointLightInnerAngle
         {
@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public float pointLightOuterAngle
         {
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public float pointLightInnerRadius
         {
@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public float pointLightOuterRadius
         {
@@ -47,13 +47,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         [Obsolete("pointLightDistance has been changed to normalMapDistance", true)]
         public float pointLightDistance => m_NormalMapDistance;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         [Obsolete("pointLightQuality has been changed to normalMapQuality", true)]
         public NormalMapQuality pointLightQuality => m_NormalMapQuality;
