@@ -276,10 +276,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
 
-        /// <summary>Defines if the planar reflection should support rough reflections.</summary>
+        /// <summary>Indicates whether the ReflectionProbe supports rough reflections.</summary>
         public bool roughReflections;
 
-        /// <summary>Defines if the reflection probe should support the distance based roughness.</summary>
+        /// <summary>Indicates whether the ReflectionProbe supports distance-based roughness.</summary>
         public bool distanceBasedRoughness;
 
         /// <summary>
