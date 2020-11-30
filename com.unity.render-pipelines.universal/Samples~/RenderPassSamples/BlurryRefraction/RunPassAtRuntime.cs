@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -14,14 +11,12 @@ public class RunPassAtRuntime : MonoBehaviour
 
     Material refactiveGlass;
 
-    // Start is called before the first frame update
     void Start()
     {
         refactiveGlass = GetComponent<Renderer>().material;
         renderPass = new KawaseBlur("KawaseBlur", setting);
     }
 
-    // Update is called once per frame
     void Update()
     {
         renderPass.renderPassEvent = setting.renderPassEvent;
