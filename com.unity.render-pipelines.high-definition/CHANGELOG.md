@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+<<<<<<< HEAD
+=======
+- Fixed lookdev movement.
+- Fixed volume component tooltips using the same parameter name.
+>>>>>>> parent of 0dcb94833c... [HDRP] Fix issue with saving some quality settings in volume overrides (#2758)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
