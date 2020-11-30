@@ -64,6 +64,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         public bool imported;
         public bool shared;
+        public bool sharedExplicitRelease;
         public int cachedHash;
         public int transientPassIndex;
         public int sharedResourceLastFrameUsed;
@@ -74,6 +75,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             imported = false;
             shared = false;
+            sharedExplicitRelease = false;
             cachedHash = -1;
             transientPassIndex = -1;
             sharedResourceLastFrameUsed = -1;

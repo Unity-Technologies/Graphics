@@ -63,6 +63,18 @@ namespace UnityEngine.Rendering.HighDefinition
             BindShadowGlobalResources(renderGraph, result);
         }
 
+        internal void ReleaseSharedShadowAtlases(RenderGraph renderGraph)
+        {
+            cachedShadowManager.punctualShadowAtlas.CleanupRenderGraphOutput(renderGraph);
+            if (ShaderConfig.s_AreaLights == 1)
+                cachedShadowManager.areaShadowAtlas.CleanupRenderGraphOutput(renderGraph);
+
+            cachedShadowManager.DefragAtlas(HDLightType.Point);
+            cachedShadowManager.DefragAtlas(HDLightType.Spot);
+            if (ShaderConfig.s_AreaLights == 1)
+                cachedShadowManager.DefragAtlas(HDLightType.Area);
+        }
+
         class BindShadowGlobalResourcesPassData
         {
             public ShadowResult shadowResult;
@@ -144,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
     partial class HDShadowAtlas
     {
         bool m_UseSharedTexture;
+
         protected TextureHandle m_Output;
 
 
@@ -199,17 +212,27 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO RENDERGRAPH remove null tests when we have only one path. RenderGraph should always be present.
             if (renderGraph != null)
             {
+                // First release if not needed anymore.
+                if (m_UseSharedTexture)
+                {
+                    Debug.Assert(useSharedTexture, "Shadow atlas can't go from shared to non-shared texture");
+                }
+
                 m_UseSharedTexture = useSharedTexture;
-                if (m_UseSharedTexture) // Else it's created on the fly like a regular render graph texture.
-                    m_Output = renderGraph.CreateSharedTexture(GetAtlasDesc());
+                // Else it's created on the fly like a regular render graph texture.
+                // Also when using shared texture (for static shadows) we want to manage lifetime manually. Otherwise this would break static shadow caching.
+                if (m_UseSharedTexture)
+                    m_Output = renderGraph.CreateSharedTexture(GetAtlasDesc(), explicitRelease: true);
             }
         }
 
-        protected void CleanupRenderGraphOutput(RenderGraph renderGraph)
+        internal void CleanupRenderGraphOutput(RenderGraph renderGraph)
         {
-            if (renderGraph != null && m_Output.IsValid())
+            if (m_UseSharedTexture && renderGraph != null && m_Output.IsValid())
             {
                 renderGraph.ReleaseSharedTexture(m_Output);
+                m_UseSharedTexture = false;
+                m_Output = TextureHandle.nullHandle;
             }
         }
 

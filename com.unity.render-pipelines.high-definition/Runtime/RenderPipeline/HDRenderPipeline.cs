@@ -5993,6 +5993,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Release all persistent shadow atlas.
+        /// In HDRP, shadow persistent atlases are allocated per light type (area, punctual or directional) when needed but never deallocated.
+        /// Calling this will force deallocation of those atlases. This can be useful between levels for example when you know that some types of lights aren't used anymore.
+        /// </summary>
+        public void ReleasePersistentShadowAtlases()
+        {
+            // TODO RENDERGRAPH remove test when we have only one code path.
+            if (m_RenderGraph != null)
+                m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
+        }
+
 #if ENABLE_VIRTUALTEXTURES
         RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
         {

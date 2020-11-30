@@ -381,13 +381,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// This texture will be persistent across render graph executions.
         /// </summary>
         /// <param name="desc">Creation descriptor of the texture.</param>
+        /// <param name="explicitRelease">Set to true if you want to manage the lifetime of the resource yourself. Otherwise the resource will be released automatically if unused for a time.</param>
         /// <returns>A new TextureHandle.</returns>
-        public TextureHandle CreateSharedTexture(in TextureDesc desc)
+        public TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease = false)
         {
             if (m_HasRenderGraphBegun)
                 throw new InvalidOperationException("A shared texture can only be created outside of render graph execution.");
 
-            return m_Resources.CreateSharedTexture(desc);
+            return m_Resources.CreateSharedTexture(desc, explicitRelease);
         }
 
         /// <summary>

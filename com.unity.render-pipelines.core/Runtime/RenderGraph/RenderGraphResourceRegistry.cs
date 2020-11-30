@@ -222,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new TextureHandle(newHandle);
         }
 
-        internal TextureHandle CreateSharedTexture(in TextureDesc desc)
+        internal TextureHandle CreateSharedTexture(in TextureDesc desc, bool explicitRelease)
         {
             var textureResources = m_RenderGraphResources[(int)RenderGraphResourceType.Texture];
             int sharedTextureCount = textureResources.sharedResourcesCount;
@@ -253,6 +253,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             texResource.imported = true;
             texResource.shared = true;
+            texResource.sharedExplicitRelease = explicitRelease;
             texResource.desc = desc;
 
             return new TextureHandle(textureIndex, shared: true);
@@ -377,7 +378,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         resource.CreateGraphicsResource(resource.GetName());
                     }
                     // Release if not used anymore.
-                    else if (isCreated && ((resource.sharedResourceLastFrameUsed + kSharedResourceLifetime) < m_ExecutionCount))
+                    else if (isCreated && !resource.sharedExplicitRelease && ((resource.sharedResourceLastFrameUsed + kSharedResourceLifetime) < m_ExecutionCount))
                     {
                         resource.ReleaseGraphicsResource();
                     }
