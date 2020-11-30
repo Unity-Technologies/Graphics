@@ -497,6 +497,13 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                 // We have found the last local analytical light.
                 break;
             }
+
+#if defined(SHADER_API_METAL)
+            if (offset >= UINT_MAX)
+            {
+                break;
+            };
+#endif
         }
 
         lightCount = validLightCount;

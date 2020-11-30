@@ -137,8 +137,12 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                 break;
             }
 
-            if( offset >= UINT_MAX )
+#if defined(SHADER_API_METAL)
+            if (offset >= UINT_MAX)
+            {
                 break;
+            };
+#endif
         }
 
         volumeStart += offset;
