@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where a warning about the static sky not being ready was wrongly displayed.
 - Fixed the clear coat not being handled properly for SSR and RTR (case 1291654).
 - Fixed ghosting in RTGI and RTAO when denoising is enabled and the RTHandle size is not equal to the Viewport size (case 1291654).
+- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches [1292501] (https://issuetracker.unity3d.com/issues/a2-some-translucent-plus-alphaclipping-shadergraphs-are-not-srp-batcher-compatible)
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
