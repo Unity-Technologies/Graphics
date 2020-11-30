@@ -19,10 +19,12 @@
     #define _EnableBlendModePreserveSpecularLighting 0
 #endif
 
-#if IS_TRANSPARENT_PARTICLE && !HDRP_LIT // Fog for opaque is handled in a dedicated pass
+#if HDRP_LIT
+#define VFX_NEEDS_POSWS_INTERPOLATOR 1 // Needed for LPPV
+#elif IS_TRANSPARENT_PARTICLE // Fog for opaque is handled in a dedicated pass
 #define USE_FOG 1
 #define VFX_NEEDS_POSWS_INTERPOLATOR 1
-#endif
+#endif 
 
 #if HDRP_MATERIAL_TYPE_SIMPLELIT
 #define HDRP_MATERIAL_TYPE_STANDARD 1
