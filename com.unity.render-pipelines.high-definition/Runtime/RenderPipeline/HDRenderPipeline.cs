@@ -556,8 +556,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeRenderStateBlocks();
 
-            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
-
             // Keep track of the original msaa sample value
             // TODO : Bind this directly to the debug menu instead of having an intermediate value
             m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
@@ -581,6 +579,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_AmbientOcclusionSystem.InitRaytracing(this);
             }
+
+            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
+
             // Initialize the SSGI structures
             InitScreenSpaceGlobalIllumination();
 
