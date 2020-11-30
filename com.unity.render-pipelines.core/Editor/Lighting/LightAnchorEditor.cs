@@ -15,7 +15,7 @@ namespace UnityEditor
     [CustomEditor(typeof(LightAnchor))]
     public class LightAnchorEditor : Editor
     {
-        Styles m_Styles;
+        //Styles m_Styles;
         float m_Yaw;
         float m_Pitch;
         float m_Roll;
@@ -31,24 +31,9 @@ namespace UnityEditor
         VisualElement m_GameViewRootElement;
         VisualElement m_ClickCatcher;
 
-        Styles styles
-        {
-            get
-            {
-                if (m_Styles == null)
-                    m_Styles = new Styles();
-                return m_Styles;
-            }
-        }
-
         LightAnchor firstManipulator
         {
             get { return target as LightAnchor; }
-        }
-
-        static GUISkin GetCurrentSkin()
-        {
-            return EditorGUIUtility.isProSkin ? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Scene) : EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
         }
 
         /// <summary>
@@ -123,7 +108,7 @@ namespace UnityEditor
                 Rect angleRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector3, new GUIContent("")));
                 float[] angles = new float[3] { m_Yaw, m_Pitch, m_Roll };
                 EditorGUI.BeginChangeCheck();
-                EditorGUI.MultiFloatField(angleRect, styles.angleSubContent, angles);
+                EditorGUI.MultiFloatField(angleRect, LightAnchorStyles.angleSubContent, angles);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (angles[0] != m_Yaw)
@@ -133,26 +118,26 @@ namespace UnityEditor
                     }
                     if (angles[1] != m_Pitch)
                     {
-                        m_Yaw = angles[1];
+                        m_Pitch = angles[1];
                         pitchChanged = true;
                     }
                     if (angles[2] != m_Roll)
                     {
-                        m_Yaw = angles[2];
+                        m_Roll = angles[2];
                         rollChanged = true;
                     }
                 }
                 EditorGUILayout.Space();
 
                 oldValue = firstManipulator.distance;
-                m_Distance = EditorGUILayout.FloatField(styles.distanceProperty, firstManipulator.distance);
+                m_Distance = EditorGUILayout.FloatField(LightAnchorStyles.distanceProperty, firstManipulator.distance);
                 distanceChanged = oldValue != m_Distance;
 
                 var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                LightAnchor.UpDirection newSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, styles.spaceProperty, firstManipulator.frameSpace);
+                LightAnchor.UpDirection newSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.spaceProperty, firstManipulator.frameSpace);
                 upSpaceChanged = firstManipulator.frameSpace != newSpace;
                 firstManipulator.frameSpace = newSpace;
-
+                
                 if (upSpaceChanged)
                 {
                     firstManipulator.SynchronizeOnTransform(camera);
@@ -163,19 +148,16 @@ namespace UnityEditor
                 if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Presets"))
                 {
                     Color cachedColor = GUI.backgroundColor;
-                    if (EditorGUIUtility.isProSkin)
-                        GUI.backgroundColor = new Color(43f / 255f, 41f / 255f, 43f / 255f, 1.0f);
-                    else
-                        GUI.backgroundColor = new Color(229f / 255f, 228f / 255f, 229f / 255f);
-                    var inspectorWidth = EditorGUIUtility.currentViewWidth - Styles.inspectorWidthPadding;
-                    var presetButtonWidth = GUILayout.Width(inspectorWidth / Styles.presetButtonCount);
-                    var presetButtonHeight = GUILayout.Height(inspectorWidth / Styles.presetButtonCount);
+                    GUI.backgroundColor = LightAnchorStyles.BackgroundIconColor();
+                    var inspectorWidth = EditorGUIUtility.currentViewWidth - LightAnchorStyles.inspectorWidthPadding;
+                    var presetButtonWidth = GUILayout.Width(inspectorWidth / LightAnchorStyles.presetButtonCount);
+                    var presetButtonHeight = GUILayout.Height(inspectorWidth / LightAnchorStyles.presetButtonCount);
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         bool rectFound = false;
                         Rect rect = new Rect();
                         const float eps = 1e-4f;
-                        if (GUILayout.Button(styles.presetTextureRimLeft, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureRimLeft, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = 135;
                             m_Pitch = 0;
@@ -188,7 +170,7 @@ namespace UnityEditor
                             rect = GUILayoutUtility.GetLastRect();
                             rectFound = true;
                         }
-                        if (GUILayout.Button(styles.presetTextureKickLeft, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureKickLeft, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = 100;
                             m_Pitch = 10;
@@ -201,7 +183,7 @@ namespace UnityEditor
                             rect = GUILayoutUtility.GetLastRect();
                             rectFound = true;
                         }
-                        if (GUILayout.Button(styles.presetTextureBounceLeft, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureBounceLeft, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = 30;
                             m_Pitch = -30;
@@ -214,7 +196,7 @@ namespace UnityEditor
                             rect = GUILayoutUtility.GetLastRect();
                             rectFound = true;
                         }
-                        if (GUILayout.Button(styles.presetTextureFillLeft, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureFillLeft, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = 35;
                             m_Pitch = 35;
@@ -227,7 +209,7 @@ namespace UnityEditor
                             rect = GUILayoutUtility.GetLastRect();
                             rectFound = true;
                         }
-                        if (GUILayout.Button(styles.presetTextureHair, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureHair, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = 0;
                             m_Pitch = 110;
@@ -240,7 +222,7 @@ namespace UnityEditor
                             rect = GUILayoutUtility.GetLastRect();
                             rectFound = true;
                         }
-                        if (GUILayout.Button(styles.presetTextureFillRight, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureFillRight, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = -35;
                             m_Pitch = 35;
@@ -253,7 +235,7 @@ namespace UnityEditor
                             rect = GUILayoutUtility.GetLastRect();
                             rectFound = true;
                         }
-                        if (GUILayout.Button(styles.presetTextureBounceRight, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureBounceRight, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = -30;
                             m_Pitch = -30;
@@ -266,7 +248,7 @@ namespace UnityEditor
                             rect = GUILayoutUtility.GetLastRect();
                             rectFound = true;
                         }
-                        if (GUILayout.Button(styles.presetTextureKickRight, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureKickRight, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = -100;
                             m_Pitch = 10;
@@ -279,7 +261,7 @@ namespace UnityEditor
                             rect = GUILayoutUtility.GetLastRect();
                             rectFound = true;
                         }
-                        if (GUILayout.Button(styles.presetTextureRimRight, presetButtonWidth, presetButtonHeight))
+                        if (GUILayout.Button(LightAnchorStyles.presetTextureRimRight, presetButtonWidth, presetButtonHeight))
                         {
                             m_Yaw = -135;
                             m_Pitch = 0;
@@ -294,8 +276,7 @@ namespace UnityEditor
                         }
                         if (rectFound)
                         {
-                            GUISkin cur = GetCurrentSkin();
-                            Handles.DrawSolidRectangleWithOutline(rect, new Color(0, 0, 0, 0), new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f));
+                            Handles.DrawSolidRectangleWithOutline(rect, LightAnchorStyles.totalTransparentColor, LightAnchorStyles.hoverColor);
                         }
                         GUILayout.FlexibleSpace();
                     }
@@ -404,7 +385,7 @@ namespace UnityEditor
                 var newMousePos = m_ClickCatcher.WorldToLocal(evt.mousePosition);
                 var toolbarHeight = 21f;
                 var mousePos = new Vector3(newMousePos.x, Screen.height - (newMousePos.y + toolbarHeight), 0f);
-                //var ray = Camera.main.ScreenPointToRay(mousePos);
+                //var ray = Camera.main.ScreenPointToRay(Event.current.mousePosition);
 
                 // Useful to uncomment for debugging
                 // Debug.DrawLine(ray.origin, ray.origin + ray.direction * 100f, Color.yellow, 10f);
@@ -455,17 +436,6 @@ namespace UnityEditor
         AngleFieldState GetAngleFieldState(int id)
         {
             return (AngleFieldState)GUIUtility.GetStateObject(typeof(AngleFieldState), id);
-        }
-
-        Rect PrepareControlRect(float height = -1)
-        {
-            if (height < 0)
-                height = EditorGUIUtility.singleLineHeight;
-            var rect = GUILayoutUtility.GetRect(1f, 1f, height, height);
-            rect.width -= 2f;
-            rect.xMin += 2f;
-            EditorGUIUtility.labelWidth = rect.width / 2f;
-            return rect;
         }
 
         float AngleField(Rect knobRect, string label, float angle, float offset, Color sectionColor, bool enabled)
@@ -535,34 +505,15 @@ namespace UnityEditor
                     Mathf.Cos((angleDegrees + offset) * Mathf.Deg2Rad),
                     Mathf.Sin((angleDegrees + offset) * Mathf.Deg2Rad)) * radius;
 
-            float coef = enabled ? 1.0f : 0.5f;
-
             Color backupColor = Handles.color;
-            if (EditorGUIUtility.isProSkin)
-                Handles.color = new Color(50f / 255f, 50f / 255f, 50f / 255f);
-            else
-                Handles.color = new Color(229f / 255f, 228f / 255f, 229f / 255f);
+            Handles.color = LightAnchorStyles.DiskBackgroundAngleColor();
             Handles.DrawSolidDisc(center, Vector3.forward, radius);
-            if (EditorGUIUtility.isProSkin)
-                Handles.color = new Color(33f / 255f, 33f / 255f, 33f / 255f);
-            else
-                Handles.color = new Color(33f / 255f, 33f / 255f, 33f / 255f);
+            Handles.color = LightAnchorStyles.angleDiskBorderColor;
             Handles.DrawWireDisc(center, Vector3.forward, radius);
-            if (EditorGUIUtility.isProSkin)
-                Handles.color = sectionColor;
-            else
-                Handles.color = sectionColor;
+            Handles.color = sectionColor;
             Handles.DrawSolidArc(center, Vector3.forward, Quaternion.AngleAxis(offset, Vector3.forward) * Vector3.right, angleDegrees, radius);
-            if (EditorGUIUtility.isProSkin)
-                Handles.color = new Color(196f / 255f, 196f / 255f, 196f / 255f);
-            else
-                Handles.color = new Color(97f / 255f, 97f / 255f, 97f / 255f);
+            Handles.color = LightAnchorStyles.WireDiskAngleColor();
             Handles.DrawLine(center + toOrigin * 0.75f, center + toOrigin * 0.9f);
-            ////Handles.color = Color.white * coef;
-            //if (EditorGUIUtility.isProSkin)
-            //    Handles.color = Color.black * coef;
-            //else
-            //    Handles.color = Color.black * coef;
             Handles.DrawLine(center, handlePosition);
             Handles.DrawSolidDisc(handlePosition, Vector3.forward, 5f);
             Handles.color = backupColor;
@@ -642,49 +593,71 @@ namespace UnityEditor
         public Vector2 position;
     }
 
-    class Styles
+    static class LightAnchorStyles
     {
-        public const float inspectorWidthPadding = 60f;
-        public const float presetButtonCount = 9f;
-        public GUIStyle centeredLabel;
-        public GUIContent presetTextureRimLeft;
-        public GUIContent presetTextureKickLeft;
-        public GUIContent presetTextureBounceLeft;
-        public GUIContent presetTextureFillLeft;
-        public GUIContent presetTextureHair;
-        public GUIContent presetTextureRimRight;
-        public GUIContent presetTextureKickRight;
-        public GUIContent presetTextureBounceRight;
-        public GUIContent presetTextureFillRight;
-        public GUIContent distanceProperty;
-        public GUIContent spaceProperty;
+        static public float inspectorWidthPadding = 60f;
+        static public float presetButtonCount = 9f;
+        static public GUIStyle centeredLabel = GUI.skin.GetStyle("Label");
+        static public GUIContent presetTextureRimLeft = new GUIContent(Resources.Load<Texture2D>("PresetRim_Left"), "Rim Left");
+        static public GUIContent presetTextureKickLeft = new GUIContent(Resources.Load<Texture2D>("PresetKick_Left"), "Kick Left");
+        static public GUIContent presetTextureBounceLeft = new GUIContent(Resources.Load<Texture2D>("PresetBounce_Left"), "Bounce Left");
+        static public GUIContent presetTextureFillLeft = new GUIContent(Resources.Load<Texture2D>("PresetFill_Left"), "Fill Left");
+        static public GUIContent presetTextureHair = new GUIContent(Resources.Load<Texture2D>("PresetHair"), "Hair");
+        static public GUIContent presetTextureRimRight = new GUIContent(Resources.Load<Texture2D>("PresetRim_Right"), "Rim Right");
+        static public GUIContent presetTextureKickRight = new GUIContent(Resources.Load<Texture2D>("PresetKick_Right"), "Kick Right");
+        static public GUIContent presetTextureBounceRight = new GUIContent(Resources.Load<Texture2D>("PresetBounce_Right"), "Bounce Right");
+        static public GUIContent presetTextureFillRight = new GUIContent(Resources.Load<Texture2D>("PresetFill_Right"), "Fill Right");
+        static public GUIContent distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
+        static public GUIContent spaceProperty = new GUIContent("Up direction", "The space that the up direction of the anchor is defined in");
         //static readonly GUIContent k_SizeContent = EditorGUIUtility.TrTextContent("Size", "Sets the size of the projector.");
-        public GUIContent[] angleSubContent;
-
-        public Styles()
-        {
-            centeredLabel = GUI.skin.GetStyle("Label");
-            centeredLabel.alignment = TextAnchor.UpperCenter;
-            centeredLabel.wordWrap = true;
-            presetTextureRimLeft = new GUIContent(Resources.Load<Texture2D>("PresetRim_Left"), "Rim Left");
-            presetTextureKickLeft = new GUIContent(Resources.Load<Texture2D>("PresetKick_Left"), "Kick Left");
-            presetTextureBounceLeft = new GUIContent(Resources.Load<Texture2D>("PresetBounce_Left"), "Bounce Left");
-            presetTextureFillLeft = new GUIContent(Resources.Load<Texture2D>("PresetFill_Left"), "Fill Left");
-            presetTextureHair = new GUIContent(Resources.Load<Texture2D>("PresetHair"), "Hair");
-            presetTextureRimRight = new GUIContent(Resources.Load<Texture2D>("PresetRim_Right"), "Rim Right");
-            presetTextureKickRight = new GUIContent(Resources.Load<Texture2D>("PresetKick_Right"), "Kick Right");
-            presetTextureBounceRight = new GUIContent(Resources.Load<Texture2D>("PresetBounce_Right"), "Bounce Right");
-            presetTextureFillRight = new GUIContent(Resources.Load<Texture2D>("PresetFill_Right"), "Fill Right");
-
-            distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
-            spaceProperty = new GUIContent("Up direction", "The space that the up direction of the anchor is defined in");
-
-            angleSubContent = new[]
+        static public GUIContent[] angleSubContent = new[]
             {
                 EditorGUIUtility.TrTextContent("Yaw"),
                 EditorGUIUtility.TrTextContent("Pitch"),
                 EditorGUIUtility.TrTextContent("Roll")
             };
+        static public Color totalTransparentColor = new Color(0, 0, 0, 0);
+        static public Color hoverColor = new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f);
+
+        static public Color darkBackgroundIconColor = new Color(43f / 255f, 41f / 255f, 43f / 255f, 1.0f);
+        static public Color lightBackgroundIconColor = new Color(229f / 255f, 229f / 255f, 229f / 255f);
+
+        static public Color angleDiskBorderColor = new Color(33f / 255f, 33f / 255f, 33f / 255f);
+
+        static public Color darkDiskBackgroundAngleColor = new Color(50f / 255f, 50f / 255f, 50f / 255f);
+        static public Color lightDiskBackgroundAngleColor = new Color(229f / 255f, 229f / 255f, 229f / 255f);
+
+        static public Color darkWireDiskAngleColor = new Color(196f / 255f, 196f / 255f, 196f / 255f);
+        static public Color lightWireDiskAngleColor = new Color(97f / 255f, 97f / 255f, 97f / 255f);
+
+        static public Color BackgroundIconColor()
+        {
+            if (EditorGUIUtility.isProSkin)
+                return darkBackgroundIconColor;
+            else
+                return lightBackgroundIconColor;
+        }
+
+        static public Color DiskBackgroundAngleColor()
+        {
+            if (EditorGUIUtility.isProSkin)
+                return darkDiskBackgroundAngleColor;
+            else
+                return lightDiskBackgroundAngleColor;
+        }
+
+        static public Color WireDiskAngleColor()
+        {
+            if (EditorGUIUtility.isProSkin)
+                return darkWireDiskAngleColor;
+            else
+                return lightWireDiskAngleColor;
+        }
+
+        static LightAnchorStyles()
+        {
+            centeredLabel.alignment = TextAnchor.UpperCenter;
+            centeredLabel.wordWrap = true;
         }
     }
 }
