@@ -12,9 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
-- Fixed lookdev movement.
-- Fixed volume component tooltips using the same parameter name.
-- Fixed issue with saving some quality settings in volume overrides  (case 1293747)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -54,6 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
 - Fixed SSGI texture allocation when not using the RenderGraph.
 - Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
+- Fixed issue with saving some quality settings in volume overrides  (case 1293747)
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
