@@ -98,17 +98,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void RayTracingQualityModeGUI()
         {
-            PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
-            PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
-            m_SmoothnessFadeStart.value.floatValue  = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
-            PropertyField(m_RayLength, k_RayLengthText);
-            PropertyField(m_ClampValue, k_ClampValueText);
-            PropertyField(m_SampleCount, k_SampleCountText);
-            PropertyField(m_BounceCount, k_BounceCountText);
-            PropertyField(m_Denoise, k_DenoiseText);
+            base.OnInspectorGUI();
             using (new HDEditorUtils.IndentScope())
+            using (new QualityScope(this))
             {
-                PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                PropertyField(m_MinSmoothness, k_MinimumSmoothnessText);
+                PropertyField(m_SmoothnessFadeStart, k_SmoothnessFadeStartText);
+                m_SmoothnessFadeStart.value.floatValue = Mathf.Max(m_MinSmoothness.value.floatValue, m_SmoothnessFadeStart.value.floatValue);
+                PropertyField(m_RayLength, k_RayLengthText);
+                PropertyField(m_ClampValue, k_ClampValueText);
+                PropertyField(m_SampleCount, k_SampleCountText);
+                PropertyField(m_BounceCount, k_BounceCountText);
+                PropertyField(m_Denoise, k_DenoiseText);
+                using (new HDEditorUtils.IndentScope())
+                {
+                    PropertyField(m_DenoiserRadius, k_DenoiseRadiusText);
+                }
             }
         }
 
