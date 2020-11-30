@@ -423,13 +423,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             ulong numberOfShadowsWithResolution1024 = 0;
             ulong numberOfShadowsWithResolution2048 = 0;
             ulong numberOfShadowsWithResolution4096 = 0;
-            for (int visibleLightIndex = 0; visibleLightIndex < renderingData.lightData.visibleLights.Length; ++visibleLightIndex)
+
+            var visibleLights = renderingData.lightData.visibleLights;
+            for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length; ++visibleLightIndex)
             {
                 if (!IsValidShadowCastingLight(ref renderingData.lightData, visibleLightIndex))
                     continue;
-                if (renderingData.lightData.visibleLights[visibleLightIndex].lightType == LightType.Point)
+                if (visibleLights[visibleLightIndex].lightType == LightType.Point)
                     ++numberOfShadowedPointLights;
-                if (renderingData.lightData.visibleLights[visibleLightIndex].light.shadows == LightShadows.Soft)
+                if (visibleLights[visibleLightIndex].light.shadows == LightShadows.Soft)
                     ++numberOfSoftShadowedLights;
                 if (renderingData.shadowData.resolution[visibleLightIndex] == 0128)
                     ++numberOfShadowsWithResolution0128;
