@@ -344,7 +344,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 #endif
 {
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
@@ -507,7 +507,7 @@ SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput 
 half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input.interpolated);
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input.interpolated);
 
     #if !defined(SHADER_QUALITY_LOW)
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
