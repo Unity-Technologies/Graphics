@@ -121,8 +121,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // RTR
         RaytracingReflectionDirectionGeneration,
         RaytracingReflectionEvaluation,
-        RaytracingReflectionUpscaleGeneration,
-        RaytracingFilterReflection,
+        RaytracingReflectionAdjustWeight,
+        RaytracingReflectionFilter,
+        RaytracingReflectionUpscale,
         // RTAO
         RaytracingAmbientOcclusion,
         RaytracingFilterAmbientOcclusion,

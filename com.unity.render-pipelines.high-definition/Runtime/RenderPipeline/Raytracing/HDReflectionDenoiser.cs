@@ -13,17 +13,18 @@ namespace UnityEngine.Rendering.HighDefinition
         // De-noising parameters
         public int maxKernelSize;
         public float historyValidity;
-        public int singleReflectionBounce;
+        // Current inverse resolution of the history buffer
+        public Vector2 historyBufferSize;
+        // Resolution at which the effect is rendered (Half the _Screensize if half res)
+        public Vector4 currentEffectResolution;
 
-        // Kernels
+        // Other parameters
+        public ComputeShader reflectionDenoiserCS;
         public int temporalAccumulationKernel;
         public int copyHistoryKernel;
         public int bilateralFilterHKernel;
         public int bilateralFilterVKernel;
-
-        // Other parameters
         public Texture2D reflectionFilterMapping;
-        public ComputeShader reflectionDenoiserCS;
     }
 
     internal struct ReflectionDenoiserResources
@@ -48,10 +49,13 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2D m_ReflectionFilterMapping;
         SharedRTManager m_SharedRTManager;
         HDRenderPipeline m_RenderPipeline;
-        int s_TemporalAccumulationKernel;
+        int s_TemporalAccumulationFullResKernel;
+        int s_TemporalAccumulationHalfResKernel;
         int s_CopyHistoryKernel;
-        int s_BilateralFilterHKernel;
-        int s_BilateralFilterVKernel;
+        int s_BilateralFilterH_FRKernel;
+        int s_BilateralFilterV_FRKernel;
+        int s_BilateralFilterH_HRKernel;
+        int s_BilateralFilterV_HRKernel;
 
         public HDReflectionDenoiser()
         {
@@ -65,39 +69,40 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderPipeline = renderPipeline;
 
             // Fetch all the kernels we shall be using
-            s_TemporalAccumulationKernel = m_ReflectionDenoiserCS.FindKernel("TemporalAccumulation");
+            s_TemporalAccumulationFullResKernel = m_ReflectionDenoiserCS.FindKernel("TemporalAccumulationFullRes");
+            s_TemporalAccumulationHalfResKernel = m_ReflectionDenoiserCS.FindKernel("TemporalAccumulationHalfRes");
             s_CopyHistoryKernel = m_ReflectionDenoiserCS.FindKernel("CopyHistory");
-            s_BilateralFilterHKernel = m_ReflectionDenoiserCS.FindKernel("BilateralFilterH");
-            s_BilateralFilterVKernel = m_ReflectionDenoiserCS.FindKernel("BilateralFilterV");
+            s_BilateralFilterH_FRKernel = m_ReflectionDenoiserCS.FindKernel("BilateralFilterH_FR");
+            s_BilateralFilterV_FRKernel = m_ReflectionDenoiserCS.FindKernel("BilateralFilterV_FR");
+            s_BilateralFilterH_HRKernel = m_ReflectionDenoiserCS.FindKernel("BilateralFilterH_HR");
+            s_BilateralFilterV_HRKernel = m_ReflectionDenoiserCS.FindKernel("BilateralFilterV_HR");
         }
 
         public void Release()
         {
         }
 
-
-        internal ReflectionDenoiserParameters PrepareReflectionDenoiserParameters(HDCamera hdCamera, float historyValidity, int maxKernelSize, bool singleReflectionBounce)
+        internal ReflectionDenoiserParameters PrepareReflectionDenoiserParameters(HDCamera hdCamera, float historyValidity, int maxKernelSize, bool fullResolution)
         {
             ReflectionDenoiserParameters reflDenoiserParams = new ReflectionDenoiserParameters();
             // Camera parameters
-            reflDenoiserParams.texWidth = hdCamera.actualWidth;
-            reflDenoiserParams.texHeight = hdCamera.actualHeight;
+            reflDenoiserParams.texWidth = fullResolution ? hdCamera.actualWidth : (hdCamera.actualWidth / 2);
+            reflDenoiserParams.texHeight = fullResolution ? hdCamera.actualHeight : (hdCamera.actualHeight / 2);
             reflDenoiserParams.viewCount = hdCamera.viewCount;
 
             // De-noising parameters
             reflDenoiserParams.historyValidity = historyValidity;
-            reflDenoiserParams.maxKernelSize = maxKernelSize;
-            reflDenoiserParams.singleReflectionBounce = singleReflectionBounce ? 1 : 0;
-
-            // Kernels
-            reflDenoiserParams.temporalAccumulationKernel = s_TemporalAccumulationKernel;
-            reflDenoiserParams.copyHistoryKernel = s_CopyHistoryKernel;
-            reflDenoiserParams.bilateralFilterHKernel = s_BilateralFilterHKernel;
-            reflDenoiserParams.bilateralFilterVKernel = s_BilateralFilterVKernel;
+            reflDenoiserParams.maxKernelSize = fullResolution ? maxKernelSize : maxKernelSize / 2;
+            reflDenoiserParams.historyBufferSize = new Vector2(1.0f / (float)hdCamera.historyRTHandleProperties.currentRenderTargetSize.x, 1.0f / (float)hdCamera.historyRTHandleProperties.currentRenderTargetSize.y);
+            reflDenoiserParams.currentEffectResolution = new Vector4(reflDenoiserParams.texWidth, reflDenoiserParams.texHeight, 1.0f / (float)reflDenoiserParams.texWidth, 1.0f / (float)reflDenoiserParams.texHeight);
 
             // Other parameters
-            reflDenoiserParams.reflectionFilterMapping = m_ReflectionFilterMapping;
             reflDenoiserParams.reflectionDenoiserCS = m_ReflectionDenoiserCS;
+            reflDenoiserParams.temporalAccumulationKernel = fullResolution ? s_TemporalAccumulationFullResKernel : s_TemporalAccumulationHalfResKernel;
+            reflDenoiserParams.copyHistoryKernel = s_CopyHistoryKernel;
+            reflDenoiserParams.bilateralFilterHKernel = fullResolution ? s_BilateralFilterH_FRKernel : s_BilateralFilterH_HRKernel;
+            reflDenoiserParams.bilateralFilterVKernel = fullResolution ? s_BilateralFilterV_FRKernel : s_BilateralFilterV_HRKernel;
+            reflDenoiserParams.reflectionFilterMapping = m_ReflectionFilterMapping;
 
             return reflDenoiserParams;
         }
@@ -117,48 +122,51 @@ namespace UnityEngine.Rendering.HighDefinition
             return reflDenoiserResources;
         }
 
-        public static void DenoiseBuffer(CommandBuffer cmd, ReflectionDenoiserParameters reflDenoiserParameters, ReflectionDenoiserResources reflDenoiserResources)
+        public static void DenoiseBuffer(CommandBuffer cmd, ReflectionDenoiserParameters parameters, ReflectionDenoiserResources reflDenoiserResources)
         {
             // Evaluate the dispatch parameters
             int tileSize = 8;
-            int numTilesX = (reflDenoiserParameters.texWidth + (tileSize - 1)) / tileSize;
-            int numTilesY = (reflDenoiserParameters.texHeight + (tileSize - 1)) / tileSize;
+            int numTilesX = (parameters.texWidth + (tileSize - 1)) / tileSize;
+            int numTilesY = (parameters.texHeight + (tileSize - 1)) / tileSize;
 
-            // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.noisyToOutputSignal);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._HistoryBuffer, reflDenoiserResources.historySignal);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraDepthTexture, reflDenoiserResources.depthBuffer);
+            // Input data
+            cmd.SetComputeFloatParam(parameters.reflectionDenoiserCS, HDShaderIDs._HistoryValidity, parameters.historyValidity);
+            cmd.SetComputeVectorParam(parameters.reflectionDenoiserCS, HDShaderIDs._HistoryBufferSize, parameters.historyBufferSize);
+            cmd.SetComputeVectorParam(parameters.reflectionDenoiserCS, HDShaderIDs._CurrentEffectResolution, parameters.currentEffectResolution);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.noisyToOutputSignal);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, reflDenoiserResources.motionVectorBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._HistoryBuffer, reflDenoiserResources.historySignal);
 
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer0);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, HDShaderIDs._CameraMotionVectorsTexture, reflDenoiserResources.motionVectorBuffer);
-            cmd.SetComputeFloatParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._HistoryValidity, reflDenoiserParameters.historyValidity);
-            cmd.SetComputeIntParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._SingleReflectionBounce, reflDenoiserParameters.singleReflectionBounce);
-            
-            cmd.DispatchCompute(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.temporalAccumulationKernel, numTilesX, numTilesY, reflDenoiserParameters.viewCount);
+            // Output texture
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer0);
 
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer0);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.copyHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.historySignal);
-            cmd.DispatchCompute(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.copyHistoryKernel, numTilesX, numTilesY, reflDenoiserParameters.viewCount);
+            // Do the temporal accumulation
+            cmd.DispatchCompute(parameters.reflectionDenoiserCS, parameters.temporalAccumulationKernel, numTilesX, numTilesY, parameters.viewCount);
 
-            // Horizontal pass of the bilateral filter
-            cmd.SetComputeIntParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._DenoiserFilterRadius, reflDenoiserParameters.maxKernelSize);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer0);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer1);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, HDShaderIDs._ReflectionFilterMapping, reflDenoiserParameters.reflectionFilterMapping);
-            cmd.DispatchCompute(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterHKernel, numTilesX, numTilesY, reflDenoiserParameters.viewCount);
+            // Copy the accumulated signal into the history buffer
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.copyHistoryKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer0);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.copyHistoryKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.historySignal);
+            cmd.DispatchCompute(parameters.reflectionDenoiserCS, parameters.copyHistoryKernel, numTilesX, numTilesY, parameters.viewCount);
 
             // Horizontal pass of the bilateral filter
-            cmd.SetComputeIntParam(reflDenoiserParameters.reflectionDenoiserCS, HDShaderIDs._DenoiserFilterRadius, reflDenoiserParameters.maxKernelSize);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer1);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.noisyToOutputSignal);
-            cmd.SetComputeTextureParam(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, HDShaderIDs._ReflectionFilterMapping, reflDenoiserParameters.reflectionFilterMapping);
-            cmd.DispatchCompute(reflDenoiserParameters.reflectionDenoiserCS, reflDenoiserParameters.bilateralFilterVKernel, numTilesX, numTilesY, reflDenoiserParameters.viewCount);
+            cmd.SetComputeIntParam(parameters.reflectionDenoiserCS, HDShaderIDs._DenoiserFilterRadius, parameters.maxKernelSize);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer0);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.intermediateBuffer1);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, HDShaderIDs._ReflectionFilterMapping, parameters.reflectionFilterMapping);
+            cmd.DispatchCompute(parameters.reflectionDenoiserCS, parameters.bilateralFilterHKernel, numTilesX, numTilesY, parameters.viewCount);
+
+            // Horizontal pass of the bilateral filter
+            cmd.SetComputeIntParam(parameters.reflectionDenoiserCS, HDShaderIDs._DenoiserFilterRadius, parameters.maxKernelSize);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._DenoiseInputTexture, reflDenoiserResources.intermediateBuffer1);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._DepthTexture, reflDenoiserResources.depthBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._NormalBufferTexture, reflDenoiserResources.normalBuffer);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._DenoiseOutputTextureRW, reflDenoiserResources.noisyToOutputSignal);
+            cmd.SetComputeTextureParam(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, HDShaderIDs._ReflectionFilterMapping, parameters.reflectionFilterMapping);
+            cmd.DispatchCompute(parameters.reflectionDenoiserCS, parameters.bilateralFilterVKernel, numTilesX, numTilesY, parameters.viewCount);
         }
 
         class ReflectionDenoiserPassData
@@ -176,7 +184,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public TextureHandle DenoiseRTR(RenderGraph renderGraph, in ReflectionDenoiserParameters parameters, HDCamera hdCamera,
                                 TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle clearCoatTexture, TextureHandle lightingTexture, RTHandle historyBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection)))
+            using (var builder = renderGraph.AddRenderPass<ReflectionDenoiserPassData>("Denoise ray traced reflections", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingReflectionFilter)))
             {
                 builder.EnableAsyncCompute(false);
 

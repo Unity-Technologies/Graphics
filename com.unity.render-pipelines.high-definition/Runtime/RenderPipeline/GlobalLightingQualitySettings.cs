@@ -123,10 +123,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 1.0f;
             RTRClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.2f;
 
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Low] = 4;
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 4;
-            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.High] = 3;
-
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
@@ -231,8 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTRRayLength = new float[s_QualitySettingCount];
         /// <summary>Clamp value used to reduce the variance in the integration signal.</summary>
         public float[] RTRClampValue = new float[s_QualitySettingCount];
-        /// <summary>Radius for the up-sample pass.</summary>
-        public int[] RTRUpScaleRadius = new int[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
