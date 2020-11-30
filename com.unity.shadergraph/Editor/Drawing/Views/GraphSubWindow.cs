@@ -9,16 +9,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
     {
         Dragger m_Dragger;
 
-        // This needs to be something that each subclass defines on its own
+        // This needs to be something that each subclass defines for itself at creation time
         // if they all use the same they'll be stacked on top of each other at SG window creation
-        WindowDockingLayout m_DefaultLayout = new WindowDockingLayout
+        protected WindowDockingLayout windowDockingLayout { get; set; } = new WindowDockingLayout
         {
             dockingTop = true,
             dockingLeft = false,
             verticalOffset = 8,
             horizontalOffset = 8,
         };
-        WindowDockingLayout windowDockingLayout { get; set; }
 
         protected VisualElement m_MainContainer;
         protected VisualElement m_Root;
@@ -43,14 +42,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             get
             {
-                if (!windowed && m_GraphView == null)
+                if (!isWindowed && m_GraphView == null)
                     m_GraphView = GetFirstAncestorOfType<GraphView>();
                 return m_GraphView;
             }
 
             set
             {
-                if (!windowed)
+                if (!isWindowed)
                     return;
                 m_GraphView = value;
             }
@@ -71,13 +70,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         }
 
         // Intended for future handling of docking to sides of the shader graph window
-        bool m_Windowed;
-        public bool windowed
+        bool m_IsWindowed;
+        public bool isWindowed
         {
-            get { return m_Windowed; }
+            get { return m_IsWindowed; }
             set
             {
-                if (m_Windowed == value) return;
+                if (m_IsWindowed == value) return;
 
                 if (value)
                 {
@@ -91,13 +90,59 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                     RemoveFromClassList("windowed");
                     this.AddManipulator(m_Dragger);
                 }
-                m_Windowed = value;
+                m_IsWindowed = value;
             }
         }
 
         public override VisualElement contentContainer => m_ContentContainer;
 
-        readonly bool m_Scrollable = false;
+        private bool m_IsResizable = false;
+
+        // Can be set by child classes as needed
+        protected bool isWindowResizable
+        {
+            get => m_IsResizable;
+            set
+            {
+                if (m_IsResizable != value)
+                {
+                    m_IsResizable = value;
+                    HandleResizingBehavior(m_IsResizable);
+                }
+            }
+        }
+
+        void HandleResizingBehavior(bool isResizable)
+        {
+            if (isResizable)
+            {
+                var resizeElement = this.Q<ResizableElement>();
+                resizeElement.BindOnResizeCallback(OnWindowResize);
+                hierarchy.Add(resizeElement);
+            }
+            else
+            {
+                var resizeElement = this.Q<ResizableElement>();
+                resizeElement.SetResizeRules(ResizableElement.Resizer.None);
+                hierarchy.Remove(resizeElement);
+            }
+        }
+
+        private bool m_IsScrollable = false;
+
+        // Can be set by child classes as needed
+        protected bool isWindowScrollable
+        {
+            get => m_IsScrollable;
+            set
+            {
+                if (m_IsScrollable != value)
+                {
+                    m_IsScrollable = value;
+                    HandleScrollingBehavior(m_IsScrollable);
+                }
+            }
+        }
 
         void HandleScrollingBehavior(bool scrollable)
         {
@@ -129,7 +174,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             }
         }
 
-        protected GraphSubWindow(GraphView associatedGraphView = null) : base()
+        protected GraphSubWindow(GraphView associatedGraphView) : base()
         {
             m_GraphView = associatedGraphView;
             m_GraphView.Add(this);
@@ -154,9 +199,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             capabilities |= Capabilities.Movable | Capabilities.Resizable;
             style.overflow = Overflow.Hidden;
             focusable = false;
-
-            m_Scrollable = true;
-            HandleScrollingBehavior(m_Scrollable);
 
             name = elementName;
             title = windowTitle;
@@ -211,10 +253,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             m_Dragger = new Dragger { clampToParentEdges = true };
             RegisterCallback<MouseUpEvent>(OnMoved);
             this.AddManipulator(m_Dragger);
-
-            var resizeElement = this.Q<ResizableElement>();
-            resizeElement.BindOnResizeCallback(OnWindowResize);
-            hierarchy.Add(resizeElement);
         }
 
         #region Layout
@@ -243,7 +281,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 windowDockingLayout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
             else
             {
-                windowDockingLayout = m_DefaultLayout;
+                windowDockingLayout = windowDockingLayout;
                 // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
                 windowDockingLayout.size = layout.size;
             }
@@ -254,7 +292,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         protected void AddStyleSheetFromPath(string styleSheetPath)
         {
-            StyleSheet sheetAsset = AssetDatabase.LoadAssetAtPath<StyleSheet>(styleSheetPath);;
+            StyleSheet sheetAsset = Resources.Load<StyleSheet>(styleSheetPath);;
 
             if (sheetAsset == null)
             {

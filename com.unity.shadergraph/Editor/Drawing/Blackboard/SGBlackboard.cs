@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Drawing.Views;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views
@@ -9,54 +8,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
     class SGBlackboard : GraphSubWindow, ISelection
     {
         private Button m_AddButton;
-        private bool m_Scrollable = true;
-
         private Dragger m_Dragger;
-        private GraphView m_GraphView;
-        public GraphView graphView
-        {
-            get
-            {
-                if (!windowed && m_GraphView == null)
-                    m_GraphView = GetFirstAncestorOfType<GraphView>();
-                return m_GraphView;
-            }
-
-            set
-            {
-                if (!windowed)
-                    return;
-                m_GraphView = value;
-            }
-        }
-
-        internal static readonly string StyleSheetPath = "StyleSheets/GraphView/Blackboard.uss";
+        protected override string windowTitle => "Blackboard";
+        protected override string elementName => "SGBlackboard";
+        protected override string styleName => "Blackboard";
+        protected override string UxmlName => "GraphView/Blackboard";
+        protected override string layoutKey => "UnityEditor.ShaderGraph.Blackboard";
 
         public Action<SGBlackboard> addItemRequested { get; set; }
         public Action<SGBlackboard, int, VisualElement> moveItemRequested { get; set; }
         public Action<SGBlackboard, VisualElement, string> editTextRequested { get; set; }
 
-        // ISelection implementation
-        public List<ISelectable> selection
+        public SGBlackboard(GraphView associatedGraphView) : base(associatedGraphView)
         {
-            get
-            {
-                return graphView?.selection;
-            }
-        }
-
-        public SGBlackboard(GraphView associatedGraphView = null)
-        {
-            var tpl = EditorGUIUtility.Load("UXML/GraphView/Blackboard.uxml") as VisualTreeAsset;
-            this.AddStyleSheetFromPath(StyleSheetPath);
-
-            m_MainContainer = tpl.Instantiate();
-            m_MainContainer.AddToClassList("mainContainer");
-
-            m_Root = m_MainContainer.Q("content");
-
-            m_HeaderItem = m_MainContainer.Q("header");
-            m_HeaderItem.AddToClassList("blackboardHeader");
+            windowDockingLayout.dockingLeft = true;
 
             m_AddButton = m_MainContainer.Q(name: "addButton") as Button;
             m_AddButton.clickable.clicked += () => {
@@ -66,49 +31,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 }
             };
 
-            m_TitleLabel = m_MainContainer.Q<Label>(name: "titleLabel");
-            m_SubTitleLabel = m_MainContainer.Q<Label>(name: "subTitleLabel");
-            m_ContentContainer = m_MainContainer.Q(name: "contentContainer");
+            isWindowScrollable = true;
 
-            hierarchy.Add(m_MainContainer);
-
-            capabilities |= Capabilities.Movable | Capabilities.Resizable;
-            style.overflow = Overflow.Hidden;
-
-            ClearClassList();
-            AddToClassList("blackboard");
-
-            m_Dragger = new Dragger { clampToParentEdges = true };
-            this.AddManipulator(m_Dragger);
-
-            m_Scrollable = true;
-
-            hierarchy.Add(new Resizer());
-
-            RegisterCallback<DragUpdatedEvent>(e =>
-            {
-                e.StopPropagation();
-            });
-
-            // event interception to prevent GraphView manipulators from being triggered
-            // when working with the blackboard
-
-            // prevent Zoomer manipulator
-            RegisterCallback<WheelEvent>(e =>
-            {
-                e.StopPropagation();
-            });
-
-            RegisterCallback<MouseDownEvent>(e =>
-            {
-                if (e.button == (int)MouseButton.LeftMouse)
-                    ClearSelection();
-                // prevent ContentDragger manipulator
-                e.StopPropagation();
-            });
-
-            //RegisterCallback<ValidateCommandEvent>(OnValidateCommand);
-            //RegisterCallback<ExecuteCommandEvent>(OnExecuteCommand);
+            RegisterCallback<ValidateCommandEvent>(OnValidateCommand);
+            RegisterCallback<ExecuteCommandEvent>(OnExecuteCommand);
 
             focusable = true;
         }
@@ -128,14 +54,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             graphView?.ClearSelection();
         }
 
-        /*private void OnValidateCommand(ValidateCommandEvent evt)
+        private void OnValidateCommand(ValidateCommandEvent evt)
         {
-            graphView?.OnValidateCommand(evt);
+            int x = 0;
+            x++;
+
+            //graphView?.OnValidateCommand(evt);
         }
 
         private void OnExecuteCommand(ExecuteCommandEvent evt)
         {
-            graphView?.OnExecuteCommand(evt);
-        }*/
+            int x = 0;
+            x++;
+            //graphView?.OnExecuteCommand(evt);
+        }
     }
 }

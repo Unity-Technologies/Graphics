@@ -276,14 +276,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
             m_Graph.UpdateActiveBlocks(activeBlocks);
 
-            //graph settings need to be initilaized after the target setup
+            // Graph settings need to be initialized after the target setup
             m_InspectorView.InitializeGraphSettings();
         }
 
         private void CreateBlackboard()
         {
-            m_BlackboardProvider = new BlackboardProvider(m_Graph);
-            m_GraphView.Add(m_BlackboardProvider.blackboard);
+            m_BlackboardProvider = new BlackboardProvider(m_Graph, m_GraphView);
         }
 
         void AddContexts()
@@ -1256,8 +1255,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ApplyMasterPreviewLayout();
 
-            ApplyBlackboardLayout();
-
+            m_BlackboardProvider.blackboard.DeserializeLayout();
             m_InspectorView.DeserializeLayout();
         }
 
@@ -1285,39 +1283,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateSerializedWindowLayout();
         }
 
-        void ApplyBlackboardLayout()
-        {
-            // If a blackboard size was loaded in from saved user settings use that
-            if (m_FloatingWindowsLayout.blackboardLayout.size.x > 0f && m_FloatingWindowsLayout.blackboardLayout.size.y > 0f)
-            {
-                blackboardProvider.blackboard.style.width = m_FloatingWindowsLayout.blackboardLayout.size.x;
-                blackboardProvider.blackboard.style.height = m_FloatingWindowsLayout.blackboardLayout.size.y;
-            }
-            else // Use default specified in the stylesheet for blackboard
-            {
-                m_FloatingWindowsLayout.blackboardLayout.size = blackboardProvider.blackboard.layout.size;
-            }
-
-            // Restore blackboard layout, and make sure that it remains in the view.
-            Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
-
-            // Make sure the dimensions are sufficiently large.
-            blackboardRect.width = Mathf.Clamp(blackboardRect.width, 160f, m_GraphView.contentContainer.layout.width);
-            blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
-
-            // Make sure that the positioning is on screen.
-            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f,
-                Mathf.Max(0f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
-            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f,
-                Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
-
-            // Set the processed blackboard layout.
-            m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
-
-            // After the layout is restored from the previous session, start tracking layout changes in the blackboard.
-            m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(SerializeBlackboardLayout);
-        }
-
         void SerializeBlackboardLayout(GeometryChangedEvent evt)
         {
             UpdateSerializedWindowLayout();
@@ -1328,9 +1293,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 
-            m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, m_GraphView.layout);
-            m_FloatingWindowsLayout.blackboardLayout.ClampToParentWindow();
-
+            blackboardProvider.blackboard.ClampToParentLayout(m_GraphView.layout);
             m_InspectorView.ClampToParentLayout(m_GraphView.layout);
 
             if (m_MasterPreviewView.visible)
