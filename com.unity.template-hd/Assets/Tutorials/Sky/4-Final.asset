@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,18 +36,26 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Congratulations!
-      m_Description: 'You completed the tutorial. It should help you understand the
-        core principals of setting up a sky in HDRP.
+      Title:
+        m_Untranslated: Congratulations!
+      Text:
+        m_Untranslated: 'You completed the tutorial. It should help you understand
+          the core principles of setting up a sky in HDRP.
 
+          
 
-        For more information
-        about the subject, please check out our  href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Override-Physically-Based-Sky.html"<a>documentation
-        page.</a>
+          For
+          more information about the subject, please check out our  href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.0/manual/Override-Physically-Based-Sky.html"<a>documentation
+          page.</a>
 
+          
 
-        Note: You do not need to save in order to follow other
-        tutorials.'
+          Note: You do not need to save in order
+          to follow other tutorials.
+
+'
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -74,13 +86,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

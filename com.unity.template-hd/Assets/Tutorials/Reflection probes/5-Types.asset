@@ -45,7 +45,7 @@ MonoBehaviour:
 
           The size of the
           probe directly influences how probes are sorted: smaller local Reflection
-          Probes tend to have a higher importance than larger ones.
+          Probes tend to have higher importance than larger ones.
 
 '
       m_Summary: 

@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,31 +36,23 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: HDRP Default settings
-      m_Description: 'This is a very imporant topic. Its a common question to hear
-        "Why is there bloom in my empty scene?" or "Where is the fog coming from?"
-
-
-        In
-        HDRP we have some default effects applied for all scenes in the project.
-        These can range from post procesing to fog or even visual sky.
-
-
-        1)
-        Go to <b>Edit->Project Settings->HDRP Default Settings</b> and review Volume
-        components list.
-
-        2) Disable HDRI Sky. The scenes sky should become
-        black.
-
-        3) Undo your changes
-
-
-        For convenience, we also added
-        an instance of these settings in the scene. Use the search of the <i>Hierarchy</i>
-        window to find <b>Volume Global</b> gameobject. Adding them did not change
-        the way our scene is rendered, but allows us to edit these settings  without
-        opening <i>Project Settings</i> window.'
+      Title:
+        m_Untranslated: HDRP Default settings
+      Text:
+        m_Untranslated: "This is a very important topic. It\u2019s a common question
+          to hear \"Why is there bloom in my empty scene?\" or \"Where is the fog
+          coming from?\"\r\n\r\nIn HDRP we have some default effects applied for
+          all scenes in the project. These can range from post processing to fog
+          or even visual sky.\r\n\r\n1) Go to <b>Edit->Project Settings->HDRP Default
+          Settings</b> and review Volume components list.\r\n2) Disable HDRI Sky.
+          The scene\u2019s sky should become black.\r\n3) Undo your changes\r\n\r\nFor
+          convenience, we also added an instance of these settings in the scene.
+          Use the search of the <i>Hierarchy</i> window to find <b>Volume Global</b>
+          gameobject. Adding them did not change the way our scene is rendered, but
+          allows us to edit these settings without opening <i>Project Settings</i>
+          window.\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -87,13 +83,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

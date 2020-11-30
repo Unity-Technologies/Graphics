@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,17 +36,22 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Artificial Lights
-      m_Description: "Select the light illuminating the wall and inspects its properties.
-        The gameobject is called Light_Spot_1600lm. \n\nIts usually very simple with
-        artificial lights, because all the values are often provided by the manufacturer.\n\nThe
-        slected lamps intensity is <b>1600 Lumen</b> and the temperature is <b>3500
-        Kelvin</b>.  Try seaching Amazon or any other online store for 1600 lm bulb,
-        notice light bulbs with the same intensity can come in variety of colors.\n\nSo
-        creating realistic lighting becomes as simple as looking up bulb values online
-        or using the slider ranges if you dont have a particular light in mind.\n\n<b>Performance
-        tip:</b> Keep your Fade Distance setting as low as you can, so that the light
-        disappears beyond a certain distance."
+      Title:
+        m_Untranslated: Artificial Lights
+      Text:
+        m_Untranslated: "Select the light illuminating the wall and inspects its
+          properties. The gameobject is called Light_Spot_1600lm. \r\n\r\nIt\u2019s
+          usually very simple with artificial lights because all the values are often
+          provided by the manufacturer.\r\n\r\nThe selected lamps intensity is <b>1600
+          Lumen</b> and the temperature is <b>3500 Kelvin</b>.  Try searching Amazon
+          or any other online store for a 1600 lm bulb, notice light bulbs with the
+          same intensity can come in a variety of colors.\r\n\r\nSo creating realistic
+          lighting becomes as simple as looking up bulb values online or using the
+          slider ranges if you don\u2019t have a particular light in mind.\r\n\r\n<b>Performance
+          tip:</b> Keep your Fade Distance setting as low as you can, so that the
+          light disappears beyond a certain distance.\r\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -73,13 +82,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

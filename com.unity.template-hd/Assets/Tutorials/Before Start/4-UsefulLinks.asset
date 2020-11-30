@@ -39,16 +39,17 @@ MonoBehaviour:
       Title:
         m_Untranslated: More HDRP
       Text:
-        m_Untranslated: "Thats it, you are set to go! Explore the template on your
-          own or complete the tutorials in any orde you choose.\n\nBelow will provide
-          some links that you might find useful.\n\nOther HDRP projects:\n<a href=\"https://github.com/Unity-Technologies/FontainebleauDemo\">\rFontainebleau
-          Demo</a>\n<a href=\"https://github.com/Unity-Technologies/SpaceshipDemo\">\rSpaceship
-          Demo</a>\n<a href=\"https://github.com/Unity-Technologies/SmallOfficeRayTracing\">\rRaytracing
-          Demo</a>\n<a href=\"https://github.com/Unity-Technologies/VRAlchemyLab\">\rVR
-          Demo</a>\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.1/manual/HDRP-Sample-Content.html\">\rSample
-          Content</a>\n\nYoutube tutorial:\n<a href=\"https://www.youtube.com/watch?v=yqCHiZrgKzs\">\rUnite
-          Now 2020</a>\n\nHelp:\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.1/manual/Getting-started-with-HDRP.html\">\rDocumentation</a>\n<a
-          href=\"https://forum.unity.com/tags/hdrp/\">\rForum</a>\n"
+        m_Untranslated: "That\u2019s it, you are set to go! Explore the template
+          on your own or complete the tutorials in any order you choose.\r\n\r\nBelow
+          will provide some links that you might find useful.\r\n\r\nOther HDRP projects:\r\n<a
+          href=\"https://github.com/Unity-Technologies/FontainebleauDemo\">\r\nFontainebleau
+          Demo</a>\r\n<a href=\"https://github.com/Unity-Technologies/SpaceshipDemo\">\r\nSpaceship
+          Demo</a>\r\n<a href=\"https://github.com/Unity-Technologies/SmallOfficeRayTracing\">\r\nRaytracing
+          Demo</a>\r\n<a href=\"https://github.com/Unity-Technologies/VRAlchemyLab\">\r\nVR
+          Demo</a>\r\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.1/manual/HDRP-Sample-Content.html\">\r\nSample
+          Content</a>\r\n\r\nYoutube tutorial:\r\n<a href=\"https://www.youtube.com/watch?v=yqCHiZrgKzs\">\r\nUnite
+          Now 2020</a>\r\n\r\nHelp:\r\n<a href=\"https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.1/manual/Getting-started-with-HDRP.html\">\r\nDocumentation</a>\r\n<a
+          href=\"https://forum.unity.com/tags/hdrp/\">\r\nForum</a>\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

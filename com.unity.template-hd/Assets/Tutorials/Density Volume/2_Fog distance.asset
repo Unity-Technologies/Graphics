@@ -40,8 +40,8 @@ MonoBehaviour:
         m_Untranslated: Fog Distance
       Text:
         m_Untranslated: "Fog Distance controls the density at the base of the fog
-          and determines how far you can see through the fog in meters. \n\n1. Set
-          <b>Fog Distance</b> to 20\n2. Set <b>Volume Size</b> to (5,5,5)"
+          and determines how far you can see through the fog in meters. \r\n\r\n1.
+          Set <b>Fog Distance</b> to 20\r\n2. Set <b>Volume Size</b> to (5,5,5)\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

@@ -39,23 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Density Volume
       Text:
-        m_Untranslated: 'In this tutorial, we will remove the existing density volume
-          and replace it withou our own.
-
-
-          1. In the <i>Hierarchy</i> window
-          under <b>Lightning</b> disable <b> Density Volumes</b>
-
-          2. Right
-          click in the <i>Hierarhy</i> <b>create-> Rendering-> Density Volume</b>
-
-          3.
+        m_Untranslated: "In this tutorial, we will remove the existing density volume
+          and replace it without our own.\r\n\r\n1. In the <i>Hierarchy</i> window
+          under <b>Lightning</b> disable <b> Density Volumes</b>\r\n2. Right click
+          in the <i>Hierarhy</i> <b>create-> Rendering-> Density Volume</b>\r\n3.
           Go to the <i>Inspector </i> window and set the <b>Position</b> to (32,
-          0.3, -2)
-
-
-
-'
+          0.3, -2)\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

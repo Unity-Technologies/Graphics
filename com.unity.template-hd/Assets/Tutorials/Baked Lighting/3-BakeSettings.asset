@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,31 +36,37 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Baking settings
-      m_Description: "In the Lighting window you can see all of the baking settings,
-        they can be stored into a <b>Lighting Settings</b> asset.\n\nWe offer 4 different
-        assets in this template, with different levels of quality, which will have
-        a direct impact on how long the bake will take: the higher the quality, the
-        longer the bake. \n\nThese presets can be found in the project under <b>Assets->Scenes->SampleScene</b>.
-        Easy way to locate them is to simply click on Lighting Settings field in
-        Lighting tab.\n\nInspect each preset starting with <b>Lighting Settings Draft</b>
-        up to <b>Lighting Settings Ultra</b>. Important settings to take note of:\n\n*
-        <b>Lightmap Resolution</b> - controls how precise the lightmap is. Higher
-        number means larger file size, slower bake, increased maximum quality.\n\n* 
-        <b>Indirect and Environment samples</b> - controls how grainy or smooth the
-        lighting will be. While resolution limits the max quality, samples count
-        is used to reach that maximum. Meaning if if lightmap resolution is low and
-        we keep increasing sample count, the quality will not get any better. No
-        effect on file size.\n\n* <b>Direct samples</b> - controls the quality of
-        direct shadows. Not used in this demo, since all shadows are realtime. We
-        have set different values for convenience if users want to switch to fully
-        baked lighting and shadows.\n\n*<b>Max bounces and Min bounces</b> - controls
-        how many times the light ray can bounce. Higher number brings more realism
-        but increases baked time. \n\n* <b>Filtering</b> - is a complex subject,
-        but the key takeway is that most of the time using Filtering is a good idea.
-        It will allow you to have faster bake times without a major impact to quality.
-        Which method to use can depend on case by case scenario, but often Optix
-        can work better with lower sample counts and Open Image for higher."
+      Title:
+        m_Untranslated: Baking settings
+      Text:
+        m_Untranslated: "In the Lighting window, you can see all of the baking settings,
+          they can be stored into a <b>Lighting Settings</b> asset.\r\n\r\nWe offer
+          4 different assets in this template, with different levels of quality,
+          which will have a direct impact on how long the bake will take: the higher
+          the quality, the longer the bake. \r\n\r\nThese presets can be found in
+          the project under <b>Assets->Scenes->SampleScene</b>. The easy way to locate
+          them is to simply click on the Lighting Settings field in the Lighting
+          tab.\r\n\r\nInspect each preset starting with <b>Lighting Settings Draft</b>
+          up to <b>Lighting Settings Ultra</b>. Important settings to take note of:\r\n\r\n*
+          <b>Lightmap Resolution</b> - controls how precise the lightmap is. Higher
+          number means larger file size, slower bake, increased maximum quality.\r\n\r\n* 
+          <b>Indirect and Environment samples</b> - controls how grainy or smooth
+          the lighting will be. While resolution limits the max quality, the sample
+          count is used to reach that maximum. Meaning if the lightmap resolution
+          is low and we keep increasing sample count, the quality will not get any
+          better. No effect on file size.\r\n\r\n* <b>Direct samples</b> - controls
+          the quality of direct shadows. Not used in this demo, since all shadows
+          are realtime. We have set different values for convenience if users want
+          to switch to fully baked lighting and shadows.\r\n\r\n*<b>Max bounces and
+          Min bounces</b> - controls how many times the light ray can bounce. A higher
+          number brings more realism but increases baking time. \r\n\r\n* <b>Filtering</b>
+          - is a complex subject, but the key takeaway is that most of the time using
+          Filtering is a good idea. It will allow you to have faster bake times without
+          a major impact on quality. Which method to use can depend on a case by
+          case scenario, but often Optix can work better with lower sample counts
+          and Open Image for higher.\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -87,13 +97,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

@@ -40,12 +40,12 @@ MonoBehaviour:
         m_Untranslated: Diffusion Profile
       Text:
         m_Untranslated: "We can change the Subsurface Scattering behavior using Diffusion
-          Profile. By default Unity comes with Foliage and Skin.\n\n1) In the <i>Project</i>
-          window open <b>Settings->DiffusionProfiles</b> folder\n2) Open <b>Bamboo
-          Leaves</b> \n3) Go to <i>Inspector</i> window and decrease the <b>Transmission
-          thin</b> color intensity slider to -1.8 and back\n\nThe intensity slider
-          allows us to quickly adjust the amount of light passing through materials
-          that are sharing this Diffusion profile.\n"
+          Profile. By default, Unity comes with Foliage and Skin.\r\n\r\n1) In the
+          <i>Project</i> window open <b>Settings->DiffusionProfiles</b> folder\r\n2)
+          Open <b>Bamboo Leaves</b> \r\n3) Go to <i>Inspector</i> window and decrease
+          the <b>Transmission thin</b> color intensity slider to -1.8 and back\r\n\r\nThe
+          intensity slider allows us to quickly adjust the amount of light passing
+          through materials that are sharing this Diffusion profile.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

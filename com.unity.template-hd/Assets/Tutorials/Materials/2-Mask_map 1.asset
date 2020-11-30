@@ -41,13 +41,14 @@ MonoBehaviour:
       Text:
         m_Untranslated: "The material in HDRP uses a Mask Map, to define different
           texture properties, such as metalness, smoothness, ambient occlusion, and
-          detail mask. \nWe conbine those four textures into one to save memory space.
-          \n\nSelet a <b>Ball</b> by following thouse steps: \n1) In the <i>Hierarchy</i>
-          window expand <b>Props->Room3->Ball_PF (1)</b> gameobject\n2) Select <b>Ball</b>
-          gameobject\n3) Go to <i>Inspector</i> window -> expand the <i>Brass_Mat
-          Material</i>\n4) Remove the  <b>Mask Map</b> or set it to None\n\nThe smoothness
-          map is removed and you can see that the Ball is equally smooth. \nNow bring
-          back the Texture using (Ctrl+z / Cmd+z).\n"
+          detail mask. \r\nWe combine those four textures into one to save memory
+          space. \r\n\r\nSelet a <b>Ball</b> by following thouse steps: \r\n1) In
+          the <i>Hierarchy</i> window expand <b>Props->Room3->Ball_PF (1)</b> gameobject\r\n2)
+          Select <b>Ball</b> gameobject\r\n3) Go to <i>Inspector</i> window -> expand
+          the <i>Brass_Mat Material</i>\r\n4) Remove the  <b>Mask Map</b> or set
+          it to None\r\n\r\nThe smoothness map is removed and you can see that the
+          Ball is equally smooth. \r\nNow bring back the Texture using (Ctrl+z /
+          Cmd+z).\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

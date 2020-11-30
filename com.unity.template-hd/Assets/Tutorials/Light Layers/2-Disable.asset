@@ -39,34 +39,16 @@ MonoBehaviour:
       Title:
         m_Untranslated: Disabling the feature
       Text:
-        m_Untranslated: 'Lets take a look at what problems the Light layers are solving
-          for this project. We will do this by simply disabling the feature.
-
-
-          1)
+        m_Untranslated: "Let\u2019s take a look at what problems the Light layers
+          are solving for this project. We will do this by simply disabling the feature.\r\n\r\n1)
           Find your active HDRP asset in the <i>Project</i> window <b>Settings</b>
           folder. It should be <b>HDRP Medium</b> if you havent switched to another
-          one in the quality settings.
-
-          2) In the asset, uncheck Lighting->Light
-          layers
-
-
-          While Light layers are off, we can see 2 unwanted effects:
-
-          *
-          The glass is casting a shadow on the right lamp
-
-          * The bottom
-          part of the glass gets brigter
-
-
-          Turn back Light layers On. In
-          the next step we will see how they were  set up.
-
-
-          Note: by default
-          Light layers are turned off for new projects'
+          one in the quality settings.\r\n2) In the asset, uncheck Lighting->Light
+          layers\r\n\r\nWhile Light layers are off, we can see 2 unwanted effects:\r\n*
+          The glass is casting a shadow on the right lamp\r\n* The bottom part of
+          the glass gets brighter\r\n\r\nTurn back Light layers On. In the next step,
+          we will see how they were set up.\r\n\r\nNote: by default Light layers
+          are turned off for new projects\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

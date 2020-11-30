@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,24 +36,29 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Explore Sky setup
-      m_Description: "1) In the <i>Hierarchy</i> window select <b>Lighting->Volumes->Volume
-        Global</b>\n2) Check the overrides in the <i>Inspector</i> window, it has
-        both Visual Environment and HDRI Sky\n3) Disable either Visual Environment
-        or HDRI Sky. The sky turns gray in the scene view. Both of the overrides
-        are required to have a visible sky.\n\n<b>Visual Environment</b> - Defines
-        that the sky will be of type HDRI Sky.\n\n<b>HDRI Sky</b> - Is used to customize
-        specific sky properties such as texture or exposure. A clear daylight sky
-        exposure is roughly between 12 and 14 EV, or 15.000 and 25.000 lux \n\n4)
-        Change the exposure to 12 EV temporarily to see the effect.  Undo your change\n5)
-        Open <b>Window->Rendering->Lighting->Environment</b>. Notice the same volume
-        and the type HDRI Sky is selected in the panel. Here we specify not only
-        what Sky to use for baking, but also what to use for ambien lighting, if
-        no baked data exists. \n\nCurrently setting  Static Lighting Sky to none
-        would not have any effect, because the scene lighting is already baked.\n\nNote:
-        If after disabling Visual Environment the sky is still visible, it is worth
-        checking the HDRP default settings in Edit->Project Settings->HDRP Default
-        Settings->Volume Components to see if it exists there."
+      Title:
+        m_Untranslated: Explore Sky setup
+      Text:
+        m_Untranslated: "1) In the <i>Hierarchy</i> window select <b>Lighting->Volumes->Volume
+          Global</b>\r\n2) Check the overrides in the <i>Inspector</i> window, it
+          has both Visual Environment and HDRI Sky\r\n3) Disable either Visual Environment
+          or HDRI Sky. The sky turns gray in the scene view. Both of the overrides
+          are required to have a visible sky.\r\n\r\n<b>Visual Environment</b> -
+          Defines that the sky will be of type HDRI Sky.\r\n\r\n<b>HDRI Sky</b> -
+          Is used to customize specific sky properties such as texture or exposure.
+          A clear daylight sky exposure is roughly between 12 and 14 EV, or 15.000
+          and 25.000 lux \r\n\r\n4) Change the exposure to 12 EV temporarily to see
+          the effect.  Undo your change\r\n5) Open <b>Window->Rendering->Lighting->Environment</b>.
+          Notice the same volume and the type HDRI Sky is selected in the panel.
+          Here we specify not only what Sky to use for baking, but also what to use
+          for ambient lighting if no baked data exists. \r\n\r\nCurrently setting 
+          Static Lighting Sky to none would not have any effect, because the scene
+          lighting is already baked.\r\n\r\nNote: If after disabling Visual Environment
+          the sky is still visible, it is worth checking the HDRP default settings
+          in Edit->Project Settings->HDRP Default Settings->Volume Components to
+          see if it exists there.\r\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -80,13 +89,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

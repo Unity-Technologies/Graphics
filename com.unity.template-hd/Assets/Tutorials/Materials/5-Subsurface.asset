@@ -40,12 +40,12 @@ MonoBehaviour:
         m_Untranslated: Subsurface Scattering
       Text:
         m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>Props->Room2->NatureSetPiece_02
-          ->Bamboo_A_Snaps004</b> \n2) Select <b>Geometry_Bamboo_A_LOD00</b> gameobject\n3)
-          Go to <i>Inspector</i> window -> expand the <i>Bamboo_Leaf_A Material</i>\n4)
+          ->Bamboo_A_Snaps004</b> \r\n2) Select <b>Geometry_Bamboo_A_LOD00</b> gameobject\r\n3)
+          Go to <i>Inspector</i> window -> expand the <i>Bamboo_Leaf_A Material</i>\r\n4)
           Under Surface options, uncheck Transmission\r\n5) Undo, by enabling it
-          again\r\n\nThis subfeature of subsurface scattering allows the sun to penetrate
-          through bamboo leaves, bringing a significant improvement to the scenes
-          visuals."
+          again\r\n\r\nThis subfeature of subsurface scattering allows the sun to
+          penetrate through bamboo leaves, bringing a significant improvement to
+          the scene\u2019s visuals.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

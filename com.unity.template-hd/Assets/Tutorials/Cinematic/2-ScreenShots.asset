@@ -39,41 +39,17 @@ MonoBehaviour:
       Title:
         m_Untranslated: Play screenshots
       Text:
-        m_Untranslated: 'Lets start with the basic one.
-
-
-          1) Enable Media
-          gameobject
-
-          2) Expand it, turn on Screenshots Timeline and turn
-          off Cinematic Timeline
-
-          3) Select the Screenshots Timeline gameobject
-
-          4)
-          In the <i>Inspector</i>, double click the timeline asset located under
-          Playable Director->Playable->ScreenshotsTimeline(Timeline Asset)
-
-          5)
-          Timeline window should open, dock it somewhere so it doesnt block the scene
-          view.
-
-          6) Make sure ScreenshotsTimeline is selected in the <i>Hierarchy</i>.
-
-          7)
-          Enter Play
-
-
-          You should see camera changing position 10 times,
-          showcasing the level.
-
-
-          Note: steps 3, 4, 5, 6 are optional.
-          You can play the cinematic without them but wont see the progress in Timeline
-          window.
-
-
-'
+        m_Untranslated: "Let\u2019s start with the basic one.\r\n\r\n1) Enable Media
+          gameobject\r\n2) Expand it, turn on Screenshots Timeline and turn off Cinematic
+          Timeline\r\n3) Select the Screenshots Timeline gameobject\r\n4) In the
+          <i>Inspector</i>, double click the timeline asset located under Playable
+          Director->Playable->ScreenshotsTimeline(Timeline Asset)\r\n5) Timeline
+          window should open, dock it somewhere so it doesn\u2019t block the scene
+          view.\r\n6) Make sure ScreenshotsTimeline is selected in the <i>Hierarchy</i>.\r\n7)
+          Enter Play\r\n\r\nYou should see the camera changing position 10 times,
+          showcasing the level.\r\n\r\nNote: steps 3, 4, 5, 6 are optional. You can
+          play the cinematic without them but won\u2019t see the progress in the
+          Timeline window.\r\n"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

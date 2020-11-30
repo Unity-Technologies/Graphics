@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,50 +36,26 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Create a local volume
-      m_Description: 'Now lets create a local volume to bring back the color, but
-        only when the camera gets close to the tree cage.
-
-
-        1) Go to <b>GameObject->Volume->Box
-        Volume</b>
-
-        2) Select it and hit F to focus view. The green boundig
-        box shows the influence area.
-
-        3) Move the game object close to the
-        tree cage <b>X:28 Y:2 Z:-1</b>
-
-        4) In the <i>Inspector</i> set <b>Size</b>
-        to<b> X:2 Y:2 Z:2</b>
-
-        5) Click <b>New</b> to create a new  profile
-
-        6)
-        Click <b>Add Override</b>
-
-        7) Choose <b>Post-processing->Color adjustments</b>
-
-        8)
-        Enable <b>Saturation</b>
-
-        9) Set the Saturation value to <b>0</b>,
-        which is the default value
-
-        10) Leave and enter the <b>Box Volume</b>.
-        Notice how our local volume is overriding the global one from the previous
-        step. However the transision is very harsh
-
-        11) In this case, we
-        want a smooth transition. To achieve this we will be using the <b>Blend Distance</b>
-        parameter. Set its value to 5
-
-        12) Leave and enter the area again.
-        See how the saturation smoothly blends between -100 and 0 values
-
-
-        Optionally,
-        experiment by adding more overrides to the Click <b>Box Volume</b>'
+      Title:
+        m_Untranslated: Create a local volume
+      Text:
+        m_Untranslated: "Now let\u2019s create a local volume to bring back the color,
+          but only when the camera gets close to the tree cage.\r\n\r\n1) Go to <b>GameObject->Volume->Box
+          Volume</b>\r\n2) Select it and hit F to focus view. The green bounding
+          box shows the influence area.\r\n3) Move the game object close to the tree
+          cage <b>X:28 Y:2 Z:-1</b>\r\n4) In the <i>Inspector</i> set <b>Size</b>
+          to<b> X:2 Y:2 Z:2</b>\r\n5) Click <b>New</b> to create a new  profile\r\n6)
+          Click <b>Add Override</b>\r\n7) Choose <b>Post-processing->Color adjustments</b>\r\n8)
+          Enable <b>Saturation</b>\r\n9) Set the Saturation value to <b>0</b>, which
+          is the default value\r\n10) Leave and enter the <b>Box Volume</b>. Notice
+          how our local volume is overriding the global one from the previous step.
+          However, the transition is very harsh\r\n11) In this case, we want a smooth
+          transition. To achieve this we will be using the <b>Blend Distance</b>
+          parameter. Set its value to 5\r\n12) Leave and enter the area again. See
+          how the saturation smoothly blends between -100 and 0 values\r\n\r\nOptionally,
+          experiment by adding more overrides to the Click <b>Box Volume</b>\r\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -106,13 +86,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

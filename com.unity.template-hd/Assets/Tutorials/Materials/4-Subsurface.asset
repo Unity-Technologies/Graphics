@@ -40,7 +40,7 @@ MonoBehaviour:
         m_Untranslated: Subsurface scattering
       Text:
         m_Untranslated: Subsurface Scattering simulates light that is able to penetrate
-          a material and escape in multiple directions. Use it to make organic and
+          material and escape in multiple directions. Use it to make organic and
           translucent materials, like skin and vegetation. HDRP implements subsurface
           scattering using a screen-space blur technique.
       m_Summary: 

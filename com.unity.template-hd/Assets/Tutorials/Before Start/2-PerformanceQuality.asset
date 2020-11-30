@@ -39,23 +39,14 @@ MonoBehaviour:
       Title:
         m_Untranslated: Quality and Performance
       Text:
-        m_Untranslated: 'If you plan to complete any of the tutorials or explore
-          the scene on your own, it is a good idea to adjust your settings.
-
-
-          Look
+        m_Untranslated: "If you plan to complete any of the tutorials or explore
+          the scene on your own, it is a good idea to adjust your settings.\r\n\r\nLook
           around the scene, does it feel too slow? Or maybe it runs well and you
-          wan to push for highest quality possible?
-
-
-          The default quality
+          want to push for the highest quality possible?\r\n\r\nThe default quality
           is set to <b>Medium</b>, which will be enough for the tutorial. You can
-          navigate to <b>Edit->Project Settings->Quality</b> and try Low or High.
-
-
-          Note:
+          navigate to <b>Edit->Project Settings->Quality</b> and try Low or High.\r\n\r\nNote:
           some tutorials you will not be able to complete on <b>Low</b>, because
-          some features will be turned off, for example Fog.'
+          some features will be turned off, for example, Fog.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

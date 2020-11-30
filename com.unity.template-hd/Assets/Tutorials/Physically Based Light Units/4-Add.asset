@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,14 +36,19 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Add a light
-      m_Description: "Lets put the theory into practice\n\n1) Find any light bulb
-        online. I used a standard 800lm 3000k bulb.\n2) Right click in the <i>Hierarchy</i>
-        window and add a Spot light. \n3) Set Intensity and Temperature\n4) Place
-        the light somewhere outside, in the shadow. To match the location, you can
-        use these settings  X=1 Y=4 Z=-8\n5) Turn it off and on\n\nEven in the shade,
-        besides the reflection of in the puddle, the lamp has almost a minimal impact.
-        Like in real life, turning on street lights on during the day.\n"
+      Title:
+        m_Untranslated: Add a light
+      Text:
+        m_Untranslated: "Lets put the theory into practice\r\n\r\n1) Find any light
+          bulb online. I used a standard 800lm 3000k bulb.\r\n2) Right click in the
+          <i>Hierarchy</i> window and add a Spot light. \r\n3) Set Intensity and
+          Temperature\r\n4) Place the light somewhere outside, in the shadow. To
+          match the location, you can use these settings  X=1 Y=4 Z=-8\r\n5) Turn
+          it off and on\r\n\r\nEven in the shade, besides the reflection of in the
+          puddle, the lamp has almost a minimal impact. Like in real life, turning
+          on street lights during the day.\r\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -70,13 +79,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

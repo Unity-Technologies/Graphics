@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,18 +36,15 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Falling Leaves
-      m_Description: '1) In the <i>Hierarchy</i> window expand <b>VFX</b> gameobject
-
-        2)
-        Select <b>FallingLeaves</b> gameobject
-
-        3) Toggle it <b>on</b> and
-        <b>off</b> in the <i>Inspector</i>
-
-
-        Falling leaves has a minor inpact
-        on the scene but it gives that realistic touch in  your set up. '
+      Title:
+        m_Untranslated: Falling Leaves
+      Text:
+        m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>VFX</b> gameobject\r\n2)
+          Select <b>FallingLeaves</b> gameobject\r\n3) Toggle it <b>on</b> and <b>off</b>
+          in the <i>Inspector</i>\r\n\r\nFalling leaves have a minor impact on the
+          scene but it gives that realistic touch to your set up. \r\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -74,13 +75,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

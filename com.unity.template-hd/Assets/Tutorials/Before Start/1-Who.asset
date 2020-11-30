@@ -41,9 +41,9 @@ MonoBehaviour:
       Text:
         m_Untranslated: "This tutorial is designed for intermediate users, those
           who already know how to use Unity, but are new to High Definition Rendering
-          Pipeline. \n\nThe goal of this project was not necessarily to achieve stunning
-          visuals, but to provide a relatively simple project that would help understand
-          HDRP core features and best practices.\n"
+          Pipeline. \r\n\r\nThe goal of this project was not necessary to achieve
+          stunning visuals but to provide a relatively simple project that would
+          help understand HDRP core features and best practices.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

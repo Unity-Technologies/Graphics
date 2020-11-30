@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,18 +36,34 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: HDRP asset
-      m_Description: "HDRP asset controls the global rendering settings of your Project.
-        If a feature is disabled in the asset, Unity will not allocate memory or
-        execute code for that specific feature. So turning off unused features in
-        your project might give you a performance boost, use less memory or improve
-        build times for free.\n\nLets quickly check how that works. \n\n1) Select
-        the <b>HDRP Medium quality</b> asset from the previous step. Its located
-        in <b>Assets->Settings</b> folder\n2) In the <i>Inspector</i> window expand
-        <b>Lighting</b> and disable <b>Screen Space Ambient Occlusion</b>\n3) Notice
-        the visual change it has on the flower pot\n4) Turn the feature back on\n\nMaybe
-        you have discovered we have 2 more HDRP asset files in Settings folder. We
-        will see how theyre used in the next step."
+      Title:
+        m_Untranslated: HDRP asset
+      Text:
+        m_Untranslated: "HDRP asset controls the global rendering settings of your
+          Project. If a feature is disabled in the asset, Unity will not allocate
+          memory or execute code for that specific feature. So turning off unused
+          features in your project might give you a performance boost, use less memory
+          or improve build times for free.\r\n\r\nLet\u2019s quickly check how that
+          works. \r\n\r\n1) Select the <b>HDRP Medium quality</b> asset from the
+          previous step. Its located in <b>Assets->Settings</b> folder\r\n2) In the
+          <i>Inspector</i> window expand <b>Lighting</b> and disable <b>Screen Space
+          Ambient Occlusion</b>\r\n3) Notice the visual change it has on the flower
+          pot\r\n4) Turn the feature back on\r\n\r\nMaybe you have discovered we
+          have 2 more HDRP asset files in the Settings folder. We will see how they\u2019re
+          used in the next step.\r\nHDRP asset controls the global rendering settings
+          of your Project. If a feature is disabled in the asset, Unity will not
+          allocate memory or execute code for that specific feature. So turning off
+          unused features in your project might give you a performance boost, use
+          less memory, or improve build times for free.\r\n\r\nLet\u2019s quickly
+          check how that works. \r\n\r\n1) Select the <b>HDRP Medium quality</b>
+          asset from the previous step. Its located in <b>Assets->Settings</b> folder\r\n2)
+          In the <i>Inspector</i> window expand <b>Lighting</b> and disable <b>Screen
+          Space Ambient Occlusion</b>\r\n3) Notice the visual change it has on the
+          flower pot\r\n4) Turn the feature back on\r\n\r\nMaybe you have discovered
+          we have 2 more HDRP asset files in the Settings folder. We will see how
+          they\u2019re used in the next step.\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -74,13 +94,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

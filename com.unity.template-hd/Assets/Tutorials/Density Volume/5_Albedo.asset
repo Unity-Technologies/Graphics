@@ -39,15 +39,12 @@ MonoBehaviour:
       Title:
         m_Untranslated: Single Scatteing Albedo
       Text:
-        m_Untranslated: 'Single Scatteing Albedo sets the fog color. Volumetric Fog
-          tints lighting, so the fog scatters light to this color. It only tints
+        m_Untranslated: "Single Scattering Albedo sets the fog color. Volumetric
+          Fog tints lighting, so the fog scatters light to this color. It only tints
           lighting emitted by Lights behind or within the fog. This means that it
           does not tint lighting that reflects off GameObjects behind or within the
           fog - reflected lighting only gets dimmer (fades to black) as fog density
-          increases.
-
-
-          Change the color of <b>Single Scatteing Albedo</b>'
+          increases.\r\n\r\nChange the color of <b>Single Scatteing Albedo</b>\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

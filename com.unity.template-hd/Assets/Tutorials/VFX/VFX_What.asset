@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,12 +36,16 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Realtime Visual Special Effects
-      m_Description: "Visual effects that are located in the Art/Particle folder
-        are called Visual Effect Graphs. You can edit them using the visual effect
-        graph window. \nThis node-based editor enables technical and VFX artists
-        to design effects ranging from simple common particle behaviors to complex
-        simulations including particles, lines, ribbons, trails and meshes. \r"
+      Title:
+        m_Untranslated: Realtime Visual Special Effects
+      Text:
+        m_Untranslated: "Visual effects that are located in the Art/Particle folder
+          are called Visual Effect Graphs. You can edit them using the visual effect
+          graph window. \r\nThis node-based editor enables technical and VFX artists
+          to design effects ranging from simple common particle behaviors to complex
+          simulations including particles, lines, ribbons, trails, and meshes. \r\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -68,13 +76,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

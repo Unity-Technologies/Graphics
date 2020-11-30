@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,27 +36,19 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Automatic exposure
-      m_Description: 'Lets reuse the same Global Volume we created in the last step
-        to study Automatic Exposure.
-
-
-        1) In the <i>Hierarchy</i> window,
-        select the Global volume
-
-        2) Switch Mode to Automatic
-
-        3)
-        Turn off and on Global Volume. The result is very similar to the original,
-        but slightly different.
-
-        4) Hold right mouse button and using WASD
-        keys move around the scene.
-
-
-        Notice how Unity imitates eyes adaptation
-        to bright lights. At no point its so bright or dark that you can not see
-        anything.'
+      Title:
+        m_Untranslated: Automatic exposure
+      Text:
+        m_Untranslated: "Let\u2019s reuse the same Global Volume we created in the
+          last step to study Automatic Exposure.\r\n\r\n1) In the <i>Hierarchy</i>
+          window, select the Global volume\r\n2) Switch Mode to Automatic\r\n3) Turn
+          off and on Global Volume. The result is very similar to the original but
+          slightly different.\r\n4) Hold the right mouse button and using WASD keys
+          move around the scene.\r\n\r\nNotice how Unity imitates eyes adaptation
+          to bright lights. At no point it\u2019s so bright or dark that you can
+          not see anything.\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -83,13 +79,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

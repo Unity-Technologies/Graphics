@@ -39,49 +39,21 @@ MonoBehaviour:
       Title:
         m_Untranslated: Adding Fog
       Text:
-        m_Untranslated: 'Lets utilize some of those settings and add fog to the first
-          room.
-
-
-          1) In the <i>Hierarchy</i> select Lighting->Volumes->Volume
-          Room 1
-
-          2) In the <i>Inspector</i> window notice there is no
-          Fog override currently
-
-          3) Click <b>Add Override</b> and add
-          <b>Fog</b>
-
-          4) Set <b>Fog Attenuation Distance</b> to 200. It
-          will increase the fog density.
-
-          5) Set <b>Ambient Light Probe
-          Dimmer</b> to 1. In this scenario we want the skys influence. Notice fog
-          that is not directly lit, is gaining a light blue tint.
-
-          6) Set
-          <b>Denoising Mode</b> to Gaussian
-
-          7) Take a minute to understand
-          what impact our change had to the scene. In Volumer Room 1, disable and
-          enable our newly added fog override.
-
-
-          Note: we did not have
-          to Enable the fog or use some other settings because we are still inheriting
-          values from Volume Global.
-
-
-          If you would like to push the fog
-          quality further, in advanced settings try:
-
-          * Reducing Volumetric
-          Fog distance
-
-          * Setting Quality parameter to High
-
-          *
-          Changing the Denoising Mode'
+        m_Untranslated: "Let\u2019s utilize some of those settings and add fog to
+          the first room.\r\n\r\n1) In the <i>Hierarchy</i> select Lighting->Volumes->Volume
+          Room 1\r\n2) In the <i>Inspector</i> window notice there is no Fog override
+          currently\r\n3) Click <b>Add Override</b> and add <b>Fog</b>\r\n4) Set
+          <b>Fog Attenuation Distance</b> to 200. It will increase the fog density.\r\n5)
+          Set <b>Ambient Light Probe Dimmer</b> to 1. In this scenario, we want the
+          sky influence. Notice fog that is not directly lit, is gaining a light
+          blue tint.\r\n6) Set <b>Denoising Mode</b> to Gaussian\r\n7) Take a minute
+          to understand what impact our change had on the scene. In Volume Room 1,
+          disable and enable our newly added fog override.\r\n\r\nNote: we did not
+          have to Enable the fog or use some other settings because we are still
+          inheriting values from Volume Global.\r\n\r\nIf you would like to push
+          the fog quality further, in advanced settings try:\r\n* Reducing Volumetric
+          Fog distance\r\n* Setting Quality parameter to High\r\n* Changing the Denoising
+          Mode\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

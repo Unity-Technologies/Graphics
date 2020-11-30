@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,21 +36,17 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Automatic exposure
-      m_Description: 'Automatic mode can however provide new challenges
-
-
-        1)
-        Right click and hold mouse in the Scene view.
-
-        2) Move the mouse
-        left and right to look around.
-
-
-        Notice how drastically the lighting
-        changes. This is not how eyes react to light changes in real life, thus Automatic
-        mode also requires some fine tuning. We will see how this was achieved by
-        the artists that worked on this scene.'
+      Title:
+        m_Untranslated: Automatic exposure
+      Text:
+        m_Untranslated: "Automatic mode can however provide new challenges\r\n\r\n1)
+          Right click and hold the mouse in the Scene view.\r\n2) Move the mouse
+          left and right to look around.\r\n\r\nNotice how drastically the lighting
+          changes. This is not how eyes react to light changes in real life, thus
+          Automatic mode also requires some fine tuning. We will see how this was
+          achieved by the artists that worked on this scene.\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -77,13 +77,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

@@ -40,24 +40,24 @@ MonoBehaviour:
         m_Untranslated: Fog settings
       Text:
         m_Untranslated: "Select <b>Volumes Global</b> which is under Lighting->Volumes
-          in the <i>Hierarchy</i> window and lets take a look at the settings.\n\n<b>Fog
+          in the <i>Hierarchy</i> window and lets take a look at the settings.\r\n\r\n<b>Fog
           Attenuation Distance</b> - Determines how far you can see through the fog
-          in meters. Remember last step, this value is influenced by other objects.\n\n<b>Ambient
+          in meters. Remember the last step, this value is influenced by other objects.\r\n\r\n<b>Ambient
           Probe Light Dimmer</b> - Reduces the influence the sky has on the fog.
-          Useful for most indoor scenes. \n\n<b>Volumetric Fog Distance</b> - Determines
-          how far away the volumetric fog can be rendered. However lowering this
-          value as much as possible will increase the fog fidelity.\n\n<b>Denoising
-          Mode</b>:\n* Gaussian - Improves the fog applying a blur, may loose a bit
-          of detail.\n* Reprojection - Preserves detail, but requires multiple frames,
-          may result in ghosting during movement.\n* Both - Can produce very smooth
-          fog. May introduce ghosting, most expensive, should not be necessary for
-          most use cases.\n\n <b>Slice Distribution Uninformity</b> - The lower the
-          value, the more precision is given to nearby fog, at the expense of distant
-          fog. A value of 1 gives an even quality along the depth.\n\n<b>Quality</b>
-          - Provides 3 presets that aim to find balance between quality and performance. 
-          Try changing it to High and back.\n\n<b>Directional Lights Only</b> - Enabling
-          this option will increase performance even if other light types are already
-          not used for volumetric fog."
+          Useful for most indoor scenes. \r\n\r\n<b>Volumetric Fog Distance</b> -
+          Determines how far away the volumetric fog can be rendered. However, lowering
+          this value as much as possible will increase the fog fidelity.\r\n\r\n<b>Denoising
+          Mode</b>:\r\n* Gaussian - Improves the fog applying a blur, may lose a
+          bit of detail.\r\n* Reprojection - Preserves detail, but requires multiple
+          frames, which may result in ghosting during movement.\r\n* Both - Can produce
+          very smooth fog. May introduce ghosting, most expensive, should not be
+          necessary for most use cases.\r\n\r\n <b>Slice Distribution Uninformity</b>
+          - The lower the value, the more precision is given to nearby fog, at the
+          expense of distant fog. A value of 1 gives an even quality along with the
+          depth.\r\n\r\n<b>Quality</b> - Provides 3 presets that aim to find a balance
+          between quality and performance.  Try changing it to High and back.\r\n\r\n<b>Directional
+          Lights Only</b> - Enabling this option will increase performance even if
+          other light types are already not used for volumetric fog.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

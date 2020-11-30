@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,20 +36,25 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Sunlight
-      m_Description: "1) In <i>Hierarchy</i> window select <b>Lighting->Directional
-        Light Sun</b>\n2) Notice in the <i>Inspector</i> window, the <b>Intensity</b>
-        is <b>100 000 lux</b>\n3) Take a look at the <b>Temperature</b>, its <b>5500
-        Kelvin</b>\n\n<b>Intensity</b> - try to look up <b>lux</b> in Wikipedia. 
-        100 000 is a common value for a direct sunlight in a clear blue sky. Now
-        try using the slider to change the <b>Intensity</b>, the values for Direct
-        Sun range from 80 000 to 120 000 depending on the atmosphere and the angle
-        of sunlight. \n\nWhile measuring sunlight requires proper equipement, most
-        of the time you dont need to have that exact value and can achieve realistic
-        results with just using the ranges of our slider.\n\n<b>Temperature</b> -
-        is a more difficult topic, its very dependant on the locations atmosphere.
-        But one thing to remember is that most of the time its best to the Temperature
-        slider for natural lights instead of trying to find it using the Filter."
+      Title:
+        m_Untranslated: Sunlight
+      Text:
+        m_Untranslated: "1) In <i>Hierarchy</i> window select <b>Lighting->Directional
+          Light Sun</b>\r\n2) Notice in the <i>Inspector</i> window, the <b>Intensity</b>
+          is <b>100 000 lux</b>\r\n3) Take a look at the <b>Temperature</b>, its
+          <b>5500 Kelvin</b>\r\n\r\n<b>Intensity</b> - try to look up <b>lux</b>
+          in Wikipedia.  100 000 is a common value for a direct sunlight in a clear
+          blue sky. Now try using the slider to change the <b>Intensity</b>, the
+          values for Direct Sun range from 80 000 to 120 000 depending on the atmosphere
+          and the angle of sunlight. \r\n\r\nWhile measuring sunlight requires proper
+          equipment, most of the time you don\u2019t need to have that exact value
+          and can achieve realistic results by just using the ranges of our slider.\r\n\r\n<b>Temperature</b>
+          - is a more difficult topic, its very dependant on the locations atmosphere.
+          But one thing to remember is that most of the time it\u2019s best to the
+          Temperature slider for natural lights instead of trying to find it using
+          the Filter.\r\n"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -76,13 +85,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

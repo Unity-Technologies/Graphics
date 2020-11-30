@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,20 +36,18 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Using provided presets
-      m_Description: 'Using presets are very easy, however note that baking can take
-        a long time to complete depending on your machine and it is safe to skip
-        this step if you understand the subject.
-
-
-        1) Open Lighting tab <b>Window->Rendering->Lighting</b>
-
-        2)
-        In the scene tab, assign one of the presets into <b>Lighting Settings</b>
-        field. For example <b>Lighting Settings Draft</b>
-
-        3) In the bottom
-        right corner of the Lighting tab, click <b>Generate Lighting</b>'
+      Title:
+        m_Untranslated: Using provided presets
+      Text:
+        m_Untranslated: "Using presets is very easy, however, note that baking can
+          take a long time to complete depending on your machine and it is safe to
+          skip this step if you understand the subject.\r\n\r\n1) Open Lighting tab
+          <b>Window->Rendering->Lighting</b>\r\n2) In the scene tab, assign one of
+          the presets into <b>Lighting Settings</b> field. For example <b>Lighting
+          Settings Draft</b>\r\n3) In the bottom right corner of the Lighting tab,
+          click <b>Generate Lighting</b>\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -76,13 +78,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,34 +36,21 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: Place a new decal
-      m_Description: 'Now lets take a look how they are created.
-
-
-        1) Right
-        click the <i>Hierarchy</i> window and choose <b>Rendering->Decal projector</b>
-
-        2)
-        Place it somewhere in the 3rd room, make sure it is sligtly above the floor
-
-
-        Tip:
-        While decal is selected, hold ctrl+shift, a white rectangle gizmo will appear.
-        This gizmo can help you place objects just above surfaces, just remember
-        to lift it up a bit on the Y axis when done.
-
-
-        If you want to match
-        the exact location, you can use these settings:
-
-        Postition X:58 Y:2.16
-        Z:-0.15
-
-        Rotation X:90 Y:180 Z:52
-
-
-        Now you should be able
-        to see the decal but It won''t look like a puddle just yet.'
+      Title:
+        m_Untranslated: Place a new decal
+      Text:
+        m_Untranslated: "Now, let\u2019s take a look at how they are created.\r\n\r\n1)
+          Right click the <i>Hierarchy</i> window and choose <b>Rendering->Decal
+          projector</b>\r\n2) Place it somewhere in the 3rd room, make sure it is
+          sligtly above the floor\r\n\r\nTip: While decal is selected, hold ctrl+shift,
+          a white rectangle gizmo will appear. This gizmo can help you place objects
+          just above surfaces, just remember to lift it up a bit on the Y axis when
+          done.\r\n\r\nIf you want to match the exact location, you can use these
+          settings:\r\nPostition X:58 Y:2.16 Z:-0.15\r\nRotation X:90 Y:180 Z:52\r\n\r\nNow
+          you should be able to see the decal but It won't look like a puddle just
+          yet.\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -90,13 +81,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 1
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

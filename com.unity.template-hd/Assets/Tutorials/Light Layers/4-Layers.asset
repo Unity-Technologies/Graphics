@@ -39,47 +39,20 @@ MonoBehaviour:
       Title:
         m_Untranslated: Light Layers
       Text:
-        m_Untranslated: 'In this step we will boost the light on our plant, but we
-          do not want to affect any other objects.
-
-
-          1) Add a new Point
-          light to the scene
-
-          2) Place it above the plant, around x:63.2
-          y:3 z:0.25
-
-          3) Optinally, disable Affect Specular in Emission
-          advanced settings
-
-          3) Notice the light affects the table and
-          the floor
-
-          4) Select your light again
-
-          5) In the advanced
-          settings of General section, change Light Layer to Light Layer 6
-
-          6)
-          If status says Mixed, unceck the default. Light Layer should be set to
-          Light Layer 6 only
-
-          7) Notice the light no longer affects anything
-
-          8)
-          Select the plant, Fern_01_LOD0.
-
-          9) In the Rendering Layer Mask,
-          enable Light Layer 6. It should now say Mixed... which is what we want.
-          It means the plant will receive light from default sources + Layer 6
-
-          10)
-          Enable and disable your light. Notice it now only affects the plant, boosting
-          its brightness.
-
-
-          This technique can be really useful for making
-          cuscenes.'
+        m_Untranslated: "In this step, we will boost the light on our plant, but
+          we do not want to affect any other objects.\r\n\r\n1) Add a new Point light
+          to the scene\r\n2) Place it above the plant, around x:63.2 y:3 z:0.25\r\n3)
+          Optionally, disable Affect Specular in Emission advanced settings\r\n3)
+          Notice the light affects the table and the floor\r\n4) Select your light
+          again\r\n5) In the advanced settings of the General section, change Light
+          Layer to Light Layer 6\r\n6) If the status says Mixed, uncheck the default.
+          Light Layer should be set to Light Layer 6 only\r\n7) Notice the light
+          no longer affects anything\r\n8) Select the plant, Fern_01_LOD0.\r\n9)
+          In the Rendering Layer Mask, enable Light Layer 6. It should now say Mixed...
+          which is what we want. It means the plant will receive light from default
+          sources + Layer 6\r\n10) Enable and disable your light. Notice it now only
+          affects the plant, boosting its brightness.\r\n\r\nThis technique can be
+          really useful for making cutscenes.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

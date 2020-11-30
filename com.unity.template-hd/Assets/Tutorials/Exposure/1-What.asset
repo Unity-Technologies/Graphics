@@ -15,6 +15,10 @@ MonoBehaviour:
   m_Paragraphs:
     m_Items:
     - m_Type: 6
+      Title:
+        m_Untranslated: 
+      Text:
+        m_Untranslated: 
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
@@ -32,17 +36,21 @@ MonoBehaviour:
         m_MaskingEnabled: 0
         m_UnmaskedViews: []
     - m_Type: 0
-      m_Summary: What is exposure?
-      m_Description: "In HDRP exposure is just one of many Volume Overrides. However
-        its so imporant that it deserves a tutorial of its own.\n\nExposure simulates
-        how our eyes adapt to lighting conditions in real life. For example being
-        able to see slightly better after spending some time in a dark room. \n\nThere
-        are a few different exposure modes in HDRP, the most notable are:\n\n<b>Fixed</b>
-        - Basically lets you choose a light intensity that your eyes have adapted
-        to. Will not change if you enter or leave dark areas. \n\n<b>Automatic</b>
-        - Simulates how eyes adapt to light intensities automatically. It has more
-        parameters and is slighly harder to get used to, but is recommended because
-        it most accurately resembles real life."
+      Title:
+        m_Untranslated: What is exposure?
+      Text:
+        m_Untranslated: "In HDRP exposure is just one of many Volume Overrides. However,
+          it\u2019s so important that it deserves a tutorial of its own.\r\n\r\nExposure
+          simulates how our eyes adapt to lighting conditions in real life. For example,
+          being able to see slightly better after spending some time in a dark room.
+          \r\n\r\nThere are a few different exposure modes in HDRP, the most notable
+          are:\r\n\r\n<b>Fixed</b> - Allows you to manually set the Scene exposure.
+          Your eyes will no longer adapt to lighting when leaving or entering dark
+          areas.\n\r\n<b>Automatic</b> - Simulates how eyes adapt to light intensities
+          automatically. It has more parameters and is slightly harder to get used
+          to, but is recommended because it most accurately resembles real life.\r"
+      m_Summary: 
+      m_Description: 
       m_InstructionBoxTitle: 
       m_InstructionText: 
       m_TutorialButtonText: 
@@ -73,13 +81,23 @@ MonoBehaviour:
       m_AssetObject: {fileID: 0}
       m_Prefab: {fileID: 0}
     m_Enabled: 0
-  m_NextButton: Next
-  m_DoneButton: Done
+  NextButton:
+    m_Untranslated: Next
+  DoneButton:
+    m_Untranslated: Done
+  m_NextButton: 
+  m_DoneButton: 
   m_CompletedSound: {fileID: 0}
   m_autoAdvance: 0
   m_OnBeforePageShown:
     m_PersistentCalls:
       m_Calls: []
   m_OnAfterPageShown:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnBeforeTutorialQuit:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnTutorialPageStay:
     m_PersistentCalls:
       m_Calls: []

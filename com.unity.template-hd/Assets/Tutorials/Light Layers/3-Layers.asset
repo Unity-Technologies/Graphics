@@ -40,17 +40,18 @@ MonoBehaviour:
         m_Untranslated: Light Layers
       Text:
         m_Untranslated: "Remember from the last step, both issues were caused by
-          the glass. More precisely, because a spotlight was affecting the glass.\n\r\n1)
-          Select the glass, it is under <b>Props->Room3->CeilingLamp_01->CeilingLamp_Lamp_01->CeilingLamp_Glass_01_LOD0\r</b>\r\n2)
+          the glass. More precisely, because a spotlight was affecting the glass.\r\n\r\n1)
+          Select the glass, it is under <b>Props->Room3->CeilingLamp_01->CeilingLamp_Lamp_01->CeilingLamp_Glass_01_LOD0\r\n</b>\r\n2)
           See that the <b>Rendering Layer Mask</b> parameter is set to a custom layer
-          <b>LampsOnly</b>, rather than default.\n3) Now select the Spotlight, its
-          under <b>Props->Room3->CeilingLamp_01->Light_Spot_1200lm</b>\n4) See that
-          the <b>Rendering Layer Mask</b> is set to <b>Mixed...</b> Click on it,
-          see that inside Mixed, Lamps Only is off.\n\nThe whole point of this setup
-          is that the light and the glass are on different layers. Meaning they cant
-          effect each other in any way, thus no unwanted shadows.\n\nDont worry if
-          you dint quite understand it in this step, in the next one we will set
-          up something up ourselves and hopefully it will get clearer."
+          <b>LampsOnly</b>, rather than default.\r\n3) Now select the Spotlight,
+          its under <b>Props->Room3->CeilingLamp_01->Light_Spot_1200lm</b>\r\n4)
+          See that the <b>Rendering Layer Mask</b> is set to <b>Mixed...</b> Click
+          on it, see that inside Mixed, Lamps Only is off.\r\n\r\nThe whole point
+          of this setup is that the light and the glass are on different layers.
+          Meaning they can\u2019t affect each other in any way, thus no unwanted
+          shadows.\r\n\r\nDon\u2019t worry if you dint quite understand it in this
+          step, in the next one we will set up something up ourselves, and hopefully,
+          it will get clearer.\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

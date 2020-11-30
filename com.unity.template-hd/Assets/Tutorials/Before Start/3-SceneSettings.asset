@@ -39,9 +39,9 @@ MonoBehaviour:
       Title:
         m_Untranslated: Scene settings
       Text:
-        m_Untranslated: For most of the tutorial steps we recommend turning off the
-          Gizmos and Grid, highlighted red in the image. The picture above is taken
-          with Gizmos turned on.
+        m_Untranslated: For most of the tutorial steps, we recommend turning off
+          the Gizmos and Grid, highlighted red in the image. The picture above is
+          taken with Gizmos turned on.
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

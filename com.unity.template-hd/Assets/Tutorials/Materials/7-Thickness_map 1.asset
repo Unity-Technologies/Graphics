@@ -40,14 +40,14 @@ MonoBehaviour:
         m_Untranslated: Thickness map
       Text:
         m_Untranslated: "1) In the <i>Hierarchy</i> window expand <b>Props->Room2->NatureSetPiece_02->Bamboo_A_Snaps004</b>
-          \n2) Select <b>Geometry_Bamboo_A_LOD00</b> gameobject\n3) Go to <i>Inspector</i>
-          window -> expand the <i>Bamboo_Leaf_A Material</i>\n4) Remove the  <b>Thickness
-          Map</b> or set it to None and back\n\nThe tree leaf and the branch are
-          equally thin in engine since they both are made using 1 polygon. In real
-          life its not the case. So with the help of thickness map here, we can define
-          that the branch should absorb more light compared to the paper thin leaves.
-          Changing to none would remove this effect.\nNow bring back the Texture
-          using (Ctrl+z / Cmd+z).\n"
+          \r\n2) Select <b>Geometry_Bamboo_A_LOD00</b> gameobject\r\n3) Go to <i>Inspector</i>
+          window -> expand the <i>Bamboo_Leaf_A Material</i>\r\n4) Remove the  <b>Thickness
+          Map</b> or set it to None and back\r\n\r\nThe tree leaf and the branch
+          are equally thin in the engine since they both are made using 1 polygon.
+          In real life, it\u2019s not the case. So with the help of the thickness
+          map here, we can define that the branch should absorb more light compared
+          to the paper thin leaves. Changing to none would remove this effect.\r\nNow
+          bring back the Texture using (Ctrl+z / Cmd+z).\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 

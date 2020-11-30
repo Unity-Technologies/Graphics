@@ -39,26 +39,14 @@ MonoBehaviour:
       Title:
         m_Untranslated: Fog hierarchy
       Text:
-        m_Untranslated: 'Fog is but one of many volume overrides, however it is so
-          widely used that it deserves a separate mention. Lets take a look how it
-          was configured for this scene.
-
-
-          The currently visible volumetric
-          fog is influenced by 3 objects:
-
-          * Volume Global - Has the majory
-          of fog settings
-
-          * Volume Room 2 - Reduces the fog thickness
-          across the room
-
-          * Density Volume Tree Cage - Increases the fog
-          density in a localized area
-
-
-          In the next step we will take a
-          look at the Volume Global and go over most notable settings'
+        m_Untranslated: "Fog is but one of many volumes overrides, however it is
+          so widely used that it deserves a separate mention. Let\u2019s take a look
+          at how it was configured for this scene.\r\n\r\nThe currently visible volumetric
+          fog is influenced by 3 objects:\r\n* Volume Global - Has the majority of
+          fog settings\r\n* Volume Room 2 - Reduces the fog thickness across the
+          room\r\n* Density Volume Tree Cage - Increases the fog density in a localized
+          area\r\n\r\nIn the next step, we will take a look at the Volume Global
+          and go over the most notable settings\r"
       m_Summary: 
       m_Description: 
       m_InstructionBoxTitle: 
