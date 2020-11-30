@@ -4,7 +4,7 @@ This page contains an overview of new features, improvements, and issues resolve
 
 ## Features
 
-The following is a list of features Unity added to version 10.0 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
+The following is a list of features Unity added to version 10 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
 
 ### IES Profiles and light cookies
 

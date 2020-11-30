@@ -48,6 +48,8 @@ All_HDRP_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 All_HDRP_CUSTOM-REVISION:
     name: All HDRP CI - CUSTOM-REVISION
     dependencies:
@@ -91,3 +93,4 @@ All_HDRP_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
