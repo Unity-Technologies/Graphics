@@ -66,6 +66,10 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                         if (compositor.timeSinceLastRepaint > timeThreshold)
                         {
                             compositor.Repaint();
+#if UNITY_2021_1_OR_NEWER
+                            // [case 1290622] For version 2021.1 we have to explicitely request an update of the gameview with the following call
+                            UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
                         }
                     }
                 }
