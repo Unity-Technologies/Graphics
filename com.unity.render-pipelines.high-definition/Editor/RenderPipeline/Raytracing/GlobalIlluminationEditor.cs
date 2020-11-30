@@ -275,10 +275,10 @@ namespace UnityEditor.Rendering.HighDefinition
             var currentAsset = HDRenderPipeline.currentAsset;
 
             var bothSupportedAndPerformanceMode = (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
-                                             RenderPipelineSettings.SupportedRayTracingMode.Both) && (m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance);
+                RenderPipelineSettings.SupportedRayTracingMode.Both) && (m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance);
 
             var performanceMode = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
-                                  RenderPipelineSettings.SupportedRayTracingMode.Performance;
+                RenderPipelineSettings.SupportedRayTracingMode.Performance;
 
             return bothSupportedAndPerformanceMode || performanceMode;
         }
