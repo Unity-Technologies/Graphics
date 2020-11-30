@@ -20,6 +20,14 @@ Cubemap fields now accept both [RenderTextures](https://docs.unity3d.com/Manual/
 
 For more information, see the [HDRI Sky](Override-HDRI-Sky.md) and [Physically Based Sky](Override-Physically-Based-Sky) sections of the documentation.
 
+### Density Volume Improvements
+
+Density Volumes masks has been reworked to allow 3D RenderTextures to be used as masks. 3D Mask textures now uses all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
+
+The size limit of 32x32x32 for the mask textures has also been replaced by a setting in the HDRP asset called "Max Density Volume Resolution", under the lighting > Volumetrics tab. The upper limit for mask textures is now 256x256x256, an info box below the field will tell you how much memory is allocated to store those textures.
+
+Finally, there is a new field to change the falloff applied when the volume is blending with the Blend Distance parameter. You can choose either Linear which is the default and previous technic or Exponential which is more realistic.
+
 ## Issues resolved
 
 For information on issues resolved in version 11 of HDRP, see the [changelog](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@11.0/changelog/CHANGELOG.html).
