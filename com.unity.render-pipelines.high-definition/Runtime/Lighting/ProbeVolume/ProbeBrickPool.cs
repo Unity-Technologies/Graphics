@@ -20,9 +20,9 @@ namespace UnityEngine.Rendering.HighDefinition
             internal Texture3D TexL1_G;
             internal Texture3D TexL1_B;
 
-            internal int width  { get { return TexL0.width; } }
-            internal int height { get { return TexL0.height; } }
-            internal int depth  { get { return TexL0.depth; } }
+            internal int width;
+            internal int height;
+            internal int depth;
 
             internal void Cleanup()
             {
@@ -65,6 +65,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_Pool = CreateDataLocation(width * height * depth, false);
             Profiler.EndSample();
+        }
+
+        internal void EnsureTextureValidity()
+        {
+            // We assume that if a texture is null, all of them are. In any case we reboot them altogether.
+            if (m_Pool.TexL0 == null) 
+            {
+                m_Pool.Cleanup();
+            }
+            m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false);
         }
 
         internal int GetChunkSize() { return m_AllocationSize; }
@@ -173,6 +183,9 @@ namespace UnityEngine.Rendering.HighDefinition
             loc.TexL1_R = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             loc.TexL1_G = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
             loc.TexL1_B = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGBA_BC7_UNorm  : GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None, 1);
+            loc.width = width;
+            loc.height = height;
+            loc.depth = depth;
             return loc;
         }
 

@@ -1137,6 +1137,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
+            ProbeReferenceVolume.instance.Cleanup();
+
             m_MaterialList.ForEach(material => material.Cleanup());
 
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
