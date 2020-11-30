@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
+- Serialization issue with VFXSpawnerCallbacks
 
 ### Added
 - Added new setting to output nodes to exclude from TAA
