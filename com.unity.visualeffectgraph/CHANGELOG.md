@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix edited operator being collapsed [Case 1270517](https://issuetracker.unity3d.com/product/unity/issues/guid/1270517/)
 - Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
 - Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
 
 ## [7.5.1] - 2020-09-02
 ### Added
