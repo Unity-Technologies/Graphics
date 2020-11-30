@@ -15,7 +15,6 @@ Shader "Hidden/HDRP/DebugDensityVolumeAtlas"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
-        // TODO: texture 3D debug code
         TEXTURE3D(_InputTexture);
         SAMPLER(sampler_InputTexture);
         float _Slice;

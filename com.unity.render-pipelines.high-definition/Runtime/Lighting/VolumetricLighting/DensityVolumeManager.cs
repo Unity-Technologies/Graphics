@@ -99,14 +99,5 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeAtlas.Release();
             m_VolumeAtlas = null;
         }
-
-        // TODO: we'll need to remove texture index
-        // private void AtlasUpdated()
-        // {
-        //     foreach (DensityVolume volume in volumes)
-        //     {
-        //         volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
-        //     }
-        // }
     }
 }

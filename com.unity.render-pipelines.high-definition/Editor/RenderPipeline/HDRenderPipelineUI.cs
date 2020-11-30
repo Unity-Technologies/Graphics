@@ -241,7 +241,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Clamp values
                 lightSettings.maxDensityVolumeSize.intValue = Mathf.Clamp(lightSettings.maxDensityVolumeSize.intValue, (int)DensityVolumeResolution.Resolution32, (int)DensityVolumeResolution.Resolution256);
-                // TODO: also clamp with max atlas size (2Gb)
                 lightSettings.maxDensityVolumesOnScreen.intValue = Mathf.Clamp(lightSettings.maxDensityVolumesOnScreen.intValue, 0, HDRenderPipeline.k_MaxVisibleDensityVolumeCount);
 
                 if (lightSettings.maxDensityVolumeSize.hasMultipleDifferentValues || lightSettings.maxDensityVolumesOnScreen.hasMultipleDifferentValues)
