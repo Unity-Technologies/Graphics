@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Unexpected shaderGraph reference lost while upgrading package [Case 1297186](https://issuetracker.unity3d.com/product/unity/issues/guid/1297186/)
 Version Updated
+- Exclude Operator, Context, Block and Subgraph from Preset [Case 1232309](https://issuetracker.unity3d.com/product/unity/issues/guid/1232309/)
 
 ## [7.5.2] - 2020-11-16
 ### Fixed
