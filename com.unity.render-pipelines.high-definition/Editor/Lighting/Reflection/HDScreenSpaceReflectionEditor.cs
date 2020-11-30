@@ -286,5 +286,22 @@ namespace UnityEditor.Rendering.HighDefinition
             else
                 CopySetting(ref m_RayMaxIterations, settings.lightingQualitySettings.SSRMaxRaySteps[level]);
         }
+
+        public override bool QualityEnabled()
+        {
+            // Quality always used for SSR
+            if (!HDRenderPipeline.rayTracingSupportedBySystem || !m_RayTracing.value.boolValue)
+                return true;
+
+            // Handle the quality usage for RTGI
+            HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
+
+            var bothSupportedAndPerformanceMode = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both
+                                                 && m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance;
+
+            var performanceSupported = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Performance;
+
+            return bothSupportedAndPerformanceMode || performanceSupported;
+        }
     }
 }
