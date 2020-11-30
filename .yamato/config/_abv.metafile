@@ -15,13 +15,6 @@ weekly:
     []
 nightly:
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
-    - project: Universal
-      platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
     - project: Smoke_Test
       platform: Win
       api: DX11

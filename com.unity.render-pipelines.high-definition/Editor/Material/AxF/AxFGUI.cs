@@ -36,17 +36,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
-            new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base,
+            new SurfaceOptionUIBlock(MaterialUIBlock.ExpandableBit.Base,
                 features: SurfaceOptionUIBlock.Features.Surface | SurfaceOptionUIBlock.Features.BlendMode | SurfaceOptionUIBlock.Features.DoubleSided |
                 SurfaceOptionUIBlock.Features.AlphaCutoff |  SurfaceOptionUIBlock.Features.AlphaCutoffShadowThreshold | SurfaceOptionUIBlock.Features.DoubleSidedNormalMode |
                 SurfaceOptionUIBlock.Features.ReceiveSSR | SurfaceOptionUIBlock.Features.ReceiveDecal | SurfaceOptionUIBlock.Features.PreserveSpecularLighting
             ),
-            new AxfMainSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
-            new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Other),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
+            new AxfMainSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Input),
+            new AxfSurfaceInputsUIBlock(MaterialUIBlock.ExpandableBit.Other),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.ExpandableBit.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
 
-        protected override void SetupMaterialKeywordsAndPassInternal(Material material) => SetupMaterialKeywordsAndPass(material);
+        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupAxFKeywordsAndPass(material);
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (changed.changed)
                 {
                     foreach (var material in uiBlocks.materials)
-                        SetupMaterialKeywordsAndPass(material);
+                        SetupAxFKeywordsAndPass(material);
                 }
             }
         }
@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        static public void SetupAxFKeywordsAndPass(Material material)
         {
             material.SetupBaseUnlitKeywords();
             material.SetupBaseUnlitPass();
