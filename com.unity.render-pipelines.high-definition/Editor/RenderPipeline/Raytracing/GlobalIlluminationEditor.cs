@@ -146,11 +146,17 @@ namespace UnityEditor.Rendering.HighDefinition
                                         break;
                                     case RayTracingMode.Quality:
                                     {
-                                        PropertyField(m_RayLength, k_RayLengthText);
-                                        PropertyField(m_ClampValue);
-                                        PropertyField(m_SampleCount);
-                                        PropertyField(m_BounceCount);
-                                        DenoiserGUI();
+                                        base.OnInspectorGUI(); // Quality Setting
+
+                                        using (new HDEditorUtils.IndentScope())
+                                        using (new QualityScope(this))
+                                        {
+                                            PropertyField(m_RayLength, k_RayLengthText);
+                                            PropertyField(m_ClampValue);
+                                            PropertyField(m_SampleCount);
+                                            PropertyField(m_BounceCount);
+                                            DenoiserGUI();
+                                        }
                                     }
                                         break;
                                 }
@@ -159,11 +165,16 @@ namespace UnityEditor.Rendering.HighDefinition
                         else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
                                  RenderPipelineSettings.SupportedRayTracingMode.Quality)
                         {
-                            PropertyField(m_RayLength, k_RayLengthText);
-                            PropertyField(m_ClampValue);
-                            PropertyField(m_SampleCount);
-                            PropertyField(m_BounceCount);
-                            DenoiserGUI();
+                            base.OnInspectorGUI(); // Quality Setting
+                            EditorGUI.indentLevel++;
+                            using (new QualityScope(this))
+                            {
+                                PropertyField(m_RayLength, k_RayLengthText);
+                                PropertyField(m_ClampValue);
+                                PropertyField(m_SampleCount);
+                                PropertyField(m_BounceCount);
+                                DenoiserGUI();
+                            }
                         }
                         else
                         {

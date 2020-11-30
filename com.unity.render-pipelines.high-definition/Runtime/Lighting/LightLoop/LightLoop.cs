@@ -4300,6 +4300,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, MaterialPropertyBlock mpb)
         {
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0)
+                return;
+
             LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
             {

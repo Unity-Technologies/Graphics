@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the clear coat not being handled properly for SSR and RTR (case 1291654).
 - Fixed ghosting in RTGI and RTAO when denoising is enabled and the RTHandle size is not equal to the Viewport size (case 1291654).
 - Fixed alpha output when atmospheric scattering is enabled.
+- Fixed issue with TAA history sharpening when view is downsampled.
+- Fixed lookdev movement.
+- Fixed volume component tooltips using the same parameter name.
+- Fixed issue with saving some quality settings in volume overrides  (case 1293747)
+- Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
+- Fixed SSGI texture allocation when not using the RenderGraph.
+- Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
+- Fixed path tracing accumulation not being reset when changing to a different frame of an animation.
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
