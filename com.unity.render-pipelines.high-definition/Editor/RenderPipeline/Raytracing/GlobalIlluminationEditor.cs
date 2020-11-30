@@ -146,9 +146,6 @@ namespace UnityEditor.Rendering.HighDefinition
                                         break;
                                     case RayTracingMode.Quality:
                                     {
-                                        base.OnInspectorGUI(); // Quality Setting
-
-                                        using (new HDEditorUtils.IndentScope())
                                         using (new QualityScope(this))
                                         {
                                             PropertyField(m_RayLength, k_RayLengthText);
@@ -165,8 +162,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
                                  RenderPipelineSettings.SupportedRayTracingMode.Quality)
                         {
-                            base.OnInspectorGUI(); // Quality Setting
-                            EditorGUI.indentLevel++;
                             using (new QualityScope(this))
                             {
                                 PropertyField(m_RayLength, k_RayLengthText);
@@ -269,6 +264,24 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_FullResolutionSS, settings.lightingQualitySettings.SSGIFullResolution[level]);
             CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
             CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
+        }
+
+        public override bool QualityEnabled()
+        {
+            // Quality always used for SSGI
+            if (!HDRenderPipeline.rayTracingSupportedBySystem || !m_RayTracing.value.boolValue)
+                return true;
+
+            // Handle the quality usage for RTGI
+            var currentAsset = HDRenderPipeline.currentAsset;
+
+            var bothSupportedAndPerformanceMode = (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                RenderPipelineSettings.SupportedRayTracingMode.Both) && (m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance);
+
+            var performanceMode = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                RenderPipelineSettings.SupportedRayTracingMode.Performance;
+
+            return bothSupportedAndPerformanceMode || performanceMode;
         }
     }
 }
