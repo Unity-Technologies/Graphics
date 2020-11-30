@@ -41,7 +41,7 @@ All_URP_Performance_BoatAttack_trunk:
     variables:
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
+        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
 All_URP_Performance_BoatAttack_CUSTOM-REVISION:
     name: All URP_Performance_BoatAttack CI - CUSTOM-REVISION
     dependencies:
@@ -77,4 +77,4 @@ All_URP_Performance_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         TEST_FILTER: .*
         BOAT_ATTACK_BRANCH: master
-        BOAT_ATTACK_REVISION: 60b6bc595f20b29f4869d3236ce1aa91a490ef6b
+        BOAT_ATTACK_REVISION: 88679d7ebeeae4be30f43ebe88cba830f363803b
