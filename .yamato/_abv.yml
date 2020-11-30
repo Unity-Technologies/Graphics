@@ -29,6 +29,12 @@ all_project_ci_weekly_2019.4:
          rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_2019.4
          rerun: on-new-revision
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_il2cpp_Linear_2019.4
+         rerun: on-new-revision
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_il2cpp_Linear_2019.4
+         rerun: on-new-revision
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_il2cpp_Linear_2019.4
+         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: 7.x.x/release
