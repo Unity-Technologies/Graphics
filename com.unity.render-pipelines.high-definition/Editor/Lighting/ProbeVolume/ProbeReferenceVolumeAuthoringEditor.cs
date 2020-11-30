@@ -66,6 +66,18 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             serializedObject.Update();
 
+            var probeReferenceVolumes = FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+            if (probeReferenceVolumes.Length > 1)
+            {
+                var s = "List of game objects with a Probe Reference Volume component:\n \n";
+                foreach (var o in probeReferenceVolumes)
+                {
+                    s += " - " + o.name + "\n";
+                }
+                EditorGUILayout.HelpBox("Multiple Probe Reference Volume components are in the scene. " +
+                    "This is not supported and could lead to faulty results; please remove one.\n\n" + s, MessageType.Error, wide: true);
+            }
+
             EditorGUI.BeginChangeCheck();
 
             VolumeGroupEnabled = EditorGUILayout.BeginFoldoutHeaderGroup(VolumeGroupEnabled, "Volume");
