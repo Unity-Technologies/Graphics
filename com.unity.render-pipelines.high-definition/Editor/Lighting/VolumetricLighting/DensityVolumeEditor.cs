@@ -224,12 +224,10 @@ namespace UnityEditor.Rendering.HighDefinition
                             else
                             {
                                 densityVolume.parameters.positiveFade =
-                                    densityVolume.parameters.negativeFade =
-                                        new Vector3(
-                                            newSize.x > 0.00001 ? (newSize.x - newUniformFade) / newSize.x : 0f,
-                                            newSize.y > 0.00001 ? (newSize.y - newUniformFade) / newSize.y : 0f,
-                                            newSize.z > 0.00001 ? (newSize.z - newUniformFade) / newSize.z : 0f
-                                        );
+                                    densityVolume.parameters.negativeFade = new Vector3(
+                                        1.0f - (newSize.x > 0.00000001 ? (newSize.x - newUniformFade) / newSize.x : 0f),
+                                        1.0f - (newSize.y > 0.00000001 ? (newSize.y - newUniformFade) / newSize.y : 0f),
+                                        1.0f - (newSize.z > 0.00000001 ? (newSize.z - newUniformFade) / newSize.z : 0f));
                             }
 
                             Vector3 delta = densityVolume.transform.rotation * s_ShapeBox.center - densityVolume.transform.position;

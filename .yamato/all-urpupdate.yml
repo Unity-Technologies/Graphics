@@ -16,6 +16,8 @@ All_URPUpdate_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-urpupdate_top_asset_store.yml#All_URPUpdate_Top_Asset_Store_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 All_URPUpdate_CUSTOM-REVISION:
     name: All URPUpdate CI - CUSTOM-REVISION
     dependencies:
@@ -27,3 +29,4 @@ All_URPUpdate_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
