@@ -40,8 +40,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             Additive = 0,
             Multiply = 1,
-            Subtractive = 2,
-            Custom = 99
+            Subtractive = 2
         }
 
         [Serializable]
@@ -61,9 +60,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         [SerializeField]
         internal BlendMode blendMode;
-
-        [SerializeField]
-        internal BlendFactors customBlendFactors;
 
         internal Vector2 blendFactors
         {
@@ -85,12 +81,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         result.x = 0.0f;
                         result.y = -1.0f;
                         break;
-                    case BlendMode.Custom:
-                        result.x = customBlendFactors.multiplicative;
-                        result.y = customBlendFactors.additive;
-                        break;
                     default:
-                        result = Vector2.zero;
+                        result.x = 1.0f;
+                        result.y = 0.0f;
                         break;
                 }
 

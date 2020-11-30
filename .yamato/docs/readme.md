@@ -87,6 +87,31 @@ Some jobs benefit from Yamato variables, which can be edited in Yamato UI.
 - `TEST_FILTER`: used by project jobs (incl _All [project>] CI_), and applies for all standalone build/playmode/editmode jobs, for which the testfilter is not hardcoded in the metafile. Default value is `.*` (run all tests). To check if a testfilter is hardcoded or the variable is used, simply check if the `utr` command in the job yml references the variable or not.
 
 
+### Repeated UTR runs
+- You can run UTR multiple times within a single job by specifying `utr_repeat` section under a test_platform in project metafile, and specifying the additional/different set of UTR flags used for each run. Each block corresponding to a list item (specified by `-`) corresponds to one UTR run. For non-standalone-builds, leave out the `utr_flags_build` section. If this section is not specified, then UTR is called once with the flags retrieved as usual. The `apply` section corresponds to list of platforms/apis for which this repeated block applies.
+  ```
+  - type: Standalone
+    is_performance: True
+    - apply: [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]
+        utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-load-path=../../playersLow
+        utr_flags_build:
+        - [all]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+        - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal]: --player-save-path=../../playersLow
+  - type: playmode
+     - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Low
+      - apply: [all]
+        utr_flags:
+        - [all]: --testfilter=Medium
+      - apply: [Win_DX11, Win_DX12, Win_Vulkan]
+        utr_flags:
+        - [Win_DX11, Win_DX12, Win_Vulkan]: --testfilter=High
+  ```
+
 
 ### Other changes to metafiles
 - All files follow a similar structure and changes can be done according to the metafile descriptions given below. 
@@ -522,6 +547,17 @@ test_platforms:
       - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
       - [Win_DX11, Win_DX12, Win_Vulkan]: --timeout=2000
       - [iPhone_Metal]: --timeout=1800
+    utr_repeat: # run utr multiple times inside the same job, but with different flags. Each block specified by - in the list below corresponds to one UTR run.
+      - utr_flags: # valid for standalone/editmode/playmode
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersLow
+        utr_flags_build: # valid only for standalone build jobs
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Low
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersLow
+      - utr_flags:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-load-path=playersMedium
+        utr_flags_build:
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --testfilter=Medium
+        - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3]: --player-save-path=playersMedium
   - type: playmode
   - type: editmode
   - type: playmode

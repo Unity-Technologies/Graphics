@@ -26,9 +26,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static readonly GUIContent name = EditorGUIUtility.TrTextContent("Name");
             public static readonly GUIContent maskTextureChannel = EditorGUIUtility.TrTextContent("Mask Texture Channel", "Which channel of the mask texture will affect this Light Blend Style.");
             public static readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "How the lighting should be blended with the main color of the objects.");
-            public static readonly GUIContent customBlendFactors = EditorGUIUtility.TrTextContent("Custom Blend Factors");
-            public static readonly GUIContent blendFactorMultiplicative = EditorGUIUtility.TrTextContent("Multiplicative");
-            public static readonly GUIContent blendFactorAdditive = EditorGUIUtility.TrTextContent("Additive");
             public static readonly GUIContent useDepthStencilBuffer = EditorGUIUtility.TrTextContent("Depth/Stencil Buffer", "Uncheck this when you are certain you don't use any feature that requires the depth/stencil buffer (e.g. Sprite Mask). Not using the depth/stencil buffer may improve performance, especially on mobile platforms.");
 
             public static readonly GUIContent cameraSortingLayerTextureHeader = EditorGUIUtility.TrTextContent("Camera Sorting Layers Texture", "Layers from back most to selected bounds will be rendered to _CameraSortingLayersTexture");
@@ -237,30 +234,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 EditorGUILayout.PropertyField(props.name, Styles.name);
                 EditorGUILayout.PropertyField(props.maskTextureChannel, Styles.maskTextureChannel);
                 EditorGUILayout.PropertyField(props.blendMode, Styles.blendMode);
-
-                if (props.blendMode.intValue == (int)Light2DBlendStyle.BlendMode.Custom)
-                {
-                    EditorGUILayout.BeginHorizontal();
-
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.LabelField(Styles.customBlendFactors, GUILayout.MaxWidth(200.0f));
-                    EditorGUI.indentLevel--;
-
-                    int oldIndentLevel = EditorGUI.indentLevel;
-                    EditorGUI.indentLevel = 0;
-
-                    EditorGUIUtility.labelWidth = 80.0f;
-                    EditorGUILayout.PropertyField(props.blendFactorMultiplicative, Styles.blendFactorMultiplicative, GUILayout.MinWidth(110.0f));
-
-                    GUILayout.Space(10.0f);
-
-                    EditorGUIUtility.labelWidth = 50.0f;
-                    EditorGUILayout.PropertyField(props.blendFactorAdditive, Styles.blendFactorAdditive, GUILayout.MinWidth(90.0f));
-
-                    EditorGUIUtility.labelWidth = 0.0f;
-                    EditorGUI.indentLevel = oldIndentLevel;
-                    EditorGUILayout.EndHorizontal();
-                }
 
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
