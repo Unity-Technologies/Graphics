@@ -54,11 +54,11 @@ def create_editor_yml(metafile):
             yml[job.job_id] = job.yml  
 
         # no ci/abv
-        job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"], abv=False)
+        job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"], ci=False)
         yml[job.job_id] = job.yml
 
         # ci + abv
-        job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"], abv=True)
+        job = Editor_PinningMergeAllJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"], metafile["target_branch_editor_ci"], ci=True)
         yml[job.job_id] = job.yml
 
         yml_files[editor_pinning_filepath()] = yml
