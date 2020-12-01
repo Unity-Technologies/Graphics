@@ -209,17 +209,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (BuildGPULightListPassData data, RenderGraphContext context) =>
                     {
-                        var buildLightListResources = PrepareBuildGPULightListResources(context, data);
-
+                        // TODO...
                         //bool tileFlagsWritten = false;
+
+                        var buildLightListResources = PrepareBuildGPULightListResources(context, data);
 
                         ClearLightLists(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                         GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                         //BigTilePrepass(data.buildGPULightListParameters, buildLightListResources, context.cmd);
-                        // BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
-                        // VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                        //BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
+                        //VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
 
-                        // BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
+                        //BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
                     });
 
                 return passData.output;
@@ -579,7 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderContactShadowPassData data, RenderGraphContext context) =>
                     {
-                        RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.lightList, context.cmd);
+                        RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.lightLoopLightData, data.lightList, context.cmd);
                     });
             }
 
