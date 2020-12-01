@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Fresnel Effect";
         }
 
-
         public override PreviewMode previewMode
         {
             get { return PreviewMode.Preview3D; }
@@ -29,7 +28,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = pow((1.0 - saturate(dot(normalize(Normal), normalize(ViewDir)))), Power);
 }

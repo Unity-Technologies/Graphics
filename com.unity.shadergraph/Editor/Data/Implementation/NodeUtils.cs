@@ -92,7 +92,7 @@ namespace UnityEditor.Graphing
                 // If this is a redirect node we continue to look for the top one
                 if (inputNode is RedirectNodeData redirectNode)
                 {
-                    return DepthFirstCollectRedirectNodeFromNode( redirectNode );
+                    return DepthFirstCollectRedirectNodeFromNode(redirectNode);
                 }
                 return outputSlotRef;
             }
@@ -115,7 +115,7 @@ namespace UnityEditor.Graphing
 
             // If this node is a keyword node and we have an active keyword permutation
             // The only valid port id is the port that corresponds to that keywords value in the active permutation
-            if(node is KeywordNode keywordNode && keywordPermutation != null)
+            if (node is KeywordNode keywordNode && keywordPermutation != null)
             {
                 var valueInPermutation = keywordPermutation.Where(x => x.Key == keywordNode.keyword).FirstOrDefault();
                 ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
@@ -171,27 +171,25 @@ namespace UnityEditor.Graphing
             }
 
 
-
             List<AbstractMaterialNode> parentNodes = GetParentNodes(node);
             //at this point we know we are not explicitly set to a state,
             //so there is no reason to be inactive
-            if(parentNodes.Count == 0)
+            if (parentNodes.Count == 0)
             {
                 return true;
             }
 
             bool output = false;
-            foreach(var parent in parentNodes)
+            foreach (var parent in parentNodes)
             {
                 output |= ActiveLeafExists(parent);
-                if(output)
+                if (output)
                 {
                     break;
                 }
             }
             return output;
         }
-
 
         private static List<AbstractMaterialNode> GetChildNodes(AbstractMaterialNode node)
         {
@@ -242,7 +240,6 @@ namespace UnityEditor.Graphing
                 }
             }
             return output;
-
         }
 
         private static void ActiveTreeExists(AbstractMaterialNode node, out bool activeLeaf, out bool activeRoot, out bool activeTree)
@@ -267,18 +264,17 @@ namespace UnityEditor.Graphing
         public static void ReevaluateActivityOfNodeList(IEnumerable<AbstractMaterialNode> nodes, PooledHashSet<AbstractMaterialNode> changedNodes = null)
         {
             bool getChangedNodes = changedNodes != null;
-            foreach(AbstractMaterialNode n in nodes)
+            foreach (AbstractMaterialNode n in nodes)
             {
                 if (n.activeState != AbstractMaterialNode.ActiveState.Implicit)
                     continue;
                 ActiveTreeExists(n, out _, out _, out bool at);
-                if(n.isActive != at && getChangedNodes)
+                if (n.isActive != at && getChangedNodes)
                 {
                     changedNodes.Add(n);
                 }
                 n.SetActive(at, false);
             }
-
         }
 
         //Go to the leaves of the node, then get all trees with those leaves
@@ -286,15 +282,15 @@ namespace UnityEditor.Graphing
         {
             List<AbstractMaterialNode> leaves = GetLeaves(node);
             List<AbstractMaterialNode> forrest = new List<AbstractMaterialNode>();
-            foreach(var leaf in leaves)
+            foreach (var leaf in leaves)
             {
-                if(!forrest.Contains(leaf))
+                if (!forrest.Contains(leaf))
                 {
                     forrest.Add(leaf);
                 }
-                foreach(var child in GetChildNodesRecursive(leaf))
+                foreach (var child in GetChildNodesRecursive(leaf))
                 {
-                    if(!forrest.Contains(child))
+                    if (!forrest.Contains(child))
                     {
                         forrest.Add(child);
                     }
@@ -307,15 +303,15 @@ namespace UnityEditor.Graphing
         {
             List<AbstractMaterialNode> output = new List<AbstractMaterialNode>() { node };
             List<AbstractMaterialNode> children = GetChildNodes(node);
-            foreach(var child in children)
+            foreach (var child in children)
             {
-                if(!output.Contains(child))
+                if (!output.Contains(child))
                 {
                     output.Add(child);
                 }
-                foreach(var descendent in GetChildNodesRecursive(child))
+                foreach (var descendent in GetChildNodesRecursive(child))
                 {
-                    if(!output.Contains(descendent))
+                    if (!output.Contains(descendent))
                     {
                         output.Add(descendent);
                     }
@@ -328,17 +324,17 @@ namespace UnityEditor.Graphing
         {
             List<AbstractMaterialNode> parents = GetParentNodes(node);
             List<AbstractMaterialNode> output = new List<AbstractMaterialNode>();
-            if(parents.Count == 0)
+            if (parents.Count == 0)
             {
                 output.Add(node);
             }
             else
             {
-                foreach(var parent in parents)
+                foreach (var parent in parents)
                 {
-                    foreach(var leaf in GetLeaves(parent))
+                    foreach (var leaf in GetLeaves(parent))
                     {
-                        if(!output.Contains(leaf))
+                        if (!output.Contains(leaf))
                         {
                             output.Add(leaf);
                         }
@@ -352,7 +348,7 @@ namespace UnityEditor.Graphing
         {
             // no where to start
             if (node == null)
-                return;            
+                return;
 
             // Recursively traverse downstream from the original node
             // Traverse down each edge and continue on any connected downstream nodes
@@ -373,7 +369,7 @@ namespace UnityEditor.Graphing
             }
 
             // No more nodes downstream from here
-            if(!hasDownstream)
+            if (!hasDownstream)
                 nodeList.Add(node);
         }
 
@@ -749,7 +745,6 @@ namespace UnityEditor.Graphing
 
             return isHLSLKeyword;
         }
-
 
         public static string ConvertToValidHLSLIdentifier(string originalId)
         {

@@ -34,14 +34,19 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
             static public readonly string k_AlphaInfoPost = "The use of AOVs properties in a player require to to enable the Runtime AOV API support in the HDRP quality settings.";
 
-            static public float infoBoxHeight = EditorGUIUtility.singleLineHeight * 2.5f;
+            static public readonly string k_ShaderCompilationWarning = "The Unity Editor is compiling the AOV shaders for the first time. The output might not be correct until the compilation is over.";
+
+            static public float infoBoxIconWidth = 100;
         }
+
+        static bool s_AsyncCompileState = false;
+        static bool s_HasStartedCompiling = false;
 
         public static void DrawItemInList(Rect rect, SerializedCompositionLayer serialized, RenderTexture thumbnail, float aspectRatio, bool isAlphaEnbaled)
         {
             bool isCameraStack = serialized.outTarget.intValue == (int)CompositorLayer.OutputTarget.CameraStack;
 
-            // Compute the desired indentation 
+            // Compute the desired indentation
             {
                 const float listBorder = 2.0f;
                 rect.x = isCameraStack ? rect.x + CompositorStyle.k_ListItemStackPading + listBorder : rect.x + listBorder;
@@ -66,8 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
 
                 if (isAlphaEnbaled
                     && (thumbnail.format == RenderTextureFormat.ARGBHalf
-                    || thumbnail.format == RenderTextureFormat.ARGBFloat
-                    || thumbnail.format == RenderTextureFormat.ARGB64))
+                        || thumbnail.format == RenderTextureFormat.ARGBFloat
+                        || thumbnail.format == RenderTextureFormat.ARGB64))
                 {
                     EditorGUI.DrawTextureAlpha(previewRect, thumbnail);
                     rect.x += previewRect.width + CompositorStyle.k_ThumbnailSpacing;
@@ -134,16 +139,60 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             EditorGUI.PropertyField(rect, serializedProperties.outputRenderer, Styles.k_OutputRenderer);
             rect.y += CompositorStyle.k_Spacing;
 
-            EditorGUI.PropertyField(rect, serializedProperties.aovBitmask, Styles.k_AOVs);            
+            EditorGUI.PropertyField(rect, serializedProperties.aovBitmask, Styles.k_AOVs);
             rect.y += CompositorStyle.k_Spacing;
+
+            if (serializedProperties.aovBitmask.intValue != 0)
+            {
+                // [case 1288744] Enable async compile for the debug shaders to avoid editor freeze when the user selects AOVs
+                s_AsyncCompileState = ShaderUtil.allowAsyncCompilation;
+                ShaderUtil.allowAsyncCompilation = true;
+                // Note: We cannot check immediately if "anythingCompiling", this has to be delayed for the next frame
+                if (s_HasStartedCompiling && ShaderUtil.anythingCompiling)
+                {
+                    // Display a message while we are compiling the shaders
+                    Rect infoRect = rect;
+                    // Compute the height of the infobox based on the width of the window and the amount of text
+                    GUIStyle.none.CalcMinMaxWidth(new GUIContent(Styles.k_ShaderCompilationWarning), out float minWidth, out float maxWidth);
+                    float lines = Mathf.CeilToInt(maxWidth / (rect.width - Styles.infoBoxIconWidth));
+                    infoRect.height = lines * CompositorStyle.k_Spacing;
+                    EditorGUI.HelpBox(infoRect, Styles.k_ShaderCompilationWarning, MessageType.Warning);
+                    rect.y += infoRect.height;
+                }
+                else
+                {
+                    // If the shaders have finished compiling, set the async compilation to the previous state
+                    if (s_HasStartedCompiling)
+                    {
+                        ShaderUtil.allowAsyncCompilation = s_AsyncCompileState;
+                        s_HasStartedCompiling = false;
+                    }
+                    else
+                    {
+                        s_HasStartedCompiling = true;
+                    }
+                }
+            }
+            else
+            {
+                // Check if the user switched off the AOV before the shaders were compiled
+                if (s_HasStartedCompiling)
+                {
+                    ShaderUtil.allowAsyncCompilation = s_AsyncCompileState;
+                    s_HasStartedCompiling = false;
+                }
+            }
 
             HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
             if (serializedProperties.aovBitmask.intValue != 0 && hdrp && !hdrp.currentPlatformRenderPipelineSettings.supportRuntimeAOVAPI)
             {
                 Rect infoRect = rect;
-                infoRect.height = Styles.infoBoxHeight;
+                // Compute the height of the infobox based on the width of the window and the amount of text
+                GUIStyle.none.CalcMinMaxWidth(new GUIContent(Styles.k_AlphaInfoPost), out float minWidth, out float maxWidth);
+                float lines = Mathf.CeilToInt(maxWidth / (rect.width - Styles.infoBoxIconWidth));
+                infoRect.height = lines * CompositorStyle.k_Spacing;
                 EditorGUI.HelpBox(infoRect, Styles.k_AlphaInfoPost, MessageType.Info);
-                rect.y += Styles.infoBoxHeight;
+                rect.y += infoRect.height;
             }
         }
 
@@ -184,7 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             EditorGUI.PropertyField(rect, serializedProperties.clearAlpha, Styles.k_ClearAlpha);
             rect.y += 1.0f * CompositorStyle.k_Spacing;
 
-            // Draw a min/max slider for tha alpha range 
+            // Draw a min/max slider for tha alpha range
             {
                 const float spacing = 5;
                 var labelRect = new Rect(rect.x, rect.y, EditorGUIUtility.labelWidth, rect.height);

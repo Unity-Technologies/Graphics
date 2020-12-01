@@ -155,7 +155,7 @@ real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampl
         //        Overfiltering will leak results from other shadow lights.
         //TODO: Investigate moving this to blocker search.
         // coord.xy = clamp(coord.xy, float2(UMin, VMin), float2(UMax, VMax));
-        
+
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
             sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z)).r;
         else

@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 Repaint();
 
                 // [case 1266216] Ensure the game view gets repainted a few times per second even when we are not in play mode.
-                // This ensures that we will not always display the first frame, which might have some artifacts for effects that require temporal data 
+                // This ensures that we will not always display the first frame, which might have some artifacts for effects that require temporal data
                 if (!Application.isPlaying)
                 {
                     CompositionManager compositor = CompositionManager.GetInstance();
@@ -66,12 +66,14 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                         if (compositor.timeSinceLastRepaint > timeThreshold)
                         {
                             compositor.Repaint();
+#if UNITY_2021_1_OR_NEWER
+                            // [case 1290622] For version 2021.1 we have to explicitely request an update of the gameview with the following call
+                            UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+#endif
                         }
                     }
-
                 }
             }
-                
         }
 
         void OnGUI()
@@ -108,10 +110,14 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 compositor.SetupCompositionMaterial();
                 CompositionUtils.SetDefaultCamera(compositor);
                 CompositionUtils.SetDefaultLayers(compositor);
-            }
 
-            if (compositor)
+                Undo.RegisterCreatedObjectUndo(compositor.outputCamera.gameObject, "Create Compositor");
+                Undo.RegisterCreatedObjectUndo(go, "Create Compositor");
+            }
+            else if (compositor)
             {
+                string message = enableCompositor ? "Enable Compositor" : "Disable Compositor";
+                Undo.RecordObject(compositor, message);
                 compositor.enabled = enableCompositor;
             }
             else
@@ -125,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 {
                     if (compositor.outputCamera)
                     {
-                        if(compositor.outputCamera.name == CompositionUtils.k_DefaultCameraName)
+                        if (compositor.outputCamera.name == CompositionUtils.k_DefaultCameraName)
                         {
                             var cameraData = compositor.outputCamera.GetComponent<HDAdditionalCameraData>();
                             if (cameraData != null)
@@ -137,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
                         }
                     }
-                    
+
                     CoreUtils.Destroy(compositor);
                     return;
                 }

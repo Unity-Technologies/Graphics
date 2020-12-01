@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if ((val & oldFrameSettingsFormat.overrides) > 0)
                 {
-                    switch(val)
+                    switch (val)
                     {
                         case ObsoleteFrameSettingsOverrides.Shadow:
                             newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.ShadowMaps] = true;
@@ -344,6 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //free space:
             oldFrameSettingsFormat = null;
         }
+
 #pragma warning restore 618 // Type or member is obsolete
 
         internal static void MigrateToCustomPostprocessAndCustomPass(ref FrameSettings cameraFrameSettings)
@@ -430,6 +431,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static void MigrateRoughDistortion(ref FrameSettings cameraFrameSettings)
         {
             cameraFrameSettings.SetEnabled(FrameSettingsField.RoughDistortion, true);
+        }
+
+        internal static void MigrateVirtualTexturing(ref FrameSettings cameraFrameSettings)
+        {
+            cameraFrameSettings.SetEnabled(FrameSettingsField.VirtualTexturing, true);
         }
     }
 }
