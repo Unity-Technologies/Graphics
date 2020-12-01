@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
-- Added a terrain compatiblity shader tag for validating whether user overridden materials support terrain rendering functionalities.
+- Added the TerrainCompatible SubShader Tag. Use this Tag in your custom shader to tell Unity that the shader is compatible with the Terrain system.
 - Added _CameraSortingLayerTexture global shader variable and related parameters
 - Added preset shapes for creating a freeform light
 - Added serialization of Freeform ShapeLight mesh to avoid CPU cost of generating them on the runtime.
