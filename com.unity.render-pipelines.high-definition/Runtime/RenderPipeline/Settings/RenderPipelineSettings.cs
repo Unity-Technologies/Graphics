@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLayerName6 = "Light Layer 6",
                 lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
+                probeVolumeResolution = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
             };
             return settings;
         }
@@ -268,6 +269,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
         [SerializeField] internal bool supportProbeVolume;
+        /// <summary>Support Probe Volumes.</summary>
+        [SerializeField] internal ProbeVolumeTextureMemoryBudget probeVolumeResolution;
+
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
         /// <summary>Support ray tracing mode.</summary>
