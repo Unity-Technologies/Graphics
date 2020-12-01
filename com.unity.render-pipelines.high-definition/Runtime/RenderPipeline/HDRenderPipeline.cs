@@ -530,7 +530,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeVolumetricLighting();
             InitializeSubsurfaceScattering();
-            CloudLayer.CloudMap.s_DefaultTexture = defaultResources.textures.defaultCloudMap;
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR

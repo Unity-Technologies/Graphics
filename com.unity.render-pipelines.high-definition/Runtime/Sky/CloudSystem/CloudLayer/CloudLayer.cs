@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Specifies the color that HDRP uses to tint the clouds.")]
             public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
             /// <summary>Relative exposure of the clouds.</summary>
-            [Tooltip("Sets the relative exposure of the clouds in EV.")]
+            [Tooltip("Sets the exposure of the clouds in EV relative to the sun light intensity.")]
             public FloatParameter exposure = new FloatParameter(0.0f);
 
             /// <summary>Distortion mode.</summary>
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureParameter flowmap = new TextureParameter(null);
 
             /// <summary>Enable lighting.</summary>
-            [Tooltip("Lighting with 2D Raymarching.")]
+            [Tooltip("Simulates cloud self-shadowing using raymarching.")]
             public BoolParameter lighting = new BoolParameter(false);
             /// <summary>Number of raymarching steps.</summary>
             [Tooltip("Number of raymarching steps.")]
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
 
             /// <summary>Enable to cast shadows.</summary>
-            [Tooltip("Enable or disable cloud shadows.")]
+            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows.")]
             public BoolParameter castShadows = new BoolParameter(false);
 
 
@@ -288,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadows |= layerB.castShadows.value;
                 }
 
-                if (lighting)
+                if (lighting && sunLight != null)
                     hash = hash * 23 + sunLight.transform.rotation.GetHashCode();
                 if (shadows)
                     hash = hash * 23 + shadowResolution.GetHashCode();
@@ -325,5 +325,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <returns>CloudLayerRenderer type.</returns>
         public override Type GetCloudRendererType() { return typeof(CloudLayerRenderer); }
+
+        /// <summary>
+        /// Called though reflection by the VolumeManager.
+        /// </summary>
+        static void Init()
+        {
+            if (CloudMap.s_DefaultTexture == null)
+                CloudMap.s_DefaultTexture = HDRenderPipeline.defaultAsset.renderPipelineResources.textures.defaultCloudMap;
+        }
     }
 }

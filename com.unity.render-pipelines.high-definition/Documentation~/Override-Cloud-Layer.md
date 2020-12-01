@@ -53,7 +53,7 @@ Only the red and green channels are used and they represent respectively horizon
 | - **Opacity A**               | Opacity of the alpha layer. |
 | **Rotation**                  | Use the slider to set the angle to rotate the Cloud Layer, in degrees. |
 | **Tint**                      | Specify a color that HDRP uses to tint the Cloud Layer. |
-| **Exposure**                  | Set the amount of light per unit area that HDRP applies to the cloud layer. |
+| **Exposure**                  | Set the amount of light per unit area that HDRP applies to the cloud layer based on the main directional light intensity. |
 | **Distortion Mode**           | Use the dropdown to choose the distortion mode for simulating cloud motion.<br />&#8226; **None**: No distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the provided flowmap. |
 | - **Scroll direction**        | Use the slider to set the scrolling direction for the distortion. |
 | - **Scroll speed**            | Modify the speed at which HDRP scrolls the distortion texture. |

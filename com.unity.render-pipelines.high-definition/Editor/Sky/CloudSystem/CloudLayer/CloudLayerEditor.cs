@@ -10,7 +10,9 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(CloudLayer))]
     class CloudLayerEditor : VolumeComponentEditor
     {
-        readonly GUIContent sunLabel = new GUIContent("Sun light", "The sun light used for lighting and shadow casting");
+        readonly GUIContent sunLabel        = new GUIContent("Sun light", "The main directional light, used for lighting and shadow casting.");
+        readonly GUIContent shadowTiling    = new GUIContent("Shadow Tiling", "Sun light cookie size. Represents the tiling of the cloud shadows texture.");
+
         public override bool hasAdvancedMode => true;
 
         struct CloudMapParameter
@@ -145,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_Layers[1], "Layer B");
 
             var sun = HDRenderPipeline.currentPipeline.GetCurrentSunLight();
-            if (sun != null)
+            if (sun != null && sun.TryGetComponent(out HDAdditionalLightData hdSun))
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Cloud Shadows", EditorStyles.miniLabel);
@@ -158,19 +160,29 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool shadows = CastShadows;
                 if (prevShadows && !shadows)
                     sun.cookie = null;
-                else if (shadows && sun.cookie == null && sun.TryGetComponent<HDAdditionalLightData>(out var hdSun))
+                else if (shadows && sun.cookie == null)
                 {
+                    Undo.RecordObject(hdSun, "Change cookie size");
                     hdSun.shapeHeight = 500;
                     hdSun.shapeWidth = 500;
                 }
 
-                using (new EditorGUILayout.HorizontalScope())
+                using (new EditorGUI.DisabledScope(true))
                 {
-                    GUILayout.Space(20);
-                    using (new EditorGUI.DisabledScope(true))
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.Space(20);
                         EditorGUILayout.ObjectField(sunLabel, sun, typeof(Light), true);
+                    }
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.Space(20);
+                        var size = new Vector2(hdSun.shapeWidth, hdSun.shapeHeight);
+                        EditorGUILayout.Vector2Field(shadowTiling, size);
+                    }
                 }
-                EditorGUILayout.HelpBox("Cloud shadows are projected in the sun light cookie space.", MessageType.Info);
+                if (shadows)
+                    EditorGUILayout.HelpBox("Cloud shadows are projected in the sun light cookie space.", MessageType.Info);
             }
         }
     }
