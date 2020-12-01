@@ -89,29 +89,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This matches the directional light
                 if (!m_CurrentScreenSpaceShadowData[lightIdx].valid) continue;
 
-                // TODO. None of this works with Z-Binning.
-
-                // Fetch the light data and additional light data
-                //LightData currentLight = m_lightList.lights[m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex];
-                //HDAdditionalLightData currentAdditionalLightData = m_CurrentScreenSpaceShadowData[lightIdx].additionalLightData;
-
-                //// Trigger the right algorithm based on the light type
-                //switch (currentLight.lightType)
-                //{
-                //    case GPULightType.Rectangle:
-                //        {
-                //            RenderAreaScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
-                //                                        prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
-                //        }
-                //        break;
-                //    case GPULightType.Point:
-                //    case GPULightType.Spot:
-                //        {
-                //            RenderPunctualScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
-                //                                            prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
-                //        }
-                //        break;
-                //}
+                // Trigger the right algorithm based on the light type
+                switch (currentLight.lightType)
+                {
+                    case GPULightType.Rectangle:
+                    {
+                        RenderAreaScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
+                            prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
+                    }
+                    break;
+                    case GPULightType.Point:
+                    case GPULightType.Spot:
+                    {
+                        RenderPunctualScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
+                            prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
+                    }
+                    break;
+                }
             }
             return true;
         }

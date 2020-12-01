@@ -4310,6 +4310,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static void RenderContactShadows(in ContactShadowsParameters parameters,
             RTHandle                    contactShadowRT,
             RTHandle                    depthTexture,
+            LightLoopLightData          lightLoopLightData,
             ComputeBuffer               lightList,
             CommandBuffer               cmd)
         {
