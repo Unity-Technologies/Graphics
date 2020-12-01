@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
 - Added support for pre-exposure for planar reflections.
+- Added light unit slider for automatic and automatic histrogram exposure limits.
 
 ### Fixed
 - Fixed probe volumes debug views.
