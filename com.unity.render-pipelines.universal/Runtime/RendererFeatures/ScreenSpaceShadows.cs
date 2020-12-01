@@ -6,7 +6,6 @@ namespace UnityEngine.Rendering.Universal
     [Serializable]
     internal class ScreenSpaceShadowsSettings
     {
-
     }
 
     [DisallowMultipleRendererFeature]
