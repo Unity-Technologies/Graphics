@@ -63,8 +63,6 @@ namespace UnityEditor
             bool distanceChanged = false;
             bool frameChanged = false;
             bool upChanged = false;
-            bool targetModeChanged = false;
-            bool targetChanged = false;
 
             using (var change = new EditorGUI.ChangeCheckScope())
             {
@@ -131,30 +129,11 @@ namespace UnityEditor
                 }
                 EditorGUILayout.Space();
 
-                var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                LightAnchor.TargetMode newTargetMode = (LightAnchor.TargetMode)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.targetModeProperty, firstManipulator.targetMode);
-                targetModeChanged = firstManipulator.targetMode != newTargetMode;
-                firstManipulator.targetMode = newTargetMode;
-
-                if (newTargetMode == LightAnchor.TargetMode.AnchorIndependant)
-                {
-                    UnityEngine.Object newTarget = EditorGUILayout.ObjectField(LightAnchorStyles.toTargetProperty, (UnityEngine.Object)firstManipulator.target, typeof(GameObject), true);
-                    targetChanged = (GameObject)newTarget != firstManipulator.target;
-
-                    firstManipulator.target = (GameObject)newTarget;
-
-                    //if (targetChanged)
-                    {
-                        Vector3 toTarget = firstManipulator.target.transform.position - firstManipulator.transform.position;
-                        firstManipulator.UpdateTransform(camera, firstManipulator.target.transform.position);
-                    }
-                }
-
                 oldValue = firstManipulator.distance;
                 m_Distance = EditorGUILayout.FloatField(LightAnchorStyles.distanceProperty, firstManipulator.distance);
                 distanceChanged = oldValue != m_Distance;
 
-                dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
+                var dropRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
                 LightAnchor.UpDirection newSpace = (LightAnchor.UpDirection)EditorGUI.EnumPopup(dropRect, LightAnchorStyles.upDirectionProperty, firstManipulator.frameSpace);
                 upChanged = firstManipulator.frameSpace != newSpace;
                 firstManipulator.frameSpace = newSpace;
@@ -630,8 +609,6 @@ namespace UnityEditor
         static public GUIContent presetTextureFillRight = new GUIContent(Resources.Load<Texture2D>("PresetFill_Right"), "Fill Right");
         static public GUIContent distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
         static public GUIContent upDirectionProperty = new GUIContent("Up direction", "The space that the up direction of the anchor is defined in");
-        static public GUIContent targetModeProperty = new GUIContent("Target Mode", "Describes the transform target behavior");
-        static public GUIContent toTargetProperty = new GUIContent("Target", "Target");
         static public GUIContent[] angleSubContent = new[]
             {
                 EditorGUIUtility.TrTextContent("Yaw"),

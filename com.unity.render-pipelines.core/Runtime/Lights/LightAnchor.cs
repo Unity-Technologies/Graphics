@@ -21,19 +21,6 @@ namespace UnityEngine
         float m_Distance = 3;
         [SerializeField]
         UpDirection m_FrameSpace = UpDirection.World;
-        [SerializeField]
-        TargetMode m_TargetMode = TargetMode.LightFollowTheAnchor;
-        [SerializeField]
-        internal GameObject m_Target = null;
-
-        /// <summary>
-        /// Target when the target mode is AnchorIndependant
-        /// </summary>
-        public GameObject target
-        {
-            get { return m_Target; }
-            set { m_Target = value; }
-        }
 
         float m_Yaw;
         float m_Pitch;
@@ -82,27 +69,6 @@ namespace UnityEngine
         {
             get { return m_Distance; }
             set { m_Distance = Mathf.Max(value, .01f); }
-        }
-
-        /// <summary>
-        /// Mode which describes the behavior of the Anchor
-        /// </summary>
-        public enum TargetMode
-        {
-            /// <summary>
-            /// Moving the anchor move the light relative to the anchor
-            /// </summary>
-            LightFollowTheAnchor,
-            /// <summary>
-            /// The anchor is independent
-            /// </summary>
-            AnchorIndependant
-        }
-
-        public TargetMode targetMode
-        {
-            get { return m_TargetMode; }
-            set { m_TargetMode = value; }
         }
 
         /// <summary>

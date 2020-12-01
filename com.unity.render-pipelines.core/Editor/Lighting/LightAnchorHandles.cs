@@ -31,19 +31,6 @@ namespace UnityEditor
             Handles.color = Color.yellow;
             Handles.DrawDottedLine(lightPosition, anchorPosition, 2f);
 
-            //var ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
-
-            //var startLightPosition = Vector3.zero;
-            //var startAnchorPosittion = Vector3.zero;
-            //Vector3 worldPoint; float newDistance; float t;
-            //if (DistanceRayLine(ray, startAnchorPosittion, startLightPosition, out worldPoint, out newDistance, out t))
-            //{
-            //    t = Mathf.Max(0f, t);
-            //    var magnitude = ((startLightPosition - startAnchorPosittion) * t).magnitude;
-            //    magnitude = Mathf.Max(1f, magnitude);
-            //    lightPosition = (startLightPosition - startAnchorPosittion).normalized * magnitude + startAnchorPosittion;
-            //}
-
             anchorPosition = Handles.PositionHandle(anchorPosition, Quaternion.identity);
         }
 
