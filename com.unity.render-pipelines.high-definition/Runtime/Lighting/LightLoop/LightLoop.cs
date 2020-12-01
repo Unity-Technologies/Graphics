@@ -1858,8 +1858,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
         {
-            // For the generic case, we consider that all probes have mip maps. The more specific case will override this attribute.
+            // By default, rough reflections are enabled for both types of probes.
             envLightData.roughReflections = 1.0f;
+            envLightData.distanceBasedRoughness = 0.0f;
 
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
@@ -1962,6 +1963,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     );
                     capturePosition = cameraPositionSettings.position;
                     envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
+
+                    // Propagate the distance based information to the env light data (only if we are not an infinite projection)
+                    envLightData.distanceBasedRoughness = probe.settings.distanceBasedRoughness && !probe.isProjectionInfinite ? 1.0f : 0.0f;
 
                     break;
                 }
@@ -4208,6 +4212,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderShadowsDebugOverlay(in DebugParameters debugParameters, in HDShadowManager.ShadowDebugAtlasTextures atlasTextures, CommandBuffer cmd, MaterialPropertyBlock mpb)
         {
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0)
+                return;
+
             LightingDebugSettings lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
             if (lightingDebug.shadowDebugMode != ShadowMapDebugMode.None)
             {

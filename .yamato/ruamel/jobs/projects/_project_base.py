@@ -43,7 +43,7 @@ def _job(project, test_platform_name, editor, platform, api, cmd, build_config, 
 
     if project["name"] == "URP_Performance_BoatAttack":
         job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
-        job.add_var_custom('BOAT_ATTACK_REVISION', '60b6bc595f20b29f4869d3236ce1aa91a490ef6b')
+        job.add_var_custom('BOAT_ATTACK_REVISION', '88679d7ebeeae4be30f43ebe88cba830f363803b')
 
     job.add_var_custom('TEST_FILTER', '.*')
 
