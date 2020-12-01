@@ -73,6 +73,32 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 nodeSettings.Add(propertyRow);
             }
             propertyVisualElement = precisionField;
+
+            EnumField previewField = null;
+            if (node.hasPreview)
+            {
+                previewField = new EnumField(node.m_PreviewMode);
+                var propertyRow = new PropertyRow(new Label("Preview"));
+                propertyRow.Add(previewField, (field) =>
+                {
+                    field.RegisterValueChangedCallback(evt =>
+                    {
+                        if (evt.newValue.Equals(node.m_PreviewMode))
+                            return;
+
+                        m_setNodesAsDirtyCallback();
+                        node.owner.owner.RegisterCompleteObjectUndo("Change preview");
+                        node.m_PreviewMode = (PreviewMode) evt.newValue;
+                        // node.owner.ValidateGraph();
+                        m_updateNodeViewsCallback();
+                        node.Dirty(ModificationScope.Graph);
+                    });
+                });
+                if (node is Serialization.MultiJsonInternal.UnknownNodeType)
+                    previewField.SetEnabled(false);
+                nodeSettings.Add(propertyRow);
+            }
+
             return nodeSettings;
         }
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
