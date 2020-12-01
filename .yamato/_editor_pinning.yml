@@ -159,3 +159,7 @@ editor-pinning-store-green:
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
       -  pipenv run python3 .yamato/ruamel/editor_pinning/store_green_revisions.py --target-branch $GIT_BRANCH --track trunk --apikey $YAMATO_KEY
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: 7 * * ?

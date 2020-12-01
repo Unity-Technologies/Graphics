@@ -63,7 +63,7 @@ def create_editor_yml(metafile):
         yml[job.job_id] = job.yml
 
 
-        job = Editor_PinningStoreGreenRevisionsJob(metafile['editors'], metafile["editor_pin_agent"])
+        job = Editor_PinningStoreGreenRevisionsJob(metafile['editors'], metafile["editor_pin_agent"], metafile["target_branch"])
         yml[job.job_id] = job.yml
 
         yml_files[editor_pinning_filepath()] = yml

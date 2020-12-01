@@ -6,13 +6,13 @@ from ..shared.yml_job import YMLJob
 
 class Editor_PinningStoreGreenRevisionsJob():
     
-    def __init__(self, editors, agent):
+    def __init__(self, editors, agent, target_branch):
         self.job_id = editor_job_id_store_green()
-        self.yml_job = self.get_job_definition(editors, agent)
+        self.yml_job = self.get_job_definition(editors, agent, target_branch)
         self.yml = self.yml_job.get_yml()
 
 
-    def get_job_definition(self, editors, agent):
+    def get_job_definition(self, editors, agent, target_branch):
         
         commands = [
             f'sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple',# Remove when the image has this preinstalled.
@@ -32,4 +32,5 @@ class Editor_PinningStoreGreenRevisionsJob():
         
         job.set_agent(agent)
         job.add_commands(commands)
+        job.add_trigger_recurrent(target_branch, '7 * * ?')
         return job
