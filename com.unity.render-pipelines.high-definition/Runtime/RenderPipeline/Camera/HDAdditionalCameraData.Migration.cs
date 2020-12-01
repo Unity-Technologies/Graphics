@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.AddReflectionSettings, (HDAdditionalCameraData data) =>
                 FrameSettings.MigrateToDefaultReflectionSettings(ref data.renderingPathCustomFrameSettings)
-            ),
+                ),
             MigrationStep.New(Version.AddCustomPostprocessAndCustomPass, (HDAdditionalCameraData data) =>
             {
                 FrameSettings.MigrateToCustomPostprocessAndCustomPass(ref data.renderingPathCustomFrameSettings);

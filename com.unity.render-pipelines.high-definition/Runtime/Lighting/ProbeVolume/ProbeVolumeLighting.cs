@@ -358,16 +358,16 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableProbeVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) ? 1u : 0u;
             cb._ProbeVolumeCount = (uint)m_VisibleProbeVolumeBounds.Count;
             cb._ProbeVolumeAtlasResolutionAndSliceCount = new Vector4(
-                    s_ProbeVolumeAtlasResolution,
-                    s_ProbeVolumeAtlasResolution,
-                    s_ProbeVolumeAtlasResolution,
-                    m_ProbeVolumeAtlasSHRTDepthSliceCount
+                s_ProbeVolumeAtlasResolution,
+                s_ProbeVolumeAtlasResolution,
+                s_ProbeVolumeAtlasResolution,
+                m_ProbeVolumeAtlasSHRTDepthSliceCount
             );
             cb._ProbeVolumeAtlasResolutionAndSliceCountInverse = new Vector4(
-                    1.0f / (float)s_ProbeVolumeAtlasResolution,
-                    1.0f / (float)s_ProbeVolumeAtlasResolution,
-                    1.0f / (float)s_ProbeVolumeAtlasResolution,
-                    1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
+                1.0f / (float)s_ProbeVolumeAtlasResolution,
+                1.0f / (float)s_ProbeVolumeAtlasResolution,
+                1.0f / (float)s_ProbeVolumeAtlasResolution,
+                1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
             );
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
@@ -549,7 +549,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     int numThreadGroups = Mathf.CeilToInt((float)size / (float)kBatchSize);
                     cmd.DispatchCompute(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, numThreadGroups, 1, 1);
                     return true;
-
                 }
                 return false;
             }
@@ -673,7 +672,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DispatchCompute(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, s_ProbeVolumeAtlasOctahedralDepthConvolveKernel, probeCountX, probeCountY, 1);
                     }
                     return true;
-
                 }
                 return false;
             }
@@ -881,8 +879,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // - 1+ term is to prevent having negative values in the log result
             // - 1000* is too keep 3 digit after the dot while we truncate the result later
             // - 1048575 is 2^20-1 as we pack the result on 20bit later
-            float boxVolume = 8f* size.x * size.y * size.z;
-            float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f)*1000, 0, 1048575);
+            float boxVolume = 8f * size.x * size.y * size.z;
+            float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f) * 1000, 0, 1048575);
             return logVolume;
         }
 
@@ -1026,6 +1024,5 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DrawProcedural(Matrix4x4.identity, parameters.material, parameters.material.FindPass("ProbeVolume"), MeshTopology.Triangles, 3, 1, propertyBlock);
             debugOverlay.Next();
         }
-
     } // class ProbeVolumeLighting
 } // namespace UnityEngine.Experimental.Rendering.HDPipeline

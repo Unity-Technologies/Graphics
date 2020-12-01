@@ -123,8 +123,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public HDLightType type
         {
             get => haveMultipleTypeValue
-                ? (HDLightType)(-1) //as serialize property on enum when mixed value state happens
-                : (serializedObject.targetObjects[0] as HDAdditionalLightData).type;
+            ? (HDLightType)(-1)     //as serialize property on enum when mixed value state happens
+            : (serializedObject.targetObjects[0] as HDAdditionalLightData).type;
             set
             {
                 //Note: type is split in both component
@@ -170,8 +170,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public AreaLightShape areaLightShape
         {
             get => haveMultipleAreaLightShapeValue
-                ? (AreaLightShape)(-1) //as serialize property on enum when mixed value state happens
-                : (serializedObject.targetObjects[0] as HDAdditionalLightData).areaLightShape;
+            ? (AreaLightShape)(-1)     //as serialize property on enum when mixed value state happens
+            : (serializedObject.targetObjects[0] as HDAdditionalLightData).areaLightShape;
             set
             {
                 //Note: Disc is actually changing legacyLight.type to Disc
@@ -293,7 +293,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 areaLightEmissiveMeshCastShadow.intValue = (int)shadowCastingMode;
                 if (deportedAreaLightEmissiveMeshCastShadow != null) //only possible while editing from prefab
                     deportedAreaLightEmissiveMeshCastShadow.intValue = (int)shadowCastingMode;
-
             }
         }
 
@@ -418,7 +417,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 shadowUpdateUponTransformChange = o.Find("m_UpdateShadowOnLightMovement");
                 shadowResolution = new SerializedScalableSettingValue(o.Find((HDAdditionalLightData l) => l.shadowResolution));
 
-				slopeBias = o.Find("m_SlopeBias");
+                slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");
 
                 // private references for prefab handling
@@ -466,7 +465,6 @@ namespace UnityEditor.Rendering.HighDefinition
             RefreshEmissiveMeshReference();
             Update();
         }
-
 
         public void Update()
         {

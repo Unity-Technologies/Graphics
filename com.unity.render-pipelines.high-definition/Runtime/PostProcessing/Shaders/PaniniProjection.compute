@@ -78,7 +78,7 @@ float2 Panini_Generic(float2 view_pos, float d)
     //  d |  /
     //    | /                ,
     //    |/                .
-    //    P 
+    //    P
     //    |              ´
     //    |         , ´
     //    +-    ´

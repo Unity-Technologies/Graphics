@@ -11,9 +11,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
         {
             Vector3[] returnPath = new Vector3[4]
             {
-                new Vector3(-0.5f,-0.5f),
-                new Vector3( 0.5f,-0.5f),
-                new Vector3( 0.5f, 0.5f),
+                new Vector3(-0.5f, -0.5f),
+                new Vector3(0.5f, -0.5f),
+                new Vector3(0.5f, 0.5f),
                 new Vector3(-0.5f, 0.5f)
             };
 
@@ -25,9 +25,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Vector3[] returnPath = new Vector3[4]
             {
                 new Vector3(-0.5f, 0.0f),
-                new Vector3( 0.0f,-0.25f),
-                new Vector3( 0.5f, 0.0f),
-                new Vector3( 0.0f, 0.25f)
+                new Vector3(0.0f, -0.25f),
+                new Vector3(0.5f, 0.0f),
+                new Vector3(0.0f, 0.25f)
             };
 
             return returnPath;

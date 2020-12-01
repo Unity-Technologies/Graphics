@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// Render Textures clear flag.
     /// </summary>
-   [Flags]
+    [Flags]
     public enum ClearFlag
     {
         /// <summary>Don't clear.</summary>

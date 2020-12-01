@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ReducedRayCountBuffer2 = new ComputeBuffer((int)RayCountValues.Count + 1, sizeof(uint));
 
             // Initialize the CPU  ray count (Optional)
-            for(int i = 0; i < (int)RayCountValues.Count; ++i)
+            for (int i = 0; i < (int)RayCountValues.Count; ++i)
             {
                 m_ReducedRayCountValues[i] = 0;
             }
@@ -227,7 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Enqueue an Async read-back for the single value
                     AsyncGPUReadbackRequest singleReadBack = AsyncGPUReadback.Request(m_ReducedRayCountBuffer2, (int)RayCountValues.Count * sizeof(uint), 0);
                     rayCountReadbacks.Enqueue(singleReadBack);
-
                 }
             }
         }
@@ -240,14 +239,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                while(rayCountReadbacks.Peek().done || rayCountReadbacks.Peek().hasError ==  true)
+                while (rayCountReadbacks.Peek().done || rayCountReadbacks.Peek().hasError ==  true)
                 {
                     // If this has an error, just skip it
                     if (!rayCountReadbacks.Peek().hasError)
                     {
                         // Grab the native array from this readback
                         NativeArray<uint> sampleCount = rayCountReadbacks.Peek().GetData<uint>();
-                        for(int i = 0; i < (int)RayCountValues.Count; ++i)
+                        for (int i = 0; i < (int)RayCountValues.Count; ++i)
                         {
                             m_ReducedRayCountValues[i] = sampleCount[i];
                         }

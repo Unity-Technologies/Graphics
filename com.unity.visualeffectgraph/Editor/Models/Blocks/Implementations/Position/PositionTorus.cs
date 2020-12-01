@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionTorus : PositionBase
     {
-        public override string name { get { return string.Format(base.name,"Torus"); } }
+        public override string name { get { return string.Format(base.name, "Torus"); } }
         protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties

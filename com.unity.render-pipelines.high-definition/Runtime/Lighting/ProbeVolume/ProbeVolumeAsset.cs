@@ -93,41 +93,42 @@ namespace UnityEngine.Rendering.HighDefinition
             return asset;
         }
 
-        protected internal static Vector3Int[] s_Offsets = new Vector3Int[] {
+        protected internal static Vector3Int[] s_Offsets = new Vector3Int[]
+        {
             // middle slice
-            new Vector3Int( 1,  0,  0),
-            new Vector3Int( 1,  0,  1),
-            new Vector3Int( 1,  0, -1),
+            new Vector3Int(1,  0,  0),
+            new Vector3Int(1,  0,  1),
+            new Vector3Int(1,  0, -1),
 
             new Vector3Int(-1,  0,  0),
             new Vector3Int(-1,  0,  1),
             new Vector3Int(-1,  0, -1),
 
-            new Vector3Int( 0,  0,  1),
-            new Vector3Int( 0,  0, -1),
+            new Vector3Int(0,  0,  1),
+            new Vector3Int(0,  0, -1),
 
 
             // upper slice
-            new Vector3Int( 0,  1,  0),
-            new Vector3Int( 1,  1,  0),
-            new Vector3Int( 1,  1,  1),
-            new Vector3Int( 1,  1, -1),
+            new Vector3Int(0,  1,  0),
+            new Vector3Int(1,  1,  0),
+            new Vector3Int(1,  1,  1),
+            new Vector3Int(1,  1, -1),
             new Vector3Int(-1,  1,  0),
             new Vector3Int(-1,  1,  1),
             new Vector3Int(-1,  1, -1),
-            new Vector3Int( 0,  1,  1),
-            new Vector3Int( 0,  1, -1),
+            new Vector3Int(0,  1,  1),
+            new Vector3Int(0,  1, -1),
 
             // lower slice
-            new Vector3Int( 0, -1,  0),
-            new Vector3Int( 1, -1,  0),
-            new Vector3Int( 1, -1,  1),
-            new Vector3Int( 1, -1, -1),
+            new Vector3Int(0, -1,  0),
+            new Vector3Int(1, -1,  0),
+            new Vector3Int(1, -1,  1),
+            new Vector3Int(1, -1, -1),
             new Vector3Int(-1, -1,  0),
             new Vector3Int(-1, -1,  1),
             new Vector3Int(-1, -1, -1),
-            new Vector3Int( 0, -1,  1),
-            new Vector3Int( 0, -1, -1),
+            new Vector3Int(0, -1,  1),
+            new Vector3Int(0, -1, -1),
         };
 
         protected internal int ComputeIndex1DFrom3D(Vector3Int pos)
@@ -219,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Foreach probe, gather neighboring probe data, weighted by validity.
                 // TODO: "validity" is actually stored as how occluded the surface is, so it is really inverse validity.
-                // We should probably rename this to avoid confusion. 
+                // We should probably rename this to avoid confusion.
                 for (int z = 0; z < resolutionZ; ++z)
                 {
                     for (int y = 0; y < resolutionY; ++y)
@@ -268,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.backfaceTolerance = backfaceTolerance;
             this.dilationIterations = dilationIterations;
         }
+
 #endif
     }
 }

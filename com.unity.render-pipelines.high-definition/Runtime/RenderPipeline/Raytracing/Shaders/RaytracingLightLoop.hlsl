@@ -4,7 +4,7 @@
 
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData,
                 float reflectionHierarchyWeight, float refractionHierarchyWeight, float3 reflection, float3 transmission,
-			    out LightLoopOutput lightLoopOutput)
+                out LightLoopOutput lightLoopOutput)
 {
     // Init LightLoop output structure
     ZERO_INITIALIZE(LightLoopOutput, lightLoopOutput);

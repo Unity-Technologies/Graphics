@@ -634,7 +634,7 @@ void RaytracingSpotShadowSample(uint3 dispatchThreadId : SV_DispatchThreadID, ui
     float samplePDF = 1.0;
     if (_RaytracingLightRadius > 0.001)
     {
-        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward, 
+        SampleSphericalCone(lightData.positionRWS, _RaytracingLightRadius, lightData.forward,
             _RaytracingSpotAngle,
             noiseValue.x, noiseValue.y,
             posInput.positionWS, normalData.normalWS, lightPosition, samplePDF);

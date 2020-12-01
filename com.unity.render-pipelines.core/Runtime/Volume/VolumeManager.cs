@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < count; i++)
                 {
-                    if(target.parameters[i] != null)
+                    if (target.parameters[i] != null)
                     {
                         target.parameters[i].overrideState = false;
                         target.parameters[i].SetValue(component.parameters[i]);

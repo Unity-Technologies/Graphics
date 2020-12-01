@@ -18,7 +18,7 @@ StructuredBuffer<DirectionalLightData> _DirectionalLightData;
 StructuredBuffer<LightData>         _PunctualLightData;
 StructuredBuffer<LightData>         _AreaLightData;
 StructuredBuffer<EnvLightData>      _ReflectionProbeData;
-// StructuredBuffer<DecalData> 		_DecalData; // Defined elsewhere
+// StructuredBuffer<DecalData>      _DecalData; // Defined elsewhere
 StructuredBuffer<DensityVolumeData> _DensityVolumeData;
 
 // Used by directional and spot lights
