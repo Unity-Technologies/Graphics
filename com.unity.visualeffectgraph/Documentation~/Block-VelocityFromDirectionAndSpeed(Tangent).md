@@ -8,7 +8,7 @@ The tangent vector is based on the particle's current direction and a given axis
 
 The Block then scales the final direction vector by a speed, and composes it with the velocity attribute.
 
-![](Images/Block-VelocityFromDirection&Speed(Tangent)Example.gif)
+![](Images/Block-VelocityFromDirectionAndSpeed(Tangent)Example.gif)
 
 ## Block compatibility
 
