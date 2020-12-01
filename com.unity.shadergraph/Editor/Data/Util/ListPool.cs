@@ -1,21 +1,19 @@
 using System.Collections.Generic;
+using UnityEngine.Pool;
 
 namespace UnityEditor.Graphing
 {
     static class ListPool<T>
     {
         // Object pool to avoid allocations.
-        static readonly ObjectPool<List<T>> s_ListPool = new ObjectPool<List<T>>(null, l => l.Clear());
+        static readonly ObjectPool<List<T>> s_ListPool = new ObjectPool<List<T>>(() => new List<T>(), null, l => l.Clear());
 
         public static List<T> Get()
         {
             return s_ListPool.Get();
         }
 
-        public static PooledObject<List<T>> GetDisposable()
-        {
-            return s_ListPool.GetDisposable();
-        }
+        public static PooledObject<List<T>> Get(out List<T> value) => s_ListPool.Get(out value);
 
         public static void Release(List<T> toRelease)
         {

@@ -394,9 +394,9 @@ namespace UnityEditor.Graphing
                 return;
             }
 
-            using (var slotsHandle = ListPool<MaterialSlot>.GetDisposable())
+            List<MaterialSlot> slots;
+            using (ListPool<MaterialSlot>.Get(out slots))
             {
-                var slots = slotsHandle.value;
                 node.GetInputSlots(slots);
                 foreach (var slot in slots)
                 {

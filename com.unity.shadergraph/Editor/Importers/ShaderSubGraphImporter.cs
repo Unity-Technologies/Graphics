@@ -321,10 +321,11 @@ namespace UnityEditor.ShaderGraph
         {
             var dependencyMap = new Dictionary<GUID, GUID[]>();
             AssetCollection tempAssetCollection = new AssetCollection();
-            using (var tempList = ListPool<GUID>.GetDisposable())
+            List<GUID> tempList;
+            using (ListPool<GUID>.Get(out tempList))
             {
                 GatherDependencyMap(rootAssetGuid, dependencyMap, tempAssetCollection);
-                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList.value);
+                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList);
             }
 
             descendentGuids = new HashSet<GUID>();

@@ -1292,12 +1292,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphView.graph.OnKeywordChangedNoValidate();
             }
 
-            using (var remappedNodesDisposable = ListPool<AbstractMaterialNode>.GetDisposable())
+            List<AbstractMaterialNode> remappedNodes;
+            using (ListPool<AbstractMaterialNode>.Get(out remappedNodes))
             {
-                using (var remappedEdgesDisposable = ListPool<Graphing.Edge>.GetDisposable())
+                List<Graphing.Edge> remappedEdges;
+                using (ListPool<Graphing.Edge>.Get(out remappedEdges))
                 {
-                    var remappedNodes = remappedNodesDisposable.value;
-                    var remappedEdges = remappedEdgesDisposable.value;
                     var nodeList = copyGraph.GetNodes<AbstractMaterialNode>();
 
                     ClampNodesWithinView(graphView, nodeList);
