@@ -125,3 +125,48 @@ MonoBehaviour:
     StereoModes: 0
     Reason: 'Case: 1293533 - Renders incorrectly on Yamato. Likely because of old
       OSX.'
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 716466bc92f8e4eeeb3c138524b04021, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: None
+    StereoModes: 0
+    Reason: GLES3 issue with MatrixIVP
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: None
+    StereoModes: 0
+    Reason: Android Vulkan instability
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 362b9a0c21a9b4e798504044c7604e80, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS 055 issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS 059 issue
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 0feef353efdf045989e9c2b501774338, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS 044 issue

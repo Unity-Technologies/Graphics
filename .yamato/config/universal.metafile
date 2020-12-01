@@ -65,6 +65,17 @@ platforms:
       - name: il2cpp
     color_spaces:
       - Linear
+  - name: iPhone
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode
+          - name: editmode
+          - name: playmode_XR
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
