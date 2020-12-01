@@ -679,7 +679,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     VolumeManager.instance.stack = additionalCameraData.volumeStack;
 
-                    // If the update setting just got disabled, we need to update...
+                    // If the update setting was enabled in the previous scene, we need to update...
                     if (s_LastVolumeUpdateSetting)
                     {
                         VolumeManager.instance.Update(additionalCameraData.volumeStack, trigger, layerMask);
