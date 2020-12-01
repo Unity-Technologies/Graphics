@@ -36,9 +36,10 @@ class Project_AllJob():
         job.set_name(f'All {project} CI - {editor["name"]}')
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["track"])
+        job.add_var_custom('TEST_FILTER', '.*')
         if project == "URP_Performance_BoatAttack":
             job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')
-            job.add_var_custom('BOAT_ATTACK_REVISION', 'head')
+            job.add_var_custom('BOAT_ATTACK_REVISION', '88679d7ebeeae4be30f43ebe88cba830f363803b')
         return job
     
     

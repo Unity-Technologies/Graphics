@@ -116,11 +116,11 @@ namespace UnityEngine.Rendering.Universal
                     {
                         var localId = m_RendererFeatureMap[i];
                         loadedAssets.TryGetValue(localId, out var asset);
-                        m_RendererFeatures[i] = (ScriptableRendererFeature) asset;
+                        m_RendererFeatures[i] = (ScriptableRendererFeature)asset;
                     }
                     else
                     {
-                        m_RendererFeatures[i] = (ScriptableRendererFeature) GetUnusedAsset(ref linkedIds, ref loadedAssets);
+                        m_RendererFeatures[i] = (ScriptableRendererFeature)GetUnusedAsset(ref linkedIds, ref loadedAssets);
                     }
                 }
 
@@ -168,13 +168,13 @@ namespace UnityEngine.Rendering.Universal
 
             for (int i = 0; i < rendererFeatures.Count; i++)
             {
-                if(m_RendererFeatures[i] == null) continue;
+                if (m_RendererFeatures[i] == null) continue;
                 if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_RendererFeatures[i], out var guid, out long localId)) continue;
 
                 m_RendererFeatureMap[i] = localId;
             }
         }
+
 #endif
     }
 }
-

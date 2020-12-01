@@ -12,9 +12,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         public Color Value = Color.black;
 
         public SerializableUserColor(KeyValuePair<string, Color> pair) { Key = pair.Key; Value = pair.Value; }
-        
+
         // Empty constructor required by serialization system
-        public SerializableUserColor() {  }
+        public SerializableUserColor() {}
     }
 
     [Serializable]
@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
         {
             return m_CustomColors.TryGetValue(provider, out color);
         }
-        
+
         public void Set(string provider, Color color)
         {
             m_CustomColors[provider] = color;

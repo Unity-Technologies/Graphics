@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEditor.ShaderAnalysis
 {
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderAnalysis
         static object DiffFirst(object l, object r) { return l; }
         static object DiffSecond(object l, object r) { return r; }
         static object DiffIntSub(object l, object r) { return (int)l - (int)r; }
-        static object DiffFloatDiv(object l, object r) { return (float)l/(float)r; }
+        static object DiffFloatDiv(object l, object r) { return (float)l / (float)r; }
 
         public delegate object Getter(
             ShaderBuildReport report,

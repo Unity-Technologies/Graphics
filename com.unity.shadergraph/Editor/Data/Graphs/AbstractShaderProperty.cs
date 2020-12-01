@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Internal
         public bool gpuInstanced
         {
             get { return false; }
-            set { }
+            set {}
         }
 
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...
@@ -101,11 +101,11 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public virtual string GetPropertyTypeString()
         {
-            string depString = $" (Deprecated{(ShaderGraphPreferences.allowDeprecatedBehaviors ? " V" + sgVersion : "" )})" ;
+            string depString = $" (Deprecated{(ShaderGraphPreferences.allowDeprecatedBehaviors ? " V" + sgVersion : "" )})";
             return propertyType.ToString() + (sgVersion < latestVersion ? depString : "");
         }
     }
-    
+
     [Serializable]
     public abstract class AbstractShaderProperty<T> : AbstractShaderProperty
     {
@@ -199,20 +199,20 @@ namespace UnityEditor.ShaderGraph.Internal
 
         static string[,] kValueTypeStrings = new string[(int)HLSLType.FirstObjectType, 2]
         {
-                {"float", "half"},
-                {"float2", "half2"},
-                {"float3", "half3"},
-                {"float4", "half4"},
-                {"float4x4", "half4x4"}
+            {"float", "half"},
+            {"float2", "half2"},
+            {"float3", "half3"},
+            {"float4", "half4"},
+            {"float4x4", "half4x4"}
         };
 
         static string[] kObjectTypeStrings = new string[(int)HLSLType._CUSTOM - (int)HLSLType.FirstObjectType]
         {
-                "TEXTURE2D",
-                "TEXTURE3D",
-                "TEXTURECUBE",
-                "TEXTURE2D_ARRAY",
-                "SAMPLER",
+            "TEXTURE2D",
+            "TEXTURE3D",
+            "TEXTURECUBE",
+            "TEXTURE2D_ARRAY",
+            "SAMPLER",
         };
 
         public string GetValueTypeString()

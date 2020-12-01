@@ -36,18 +36,18 @@ namespace UnityEngine.Rendering.Universal
             public static ProfilingSampler TryGetOrAddCameraSampler(Camera camera)
             {
                 #if UNIVERSAL_PROFILING_NO_ALLOC
-                    return unknownSampler;
+                return unknownSampler;
                 #else
-                    ProfilingSampler ps = null;
-                    int cameraId = camera.GetHashCode();
-                    bool exists = s_HashSamplerCache.TryGetValue(cameraId, out ps);
-                    if (!exists)
-                    {
-                        // NOTE: camera.name allocates!
-                        ps = new ProfilingSampler( $"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCamera)}: {camera.name}");
-                        s_HashSamplerCache.Add(cameraId, ps);
-                    }
-                    return ps;
+                ProfilingSampler ps = null;
+                int cameraId = camera.GetHashCode();
+                bool exists = s_HashSamplerCache.TryGetValue(cameraId, out ps);
+                if (!exists)
+                {
+                    // NOTE: camera.name allocates!
+                    ps = new ProfilingSampler($"{nameof(UniversalRenderPipeline)}.{nameof(RenderSingleCamera)}: {camera.name}");
+                    s_HashSamplerCache.Add(cameraId, ps);
+                }
+                return ps;
                 #endif
             }
 
@@ -123,9 +123,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // These limits have to match same limits in Input.hlsl
-        const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
-        const int k_MaxVisibleAdditionalLightsMobile    = 32;
-        const int k_MaxVisibleAdditionalLightsNonMobile = 256;
+        internal const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
+        internal const int k_MaxVisibleAdditionalLightsMobile    = 32;
+        internal const int k_MaxVisibleAdditionalLightsNonMobile = 256;
         public static int maxVisibleAdditionalLights
         {
             get
@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
                 return (isMobile || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
-                        ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
+                    ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
 
@@ -144,8 +144,12 @@ namespace UnityEngine.Rendering.Universal
         {
             SetSupportedRenderingFeatures();
 
+            // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
+            int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
+            bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
+
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
-            if (QualitySettings.antiAliasing != asset.msaaSampleCount)
+            if (msaaSampleCountNeedsUpdate)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -191,6 +195,7 @@ namespace UnityEngine.Rendering.Universal
         {
             Render(renderContext, new List<Camera>(cameras));
         }
+
 #endif
 
 #if UNITY_2021_1_OR_NEWER
@@ -209,7 +214,7 @@ namespace UnityEngine.Rendering.Universal
                 BeginContextRendering(renderContext, cameras);
             }
 #else
-            using(new ProfilingScope(null, Profiling.Pipeline.beginFrameRendering))
+            using (new ProfilingScope(null, Profiling.Pipeline.beginFrameRendering))
             {
                 BeginFrameRendering(renderContext, cameras);
             }
@@ -243,8 +248,8 @@ namespace UnityEngine.Rendering.Universal
                         BeginCameraRendering(renderContext, camera);
                     }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                VFX.VFXManager.PrepareCamera(camera);
+                    //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                    VFX.VFXManager.PrepareCamera(camera);
 #endif
                     UpdateVolumeFramework(camera, null);
 
@@ -262,7 +267,7 @@ namespace UnityEngine.Rendering.Universal
                 EndContextRendering(renderContext, cameras);
             }
 #else
-            using(new ProfilingScope(null, Profiling.Pipeline.endFrameRendering))
+            using (new ProfilingScope(null, Profiling.Pipeline.endFrameRendering))
             {
                 EndFrameRendering(renderContext, cameras);
             }
@@ -348,7 +353,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                using (new ProfilingScope( cmd, Profiling.Pipeline.Renderer.setupCullingParameters))
+                using (new ProfilingScope(cmd, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
@@ -379,7 +384,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Timing scope inside
                 renderer.Execute(context, ref renderingData);
-
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             cameraData.xr.EndCamera(cmd, cameraData);
@@ -460,7 +464,7 @@ namespace UnityEngine.Rendering.Universal
                         lastActiveOverlayCameraIndex = i;
                     }
                 }
-                if(shouldUpdateCameraStack)
+                if (shouldUpdateCameraStack)
                 {
                     baseCameraAdditionalData.UpdateCameraStack();
                 }
@@ -493,84 +497,84 @@ namespace UnityEngine.Rendering.Universal
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                 }
 #endif
-                using(new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-                {
-                    BeginCameraRendering(context, baseCamera);
-                }
+            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+            {
+                BeginCameraRendering(context, baseCamera);
+            }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                VFX.VFXManager.PrepareCamera(baseCamera);
+            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+            VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
-                UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
+            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref baseCameraData);
+            if (asset.useAdaptivePerformance)
+                ApplyAdaptivePerformance(ref baseCameraData);
 #endif
-                RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
-                using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
-                {
-                    EndCameraRendering(context, baseCamera);
-                }
+            RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
+            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+            {
+                EndCameraRendering(context, baseCamera);
+            }
 
-                if (isStackedRendering)
+            if (isStackedRendering)
+            {
+                for (int i = 0; i < cameraStack.Count; ++i)
                 {
-                    for (int i = 0; i < cameraStack.Count; ++i)
+                    var currCamera = cameraStack[i];
+                    if (!currCamera.isActiveAndEnabled)
+                        continue;
+
+                    currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
+                    // Camera is overlay and enabled
+                    if (currCameraData != null)
                     {
-                        var currCamera = cameraStack[i];
-                        if (!currCamera.isActiveAndEnabled)
-                            continue;
+                        // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
+                        CameraData overlayCameraData = baseCameraData;
+                        bool lastCamera = i == lastActiveOverlayCameraIndex;
 
-                        currCamera.TryGetComponent<UniversalAdditionalCameraData>(out var currCameraData);
-                        // Camera is overlay and enabled
-                        if (currCameraData != null)
+                        using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
-                            // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
-                            CameraData overlayCameraData = baseCameraData;
-                            bool lastCamera = i == lastActiveOverlayCameraIndex;
-
-                            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-                            {
-                                BeginCameraRendering(context, currCamera);
-                            }
+                            BeginCameraRendering(context, currCamera);
+                        }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
-                            //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
-                            VFX.VFXManager.PrepareCamera(currCamera);
+                        //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
+                        VFX.VFXManager.PrepareCamera(currCamera);
 #endif
-                            UpdateVolumeFramework(currCamera, currCameraData);
-                            InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
+                        UpdateVolumeFramework(currCamera, currCameraData);
+                        InitializeAdditionalCameraData(currCamera, currCameraData, lastCamera, ref overlayCameraData);
 #if ENABLE_VR && ENABLE_XR_MODULE
-                            if (baseCameraData.xr.enabled)
-                                m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
+                        if (baseCameraData.xr.enabled)
+                            m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
 #endif
-                            RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
+                        RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
 
-                            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
-                            {
-                                EndCameraRendering(context, currCamera);
-                            }
+                        using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+                        {
+                            EndCameraRendering(context, currCamera);
                         }
                     }
                 }
+            }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-                if (baseCameraData.xr.enabled)
-                    baseCameraData.cameraTargetDescriptor = originalTargetDesc;
-            }
+            if (baseCameraData.xr.enabled)
+                baseCameraData.cameraTargetDescriptor = originalTargetDesc;
+        }
 
-            if (xrActive)
+        if (xrActive)
+        {
+            CommandBuffer cmd = CommandBufferPool.Get();
+            using (new ProfilingScope(cmd, Profiling.Pipeline.XR.mirrorView))
             {
-                CommandBuffer cmd = CommandBufferPool.Get();
-                using (new ProfilingScope(cmd, Profiling.Pipeline.XR.mirrorView))
-                {
-                    m_XRSystem.RenderMirrorView(cmd, baseCamera);
-                }
-
-                context.ExecuteCommandBuffer(cmd);
-                context.Submit();
-                CommandBufferPool.Release(cmd);
+                m_XRSystem.RenderMirrorView(cmd, baseCamera);
             }
 
-            m_XRSystem.ReleaseFrame();
+            context.ExecuteCommandBuffer(cmd);
+            context.Submit();
+            CommandBufferPool.Release(cmd);
+        }
+
+        m_XRSystem.ReleaseFrame();
 #endif
         }
 
@@ -855,7 +859,7 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.maxShadowDistance > 0.0f)
             {
                 mainLightCastShadows = (mainLightIndex != -1 && visibleLights[mainLightIndex].light != null &&
-                                        visibleLights[mainLightIndex].light.shadows != LightShadows.None);
+                    visibleLights[mainLightIndex].light.shadows != LightShadows.None);
 
                 // If additional lights are shaded per-pixel they cannot cast shadows
                 if (settings.additionalLightsRenderingMode == LightRenderingMode.PerPixel)
@@ -867,8 +871,8 @@ namespace UnityEngine.Rendering.Universal
 
                         Light light = visibleLights[i].light;
 
-                        // UniversalRP doesn't support additional directional lights or point light shadows yet
-                        if (visibleLights[i].lightType == LightType.Spot && light != null && light.shadows != LightShadows.None)
+                        // UniversalRP doesn't support additional directional light shadows yet
+                        if ((visibleLights[i].lightType == LightType.Spot || visibleLights[i].lightType == LightType.Point) && light != null && light.shadows != LightShadows.None)
                         {
                             additionalLightsCastShadows = true;
                             break;
@@ -951,6 +955,7 @@ namespace UnityEngine.Rendering.Universal
                 : ColorGradingMode.LowDynamicRange;
 
             postProcessingData.lutSize = settings.colorGradingLutSize;
+            postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
         }
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)
@@ -1057,6 +1062,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Used when subtractive mode is selected
             Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
+
+            // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
+            Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
@@ -1084,6 +1092,7 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.antialiasing = AntialiasingMode.None;
             cameraData.antialiasingQuality = (AntialiasingQuality)Mathf.Clamp(antialiasingQualityIndex, (int)AntialiasingQuality.Low, (int)AntialiasingQuality.High);
         }
+
         static void ApplyAdaptivePerformance(ref RenderingData renderingData)
         {
             if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipDynamicBatching)
@@ -1123,6 +1132,7 @@ namespace UnityEngine.Rendering.Universal
             if (AdaptivePerformance.AdaptivePerformanceRenderSettings.LutBias >= 1 && renderingData.postProcessingData.lutSize == 32)
                 renderingData.postProcessingData.lutSize = 16;
         }
+
 #endif
     }
 }
