@@ -995,6 +995,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
+          //  ProbeReferenceVolume.instance.InitProbeReferenceVolume(1024, 1024 * 1024 * 1024, new Vector3Int(1024, 64, 1024));
             InitShadowSystem(asset, defaultResources);
 
             s_lightVolumes = new DebugLightVolumes();
@@ -1071,6 +1072,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_TextureCaches.lightCookieManager.ResetAllocator();
                 m_TextureCaches.lightCookieManager.ClearAtlasTexture(cmd);
             }
+
+            // We need to verify and flush any pending asset loading for probe volume.
+            if (ShaderConfig.s_EnableProbeVolumes == 1)
+                ProbeReferenceVolume.instance.PerformPendingLoading();
         }
 
         static int NumLightIndicesPerClusteredTile()

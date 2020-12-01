@@ -147,37 +147,60 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool m_BricksLoaded = false;
 
+        // Information of the probe volume asset that is being loaded (if one is pending)
+        internal ProbeVolumeAsset pendingAssetToBeLoaded = null;
+        private bool m_ProbeReferenceVolumeInit = false;
+
         // index related
         Texture3D indexTex;
 
-        static private ProbeReferenceVolume _instance = null;
+        static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
         public static ProbeReferenceVolume instance
         {
             get
             {
-                // TODO: Make this editable. 
-                // Reinit upon changes
-                // 
-                if (_instance == null)
+                if (!_instance.m_ProbeReferenceVolumeInit)
                 {
-                    // TODO: Allow resizing
-                    _instance = new ProbeReferenceVolume(64, 1024 * 1024 * 1024, new Vector3Int(1024, 64, 1024));
+                    // We hard code some values here just to make sure 
+                    _instance.InitProbeReferenceVolume(1024, 1024 * 1024 * 1024, new Vector3Int(1024, 64, 1024));
                 }
                 return _instance;
             }
         }
 
-        private ProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
+        public void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
-            Profiler.BeginSample("Create Reference volume");
-            m_Transform.posWS = Vector3.zero;
-            m_Transform.rot = Quaternion.identity;
-            m_Transform.scale = 1f;
-            m_Transform.refSpaceToWS = Matrix4x4.identity;
+            pendingAssetToBeLoaded = asset;
+        }
 
-            m_NormalBias = 0f;
+        public void PerformPendingLoading()
+        {
+            if (pendingAssetToBeLoaded == null)
+                return;
 
+            foreach (var cell in pendingAssetToBeLoaded.cells)
+            {
+                // Push data to HDRP
+                bool compressed = false;
+                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
+                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
+
+                // TODO register ID of brick list
+                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
+                brickList.AddRange(cell.bricks);
+                var regId = AddBricks(brickList, dataLocation);
+
+                Cells.Add(cell);
+            }
+
+            // Mark the loading as done.
+            pendingAssetToBeLoaded = null;
+        }
+
+        public void InitProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
+        {
+            Profiler.BeginSample("Initialize Reference Volume");
             m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
             m_Index = new ProbeBrickIndex(indexDimensions);
 
@@ -192,6 +215,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_PositionOffsets[i] = i * probeDelta;
             m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
             Profiler.EndSample();
+
+            m_ProbeReferenceVolumeInit = true;
+        }
+
+        private ProbeReferenceVolume()
+        {
+            m_Transform.posWS = Vector3.zero;
+            m_Transform.rot = Quaternion.identity;
+            m_Transform.scale = 1f;
+            m_Transform.refSpaceToWS = Matrix4x4.identity;
+
+            m_NormalBias = 0f;
         }
 
         public RuntimeResources GetRuntimeResources()

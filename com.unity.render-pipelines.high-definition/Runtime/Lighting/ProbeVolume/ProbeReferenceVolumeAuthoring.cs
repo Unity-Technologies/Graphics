@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeAsset VolumeAsset = null;
 
-        public void LoadAsset()
+        public void QueueAssetLoading()
         {
             if (VolumeAsset == null)
                 return;
@@ -73,20 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
             refVol.SetMaxSubdivision(MaxSubdivision);
             refVol.SetNormalBias(NormalBias);
 
-            foreach (var cell in VolumeAsset.cells)
-            {
-                // Push data to HDRP
-                bool compressed = false;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
-
-                // TODO register ID of brick list
-                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
-                brickList.AddRange(cell.bricks);
-                var regId = refVol.AddBricks(brickList, dataLocation);
-
-                refVol.Cells.Add(cell);
-            }
+            refVol.AddPendingAssetLoading(VolumeAsset);
         }
 
 #if UNITY_EDITOR
@@ -97,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnValidate()
         {
-            LoadAsset();
+            QueueAssetLoading();
         }
 
         private bool ShouldCull(Vector3 cellPosition)

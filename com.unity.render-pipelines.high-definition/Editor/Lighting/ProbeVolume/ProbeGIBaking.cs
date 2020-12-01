@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 refVolAuthoring.VolumeAsset = probeVolumeAsset;
             }
 
-            refVolAuthoring.LoadAsset();
+            refVolAuthoring.QueueAssetLoading();
 
             UnityEditor.Experimental.Lightmapping.additionalBakedProbesCompleted -= OnAdditionalProbesBakeCompleted;
             UnityEditor.Lightmapping.lightingDataCleared += OnLightingDataCleared;
