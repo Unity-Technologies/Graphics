@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    // If we didn't found any empty element of the same size ass the texture, then we have to create a new one 
+                    // If we didn't found any empty element of the same size as the texture, then we have to create a new one 
                     freeElem = m_Elements.FirstOrDefault(e => e.IsFree());
 
                     // No more space in the atlas
@@ -296,8 +296,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 foreach (var child in elem.children)
                 {
-                    if (child.children != null && elem.size > size)
-                        return FindFreeElement(size, child);
+                    if (child.children != null && child.size >= size)
+                    {
+                        var cell = FindFreeElement(size, child);
+                        if (cell != null)
+                            return cell;
+                    }
                     else if (child.IsFree())
                         return child;
                 }
