@@ -6,7 +6,7 @@ The **Velocity from Direction And Speed : Change Speed** Block calculates a velo
 
 To do this, it scales the direction vector by a speed, and composes it with the velocity attribute.
 
-![](Images/Block-VelocityFromDirection&Speed(ChangeSpeed)Example.gif)
+![](Images/Block-VelocityFromDirectionAndSpeed(ChangeSpeed)Example.gif)
 
 ## Block compatibility
 

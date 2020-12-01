@@ -6,7 +6,7 @@ The **Velocity from Direction And Speed (New Direction)** Block calculates a vel
 
 The Block then scales the final direction vector by a speed, and composes it with the velocity attribute.
 
-![](Images/Block-VelocityFromDirection&Speed(NewDirection)Example.gif)
+![](Images/Block-VelocityFromDirectionAndSpeed(NewDirection)Example.gif)
 
 ## Block compatibility
 
