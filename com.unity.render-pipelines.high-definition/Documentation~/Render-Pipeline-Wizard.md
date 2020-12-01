@@ -8,7 +8,7 @@ To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and s
 
 ## Packages
 
-At the top of the window, there is an information text that shows you the currently installed version of HDRP. The button **Check update** provide you a quick shortcut to the **Package Manager** windows onto the HDRP package.
+At the top of the window, there is an information text that shows you the currently installed version of HDRP. The **Check Update** button provides a shortcut to the HDRP package in the Package Manager window.
 
 You also have a button allow you to creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.md) in the **LocalPackage** folder of your HDRP Project. If already installed, some information about its location are displayed below.
 
@@ -97,6 +97,6 @@ When upgrading a project from the built-in render pipeline to HDRP, you need to 
 
 - **Upgrade Project Materials to High Definition Materials**: Upgrades every Material in your Unity Project to HDRP Materials.
 - **Upgrade Selected Materials to High Definition Materials**: Upgrades every Material currently selected to HDRP Materials.
-- **Upgrade HDRP Materials to Latest Version:** Upgrades every Materials in your Unity Project to latest version available.
+- **Upgrade HDRP Materials to Latest Version:** Upgrades every Material in your Unity Project to the latest version.
 
 The lighting will not match as HDRP use a different attenuation function than built-in and use correct math to handle lighting model. There is no function that can convert the look. Thus the lighting will require to be redone.
