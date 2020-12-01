@@ -542,6 +542,15 @@ namespace UnityEngine.Rendering.Universal
                             if (baseCameraData.xr.enabled)
                                 m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, overlayCameraData);
 #endif
+
+                            // There is still some native codes that depends on camera properties
+                            // Current know native systems:
+                            // - ScriptableRendererContext.SetupCameraProperties.
+                            // - Screen space camera canvas.
+                            currCamera.targetTexture = baseCamera.targetTexture;
+                            currCamera.targetDisplay = baseCamera.targetDisplay;
+                            currCamera.rect = baseCamera.rect;
+
                             RenderSingleCamera(context, overlayCameraData, anyPostProcessingEnabled);
 
                             using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
