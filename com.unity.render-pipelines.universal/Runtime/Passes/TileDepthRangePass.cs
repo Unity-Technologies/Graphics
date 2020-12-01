@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public TileDepthRangePass(RenderPassEvent evt, DeferredLights deferredLights, int passIndex)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(TileDepthRangePass));
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
             m_PassIndex = passIndex;

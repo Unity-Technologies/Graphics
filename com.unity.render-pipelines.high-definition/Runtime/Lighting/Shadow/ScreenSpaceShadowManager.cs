@@ -239,17 +239,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
                     break;
             }
+        }
 
+        void ScreenSpaceShadowInitializeNonRenderGraphResources()
+        {
             // Allocate the final result texture
             int numShadowTextures = Math.Max((int)Math.Ceiling(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
             GraphicsFormat graphicsFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
-            m_ScreenSpaceShadowTextureArray = RTHandles.Alloc(Vector2.one, slices: numShadowTextures * TextureXR.slices, dimension:TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AreaShadowArrayBuffer");
+            m_ScreenSpaceShadowTextureArray = RTHandles.Alloc(Vector2.one, slices: numShadowTextures * TextureXR.slices, dimension: TextureDimension.Tex2DArray, filterMode: FilterMode.Point, colorFormat: graphicsFormat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "AreaShadowArrayBuffer");
+        }
+
+        void ScreenSpaceShadowCleanupNonRenderGraphResources()
+        {
+            RTHandles.Release(m_ScreenSpaceShadowTextureArray);
+            m_ScreenSpaceShadowTextureArray = null;
         }
 
         void ReleaseScreenSpaceShadows()
         {
             CoreUtils.Destroy(s_ScreenSpaceShadowsMat);
-            RTHandles.Release(m_ScreenSpaceShadowTextureArray);
         }
 
         void BindBlackShadowTexture(CommandBuffer cmd)
@@ -286,7 +294,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-
         bool RenderLightScreenSpaceShadows(HDCamera hdCamera, CommandBuffer cmd)
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingLightShadow)))
@@ -308,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         EvaluateGPULightType(extraLightData.type, extraLightData.spotLightShape, extraLightData.areaLightShape,
                                              ref category, ref lightType);
 
-                        /* Broken in XR, fix later
+                        /* TODO: Broken in XR, fix later
                         // Trigger the right algorithm based on the light type
                         switch (currentLight.lightType)
                         {

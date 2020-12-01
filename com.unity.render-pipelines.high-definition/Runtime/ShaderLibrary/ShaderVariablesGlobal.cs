@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _HeightFogBaseExtinction;
         public float    _HeightFogBaseHeight;
         public float    _GlobalFogAnisotropy;
-        public float    _Pad3;
+        public int      _VolumetricFilteringEnabled;
         public Vector2  _HeightFogExponents; // { 1/H, H }
         public float    _Pad4;
         public float    _Pad5;
@@ -274,8 +274,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
 
         public int      _TransparentCameraOnlyMotionVectors;
+
+        // Can be set to 0 to globally "disable" tessellation
+        // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
+        public float    _GlobalTessellationFactorMultiplier;
+
         public float    _Pad8;
         public float    _Pad9;
-        public float    _Pad10;
     }
 }

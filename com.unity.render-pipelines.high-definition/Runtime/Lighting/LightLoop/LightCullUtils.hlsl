@@ -5,6 +5,8 @@
 // LightVolumeData (_LightVolumeData) buffers.
 uint GenerateLightCullDataIndex(uint lightIndex, uint numVisibleLights, uint eyeIndex)
 {
+    lightIndex = min(lightIndex, numVisibleLights - 1); // Stay within bounds
+
     // For monoscopic, there is just one set of light cull data structs.
     // In stereo, all of the left eye structs are first, followed by the right eye structs.
     const uint perEyeBaseIndex = eyeIndex * numVisibleLights;

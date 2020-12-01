@@ -30,6 +30,9 @@ TEXTURE2D_X(_DepthTexture);
 // Input texture that holds the offset for every level of the depth pyramid
 StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
 
+// Flag value that defines if a given pixel recieves reflections or not
+TEXTURE2D_X_UINT2(_StencilTexture);
+
 // Constant buffer that holds all scalar that we need
 CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     int _IndirectDiffuseSteps;
@@ -38,6 +41,7 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     int _IndirectDiffuseProbeFallbackFlag;
     int _IndirectDiffuseProbeFallbackBias;
     float4 _ColorPyramidUvScaleAndLimitPrevFrame;
+    int _SsrStencilBit;
 CBUFFER_END
 
 // Output texture that holds the hit point NDC coordinates
@@ -461,6 +465,11 @@ void CONVERT_YCOCG_TO_RGB(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
     // the fact that the signal was significantly attenuated (due to blurring in tonemapped space to reduce the blobbyness). 
     // This has been experimentally tested. However, it needs more testing and potetially reverted if found more harmful than useful
     color *= (lerp(2.5, 1.0, cocgB.z));
+
+    // Does this pixel recieve SSGI?
+    uint stencilValue = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, currentCoord));
+    if ((stencilValue & _SsrStencilBit) == 0)
+        cocgB.z = 0.0;
 
     // Output the color as well as the blend factor
     _IndirectDiffuseTexture0RW[COORD_TEXTURE2D_X(currentCoord)] = float4(color, cocgB.z);

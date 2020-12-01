@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
             };
 
@@ -71,6 +71,42 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
+
+#endregion
+
+#region Scene Picking Pass
+
+        public static PassDescriptor GenerateScenePicking()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "ScenePickingPass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "Picking",
+                useInPreview = false,
+
+                // Collections
+                renderStates = CoreRenderStates.ScenePicking,
+                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+                defines = CoreDefines.ScenePicking,
+                includes = GenerateIncludes(),
+            };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                return includes;
+            }
+        }
 
 #endregion
 
@@ -184,7 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.Meta,
                 renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
             };
 
@@ -227,7 +263,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = GenerateRequiredFields(),
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = supportLighting ? CoreDefines.DepthForwardOnly : null,
+                defines = supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit,
                 includes = GenerateIncludes(),
             };
 
@@ -314,7 +350,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (!supportLighting)
                     return null;
 
-                var defines = new DefineCollection { Defines.raytracingHigh };
+                var defines = new DefineCollection { Defines.raytracingDefault };
 
                 //  #define WRITE_NORMAL_BUFFER for motion vector in forward case
                 // if (supportForward)
@@ -384,7 +420,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = GenerateRequiredFields(),
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = supportLighting ? CoreDefines.Forward : null,
+                defines = supportLighting ? CoreDefines.Forward : CoreDefines.ForwardUnlit,
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
@@ -676,7 +712,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = CoreRenderStates.DepthOnly,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = LitDepthOnlyKeywords,
                 includes = DepthOnlyIncludes,
             };
@@ -717,7 +753,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = GBufferRenderState,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
 
@@ -812,7 +848,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 renderStates = RayTracingPrepassRenderState,
                 pragmas = CorePragmas.Basic,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = RayTracingPrepassIncludes,
             };
         }
@@ -891,7 +927,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingIndirectDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingLow },
+            { Defines.raytracingRaytraced },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -945,7 +981,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection RaytracingVisibilityDefines = new DefineCollection
         {
-            { Defines.raytracingLow },
+            { Defines.raytracingRaytraced },
         };
 
 #endregion
@@ -1010,7 +1046,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingForwardDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingHigh },
+            { Defines.raytracingRaytraced },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -1072,7 +1108,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingGBufferDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingLow },
+            { Defines.raytracingRaytraced },
         };
 
 #endregion
@@ -1115,8 +1151,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
-                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include path tracing support for the material
+                includes.Add(CoreIncludes.kPathtracingPlaceholder, IncludeLocation.Pregraph);
 
                 includes.Add(CoreIncludes.CoreUtility);
                 includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
@@ -1132,7 +1168,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingPathTracingDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingHigh },
+            { Defines.raytracingDefault },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -1190,7 +1226,48 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingSubsurfaceDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { Defines.raytracingLow },
+            { Defines.raytracingRaytraced },
+        };
+
+#endregion
+
+#region FullScreen Debug
+
+        public static PassDescriptor GenerateFullScreenDebug()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "FullScreenDebug",
+                referenceName = "SHADERPASS_FULL_SCREEN_DEBUG",
+                lightMode = "FullScreenDebug",
+                useInPreview = false,
+
+                // Collections
+                pragmas = CorePragmas.Basic,
+                renderStates = FullScreenDebugRenderState,
+                includes = GenerateIncludes(),
+            };
+
+            IncludeCollection GenerateIncludes()
+            {
+                return new IncludeCollection
+                {
+                    { CoreIncludes.CorePregraph },
+                    { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
+                    { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
+                    { CoreIncludes.CoreUtility },
+                    { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
+                    { CoreIncludes.kPassFullScreenDebug, IncludeLocation.Postgraph },
+                };
+            }
+        }
+
+        public static RenderStateCollection FullScreenDebugRenderState = new RenderStateCollection
+        {
+            { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.Off) },
+            { RenderState.ZTest(ZTest.LEqual) },
         };
 
 #endregion
@@ -1205,8 +1282,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
 
             // Raytracing Quality
-            public static DefineCollection raytracingLow = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 1} };
-            public static DefineCollection raytracingHigh = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 0} };
+            public static DefineCollection raytracingDefault = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0} };
+            public static DefineCollection raytracingRaytraced = new DefineCollection { { RayTracingQualityNode.GetRayTracingQualityKeyword(), 1} };
         }
 
 #endregion

@@ -59,6 +59,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         readonly static ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
 
+        readonly static LightUnitSliderUIDrawer k_LightUnitSliderUIDrawer = new LightUnitSliderUIDrawer();
+
         public static readonly CED.IDrawer Inspector;
 
         static bool GetAdvanced(AdvancedMode mask, SerializedHDLight serialized, Editor owner)
@@ -511,9 +513,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner)
+        internal static void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner)
         {
-            float intensity = serialized.intensity.floatValue;
+            serialized.intensity.floatValue = ConvertLightIntensity(oldLightUnit, newLightUnit, serialized, owner, serialized.intensity.floatValue);
+        }
+
+        internal static float ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit, SerializedHDLight serialized, Editor owner, float intensity)
+        {
             Light light = (Light)owner.target;
 
             // For punctual lights
@@ -577,7 +583,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;  // do nothing
             }
 
-            serialized.intensity.floatValue = intensity;
+            return intensity;
         }
 
         static void DrawLightIntensityGUILayout(SerializedHDLight serialized, Editor owner)
@@ -591,19 +597,11 @@ namespace UnityEditor.Rendering.HighDefinition
             float indent = k_IndentPerLevel * EditorGUI.indentLevel;
 
             Rect lineRect = EditorGUILayout.GetControlRect();
-            Rect valueRect = lineRect;
             Rect labelRect = lineRect;
             labelRect.width = EditorGUIUtility.labelWidth;
 
-            // We use PropertyField to draw the value to keep the handle at left of the field
-            // This will apply the indent again thus we need to remove it time for alignment
-            valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
-            Rect unitRect = valueRect;
-            unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
-            unitRect.width = k_UnitWidth + .5f;
-
             //handling of prefab overrides in a parent label
-            GUIContent parentLabel = s_Styles.lightIntensity;
+            GUIContent parentLabel =  s_Styles.lightIntensity;
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.intensity);
             parentLabel = EditorGUI.BeginProperty(labelRect, parentLabel, serialized.lightUnit);
             {
@@ -612,6 +610,26 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
 
+            // Draw the light unit slider + icon + tooltip
+            Rect lightUnitSliderRect = lineRect; // TODO: Move the value and unit rects to new line
+            lightUnitSliderRect.x += EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
+            lightUnitSliderRect.width -= EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
+
+            var lightType = serialized.type;
+            var lightUnit = serialized.lightUnit.GetEnumValue<LightUnit>();
+            k_LightUnitSliderUIDrawer.SetSerializedObject(serialized.serializedObject);
+            k_LightUnitSliderUIDrawer.Draw(lightType, lightUnit, serialized.intensity, lightUnitSliderRect, serialized, owner);
+
+            // We use PropertyField to draw the value to keep the handle at left of the field
+            // This will apply the indent again thus we need to remove it time for alignment
+            Rect valueRect = EditorGUILayout.GetControlRect();
+            labelRect.width = EditorGUIUtility.labelWidth;
+            valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
+            Rect unitRect = valueRect;
+            unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
+            unitRect.width = k_UnitWidth + .5f;
+
+            // Draw the unit textfield
             EditorGUI.PropertyField(valueRect, serialized.intensity, s_Styles.empty);
             DrawLightIntensityUnitPopup(unitRect, serialized, owner);
 
@@ -627,12 +645,43 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (GraphicsSettings.lightsUseLinearIntensity && GraphicsSettings.lightsUseColorTemperature)
                 {
-                    EditorGUILayout.PropertyField(serialized.settings.useColorTemperature, s_Styles.useColorTemperature);
+                    // Use the color temperature bool to create a popup dropdown to choose between the two modes.
+                    var colorTemperaturePopupValue = Convert.ToInt32(serialized.settings.useColorTemperature.boolValue);
+                    var lightAppearanceOptions = new [] { "Color", "Filter and Temperature" };
+                    colorTemperaturePopupValue = EditorGUILayout.Popup(s_Styles.lightAppearance, colorTemperaturePopupValue, lightAppearanceOptions);
+                    serialized.settings.useColorTemperature.boolValue = Convert.ToBoolean(colorTemperaturePopupValue);
+
                     if (serialized.settings.useColorTemperature.boolValue)
                     {
                         EditorGUI.indentLevel += 1;
                         EditorGUILayout.PropertyField(serialized.settings.color, s_Styles.colorFilter);
-                        SliderWithTexture(s_Styles.colorTemperature, serialized.settings.colorTemperature, serialized.settings);
+
+                        // Light unit slider
+                        const int k_ValueUnitSeparator = 2;
+                        var lineRect = EditorGUILayout.GetControlRect();
+                        var labelRect = lineRect;
+                        labelRect.width = EditorGUIUtility.labelWidth;
+                        EditorGUI.LabelField(labelRect, s_Styles.colorTemperature);
+
+                        var temperatureSliderRect = lineRect;
+                        temperatureSliderRect.x += EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
+                        temperatureSliderRect.width -= EditorGUIUtility.labelWidth + k_ValueUnitSeparator;
+                        k_LightUnitSliderUIDrawer.DrawTemperatureSlider(serialized.settings, serialized.settings.colorTemperature, temperatureSliderRect);
+
+                        // Value and unit label
+                        // Match const defined in EditorGUI.cs
+                        const int k_IndentPerLevel = 15;
+                        const int k_UnitWidth = 100 + k_IndentPerLevel;
+                        int indent = k_IndentPerLevel * EditorGUI.indentLevel;
+                        Rect valueRect = EditorGUILayout.GetControlRect();
+                        valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
+                        Rect unitRect = valueRect;
+                        unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
+                        unitRect.width = k_UnitWidth + .5f;
+
+                        EditorGUI.PropertyField(valueRect, serialized.settings.colorTemperature, s_Styles.empty);
+                        EditorGUI.Popup(unitRect, 0, new[] {"Kelvin"});
+
                         EditorGUI.indentLevel -= 1;
                     }
                     else
@@ -683,6 +732,9 @@ namespace UnityEditor.Rendering.HighDefinition
 #else
                 serialized.settings.DrawRange(false);
 #endif
+                // Make sure the range is not 0.0
+                serialized.settings.range.floatValue = Mathf.Max(0.001f, serialized.settings.range.floatValue);
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
@@ -927,6 +979,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUILayout.PropertyField(serialized.includeForRayTracing, s_Styles.includeLightForRayTracing);
+
             if (EditorGUI.EndChangeCheck())
             {
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
@@ -942,6 +996,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(serialized.volumetricDimmer, s_Styles.volumetricDimmer);
                 EditorGUILayout.Slider(serialized.volumetricShadowDimmer, 0.0f, 1.0f, s_Styles.volumetricShadowDimmer);
+                HDLightType lightType = serialized.type;
+                if (lightType != HDLightType.Directional)
+                {
+                    EditorGUILayout.PropertyField(serialized.volumetricFadeDistance, s_Styles.volumetricFadeDistance);
+                }
             }
         }
 
@@ -972,6 +1031,15 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!newShadowsEnabled))
             {
                 EditorGUILayout.PropertyField(serialized.shadowUpdateMode, s_Styles.shadowUpdateMode);
+
+                if(serialized.shadowUpdateMode.intValue > 0 && serialized.type != HDLightType.Directional)
+                {
+#if UNITY_2021_1_OR_NEWER
+                    EditorGUILayout.PropertyField(serialized.shadowAlwaysDrawDynamic, s_Styles.shadowAlwaysDrawDynamic);
+#endif
+                    EditorGUILayout.PropertyField(serialized.shadowUpdateUponTransformChange, s_Styles.shadowUpdateOnLightTransformChange);
+
+                }
 
                 HDLightType lightType = serialized.type;
 
@@ -1027,7 +1095,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Slider(serialized.areaLightShadowCone, HDAdditionalLightData.k_MinAreaLightShadowCone, HDAdditionalLightData.k_MaxAreaLightShadowCone, s_Styles.areaLightShadowCone);
                 }
 
-                if (HDRenderPipeline.pipelineSupportsRayTracing)
+                if (HDRenderPipeline.pipelineSupportsRayTracing && HDRenderPipeline.pipelineSupportsScreenSpaceShadows)
                 {
                     bool isPunctual = lightType == HDLightType.Point || (lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Cone);
                     if (isPunctual || (lightType == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))

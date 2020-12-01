@@ -1,3 +1,6 @@
+#ifndef UNITY_LIGHT_LOOP_DEF_INCLUDED
+#define UNITY_LIGHT_LOOP_DEF_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
 
@@ -58,6 +61,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
 
     output.weight = 1.0;
     output.multiplier = _EnableSkyReflection.x != 0 ? 1.0 : 0.0;
+    output.roughReflections = 1.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -86,7 +90,7 @@ float2 RemapUVForPlanarAtlas(float2 coord, float2 size, float lod)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
 // Texture2D    : texCoord = projectedPositionWS - lightData.capturePosition
-float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, int sliceIdx = 0)
+float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, float2 positionNDC, int sliceIdx = 0)
 {
     // 31 bit index, 1 bit cache type
     uint cacheType = IsEnvIndexCubemap(index) ? ENVCACHETYPE_CUBEMAP : ENVCACHETYPE_TEXTURE2D;
@@ -121,6 +125,26 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             float3 capturedForwardWS = _Env2DCaptureForward[index].xyz;
             if (dot(capturedForwardWS, texCoord) < 0.0)
                 color.a = 0.0;
+            else
+            {
+                // Controls the blending on the edges of the screen
+                const float amplitude = 100.0;
+
+                float2 rcoords = abs(saturate(ndc.xy) * 2.0 - 1.0);
+
+                // When the object normal is not aligned with the reflection plane, the reflected ray might deviate too much and go out
+                // of the reflection frustum. So we apply blending when the reflection sample coords are on the edges of the texture
+                // These "edges" depend on the screen space coordinates of the pixel, because it is expected that a pixel on the
+                // edge of the screen will sample on the edge of the texture
+
+                // Blending factors taking the above into account
+                bool2 blend = (positionNDC < ndc.xy) ^ (ndc.xy < 0.5);
+                float2 alphas = saturate(amplitude * abs(ndc.xy - positionNDC));
+                alphas = float2(Smoothstep01(alphas.x), Smoothstep01(alphas.y));
+
+                float2 weights = lerp(1.0, saturate(2.0 - 2.0 * rcoords), blend * alphas);
+                color.a *= weights.x * weights.y;
+            }
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
@@ -457,3 +481,5 @@ float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)
     float4 res = LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK));
     return (SCREEN_SPACE_COLOR_SHADOW_FLAG & shadowIndex) ? res.xyz : res.xxx;
 }
+
+#endif // UNITY_LIGHT_LOOP_DEF_INCLUDED
