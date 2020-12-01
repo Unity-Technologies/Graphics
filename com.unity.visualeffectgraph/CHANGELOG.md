@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.3.0] - 2020-11-16
 ### Added
 - Added new setting to output nodes to exclude from TAA
+- New Sample Point cache & Sample Attribute map operators
 
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
