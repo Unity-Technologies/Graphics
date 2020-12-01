@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         // Null/Empty means no title
         protected virtual string title => null;
-        
+
         protected TargetPropertyGUIContext context;
         protected Action onChange;
         protected Action<String> registerUndo;
@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // We don't use UIElement HelpBox because it's width is not dynamic.
             int indentLevel = context.globalIndentLevel;
-            var imgui = new IMGUIContainer(() => 
+            var imgui = new IMGUIContainer(() =>
             {
                 float indentPadding = indentLevel * 15;
                 var rect = EditorGUILayout.GetControlRect(false, 42);

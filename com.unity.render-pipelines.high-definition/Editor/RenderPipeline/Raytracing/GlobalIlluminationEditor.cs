@@ -92,7 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
             if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false)
             {
@@ -143,27 +142,33 @@ namespace UnityEditor.Rendering.HighDefinition
                                             DenoiserGUI();
                                         }
                                     }
-                                        break;
+                                    break;
                                     case RayTracingMode.Quality:
                                     {
-                                        PropertyField(m_RayLength, k_RayLengthText);
-                                        PropertyField(m_ClampValue);
-                                        PropertyField(m_SampleCount);
-                                        PropertyField(m_BounceCount);
-                                        DenoiserGUI();
+                                        using (new QualityScope(this))
+                                        {
+                                            PropertyField(m_RayLength, k_RayLengthText);
+                                            PropertyField(m_ClampValue);
+                                            PropertyField(m_SampleCount);
+                                            PropertyField(m_BounceCount);
+                                            DenoiserGUI();
+                                        }
                                     }
-                                        break;
+                                    break;
                                 }
                             }
                         }
                         else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
                                  RenderPipelineSettings.SupportedRayTracingMode.Quality)
                         {
-                            PropertyField(m_RayLength, k_RayLengthText);
-                            PropertyField(m_ClampValue);
-                            PropertyField(m_SampleCount);
-                            PropertyField(m_BounceCount);
-                            DenoiserGUI();
+                            using (new QualityScope(this))
+                            {
+                                PropertyField(m_RayLength, k_RayLengthText);
+                                PropertyField(m_ClampValue);
+                                PropertyField(m_SampleCount);
+                                PropertyField(m_BounceCount);
+                                DenoiserGUI();
+                            }
                         }
                         else
                         {
@@ -180,7 +185,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                             EditorGUI.indentLevel--;
                         }
-
                     }
                 }
 
@@ -192,7 +196,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new HDEditorUtils.IndentScope())
                     using (new QualityScope(this))
                     {
-                        PropertyField(m_FullResolutionSS,EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
+                        PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
                         PropertyField(m_RaySteps);
                         PropertyField(m_FilterRadius);
                     }
@@ -201,6 +205,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
         }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
@@ -258,6 +263,24 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_FullResolutionSS, settings.lightingQualitySettings.SSGIFullResolution[level]);
             CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
             CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
+        }
+
+        public override bool QualityEnabled()
+        {
+            // Quality always used for SSGI
+            if (!HDRenderPipeline.rayTracingSupportedBySystem || !m_RayTracing.value.boolValue)
+                return true;
+
+            // Handle the quality usage for RTGI
+            var currentAsset = HDRenderPipeline.currentAsset;
+
+            var bothSupportedAndPerformanceMode = (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                RenderPipelineSettings.SupportedRayTracingMode.Both) && (m_Mode.value.GetEnumValue<RayTracingMode>() == RayTracingMode.Performance);
+
+            var performanceMode = currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode ==
+                RenderPipelineSettings.SupportedRayTracingMode.Performance;
+
+            return bothSupportedAndPerformanceMode || performanceMode;
         }
     }
 }

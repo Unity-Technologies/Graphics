@@ -153,7 +153,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.LogError("Allocation for requested AOVBuffers ID: " + bufferId.ToString() + " have fail. Please ensure the callback allocator do the correct allocation.");
                     }
                 }
-                    
             }
 
             if (m_CustomPassAOVBuffers != null)
@@ -232,10 +231,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.target = targets[index];
 
                 builder.SetRenderFunc(
-                (PushCameraTexturePassData data, RenderGraphContext ctx) =>
-                {
-                    HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
-                });
+                    (PushCameraTexturePassData data, RenderGraphContext ctx) =>
+                    {
+                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
+                    });
             }
         }
 
@@ -326,13 +325,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.target = targets[index];
 
                 builder.SetRenderFunc(
-                (PushCustomPassTexturePassData data, RenderGraphContext ctx) =>
-                {
-                    if (data.customPassSource != null)
-                        HDUtils.BlitCameraTexture(ctx.cmd, data.customPassSource, data.target);
-                    else
-                        HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
-                });
+                    (PushCustomPassTexturePassData data, RenderGraphContext ctx) =>
+                    {
+                        if (data.customPassSource != null)
+                            HDUtils.BlitCameraTexture(ctx.cmd, data.customPassSource, data.target);
+                        else
+                            HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
+                    });
             }
         }
 

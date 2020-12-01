@@ -20,6 +20,8 @@ All_ShaderGraph_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 All_ShaderGraph_CUSTOM-REVISION:
     name: All ShaderGraph CI - CUSTOM-REVISION
     dependencies:
@@ -35,3 +37,4 @@ All_ShaderGraph_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*

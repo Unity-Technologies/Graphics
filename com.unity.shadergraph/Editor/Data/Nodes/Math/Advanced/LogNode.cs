@@ -20,7 +20,6 @@ namespace UnityEditor.ShaderGraph
             name = "Log";
         }
 
-
         [SerializeField]
         private LogBase m_LogBase = LogBase.BaseE;
 
@@ -56,7 +55,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = log(In);
 }
@@ -68,7 +67,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = log2(In);
 }
@@ -80,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = log10(In);
 }

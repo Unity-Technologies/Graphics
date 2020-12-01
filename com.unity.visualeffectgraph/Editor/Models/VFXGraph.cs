@@ -16,13 +16,12 @@ using UnityObject = UnityEngine.Object;
 
 namespace UnityEditor.VFX
 {
-
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
         void OnPreprocessAsset()
         {
-            bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+            bool isVFX = VisualEffectAssetModicationProcessor.HasVFXExtension(assetPath);
             if (isVFX)
             {
                 VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -32,7 +31,7 @@ namespace UnityEditor.VFX
                 resource.GetOrCreateGraph().SanitizeForImport();
             }
         }
-        
+
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -124,7 +123,6 @@ namespace UnityEditor.VFX
                 if (resource != null)
                 {
                     VFXGraph graph = resource.GetOrCreateGraph();
-                    graph.SanitizeGraph(); // tmp Necessary for subgraphs
                     AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
                     EditorUtility.SetDirty(resource);
                 }
@@ -647,6 +645,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        private void SetFlattenedParentToSubblocks()
+        {
+            foreach (var child in children.OfType<VFXContext>())
+                foreach (var block in child.children.OfType<VFXSubgraphBlock>())
+                    block.SetSubblocksFlattenedParent();
+        }
+
         void RecurseSubgraphPatchInputExpression(IEnumerable<VFXModel> children)
         {
             foreach (var child in children)
@@ -709,6 +714,7 @@ namespace UnityEditor.VFX
         {
             Profiler.BeginSample("PrepareSubgraphs");
             RecurseSubgraphRecreateCopy(children);
+            SetFlattenedParentToSubblocks();
             RecurseSubgraphPatchInputExpression(children);
             Profiler.EndSample();
         }
@@ -748,11 +754,12 @@ namespace UnityEditor.VFX
                 }
             }
 
-            foreach(var child in children)
+            foreach (var child in children)
                 child.CheckGraphBeforeImport();
 
             SanitizeGraph();
         }
+
         public void CompileForImport()
         {
             if (!GetResource().isSubgraph)
@@ -797,7 +804,6 @@ namespace UnityEditor.VFX
                     PrepareSubgraphs();
 
                     compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
-
                 }
                 else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
                 {
@@ -898,6 +904,5 @@ namespace UnityEditor.VFX
         }
 
         private VisualEffectResource m_Owner;
-
     }
 }

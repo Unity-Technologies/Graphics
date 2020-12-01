@@ -85,8 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Rather inconvenient to support (S = Inf).
             shapeParam = new Vector3(Mathf.Min(16777216, 1.0f / sd.x),
-                                     Mathf.Min(16777216, 1.0f / sd.y),
-                                     Mathf.Min(16777216, 1.0f / sd.z));
+                Mathf.Min(16777216, 1.0f / sd.y),
+                Mathf.Min(16777216, 1.0f / sd.z));
 
             // Filter radius is, strictly speaking, infinite.
             // The magnitude of the function decays exponentially, but it is never truly zero.
@@ -172,7 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
             u = 1 - u; // Convert CDF to CCDF
 
             float g = 1 + (4 * u) * (2 * u + Mathf.Sqrt(1 + (4 * u) * u));
-            float n = Mathf.Pow(g, -1.0f/3.0f);                      // g^(-1/3)
+            float n = Mathf.Pow(g, -1.0f / 3.0f);                      // g^(-1/3)
             float p = (g * n) * n;                                   // g^(+1/3)
             float c = 1 + p + n;                                     // 1 + g^(+1/3) + g^(-1/3)
             float x = 3 * Mathf.Log(c / (4 * u));
@@ -185,13 +185,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (other == null)
                 return false;
 
-            return  scatteringDistance == other.scatteringDistance &&
-                    transmissionTint == other.transmissionTint &&
-                    texturingMode == other.texturingMode &&
-                    transmissionMode == other.transmissionMode &&
-                    thicknessRemap == other.thicknessRemap &&
-                    worldScale == other.worldScale &&
-                    ior == other.ior;
+            return scatteringDistance == other.scatteringDistance &&
+                transmissionTint == other.transmissionTint &&
+                texturingMode == other.texturingMode &&
+                transmissionMode == other.transmissionMode &&
+                thicknessRemap == other.thicknessRemap &&
+                worldScale == other.worldScale &&
+                ior == other.ior;
         }
     }
 
@@ -238,13 +238,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 profile.hash = DiffusionProfileHashTable.GenerateUniqueHash(this);
             }
         }
+
 #endif
         internal void UpdateCache()
         {
             worldScaleAndFilterRadiusAndThicknessRemap = new Vector4(profile.worldScale,
-                                                                     profile.filterRadius,
-                                                                     profile.thicknessRemap.x,
-                                                                     profile.thicknessRemap.y - profile.thicknessRemap.x);
+                profile.filterRadius,
+                profile.thicknessRemap.x,
+                profile.thicknessRemap.y - profile.thicknessRemap.x);
             shapeParamAndMaxScatterDist   = profile.shapeParam;
             shapeParamAndMaxScatterDist.w = profile.maxScatteringDistance;
             // Convert ior to fresnel0

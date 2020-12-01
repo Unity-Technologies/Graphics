@@ -49,7 +49,7 @@ void CirclePupilAnimation(float2 irusUV, float pupilRadius, float pupilAperture,
 
 void CorneaRefraction(float3 positionOS, float3 viewDirectionOS, float3 corneaNormalOS, float corneaIOR, float irisPlaneOffset, out float3 refractedPositionOS)
 {
-    // Compute the refracted 
+    // Compute the refracted
     float eta = 1.0 / (corneaIOR);
     corneaNormalOS = normalize(corneaNormalOS);
     viewDirectionOS = -normalize(viewDirectionOS);
@@ -98,7 +98,7 @@ void ScleraLimbalRing(float3 positionOS, float3 viewOS, float irisRadius, float 
 
 void ScleraIrisBlend(float3 scleraColor, float3 scleraNormal, float scleraSmoothness,
                             float3 irisColor, float3 irisNormal, float corneaSmoothness,
-                            float irisRadius, 
+                            float irisRadius,
                             float3 positionOS,
                             float diffusionProfileSclera, float diffusionProfileIris,
                             out float3 eyeColor, out float surfaceMask,

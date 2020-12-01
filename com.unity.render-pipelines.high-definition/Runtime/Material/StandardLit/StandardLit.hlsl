@@ -9,16 +9,16 @@ void EncodeIntoStandardGBuffer( StandardBSDFData standardBSDFData
                         , out GBufferType3 outGBuffer3
                         )
 {
-	// GBuffer0
+    // GBuffer0
     outGBuffer0 = float4(standardBSDFData.baseColor, standardBSDFData.specularOcclusion);
 
-	// GBuffer1
+    // GBuffer1
     NormalData normalData;
     normalData.normalWS = standardBSDFData.normalWS;
     normalData.perceptualRoughness = standardBSDFData.perceptualRoughness;
     EncodeIntoNormalBuffer(normalData, outGBuffer1);
 
-	// GBuffer2
+    // GBuffer2
     outGBuffer2.rgb = FastLinearToSRGB(standardBSDFData.fresnel0);
     outGBuffer2.a  = PackFloatInt8bit(standardBSDFData.coatMask, GBUFFER_LIT_STANDARD, 8);
 

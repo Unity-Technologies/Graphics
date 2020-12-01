@@ -28,7 +28,8 @@ namespace UnityEditor.Rendering.HighDefinition
         // Utils property to add properties to the collector, all hidden because we use a custom UI to display them
         static void AddIntProperty(this PropertyCollector collector, string referenceName, int defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
-            collector.AddShaderProperty(new Vector1ShaderProperty{
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
                 floatType = FloatType.Integer,
                 value = defaultValue,
                 hidden = true,
@@ -40,7 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void AddFloatProperty(this PropertyCollector collector, string referenceName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
-            collector.AddShaderProperty(new Vector1ShaderProperty{
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
                 floatType = FloatType.Default,
                 hidden = true,
                 overrideHLSLDeclaration = true,
@@ -52,7 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void AddFloatProperty(this PropertyCollector collector, string referenceName, string displayName, float defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
-            collector.AddShaderProperty(new Vector1ShaderProperty{
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
                 floatType = FloatType.Default,
                 value = defaultValue,
                 overrideReferenceName = referenceName,
@@ -65,7 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void AddToggleProperty(this PropertyCollector collector, string referenceName, bool defaultValue, HLSLDeclaration declarationType = HLSLDeclaration.DoNotDeclare)
         {
-            collector.AddShaderProperty(new BooleanShaderProperty{
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
                 value = defaultValue,
                 hidden = true,
                 overrideHLSLDeclaration = true,
@@ -145,7 +149,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty(kTransparentSortPriority, sortingPriority);
             collector.AddToggleProperty(kEnableFogOnTransparent, fogOnTransparent);
             collector.AddFloatProperty("_CullModeForward", (int)CullMode.Back);
-            collector.AddShaderProperty(new Vector1ShaderProperty{
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
                 overrideReferenceName = kTransparentCullMode,
                 floatType = FloatType.Enum,
                 value = (int)transparentCullMode,
@@ -155,7 +160,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
             });
-            collector.AddShaderProperty(new Vector1ShaderProperty{
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
                 overrideReferenceName = kOpaqueCullMode,
                 floatType = FloatType.Enum,
                 value = (int)opaqueCullMode,
@@ -168,7 +174,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Add ZTest properties:
             collector.AddIntProperty("_ZTestDepthEqualForOpaque", (int)CompareFunction.LessEqual);
-            collector.AddShaderProperty(new Vector1ShaderProperty{
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
                 overrideReferenceName = kZTestTransparent,
                 floatType = FloatType.Enum,
                 value = (int)zTest,
@@ -193,7 +200,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             var normalMode = ConvertDoubleSidedModeToDoubleSidedNormalMode(mode);
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
-            collector.AddShaderProperty(new Vector1ShaderProperty{
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
                 enumNames = {"Flip", "Mirror", "None"}, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
@@ -202,7 +210,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (int)normalMode
             });
-            collector.AddShaderProperty(new Vector4ShaderProperty{
+            collector.AddShaderProperty(new Vector4ShaderProperty
+            {
                 overrideReferenceName = "_DoubleSidedConstants",
                 hidden = true,
                 overrideHLSLDeclaration = true,
@@ -215,7 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             collector.AddToggleProperty("_RayTracing", isRayTracing, HLSLDeclaration.UnityPerMaterial);
         }
-        
+
         public static void AddPrePostPassProperties(PropertyCollector collector, bool prepass, bool postpass)
         {
             collector.AddToggleProperty(kTransparentDepthPrepassEnable, prepass);
@@ -271,7 +280,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var clipThresholdId = 8;
             var node = masterNode as AbstractMaterialNode;
             var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
-            if(clipThresholdSlot == null)
+            if (clipThresholdSlot == null)
                 return false;
 
             clipThresholdSlot.owner = node;

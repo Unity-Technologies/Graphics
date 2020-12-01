@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new SubShaderDescriptor
                 {
                     generatesPreview = true,
-                    passes = new PassCollection{ { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(TransparentDistortion, true) } }
+                    passes = new PassCollection { { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(TransparentDistortion, true) } }
                 };
             }
             else
@@ -116,7 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
-    
+
             if (unlitData.enableShadowMatte)
             {
                 uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;
