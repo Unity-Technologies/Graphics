@@ -253,6 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if ENABLE_VIRTUALTEXTURES
         VTFeedbackClear,
+        VTFeedbackDownsample,
 #endif
     }
 }

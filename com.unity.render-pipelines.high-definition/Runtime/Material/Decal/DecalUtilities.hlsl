@@ -36,7 +36,8 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         // The test against _EnableDecalLayers is done here to refresh realtime as AngleFade is cached data and need a decal refresh to be updated.
         if (angleFade.y < 0.0f && _EnableDecalLayers) // if angle fade is enabled
         {
-            float dotAngle = dot(vtxNormal, decalData.normalToWorld[2].xyz);
+            float3 decalNormal = float3(decalData.normalToWorld[0].z, decalData.normalToWorld[1].z, decalData.normalToWorld[2].z);
+            float dotAngle = dot(vtxNormal, decalNormal);
             // See equation in DecalSystem.cs - simplified to a madd mul add here
             float angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
             fadeFactor *= angleFadeFactor;
