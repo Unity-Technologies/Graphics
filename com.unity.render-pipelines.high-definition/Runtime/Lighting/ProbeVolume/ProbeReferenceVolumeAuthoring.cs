@@ -69,6 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var refVol = ProbeReferenceVolume.instance;
             refVol.Clear();
+            refVol.SetTRS(transform.position, transform.rotation, BrickSize);
+            refVol.SetMaxSubdivision(MaxSubdivision);
+            refVol.SetNormalBias(NormalBias);
 
             foreach (var cell in VolumeAsset.cells)
             {

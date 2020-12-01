@@ -145,6 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public List<Cell> Cells = new List<Cell>();
 
+        private bool m_BricksLoaded = false;
+
         // index related
         Texture3D indexTex;
 
@@ -211,12 +213,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetMaxSubdivision(int maxSubdivision) { m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels); }
         public void SetNormalBias(float normalBias) { m_NormalBias = normalBias; }
 
-        internal static int cellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
-        internal float brickSize(int subdivisionLevel) { return m_Transform.scale * cellSize(subdivisionLevel); }
-        internal float minBrickSize() { return m_Transform.scale; }
-        internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
+        internal static int CellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
+        internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }
+        internal float MinBrickSize() { return m_Transform.scale; }
+        internal float MaxBrickSize() { return BrickSize(m_MaxSubdivision); }
         public Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
         public RefVolTransform GetTransform() { return m_Transform; }
+
+        public bool DataHasBeenLoaded() { return m_BricksLoaded; }
 
         public delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
@@ -273,7 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Brick b = new Brick();
                 b.size = brick.size - 1;
-                int offset = cellSize(b.size);
+                int offset = CellSize(b.size);
 
                 for (int z = 0; z < ProbeBrickPool.kBrickCellCount; z++)
                 {
@@ -356,7 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Vector3 offset = b.position;
                 offset = m.MultiplyPoint(offset);
-                float scale = cellSize(b.size);
+                float scale = CellSize(b.size);
                 Vector3 X = m.GetColumn(0) * scale;
                 Vector3 Y = m.GetColumn(1) * scale;
                 Vector3 Z = m.GetColumn(2) * scale;
@@ -418,6 +422,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Pool.EnsureTextureValidity();
             // Update the pool and index and ignore any potential frame latency related issues for now
             m_Pool.Update(dataloc, m_TmpSrcChunks, ch_list);
+
+            m_BricksLoaded = true;
 
             // create a registry entry for this request
             RegId id;

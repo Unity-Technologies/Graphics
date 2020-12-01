@@ -35,19 +35,39 @@ namespace UnityEngine.Rendering.HighDefinition
 
         APVRuntimeResources m_APVResources = new APVRuntimeResources();
 
+        // TODO: Do we even need this, why not pulling directly from the instance? 
         public void AssignAPVRuntimeResources(APVRuntimeResources apvRes) { m_APVResources = apvRes; }
         public void ClearAPVRuntimeResources() { m_APVResources.Clear(); }
-        private void BindAPVRuntimeResources(CommandBuffer cmdBuffer)
+        private void BindAPVRuntimeResources(CommandBuffer cmdBuffer, HDCamera hdCamera)
         {
-            if(m_APVResources.IsValid())
+            bool needToBindNeutral = true;
+            // TODO: Do this only if the framesetting is on, otherwise there is some hidden cost
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume))
             {
-                cmdBuffer.SetGlobalBuffer( HDShaderIDs._APVResIndex, m_APVResources.index);
-                cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0   , m_APVResources.L0);
-                cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_R , m_APVResources.L1_R);
-                cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_G , m_APVResources.L1_G);
-                cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_B , m_APVResources.L1_B);
+                var refVolume = ProbeReferenceVolume.instance;
+                // TODO: I think we can bypass this; here we still go through it for sake of it, but I really think is not needed and will remove soon.
+                if (ProbeReferenceVolume.instance.DataHasBeenLoaded() && !m_APVResources.IsValid())
+                {
+                    ProbeReferenceVolume.RuntimeResources rr = refVolume.GetRuntimeResources();
+                    m_APVResources.index = rr.index;
+                    m_APVResources.L0 = rr.L0;
+                    m_APVResources.L1_R = rr.L1_R;
+                    m_APVResources.L1_G = rr.L1_G;
+                    m_APVResources.L1_B = rr.L1_B;
+                }
+
+                if (m_APVResources.IsValid())
+                {
+                    cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, m_APVResources.index);
+                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0, m_APVResources.L0);
+                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_R, m_APVResources.L1_R);
+                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_G, m_APVResources.L1_G);
+                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1_B, m_APVResources.L1_B);
+                    needToBindNeutral = false;
+                }
             }
-            else
+
+            if (needToBindNeutral)
             {
                 // Lazy init the empty buffer
                 if (m_EmptyIndexBuffer == null)

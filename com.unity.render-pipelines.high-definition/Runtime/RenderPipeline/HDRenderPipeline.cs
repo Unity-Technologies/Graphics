@@ -1137,8 +1137,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DecalSystem.instance.Cleanup();
 
-            ProbeReferenceVolume.instance.Cleanup();
-
             m_MaterialList.ForEach(material => material.Cleanup());
 
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
@@ -2435,7 +2433,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd, hdCamera.time);
 
             // do AdaptiveProbeVolume stuff
-            BindAPVRuntimeResources(cmd);
+            BindAPVRuntimeResources(cmd, hdCamera);
 
             // Note: Legacy Unity behave like this for ShadowMask
             // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.

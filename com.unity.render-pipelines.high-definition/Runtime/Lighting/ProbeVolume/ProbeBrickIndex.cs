@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private Vector3Int    m_CenterIS;   // the position in index space that the anchor maps to
         private HeightRange[] m_HeightRanges;
 #if !USE_NATIVE_ARRAY
-        private int[]         m_TmpUpdater = new int[Mathf.Max( kAPVConstantsSize, ProbeReferenceVolume.cellSize(15) + 1)];
+        private int[]         m_TmpUpdater = new int[Mathf.Max( kAPVConstantsSize, ProbeReferenceVolume.CellSize(15) + 1)];
 #endif
         private Dictionary<Vector3Int, List<VoxelMeta>> m_VoxelToBricks;
         private Dictionary<RegId, BrickMeta>            m_BricksToVoxels;
@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void AddBricks(RegId id, List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight)
         {
             Debug.Assert( bricks.Count <= ushort.MaxValue, "Cannot add more than 65K bricks per RegId." );
-            int largest_cell = ProbeReferenceVolume.cellSize(15);
+            int largest_cell = ProbeReferenceVolume.CellSize(15);
 
             // create a new copy
             BrickMeta bm = new BrickMeta();
@@ -134,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Brick brick = bricks[brick_idx];
 
-                    int cellSize = ProbeReferenceVolume.cellSize(brick.size);
+                    int cellSize = ProbeReferenceVolume.CellSize(brick.size);
                     Debug.Assert(cellSize <= largest_cell, "Cell sizes are not correctly sorted.");
                     largest_cell = Mathf.Min(largest_cell, cellSize);
 
@@ -211,8 +211,8 @@ namespace UnityEngine.Rendering.HighDefinition
             int voxels_touched_cnt = (int)Mathf.Pow(3, Mathf.Max(0, brick_subdiv - m_VoxelSubdivLevel));
 
             Vector3Int ipos = brick.position;
-            int        brick_size = ProbeReferenceVolume.cellSize(brick.size);
-            int        voxel_size = ProbeReferenceVolume.cellSize(m_VoxelSubdivLevel);
+            int        brick_size = ProbeReferenceVolume.CellSize(brick.size);
+            int        voxel_size = ProbeReferenceVolume.CellSize(m_VoxelSubdivLevel);
 
             if( voxels_touched_cnt <= 1 )
             {
@@ -249,7 +249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ClipToIndexSpace(pos, m_VoxelSubdivLevel, out volMin, out volMax);
 
             int base_offset = kAPVConstantsSize + m_IndexDim.x * m_IndexDim.z;
-            int volCellSize = ProbeReferenceVolume.cellSize( m_VoxelSubdivLevel );
+            int volCellSize = ProbeReferenceVolume.CellSize( m_VoxelSubdivLevel );
 
             int bsize_x = volMax.x - volMin.x;
             int bsize_z = volMax.z - volMin.z;
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach( var rbrick in bricks )
             {
                 // clip brick to clipped voxel
-                int brick_cell_size = ProbeReferenceVolume.cellSize( rbrick.brick.size );
+                int brick_cell_size = ProbeReferenceVolume.CellSize( rbrick.brick.size );
                 Vector3Int brick_min = rbrick.brick.position;
                 Vector3Int brick_max = rbrick.brick.position + Vector3Int.one * brick_cell_size;
                 brick_min.x = Mathf.Max( vx_min.x, brick_min.x - m_CenterRS.x );
@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private void ClipToIndexSpace( Vector3Int pos, int subdiv, out Vector3Int outMinpos, out Vector3Int outMaxpos )
         {
             // to relative coordinates
-            int cellSize = ProbeReferenceVolume.cellSize( subdiv );
+            int cellSize = ProbeReferenceVolume.CellSize( subdiv );
 
             int minpos_x = pos.x - m_CenterRS.x;
             int minpos_y = pos.y;
