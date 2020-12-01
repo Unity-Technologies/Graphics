@@ -56,9 +56,27 @@ namespace UnityEditor
         void DoTargetGUI(UnityObject target)
         {
             var lightAnchor = target as LightAnchor;
-            var transform = lightAnchor.transform;
-            var lightPosition = transform.position;
-            var anchorPosition = transform.TransformPoint(Vector3.forward * lightAnchor.distance);
+            Transform transform;
+            Vector3 lightPosition;
+            Vector3 anchorPosition;
+            if (lightAnchor.targetMode == LightAnchor.TargetMode.LightFollowTheAnchor)
+            {
+                transform = lightAnchor.transform;
+                lightPosition = transform.position;
+                anchorPosition = transform.TransformPoint(Vector3.forward * lightAnchor.distance);
+            }
+            else if (lightAnchor.targetMode == LightAnchor.TargetMode.AnchorIndependant && lightAnchor.target != null)
+            {
+                transform = lightAnchor.transform;
+                lightPosition = transform.position;
+                anchorPosition = lightAnchor.target.transform.position;
+            }
+            else
+            {
+                transform = lightAnchor.transform;
+                lightPosition = transform.position;
+                anchorPosition = transform.TransformPoint(Vector3.forward * 3.0f);
+            }
             var handles = GetHandles(target);
 
             handles.lightPosition = lightPosition;
