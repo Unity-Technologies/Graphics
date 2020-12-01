@@ -613,9 +613,9 @@ namespace UnityEngine.Rendering.Universal
                 s_DefaultVolume.sharedProfile == null || s_DefaultVolume.sharedProfile.Equals(null)
 #if UNITY_EDITOR
 
-                                                      // In case the serialization recreated an empty volume sharedProfile
+                // In case the serialization recreated an empty volume sharedProfile
 
-                                                      || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
+                || !UnityEditor.AssetDatabase.Contains(s_DefaultVolume.sharedProfile)
 #endif
             )
             {
@@ -693,11 +693,11 @@ namespace UnityEngine.Rendering.Universal
                         return;
                     }
                 }
-
-                // When we want to update the volumes every frame...
-                VolumeManager.instance.ResetDefaultStack();
-                VolumeManager.instance.Update(trigger, layerMask);
             }
+
+            // When we want to update the volumes every frame...
+            VolumeManager.instance.ResetDefaultStack();
+            VolumeManager.instance.Update(trigger, layerMask);
         }
 
         static bool CheckPostProcessForDepth(in CameraData cameraData)
