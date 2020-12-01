@@ -99,6 +99,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
+            
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateKnowNodes");
             foreach (var type in NodeClassCache.knownNodeTypes)
             {
                 if ((!type.IsClass || type.IsAbstract)
@@ -126,10 +128,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+            Profiler.EndSample();
 
-            foreach (var guid in AssetDatabase.FindAssets(string.Format("t:{0}", typeof(SubGraphAsset))))
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateSubgraphAssets");
+            foreach (var asset in NodeClassCache.knownSubGraphAssets)
             {
-                var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
 
@@ -148,7 +152,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddEntries(node, title.ToArray(), nodeEntries);
                 }
             }
+            Profiler.EndSample();
 
+
+            Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateGraphInputs");
             foreach (var property in m_Graph.properties)
             {
                 if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
@@ -164,6 +171,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
+            Profiler.EndSample();
 
             SortEntries(nodeEntries);
             currentNodeEntries = nodeEntries;
