@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Input;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -87,6 +88,7 @@ namespace UnityEditor.ShaderGraph
         static NodeClassCache()
         {
             ReCacheKnownNodeTypes();
+            ShaderGraphHotkeys.InitializeNodeCreationShortcuts(knownNodeTypes);
             //DebugPrintKnownNodes();
         }
     }
