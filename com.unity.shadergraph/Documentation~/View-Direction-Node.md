@@ -4,7 +4,7 @@
 
 Provides access to the mesh vertex or fragment's **View Direction** vector. This is the vector from the vertex or fragment to the camera. The coordinate space of the output value can be selected with the **Space** dropdown parameter.
 
-**Note** - In previous versions of Shader Graph, the **View Direction** vector was not guarenteed to be normalized. As of 11.0, this vector is normalized.
+NOTE: In previous versions of Shader Graph, the **View Direction** vector was not guarenteed to be normalized. As of 11.0, this vector is normalized.
 
 ## Ports
 
