@@ -148,7 +148,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_BricksLoaded = false;
 
         // Information of the probe volume asset that is being loaded (if one is pending)
-        internal ProbeVolumeAsset pendingAssetToBeLoaded = null;
+        private ProbeVolumeAsset pendingAssetToBeLoaded = null;
+        private bool m_NeedLoadAsset = false;
         private bool m_ProbeReferenceVolumeInit = false;
 
         // index related
@@ -160,11 +161,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (!_instance.m_ProbeReferenceVolumeInit)
-                {
-                    // We hard code some values here just to make sure 
-                    _instance.InitProbeReferenceVolume(1024, 1024 * 1024 * 1024, new Vector3Int(1024, 64, 1024));
-                }
                 return _instance;
             }
         }
@@ -172,11 +168,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             pendingAssetToBeLoaded = asset;
+            m_NeedLoadAsset = true;
         }
 
         public void PerformPendingLoading()
         {
-            if (pendingAssetToBeLoaded == null)
+            if (pendingAssetToBeLoaded == null || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
             foreach (var cell in pendingAssetToBeLoaded.cells)
@@ -195,10 +192,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Mark the loading as done.
-            pendingAssetToBeLoaded = null;
+            m_NeedLoadAsset = false;
         }
 
-        public void InitProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
+        public void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions)
         {
             Profiler.BeginSample("Initialize Reference Volume");
             m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
@@ -212,11 +209,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PositionOffsets[0] = 0.0f;
             float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
             for (int i = 1; i < ProbeBrickPool.kBrickProbeCountPerDim - 1; i++)
-                m_PositionOffsets[i] = i * probeDelta;
+                m_PositionOffsets[i] = i * probeDelta; 
             m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
             Profiler.EndSample();
 
             m_ProbeReferenceVolumeInit = true;
+            m_NeedLoadAsset = true;
         }
 
         private ProbeReferenceVolume()
@@ -261,9 +259,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Clear()
         {
-            m_Pool.Clear();
-            m_Index.Clear();
-            Cells.Clear();
+            if (m_ProbeReferenceVolumeInit)
+            {
+                m_Pool.Clear();
+                m_Index.Clear();
+                Cells.Clear();
+            }
         }
 
 #if UNITY_EDITOR

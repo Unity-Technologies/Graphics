@@ -995,7 +995,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
-          //  ProbeReferenceVolume.instance.InitProbeReferenceVolume(1024, 1024 * 1024 * 1024, new Vector3Int(1024, 64, 1024));
+            ProbeReferenceVolume.instance.InitProbeReferenceVolume(1024, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, new Vector3Int(1024, 64, 1024));
             InitShadowSystem(asset, defaultResources);
 
             s_lightVolumes = new DebugLightVolumes();

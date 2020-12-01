@@ -44,27 +44,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
         const int kMaxPoolWidth = 1 << 11; // 2048 texels is a d3d11 limit for tex3d in all dimensions
 
-        int                     m_AllocationSize;
-        int                     m_MemoryBudget;
-        DataLocation            m_Pool;
-        BrickChunkAlloc         m_NextFreeChunk;
-        Stack<BrickChunkAlloc>  m_FreeList;
+        int                            m_AllocationSize;
+        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+        DataLocation                   m_Pool;
+        BrickChunkAlloc                m_NextFreeChunk;
+        Stack<BrickChunkAlloc>         m_FreeList;
 
-        internal ProbeBrickPool(int AllocationSize, int MemoryBudget)
+        internal ProbeBrickPool(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget)
         {
             Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
-            m_AllocationSize = AllocationSize;
-            m_MemoryBudget = MemoryBudget;
+            m_AllocationSize = allocationSize;
+            m_MemoryBudget = memoryBudget;
 
             m_FreeList = new Stack<BrickChunkAlloc>(256);
 
             int width, height, depth;
-            DerivePoolSizeFromBudget(AllocationSize, MemoryBudget, out width, out height, out depth);
+            DerivePoolSizeFromBudget(allocationSize, memoryBudget, out width, out height, out depth);
 
             m_Pool = CreateDataLocation(width * height * depth, false);
             Profiler.EndSample();
+        }
+
+        internal ProbeVolumeTextureMemoryBudget GetMemoryBudget()
+        {
+            return m_MemoryBudget;
         }
 
         internal void EnsureTextureValidity()
@@ -252,12 +257,13 @@ namespace UnityEngine.Rendering.HighDefinition
             loc.TexL1_B.Apply(false);
         }
 
-        private void DerivePoolSizeFromBudget(int AllocationSize, int MemoryBudget, out int width, out int height, out int depth)
+        private void DerivePoolSizeFromBudget(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, out int width, out int height, out int depth)
         {
-            // TODO: Calculate chunk memory size
-            width  = 1024;
-            height = 1024;
-            depth  = kBrickProbeCountPerDim;
+            // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
+            // might change the heuristic later on. 
+            width = (int)memoryBudget;
+            height = (int)memoryBudget             
+            depth = kBrickProbeCountPerDim;
         }
 
         internal void Cleanup()

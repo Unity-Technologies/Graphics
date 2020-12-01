@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportTransparentDepthPrepass  = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPrepass);
             supportTransparentDepthPostpass = root.Find((RenderPipelineSettings s) => s.supportTransparentDepthPostpass);
             supportProbeVolume              = root.Find((RenderPipelineSettings s) => s.supportProbeVolume);
-            probeVolumeTextureSize          = root.Find((RenderPipelineSettings s) => s.probeVolumeResolution);
+            probeVolumeTextureSize          = root.Find((RenderPipelineSettings s) => s.probeVolumeMemoryBudget);
 
             supportRayTracing               = root.Find((RenderPipelineSettings s) => s.supportRayTracing);
             supportedRayTracingMode         = root.Find((RenderPipelineSettings s) => s.supportedRayTracingMode);
