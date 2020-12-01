@@ -2,6 +2,7 @@ PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
+    output.normalWS = float3(0, 0, -1);
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
