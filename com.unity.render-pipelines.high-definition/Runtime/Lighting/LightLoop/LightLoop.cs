@@ -3532,7 +3532,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer coarseTileBuffer;
             public ComputeBuffer fineTileBuffer;
             public ComputeBuffer zBinBuffer;
-            public ComputeBuffer globalLightListAtomic;
+            //public ComputeBuffer globalLightListAtomic;
 
             // Output
             public ComputeBuffer tileFeatureFlags; // Deferred
@@ -3565,7 +3565,7 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.zBinBuffer = tileAndClusterData.zBinBuffer;
             //resources.lightVolumeDataBuffer = tileAndClusterData.lightVolumeDataBuffer;
             resources.tileFeatureFlags = tileAndClusterData.tileFeatureFlags;
-            resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
+            //resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
             resources.perVoxelLightLists = tileAndClusterData.perVoxelLightLists;
             resources.perTileLogBaseTweak = tileAndClusterData.perTileLogBaseTweak;
             resources.dispatchIndirectBuffer = tileAndClusterData.dispatchIndirectBuffer;

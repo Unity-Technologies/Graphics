@@ -54,18 +54,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Buffers filled with the CPU outside of render graph.
             public ComputeBufferHandle          convexBoundsBuffer;
+
+            // Transient buffers that are not used outside of BuildGPULight list so they don't need to go outside the pass.
             public ComputeBufferHandle          xyBoundsBuffer;
             public ComputeBufferHandle          wBoundsBuffer;
 
-            // Transient buffers that are not used outside of BuildGPULight list so they don't need to go outside the pass.
-            public ComputeBufferHandle          globalLightListAtomic;
+            public BuildGPULightListOutput      output = new BuildGPULightListOutput();
+
+            //public ComputeBufferHandle          globalLightListAtomic;
             //public ComputeBufferHandle          lightVolumeDataBuffer;
 
-            public BuildGPULightListOutput      output = new BuildGPULightListOutput();
         }
 
         struct BuildGPULightListOutput
         {
+            /* THIS IS ALL WE NEED
+
+            public ComputeBuffer coarseTileBuffer;
+            public ComputeBuffer fineTileBuffer;
+            public ComputeBuffer zBinBuffer;
+            public ComputeBuffer tileFeatureFlagsBuffer;
+            public ComputeBuffer dispatchIndirectBuffer;
+            public ComputeBuffer tileListBuffer;
+
+            EVERYTHING ELSE IS OLD JUNK AND NEEDS TO GO */
+
             // Tile
             public ComputeBufferHandle lightList;
             public ComputeBufferHandle tileList;
@@ -110,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             buildLightListResources.convexBoundsBuffer = data.convexBoundsBuffer;
             buildLightListResources.xyBoundsBuffer = data.xyBoundsBuffer;
             buildLightListResources.wBoundsBuffer  = data.wBoundsBuffer;
-            buildLightListResources.globalLightListAtomic = data.globalLightListAtomic;
+            //buildLightListResources.globalLightListAtomic = data.globalLightListAtomic;
 
             buildLightListResources.tileFeatureFlags = data.output.tileFeatureFlags;
             buildLightListResources.dispatchIndirectBuffer = data.output.dispatchIndirectBuffer;
@@ -151,9 +164,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Those buffer are filled with the CPU outside of the render graph.
                 passData.convexBoundsBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.convexBoundsBuffer));
-                // passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
+                //passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
 
-                passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
+                //passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
                 passData.xyBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * tileAndClusterData.maxLightCount, 4 * sizeof(float)) { name = "xyBoundsBuffer" });
                 passData.wBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * tileAndClusterData.maxLightCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });
 
