@@ -59,7 +59,7 @@ editor-pinning-update:
     triggers:
         recurring:
           -  branch: 10.x.x/release
-             frequency: 0 * * ?
+             frequency: 22 * * ?
 editor-pinning-merge-revisions-2020.2:
     name: Merge [2020.2] revisions to 10.x.x/release [no ABV]
     agent:
