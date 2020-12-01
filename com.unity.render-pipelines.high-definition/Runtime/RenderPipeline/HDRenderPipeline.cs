@@ -517,8 +517,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AmbientOcclusionSystem.InitRaytracing(this);
             }
 
-            EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
-
             // Initialize the SSGI structures
             InitScreenSpaceGlobalIllumination();
 
