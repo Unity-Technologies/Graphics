@@ -92,13 +92,13 @@ all:
         - playmode
         - playmode_XR
         - Standalone
-#    - platform: OSX
-#      api: Metal
-#      build_config: mono
-#      color_space: Linear
-#      test_platforms:
-#        # - Standalone
-#        - playmode
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        # - Standalone
+        - playmode
     - platform: Linux
       api: Vulkan
       build_config: mono
