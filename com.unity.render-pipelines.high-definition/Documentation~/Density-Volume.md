@@ -33,13 +33,13 @@ To create a Density Volume, right click in the Hierarchy and select __Rendering 
 
 ## Related Settings in the HDRP Asset
 
-There are two settings related to density volumes you can find in the HDRP Asset settings: **Max Density Volume Size** and **Max Density Volume On Screen** and they can be found under the Lighting category.
+There are two settings related to density volumes in the HDRP Asset settings: **Max Density Volume Size** and **Max Density Volume On Screen**. You can find both of these settings in the HDRP Asset's **Lighting** section.
 
 ![](Images/HDRPAsset_VolumetricSettings.png)
 
-The **Max Density Volume Size** controls the maximum resolution you can use for the **Density Mask Texture**, changing this setting can have a big impact on memory. Please refer to the info box below to see how much memory will be allocated by the Density Volume system with your current settings.
+The **Max Density Volume Size** controls the maximum resolution you can use for the **Density Mask Texture**. Changing this setting can have a large impact on memory usage. For information on how much memory HDRP allocates for the Density Volume system, see the info box below this setting in the HDRP Asset.
 
-The **Max Density Volume On Screen** controls how many density volume you can have on your screen at once, this setting also has an impact on memory.
+The **Max Density Volume On Screen** controls how many Density Volumes can appear on-screen at once. This setting also has an impact on memory.
 
 ## Creating a Density Mask Texture
 
