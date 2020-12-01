@@ -58,7 +58,7 @@ editor-pinning-update:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
     triggers:
         recurring:
-          -  branch: yamato/schedule-update
+          -  branch: master
              frequency: 22 * * ?
 editor-pinning-merge-revisions-trunk:
     name: Merge [trunk] revisions to master [no ABV]
