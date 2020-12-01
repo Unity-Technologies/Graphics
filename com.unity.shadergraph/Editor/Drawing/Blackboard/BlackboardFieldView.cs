@@ -30,11 +30,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
-            switch(m_Input)
+            switch (m_Input)
             {
                 case AbstractShaderProperty property:
                     var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
-                    if(graphEditorView == null)
+                    if (graphEditorView == null)
                         return;
                     var colorManager = graphEditorView.colorManager;
                     var nodes = graphEditorView.graphView.Query<MaterialNodeView>().ToList();
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             get
             {
-                switch(m_Input)
+                switch (m_Input)
                 {
                     case AbstractShaderProperty property:
                         return $"{m_Input.displayName} (Property)";
@@ -94,14 +94,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void UpdateTypeText()
         {
-            if(shaderInput is AbstractShaderProperty asp)
+            if (shaderInput is AbstractShaderProperty asp)
             {
                 typeText = asp.GetPropertyTypeString();
             }
         }
 
         public BlackboardFieldView(GraphData graph, ShaderInput input, BlackBoardCallback updateBlackboardView,
-            Texture icon, string text, string typeText) : base(icon, text, typeText)
+                                   Texture icon, string text, string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
@@ -137,17 +137,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendAction("Reset Reference", e =>
-                {
-                    m_Input.overrideReferenceName = null;
-                    m_resetReferenceNameTrigger(shaderInput.referenceName);
-                    DirtyNodes(ModificationScope.Graph);
-                }, DropdownMenuAction.AlwaysEnabled);
+            {
+                m_Input.overrideReferenceName = null;
+                m_resetReferenceNameTrigger(shaderInput.referenceName);
+                DirtyNodes(ModificationScope.Graph);
+            }, DropdownMenuAction.AlwaysEnabled);
         }
 
-#region PropertyDrawers
+        #region PropertyDrawers
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
+            if (propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {
                 shaderInputPropertyDrawer.GetPropertyData(
                     m_Graph.isSubGraph,
@@ -173,6 +173,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Input.generatePropertyBlock = newValue;
             icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
         }
+
         void ChangeDisplayNameField(string newValue)
         {
             if (newValue != m_Input.displayName)
@@ -199,62 +200,62 @@ namespace UnityEditor.ShaderGraph.Drawing
         void MarkNodesAsDirty(bool triggerPropertyViewUpdate = false, ModificationScope modificationScope = ModificationScope.Node)
         {
             DirtyNodes(modificationScope);
-            if(triggerPropertyViewUpdate)
+            if (triggerPropertyViewUpdate)
                 m_inspectorUpdateTrigger();
         }
 
         void ChangePropertyValue(object newValue)
         {
             var property = m_Input as AbstractShaderProperty;
-            if(property == null)
+            if (property == null)
                 return;
 
-            switch(property)
+            switch (property)
             {
                 case BooleanShaderProperty booleanProperty:
                     booleanProperty.value = ((ToggleData)newValue).isOn;
                     break;
                 case Vector1ShaderProperty vector1Property:
-                    vector1Property.value = (float) newValue;
+                    vector1Property.value = (float)newValue;
                     break;
                 case Vector2ShaderProperty vector2Property:
-                    vector2Property.value = (Vector2) newValue;
+                    vector2Property.value = (Vector2)newValue;
                     break;
                 case Vector3ShaderProperty vector3Property:
-                    vector3Property.value = (Vector3) newValue;
+                    vector3Property.value = (Vector3)newValue;
                     break;
                 case Vector4ShaderProperty vector4Property:
-                    vector4Property.value = (Vector4) newValue;
+                    vector4Property.value = (Vector4)newValue;
                     break;
                 case ColorShaderProperty colorProperty:
-                    colorProperty.value = (Color) newValue;
+                    colorProperty.value = (Color)newValue;
                     break;
                 case Texture2DShaderProperty texture2DProperty:
-                    texture2DProperty.value.texture = (Texture) newValue;
+                    texture2DProperty.value.texture = (Texture)newValue;
                     break;
                 case Texture2DArrayShaderProperty texture2DArrayProperty:
-                    texture2DArrayProperty.value.textureArray = (Texture2DArray) newValue;
+                    texture2DArrayProperty.value.textureArray = (Texture2DArray)newValue;
                     break;
                 case Texture3DShaderProperty texture3DProperty:
-                    texture3DProperty.value.texture = (Texture3D) newValue;
+                    texture3DProperty.value.texture = (Texture3D)newValue;
                     break;
                 case CubemapShaderProperty cubemapProperty:
-                    cubemapProperty.value.cubemap = (Cubemap) newValue;
+                    cubemapProperty.value.cubemap = (Cubemap)newValue;
                     break;
                 case Matrix2ShaderProperty matrix2Property:
-                    matrix2Property.value = (Matrix4x4) newValue;
+                    matrix2Property.value = (Matrix4x4)newValue;
                     break;
                 case Matrix3ShaderProperty matrix3Property:
-                    matrix3Property.value = (Matrix4x4) newValue;
+                    matrix3Property.value = (Matrix4x4)newValue;
                     break;
                 case Matrix4ShaderProperty matrix4Property:
-                    matrix4Property.value = (Matrix4x4) newValue;
+                    matrix4Property.value = (Matrix4x4)newValue;
                     break;
                 case SamplerStateShaderProperty samplerStateProperty:
-                    samplerStateProperty.value = (TextureSamplerState) newValue;
+                    samplerStateProperty.value = (TextureSamplerState)newValue;
                     break;
                 case GradientShaderProperty gradientProperty:
-                    gradientProperty.value = (Gradient) newValue;
+                    gradientProperty.value = (Gradient)newValue;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -262,6 +263,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             MarkDirtyRepaint();
         }
-#endregion
+
+        #endregion
     }
 }

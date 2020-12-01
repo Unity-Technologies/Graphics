@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
                     entries.Add(new MultiJsonEntry(node.typeInfo.fullName, null, node.JSONnodeData));
                     AbstractMaterialNode0 amn = new AbstractMaterialNode0();
                     JsonUtility.FromJsonOverwrite(node.JSONnodeData, amn);
-                    foreach(var slot in amn.m_SerializableSlots)
+                    foreach (var slot in amn.m_SerializableSlots)
                     {
                         entries.Add(new MultiJsonEntry(slot.typeInfo.fullName, null, slot.JSONnodeData));
                     }

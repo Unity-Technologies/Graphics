@@ -229,7 +229,7 @@ namespace UnityEditor.VFX
             eventAttributeDescs.AddRange(listWithOffset);
         }
 
-        private static List<VFXContext> CollectContextParentRecursively(IEnumerable <VFXContext> inputList, ref SubgraphInfos subgraphContexts)
+        private static List<VFXContext> CollectContextParentRecursively(IEnumerable<VFXContext> inputList, ref SubgraphInfos subgraphContexts)
         {
             var contextEffectiveInputLinks = subgraphContexts.contextEffectiveInputLinks;
             var contextList = inputList.SelectMany(o => contextEffectiveInputLinks[o].SelectMany(t => t)).Select(t => t.context).Distinct().ToList();
@@ -561,21 +561,7 @@ namespace UnityEditor.VFX
 
                 Object processor = null;
                 if (spawnerBlock.customBehavior != null)
-                {
-                    var assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name);
-                    if (assets.Length != 1)
-                    {
-                        // AssetDatabase.FindAssets will not search in package by default. Search in our package explicitly
-                        assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name, new string[] { VisualEffectGraphPackageInfo.assetPackagePath });
-                        if (assets.Length != 1)
-                        {
-                            throw new InvalidOperationException("Unable to find the definition .cs file for " + spawnerBlock.customBehavior + " Make sure that the class name and file name match");
-                        }
-                    }
-
-                    var assetPath = AssetDatabase.GUIDToAssetPath(assets[0]);
-                    processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
-                }
+                    processor = spawnerBlock.customBehavior;
 
                 taskDescList.Add(new VFXEditorTaskDesc
                 {
@@ -1158,7 +1144,7 @@ namespace UnityEditor.VFX
                 }
 
                 // Update transient renderer settings
-                    ShadowCastingMode shadowCastingMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                ShadowCastingMode shadowCastingMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
                 MotionVectorGenerationMode motionVectorGenerationMode = compilableContexts.OfType<IVFXSubRenderer>().Any(r => r.hasMotionVector) ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera;
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 10 / nbSteps);

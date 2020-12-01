@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -87,7 +87,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
         }
 
-
         // If any of the selected items are no longer selected, inspector requires an update
         public bool DoesInspectorNeedUpdate()
         {
@@ -106,7 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 //m_GraphInspectorView.Activate(m_NodeSettingsTab);
                 foreach (var selectable in selection)
                 {
-                    if(selectable is IInspectable inspectable)
+                    if (selectable is IInspectable inspectable)
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
                 }
             }
@@ -140,7 +139,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
         {
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
-            if(graphEditorView == null)
+            if (graphEditorView == null)
                 return;
 
             contentContainer.Clear();
@@ -177,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
                 {
                     var propertyDrawerInstance = propertyDrawerToUse ??
-                                                 (IPropertyDrawer) Activator.CreateInstance(propertyDrawerTypeToUse);
+                        (IPropertyDrawer)Activator.CreateInstance(propertyDrawerTypeToUse);
                     // Assign the inspector update delegate so any property drawer can trigger an inspector update if it needs it
                     propertyDrawerInstance.inspectorUpdateDelegate = propertyChangeCallback;
                     // Supply any required data to this particular kind of property drawer
@@ -223,4 +222,3 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         }
     }
 }
-

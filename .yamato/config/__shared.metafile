@@ -50,7 +50,7 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-load-path=../../players 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players 
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-load-path=players<TEST_FILTER> 
       
       - [all]: --artifacts_path=test-results
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
@@ -76,8 +76,7 @@ test_platforms:
       - [Android_OpenGLES3, Android_Vulkan]: --platform=Android
       
       - [all]: --testproject=.
-      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
       - [Android_OpenGLES3, Android_Vulkan]: --editor-location=./WindowsEditor
@@ -86,7 +85,7 @@ test_platforms:
       - [OSX_Metal]: --artifacts_path=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>/test-results
       
       - [Win_DX11, Win_DX12, Win_Vulkan, Win_, Linux_OpenGlCore, Linux_Vulkan]: --player-save-path=../../players 
-      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players  
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --player-save-path=players<TEST_FILTER>
       
       - [all]: --timeout=1200
       - [Android_OpenGLES3, Android_Vulkan]: --timeout=2700
@@ -115,8 +114,7 @@ test_platforms:
       - [all]: --extra-editor-arg="-colorspace=<COLORSPACE>"
       
       - [all]: --testproject=.
-      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
@@ -142,8 +140,7 @@ test_platforms:
       - [iPhone_Metal]: --platform=iOS
       
       - [all]: --testproject=.
-      - [Android_OpenGLES3, Android_Vulkan]: --testproject=./TestProjects/<PROJECT_FOLDER>
-      - [iPhone_Metal]: --testproject=TestProjects/<PROJECT_FOLDER>
+      - [Android_OpenGLES3, Android_Vulkan, iPhone_Metal]: --testproject=./TestProjects/<PROJECT_FOLDER>
       - [OSX_Metal]: --testproject=/Users/bokken/Graphics/TestProjects/<PROJECT_FOLDER>
       
       - [all]: --editor-location=.Editor
@@ -221,15 +218,15 @@ platforms:
     agents_project:
       default:
         type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
       editmode:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.large
       standalone_build:
         type: Unity::VM
-        image: cds-ops/ubuntu-18.04-base:stable
+        image: package-ci/ubuntu:stable
         flavor: b1.xlarge
   Android:
     name: Android

@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
                 {
-                    for(int faceIdx = 0; faceIdx < 6; ++faceIdx)
+                    for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
                     {
                         Graphics.SetRenderTarget(m_Cache, mipIdx, (CubemapFace)faceIdx, depthSlice);
                         GL.Clear(false, true, Color.clear);
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool TransferToPanoCache(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)
         {
-            for(int texIdx = 0; texIdx < textureArray.Length; ++texIdx)
+            for (int texIdx = 0; texIdx < textureArray.Length; ++texIdx)
             {
                 m_CubeBlitMaterial.SetTexture(m_cubeSrcTexPropName, textureArray[texIdx]);
                 for (int m = 0; m < m_NumPanoMipLevels; m++)

@@ -174,7 +174,7 @@ namespace UnityEditor.VFX.UI
         public void EndDragging(object ctx, VisualElement item, float offset, Vector2 mouseWorldPosition)
         {
             DraggingContext context = (DraggingContext)ctx;
-            
+
 
             foreach (var child in m_ListContainer.Children())
             {

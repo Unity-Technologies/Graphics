@@ -64,8 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                fixed (AOVRequest* pThis = &this)
-                    return pThis;
+                fixed(AOVRequest* pThis = &this)
+                return pThis;
             }
         }
 
@@ -178,4 +178,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

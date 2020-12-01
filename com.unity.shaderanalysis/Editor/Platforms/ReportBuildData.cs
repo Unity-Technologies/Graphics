@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -173,7 +173,7 @@ namespace UnityEditor.ShaderAnalysis
                 // Try to enqueue jobs
                 while (m_CompileJobMap.Count < k_MaxParallelCompilation && compileUnitToProcess.Count > 0)
                 {
-                    var (unit, unitIndex) = compileUnitToProcess[0];
+                    var(unit, unitIndex) = compileUnitToProcess[0];
                     compileUnitToProcess.RemoveAt(0);
                     var job = compiler.Compile(unit.sourceCodeFile, temporaryDirectory, unit.compiledFile, unit.compileOptions, unit.compileProfile, unit.compileTarget);
                     if (logCommandLine)
