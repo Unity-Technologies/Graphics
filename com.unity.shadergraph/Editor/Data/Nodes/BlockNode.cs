@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph
         public BlockNode()
         {
         }
-        
+
         public override bool canCutNode => false;
         public override bool canCopyNode => false;
 
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
 
             // TODO: This exposes the MaterialSlot API
             // TODO: This needs to be removed but is currently required by HDRP for DiffusionProfileInputMaterialSlot
-            if(m_Descriptor is CustomSlotBlockFieldDescriptor customSlotDescriptor)
+            if (m_Descriptor is CustomSlotBlockFieldDescriptor customSlotDescriptor)
             {
                 var newSlot = customSlotDescriptor.createSlot();
                 AddSlot(newSlot);
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph
         {
             // TODO: this should really just use callbacks like the CustomSlotBlockFieldDescriptor.. then we wouldn't need this switch to make a copy
             var stageCapability = m_Descriptor.shaderStage.GetShaderStageCapability();
-            switch(descriptor.control)
+            switch (descriptor.control)
             {
                 case PositionControl positionControl:
                     AddSlot(new PositionMaterialSlot(0, descriptor.displayName, descriptor.name, positionControl.space, stageCapability));
@@ -113,22 +113,22 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
-            if(m_Descriptor.control == null)
+            if (m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresNormal;
         }
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
-            if(m_Descriptor.control == null)
+            if (m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
 
             var requirements = m_Descriptor.control.GetRequirements();
@@ -137,72 +137,72 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
-            if(m_Descriptor.control == null)
+            if (m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresPosition;
         }
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
-            if(m_Descriptor.control == null)
+            if (m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresTangent;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
-            if(m_Descriptor.control == null)
+            if (m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresBitangent;
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
-            if(m_Descriptor.control == null)
+            if (m_Descriptor.control == null)
                 return false;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresMeshUVs.Contains(channel);
         }
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
-            if(m_Descriptor.control == null)
+            if (m_Descriptor.control == null)
                 return false;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresScreenPosition;
         }
 
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
         {
-            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if (stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
-            if(m_Descriptor.control == null)
+            if (m_Descriptor.control == null)
                 return false;
-            
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresVertexColor;
         }

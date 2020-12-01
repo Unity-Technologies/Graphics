@@ -48,7 +48,7 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
     {
         float3 result = float3(1.0, 0.0, 1.0);
         bool needLinearToSRGB = false;
-                
+
         // Loop through the whole buffer
         // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
         for (int index = 1; index <= bufferSize; index++)
@@ -63,7 +63,7 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
                 GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
             }
         }
-        
+
         // TEMP!
         // For now, the final blit in the backbuffer performs an sRGB write
         // So in the meantime we apply the inverse transform to linear data to compensate.

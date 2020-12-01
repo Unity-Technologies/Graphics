@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     bool fileExist = true;
                     // We check the file existence only once to avoid IO operations every frame.
-                    if(s_NeedToCheckProjSettingExistence)
+                    if (s_NeedToCheckProjSettingExistence)
                     {
                         fileExist = System.IO.File.Exists("ProjectSettings/HDRPProjectSettings.asset");
                         s_NeedToCheckProjSettingExistence = false;
@@ -72,9 +72,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (!inTestSuite && fileExist && !Application.isBatchMode)
                         {
                             EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
-                                                        " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
-                                                        " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n"+
-                                                        " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
+                                " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
+                                " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
+                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "Ok");
                         }
 
                         // When we open a project from scratch all the material have been converted and we don't need to do it two time.
@@ -192,17 +192,17 @@ namespace UnityEditor.Rendering.HighDefinition
         // to bump all materials version...
         static internal Action<Material, HDShaderUtils.ShaderID>[] k_Migrations = new Action<Material, HDShaderUtils.ShaderID>[]
         {
-             StencilRefactor,
-             ZWriteForTransparent,
-             RenderQueueUpgrade,
-             ShaderGraphStack,
-             MoreMaterialSurfaceOptionFromShaderGraph,
-             AlphaToMaskUIFix,
-             MigrateDecalRenderQueue,
-             ExposedDecalInputsFromShaderGraph,
-             FixIncorrectEmissiveColorSpace,
-             ExposeRefraction,
-             MetallicRemapping,
+            StencilRefactor,
+            ZWriteForTransparent,
+            RenderQueueUpgrade,
+            ShaderGraphStack,
+            MoreMaterialSurfaceOptionFromShaderGraph,
+            AlphaToMaskUIFix,
+            MigrateDecalRenderQueue,
+            ExposedDecalInputsFromShaderGraph,
+            FixIncorrectEmissiveColorSpace,
+            ExposeRefraction,
+            MetallicRemapping,
         };
 
         #region Migrations
@@ -310,7 +310,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // properties in this tab should be properties from Unlit or PBR cross pipeline shader
         // that are suppose to be synchronize with the Material during upgrade
-        readonly static string[] s_ShadergraphStackFloatPropertiesToSynchronize = {
+        readonly static string[] s_ShadergraphStackFloatPropertiesToSynchronize =
+        {
             "_SurfaceType",
             "_BlendMode",
             "_DstBlend",
@@ -350,11 +351,10 @@ namespace UnityEditor.Rendering.HighDefinition
                         bool alphaTest = material.HasProperty("_AlphaCutoffEnable") && material.GetFloat("_AlphaCutoffEnable") > 0.0f;
 
                         material.renderQueue = isTransparent ? (int)HDRenderQueue.Priority.Transparent :
-                                                    alphaTest ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
+                            alphaTest ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
 
                         material.SetFloat("_RenderQueueType", isTransparent ? (float)HDRenderQueue.RenderQueueType.Transparent : (float)HDRenderQueue.RenderQueueType.Opaque);
                     }
-                        
                 }
             }
 
@@ -402,7 +402,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Take the opportunity to remove _SupportDecals from Unlit as it is not suppose to be here
             if (HDShaderUtils.IsUnlitHDRPShader(material.shader))
-            {               
+            {
                 var serializedMaterial = new SerializedObject(material);
                 if (TryFindProperty(serializedMaterial, kSupportDecals, SerializedType.Integer, out var property, out _, out _))
                 {
@@ -536,7 +536,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 const string s_MeshDecalsMAOSStr = "DBufferMesh_MAOS";
                 const string s_MeshDecals3RTStr = "DBufferMesh_3RT";
                 const string s_MeshDecalsForwardEmissive = "Mesh_Emissive";
-                
+
                 material.SetShaderPassEnabled(s_MeshDecalsMStr, true);
                 material.SetShaderPassEnabled(s_MeshDecalsSStr, true);
                 material.SetShaderPassEnabled(s_MeshDecalsMSStr, true);
@@ -564,7 +564,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 HDShaderUtils.ResetMaterialKeywords(material);
             }
-        }     
+        }
 
         static void FixIncorrectEmissiveColorSpace(Material material, HDShaderUtils.ShaderID id)
         {
@@ -615,7 +615,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Lit shaders now have metallic remapping for the mask map
             if (id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
-             || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+                || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
             {
                 const string kMetallic = "_Metallic";
                 if (material.HasProperty(kMetallic) && material.HasProperty(kMetallicRemapMax))

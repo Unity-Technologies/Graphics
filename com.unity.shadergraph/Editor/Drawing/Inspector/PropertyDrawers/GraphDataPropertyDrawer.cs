@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             var element = new VisualElement() { name = "graphSettings" };
 
-            if(graphData.isSubGraph)
+            if (graphData.isSubGraph)
                 return element;
 
             void RegisterActionToUndo(string actionName)
@@ -59,24 +59,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             targetList.OnAddMenuItemCallback +=
                 (list, addMenuOptionIndex, addMenuOption) =>
-                {
-                    RegisterActionToUndo("Add Target");
-                    graphData.SetTargetActive(addMenuOptionIndex);
-                    m_postChangeTargetSettingsCallback();
-                };
+            {
+                RegisterActionToUndo("Add Target");
+                graphData.SetTargetActive(addMenuOptionIndex);
+                m_postChangeTargetSettingsCallback();
+            };
 
             targetList.RemoveItemCallback +=
                 (list, itemIndex) =>
-                {
-                    RegisterActionToUndo("Remove Target");
-                    graphData.SetTargetInactive(list[itemIndex].value);
-                    m_postChangeTargetSettingsCallback();
-                };
+            {
+                RegisterActionToUndo("Remove Target");
+                graphData.SetTargetInactive(list[itemIndex].value);
+                m_postChangeTargetSettingsCallback();
+            };
 
             element.Add(targetList);
 
             // Iterate active TargetImplementations
-            foreach(var target in graphData.activeTargets)
+            foreach (var target in graphData.activeTargets)
             {
                 // Ensure enabled state is being tracked and get value
                 bool foldoutActive;
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             var enumPropertyDrawer = new EnumPropertyDrawer();
             propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision) newValue); },
+                newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision)newValue); },
                 graphData.concretePrecision,
                 "Precision",
                 ConcretePrecision.Single,

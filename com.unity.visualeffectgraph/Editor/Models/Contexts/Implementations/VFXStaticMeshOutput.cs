@@ -156,7 +156,7 @@ namespace UnityEditor.VFX
                                             break;
                                         default:
                                             break;
-                                        }
+                                    }
                                     propertyValue = mat.GetTexture(propertyNameId);
                                     break;
                                 }

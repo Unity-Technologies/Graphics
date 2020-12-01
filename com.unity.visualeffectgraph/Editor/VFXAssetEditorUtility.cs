@@ -55,14 +55,17 @@ namespace UnityEditor
             UnityEngine.VFX.VFXManager.activateVFX = true;
         }
 
-        public const string templateAssetName = "Simple Particle System.vfx";
-        public const string templateBlockSubgraphAssetName = "Default Subgraph Block.vfxblock";
-        public const string templateOperatorSubgraphAssetName = "Default Subgraph Operator.vfxoperator";
+        public const string templateAssetName = "SimpleParticleSystem.vfx";
+        public const string templateBlockSubgraphAssetName = "DefaultSubgraphBlock.vfxblock";
+        public const string templateOperatorSubgraphAssetName = "DefaultSubgraphOperator.vfxoperator";
+
+        public const string editorResourcesFolder = "Editor/UIResources";
+        public static string editorResourcesPath => VisualEffectGraphPackageInfo.assetPackagePath + "/" + editorResourcesFolder;
 
         [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
-            GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null,"Visual Effect"));
+            GameObject go = new GameObject(GameObjectUtility.GetUniqueNameForSibling(null, "Visual Effect"));
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
             var vfxComp = go.AddComponent<VisualEffect>();
 
@@ -137,10 +140,8 @@ VisualEffectResource:
             return resources == null || resources.Length == 0;
         }
 
-
         public static void CreateTemplateAsset(string pathName)
         {
-
             try
             {
                 var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);

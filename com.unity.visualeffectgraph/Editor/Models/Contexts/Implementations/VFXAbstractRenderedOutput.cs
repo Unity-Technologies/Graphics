@@ -26,6 +26,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles write to the velocity buffer, allowing them to be blurred with the Motion Blur post processing effect.")]
         protected bool generateMotionVector = false;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
+        protected bool excludeFromTAA = false;
+
         public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
 
         public virtual bool hasMotionVector
@@ -42,14 +45,16 @@ namespace UnityEditor.VFX
 
         public virtual bool implementsMotionVector { get { return false; } }
 
-        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) {}
+        public virtual bool hasExcludeFromTAA => subOutput.supportsExcludeFromTAA && excludeFromTAA;
 
+        protected VFXAbstractRenderedOutput(VFXDataType dataType) : base(VFXContextType.Output, dataType, VFXDataType.None) {}
 
 
         public override IEnumerable<int> GetFilteredOutEnumerators(string name)
         {
             return subOutput.GetFilteredOutEnumerators(name);
         }
+
         public VFXSRPSubOutput subOutput
         {
             get

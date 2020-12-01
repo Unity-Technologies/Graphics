@@ -602,6 +602,51 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        //Regression test for 1258022
+        [UnityTest]
+        public IEnumerator CreateComponent_Change_ExposedType_Keeping_Same_Name()
+        {
+            yield return new EnterPlayMode();
+
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var parametersVector3Desc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Vector3)).First();
+            var parametersGradientDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(Gradient)).First();
+
+            var commonExposedName = "azerty";
+            var parameter_A = parametersVector3Desc.CreateInstance();
+            parameter_A.SetSettingValue("m_ExposedName", commonExposedName);
+            parameter_A.SetSettingValue("m_Exposed", true);
+            parameter_A.value = new Vector3(0, 0, 0);
+            graph.AddChild(parameter_A);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.IsTrue(vfx.HasVector3(commonExposedName));
+            vfx.SetVector3(commonExposedName, Vector3.one * 8786.0f);
+
+            yield return null;
+
+            parameter_A.SetSettingValue("m_Exposed", false);
+            parameter_A.SetSettingValue("m_ExposedName", commonExposedName + "old");
+
+            var parameter_B = parametersGradientDesc.CreateInstance();
+            parameter_B.SetSettingValue("m_ExposedName", commonExposedName);
+            parameter_B.SetSettingValue("m_Exposed", true);
+            graph.AddChild(parameter_B);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            yield return null;
+
+            Assert.IsFalse(vfx.HasVector3(commonExposedName));
+            Assert.IsTrue(vfx.HasGradient(commonExposedName));
+            Assert.IsNotNull(vfx.GetGradient(commonExposedName));
+
+            yield return new ExitPlayMode();
+        }
+
 #pragma warning disable 0414
         private static bool[] trueOrFalse = { true, false };
 #pragma warning restore 0414
@@ -1192,6 +1237,39 @@ namespace UnityEditor.VFX.Test
             VFXValueType.Boolean,
             VFXValueType.Matrix4x4
         };
+
+        public struct VFXNullableTest
+        {
+            internal VFXValueType type;
+            public override string ToString()
+            {
+                return type.ToString();
+            }
+        }
+
+        private static bool IsTypeNullable(Type type)
+        {
+            if (!type.IsValueType)
+                return true;
+            if (Nullable.GetUnderlyingType(type) != null)
+                return true; 
+            return false;
+        }
+
+#pragma warning disable 0414
+        private static VFXNullableTest[] nullableTestCase = s_supportedValueType.Where(o => IsTypeNullable(VFXValue.TypeToType(o))).Select(o => new VFXNullableTest() { type = o }).ToArray();
+#pragma warning restore 0414
+
+        [UnityTest]
+        public IEnumerator Check_SetNullable_Throw_An_Exception_While_Using_Null([ValueSource("nullableTestCase")] VFXNullableTest valueType)
+        {
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            yield return null;
+            Assert.Throws<System.ArgumentNullException>(() => fnSet_UsingBindings(valueType.type, vfx, "null", null));
+        }
 
         [UnityTest]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("trueOrFalse")] bool linkMode, [ValueSource("trueOrFalse")] bool bindingModes)
