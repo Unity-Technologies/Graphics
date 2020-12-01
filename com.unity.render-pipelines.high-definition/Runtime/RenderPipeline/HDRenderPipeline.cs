@@ -356,7 +356,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
 
 #if UNITY_EDITOR
-            m_Asset.EvaluateSettings();
+            // If defaultAsset is not ready (can happen due to loading order issue), then we should return
+            // There is a similar check in Render()
+            if (HDRenderPipeline.defaultAsset == null)
+                return;
 
             UpgradeResourcesIfNeeded();
 
@@ -2328,6 +2331,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cullingParams.cullingOptions |= CullingOptions.NeedsReflectionProbes;
             else
                 cullingParams.cullingOptions &= ~CullingOptions.NeedsReflectionProbes;
+
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ShadowMaps) || currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxShadowRequests == 0)
+                cullingParams.cullingOptions &= ~CullingOptions.ShadowCasters;
 
             return true;
         }
