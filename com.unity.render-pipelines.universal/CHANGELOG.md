@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
 - Bloom in Gamma color-space now more closely matches Linear color-space, this will mean project using Bloom and Gamma color-space may need to adjust Bloom Intensity to match previous look.
 - Autodesk Interactive Shader Graph files and folders containing them were renamed. The new file paths do not have spaces.
+- Re-enabled implicit MSAA resolve to backbuffer on Metal MacOS.
 
 ### Fixed
 - Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
