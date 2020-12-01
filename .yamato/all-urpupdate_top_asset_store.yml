@@ -14,6 +14,8 @@ All_URPUpdate_Top_Asset_Store_trunk:
          rerun: on-new-revision
       -  path: .yamato/urpupdate_top_asset_store-win-dx11.yml#URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 All_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
     name: All URPUpdate_Top_Asset_Store CI - CUSTOM-REVISION
     dependencies:
@@ -23,3 +25,4 @@ All_URPUpdate_Top_Asset_Store_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
