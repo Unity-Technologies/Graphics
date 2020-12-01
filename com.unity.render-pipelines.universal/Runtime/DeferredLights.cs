@@ -827,10 +827,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Disable any global keywords setup in SetupLights().
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._GBUFFER_NORMALS_OCT, false);
 
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LightmapShadowMixing, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, false);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, false); // Backward compatibility
-
             for (int tilerIndex = 0; tilerIndex < m_Tilers.Length; ++tilerIndex)
             {
                 m_TileDataCapacities[tilerIndex] = max(m_TileDataCapacities[tilerIndex], m_Tilers[tilerIndex].TileDataCapacity);
