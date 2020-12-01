@@ -7,14 +7,13 @@ public class TriggerMotionVecView : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
     void Update()
     {
         HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
-        if(hdrp != null)
+        if (hdrp != null)
             hdrp.debugDisplaySettings.data.fullScreenDebugMode = FullScreenDebugMode.MotionVectors;
     }
 }

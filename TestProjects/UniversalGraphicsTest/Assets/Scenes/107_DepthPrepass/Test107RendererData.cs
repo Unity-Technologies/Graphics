@@ -8,7 +8,6 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
-
     [Serializable, ReloadGroup]
     public class Test107RendererData : ScriptableRendererData
     {
@@ -44,6 +43,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateTest107RendererAsset>(), "Test107RendererData.asset", null, null);
         }
+
 #endif
 
         protected override void OnEnable()
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 ResourceReloader.ReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
             }
-            catch { }
+            catch {}
 #endif
         }
     }

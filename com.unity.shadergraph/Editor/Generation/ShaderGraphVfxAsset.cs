@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph.Internal
 
     public sealed class ShaderGraphVfxAsset : ScriptableObject, ISerializationCallbackReceiver
     {
-
         private class ShaderGraphVfxAssetData : JsonObject
         {
             public List<JsonData<AbstractShaderProperty>> m_Properties = new List<JsonData<AbstractShaderProperty>>();
@@ -115,7 +114,7 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_OutputStructName = value; }
         }
 
-        public List<AbstractShaderProperty> properties 
+        public List<AbstractShaderProperty> properties
         {
             get
             {
@@ -127,7 +126,7 @@ namespace UnityEditor.ShaderGraph.Internal
         internal void SetProperties(List<AbstractShaderProperty> propertiesList)
         {
             m_Data.m_Properties.Clear();
-            foreach(var property in propertiesList)
+            foreach (var property in propertiesList)
             {
                 m_Data.m_Properties.Add(property);
             }
@@ -139,7 +138,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         void EnsureProperties()
         {
-            if((m_Data == null || m_Data.m_Properties == null || !m_Data.m_Properties.Any()) && !String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
+            if ((m_Data == null || m_Data.m_Properties == null || !m_Data.m_Properties.Any()) && !String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
             {
                 m_Data = new ShaderGraphVfxAssetData();
                 MultiJson.Deserialize(m_Data , m_SerializedVfxAssetData.JSONnodeData);
@@ -156,7 +155,7 @@ namespace UnityEditor.ShaderGraph.Internal
             m_Data = null;
         }
 
-        void ISerializationCallbackReceiver.OnBeforeSerialize() { }
+        void ISerializationCallbackReceiver.OnBeforeSerialize() {}
 
         public GraphCode GetCode(OutputMetadata[] outputs)
         {

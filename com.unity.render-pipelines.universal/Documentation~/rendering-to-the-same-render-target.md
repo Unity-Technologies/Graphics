@@ -1,4 +1,4 @@
-# Rendering from multiple Cameras to the same render target 
+# Rendering from multiple Cameras to the same render target
 
 In the Universal Render Pipeline (URP), multiple [Base Cameras](camera-types-and-render-type.md#base-camera) or [Camera Stacks](camera-stacking.md) can render to the same render target. This allows you to create effects such as split screen rendering.
 

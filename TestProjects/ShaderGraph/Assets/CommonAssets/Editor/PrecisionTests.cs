@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             List<PreviewNode> previewNodes = m_Graph.GetNodes<PreviewNode>().ToList();
             Assert.AreNotEqual(0, previewNodes.Count, $"No PreviewNode found in {kGraphName}.");
-            foreach(PreviewNode node in previewNodes)
+            foreach (PreviewNode node in previewNodes)
             {
                 GroupData group = m_Graph.groups.Where(x => x == node.group).FirstOrDefault();
                 Assert.NotNull(m_Graph, $"Invalid group data found for PreviewNode with guid {node.objectId}");
@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Single, testNode.concretePrecision);
@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Half, testNode.concretePrecision);
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Single, testNode.concretePrecision);
@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Half, testNode.concretePrecision);
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Single, testNode.concretePrecision);
@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Half, testNode.concretePrecision);
@@ -118,7 +118,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Half, testNode.concretePrecision);
@@ -131,7 +131,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Half, testNode.concretePrecision);
@@ -144,7 +144,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Half, testNode.concretePrecision);
@@ -157,7 +157,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             string testName = System.Reflection.MethodBase.GetCurrentMethod().Name;
             PreviewNode testNode;
-            if(!m_TestNodes.TryGetValue(testName, out testNode))
+            if (!m_TestNodes.TryGetValue(testName, out testNode))
                 throw new Exception($"Failed to find test node for {testName}");
 
             Assert.AreEqual(ConcretePrecision.Single, testNode.concretePrecision);

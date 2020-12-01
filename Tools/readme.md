@@ -6,8 +6,8 @@ These tools are mainly to support CI and testing.
 
 These are supposed to be run as one-off jobs, and can be called from the git-hooks.
 
--   `file_extension_to_lowercase`: Convert all file extensions in the specified folder from uppercase to lowercase (e.g. `file.FBX` will be converted to `file.fbx` as well as its meta file) 
-    - Prerequisites: Python installed and accessible from the `PATH` 
+-   `file_extension_to_lowercase`: Convert all file extensions in the specified folder from uppercase to lowercase (e.g. `file.FBX` will be converted to `file.fbx` as well as its meta file)
+    - Prerequisites: Python installed and accessible from the `PATH`
     - Usage: `python ./file_extension_to_lowercase [list of folders to convert]`
 
 ## Git hooks

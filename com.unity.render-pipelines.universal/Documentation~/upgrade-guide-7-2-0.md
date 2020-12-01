@@ -18,7 +18,7 @@ To make all Cameras require depth, enable the the `Depth Texture` option in the 
 ## Sampling shadows from the Main Light
 In previous versions of URP, if shadow cascades were enabled for the main Light, shadows would be resolved in a screen space pass. The pipeline now always resolves shadows while rendering opaque or transparent objects. This allows for consistency and solved many issues regarding shadows.
 
-If have custom HLSL shaders and sample `_ScreenSpaceShadowmapTexture` texture, you must upgrade them to sample shadows by using the `GetMainLight` function instead. 
+If have custom HLSL shaders and sample `_ScreenSpaceShadowmapTexture` texture, you must upgrade them to sample shadows by using the `GetMainLight` function instead.
 
 For example:
 

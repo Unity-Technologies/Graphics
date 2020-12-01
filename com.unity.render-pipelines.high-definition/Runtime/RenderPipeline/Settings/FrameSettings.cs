@@ -261,19 +261,19 @@ namespace UnityEngine.Rendering.HighDefinition
         SSGI = 95,
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material.</summary>
         [FrameSettingsField(1, customOrderInGroup: 46, autoName: SubsurfaceScattering,
-        tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material (Depends on \"Subsurface Scattering\" in current HDRP Asset).")]
+            tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material (Depends on \"Subsurface Scattering\" in current HDRP Asset).")]
         SubsurfaceScattering = 46,
         /// <summary>Configures the sample budget of the Subsurface Scattering algorithm using Quality Levels. You can either pick from one of the existing values in the Quality Settings, or request a custom number of samples.</summary>
         [FrameSettingsField(1, customOrderInGroup: 47, displayedName: "Quality Mode", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(SssQualityMode),
-        tooltip: "Configures the way the sample budget of the Subsurface Scattering algorithm is determined. You can either pick from one of the existing values in the Quality Settings, or request a custom number of samples.")]
+            tooltip: "Configures the way the sample budget of the Subsurface Scattering algorithm is determined. You can either pick from one of the existing values in the Quality Settings, or request a custom number of samples.")]
         SssQualityMode = 47,
         /// <summary>Sets the Quality Level of the Subsurface Scattering algorithm.</summary>
         [FrameSettingsField(1, customOrderInGroup: 48, displayedName: "Quality Level", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
-        tooltip: "Sets the Quality Level of the Subsurface Scattering algorithm.")]
+            tooltip: "Sets the Quality Level of the Subsurface Scattering algorithm.")]
         SssQualityLevel = 48,
         /// <summary>Sets the custom sample budget of the Subsurface Scattering algorithm.</summary>
         [FrameSettingsField(1, customOrderInGroup: 49, displayedName: "Custom Sample Budget", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
-        tooltip: "Sets the custom sample budget of the Subsurface Scattering algorithm.")]
+            tooltip: "Sets the custom sample budget of the Subsurface Scattering algorithm.")]
         SssCustomSampleBudget = 49,
 
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
@@ -376,7 +376,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal static FrameSettings NewDefaultCamera() => new FrameSettings()
         {
-            bitDatas = new BitArray128(new uint[] {
+            bitDatas = new BitArray128(new uint[]
+            {
                 (uint)FrameSettingsField.ShadowMaps,
                 (uint)FrameSettingsField.ContactShadows,
                 (uint)FrameSettingsField.Shadowmask,
@@ -453,7 +454,8 @@ namespace UnityEngine.Rendering.HighDefinition
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
         {
-            bitDatas = new BitArray128(new uint[] {
+            bitDatas = new BitArray128(new uint[]
+            {
                 (uint)FrameSettingsField.ShadowMaps,
                 //(uint)FrameSettingsField.ContactShadow,
                 //(uint)FrameSettingsField.ShadowMask,
@@ -510,7 +512,8 @@ namespace UnityEngine.Rendering.HighDefinition
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
         {
-            bitDatas = new BitArray128(new uint[] {
+            bitDatas = new BitArray128(new uint[]
+            {
                 (uint)FrameSettingsField.ShadowMaps,
                 (uint)FrameSettingsField.ContactShadows,
                 (uint)FrameSettingsField.Shadowmask,
@@ -700,25 +703,25 @@ namespace UnityEngine.Rendering.HighDefinition
             overriddenFrameSettings.bitDatas = (overridingFrameSettings.bitDatas & frameSettingsOverideMask.mask) | (~frameSettingsOverideMask.mask & overriddenFrameSettings.bitDatas);
 
             //other overrides
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.SssQualityMode])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.SssQualityMode])
                 overriddenFrameSettings.sssQualityMode = overridingFrameSettings.sssQualityMode;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.SssQualityLevel])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.SssQualityLevel])
                 overriddenFrameSettings.sssQualityLevel = overridingFrameSettings.sssQualityLevel;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.SssCustomSampleBudget])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.SssCustomSampleBudget])
                 overriddenFrameSettings.sssCustomSampleBudget = overridingFrameSettings.sssCustomSampleBudget;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBias])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.LODBias])
                 overriddenFrameSettings.lodBias = overridingFrameSettings.lodBias;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBiasMode])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.LODBiasMode])
                 overriddenFrameSettings.lodBiasMode = overridingFrameSettings.lodBiasMode;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBiasQualityLevel])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.LODBiasQualityLevel])
                 overriddenFrameSettings.lodBiasQualityLevel = overridingFrameSettings.lodBiasQualityLevel;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevel])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaximumLODLevel])
                 overriddenFrameSettings.maximumLODLevel = overridingFrameSettings.maximumLODLevel;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevelMode])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaximumLODLevelMode])
                 overriddenFrameSettings.maximumLODLevelMode = overridingFrameSettings.maximumLODLevelMode;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaximumLODLevelQualityLevel])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaximumLODLevelQualityLevel])
                 overriddenFrameSettings.maximumLODLevelQualityLevel = overridingFrameSettings.maximumLODLevelQualityLevel;
-            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.MaterialQualityLevel])
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaterialQualityLevel])
                 overriddenFrameSettings.materialQuality = overridingFrameSettings.materialQuality;
         }
 
@@ -837,7 +840,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 additionalData,
                 ref defaultHdrpAsset.GetDefaultFrameSettings(additionalData?.defaultFrameSettings ?? FrameSettingsRenderType.Camera), //fallback on Camera for SceneCamera and PreviewCamera
                 hdrpAsset.currentPlatformRenderPipelineSettings
-                );
+            );
 
         // Note: this version is the one tested as there is issue getting HDRenderPipelineAsset in batchmode in unit test framework currently.
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>
@@ -860,7 +863,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if both settings are equal.</returns>
-        public static bool operator ==(FrameSettings a, FrameSettings b)
+        public static bool operator==(FrameSettings a, FrameSettings b)
             => a.bitDatas                    == b.bitDatas
             && a.sssQualityMode              == b.sssQualityMode
             && a.sssQualityLevel             == b.sssQualityLevel
@@ -879,7 +882,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if settings are not equal.</returns>
-        public static bool operator !=(FrameSettings a, FrameSettings b) => !(a == b);
+        public static bool operator!=(FrameSettings a, FrameSettings b) => !(a == b);
 
         /// <summary>
         /// Equality operator between two FrameSettings. Return `true` if equivalent. (comparison of content).
@@ -991,7 +994,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     groups.Add(new DebuggerGroup("Bits without attribute", noAttribute.Where(fs => fs != FrameSettingsField.None)?.Select(fs => new DebuggerEntry(Enum.GetName(typeof(FrameSettingsField), fs), m_FrameSettings.bitDatas[(uint)fs])).ToArray()));
 
-                    groups.Add(new DebuggerGroup("Non Bit data", new DebuggerEntry[] {
+                    groups.Add(new DebuggerGroup("Non Bit data", new DebuggerEntry[]
+                    {
                         new DebuggerEntry("sssQualityMode", m_FrameSettings.sssQualityMode),
                         new DebuggerEntry("sssQualityLevel", m_FrameSettings.sssQualityLevel),
                         new DebuggerEntry("sssCustomSampleBudget", m_FrameSettings.sssCustomSampleBudget),

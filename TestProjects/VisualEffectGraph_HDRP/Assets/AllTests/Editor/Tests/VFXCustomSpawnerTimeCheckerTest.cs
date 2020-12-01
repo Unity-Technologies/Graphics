@@ -18,7 +18,6 @@ namespace UnityEditor.VFX.Test
         {
         }
 
-
         static private int s_totalTimeID = Shader.PropertyToID("totalTime");
         public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {

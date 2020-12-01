@@ -25,4 +25,3 @@ The __Composite Shadow Caster 2D__ merges the shape of multiple __Shadow Caster 
 | ![](Images/2D/wo_composite_shadow.png)    | ![](Images/2D/w_composite_shadow.png)  |
 | -------------------------------------- | ----------------------------------- |
 | Without __Composite Shadow Caster 2D__ | With __Composite Shadow Caster 2D__ |
-

@@ -21,5 +21,4 @@ public class BakeProbes : MonoBehaviour
             yield return null;
         }
     }
-
 }

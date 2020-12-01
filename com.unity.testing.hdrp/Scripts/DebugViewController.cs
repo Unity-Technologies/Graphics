@@ -25,7 +25,7 @@ public class DebugViewController : MonoBehaviour
     {
         HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
-        switch ( settingType )
+        switch (settingType)
         {
             case SettingType.Material:
                 hdPipeline.debugDisplaySettings.SetDebugViewGBuffer(gBuffer);
@@ -35,10 +35,9 @@ public class DebugViewController : MonoBehaviour
                 hdPipeline.debugDisplaySettings.data.lightingDebugSettings.debugLightLayersFilterMask = (DebugLightLayersMask)0b10111101;
                 break;
             case SettingType.Rendering:
-                hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode) fullScreenDebugMode);
+                hdPipeline.debugDisplaySettings.SetFullScreenDebugMode((FullScreenDebugMode)fullScreenDebugMode);
                 break;
         }
-
     }
 
     void OnDestroy()

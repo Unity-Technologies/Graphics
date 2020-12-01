@@ -157,7 +157,6 @@ namespace UnityEngine.VFX.Test
                     }
 
                     ImageAssert.AreEqual(testCase.ReferenceImage, actual, imageComparisonSettings);
-
                 }
                 finally
                 {

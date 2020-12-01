@@ -34,7 +34,7 @@ The table below lists current categories and their corresponding colors.
 **Note:** [Sub Graph](Sub-Graph.md) nodes in a main [Shader Graph](Shader-Graph.md) fall in the Utility category. If you select **Category** mode, all Sub Graphs use the Utility color.
 
 ### Precision Colors
-This mode displays colors on the nodes based on their current precision. If you set a node to **Inherit Precision**, the display color reflects the currently active precision. See [Precision Modes](Precision-Modes.md) for more information about inheritance. 
+This mode displays colors on the nodes based on their current precision. If you set a node to **Inherit Precision**, the display color reflects the currently active precision. See [Precision Modes](Precision-Modes.md) for more information about inheritance.
 
 ![](images/Color-Mode-Precision.png)
 

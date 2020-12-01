@@ -6,7 +6,7 @@ You can use the Fabric Material to render various types of fabric in the High De
 
 ## Creating and editing a Fabric Material
 
-Fabric Materials use a Shader Graph Master Node which means you cannot edit any of its properties in the Inspector. Fabric Materials use a Shader Graph Master Node, so you need to use a specific process to create and edit a Material that uses it. For information on how to do this, see [Customizing HDRP materials with Shader Graph](Customizing-HDRP-materials-with-Shader-Graph.md). 
+Fabric Materials use a Shader Graph Master Node which means you cannot edit any of its properties in the Inspector. Fabric Materials use a Shader Graph Master Node, so you need to use a specific process to create and edit a Material that uses it. For information on how to do this, see [Customizing HDRP materials with Shader Graph](Customizing-HDRP-materials-with-Shader-Graph.md).
 
 When you apply the node to a Material, the **Surface Options** and **Exposed Properties** become available to edit in the Material’s Inspector.
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ public class SetDebugView : MonoBehaviour
     [SerializeField] DebugViewProperties debugViewProperties;
 
     [ContextMenu("Get Current Debug Settings")]
-    void GetCurrentDebugSettings ()
+    void GetCurrentDebugSettings()
     {
         var hdrPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
         if (hdrPipeline == null) return;
@@ -54,25 +54,25 @@ public class SetDebugView : MonoBehaviour
     {
         var hdrPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
-        if ( jsonData == null || hdrPipeline == null) return;
+        if (jsonData == null || hdrPipeline == null) return;
 
         JsonUtility.FromJsonOverwrite(jsonData, hdrPipeline.debugDisplaySettings.data);
 
         hdrPipeline.debugDisplaySettings.UpdateMaterials();
         hdrPipeline.debugDisplaySettings.UpdateCameraFreezeOptions();
 
-        hdrPipeline.debugDisplaySettings.SetDebugViewCommonMaterialProperty( hdrPipeline.debugDisplaySettings.data.materialDebugSettings.debugViewMaterialCommonValue );
-        hdrPipeline.debugDisplaySettings.SetDebugViewMaterial( debugViewMaterial[1] );
-        hdrPipeline.debugDisplaySettings.SetDebugViewEngine( hdrPipeline.debugDisplaySettings.data.engineEnumIndex );
-        hdrPipeline.debugDisplaySettings.SetDebugViewVarying( hdrPipeline.debugDisplaySettings.data.materialDebugSettings.debugViewVarying );
-        hdrPipeline.debugDisplaySettings.SetDebugViewProperties( hdrPipeline.debugDisplaySettings.data.materialDebugSettings.debugViewProperties );
-        hdrPipeline.debugDisplaySettings.SetDebugViewGBuffer( hdrPipeline.debugDisplaySettings.data.gBufferEnumIndex );
-        hdrPipeline.debugDisplaySettings.SetFullScreenDebugMode( hdrPipeline.debugDisplaySettings.data.fullScreenDebugMode );
+        hdrPipeline.debugDisplaySettings.SetDebugViewCommonMaterialProperty(hdrPipeline.debugDisplaySettings.data.materialDebugSettings.debugViewMaterialCommonValue);
+        hdrPipeline.debugDisplaySettings.SetDebugViewMaterial(debugViewMaterial[1]);
+        hdrPipeline.debugDisplaySettings.SetDebugViewEngine(hdrPipeline.debugDisplaySettings.data.engineEnumIndex);
+        hdrPipeline.debugDisplaySettings.SetDebugViewVarying(hdrPipeline.debugDisplaySettings.data.materialDebugSettings.debugViewVarying);
+        hdrPipeline.debugDisplaySettings.SetDebugViewProperties(hdrPipeline.debugDisplaySettings.data.materialDebugSettings.debugViewProperties);
+        hdrPipeline.debugDisplaySettings.SetDebugViewGBuffer(hdrPipeline.debugDisplaySettings.data.gBufferEnumIndex);
+        hdrPipeline.debugDisplaySettings.SetFullScreenDebugMode(hdrPipeline.debugDisplaySettings.data.fullScreenDebugMode);
         //hdrPipeline.debugDisplaySettings.SetShadowDebugMode( hdrPipeline.debugDisplaySettings.data. );
         //hdrPipeline.debugDisplaySettings.SetDebugLightFilterMode( hdrPipeline.debugDisplaySettings.data. );
-        hdrPipeline.debugDisplaySettings.SetDebugLightingMode( (DebugLightingMode) hdrPipeline.debugDisplaySettings.data.lightingDebugModeEnumIndex );
-        hdrPipeline.debugDisplaySettings.SetMipMapMode( (DebugMipMapMode) hdrPipeline.debugDisplaySettings.data.mipMapsEnumIndex );
-        
+        hdrPipeline.debugDisplaySettings.SetDebugLightingMode((DebugLightingMode)hdrPipeline.debugDisplaySettings.data.lightingDebugModeEnumIndex);
+        hdrPipeline.debugDisplaySettings.SetMipMapMode((DebugMipMapMode)hdrPipeline.debugDisplaySettings.data.mipMapsEnumIndex);
+
         hdrPipeline.debugDisplaySettings.UpdateMaterials();
         hdrPipeline.debugDisplaySettings.UpdateCameraFreezeOptions();
 

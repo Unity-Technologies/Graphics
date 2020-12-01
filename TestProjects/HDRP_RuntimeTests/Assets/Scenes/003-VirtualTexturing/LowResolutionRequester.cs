@@ -19,17 +19,17 @@ public class LowResolutionRequester : MonoBehaviour
         // Hack, we simply request all stacks in the shader ideally we would have some way
         // to identify a specific stack within a shader.
         properties.Clear();
-        for ( int i=0;i<shad.GetPropertyCount(); i++)
+        for (int i = 0; i < shad.GetPropertyCount(); i++)
         {
             if (shad.GetPropertyType(i) != UnityEngine.Rendering.ShaderPropertyType.Texture) continue;
 
             string name;
             int layer;
 
-            if ( shad.FindTextureStack(i, out name, out layer))
+            if (shad.FindTextureStack(i, out name, out layer))
             {
                 int stackPropertyId = Shader.PropertyToID(name);
-                if ( !properties.Contains(stackPropertyId))
+                if (!properties.Contains(stackPropertyId))
                 {
                     properties.Add(stackPropertyId);
                 }

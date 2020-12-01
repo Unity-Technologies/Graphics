@@ -1,6 +1,6 @@
 # Multiply
 
-Menu Path : **Operator > Math > Arithmetic > Multiply**  
+Menu Path : **Operator > Math > Arithmetic > Multiply**
 
 The **Multiply** Operator multiplies its inputs and calculates the result. For example an input value of (1, 2) * (3, 4, 5) outputs (3, 8, 5), and an input value of (1, 2) * 3 outputs (3, 6).
 

@@ -264,7 +264,6 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
-
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner()
         {

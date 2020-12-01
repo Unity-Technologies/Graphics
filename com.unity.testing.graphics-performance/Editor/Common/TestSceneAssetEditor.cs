@@ -68,7 +68,7 @@ class TestSceneAssetEditor : Editor
             rect.height = EditorGUIUtility.singleLineHeight;
 
             // Scene field
-            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new [] {"Assets", "Packages"}).FirstOrDefault();
+            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new[] {"Assets", "Packages"}).FirstOrDefault();
             SceneAsset sceneAsset = null;
             if (!String.IsNullOrEmpty(sceneGUID))
             {
@@ -204,7 +204,7 @@ class TestSceneAssetEditor : Editor
 
         if (GUILayout.Button(Styles.refreshTestRunner))
             CompilationPipeline.RequestScriptCompilation();
-        
+
         EditorGUILayout.Space();
 
         DrawSRPAssetAliasList();

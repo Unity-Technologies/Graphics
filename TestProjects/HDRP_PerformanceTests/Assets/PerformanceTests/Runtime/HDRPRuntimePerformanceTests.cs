@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -18,8 +18,8 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
     {
         if (testScenesAsset == null)
             yield break;
-        foreach (var (scene, asset) in testScenesAsset.counterTestSuite.GetTestList())
-            yield return new CounterTestDescription{ assetData = asset, sceneData = scene };
+        foreach (var(scene, asset) in testScenesAsset.counterTestSuite.GetTestList())
+            yield return new CounterTestDescription { assetData = asset, sceneData = scene };
     }
 
     static IEnumerable<ProfilingSampler> GetAllMarkers(HDCamera hDCamera)
@@ -44,9 +44,9 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
     {
         if (testScenesAsset == null)
             yield break;
-        foreach (var (scene, asset) in testScenesAsset.memoryTestSuite.GetTestList())
+        foreach (var(scene, asset) in testScenesAsset.memoryTestSuite.GetTestList())
             foreach (var objectType in GetMemoryObjectTypes())
-                yield return new MemoryTestDescription{ assetData = asset, sceneData = scene, assetType = objectType };
+                yield return new MemoryTestDescription { assetData = asset, sceneData = scene, assetType = objectType };
     }
 
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]

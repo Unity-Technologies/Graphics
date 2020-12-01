@@ -1,4 +1,4 @@
-﻿Shader "FullScreen/BeforeOpaqueDepthAndNormal"
+Shader "FullScreen/BeforeOpaqueDepthAndNormal"
 {
     HLSLINCLUDE
 

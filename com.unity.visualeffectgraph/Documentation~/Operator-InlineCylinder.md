@@ -18,4 +18,3 @@ The **Cylinder** inline Operator allows you to store an instance of a Cylinder. 
 | **Output** | Cylinder   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

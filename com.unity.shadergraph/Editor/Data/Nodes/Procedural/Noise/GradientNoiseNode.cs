@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Gradient Noise";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_GradientNoise", BindingFlags.Static | BindingFlags.NonPublic);
@@ -23,8 +22,8 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Vector1 Out)
         {
             return
-                @"
-{ 
+@"
+{
     $precision2 p = UV * Scale;
     $precision2 ip = floor(p);
     $precision2 fp = frac(p);

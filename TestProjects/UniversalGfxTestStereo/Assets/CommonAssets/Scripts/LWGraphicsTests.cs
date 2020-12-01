@@ -11,7 +11,6 @@ using System.IO;
 
 public class LWGraphicsTests
 {
-
     public const string lwPackagePath = "Assets/ReferenceImages";
 
     [UnityTest, Category("LightWeightRP")]
@@ -71,7 +70,7 @@ public class LWGraphicsTests
         // so we need to capture and reload the resulting file.
         ScreenCapture.CaptureScreenshot(tempScreenshotFile, ScreenCapture.StereoScreenCaptureMode.BothEyes);
 
-        // NOTE: there's discussions around whether Unity has actually documented this correctly. 
+        // NOTE: there's discussions around whether Unity has actually documented this correctly.
         // Unity says: next frame MUST have the file ready
         // Community says: not true, file write might take longer, so have to explicitly check the file handle before use
         // https://forum.unity.com/threads/how-to-wait-for-capturescreen-to-complete.172194/
@@ -135,7 +134,6 @@ public class LWGraphicsTests
         return true;
     }
 
-
     static Texture2D ChangeTextureSize(Texture2D source, int newWidth, int newHeight)
     {
         source.filterMode = FilterMode.Bilinear;
@@ -165,5 +163,6 @@ public class LWGraphicsTests
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
+
 #endif
 }

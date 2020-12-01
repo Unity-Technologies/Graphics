@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         static string kGraphName = "Assets/CommonAssets/Graphs/Blank.shadergraph";
         GraphData m_Graph;
 
-        readonly List<string> m_NotAllowedNodes = new List<string>{"PropertyNode", "KeywordNode", "SubGraphNode", "SubGraphOutputNode", "CustomFunctionNode"};
+        readonly List<string> m_NotAllowedNodes = new List<string> {"PropertyNode", "KeywordNode", "SubGraphNode", "SubGraphOutputNode", "CustomFunctionNode"};
 
         [OneTimeSetUp]
         public void LoadGraph()
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var allNodes = m_Graph.GetNodes<AbstractMaterialNode>().ToArray();
                 foreach (var node in allNodes)
                 {
-                    if(m_Graph.outputNode != node)
+                    if (m_Graph.outputNode != node)
                         m_Graph.RemoveNode(node);
                 }
             }

@@ -10,10 +10,10 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Texture |	Input |	Texture 3D  | None | Texture 3D to sample |
-| UV      | Input |	Vector 3    | None	| 3 dimnensional UV coordinates |
-| Sampler | Input |	Sampler State | Default sampler state | Sampler for the texture |
-| RGBA	| Output	| Vector 4	| None	| Output value as RGBA |
+| Texture | Input | Texture 3D  | None | Texture 3D to sample |
+| UV      | Input | Vector 3    | None  | 3 dimnensional UV coordinates |
+| Sampler | Input | Sampler State | Default sampler state | Sampler for the texture |
+| RGBA  | Output    | Vector 4  | None  | Output value as RGBA |
 
 ## Generated Code Example
 

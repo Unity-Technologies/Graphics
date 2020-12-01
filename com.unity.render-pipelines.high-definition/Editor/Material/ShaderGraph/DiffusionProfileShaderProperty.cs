@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             string f2s(float f) => System.Convert.ToDouble(f).ToString("0." + new string('#', 339));
 
             return
-$@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
+                $@"[DiffusionProfile]{referenceName}(""{displayName}"", Float) = {f2s(HDShadowUtils.Asfloat(hash))}
 [HideInInspector]{assetReferenceName}(""{displayName}"", Vector) = ({f2s(asset.x)}, {f2s(asset.y)}, {f2s(asset.z)}, {f2s(asset.w)})";
         }
 

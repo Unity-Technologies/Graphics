@@ -18,4 +18,3 @@ The **float** inline Operator allows you to store an instance of a float. This i
 | **Output** | float   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

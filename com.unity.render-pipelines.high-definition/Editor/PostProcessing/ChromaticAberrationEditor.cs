@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_MaxSamples);
             }
         }
+
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
         {
             if (settings == null)
@@ -56,4 +57,3 @@ namespace UnityEditor.Rendering.HighDefinition
         }
     }
 }
-

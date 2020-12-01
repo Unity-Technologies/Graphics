@@ -15,4 +15,3 @@ The **Look At** Operator calculates the [Look-At](https://docs.unity3d.com/Scrip
 | **Output** | **Type**  | **Description**                                 |
 | ---------- | --------- | ----------------------------------------------- |
 | **Output** | Transform | The look-at Transform this Operator calculates. |
-

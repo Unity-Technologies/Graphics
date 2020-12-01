@@ -1,6 +1,6 @@
 # Tangent
 
-Menu Path : **Operator > Math > Trigonometry > Tangent**  
+Menu Path : **Operator > Math > Trigonometry > Tangent**
 
 The **Tangent** Operator calculates the [tangent](https://docs.unity3d.com/ScriptReference/Mathf.Tan.html) of the input in radians.
 

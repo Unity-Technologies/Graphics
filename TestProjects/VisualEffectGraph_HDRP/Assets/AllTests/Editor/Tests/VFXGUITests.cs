@@ -327,7 +327,6 @@ namespace UnityEditor.VFX.Test
             CreateAllOperators();
         }
 
-
         [UnityTest]
         public IEnumerator CollapseTest()
         {
@@ -358,7 +357,6 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
             builtIn.superCollapsed = false;
-
         }
 
         List<VFXOperator> CreateAllOperators()

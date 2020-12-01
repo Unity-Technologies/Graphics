@@ -264,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Grab the right kernel
             parameters.ssGICS = m_Asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
-            parameters.convertKernel = halfResolution? m_ConvertYCoCgToRGBHalfKernel : m_ConvertYCoCgToRGBKernel;
+            parameters.convertKernel = halfResolution ? m_ConvertYCoCgToRGBHalfKernel : m_ConvertYCoCgToRGBKernel;
 
             var info = m_SharedRTManager.GetDepthBufferMipChainInfo();
             parameters.offsetBuffer = info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
@@ -399,7 +399,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Evaluate the history validity
             float effectHistoryValidity = hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination0, fullResolution, rayTraced)
-                                          && hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced) ? 1.0f : 0.0f;
+                && hdCamera.EffectHistoryValidity(HDCamera.HistoryEffectSlot.GlobalIllumination1, fullResolution, rayTraced) ? 1.0f : 0.0f;
             return EvaluateHistoryValidity(hdCamera) * effectHistoryValidity;
         }
 

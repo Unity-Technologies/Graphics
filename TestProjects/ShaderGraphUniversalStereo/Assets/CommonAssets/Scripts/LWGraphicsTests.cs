@@ -11,7 +11,6 @@ using System.IO;
 
 public class LWGraphicsTests
 {
-
     public const string lwPackagePath = "Assets/ReferenceImages";
 
     [UnityTest, Category("LightWeightRP")]
@@ -26,7 +25,7 @@ public class LWGraphicsTests
         // Always wait one frame for scene load
         yield return null;
 
-        var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
+        var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<LWGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find LWGraphicsTestSettings");
 
@@ -56,7 +55,7 @@ public class LWGraphicsTests
 
         var tempScreenshotFile = Path.ChangeExtension(Path.GetTempFileName(), ".png");
         // clean up previous file if it happens to exist at this point
-        if(FileAvailable(tempScreenshotFile))
+        if (FileAvailable(tempScreenshotFile))
             System.IO.File.Delete(tempScreenshotFile);
 
         for (int i = 0; i < settings.WaitFrames; i++)
@@ -76,19 +75,21 @@ public class LWGraphicsTests
         // Community says: not true, file write might take longer, so have to explicitly check the file handle before use
         // https://forum.unity.com/threads/how-to-wait-for-capturescreen-to-complete.172194/
         yield return null;
-        while(!FileAvailable(tempScreenshotFile))
+        while (!FileAvailable(tempScreenshotFile))
             yield return null;
 
         // load the screenshot back into memory and change to the same format as we want to compare with
-        var actualImage = new Texture2D(1,1);
+        var actualImage = new Texture2D(1, 1);
         actualImage.LoadImage(System.IO.File.ReadAllBytes(tempScreenshotFile));
 
-        if(actualImage.width != referenceImage.width || actualImage.height != referenceImage.height) {
+        if (actualImage.width != referenceImage.width || actualImage.height != referenceImage.height)
+        {
             Debug.LogWarning("[" + testCase.ScenePath + "] Image size differs (ref: " + referenceImage.width + "x" + referenceImage.height + " vs. actual: " + actualImage.width + "x" + actualImage.height + "). " + (Application.isEditor ? " is your GameView set to a different resolution than the reference images?" : "is your build size different than the reference images?"));
             actualImage = ChangeTextureSize(actualImage, referenceImage.width, referenceImage.height);
         }
         // ref is usually in RGB24 or RGBA32 while actual is in ARGB32, we need to convert formats
-        if(referenceImage.format != actualImage.format) {
+        if (referenceImage.format != actualImage.format)
+        {
             actualImage = ChangeTextureFormat(actualImage, referenceImage.format);
         }
 
@@ -102,32 +103,36 @@ public class LWGraphicsTests
         ImageAssert.AreEqual(referenceImage, actualImage, settings.ImageComparisonSettings);
     }
 
-    static bool FileAvailable(string path) {
-        if (!File.Exists(path)) {
+    static bool FileAvailable(string path)
+    {
+        if (!File.Exists(path))
+        {
             return false;
         }
 
         FileInfo file = new System.IO.FileInfo(path);
         FileStream stream = null;
 
-        try {
+        try
+        {
             stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
         }
-        catch (IOException) {
+        catch (IOException)
+        {
             // Can be either:
             // - file is processed by another thread
             // - file is still being written to
             // - file does not really exist yet
             return false;
         }
-        finally {
+        finally
+        {
             if (stream != null)
                 stream.Close();
         }
 
         return true;
     }
-
 
     static Texture2D ChangeTextureSize(Texture2D source, int newWidth, int newHeight)
     {
@@ -137,7 +142,7 @@ public class LWGraphicsTests
         RenderTexture.active = rt;
         Graphics.Blit(source, rt);
         var nTex = new Texture2D(newWidth, newHeight, source.format, false);
-        nTex.ReadPixels(new Rect(0, 0, newWidth, newWidth), 0,0);
+        nTex.ReadPixels(new Rect(0, 0, newWidth, newWidth), 0, 0);
         nTex.Apply();
         RenderTexture.active = null;
         return nTex;
@@ -158,5 +163,6 @@ public class LWGraphicsTests
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
+
 #endif
 }

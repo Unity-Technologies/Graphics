@@ -5,4 +5,3 @@ This section contains information about new features, improvements, and issues f
 The section contains the following pages:
 
 * [URP 10](urp-whats-new-10.md)
-

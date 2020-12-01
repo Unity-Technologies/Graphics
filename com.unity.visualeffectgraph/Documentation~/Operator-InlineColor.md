@@ -18,4 +18,3 @@ The **Color** inline Operator allows you to store an instance of a Color. This i
 | **Output** | Color   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

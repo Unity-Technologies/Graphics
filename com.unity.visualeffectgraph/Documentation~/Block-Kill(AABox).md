@@ -1,6 +1,6 @@
 # Kill (AABox)
 
-Menu Path : **Kill >** **Kill (AABox)**  
+Menu Path : **Kill >** **Kill (AABox)**
 
 The Kill (AABox) Block kills (sets the `alive` attribute to false) particles depending on where they are in comparison to a given [AABox](Type-AABox.md).
 

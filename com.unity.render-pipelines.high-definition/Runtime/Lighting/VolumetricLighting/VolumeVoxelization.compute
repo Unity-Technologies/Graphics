@@ -5,7 +5,7 @@
 // #pragma enable_d3d11_debug_symbols
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#pragma kernel VolumeVoxelizationBruteforceOptimal VolumeVoxelization=VolumeVoxelizationBruteforceOptimal 				 VL_PRESET_OPTIMAL
+#pragma kernel VolumeVoxelizationBruteforceOptimal VolumeVoxelization=VolumeVoxelizationBruteforceOptimal                VL_PRESET_OPTIMAL
 #pragma kernel VolumeVoxelizationTiledOptimal      VolumeVoxelization=VolumeVoxelizationTiledOptimal      COARSE_BINNING VL_PRESET_OPTIMAL
 #pragma kernel VolumeVoxelizationBruteforce        VolumeVoxelization=VolumeVoxelizationBruteforce
 #pragma kernel VolumeVoxelizationTiled             VolumeVoxelization=VolumeVoxelizationTiled             COARSE_BINNING
@@ -106,7 +106,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay
     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
 
-    float z0 	= t0 * cosRay; // Distance to linear depth
+    float z0    = t0 * cosRay; // Distance to linear depth
     uint  zBin0 = ComputeZBinIndex(z0);
 
     for (uint slice = 0; slice < _VBufferSliceCount; slice++)
@@ -118,8 +118,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay
         float dt = t1 - t0;
         float t  = t0 + 0.5 * dt;
 
-        float z1 	= t1 * cosRay; // Distance to linear depth
-	    uint  zBin1 = ComputeZBinIndex(z1);
+        float z1    = t1 * cosRay; // Distance to linear depth
+        uint  zBin1 = ComputeZBinIndex(z1);
 
         float3 voxelCenterWS = ray.originWS + t * ray.centerDirWS;
 
@@ -250,7 +250,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tile, JitteredRay
 
         _VBufferDensity[voxelCoord] = float4(voxelScattering, voxelExtinction);
 
-        t0 	  = t1;
+        t0    = t1;
         zBin0 = zBin1;
     }
 }
@@ -273,10 +273,10 @@ void VolumeVoxelization(uint3 dispatchThreadId : SV_DispatchThreadID,
 #ifdef VL_PRESET_OPTIMAL
     // The entire thread group is within the same light tile.
     uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE;
-    uint  tile 		= IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
+    uint  tile      = IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
 #else
     // No compile-time optimizations, no scalarization.
-    uint  tile 		= ComputeTileIndex(pixelCoord);
+    uint  tile      = ComputeTileIndex(pixelCoord);
 #endif
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).

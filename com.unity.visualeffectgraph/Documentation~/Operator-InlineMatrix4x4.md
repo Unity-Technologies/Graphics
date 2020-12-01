@@ -18,4 +18,3 @@ The **Matrix4x4** inline Operator allows you to store an instance of a Matrix4x4
 | **Output** | Matrix4x4   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

@@ -17,16 +17,16 @@ public class ArrayPlacer : MonoBehaviour
     [ContextMenu("Place")]
     void Place()
     {
-        if (source == null || counts.x < 1 || counts.y < 1 || counts.z < 1 ) return;
+        if (source == null || counts.x < 1 || counts.y < 1 || counts.z < 1) return;
 
-        for( int i=transform.childCount-1; i>=0; i--)
+        for (int i = transform.childCount - 1; i >= 0; i--)
         {
             DestroyImmediate(transform.GetChild(i).gameObject);
         }
 
         var pos = Vector3.zero;
 
-        for (int x=0; x < counts.x; x++)
+        for (int x = 0; x < counts.x; x++)
         {
             pos.x = offsets.x * x;
 

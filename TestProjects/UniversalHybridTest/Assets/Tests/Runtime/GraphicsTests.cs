@@ -1,4 +1,3 @@
-  
 using System.Collections;
 using System.Linq;
 using NUnit.Framework;
@@ -11,8 +10,8 @@ using Unity.Entities;
 public class GraphicsTests
 {
     #if UNITY_ANDROID
-        static bool wasFirstSceneRan = false;
-        const int firstSceneAdditionalFrames = 3;
+    static bool wasFirstSceneRan = false;
+    const int firstSceneAdditionalFrames = 3;
     #endif
     public const string path = "Assets/ReferenceImages";
 
@@ -37,9 +36,9 @@ public class GraphicsTests
         Screen.SetResolution(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight, false);
         #endif
 
-        var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
+        var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
         //var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        //Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
+        //Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
 
         //Scene scene = SceneManager.GetActiveScene();
 
@@ -61,7 +60,7 @@ public class GraphicsTests
         // otherwise the screenshot is just a black screen
         if (!wasFirstSceneRan)
         {
-            for(int i = 0; i < firstSceneAdditionalFrames; i++)
+            for (int i = 0; i < firstSceneAdditionalFrames; i++)
             {
                 yield return null;
             }
@@ -79,13 +78,12 @@ public class GraphicsTests
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
         #endif
 
-        // foreach (GameObject o in Object.FindObjectsOfType<GameObject>()) 
+        // foreach (GameObject o in Object.FindObjectsOfType<GameObject>())
         // {
         //     Object.Destroy(o);
         // }
 
         CleanUp();
-
     }
 
     public void CleanUp()
@@ -93,5 +91,4 @@ public class GraphicsTests
         EntityManager m_Manager = World.DefaultGameObjectInjectionWorld.EntityManager;
         m_Manager.DestroyEntity(m_Manager.GetAllEntities());
     }
-
 }

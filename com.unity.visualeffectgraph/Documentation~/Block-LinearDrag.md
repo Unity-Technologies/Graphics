@@ -1,6 +1,6 @@
 # Linear Drag
 
-Menu Path : **Force >** **Linear Drag**  
+Menu Path : **Force >** **Linear Drag**
 
 The **Linear Drag** Block applies a force to particles that slows them down without affecting their direction.
 

@@ -1,6 +1,6 @@
 # Cosine
 
-Menu Path : **Operator > Math > Trigonometry > Cosine**  
+Menu Path : **Operator > Math > Trigonometry > Cosine**
 
 The Cosine operator will compute the value of the cosine of the input in radians.
 

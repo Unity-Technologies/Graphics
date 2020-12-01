@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void CanPermuteKeywords()
         {
             int permutationCount = 1;
-            foreach(ShaderKeyword keyword in m_Collector.keywords)
+            foreach (ShaderKeyword keyword in m_Collector.keywords)
             {
                 permutationCount *= keyword.keywordType == KeywordType.Enum ? keyword.entries.Count : 2;
             }
@@ -158,11 +158,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void CanGetValidPermutations()
         {
             bool permutationsValid = true;
-            foreach(List<KeyValuePair<ShaderKeyword, int>> permutation in m_Collector.permutations)
+            foreach (List<KeyValuePair<ShaderKeyword, int>> permutation in m_Collector.permutations)
             {
-                for(int i = 0; i < permutation.Count; i++)
+                for (int i = 0; i < permutation.Count; i++)
                 {
-                    if(permutation[i].Key != m_Collector.keywords[i])
+                    if (permutation[i].Key != m_Collector.keywords[i])
                     {
                         permutationsValid = false;
                     }
@@ -179,7 +179,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             foreach (var keyword in m_Collector.keywords)
             {
                 string declaration = keyword.GetKeywordPreviewDeclarationString();
-                if(!string.IsNullOrEmpty(declaration))
+                if (!string.IsNullOrEmpty(declaration))
                 {
                     sb.AppendLine(declaration);
                 }
@@ -195,7 +195,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             foreach (var keyword in m_Collector.keywords)
             {
                 string declaration = keyword.GetKeywordDeclarationString();
-                if(!string.IsNullOrEmpty(declaration))
+                if (!string.IsNullOrEmpty(declaration))
                 {
                     sb.AppendLine(declaration);
                 }
@@ -219,10 +219,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             List<KeywordNode> keywordNodes = m_Graph.GetNodes<KeywordNode>().ToList();
             Assert.IsNotEmpty(keywordNodes, "No Keyword Nodes in graph.");
 
-            foreach(KeywordNode keywordNode in keywordNodes)
+            foreach (KeywordNode keywordNode in keywordNodes)
             {
                 ShaderKeyword keyword = keywordNode.keyword;
-                if(keyword == null)
+                if (keyword == null)
                 {
                     Assert.Fail("No matching Keyword found in graph.");
                     return;
@@ -233,7 +233,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 inputSlots.OrderBy(x => x.id);
                 Assert.IsNotEmpty(keywordNodes, "No input Ports on Node.");
 
-                switch(keyword.keywordType)
+                switch (keyword.keywordType)
                 {
                     case KeywordType.Boolean:
                         Assert.AreEqual(2, inputSlots.Count, "Node had incorrect Port count.");
@@ -243,7 +243,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     case KeywordType.Enum:
                         Assert.AreEqual(keyword.entries.Count, inputSlots.Count, "Node had incorrect Port count.");
 
-                        for(int i = 0; i < inputSlots.Count; i++)
+                        for (int i = 0; i < inputSlots.Count; i++)
                         {
                             Assert.IsTrue(inputSlots[i].RawDisplayName() == keyword.entries[i].displayName
                                 && inputSlots[i].shaderOutputName == keyword.entries[i].referenceName,
@@ -267,16 +267,16 @@ namespace UnityEditor.ShaderGraph.UnitTests
             List<int>[] keywordPermutationsPerNode = new List<int>[descendentNodes.Count];
             Assert.IsNotEmpty(descendentNodes, "No Nodes in graph.");
 
-            for(int i = 0; i < m_Collector.permutations.Count; i++)
+            for (int i = 0; i < m_Collector.permutations.Count; i++)
             {
                 var localNodes = ListPool<AbstractMaterialNode>.Get();
                 NodeUtils.DepthFirstCollectNodesFromNode(localNodes, previewNode, NodeUtils.IncludeSelf.Include, keywordPermutation: m_Collector.permutations[i]);
 
-                foreach(AbstractMaterialNode node in localNodes)
+                foreach (AbstractMaterialNode node in localNodes)
                 {
                     int nodeIndex = descendentNodes.IndexOf(node);
 
-                    if(keywordPermutationsPerNode[nodeIndex] == null)
+                    if (keywordPermutationsPerNode[nodeIndex] == null)
                         keywordPermutationsPerNode[nodeIndex] = new List<int>();
                     keywordPermutationsPerNode[nodeIndex].Add(i);
                 }
@@ -286,7 +286,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             ShaderKeyword booleanBKeyword = m_Collector.keywords.Where(x => x.displayName == "Boolean B").FirstOrDefault();
             ShaderKeyword enumAKeyword = m_Collector.keywords.Where(x => x.displayName == "Enum A").FirstOrDefault();
             ShaderKeyword enumBKeyword = m_Collector.keywords.Where(x => x.displayName == "Enum B").FirstOrDefault();
-            if(booleanAKeyword == null || booleanBKeyword == null || enumAKeyword == null || enumBKeyword == null)
+            if (booleanAKeyword == null || booleanBKeyword == null || enumAKeyword == null || enumBKeyword == null)
             {
                 Assert.Fail("One or more Keywords not in graph.");
             }
@@ -296,7 +296,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             KeywordNode booleanBNode = keywordNodes.Where(x => x.keyword == booleanBKeyword).FirstOrDefault();
             KeywordNode enumANode = keywordNodes.Where(x => x.keyword == enumAKeyword).FirstOrDefault();
             KeywordNode enumBNode = keywordNodes.Where(x => x.keyword == enumBKeyword).FirstOrDefault();
-            if(booleanANode == null || booleanBNode == null || enumANode == null || enumBNode == null)
+            if (booleanANode == null || booleanBNode == null || enumANode == null || enumBNode == null)
             {
                 Assert.Fail("One or more Keywords Nodes not in graph.");
             }

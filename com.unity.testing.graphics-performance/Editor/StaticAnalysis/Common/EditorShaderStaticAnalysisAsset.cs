@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEditor;
@@ -89,7 +89,6 @@ public class EditorShaderStaticAnalysisAsset : ScriptableObject, ISerializationC
 
     public void OnBeforeSerialize()
     {
-
     }
 
     public void OnAfterDeserialize()

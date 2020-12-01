@@ -27,7 +27,7 @@ New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create 
 
 3. Click the **Shader** drop-down at the top of the Material Inspector, and select **HDRP > Fabric > Silk**.
 
-   
+
 
 [!include[](snippets/thread-map.md)]
 

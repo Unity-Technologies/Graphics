@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         /// <typeparam name="T">MaterialUIBlock type</typeparam>
         /// <returns></returns>
-        public T FetchUIBlock< T >() where T : MaterialUIBlock
+        public T FetchUIBlock<T>() where T : MaterialUIBlock
         {
             return this.FirstOrDefault(uiBlock => uiBlock is T) as T;
         }

@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
                 var curOutputType = outputSlot.valueType.ToConcreteSlotValueType();
 
-                foreach (var slotValType in (SlotValueType[]) Enum.GetValues(typeof(SlotValueType)))
+                foreach (var slotValType in (SlotValueType[])Enum.GetValues(typeof(SlotValueType)))
                 {
                     var newSlot = MaterialSlot.CreateMaterialSlot(slotValType, slot.id, slot.displayName, slot.shaderOutputName,
                         slot.slotType, Vector4.zero);

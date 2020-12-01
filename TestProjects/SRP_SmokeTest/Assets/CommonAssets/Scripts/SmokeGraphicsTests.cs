@@ -33,5 +33,6 @@ public class SmokeGraphicsTests
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
+
 #endif
 }

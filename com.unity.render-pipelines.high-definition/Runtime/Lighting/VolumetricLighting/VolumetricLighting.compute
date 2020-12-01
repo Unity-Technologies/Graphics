@@ -31,7 +31,7 @@
 #define USE_DEPTH_BUFFER        1 // Accounts for opaque geometry along the camera ray
 
 // Filter out lights that are not meant to be affecting volumetric once per thread rather than per voxel. This has the downside that it limits the max processable lights to MAX_SUPPORTED_LIGHTS
-// which might be lower than the max number of lights that might be in the big tile. 
+// which might be lower than the max number of lights that might be in the big tile.
 #define PRE_FILTER_LIGHT_LIST   1 && defined(USE_BIG_TILE_LIGHTLIST)
 
 //--------------------------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ TEXTURE2D_X(_MaxZMaskTexture);
 
 #if PRE_FILTER_LIGHT_LIST
 
-#define MAX_SUPPORTED_LIGHTS min(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE) 
+#define MAX_SUPPORTED_LIGHTS min(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
 groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
 
 #endif
@@ -253,7 +253,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
-    	uint i = 0;
+        uint i = 0;
 
         LightData light;
         while (TryLoadPunctualLightData(i, tile, zBinRange, light))
@@ -262,93 +262,93 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
             light.contactShadowMask  = 0;
             light.shadowDimmer       = light.volumetricShadowDimmer;
 
-        	float weight = 0; // Monte Carlo weight
+            float weight = 0; // Monte Carlo weight
 
             if (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
             {
-            	bool sampleLight = (light.volumetricLightDimmer > 0);
+                bool sampleLight = (light.volumetricLightDimmer > 0);
 
-	            // Convert the box light from OBB to AABB.
-	            // 'light.right' and 'light.up' vectors are pre-scaled on the CPU by (2/w) and (2/h).
-	            float3x3 rotMat = float3x3(light.right, light.up, light.forward);
+                // Convert the box light from OBB to AABB.
+                // 'light.right' and 'light.up' vectors are pre-scaled on the CPU by (2/w) and (2/h).
+                float3x3 rotMat = float3x3(light.right, light.up, light.forward);
 
-	            float3 o = mul(rotMat, ray.originWS - light.positionRWS);
-	            float3 d = mul(rotMat, ray.jitterDirWS);
+                float3 o = mul(rotMat, ray.originWS - light.positionRWS);
+                float3 d = mul(rotMat, ray.jitterDirWS);
 
-	            float3 boxPt0 = float3(-1, -1, 0);
-	            float3 boxPt1 = float3( 1,  1, light.range);
+                float3 boxPt0 = float3(-1, -1, 0);
+                float3 boxPt1 = float3( 1,  1, light.range);
 
-	            float tEntr, tExit;
-	            sampleLight = sampleLight && IntersectRayAABB(o, d, boxPt0, boxPt1, t0, t1, tEntr, tExit);
+                float tEntr, tExit;
+                sampleLight = sampleLight && IntersectRayAABB(o, d, boxPt0, boxPt1, t0, t1, tEntr, tExit);
 
-	            // Is it worth evaluating the light?
-	            if (sampleLight)
-	            {
-	                float tOffset;
-	                ImportanceSampleHomogeneousMedium(rndVal, extinction, tExit - tEntr, tOffset, weight);
+                // Is it worth evaluating the light?
+                if (sampleLight)
+                {
+                    float tOffset;
+                    ImportanceSampleHomogeneousMedium(rndVal, extinction, tExit - tEntr, tOffset, weight);
 
-	                // Compute transmittance from 't0' to 'tEntr'.
-	                weight *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
+                    // Compute transmittance from 't0' to 'tEntr'.
+                    weight *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
 
-	                float t = tEntr + tOffset;
-	                posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
-            	}
+                    float t = tEntr + tOffset;
+                    posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
+                }
             }
             else // (light.lightType != GPULIGHTTYPE_PROJECTOR_BOX)
             {
-            	bool sampleLight = (light.volumetricLightDimmer > 0);
+                bool sampleLight = (light.volumetricLightDimmer > 0);
 
-	            float tEntr = t0;
-	            float tExit = t1;
+                float tEntr = t0;
+                float tExit = t1;
 
-	            // Perform ray-cone intersection for pyramid and spot lights.
-	            if (light.lightType != GPULIGHTTYPE_POINT)
-	            {
-	                float lenMul = 1;
+                // Perform ray-cone intersection for pyramid and spot lights.
+                if (light.lightType != GPULIGHTTYPE_POINT)
+                {
+                    float lenMul = 1;
 
-	                if (light.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
-	                {
-	                    // 'light.right' and 'light.up' vectors are pre-scaled on the CPU
-	                    // s.t. if you were to place them at the distance of 1 directly in front
-	                    // of the light, they would give you the "footprint" of the light.
-	                    // For spot lights, the cone fit is exact.
-	                    // For pyramid lights, however, this is the "inscribed" cone
-	                    // (contained within the pyramid), and we want to intersect
-	                    // the "escribed" cone (which contains the pyramid).
-	                    // Therefore, we have to scale the radii by the sqrt(2).
-	                    lenMul = rsqrt(2);
-	                }
+                    if (light.lightType == GPULIGHTTYPE_PROJECTOR_PYRAMID)
+                    {
+                        // 'light.right' and 'light.up' vectors are pre-scaled on the CPU
+                        // s.t. if you were to place them at the distance of 1 directly in front
+                        // of the light, they would give you the "footprint" of the light.
+                        // For spot lights, the cone fit is exact.
+                        // For pyramid lights, however, this is the "inscribed" cone
+                        // (contained within the pyramid), and we want to intersect
+                        // the "escribed" cone (which contains the pyramid).
+                        // Therefore, we have to scale the radii by the sqrt(2).
+                        lenMul = rsqrt(2);
+                    }
 
-	                float3 coneAxisX = lenMul * light.right;
-	                float3 coneAxisY = lenMul * light.up;
+                    float3 coneAxisX = lenMul * light.right;
+                    float3 coneAxisY = lenMul * light.up;
 
-	                sampleLight = sampleLight && IntersectRayCone(ray.originWS, ray.jitterDirWS,
-	                                                              light.positionRWS, light.forward,
-	                                                              coneAxisX, coneAxisY,
-	                                                              t0, t1, tEntr, tExit);
-	            }
+                    sampleLight = sampleLight && IntersectRayCone(ray.originWS, ray.jitterDirWS,
+                                                                  light.positionRWS, light.forward,
+                                                                  coneAxisX, coneAxisY,
+                                                                  t0, t1, tEntr, tExit);
+                }
 
-	            // Is it worth evaluating the light?
-	            if (sampleLight)
-	            {
-	                float lightSqRadius = light.size.x;
+                // Is it worth evaluating the light?
+                if (sampleLight)
+                {
+                    float lightSqRadius = light.size.x;
 
-	                float t, distSq, rcpPdf;
-	                ImportanceSamplePunctualLight(rndVal, light.positionRWS, lightSqRadius,
-	                                              ray.originWS, ray.jitterDirWS,
-	                                              tEntr, tExit,
-	                                              t, distSq, rcpPdf);
+                    float t, distSq, rcpPdf;
+                    ImportanceSamplePunctualLight(rndVal, light.positionRWS, lightSqRadius,
+                                                  ray.originWS, ray.jitterDirWS,
+                                                  tEntr, tExit,
+                                                  t, distSq, rcpPdf);
 
-	                // Compute transmittance from 't0' to 't'.
-	                weight = TransmittanceHomogeneousMedium(extinction, t - t0) * rcpPdf;
+                    // Compute transmittance from 't0' to 't'.
+                    weight = TransmittanceHomogeneousMedium(extinction, t - t0) * rcpPdf;
 
-	                posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
-	            }
+                    posInput.positionWS = ray.originWS + t * ray.jitterDirWS;
+                }
             }
 
             if (weight > 0)
             {
-            	float3 L;
+                float3 L;
                 float4 distances; // {d, d^2, 1/d, d_proj}
                 GetPunctualLightVectors(posInput.positionWS, light, L, distances);
 
@@ -389,7 +389,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 lighting.radianceComplete += (weight * lightColor.rgb) * phase;
             }
 
-	        i++;
+            i++;
         }
     }
 
@@ -403,7 +403,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
 
-    float z0 	= t0 * cosRay; // Distance to linear depth
+    float z0    = t0 * cosRay; // Distance to linear depth
     uint  zBin0 = ComputeZBinIndex(z0);
 
     // The contribution of the ambient probe does not depend on the position,
@@ -437,8 +437,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         }
     #endif
 
-        float z1 	= t1 * cosRay; // Distance to linear depth
-	    uint  zBin1 = ComputeZBinIndex(z1);
+        float z1    = t1 * cosRay; // Distance to linear depth
+        uint  zBin1 = ComputeZBinIndex(z1);
 
         float dt = t1 - t0; // Is geometry-aware
 
@@ -597,7 +597,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
 
-        t0 	  = tNext;
+        t0    = tNext;
         zBin0 = zBin1; // TODO: maybe not a good idea with the "stop ray at geometry" feature active
 
         if (t0 * 0.99 > ray.maxDist)
@@ -679,10 +679,10 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 #ifdef VL_PRESET_OPTIMAL
     // The entire thread group is within the same light tile.
     uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE;
-    uint  tile 		= IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
+    uint  tile      = IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
 #else
     // No compile-time optimizations, no scalarization.
-    uint  tile 		= ComputeTileIndex(pixelCoord);
+    uint  tile      = ComputeTileIndex(pixelCoord);
 #endif
 
     // Do not jitter 'voxelCoord' else. It's expected to correspond to the center of the voxel.

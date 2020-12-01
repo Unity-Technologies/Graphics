@@ -1,4 +1,4 @@
-﻿//This is for fixing yamato standalone test. Attach this component to MainCamera if standalone test is fine when you run locally but fails on yamato (sub-scene objects are not rendering / not stable)
+//This is for fixing yamato standalone test. Attach this component to MainCamera if standalone test is fine when you run locally but fails on yamato (sub-scene objects are not rendering / not stable)
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,15 +22,15 @@ public class GraphicsTestFix : MonoBehaviour
 
     void Update()
     {
-        if(count == settings.WaitFrames -3)
+        if (count == settings.WaitFrames - 3)
         {
-            Debug.Log(count+" GraphicsTestFix - start callback");
+            Debug.Log(count + " GraphicsTestFix - start callback");
             RenderPipelineManager.endFrameRendering += MyRenderFrame;
         }
         count++;
     }
-    
-    private void MyRenderFrame(ScriptableRenderContext context,Camera[] cameras)
+
+    private void MyRenderFrame(ScriptableRenderContext context, Camera[] cameras)
     {
         //Make a capture when reached correct frame
         if (texture == null)
@@ -38,16 +38,16 @@ public class GraphicsTestFix : MonoBehaviour
             texture = new Texture2D(cam.pixelWidth, cam.pixelHeight, TextureFormat.RGB24, false);
             texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0, false);
             texture.Apply();
-            Debug.Log(count+" GraphicsTestFix - done ReadPixel");
+            Debug.Log(count + " GraphicsTestFix - done ReadPixel");
         }
 
         //Blit captured texture to the screen afterwards, so that the screen stays static
         if (texture != null)
         {
-            if(cam.targetTexture != null)
+            if (cam.targetTexture != null)
             {
-                Graphics.Blit(texture,cam.targetTexture);
-                Debug.Log(count+" GraphicsTestFix - done Blit to cam.targetTexture = "+cam.targetTexture.name);
+                Graphics.Blit(texture, cam.targetTexture);
+                Debug.Log(count + " GraphicsTestFix - done Blit to cam.targetTexture = " + cam.targetTexture.name);
             }
             else
             {
@@ -75,6 +75,3 @@ public class GraphicsTestFix : MonoBehaviour
 
     #endif
 }
-
-
-

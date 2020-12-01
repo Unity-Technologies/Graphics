@@ -237,7 +237,6 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(new Vector4(1, 0, 0, 0), reduced.Get<Vector4>());
         }
 
-
         [Test]
         public void OuputExpression_From_Slot_Mesh_Should_Be_Invalid_Constant()
         {

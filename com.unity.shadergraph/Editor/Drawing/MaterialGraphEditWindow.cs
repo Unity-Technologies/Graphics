@@ -291,7 +291,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var reloaded = subGraphNode.Reload(m_ChangedFileDependencies);
                         reloadedSomething |= reloaded;
                     }
-                    if(subGraphNodes.Count() > 0)
+                    if (subGraphNodes.Count() > 0)
                     {
                         // Keywords always need to be updated to test against variant limit
                         // No Keywords may indicate removal and this may have now made the Graph valid again
@@ -318,7 +318,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphEditorView.HandleGraphChanges(true);
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
-
                 }
 
                 if (graphObject.isDirty || wasUndoRedoPerformed)
@@ -549,17 +548,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnSaveGraph(string path)
         {
-            if(GraphData.onSaveGraph == null)
+            if (GraphData.onSaveGraph == null)
                 return;
 
-            if(graphObject.graph.isSubGraph)
+            if (graphObject.graph.isSubGraph)
                 return;
 
             var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
-            if(shader == null)
+            if (shader == null)
                 return;
 
-            foreach(var target in graphObject.graph.activeTargets)
+            foreach (var target in graphObject.graph.activeTargets)
             {
                 GraphData.onSaveGraph(shader, target.saveContext);
             }
@@ -642,7 +641,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Friendly warning that the user is generating a subgraph that would overwrite the one they are currently working on.
             if (AssetDatabase.AssetPathToGUID(path) == selectedGuid)
-            {             
+            {
                 if (!EditorUtility.DisplayDialog("Overwrite Current Subgraph", "Do you want to overwrite this Sub Graph that you are currently working on? You cannot undo this operation.", "Yes", "Cancel"))
                 {
                     path = "";
@@ -1084,7 +1083,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var filePath = AssetDatabase.GUIDToAssetPath(selectedGuid);
             return FileUtilities.SafeReadAllText(filePath);
-       }
+        }
 
         // returns true when the user is OK with closing the window or application (either they've saved dirty content, or are ok with losing it)
         // returns false when the user wants to cancel closing the window or application

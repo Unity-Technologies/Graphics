@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -24,11 +24,11 @@ public class PerformanceTests : IPrebuildSetup
         // Add all test scenes from the asset to the build settings:
         var testScenes = testScenesAsset.GetAllTests()
             .Select(test => {
-            var scene = SceneManager.GetSceneByName(test.sceneData.scene);
-            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {test.sceneData.scene}").FirstOrDefault();
-            var scenePath = AssetDatabase.GUIDToAssetPath(sceneGUID);
-            return new EditorBuildSettingsScene(scenePath, true);
-        });
+                var scene = SceneManager.GetSceneByName(test.sceneData.scene);
+                var sceneGUID = AssetDatabase.FindAssets($"t:Scene {test.sceneData.scene}").FirstOrDefault();
+                var scenePath = AssetDatabase.GUIDToAssetPath(sceneGUID);
+                return new EditorBuildSettingsScene(scenePath, true);
+            });
 
         EditorUserBuildSettings.ps4HardwareTarget = PS4HardwareTarget.BaseOnly;
 

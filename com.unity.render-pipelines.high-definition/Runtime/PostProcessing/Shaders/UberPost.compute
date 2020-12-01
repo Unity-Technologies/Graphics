@@ -177,7 +177,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
 
 #ifdef ENABLE_ALPHA
-        // Bloom should also spread in areas with zero alpha, so we save the image with bloom here to do the mixing at the end of the shader 
+        // Bloom should also spread in areas with zero alpha, so we save the image with bloom here to do the mixing at the end of the shader
         inputColor.xyz = color.xyz;
 #endif
     }

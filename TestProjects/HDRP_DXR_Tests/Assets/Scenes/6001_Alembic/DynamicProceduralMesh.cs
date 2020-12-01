@@ -17,9 +17,9 @@ class DynamicProceduralMesh : MonoBehaviour
         using (var varray = CreateVertexArray(sphereRes))
         {
             _mesh.SetVertexBufferParams
-              (varray.Length,
-               new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
-               new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3));
+                    (varray.Length,
+                    new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
+                    new VertexAttributeDescriptor(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3));
             _mesh.SetVertexBufferData(varray, 0, 0, varray.Length);
         }
 
@@ -49,7 +49,6 @@ class DynamicProceduralMesh : MonoBehaviour
     {
         if (Application.isPlaying)
         {
-            
             currSphereRes = currSphereRes < maxSphereRes ? currSphereRes + 1 : minSphereRes;
             UpdateMeshGeometry(currSphereRes);
         }
@@ -64,7 +63,7 @@ class DynamicProceduralMesh : MonoBehaviour
     }
 
     NativeArray<Vertex> CreateVertexArray(uint sphereRes)
-    { 
+    {
         uint vertexCount = (sphereRes + 1) * (sphereRes + 1);
 
         Vertex[] vertices = new Vertex[vertexCount];
@@ -84,7 +83,7 @@ class DynamicProceduralMesh : MonoBehaviour
             {
                 float sectorAngle = j * sectorStep;
 
-                float x = xz * Mathf.Cos(sectorAngle); 
+                float x = xz * Mathf.Cos(sectorAngle);
                 float z = xz * Mathf.Sin(sectorAngle);
 
                 vertices[vertexIndex].position = new Vector3(x, y, z);
@@ -109,11 +108,11 @@ class DynamicProceduralMesh : MonoBehaviour
             {
                 indices[index++] = i * (sphereRes + 1) + j;
                 indices[index++] = (i + 1) * (sphereRes + 1) + j + 1;
-				indices[index++] = (i + 1) * (sphereRes + 1) + j;
+                indices[index++] = (i + 1) * (sphereRes + 1) + j;
 
                 indices[index++] = i * (sphereRes + 1) + j;
                 indices[index++] = i * (sphereRes + 1) + j + 1;
-				indices[index++] = (i + 1) * (sphereRes + 1) + j + 1;
+                indices[index++] = (i + 1) * (sphereRes + 1) + j + 1;
             }
 
         return new NativeArray<uint>(indices, Allocator.Temp);

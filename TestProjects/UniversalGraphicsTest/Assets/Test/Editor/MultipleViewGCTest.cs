@@ -14,7 +14,7 @@ public class MultipleViewGCTest : MonoBehaviour
     {
         //Issue was caused by different nbr of cameras between views
         var mainCamera = Camera.main;
-        for(int i = 0; i < 4; ++i)
+        for (int i = 0; i < 4; ++i)
         {
             var newCam = Instantiate(mainCamera);
         }

@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void SliderPropertyRangeMinLesserThanMax()
         {
-            foreach(AbstractShaderProperty property in m_Collector.properties)
+            foreach (AbstractShaderProperty property in m_Collector.properties)
             {
                 if (property is Vector1ShaderProperty vector1ShaderProperty && vector1ShaderProperty.floatType == FloatType.Slider)
                 {

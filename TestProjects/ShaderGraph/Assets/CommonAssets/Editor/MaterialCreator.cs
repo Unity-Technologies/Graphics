@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -11,7 +11,7 @@ public class MaterialCreator : MonoBehaviour
     {
         IEnumerable<Shader> shaders = Selection.objects.Where(s => s is Shader).Cast<Shader>();
 
-        foreach(Shader s in shaders)
+        foreach (Shader s in shaders)
         {
             Material m = new Material(s);
             string path = AssetDatabase.GetAssetPath(s);
@@ -27,7 +27,7 @@ public class MaterialCreator : MonoBehaviour
     [MenuItem("Tools/SG Tests/Get Rid of Underscores")]
     static void KillUnderscores()
     {
-        GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>() ;
+        GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
         foreach (GameObject go in allObjects)
         {
             go.name = go.name.Replace("_", "");
@@ -40,7 +40,7 @@ public class MaterialCreator : MonoBehaviour
         Transform nodesXform = GameObject.Find("Nodes").transform;
 
         IEnumerable<Material> matsInScene = nodesXform.GetComponentsInChildren<Renderer>().Select(r => r.sharedMaterial);
-        
+
         HashSet<Material> matSet = new HashSet<Material>(matsInScene);
 
         IEnumerable<Material> matsInSelection = Selection.objects.Where(m => m is Material).Cast<Material>();
@@ -58,9 +58,9 @@ public class MaterialCreator : MonoBehaviour
         int x = 0;
         int z = 0;
 
-        foreach(Material m in matsInSelection)
+        foreach (Material m in matsInSelection)
         {
-            if(!matSet.Contains(m))
+            if (!matSet.Contains(m))
             {
                 matSet.Add(m);
                 int start = m.shader.name.LastIndexOf("/") + 1;
@@ -70,10 +70,10 @@ public class MaterialCreator : MonoBehaviour
                 go.transform.position = new Vector3(x, 0, z);
                 go.GetComponent<MeshRenderer>().sharedMaterial = m;
                 go.transform.SetParent(tempContainer.transform, true);
-                
+
                 ++x;
 
-                if(x > dim)
+                if (x > dim)
                 {
                     x = 0;
                     ++z;

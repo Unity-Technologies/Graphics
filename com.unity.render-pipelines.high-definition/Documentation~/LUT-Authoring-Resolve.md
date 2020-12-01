@@ -6,7 +6,7 @@ The following process uses DaVinci Resolve, but you can apply it for other digit
 
 Decide on the lookup texture (LUT) size to use for the Project, and set it in your Project's [HDRP Asset](HDRP-Asset.md). To set the LUT size, use the HDRP Asset’s **Grading LUT Size** property.
 
-Resolve only exports LUTs of size 33 so set **Grading LUT Size** to **33** for it to work correctly. 
+Resolve only exports LUTs of size 33 so set **Grading LUT Size** to **33** for it to work correctly.
 
 ## Step 2: Render the Camera view to an EXR file
 

@@ -60,12 +60,13 @@ public class ShaderGraphParser
         // Sort based on # of times node is declared, then alphabetically
         List<KeyValuePair<string, int>> sortedDictList = nodeDict.ToList();
         sortedDictList.Sort(
-            delegate (
+            delegate(
                 KeyValuePair<string, int> pair1,
                 KeyValuePair<string, int> pair2)
             {
-                if (pair1.Value == pair2.Value) return String.Compare(pair1.Key, pair2.Key,
-                                                                  StringComparison.Ordinal);
+                if (pair1.Value == pair2.Value)
+                    return String.Compare(pair1.Key, pair2.Key,
+                        StringComparison.Ordinal);
                 return pair2.Value.CompareTo(pair1.Value);
             }
         );
@@ -96,7 +97,7 @@ public class ShaderGraphParser
         if (containNodes.Count > 0)
         {
             Debug.Log("# of Contaned Nodes " + containNodes.Count + " out of " + nodeDict.Count + "\n");
-            
+
             if (listContained)
             {
                 foreach (string s in containNodes)
@@ -114,10 +115,10 @@ public class ShaderGraphParser
         Type abstractMatNode = sga.GetType("UnityEditor.ShaderGraph.AbstractMaterialNode");
         Type masterNodeType = sga.GetType("UnityEditor.ShaderGraph.IMasterNode");
         List<Type> types = sga.GetTypes()
-                               .Where(myType => myType.IsClass &&
-                               !myType.IsAbstract
-                               && myType.IsSubclassOf(abstractMatNode)).ToList();
-        
+            .Where(myType => myType.IsClass &&
+                !myType.IsAbstract
+                && myType.IsSubclassOf(abstractMatNode)).ToList();
+
         // Need assembly
         // Type abstractMatNode = typeof(AbstractMaterialNode);
         // Type masterNodeType = typeof(IMasterNode);
@@ -152,7 +153,7 @@ public class ShaderGraphParser
             while (line.Contains(prefix))
             {
                 string nodeName = line.Substring(line.IndexOf(prefix,
-                                                   StringComparison.CurrentCulture) + prefix.Length);
+                    StringComparison.CurrentCulture) + prefix.Length);
                 nodeName = nodeName.Substring(0, nodeName.IndexOf('"'));
 
                 if (dict.ContainsKey(nodeName))
@@ -179,5 +180,4 @@ public class ShaderGraphParser
     //    var theNodes = ListPool<INode>.Get();
     //    NodeUtils.DepthFirstCollectNodesFromNode(theNodes, imn);
     //}
-
 }

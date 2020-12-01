@@ -1,6 +1,6 @@
 # Inverse Lerp
 
-Menu Path : **Operator > Math > Arithmetic > Inverse Lerp**  
+Menu Path : **Operator > Math > Arithmetic > Inverse Lerp**
 
 The **Inverse Lerp** Operator calculates a fraction which represents how far through a value is between two border values. Whereas the [Lerp Operator](Operator-Lerp.md) takes a fraction and outputs a blend between the two values, this Operator takes a blended value and outputs the fraction. For example, if **a** and **b** are the two border values, **t** is the fraction, and **value** is the blend between **a** and **b**:
 

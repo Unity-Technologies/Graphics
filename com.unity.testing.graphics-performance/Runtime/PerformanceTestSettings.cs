@@ -54,5 +54,6 @@ public class PerformanceTestSettings : ScriptableObject
     {
         return new SerializedObject(GetOrCreateSettings());
     }
+
 #endif
 }

@@ -8,12 +8,12 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position")]
     class PositionDepth : VFXBlock
     {
-		public enum PositionMode
-		{
-			Random,
-			Sequential,
-			Custom,
-		}
+        public enum PositionMode
+        {
+            Random,
+            Sequential,
+            Custom,
+        }
 
         public enum CullMode
         {
@@ -21,9 +21,10 @@ namespace UnityEditor.VFX.Block
             FarPlane,
             Range,
         }
-		
+
         public class InputProperties
-        {   [Tooltip("Sets a scale multiplier to the depth value. Values above 1 push particles further back, values lower than 1 pull them closer to the camera.")]
+        {
+            [Tooltip("Sets a scale multiplier to the depth value. Values above 1 push particles further back, values lower than 1 pull them closer to the camera.")]
             public float ZMultiplier = 1.0f;
         }
 
@@ -32,17 +33,17 @@ namespace UnityEditor.VFX.Block
             [Tooltip("Sets the space between sequentially-placed particles. Lower numbers produce a denser placement.")]
             public uint GridStep = 1;
         }
-		
-		public class CustomInputProperties
-		{
+
+        public class CustomInputProperties
+        {
             [Range(0.0f, 1.0f), Tooltip("Sets the UV coordinates with which to sample the depth buffer.")]
             public Vector2 UVSpawn;
-		}
+        }
 
         public class RangeInputProperties
         {
-            [Range(0.0f,1.0f), Tooltip("Sets the depth range within which to spawn particles. Particles outside of this range are culled.")]
-            public Vector2 DepthRange = new Vector2(0.0f,1.0f);
+            [Range(0.0f, 1.0f), Tooltip("Sets the depth range within which to spawn particles. Particles outside of this range are culled.")]
+            public Vector2 DepthRange = new Vector2(0.0f, 1.0f);
         }
 
         public class InputPropertiesBlendPosition
@@ -60,7 +61,7 @@ namespace UnityEditor.VFX.Block
         public CameraMode camera;
 
         [VFXSetting, Tooltip("Specifies how particles are positioned on the screen. They can be placed sequentially in an even grid, randomly, or with a custom UV position.")]
-		public PositionMode mode;
+        public PositionMode mode;
 
         [VFXSetting, Tooltip("Specifies how to determine whether the particle should be alive. A particle can be culled when it is projected on the far camera plane, between a specific range, or culling can be disabled.")]
         public CullMode cullMode;
@@ -88,18 +89,18 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
 
                 if (inheritSceneColor)
-                    yield return new VFXAttributeInfo(VFXAttribute.Color, compositionColor == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
-				
+                    yield return new VFXAttributeInfo(VFXAttribute.Color, compositionColor == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
+
                 if (mode == PositionMode.Sequential)
                     yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
                 else if (mode == PositionMode.Random)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
 
                 if (cullMode != CullMode.None)
-                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);   
+                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);
             }
         }
 
@@ -113,15 +114,15 @@ namespace UnityEditor.VFX.Block
                 inputs = inputs.Concat(PropertiesFromType("InputProperties"));
                 if (mode == PositionMode.Sequential)
                     inputs = inputs.Concat(PropertiesFromType("SequentialInputProperties"));
-				else if (mode == PositionMode.Custom)
-					inputs = inputs.Concat(PropertiesFromType("CustomInputProperties"));
+                else if (mode == PositionMode.Custom)
+                    inputs = inputs.Concat(PropertiesFromType("CustomInputProperties"));
                 if (cullMode == CullMode.Range)
                     inputs = inputs.Concat(PropertiesFromType("RangeInputProperties"));
 
                 if (compositionPosition == AttributeCompositionMode.Blend)
                     inputs = inputs.Concat(PropertiesFromType(nameof(InputPropertiesBlendPosition)));
 
-                if(inheritSceneColor && compositionColor == AttributeCompositionMode.Blend)
+                if (inheritSceneColor && compositionColor == AttributeCompositionMode.Blend)
                     inputs = inputs.Concat(PropertiesFromType(nameof(InputPropertiesBlendColor)));
 
                 return inputs;
@@ -132,7 +133,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var expressions = CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this),camera);
+                var expressions = CameraHelper.AddCameraExpressions(GetExpressionsFromSlots(this), camera);
 
                 VFXCoordinateSpace systemSpace = ((VFXDataParticle)GetData()).space;
                 // in custom camera mode, camera space is already in system space (conversion happened in slot)
@@ -159,18 +160,18 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string source = "";              
+                string source = "";
 
-				switch(mode)
-				{
-					case PositionMode.Random:
-						source += @"
+                switch (mode)
+                {
+                    case PositionMode.Random:
+                        source += @"
 float2 uvs = RAND2;
 ";
-					break;
-					
-					case PositionMode.Sequential:
-						source += @"
+                        break;
+
+                    case PositionMode.Sequential:
+                        source += @"
 // Pixel perfect spawn
 uint2 sSize = Camera_pixelDimensions / GridStep;
 uint nbPixels = sSize.x * sSize.y;
@@ -178,14 +179,14 @@ uint id = particleId % nbPixels;
 uint2 ids = uint2(id % sSize.x,id / sSize.x) * GridStep + (GridStep >> 1);
 float2 uvs = (ids + 0.5f) / Camera_pixelDimensions;
 ";
-					break;
-					
-					case PositionMode.Custom:
-						source += @"
+                        break;
+
+                    case PositionMode.Custom:
+                        source += @"
 float2 uvs = UVSpawn;
 ";
-					break;
-				}
+                        break;
+                }
 
                 source += @"
 float2 projpos = uvs * 2.0f - 1.0f;
@@ -229,6 +230,5 @@ float4 vfxPos = mul(ClipToVFX,clipPos);
                 return source;
             }
         }
-
     }
 }

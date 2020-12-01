@@ -3,7 +3,7 @@ The **Static Shader Analysis** asset analyzes compiled shader byte code. This an
 
 Note that this is not a regression test. If a failure occurs, this means the analysis failed to execute.
 <a name="set-up"></a>
-## Set up 
+## Set up
 
 Before you use Static Shader Analysis, make sure you have all the packages required for testing on your chosen platform:
 

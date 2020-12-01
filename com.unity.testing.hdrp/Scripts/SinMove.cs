@@ -13,17 +13,17 @@ public class SinMove : MonoBehaviour
     Vector3 startPosition = Vector3.zero;
     int localFrameCount = 0;
 
-	// Use this for initialization
-	void Start ()
+    // Use this for initialization
+    void Start()
     {
         startPosition = transform.position;
         localFrameCount = 0;
     }
-	
-	// Update is called once per frame
-	void Update ()
+
+    // Update is called once per frame
+    void Update()
     {
         localFrameCount++;
-        transform.position = startPosition + Mathf.Sin(Mathf.PI * frequency * localFrameCount / fps) * (localSpace?transform.TransformDirection(vector):vector);
-	}
+        transform.position = startPosition + Mathf.Sin(Mathf.PI * frequency * localFrameCount / fps) * (localSpace ? transform.TransformDirection(vector) : vector);
+    }
 }

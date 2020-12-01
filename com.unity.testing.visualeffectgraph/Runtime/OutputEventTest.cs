@@ -44,7 +44,7 @@ namespace Unity.Testing.VisualEffectGraph
             m_vfx.outputEventReceived += ProcessVisualEffectEvent;
         }
 
-        static private float[] s_acceptableTexIndexValues = new [] { 10.0f, 20.0f, 30.0f };
+        static private float[] s_acceptableTexIndexValues = new[] { 10.0f, 20.0f, 30.0f };
 
         void ProcessVisualEffectEvent(VFXOutputEventArgs eventArgs)
         {

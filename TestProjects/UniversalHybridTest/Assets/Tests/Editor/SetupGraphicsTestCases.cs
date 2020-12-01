@@ -25,20 +25,20 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     {
         var args = System.Environment.GetCommandLineArgs();
         string testType = "playmode test";
-        for(int i=0; i<args.Length; i++)
+        for (int i = 0; i < args.Length; i++)
         {
             //Debug
-            Log("*************** SetupGraphicsTestCases - Args "+i+" = "+args[i]);
+            Log("*************** SetupGraphicsTestCases - Args " + i + " = " + args[i]);
 
             //Tell whether yamato is running player test or playmode test
-            if( args[i].Contains("Standalone") )
+            if (args[i].Contains("Standalone"))
             {
                 testType = "standalone test";
                 PreparePlayerTest();
                 break;
             }
         }
-        Log("*************** SetupGraphicsTestCases - This is "+testType);
+        Log("*************** SetupGraphicsTestCases - This is " + testType);
     }
 
     [MenuItem("GraphicsTest/PreparePlayerTest")]
@@ -84,19 +84,19 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     //Cannot automate this because Yamato complains "InvalidOperationException: Building is not allowed while Unity is compiling."
     [MenuItem("GraphicsTest/SyncSceneListToAllConfig")]
     private static void SyncSceneList(bool applyToAll = true)
-    {      
+    {
         EditorBuildSettingsScene[] buildSettingScenes = EditorBuildSettings.scenes;
         List<SceneList.SceneInfo> scenelist = new List<SceneList.SceneInfo>();
-        for(int i=0;i<buildSettingScenes.Length;i++)
+        for (int i = 0; i < buildSettingScenes.Length; i++)
         {
             var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(buildSettingScenes[i].path);
             scenelist.Add(new SceneList.SceneInfo() { AutoLoad = false, Scene = GlobalObjectId.GetGlobalObjectIdSlow(sceneAsset) });
         }
 
-        if(applyToAll)
+        if (applyToAll)
         {
             var assets = AssetDatabase.FindAssets("t:BuildConfiguration", new[] {"Assets/Tests/Editor"});
-            foreach (var guid in assets) 
+            foreach (var guid in assets)
             {
                 var c = AssetDatabase.LoadAssetAtPath<BuildConfiguration>(AssetDatabase.GUIDToAssetPath(guid));
                 var sceneListComponent = c.GetComponent<SceneList>();
@@ -105,7 +105,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
                 c.SaveAsset();
             }
             AssetDatabase.Refresh();
-            Log("*************** SetupGraphicsTestCases - Synced "+buildSettingScenes.Length+ " scenes to scenelist on "+assets.Length+" Assets/Tests/Editor/ BuildConfig assets.");
+            Log("*************** SetupGraphicsTestCases - Synced " + buildSettingScenes.Length + " scenes to scenelist on " + assets.Length + " Assets/Tests/Editor/ BuildConfig assets.");
         }
         else
         {
@@ -113,8 +113,8 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             var sceneListComponent = config.GetComponent<SceneList>();
             sceneListComponent.SceneInfos = scenelist;
             config.SetComponent<SceneList>(sceneListComponent);
-            Log("*************** SetupGraphicsTestCases - Synced "+buildSettingScenes.Length+ " scenes to scenelist");
-        }       
+            Log("*************** SetupGraphicsTestCases - Synced " + buildSettingScenes.Length + " scenes to scenelist");
+        }
     }
 
     [MenuItem("GraphicsTest/Debug/CreateFolder")]

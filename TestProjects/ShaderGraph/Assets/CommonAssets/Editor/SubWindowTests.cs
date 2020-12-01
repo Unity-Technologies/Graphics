@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         //     yield return TestBlackboardLocation(new Rect(80050.0f, 90050.0f, 220.0f, 240.0f));
         //     yield return TestBlackboardLocation(new Rect(50.0f, -50.0f, 230.0f, 230.0f));
         // }
-        // Test does not pass when run in batchmode on yamato, needs more investigation to re-enable 
+        // Test does not pass when run in batchmode on yamato, needs more investigation to re-enable
 
         // Only works for Blackboard... for now. (Plan is to make Internal Inspector, Blackboard 2.0, and MasterPreview use the same SubWindow class someday)
         private IEnumerator TestBlackboardLocation(Rect blackboardRect)
@@ -217,6 +217,5 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.That(Mathf.Approximately(blackboard.layout.height, blackboardRect.height), "Blackboard did not remember height: "
                 + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect + " blackboardRectPreModification=" + blackboardRectBefore);
         }
-
     }
 }

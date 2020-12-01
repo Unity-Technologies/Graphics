@@ -33,11 +33,14 @@ public class MoveBallsSystem : JobComponentSystem
 
             for (int i = 0; i < chunk.Count; i++)
             {
-                chunkTranslation[i] = new Translation { Value
-                    = chunkOrigTranslation[i].Value + (new float3(
-                          (float)Math.Cos(ElapsedTime * 10.0f) * 0.7f,
-                          (float)Math.Sin(ElapsedTime * 10.0f) * 0.7f,
-                          0.0f)) };
+                chunkTranslation[i] = new Translation
+                {
+                    Value
+                        = chunkOrigTranslation[i].Value + (new float3(
+                        (float)Math.Cos(ElapsedTime * 10.0f) * 0.7f,
+                        (float)Math.Sin(ElapsedTime * 10.0f) * 0.7f,
+                        0.0f))
+                };
             }
         }
     }
@@ -57,10 +60,10 @@ public class MoveBallsSystem : JobComponentSystem
 
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
-        EntityCommandBuffer entityOriginsCommandBuffer = new EntityCommandBuffer(Allocator.TempJob, PlaybackPolicy.SinglePlayback );
+        EntityCommandBuffer entityOriginsCommandBuffer = new EntityCommandBuffer(Allocator.TempJob, PlaybackPolicy.SinglePlayback);
         Entities.WithNone<BallOriginalTranslation>().ForEach((Entity entity, in Translation translation, in SphereId sphereId) =>
         {
-            entityOriginsCommandBuffer.AddComponent(entity, new BallOriginalTranslation{ Value = translation.Value });
+            entityOriginsCommandBuffer.AddComponent(entity, new BallOriginalTranslation { Value = translation.Value });
         }).Run();
         entityOriginsCommandBuffer.Playback(EntityManager);
         entityOriginsCommandBuffer.Dispose();

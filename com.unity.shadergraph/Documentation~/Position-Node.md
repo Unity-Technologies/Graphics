@@ -17,9 +17,9 @@ Provides access to the mesh vertex's or fragment's **Position**, depending on th
 | Space | Dropdown | Object, View, World, Tangent, Absolute World | Selects the coordinate space of **Position** to output. |
 
 ## World and Absolute World
-The Position Node provides drop-down options for both **World** and **Absolute World** space positions. The **Absolute World** option always returns the absolute world position of the object in the Scene for all Scriptable Render Pipelines. The **World** option returns the default world space of the selected Scriptable Render Pipeline. 
+The Position Node provides drop-down options for both **World** and **Absolute World** space positions. The **Absolute World** option always returns the absolute world position of the object in the Scene for all Scriptable Render Pipelines. The **World** option returns the default world space of the selected Scriptable Render Pipeline.
 
-The [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html) uses [Camera Relative](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?preview=1&subfolder=/manual/Camera-Relative-Rendering.html) as its default world space. 
+The [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html) uses [Camera Relative](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?preview=1&subfolder=/manual/Camera-Relative-Rendering.html) as its default world space.
 
 The [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html) uses **Absolute World** as its default world space.
 

@@ -28,7 +28,7 @@ Note that you can use this property to assign a different Volume Profile to the 
 
 ## Changing Volume Profile properties
 
-When you have a reference to the Volume Profile, you can change the properties of any Volume Overrides in it. This works in a similar way as changing properties in the Inspector. 
+When you have a reference to the Volume Profile, you can change the properties of any Volume Overrides in it. This works in a similar way as changing properties in the Inspector.
 
 First, you need to retrieve the particular Volume Override using the generic `TryGet<>` function on the profile. If the Volume Profile does not contain that particular Volume Override and the `TryGet<>` function returns false, you can use the `Add<>` function to add the Volume Override.
 
@@ -54,7 +54,7 @@ public bool overrideFog;
 VolumeProfile profile = m_Volume.sharedProfile;
 if (!profile.TryGet<Fog>(out var fog))
 {
-	fog = profile.Add<Fog>(false);
+    fog = profile.Add<Fog>(false);
 }
 
 fog.enabled.overrideState = overrideFog;
@@ -73,13 +73,13 @@ using UnityEngine.Rendering;
 
 public class VolumeWeightSin : MonoBehaviour
 {
-	Volume m_Volume;
-	void Update()
-	{
-   		if (m_Volume != null)
-   		{
-			m_Volume.weight = Mathf.Sin(Time.realtimeSinceStartup);
-		}
-	}
+    Volume m_Volume;
+    void Update()
+    {
+        if (m_Volume != null)
+        {
+            m_Volume.weight = Mathf.Sin(Time.realtimeSinceStartup);
+        }
+    }
 }
 ```

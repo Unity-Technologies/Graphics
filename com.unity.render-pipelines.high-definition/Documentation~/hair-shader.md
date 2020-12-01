@@ -1,4 +1,4 @@
-# Hair shader 
+# Hair shader
 The Hair shader is your starting point for rendering hair and fur in the High Definition Render Pipeline (HDRP). To create a realistic looking hair effect, it uses layers called hair cards. Each hair card represents a different section of hair. If you use semi-transparent hair cards, you must manually sort them so that they are in back-to-front order from every viewing direction.
 
 ![](Images/HDRPFeatures-HairShader.png)
@@ -24,7 +24,7 @@ New Materials in HDRP use the [Lit shader](Lit-Shader.md) by default. To create 
 
 3. Click the **Shader** drop-down at the top of the Material Inspector, and select **HDRP > Hair**.
 
-   
+
 
 ## Properties
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -42,7 +42,7 @@ public class EditorStaticAnalysisTests
             string testName,
             BuildTarget buildTarget,
             float timeout
-            )
+        )
         {
             errorString = null;
             this.asset = asset;
@@ -60,10 +60,10 @@ public class EditorStaticAnalysisTests
 
         public override string ToString() =>
             string.IsNullOrEmpty(errorString)
-                ? testName.ToString()
-                : PerformanceTestUtils.FormatTestName(
-                    errorString, "NA", "NA", "NA", "NA"
-                );
+            ? testName.ToString()
+            : PerformanceTestUtils.FormatTestName(
+                errorString, "NA", "NA", "NA", "NA"
+            );
     }
 
     const int k_MaxMeasurePerTest = 200;

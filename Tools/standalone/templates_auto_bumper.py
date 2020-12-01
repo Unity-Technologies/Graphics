@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# SRP templates auto bumper. 
+# SRP templates auto bumper.
 # It updates the Packages/manifest.json & Packages/xxx/package.json files of the xxx template.
 
 import sys, os, json, argparse

@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Math > Geometry > Transform (Position)**
 
-The **Transform (Position)** Operator applies a transformation to a position to offset, rotate, or scale it. 
+The **Transform (Position)** Operator applies a transformation to a position to offset, rotate, or scale it.
 
 For example, this is useful if you want to spawn particles in a circle and then rotate the circle:
 
@@ -18,4 +18,3 @@ For example, this is useful if you want to spawn particles in a circle and then 
 | **Output** | **Type** | **Description**                         |
 | ---------- | -------- | --------------------------------------- |
 | **pos**    | Position | The result of the transformed Position. |
-

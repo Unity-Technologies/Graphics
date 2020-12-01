@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderAnalysis
             {
                 var passData = activeSubshader.GetPass(i);
                 if (filter != null && (filter.includedPassNames.Count > 0 && !filter.includedPassNames.Contains(passData.Name)
-                    || filter.excludedPassNames.Contains(passData.Name)))
+                                       || filter.excludedPassNames.Contains(passData.Name)))
                 {
                     m_SkippedPassesFromFilter.Add(i);
                     continue;

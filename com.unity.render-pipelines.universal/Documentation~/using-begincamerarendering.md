@@ -1,10 +1,10 @@
 # Using the beginCameraRendering event
 
-The example on this page shows how to use the [beginCameraRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-beginCameraRendering.html) event to run a custom method. 
+The example on this page shows how to use the [beginCameraRendering](https://docs.unity3d.com/ScriptReference/Rendering.RenderPipelineManager-beginCameraRendering.html) event to run a custom method.
 
 ## beginCameraRendering event overview
 
-Unity raises a `beginCameraRendering` event before it renders each active Camera in every frame. If a Camera is inactive (for example, if the __Camera__ component checkbox is cleared on a Camera GameObject), Unity does not raise a `beginCameraRendering` event for this Camera. 
+Unity raises a `beginCameraRendering` event before it renders each active Camera in every frame. If a Camera is inactive (for example, if the __Camera__ component checkbox is cleared on a Camera GameObject), Unity does not raise a `beginCameraRendering` event for this Camera.
 
 When you subscribe a method to this event, you can execute custom logic before Unity renders the Camera. Examples of custom logic include rendering extra Cameras to Render Textures, and using those Textures for effects like planar reflections or surveillance camera views.
 
@@ -21,7 +21,7 @@ To follow the steps in this example, create a [new Unity project using the __Uni
     ```C#
     using UnityEngine;
     using UnityEngine.Rendering;
-    
+
     public class URPCallbackExample : MonoBehaviour
     {
         // Unity calls this method automatically when it enables this component
@@ -30,14 +30,14 @@ To follow the steps in this example, create a [new Unity project using the __Uni
             // Add WriteLogMessage as a delegate of the RenderPipelineManager.beginCameraRendering event
             RenderPipelineManager.beginCameraRendering += WriteLogMessage;
         }
-    
+
         // Unity calls this method automatically when it disables this component
         private void OnDisable()
         {
             // Remove WriteLogMessage as a delegate of the  RenderPipelineManager.beginCameraRendering event
             RenderPipelineManager.beginCameraRendering -= WriteLogMessage;
         }
-    
+
         // When this method is a delegate of RenderPipeline.beginCameraRendering event, Unity calls this method every time it raises the beginCameraRendering event
         void WriteLogMessage(ScriptableRenderContext context, Camera camera)
         {
@@ -46,7 +46,7 @@ To follow the steps in this example, create a [new Unity project using the __Uni
         }
     }
     ```
-    > **NOTE**: When you subscribe to an event, your handler method (in this example, `WriteLogMessage`) must accept the parameters defined in the event delegate. In this example, the event delegate is `RenderPipeline.BeginCameraRendering`, which expects the following parameters: `<ScriptableRenderContext, Camera>`. 
+    > **NOTE**: When you subscribe to an event, your handler method (in this example, `WriteLogMessage`) must accept the parameters defined in the event delegate. In this example, the event delegate is `RenderPipeline.BeginCameraRendering`, which expects the following parameters: `<ScriptableRenderContext, Camera>`.
 
 4. Attach the `URPCallbackExample` script to Example Cube.
 

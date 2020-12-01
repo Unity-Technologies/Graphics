@@ -33,5 +33,6 @@ public class ShaderGraphGraphicsTests
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
+
 #endif
 }

@@ -1,4 +1,4 @@
-//This script is copied from UniversalRP TestProject 
+//This script is copied from UniversalRP TestProject
 // https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/master/TestProjects/UniversalGraphicsTest/Assets/Test/Runtime/UniversalGraphicsTests.cs
 
 using System.Collections;
@@ -27,9 +27,9 @@ public class GraphicsTests
         //Get Test settings
         //ignore instead of failing, because some scenes might not be used for GraphicsTest
         var settings = Object.FindObjectOfType<GraphicsTestSettingsCustom>();
-        if (settings == null) 
+        if (settings == null)
         {
-           // CleanUp();
+            // CleanUp();
             Assert.Ignore("Ignoring this test for GraphicsTest because couldn't find GraphicsTestSettingsCustom");
         }
         //Assert.IsNotNull(settings, "Invalid test scene, couldn't find GraphicsTestSettingsCustom");
@@ -38,7 +38,7 @@ public class GraphicsTests
 
         // Get the test camera
         GameObject[] camObjects = GameObject.FindGameObjectsWithTag("MainCamera");
-        var cameras = camObjects.Select(x=>x.GetComponent<Camera>());
+        var cameras = camObjects.Select(x => x.GetComponent<Camera>());
 
         // WaitFrames according to settings
         for (int i = 0; i < settings.WaitFrames; i++)
@@ -51,14 +51,13 @@ public class GraphicsTests
         yield return null;
     }
 
-
     [TearDown]
     public void DumpImagesInEditor()
     {
         #if UNITY_EDITOR
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
         #endif
-        
+
         CleanUp();
     }
 
@@ -67,5 +66,4 @@ public class GraphicsTests
         EntityManager m_Manager = World.DefaultGameObjectInjectionWorld.EntityManager;
         m_Manager.DestroyEntity(m_Manager.GetAllEntities());
     }
-
 }

@@ -28,7 +28,7 @@ public class DebugViewController_Editor : Editor
     {
         //base.OnInspectorGUI();
 
-        if ( ( (UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset) UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline) != null ) // avoid displaying the following if the assigned RP is not a HDRP
+        if (((UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset)UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline) != null)     // avoid displaying the following if the assigned RP is not a HDRP
         {
             int i_settingType = s_settingType.intValue;//= (int) (target as DebugViewController).settingType;
 
@@ -37,9 +37,9 @@ public class DebugViewController_Editor : Editor
             // if (MaterialDebugSettings.debugViewMaterialGBufferStrings == null) new MaterialDebugSettings();
             // if (DebugDisplaySettings.renderingFullScreenDebugStrings == null) new DebugDisplaySettings();
 
-            switch ( (DebugViewController.SettingType) s_settingType.intValue )
+            switch ((DebugViewController.SettingType)s_settingType.intValue)
             {
-                case DebugViewController.SettingType.Material :
+                case DebugViewController.SettingType.Material:
                     s_gBuffer.intValue = EditorGUILayout.IntPopup(new GUIContent("GBuffer"), s_gBuffer.intValue, MaterialDebugSettings.debugViewMaterialGBufferStrings, MaterialDebugSettings.debugViewMaterialGBufferValues);
                     break;
 
@@ -53,7 +53,7 @@ public class DebugViewController_Editor : Editor
             }
         }
 
-        if ( serializedObject.ApplyModifiedProperties() )
+        if (serializedObject.ApplyModifiedProperties())
         {
             serializedObject.Update();
             (target as DebugViewController).SetDebugView();
