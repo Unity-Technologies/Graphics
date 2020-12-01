@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [11.0.0] - 2020-10-21
+### Added
+- Added real-time Point Light Shadows.
 
 ### Added
 - Added a supported MSAA samples count check, so the actual supported MSAA samples count value can be assigned to RenderTexture descriptors.
@@ -64,6 +66,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the Light Explorer was grabbing the URP asset in Graphics Settings rather than the currently active.
 - Fixed an issue causing materials to be upgraded multiple times.
 - Fixed bloom inconsistencies between Gamma and Linear color-spaces.
+- Fixed an issue in where all the entries in the Renderer List wasn't selectable and couldn't be deleted.
 - Fixed Deferred renderer on some Android devices by forcing accurate GBuffer normals. [case 1288042]
 - Fixed an issue where MSAA did not work in Editor Game View on Windows with Vulkan.
 - Fixed issue where selecting and deselecting Forward Renderer asset would leak memory [case 1290628](https://issuetracker.unity3d.com/issues/urp-scriptablerendererfeatureeditor-memory-leak-while-interacting-with-forward-renderer-in-the-project-window)
@@ -80,7 +83,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed MSAA override on camera does not work in non-XR project if target eye is selected to both eye.
 
 ## [10.1.0] - 2020-10-12
-### Added
 - Added support for the Shadowmask Mixed Lighting Mode (Forward only), which supports up to four baked-shadow Lights.
 - Added ComplexLit shader for advanced material features and deferred forward fallback.
 - Added Clear Coat feature for ComplexLit shader and for shader graph.

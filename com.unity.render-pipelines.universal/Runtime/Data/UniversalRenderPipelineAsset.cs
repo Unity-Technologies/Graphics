@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
-        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._512;
+        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
 
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
@@ -286,8 +286,8 @@ namespace UnityEngine.Rendering.Universal
             if (m_RendererDataList == null)
                 m_RendererDataList = new ScriptableRendererData[1];
 
-            // If no data we can't create pipeline instance
-            if (m_RendererDataList[0] == null)
+            // If no default data we can't create pipeline instance
+            if (m_RendererDataList[m_DefaultRendererIndex] == null)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)

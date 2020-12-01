@@ -192,7 +192,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
                     #endif
                     unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
                 #elif defined(_DEFERRED_ADDITIONAL_LIGHT_SHADOWS)
-                    unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, shadowMask, _LightOcclusionProbInfo);
+                    unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
                 #else
                     unityLight.shadowAttenuation = 1.0;
                 #endif

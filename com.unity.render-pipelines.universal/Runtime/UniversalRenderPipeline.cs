@@ -123,9 +123,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // These limits have to match same limits in Input.hlsl
-        const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
-        const int k_MaxVisibleAdditionalLightsMobile    = 32;
-        const int k_MaxVisibleAdditionalLightsNonMobile = 256;
+        internal const int k_MaxVisibleAdditionalLightsMobileShaderLevelLessThan45 = 16;
+        internal const int k_MaxVisibleAdditionalLightsMobile    = 32;
+        internal const int k_MaxVisibleAdditionalLightsNonMobile = 256;
         public static int maxVisibleAdditionalLights
         {
             get
@@ -871,8 +871,8 @@ namespace UnityEngine.Rendering.Universal
 
                         Light light = visibleLights[i].light;
 
-                        // UniversalRP doesn't support additional directional lights or point light shadows yet
-                        if (visibleLights[i].lightType == LightType.Spot && light != null && light.shadows != LightShadows.None)
+                        // UniversalRP doesn't support additional directional light shadows yet
+                        if ((visibleLights[i].lightType == LightType.Spot || visibleLights[i].lightType == LightType.Point) && light != null && light.shadows != LightShadows.None)
                         {
                             additionalLightsCastShadows = true;
                             break;
