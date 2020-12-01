@@ -1,4 +1,4 @@
-Shader "Hidden/Universal Render Pipeline/StencilDeferred"
+﻿Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
     Properties {
         _StencilRef ("StencilRef", Int) = 0
@@ -206,7 +206,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
                 #if defined(_DEFERRED_LIGHT_SHADOWS)
                     if (!materialReceiveShadowsOff)
-                        unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, shadowMask, _LightOcclusionProbInfo);
+                        unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
                 #endif
             #endif
         #else

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
@@ -24,7 +24,8 @@ namespace UnityEditor.Rendering.Universal
         DeferredShading = (1 << 8), // DeferredRenderer is in the list of renderer
         DeferredWithAccurateGbufferNormals = (1 << 9),
         DeferredWithoutAccurateGbufferNormals = (1 << 10),
-        ScreenSpaceOcclusion = (1 << 11)
+        ScreenSpaceOcclusion = (1 << 11),
+        UseFastSRGBLinearConversion = (1 << 12)
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -45,6 +46,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
         ShaderKeyword m_DeferredLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
         ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+        ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
         ShaderKeyword m_LightmapShadowMixing = new ShaderKeyword(ShaderKeywordStrings.LightmapShadowMixing);
@@ -55,6 +57,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_GbufferNormalsOct = new ShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
         ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
+        ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -103,6 +106,9 @@ namespace UnityEditor.Rendering.Universal
 
                 if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
                     return true;
+
+                if (snippetData.passType == PassType.ShadowCaster && !compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
+                    return true;
             }
 
             if (!IsFeatureEnabled(features, ShaderFeatures.SoftShadows) &&
@@ -112,6 +118,10 @@ namespace UnityEditor.Rendering.Universal
             // Left for backward compatibility
             if (compilerData.shaderKeywordSet.IsEnabled(m_MixedLightingSubtractive) &&
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
+                return true;
+
+            if (compilerData.shaderKeywordSet.IsEnabled(m_UseFastSRGBLinearConversion) &&
+                !IsFeatureEnabled(features, ShaderFeatures.UseFastSRGBLinearConversion))
                 return true;
 
             // Strip here only if mixed lighting is disabled
@@ -125,6 +135,11 @@ namespace UnityEditor.Rendering.Universal
             bool isAdditionalLightShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isAdditionalLightShadow)
                 return true;
+
+            bool isPunctualLightShadowCasterPass = (snippetData.passType == PassType.ShadowCaster) && compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow);
+            if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isPunctualLightShadowCasterPass)
+                if (compilerData.shaderCompilerPlatform != ShaderCompilerPlatform.GLES3x) // [Work-around] We do not strip this variant on GLES3 because it could make some scenes crash current Unity GLES3 AndroidPlayer on OnePlus6T - TODO: remove this line once https://issuetracker.unity3d.com/product/unity/issues/guid/1293454/ is fixed
+                    return true;
 
             bool isDeferredShadow = compilerData.shaderKeywordSet.IsEnabled(m_DeferredLightShadows);
             if (!IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows) && isDeferredShadow)
@@ -394,6 +409,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.supportsTerrainHoles)
                 shaderFeatures |= ShaderFeatures.TerrainHoles;
+
+            if (pipelineAsset.useFastSRGBLinearConversion)
+                shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
 
             bool hasScreenSpaceOcclusion = false;
             bool hasDeferredRenderer = false;

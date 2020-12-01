@@ -633,6 +633,10 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 // We set the number of maximum visible lights allowed and we add one for the mainlight...
+                //
+                // Note: However ScriptableRenderContext.Cull() does not differentiate between light types.
+                //       If there is no active main light in the scene, ScriptableRenderContext.Cull() might return  ( cullingParameters.maximumVisibleLights )  visible additional lights.
+                //       i.e ScriptableRenderContext.Cull() might return  ( UniversalRenderPipeline.maxVisibleAdditionalLights + 1 )  visible additional lights !
                 cullingParameters.maximumVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + 1;
             }
             cullingParameters.shadowDistance = cameraData.maxShadowDistance;
