@@ -384,6 +384,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Conditional State
             renderStates = CoreRenderStates.ShadowCaster,
             pragmas = CorePragmas.Instanced,
+            keywords = CoreKeywords.ShadowCaster,
             includes = CoreIncludes.ShadowCaster,
         };
     }
@@ -725,6 +726,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor CastingPunctualLightShadow = new KeywordDescriptor()
+        {
+            displayName = "Casting Punctual Light Shadow",
+            referenceName = "_CASTING_PUNCTUAL_LIGHT_SHADOW",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor AdditionalLights = new KeywordDescriptor()
         {
             displayName = "Additional Lights",
@@ -835,6 +845,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "UseLegacySpriteBlocks",
             referenceName = "USELEGACYSPRITEBLOCKS",
             type = KeywordType.Boolean,
+        };
+    }
+    #endregion
+
+    #region Keywords
+    static class CoreKeywords
+    {
+        public static readonly KeywordCollection ShadowCaster = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.CastingPunctualLightShadow },
         };
     }
     #endregion

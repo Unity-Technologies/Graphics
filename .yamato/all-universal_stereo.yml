@@ -14,6 +14,8 @@ All_Universal_Stereo_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_trunk
          rerun: on-new-revision
+    variables:
+        TEST_FILTER: .*
 All_Universal_Stereo_CUSTOM-REVISION:
     name: All Universal_Stereo CI - CUSTOM-REVISION
     dependencies:
@@ -23,3 +25,4 @@ All_Universal_Stereo_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        TEST_FILTER: .*
