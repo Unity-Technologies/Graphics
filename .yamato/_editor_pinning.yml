@@ -59,7 +59,7 @@ editor-pinning-update:
     triggers:
         recurring:
           -  branch: master
-             frequency: 22 * * ?
+             frequency: 23 * * ?
 editor-pinning-merge-revisions-trunk:
     name: Merge [trunk] revisions to master [no ABV]
     agent:
