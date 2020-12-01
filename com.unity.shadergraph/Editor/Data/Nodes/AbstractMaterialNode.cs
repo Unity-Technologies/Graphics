@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        internal PreviewMode m_PreviewMode = PreviewMode.Default;
+        internal PreviewMode m_PreviewMode = PreviewMode.Inherit;
         public virtual PreviewMode previewMode
         {
             get { return m_PreviewMode; }

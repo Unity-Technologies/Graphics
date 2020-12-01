@@ -283,6 +283,17 @@ namespace UnityEditor.ShaderGraph
             set => m_ConcretePrecision = value;
         }
 
+        // NOTE: having preview mode default to 3D preserves the old behavior of pre-existing subgraphs
+        // if we change this, we would have to introduce a versioning step if we want to maintain the old behavior
+        [SerializeField]
+        private PreviewMode m_PreviewMode = PreviewMode.Preview3D;
+
+        public PreviewMode previewMode
+        {
+            get => m_PreviewMode;
+            set => m_PreviewMode = value;
+        }
+
         [SerializeField]
         JsonRef<AbstractMaterialNode> m_OutputNode;
 

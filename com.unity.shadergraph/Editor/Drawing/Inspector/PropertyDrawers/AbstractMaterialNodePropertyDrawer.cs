@@ -89,7 +89,6 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                         m_setNodesAsDirtyCallback();
                         node.owner.owner.RegisterCompleteObjectUndo("Change preview");
                         node.m_PreviewMode = (PreviewMode) evt.newValue;
-                        // node.owner.ValidateGraph();
                         m_updateNodeViewsCallback();
                         node.Dirty(ModificationScope.Graph);
                     });

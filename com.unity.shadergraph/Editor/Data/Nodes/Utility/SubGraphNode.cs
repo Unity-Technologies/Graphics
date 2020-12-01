@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph
             get
             {
                 PreviewMode mode = m_PreviewMode;
-                if ((mode == PreviewMode.Default) && (asset != null))
+                if ((mode == PreviewMode.Inherit) && (asset != null))
                     mode = asset.previewMode;
                 return mode;
             }

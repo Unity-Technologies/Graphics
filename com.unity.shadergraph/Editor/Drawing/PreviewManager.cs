@@ -1020,8 +1020,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // set preview mode based on node preference
                     preview.previewMode = node.previewMode;
 
-                    // Default becomes 2D or 3D based on child state
-                    if (preview.previewMode == PreviewMode.Default)
+                    // Inherit becomes 2D or 3D based on child state
+                    if (preview.previewMode == PreviewMode.Inherit)
                     {
                         if (children.Any(child => GetPreviewRenderData(child).previewMode == PreviewMode.Preview3D))
                             preview.previewMode = PreviewMode.Preview3D;
