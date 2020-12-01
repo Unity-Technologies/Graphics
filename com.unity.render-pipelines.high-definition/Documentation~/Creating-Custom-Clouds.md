@@ -1,18 +1,16 @@
-# **Creating custom clouds**
+# Creating custom clouds
 
-The High Definition Render Pipeline (HDRP) uses a cloud system that allows you to develop your own custom clouds with their own properties and Shaders, while still keeping the clouds consistent with the lighting pipeline.
+The High Definition Render Pipeline (HDRP) includes the cloud layer system which allows you to create your own custom clouds with their own properties and Shaders, while still keeping the clouds consistent with HDRP's lighting pipeline.
 
-To create your own clouds, create some scripts to handle the following:
+To create custom clouds using this system, you need to:
 
-1. [Clouds Settings](#CloudSettings)
-2. [Clouds Renderer](#CloudRenderer)
-3. [Clouds Rendering Shader](#RenderingShader)
+1. Create a script to store [cloud settings](#cloud-settings).
+2. Create a script to handle [cloud renderering](#cloud-renderer).
+3. Create a [cloud rendering shader](#cloud-rendering-shader).
 
 ## Using your cloud renderer
 
 When you complete all of the above steps, your new clouds automatically appear in the **Cloud Type** drop-down in the [Visual Environment](Override-Visual-Environment.md) override for [Volumes](Volumes.md) in your Unity Project.
-
-<a name="CloudSettings"></a>
 
 ## Cloud Settings
 
@@ -24,7 +22,7 @@ You must include the following in this class:
 - **GetHashCode**: The cloud system uses this function to determine when to re-render the sky reflection cubemap.
 - **GetCloudRendererType**: The cloud system uses this function to instantiate the proper renderer.
 
-For example, here’s an implementation of CloudSettings:
+For an example implementation of CloudSettings, see the following code sample:
 
 
 ```c#
@@ -68,59 +66,13 @@ public class NewCloud : CloudSettings
 }
 ```
 
-<a name="CloudRenderer"></a>
-
 ## Cloud Renderer
 
-Now you must create the class that actually renders the clouds, either into a cubemap for lighting or visually for the background. This is where you must implement specific rendering features.
+Now create the class that actually renders the clouds, either into a cubemap for lighting or visually for the background. This is where you must implement specific rendering features.
 
-Your Cloud Renderer must implement the CloudRenderer interface:
-```c#
-    public abstract class CloudRenderer
-    {
-        /// <summary>Determines if the clouds should be rendered when the sun light changes.</summary>
-        public bool SupportDynamicSunLight = true;
+Your cloud renderer must implement the [CloudRenderer interface](../api/UnityEngine.Rendering.HighDefinition.CloudRenderer.html):
 
-        /// <summary>
-        /// Called on startup. Create resources used by the renderer (shaders, materials, etc).
-        /// </summary>
-        public abstract void Build();
-
-        /// <summary>
-        /// Called on cleanup. Release resources used by the renderer.
-        /// </summary>
-        public abstract void Cleanup();
-
-        /// <summary>
-        /// HDRP calls this function once every frame. Implement it if your CloudRenderer needs to iterate independently of the user defined update frequency (see CloudSettings UpdateMode).
-        /// </summary>
-        /// <param name="builtinParams">Engine parameters that you can use to update the clouds.</param>
-        /// <returns>True if the update determines that cloud lighting needs to be re-rendered. False otherwise.</returns>
-        protected virtual bool Update(BuiltinSkyParameters builtinParams) { return false; }
-
-        /// <summary>
-        /// Preprocess for rendering the clouds. Called before the DepthPrePass operations
-        /// </summary>
-        /// <param name="builtinParams">Engine parameters that you can use to render the clouds.</param>
-        /// <param name="renderForCubemap">Pass in true if you want to render the clouds into a cubemap for lighting. This is useful when the cloud renderer needs a different implementation in this case.</param>
-        public virtual void PreRenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap) { }
-
-        /// <summary>
-        /// Whether the PreRenderClouds step is required.
-        /// </summary>
-        /// <param name="builtinParams">Engine parameters that you can use to render the clouds.</param>
-        /// <returns>True if the PreRenderClouds step is required.</returns>
-        public virtual bool RequiresPreRenderClouds(BuiltinSkyParameters builtinParams) { return false; }
-
-        /// <summary>
-        /// Implements actual rendering of the clouds. HDRP calls this when rendering the clouds into a cubemap (for lighting) and also during main frame rendering.
-        /// </summary>
-        /// <param name="builtinParams">Engine parameters that you can use to render the clouds.</param>
-        /// <param name="renderForCubemap">Pass in true if you want to render the clouds into a cubemap for lighting. This is useful when the cloud renderer needs a different implementation in this case.</param>
-        public abstract void RenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap);
-    }
-```
-For example, here’s a simple implementation of the CloudRenderer:
+For an example implementation of the CloudRenderer, see the following code sample:
 ```C#
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -175,17 +127,14 @@ class NewCloudRenderer : CloudRenderer
     }
 }
 ```
-### Important note:
-If your cloud renderer has to manage heavy data (like precomputed textures or similar things) then particular care has to be taken. Indeed, one instance of the renderer will exist per camera so by default if this data is a member of the renderer, it will also be duplicated in memory.
-Since each cloud renderer can have very different needs, the responsbility to share this kind of data is the renderer's and need to be implemented by the user.
 
-<a name="RenderingShader"></a>
+Note that HDRP creates one instance of the renderer per camera. This means that any data that exists as a member of the renderer is duplicated in memory. This is especially important to be aware of if your cloud renderer manages large amounts of data (like precomputed textures). If this is the case, it is best practise to cache the large data elsewhere and have each CloudRenderer access and use it when necessary.
 
 ## Cloud rendering Shader
 
-Finally, you need to actually create the Shader for your clouds. The content of this Shader depends on the effects you want to include.
+Finally, create the Shader for your clouds. The content of this Shader depends on the effects you want to include.
 
-For example, here’s the [HDRI sky](Override-HDRI-Cloud.md) implementation of the CloudRenderer.
+For example, the following code sample is the [HDRI sky's](Override-HDRI-Cloud.md) cloud shader implementation.
 ```
 Shader "Hidden/HDRP/Sky/NewCloud"
 {
@@ -281,5 +230,5 @@ Shader "Hidden/HDRP/Sky/NewCloud"
     Fallback Off
 }
 ```
-**Note**: The NewCloud example uses two passes, one that uses a Depth Test for rendering the clouds in the background (so that geometry occludes it correctly), and the other that does not use a Depth Test and renders the clouds into the reflection cubemap.
+**Note**: The NewCloud example uses two passes, one that uses a Depth Test for rendering the clouds in the background so that geometry occludes them correctly, and the other that does not use a Depth Test and renders the clouds into the reflection cubemap.
 In each case, the passes use alpha blending to correctly blend with the sky behind.

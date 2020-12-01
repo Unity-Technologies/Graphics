@@ -58,7 +58,7 @@
       * [Micro Shadows](Override-Micro-Shadows.md)
       * [Shadows](Override-Shadows.md)
     * Sky
-      * [Cloud Layer](Override-Cloud-Layer)
+      * [Cloud Layer](override-cloud-layer.md)
       * [Gradient Sky](Override-Gradient-Sky.md)
       * [HDRI Sky](Override-HDRI-Sky.md)
       * [Physically Based Sky](Override-Physically-Based-Sky.md)
@@ -187,7 +187,7 @@
 * Customizing HDRP
   * [Camera-relative Rendering](Camera-Relative-Rendering.md)
   * [Creating a Custom Sky](Creating-a-Custom-Sky.md)
-  * [Creating Custom Clouds](Creating-Custom-Clouds)
+  * [Creating Custom Clouds](creating-custom-clouds.md)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process.md)
   * [Creating a Custom Render Pass](Custom-Pass.md)
   * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
