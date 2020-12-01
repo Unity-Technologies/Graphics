@@ -572,7 +572,7 @@ void ScreenSpaceReflectionsReprojection(uint3 dispatchThreadId : SV_DispatchThre
     float  depthOrigin = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS0.xy).r;
 #endif
 
-    PositionInputs posInputOrigin = GetPositionInput(positionSS0.xy, _ScreenSize.zw, depthOrigin, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(8, 8));
+    PositionInputs posInputOrigin = GetPositionInput(positionSS0.xy, _ScreenSize.zw, depthOrigin, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     float3 originWS = posInputOrigin.positionWS + _WorldSpaceCameraPos;
 
     // TODO: this texture is sparse (mostly black). Can we avoid reading every texel? How about using Hi-S?

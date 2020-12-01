@@ -199,7 +199,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
     {
         if ((decalData.decalLayerMask & decalLayerMask) != 0)
         {
-            EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, s_decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
+            EvalDecalMask(posInput, vtxNormal, positionRWSDdx, positionRWSDdy, decalData, DBuffer0, DBuffer1, DBuffer2, DBuffer3, alpha);
         }
 
         i++;

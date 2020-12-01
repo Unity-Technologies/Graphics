@@ -4320,8 +4320,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static void RenderContactShadows(in ContactShadowsParameters parameters,
             RTHandle                    contactShadowRT,
             RTHandle                    depthTexture,
-            LightLoopLightData          lightLoopLightData,
-            ComputeBuffer               lightList,
+            /* TODO */
             CommandBuffer               cmd)
         {
             cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
@@ -4371,7 +4370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var depthTexture = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_SharedRTManager.GetDepthValuesTexture() : m_SharedRTManager.GetDepthTexture();
                 int firstMipOffsetY = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelOffsets[1].y;
                 var parameters = PrepareContactShadowsParameters(hdCamera, firstMipOffsetY);
-                RenderContactShadows(parameters, m_ContactShadowBuffer, depthTexture, m_TileAndClusterData.lightList, cmd);
+                RenderContactShadows(parameters, m_ContactShadowBuffer, depthTexture, cmd);
             }
         }
 

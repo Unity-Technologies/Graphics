@@ -580,7 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (RenderContactShadowPassData data, RenderGraphContext context) =>
                     {
-                        RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, data.lightLoopLightData, data.lightList, context.cmd);
+                        RenderContactShadows(data.parameters, data.contactShadowsTexture, data.depthTexture, context.cmd);
                     });
             }
 
@@ -607,8 +607,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
                     passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
-                    passData.visibleVolumeBoundsBuffer = visibleVolumeBoundsBuffer;
-                    passData.visibleVolumeDataBuffer = visibleVolumeDataBuffer;
                     if (passData.parameters.tiledLighting)
                         passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
