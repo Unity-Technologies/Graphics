@@ -84,7 +84,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
 #if LIGHT_QUALITY_FAST
                 output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;
-                output.lightDirection.z = _LightZDistance;
+                output.lightDirection.z = -_LightZDistance;
                 output.lightDirection.w = 0;
                 output.lightDirection.xyz = normalize(output.lightDirection.xyz);
 #else

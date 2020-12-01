@@ -8,7 +8,7 @@
             float4 clipVertex = output.positionCS / output.positionCS.w;\
             output.screenUV = ComputeScreenPos(clipVertex).xy;\
             output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;\
-            output.lightDirection.z = _LightZDistance;\
+            output.lightDirection.z = -_LightZDistance;\
             output.lightDirection.w = 0;\
             output.lightDirection.xyz = normalize(output.lightDirection.xyz);
 
@@ -31,7 +31,7 @@
             half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
             half3 dirToLight;\
             dirToLight.xy = _LightPosition.xy - input.positionWS.xy;\
-            dirToLight.z =  _LightZDistance;\
+            dirToLight.z =  -_LightZDistance;\
             dirToLight = normalize(dirToLight);\
             lightColor = lightColor * saturate(dot(dirToLight, normalUnpacked));
     #endif
