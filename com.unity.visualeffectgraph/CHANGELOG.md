@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Unexpected exception while trying to display capacity warning [Case 1294180](https://issuetracker.unity3d.com/product/unity/issues/guid/1294180/)
 - Exclude Operator, Context, Block and Subgraph from Preset [Case 1232309](https://issuetracker.unity3d.com/product/unity/issues/guid/1232309/)
 - Fix [Case 1212002](https://fogbugz.unity3d.com/f/cases/1212002/)
+- Fix [Case 1223747](https://fogbugz.unity3d.com/f/cases/1223747/)
 
 ## [10.2.0] - 2020-10-19
 ### Added
