@@ -35,6 +35,31 @@ def commit_and_push(commit_msg, working_dir, development_mode=False):
         git_cmd('pull', working_dir)
         git_cmd('push', working_dir)
 
+def get_last_nightly_id(api_key):
+    try:
+        current_date = str(datetime.date.today())
+        url = f"http://yamato-api.cds.internal.unity3d.com/jobs?filter=project eq 902 and branch eq 'master' and filename eq '.yamato%252F_abv.yml%2523all_project_ci_nightly_trunk' and submitted gt '{current_date}'"
+        headers={"Authorization":f"ApiKey {api_key}"}
+        response = requests.get(url=url, headers=headers)
+        if response.status_code != 200:
+            raise Exception()
+        
+        jobs = response.json()["items"]
+        if len(jobs) == 0:
+            print(f"!! WARNING: No jobs found on {current_date}")
+            return None
+        
+        for job in jobs:
+            if job["links"]["triggeredBy"] == "/users/0":
+                return job["id"]
+        print(f"!! WARNING: No jobs submitted by CI found on {current_date}")
+        return None
+
+    except:
+        print(f"!! ERROR: Failed to call Yamato API. Got {response.json()}")
+        return None
+
+
 def get_yamato_dependency_tree(job_id, api_key):
     """Calls Yamato API (GET/jobid/tree)for given job id. Returns JSON dependency tree if success, and None if fails."""
     try:
@@ -71,7 +96,7 @@ def update_green_project_revisions(editor_versions_file, project_versions_file, 
 
         job = jobs[0]
         if job["status"] == 'success': 
-            print(f'Updating "{job_name}"')
+            print(f'Updating "{job_name}" [job status: {job["status"]}]')
             
             job_name = job_name.replace(' ', '_').lower()
             if not last_green_job_revisions.get(job_name):
@@ -101,8 +126,6 @@ def parse_args(flags):
                         help=f'Configuration YAML file to use. Default: {DEFAULT_CONFIG_FILE}')
     #parser.add_argument("--revision", required=True)
     parser.add_argument("--track", required=True)
-    parser.add_argument("--jobid", required=True, 
-                        help='If specified, Yamato API is called to update green revisions for projects according to dependencies.')
     parser.add_argument("--apikey", required=True, 
                         help='Needed for Yamato auth if jobid arg is specified.')
     parser.add_argument("--working-dir", required=False,
@@ -132,11 +155,13 @@ def main(argv):
         else:
             checkout_and_pull_branch(args.target_branch, working_dir, args.local)
         
-        print(f'Updating green project revisions according to job {args.jobid}.')
-        if update_green_project_revisions(editor_versions_file, green_revisions_file, str(args.track), config['green_revision_jobs'], args.jobid, args.apikey, working_dir):
-            commit_and_push(f'[CI] [{str(args.track)}] Updated green project revisions', working_dir, args.local)
-        else:
-            print('No projects to update. Exiting successfully without any commit/push.')
+        nightly_job_id = get_last_nightly_id(args.apikey)
+        print(f'Updating green project revisions according to job {nightly_job_id}.')
+        if nightly_job_id:
+            if update_green_project_revisions(editor_versions_file, green_revisions_file, str(args.track), config['green_revision_jobs'], nightly_job_id, args.apikey, working_dir):
+                commit_and_push(f'[CI] [{str(args.track)}] Updated green project revisions', working_dir, args.local)
+            else:
+                print('No projects to update. Exiting successfully without any commit/push.')
        
         return 0
     except subprocess.CalledProcessError as err:
