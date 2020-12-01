@@ -213,7 +213,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             if (m_PostProcessData.objectReferenceValue != null)
             {
                 EditorGUILayout.PropertyField(m_PostProcessData, Styles.postProcessData);
-                EditorGUILayout.HelpBox("Post Processing Data has been moved to the Render Pipeline Asset in use", MessageType.Warning);
+                EditorGUILayout.HelpBox("The Post Processing Data property is moved to the Render Pipeline asset.", MessageType.Warning);
             }
 
             EditorGUILayout.Space();

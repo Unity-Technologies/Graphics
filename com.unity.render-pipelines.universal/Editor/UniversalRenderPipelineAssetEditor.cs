@@ -57,7 +57,7 @@ namespace UnityEditor.Rendering.Universal
 
             // Post-processing
             public static GUIContent postProcessLabel = EditorGUIUtility.TrTextContent("Post Process Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
-            public static GUIContent postProcessIncluded = EditorGUIUtility.TrTextContent("Post Processing", "Includes or removes Post Processing from builds, this includes rendering passes, shaders and texture resources.");
+            public static GUIContent postProcessIncluded = EditorGUIUtility.TrTextContent("Post Processing", "Turns post-processing on (check box selected) or off (check box cleared). If you clear this check box, Unity excludes post-processing render Passes, shaders, and textures from the build.");
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
             public static GUIContent useFastSRGBLinearConversion = EditorGUIUtility.TrTextContent("Fast sRGB/Linear conversions", "Use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.");
@@ -431,7 +431,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (renderersUsePostProcessData)
                 {
-                    EditorGUILayout.HelpBox("There are renderers that are using custom Post Processing data, for that reason post processing cannot be disabled.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("The URP asset contains Renderers that use custom Post Processing data, this check box has no effect.", MessageType.Warning);
                 }
 
                 GUI.enabled = postProcessIncluded || renderersUsePostProcessData;
