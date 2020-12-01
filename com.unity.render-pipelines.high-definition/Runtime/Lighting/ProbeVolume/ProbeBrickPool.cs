@@ -262,7 +262,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: This is fairly simplistic for now and relies on the enum to have the value set to the desired numbers,
             // might change the heuristic later on. 
             width = (int)memoryBudget;
-            height = (int)memoryBudget             
+            height = (int)memoryBudget;             
             depth = kBrickProbeCountPerDim;
         }
 
