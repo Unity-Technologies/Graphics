@@ -115,36 +115,53 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 
 #ifndef TERRAIN_SPLAT_BASEPASS
 
-void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout half4 splatControl, out half weight, out half4 mixedDiffuse, out half4 defaultSmoothness, inout half3 mixedNormal)
-{
-    half4 diffAlbedo[4];
+#define _LAYER_COUNT 4
 
-    diffAlbedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, uvSplat01.xy);
-    diffAlbedo[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, uvSplat01.zw);
-    diffAlbedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, uvSplat23.xy);
-    diffAlbedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, uvSplat23.zw);
+void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout half4 splat, out half weight, out half4 mixedDiffuse, out half4 defaultSmoothness, inout half3 mixedNormal)
+{
+    half weights[_LAYER_COUNT];
+
+    half4 albedo[_LAYER_COUNT];
+    albedo[0] = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, uvSplat01.xy) * half4(_DiffuseRemapScale0.xyz, 1.0h);
+    albedo[1] = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, uvSplat01.zw) * half4(_DiffuseRemapScale1.xyz, 1.0h);
+    albedo[2] = SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, uvSplat23.xy) * half4(_DiffuseRemapScale2.xyz, 1.0h);
+    albedo[3] = SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, uvSplat23.zw) * half4(_DiffuseRemapScale3.xyz, 1.0h);
+
+#ifdef _NORMALMAP
+    half3 normal[_LAYER_COUNT];
+    normal[0] = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, uvSplat01.xy), _NormalScale0);
+    normal[1] = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, uvSplat01.zw), _NormalScale1);
+    normal[2] = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, uvSplat23.xy), _NormalScale2);
+    normal[3] = UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw), _NormalScale3);
+    mixedNormal = 0.0h;
+#endif
 
     // This might be a bit of a gamble -- the assumption here is that if the diffuseMap has no
-    // alpha channel, then diffAlbedo[n].a = 1.0 (and _DiffuseHasAlphaN = 0.0)
+    // alpha channel, then albedo[n].a = 1.0 (and _DiffuseHasAlphaN = 0.0)
     // Prior to coming in, _SmoothnessN is actually set to max(_DiffuseHasAlphaN, _SmoothnessN)
     // This means that if we have an alpha channel, _SmoothnessN is locked to 1.0 and
-    // otherwise, the true slider value is passed down and diffAlbedo[n].a == 1.0.
-    defaultSmoothness = half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a);
+    // otherwise, the true slider value is passed down and albedo[n].a == 1.0.
+    defaultSmoothness = half4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a);
     defaultSmoothness *= half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
 
 #ifndef _TERRAIN_BLEND_HEIGHT
     if(_NumLayersCount <= 4) // disable if > 4 layers due to normalization breaking with multi-pass
     {
         // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-        half4 opacityAsDensity = saturate((half4(diffAlbedo[0].a, diffAlbedo[1].a, diffAlbedo[2].a, diffAlbedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splatControl)) * 20.0);
-        opacityAsDensity += 0.001h * splatControl;      // if all weights are zero, default to what the blend mask says
+        half4 opacityAsDensity = saturate((half4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (half4(1.0, 1.0, 1.0, 1.0) - splat)) * 20.0);
+        opacityAsDensity += 0.001h * splat;      // if all weights are zero, default to what the blend mask says
         half4 useOpacityAsDensityParam = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
-        splatControl = lerp(opacityAsDensity, splatControl, useOpacityAsDensityParam);
+        splat = lerp(opacityAsDensity, splat, useOpacityAsDensityParam);
     }
 #endif
 
-    // Now that splatControl has changed, we can compute the final weight and normalize
-    weight = dot(splatControl, 1.0h);
+    weights[0] = splat.x;
+    weights[1] = splat.y;
+    weights[2] = splat.z;
+    weights[3] = splat.w;
+
+    // Now that splat has changed, we can compute the final weight and normalize
+    weight = dot(splat, 1.0h);
 
 #ifdef TERRAIN_SPLAT_ADDPASS
     clip(weight <= 0.005h ? -1.0h : 1.0h);
@@ -153,34 +170,31 @@ void SplatmapMix(float4 uvMainAndLM, float4 uvSplat01, float4 uvSplat23, inout h
 #ifndef _TERRAIN_BASEMAP_GEN
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
     // lighting result can be correctly weighted.
-    splatControl /= (weight + HALF_MIN);
+    splat /= (weight + HALF_MIN);
 #endif
 
+    // accumulate
     mixedDiffuse = 0.0h;
-    mixedDiffuse += diffAlbedo[0] * half4(_DiffuseRemapScale0.rgb * splatControl.rrr, 1.0h);
-    mixedDiffuse += diffAlbedo[1] * half4(_DiffuseRemapScale1.rgb * splatControl.ggg, 1.0h);
-    mixedDiffuse += diffAlbedo[2] * half4(_DiffuseRemapScale2.rgb * splatControl.bbb, 1.0h);
-    mixedDiffuse += diffAlbedo[3] * half4(_DiffuseRemapScale3.rgb * splatControl.aaa, 1.0h);
+    UNITY_UNROLL for(int i = 0; i < _LAYER_COUNT; ++i)
+    {
+        mixedDiffuse += albedo[i] * half4( ( weights[i] ).xxx, 1.0h );
+#ifdef _NORMALMAP
+        mixedNormal += normal[i].xyz * weights[i];
+#endif
+    }
 
 #ifdef _NORMALMAP
-    half3 nrm = 0.0f;
-    nrm += splatControl.r * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, uvSplat01.xy), _NormalScale0);
-    nrm += splatControl.g * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, uvSplat01.zw), _NormalScale1);
-    nrm += splatControl.b * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, uvSplat23.xy), _NormalScale2);
-    nrm += splatControl.a * UnpackNormalScale(SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, uvSplat23.zw), _NormalScale3);
-
     // avoid risk of NaN when normalizing.
-#if HAS_HALF
-    nrm.z += 0.01h;
-#else
-    nrm.z += 1e-5f;
-#endif
-
-    mixedNormal = normalize(nrm.xyz);
+    #if HAS_HALF
+        mixedNormal.z += 0.01h;
+    #else
+        mixedNormal.z += 1e-5f;
+    #endif
+    mixedNormal = normalize(mixedNormal.xyz);
 #endif
 }
 
-#endif
+#endif // TERRAIN_SPLAT_BASEPASS
 
 #ifdef _TERRAIN_BLEND_HEIGHT
 void HeightBasedSplatModify(inout half4 splatControl, in half4 masks[4])
