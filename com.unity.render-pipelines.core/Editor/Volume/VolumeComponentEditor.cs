@@ -97,7 +97,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         public SerializedProperty activeProperty { get; internal set; }
 
-        SerializedProperty m_ShowAdditionalProperties;
+        EditorPrefBool m_ShowAdditionalProperties;
 
         /// <summary>
         /// Override this property if your editor makes use of the "More Options" feature.
@@ -109,14 +109,10 @@ namespace UnityEditor.Rendering
         /// </summary>
         public bool showAdditionalProperties
         {
-            get => m_ShowAdditionalProperties != null && m_ShowAdditionalProperties.boolValue;
+            get => m_ShowAdditionalProperties.value;
             internal set
             {
-                if (m_ShowAdditionalProperties != null)
-                {
-                    m_ShowAdditionalProperties.boolValue = value;
-                    serializedObject.ApplyModifiedProperties();
-                }
+                m_ShowAdditionalProperties.value = value;
             }
         }
 
@@ -175,7 +171,10 @@ namespace UnityEditor.Rendering
             m_Inspector = inspector;
             serializedObject = new SerializedObject(target);
             activeProperty = serializedObject.FindProperty("active");
-            m_ShowAdditionalProperties = serializedObject.FindProperty("m_ShowAdditionalProperties");
+
+            string key = $"UI_Show_Additional_Properties_{target.GetType()}";
+            m_ShowAdditionalProperties = new EditorPrefBool(key);
+
             OnEnable();
         }
 

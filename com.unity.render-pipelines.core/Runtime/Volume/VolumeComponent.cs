@@ -74,11 +74,6 @@ namespace UnityEngine.Rendering
         /// </summary>
         public ReadOnlyCollection<VolumeParameter> parameters { get; private set; }
 
-#pragma warning disable 414
-        [SerializeField, FormerlySerializedAs("m_AdvancedMode")]
-        bool m_ShowAdditionalProperties = false; // Editor-only
-#pragma warning restore 414
-
         /// <summary>
         /// Unity calls this method when it loads the class.
         /// </summary>
@@ -95,6 +90,7 @@ namespace UnityEngine.Rendering
                 .Select(t => (VolumeParameter)t.GetValue(this))
                 .ToList()
                 .AsReadOnly();
+
 
             foreach (var parameter in parameters)
             {
