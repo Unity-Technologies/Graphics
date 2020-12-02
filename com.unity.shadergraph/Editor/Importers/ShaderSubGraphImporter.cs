@@ -14,6 +14,7 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -321,8 +322,7 @@ namespace UnityEditor.ShaderGraph
         {
             var dependencyMap = new Dictionary<GUID, GUID[]>();
             AssetCollection tempAssetCollection = new AssetCollection();
-            List<GUID> tempList;
-            using (ListPool<GUID>.Get(out tempList))
+            using (ListPool<GUID>.Get(out var tempList))
             {
                 GatherDependencyMap(rootAssetGuid, dependencyMap, tempAssetCollection);
                 containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList);

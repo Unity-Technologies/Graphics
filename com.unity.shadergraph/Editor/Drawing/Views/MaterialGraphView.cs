@@ -13,6 +13,7 @@ using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -1292,11 +1293,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphView.graph.OnKeywordChangedNoValidate();
             }
 
-            List<AbstractMaterialNode> remappedNodes;
-            using (ListPool<AbstractMaterialNode>.Get(out remappedNodes))
+            using (ListPool<AbstractMaterialNode>.Get(out var remappedNodes))
             {
-                List<Graphing.Edge> remappedEdges;
-                using (ListPool<Graphing.Edge>.Get(out remappedEdges))
+                using (ListPool<Graphing.Edge>.Get(out var remappedEdges))
                 {
                     var nodeList = copyGraph.GetNodes<AbstractMaterialNode>();
 

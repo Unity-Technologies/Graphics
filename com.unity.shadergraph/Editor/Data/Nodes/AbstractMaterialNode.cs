@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.Assertions;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.Graphing
@@ -394,8 +395,7 @@ namespace UnityEditor.Graphing
                 return;
             }
 
-            List<MaterialSlot> slots;
-            using (ListPool<MaterialSlot>.Get(out slots))
+            using (ListPool<MaterialSlot>.Get(out var slots))
             {
                 node.GetInputSlots(slots);
                 foreach (var slot in slots)
