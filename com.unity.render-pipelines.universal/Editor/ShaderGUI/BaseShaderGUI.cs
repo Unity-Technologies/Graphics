@@ -266,19 +266,19 @@ namespace UnityEditor
 
             if (culling != RenderFace.Front && doubleSidedConstantsProp != null)
             {
-                var normalMode = (DoubleSidedNormalMode) doubleSidedConstantsProp.vectorValue.w;
+                var normalMode = (DoubleSidedNormalMode)doubleSidedConstantsProp.vectorValue.w;
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.indentLevel++;
-                normalMode = (DoubleSidedNormalMode) EditorGUILayout.EnumPopup(Styles.normalModeText, normalMode);
+                normalMode = (DoubleSidedNormalMode)EditorGUILayout.EnumPopup(Styles.normalModeText, normalMode);
                 EditorGUI.indentLevel--;
                 if (EditorGUI.EndChangeCheck())
                 {
                     materialEditor.RegisterPropertyChangeUndo(Styles.normalModeText.text);
                     Vector4 newConstants = Vector4.zero;
-                    if(normalMode == DoubleSidedNormalMode.Flip) newConstants = new Vector4(-1,-1,-1,0);
-                    else if(normalMode == DoubleSidedNormalMode.Mirror) newConstants = new Vector4(1,1,-1,1);
-                    else if(normalMode == DoubleSidedNormalMode.None) newConstants = new Vector4(1,1,1,2);
+                    if (normalMode == DoubleSidedNormalMode.Flip) newConstants = new Vector4(-1, -1, -1, 0);
+                    else if (normalMode == DoubleSidedNormalMode.Mirror) newConstants = new Vector4(1, 1, -1, 1);
+                    else if (normalMode == DoubleSidedNormalMode.None) newConstants = new Vector4(1, 1, 1, 2);
 
                     doubleSidedConstantsProp.vectorValue = newConstants;
                 }
@@ -457,7 +457,6 @@ namespace UnityEditor
             {
                 CoreUtils.SetKeyword(material, "_BACKFACE_VISIBLE", material.GetFloat("_Cull") < 2);
             }
-
         }
 
         public static void SetupMaterialBlendMode(Material material)
