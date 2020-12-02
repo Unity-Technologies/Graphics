@@ -32,10 +32,6 @@ namespace  UnityEngine.Rendering.HighDefinition
             return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        public RTHandle FeedbackBuffer { get; private set; }
-        public RTHandle FeedbackBufferMsaa { get; private set; }
-        public static int AdditionalForwardRT = 1;
-
         const int kResolveScaleFactor = 16;
 
         VirtualTexturing.Resolver   m_Resolver = new VirtualTexturing.Resolver();
@@ -54,17 +50,6 @@ namespace  UnityEngine.Rendering.HighDefinition
 
             // This texture needs to be persistent because we do async gpu readback on it.
             m_LowresResolver = RTHandles.Alloc(m_ResolverScale, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, autoGenerateMips: false, name: "VTFeedback lowres");
-        }
-
-        public void CreateBuffers(RenderPipelineSettings settings)
-        {
-            FeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "VTFeedbackForward");
-            if (settings.supportMSAA)
-            {
-                // Our processing handles both MSAA and regular buffers so we don't need to explicitly resolve here saving a buffer
-                FeedbackBufferMsaa = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
-                    enableMSAA: settings.supportMSAA, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
-            }
         }
 
         public void Cleanup()
@@ -88,21 +73,6 @@ namespace  UnityEngine.Rendering.HighDefinition
                     m_ResolverMsaa.UpdateSize(width, height);
                 else
                     m_Resolver.UpdateSize(width, height);
-            }
-        }
-
-        public void Resolve(CommandBuffer cmd, RTHandle rt, HDCamera hdCamera)
-        {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.VirtualTexturing))
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VTFeedbackDownsample)))
-                {
-                    var parameters = PrepareResolveVTParameters(hdCamera);
-                    var msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
-                    RTHandle input = msaaEnabled ? FeedbackBufferMsaa : (rt != null ? rt : FeedbackBuffer);
-
-                    ResolveVTDispatch(parameters, cmd, input, m_LowresResolver);
-                }
             }
         }
 
@@ -186,14 +156,6 @@ namespace  UnityEngine.Rendering.HighDefinition
         {
             w = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.x * w), 1);
             h = Mathf.Max(Mathf.RoundToInt(m_ResolverScale.y * h), 1);
-        }
-
-        public void DestroyBuffers()
-        {
-            RTHandles.Release(FeedbackBuffer);
-            RTHandles.Release(FeedbackBufferMsaa);
-            FeedbackBuffer = null;
-            FeedbackBufferMsaa = null;
         }
     }
 }
