@@ -9,7 +9,6 @@ using UnityEditor.AnimatedValues;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.Rendering;
 
-
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     [CustomEditor(typeof(Light2D))]
@@ -247,7 +246,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         var name = string.Format("{0} ({1})", blendStyle.name, blendStyle.maskTextureChannel);
                         blendStyleNames.Add(name);
                     }
-                    
+
                     m_AnyBlendStyleEnabled = true;
                 }
             }
