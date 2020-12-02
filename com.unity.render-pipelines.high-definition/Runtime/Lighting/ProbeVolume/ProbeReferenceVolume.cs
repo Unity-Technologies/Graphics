@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_BricksLoaded = false;
 
         // Information of the probe volume asset that is being loaded (if one is pending)
-        private ProbeVolumeAsset m_PendingAssetToBeLoaded = null;
+        private List<ProbeVolumeAsset> m_PendingAssetsToBeLoaded = new List<ProbeVolumeAsset>();
         private bool m_NeedLoadAsset = false;
         private bool m_ProbeReferenceVolumeInit = false;
         // Similarly the index dimensions come from the authoring component; if a change happens
@@ -174,12 +174,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PendingIndexDimChange = indexDimensions;
             m_NeedsIndexDimChange = true;
             m_NeedLoadAsset = true;
-           // m_BricksLoaded = false;
         }
 
         public void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
-            m_PendingAssetToBeLoaded = asset;
+            m_PendingAssetsToBeLoaded.Add(asset);
             m_NeedLoadAsset = true;
         }
 
@@ -194,22 +193,25 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         private void PerformPendingLoading()
         {
-            if (m_PendingAssetToBeLoaded == null || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
+            if (m_PendingAssetsToBeLoaded.Count == 0 || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
-            foreach (var cell in m_PendingAssetToBeLoaded.cells)
+            foreach (var asset in m_PendingAssetsToBeLoaded)
             {
-                // Push data to HDRP
-                bool compressed = false;
-                var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
-                ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
+                foreach (var cell in asset.cells)
+                {
+                    // Push data to HDRP
+                    bool compressed = false;
+                    var dataLocation = ProbeBrickPool.CreateDataLocation(cell.sh.Length, compressed);
+                    ProbeBrickPool.FillDataLocation(ref dataLocation, cell.sh);
 
-                // TODO register ID of brick list
-                List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
-                brickList.AddRange(cell.bricks);
-                var regId = AddBricks(brickList, dataLocation);
+                    // TODO register ID of brick list
+                    List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
+                    brickList.AddRange(cell.bricks);
+                    var regId = AddBricks(brickList, dataLocation);
 
-                Cells.Add(cell);
+                    Cells.Add(cell);
+                }
             }
 
             // Mark the loading as done.
