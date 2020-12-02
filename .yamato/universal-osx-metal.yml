@@ -50,9 +50,9 @@ Build_Universal_OSX_Metal_Standalone_mono_Linear_trunk:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
-      -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
-      -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
-      -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
+      -  cd ~/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
+      -  cd ~/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
+      -  cd ~/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=2400
@@ -79,9 +79,9 @@ Universal_OSX_Metal_playmode_mono_Linear_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/signing-scripts
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
@@ -112,9 +112,9 @@ Universal_OSX_Metal_playmode_XR_mono_Linear_trunk:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/signing-scripts
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
@@ -178,9 +178,9 @@ Build_Universal_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
-      -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
-      -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
-      -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
+      -  cd ~/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
+      -  cd ~/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
+      -  cd ~/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=2400
@@ -211,9 +211,9 @@ Universal_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/signing-scripts
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
@@ -248,9 +248,9 @@ Universal_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
       -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/signing-scripts
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
