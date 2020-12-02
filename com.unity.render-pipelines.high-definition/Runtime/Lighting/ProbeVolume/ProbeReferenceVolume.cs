@@ -148,9 +148,13 @@ namespace UnityEngine.Rendering.HighDefinition
         private bool m_BricksLoaded = false;
 
         // Information of the probe volume asset that is being loaded (if one is pending)
-        private ProbeVolumeAsset pendingAssetToBeLoaded = null;
+        private ProbeVolumeAsset m_PendingAssetToBeLoaded = null;
         private bool m_NeedLoadAsset = false;
         private bool m_ProbeReferenceVolumeInit = false;
+        // Similarly the index dimensions come from the authoring component; if a change happens
+        // a pending request for re-init (and what it implies) is added from the editor.
+        private Vector3Int m_PendingIndexDimChange;
+        private bool m_NeedsIndexDimChange = false;
 
         // index related
         Texture3D indexTex;
@@ -165,18 +169,35 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public void AddPendingIndexDimensionChange(Vector3Int indexDimensions)
+        {
+            m_PendingIndexDimChange = indexDimensions;
+            m_NeedsIndexDimChange = true;
+            m_NeedLoadAsset = true;
+           // m_BricksLoaded = false;
+        }
+
         public void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
-            pendingAssetToBeLoaded = asset;
+            m_PendingAssetToBeLoaded = asset;
             m_NeedLoadAsset = true;
         }
 
-        public void PerformPendingLoading()
+        private void PerformPendingIndexDimensionChange()
         {
-            if (pendingAssetToBeLoaded == null || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
+            if (m_NeedsIndexDimChange)
+            {
+                Cleanup();
+                InitProbeReferenceVolume(1024, m_Pool.GetMemoryBudget(), m_PendingIndexDimChange);
+                m_NeedsIndexDimChange = false;
+            }
+        }
+        private void PerformPendingLoading()
+        {
+            if (m_PendingAssetToBeLoaded == null || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
                 return;
 
-            foreach (var cell in pendingAssetToBeLoaded.cells)
+            foreach (var cell in m_PendingAssetToBeLoaded.cells)
             {
                 // Push data to HDRP
                 bool compressed = false;
@@ -193,6 +214,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Mark the loading as done.
             m_NeedLoadAsset = false;
+        }
+
+        public void PerformPendingOperations()
+        {
+            PerformPendingIndexDimensionChange();
+            PerformPendingLoading();
         }
 
         public void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions)
@@ -544,6 +571,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void Cleanup()
         {
+            m_BricksLoaded = false;
+            m_ProbeReferenceVolumeInit = false;
             m_Index.Cleanup();
             m_Pool.Cleanup();
         }

@@ -62,6 +62,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public ProbeVolumeAsset VolumeAsset = null;
 
+        public Vector3Int IndexDimensions = new Vector3Int(1024, 64, 1024);
+        // Since this is a property that lives on the authoring component and it will trigger
+        // a re-init of the probe reference volume, we need to keep track if it ever changes to
+        // trigger the right initialization sequence only when needed.
+        private Vector3Int m_PrevIndexDimensions;
+
         public void QueueAssetLoading()
         {
             if (VolumeAsset == null)
@@ -84,6 +90,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnValidate()
         {
+            if (m_PrevIndexDimensions != IndexDimensions)
+            {
+                var refVol = ProbeReferenceVolume.instance;
+                refVol.AddPendingIndexDimensionChange(IndexDimensions);
+                m_PrevIndexDimensions = IndexDimensions;
+            }
             QueueAssetLoading();
         }
 

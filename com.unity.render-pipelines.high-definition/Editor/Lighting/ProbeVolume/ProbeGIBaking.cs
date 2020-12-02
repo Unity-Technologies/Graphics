@@ -43,11 +43,6 @@ namespace UnityEngine.Rendering.HighDefinition
             refVol.SetTRS(refVolAuthoring.transform.position, refVolAuthoring.transform.rotation, refVolAuthoring.BrickSize);
             refVol.SetMaxSubdivision(refVolAuthoring.MaxSubdivision);
             refVol.SetNormalBias(refVolAuthoring.NormalBias);
-
-            ProbeReferenceVolume.RuntimeResources rr = refVol.GetRuntimeResources();
-            var apvRuntimeResources = new HDRenderPipeline.APVRuntimeResources { index = rr.index, L0 = rr.L0, L1_R = rr.L1_R, L1_G = rr.L1_G, L1_B = rr.L1_B };
-            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            hdrp.AssignAPVRuntimeResources(apvRuntimeResources);
         }
 
         private static void OnAdditionalProbesBakeCompleted()

@@ -1075,7 +1075,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We need to verify and flush any pending asset loading for probe volume.
             if (ShaderConfig.s_EnableProbeVolumes == 1)
-                ProbeReferenceVolume.instance.PerformPendingLoading();
+                ProbeReferenceVolume.instance.PerformPendingOperations();
         }
 
         static int NumLightIndicesPerClusteredTile()

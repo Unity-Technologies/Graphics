@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private SerializedProperty GreedyDilation;
         private SerializedProperty VolumeAsset;
 
+        private SerializedProperty IndexDimensions;
+
         internal static readonly GUIContent s_DataAssetLabel = new GUIContent("Data asset", "The asset which serializes all probe related data in this volume.");
 
 
@@ -58,6 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DilationValidityThreshold = serializedObject.FindProperty("DilationValidityThreshold");
             GreedyDilation = serializedObject.FindProperty("GreedyDilation");
             VolumeAsset = serializedObject.FindProperty("VolumeAsset");
+            IndexDimensions = serializedObject.FindProperty("IndexDimensions");
 
             DilationValidityThresholdInverted = 1f - DilationValidityThreshold.floatValue;
         }
@@ -124,6 +127,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 DilationValidityThresholdInverted = EditorGUILayout.Slider("Dilation Validity Threshold", DilationValidityThresholdInverted, 0f, 1f);
                 GreedyDilation.boolValue = EditorGUILayout.Toggle("Greedy Dilation", GreedyDilation.boolValue);
                 EditorGUI.EndDisabledGroup();
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+
+            // TODO: This needs to be moved to advanced settings as soon as the refactor lands. Also tmp naming.
+            bool indexDimension = EditorGUILayout.BeginFoldoutHeaderGroup(DilationGroupEnabled, "Index field dimensions");
+            if (indexDimension)
+            {
+                int newIndexDimX = EditorGUILayout.DelayedIntField("Index Field Dimension X", IndexDimensions.vector3IntValue.x);
+                int newIndexDimY = EditorGUILayout.DelayedIntField("Index Field Dimension Y", IndexDimensions.vector3IntValue.y);
+                int newIndexDimZ = EditorGUILayout.DelayedIntField("Index Field Dimension Z", IndexDimensions.vector3IntValue.z);
+                IndexDimensions.vector3IntValue = new Vector3Int(newIndexDimX, newIndexDimY, newIndexDimZ);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
 

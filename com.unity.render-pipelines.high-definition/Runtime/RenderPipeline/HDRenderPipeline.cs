@@ -813,7 +813,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             DestroySSSBuffers();
             m_SharedRTManager.Cleanup();
-            m_APVResources.Cleanup();
 
             RTHandles.Release(m_CameraColorBuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
@@ -1136,6 +1135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             MousePositionDebug.instance.Cleanup();
 
             DecalSystem.instance.Cleanup();
+            ProbeReferenceVolume.instance.Cleanup();
 
             m_MaterialList.ForEach(material => material.Cleanup());
 
