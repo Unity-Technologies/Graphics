@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         bool m_IssuedMessageAboutShadowSlicesTooMany = false;
+        bool m_IssuedMessageAboutShadowSlicesTooMany_Deferred = false;
 
         Vector4 m_MainLightShadowParams; // Shadow Fade parameters _MainLightShadowParams.zw are actually also used by AdditionalLights
 
@@ -278,7 +279,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int validShadowCastingLightsCount = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
             int additionalLightIndex = -1;
-            for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length && m_ShadowSliceToAdditionalLightIndex.Count < totalShadowSlicesCount; ++visibleLightIndex)
+            for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length && m_ShadowSliceToAdditionalLightIndex.Count < totalShadowSlicesCount && additionalLightIndex < (m_AdditionalLightIndexToShadowParams.Length - 1); ++visibleLightIndex)
             {
                 VisibleLight shadowLight = visibleLights[visibleLightIndex];
 
@@ -295,6 +296,17 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 LightType lightType = shadowLight.lightType;
                 int perLightShadowSlicesCount = GetPunctualLightShadowSlicesCount(lightType);
+
+                if (IsValidShadowCastingLight(ref renderingData.lightData, visibleLightIndex) && (m_ShadowSliceToAdditionalLightIndex.Count + perLightShadowSlicesCount) > totalShadowSlicesCount)
+                {
+                    if (!m_IssuedMessageAboutShadowSlicesTooMany_Deferred)
+                    {
+                        // This case can happen in Deferred, where there can be a high number of visibleLights
+                        Debug.Log($"There are too many additional punctual lights shadow slices, URP will not render all the shadows. To ensure all shadows are rendered, reduce the number of shadowed additional lights in the scene ; make sure they are not active at the same time ; or replace point lights by spot lights (spot lights use less shadow maps than point lights).");
+                        m_IssuedMessageAboutShadowSlicesTooMany_Deferred = true; // Only output this once
+                    }
+                    break;
+                }
 
                 int perLightFirstShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
 
