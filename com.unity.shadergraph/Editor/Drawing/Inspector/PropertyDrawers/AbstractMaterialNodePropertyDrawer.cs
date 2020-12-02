@@ -12,15 +12,20 @@ using UnityEngine;
 
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
+    public interface IGetNodePropertyDrawerPropertyData
+    {
+        void GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback);
+    }
+
     [SGPropertyDrawer(typeof(AbstractMaterialNode))]
-    public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer
+    public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
         public Action inspectorUpdateDelegate { get; set; }
 
         Action m_setNodesAsDirtyCallback;
         Action m_updateNodeViewsCallback;
 
-        public void GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
+        void IGetNodePropertyDrawerPropertyData.GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
         {
             m_setNodesAsDirtyCallback = setNodesAsDirtyCallback;
             m_updateNodeViewsCallback = updateNodeViewsCallback;
@@ -48,55 +53,10 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     nodeSettings.Insert(0, help);
                 }
             }
-            EnumField precisionField = null;
-            if(node.canSetPrecision)
-            {
-                precisionField = new EnumField(node.precision);
-                var propertyRow = new PropertyRow(new Label("Precision"));
-                propertyRow.Add(precisionField, (field) =>
-                {
-                    field.RegisterValueChangedCallback(evt =>
-                    {
-                        if (evt.newValue.Equals(node.precision))
-                            return;
 
-                        m_setNodesAsDirtyCallback();
-                        node.owner.owner.RegisterCompleteObjectUndo("Change precision");
-                        node.precision = (Precision)evt.newValue;
-                        node.owner.ValidateGraph();
-                        m_updateNodeViewsCallback();
-                        node.Dirty(ModificationScope.Graph);
-                    });
-                });
-                if (node is Serialization.MultiJsonInternal.UnknownNodeType)
-                    precisionField.SetEnabled(false);
-                nodeSettings.Add(propertyRow);
-            }
-            propertyVisualElement = precisionField;
+            PropertyDrawerUtils.AddDefaultNodeProperties(nodeSettings, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
 
-            EnumField previewField = null;
-            if (node.hasPreview)
-            {
-                previewField = new EnumField(node.m_PreviewMode);
-                var propertyRow = new PropertyRow(new Label("Preview"));
-                propertyRow.Add(previewField, (field) =>
-                {
-                    field.RegisterValueChangedCallback(evt =>
-                    {
-                        if (evt.newValue.Equals(node.m_PreviewMode))
-                            return;
-
-                        m_setNodesAsDirtyCallback();
-                        node.owner.owner.RegisterCompleteObjectUndo("Change preview");
-                        node.m_PreviewMode = (PreviewMode) evt.newValue;
-                        m_updateNodeViewsCallback();
-                        node.Dirty(ModificationScope.Graph);
-                    });
-                });
-                if (node is Serialization.MultiJsonInternal.UnknownNodeType)
-                    previewField.SetEnabled(false);
-                nodeSettings.Add(propertyRow);
-            }
+            propertyVisualElement = null;
 
             return nodeSettings;
         }
