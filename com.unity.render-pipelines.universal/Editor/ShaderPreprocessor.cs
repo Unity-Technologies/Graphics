@@ -25,7 +25,8 @@ namespace UnityEditor.Rendering.Universal
         DeferredWithAccurateGbufferNormals = (1 << 9),
         DeferredWithoutAccurateGbufferNormals = (1 << 10),
         ScreenSpaceOcclusion = (1 << 11),
-        UseFastSRGBLinearConversion = (1 << 12)
+        ScreenSpaceShadows = (1 << 12),
+        UseFastSRGBLinearConversion = (1 << 13)
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -41,11 +42,12 @@ namespace UnityEditor.Rendering.Universal
         private static readonly System.Diagnostics.Stopwatch m_stripTimer = new System.Diagnostics.Stopwatch();
 
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
+        ShaderKeyword m_MainLightShadowsCascades = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
+        ShaderKeyword m_MainLightShadowsScreen = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowScreen);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
         ShaderKeyword m_AdditionalLightShadows = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightShadows);
         ShaderKeyword m_DeferredLightShadows = new ShaderKeyword(ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS);
-        ShaderKeyword m_CascadeShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadowCascades);
         ShaderKeyword m_CastingPunctualLightShadow = new ShaderKeyword(ShaderKeywordStrings.CastingPunctualLightShadow);
         ShaderKeyword m_SoftShadows = new ShaderKeyword(ShaderKeywordStrings.SoftShadows);
         ShaderKeyword m_MixedLightingSubtractive = new ShaderKeyword(ShaderKeywordStrings.MixedLightingSubtractive);
@@ -98,13 +100,16 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedFeatures(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
-            // strip main light shadows and cascade variants
+            // strip main light shadows, cascade and screen variants
             if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows))
             {
                 if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows))
                     return true;
 
-                if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
+                    return true;
+
+                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
                     return true;
 
                 if (snippetData.passType == PassType.ShadowCaster && !compilerData.shaderKeywordSet.IsEnabled(m_CastingPunctualLightShadow))
@@ -162,6 +167,11 @@ namespace UnityEditor.Rendering.Universal
             if (!isFeaturePerVertexLightingEnabled && isAdditionalLightPerVertex)
                 return true;
 
+            // Screen Space Shadows
+            if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceShadows) &&
+                compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
+                return true;
+
             // Screen Space Occlusion
             if (!IsFeatureEnabled(features, ShaderFeatures.ScreenSpaceOcclusion) &&
                 compilerData.shaderKeywordSet.IsEnabled(m_ScreenSpaceOcclusion))
@@ -186,7 +196,11 @@ namespace UnityEditor.Rendering.Universal
                     return true;
 
                 // Cascade shadows
-                if (compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
+                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades))
+                    return true;
+
+                // Screen space shadows
+                if (compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen))
                     return true;
 
                 // Detail
@@ -203,9 +217,10 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripInvalidVariants(ShaderCompilerData compilerData)
         {
-            bool isMainShadow = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows);
-            if (!isMainShadow && compilerData.shaderKeywordSet.IsEnabled(m_CascadeShadows))
-                return true;
+            bool isMainShadowNoCascades = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadows);
+            bool isMainShadowCascades = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsCascades);
+            bool isMainShadowScreen = compilerData.shaderKeywordSet.IsEnabled(m_MainLightShadowsScreen);
+            bool isMainShadow = isMainShadowNoCascades || isMainShadowCascades || isMainShadowScreen;
 
             bool isAdditionalShadow = compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightShadows);
             if (isAdditionalShadow && !compilerData.shaderKeywordSet.IsEnabled(m_AdditionalLightsPixel))
@@ -413,6 +428,7 @@ namespace UnityEditor.Rendering.Universal
             if (pipelineAsset.useFastSRGBLinearConversion)
                 shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
 
+            bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;
             bool hasDeferredRenderer = false;
             bool withAccurateGbufferNormals = false;
@@ -440,6 +456,10 @@ namespace UnityEditor.Rendering.Universal
                     for (int rendererFeatureIndex = 0; rendererFeatureIndex < rendererData.rendererFeatures.Count; rendererFeatureIndex++)
                     {
                         ScriptableRendererFeature rendererFeature = rendererData.rendererFeatures[rendererFeatureIndex];
+
+                        ScreenSpaceShadows ssshadows = rendererFeature as ScreenSpaceShadows;
+                        hasScreenSpaceShadows |= ssshadows != null;
+
                         ScreenSpaceAmbientOcclusion ssao = rendererFeature as ScreenSpaceAmbientOcclusion;
                         hasScreenSpaceOcclusion |= ssao != null;
                     }
@@ -455,6 +475,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (withoutAccurateGbufferNormals)
                 shaderFeatures |= ShaderFeatures.DeferredWithoutAccurateGbufferNormals;
+
+            if (hasScreenSpaceShadows)
+                shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
 
             if (hasScreenSpaceOcclusion)
                 shaderFeatures |= ShaderFeatures.ScreenSpaceOcclusion;

@@ -8,10 +8,6 @@ test_platforms:
     name: playmode_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests" 
-  - type: playmode
-    name: playmode_NonRenderGraph
-    utr_flags:
-      - [all]: --extra-editor-arg="-non-rendergraph-tests"
 platforms:
   - name: Win
     apis:
@@ -36,5 +32,4 @@ all:
         - Standalone
         - playmode
         - playmode_XR
-        - playmode_NonRenderGraph
-
+        
