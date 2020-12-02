@@ -40,7 +40,7 @@ Build_Universal_OSX_OpenGLCore_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -68,7 +68,7 @@ Universal_OSX_OpenGLCore_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -92,7 +92,7 @@ Universal_OSX_OpenGLCore_editmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -141,7 +141,7 @@ Build_Universal_OSX_OpenGLCore_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -173,7 +173,7 @@ Universal_OSX_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -201,7 +201,7 @@ Universal_OSX_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
