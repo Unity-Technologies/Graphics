@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // These array sizes should be as big as ScriptableCullingParameters.maximumVisibleLights (that is defined during ScriptableRenderer.SetupCullingParameters).
             // We initialize these array sizes with the number of visible lights allowed by the ForwardRenderer.
             // The number of visible lights can become much higher when using the Deferred rendering path, we resize the arrays during Setup() if required.
-            m_AdditionalLightIndexToVisibleLightIndex = new int[maxVisibleLights];
+            m_AdditionalLightIndexToVisibleLightIndex = new int[maxAdditionalLightShadowParams];
             m_VisibleLightIndexToAdditionalLightIndex = new int[maxVisibleLights];
             m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
 
@@ -195,6 +195,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         bool m_IssuedMessageAboutShadowSlicesTooMany = false;
+        bool m_IssuedMessageAboutShadowSlicesTooMany_Deferred = false;
 
         Vector4 m_MainLightShadowParams; // Shadow Fade parameters _MainLightShadowParams.zw are actually also used by AdditionalLights
 
@@ -258,19 +259,21 @@ namespace UnityEngine.Rendering.Universal.Internal
                 (m_UseStructuredBuffer && (m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix.Length < totalShadowSlicesCount)))   // m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix can be resized when using SSBO to pass shadow data (no size limitation)
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[totalShadowSlicesCount];
 
-            if (m_AdditionalLightIndexToVisibleLightIndex.Length < visibleLights.Length)
+            if (m_VisibleLightIndexToAdditionalLightIndex.Length < visibleLights.Length)
             {
                 // Array "visibleLights" is returned by ScriptableRenderContext.Cull()
                 // The maximum number of "visibleLights" that ScriptableRenderContext.Cull() should return, is defined by parameter ScriptableCullingParameters.maximumVisibleLights
                 // Universal RP sets this "ScriptableCullingParameters.maximumVisibleLights" value during ScriptableRenderer.SetupCullingParameters.
                 // When using Deferred rendering, it is possible to specify a very high number of visible lights.
-                m_AdditionalLightIndexToVisibleLightIndex = new int[visibleLights.Length];
                 m_VisibleLightIndexToAdditionalLightIndex = new int[visibleLights.Length];
             }
 
             int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? visibleLights.Length : Math.Min(visibleLights.Length, UniversalRenderPipeline.maxVisibleAdditionalLights);
             if (m_AdditionalLightIndexToVisibleLightIndex.Length < maxAdditionalLightShadowParams)
+            {
+                m_AdditionalLightIndexToVisibleLightIndex = new int[maxAdditionalLightShadowParams];
                 m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
+            }
 
             // initialize _AdditionalShadowParams
             Vector4 defaultShadowParams = new Vector4(0 /*shadowStrength*/, 0, 0, -1 /*perLightFirstShadowSliceIndex*/);
@@ -281,8 +284,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             int validShadowCastingLightsCount = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
-            int additionalLightIndex = -1;
-            for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length && m_ShadowSliceToAdditionalLightIndex.Count < totalShadowSlicesCount; ++visibleLightIndex)
+            int additionalLightCount = 0;
+            for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length && m_ShadowSliceToAdditionalLightIndex.Count < totalShadowSlicesCount && additionalLightCount < maxAdditionalLightShadowParams; ++visibleLightIndex)
             {
                 VisibleLight shadowLight = visibleLights[visibleLightIndex];
 
@@ -293,12 +296,23 @@ namespace UnityEngine.Rendering.Universal.Internal
                     continue;
                 }
 
-                ++additionalLightIndex; // ForwardLights.SetupAdditionalLightConstants skips main Light and thus uses a different index for additional lights
+                int additionalLightIndex = additionalLightCount++;
                 m_AdditionalLightIndexToVisibleLightIndex[additionalLightIndex] = visibleLightIndex;
                 m_VisibleLightIndexToAdditionalLightIndex[visibleLightIndex] = additionalLightIndex;
 
                 LightType lightType = shadowLight.lightType;
                 int perLightShadowSlicesCount = GetPunctualLightShadowSlicesCount(lightType);
+
+                if (IsValidShadowCastingLight(ref renderingData.lightData, visibleLightIndex) && (m_ShadowSliceToAdditionalLightIndex.Count + perLightShadowSlicesCount) > totalShadowSlicesCount)
+                {
+                    if (!m_IssuedMessageAboutShadowSlicesTooMany_Deferred)
+                    {
+                        // This case can happen in Deferred, where there can be a high number of visibleLights
+                        Debug.Log($"There are too many additional punctual lights shadow slices, URP will not render all the shadows. To ensure all shadows are rendered, reduce the number of shadowed additional lights in the scene ; make sure they are not active at the same time ; or replace point lights by spot lights (spot lights use less shadow maps than point lights).");
+                        m_IssuedMessageAboutShadowSlicesTooMany_Deferred = true; // Only output this once
+                    }
+                    break;
+                }
 
                 int perLightFirstShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
 
@@ -397,7 +411,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             for (int globalShadowSliceIndex = 0; globalShadowSliceIndex < shadowCastingLightsBufferCount; ++globalShadowSliceIndex)
             {
-                additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
+                int additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
 
                 // We can skip the slice if strength is zero.
                 if (Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].x, 0.0f)  || Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].w, -1.0f))

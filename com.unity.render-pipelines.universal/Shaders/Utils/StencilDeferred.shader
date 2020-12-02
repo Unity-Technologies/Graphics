@@ -191,23 +191,29 @@
                 // unity_LightData.z is set per mesh for forward renderer, we cannot cull lights in this fashion with deferred renderer.
                 unityLight.distanceAttenuation = 1.0;
                 
-                #if defined(_MAIN_LIGHT_SHADOWS)
-                    if (!materialReceiveShadowsOff)
-                    {
-                        float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                if (!materialReceiveShadowsOff)
+                {
+                    #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                            float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
+                        #else
+                            float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                        #endif
                         unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
-                    }
-                #endif
+                    #endif
+                }
             #else
                 unityLight.direction = _LightDirection;
                 unityLight.distanceAttenuation = 1.0;
                 unityLight.shadowAttenuation = 1.0;
                 unityLight.color = _LightColor.rgb;
 
-                #if defined(_DEFERRED_LIGHT_SHADOWS)
-                    if (!materialReceiveShadowsOff)
+                if (!materialReceiveShadowsOff)
+                {
+                    #if defined(_DEFERRED_LIGHT_SHADOWS)
                         unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
-                #endif
+                    #endif
+                }
             #endif
         #else
             PunctualLightData light;
@@ -426,8 +432,7 @@
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
@@ -472,8 +477,7 @@
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
             #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
