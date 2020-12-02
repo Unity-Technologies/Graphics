@@ -208,9 +208,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Check geometry dirtiness
             ulong accelSize = m_CurrentRAS.GetSize();
-            if (accelSize != m_CacheAccelSize)
+            if (accelSize != m_CacheAccelSize || m_TransformDirty)
             {
                 m_CacheAccelSize = accelSize;
+                m_TransformDirty = false;
                 ResetPathTracing();
             }
         }
