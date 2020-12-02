@@ -4,10 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [11.0.0] - 2020-10-21
+## [11.0.0] - 2020-12-02
 
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
+- Added support for pre-exposure for planar reflections.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -19,8 +20,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
+- Replaced last package version checker in Wizard to a link on Package Manager
 
-## [10.3.0] - 2020-11-16
+## [10.3.0] - 2020-12-01
+
+### Changed
+- Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
+
+## [10.2.1] - 2020-11-30
 
 ### Added
 - Added a warning when trying to bake with static lighting being in an invalid state.
@@ -48,11 +55,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ghosting in RTGI and RTAO when denoising is enabled and the RTHandle size is not equal to the Viewport size (case 1291654).
 - Fixed alpha output when atmospheric scattering is enabled.
 - Fixed issue with TAA history sharpening when view is downsampled.
+- Fixed lookdev movement.
+- Fixed volume component tooltips using the same parameter name.
+- Fixed issue with saving some quality settings in volume overrides  (case 1293747)
+- Fixed NullReferenceException in HDRenderPipeline.UpgradeResourcesIfNeeded (case 1292524)
+- Fixed SSGI texture allocation when not using the RenderGraph.
+- Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
+- Fixed issue with saving some quality settings in volume overrides  (case 1293747)
 - Fixed issue with faulty shadow transition when view is close to an object under some aspect ratio conditions
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
 - Now the screen space shadow is only used if the analytic value is valid.
+- Distance based roughness is disabled by default and have a control
 
 ## [10.2.0] - 2020-10-19
 
@@ -199,7 +214,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the support of eye shader for ray tracing.
 - Exposed Refraction Model to the material UI when using a Lit ShaderGraph.
 - Added bounding sphere support to screen-space axis-aligned bounding box generation pass.
-- Added support for exposure for the case of planar reflections.
 
 ### Fixed
 - Fixed several issues with physically-based DoF (TAA ghosting of the CoC buffer, smooth layer transitions, etc)
