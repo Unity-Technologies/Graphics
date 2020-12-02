@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public SGBlackboard blackboard { get; private set; }
         Label m_PathLabel;
         TextField m_PathLabelTextField;
-        ScrollView m_blackboardScrollView;
         bool m_EditPathCancelled = false;
         List<Node> m_SelectedNodes = new List<Node>();
 
@@ -55,8 +54,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabel = blackboard.hierarchy.ElementAt(0).Q<Label>("subTitleLabel");
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
-            m_blackboardScrollView = blackboard.Q<ScrollView>("");
-
             m_PathLabelTextField = new TextField { visible = false };
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
@@ -75,11 +72,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDragUpdatedEvent(DragUpdatedEvent evt)
         {
-            if (m_blackboardScrollView != null)
-            {
-                Debug.Log("Mouse Delta: " + evt.mouseDelta);
-                m_blackboardScrollView.scrollOffset -= new Vector2(0, 1.0f);
-            }
             if (m_SelectedNodes.Any())
             {
                 foreach (var node in m_SelectedNodes)
@@ -417,6 +409,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             field.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
             field.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
             field.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            field.RegisterCallback<DragEnterEvent>(blackboard.OnFieldDragStart);
+            field.RegisterCallback<DragUpdatedEvent>(blackboard.OnFieldDragUpdate);
+            field.RegisterCallback<DragExitedEvent>(blackboard.OnFieldDragEnd);
 
             // Removing the expand button from the blackboard, its added by default
             var expandButton = row.Q<Button>("expandButton");

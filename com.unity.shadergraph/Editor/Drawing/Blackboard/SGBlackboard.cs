@@ -9,6 +9,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
     {
         private Button m_AddButton;
         private Dragger m_Dragger;
+        VisualElement m_ScrollBoundaryTop;
+        VisualElement m_ScrollBoundaryBottom;
+
+        bool m_scrollToTop = false;
+        bool m_scrollToBottom = false;
+        bool m_IsFieldBeingDragged = false;
+
         protected override string windowTitle => "Blackboard";
         protected override string elementName => "SGBlackboard";
         protected override string styleName => "Blackboard";
@@ -31,12 +38,80 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 }
             };
 
+            m_ScrollBoundaryTop = m_MainContainer.Q(name: "scrollBoundaryTop");
+            m_ScrollBoundaryTop.RegisterCallback<MouseEnterEvent>(ScrollRegionTopEnter);
+            m_ScrollBoundaryTop.RegisterCallback<MouseLeaveEvent>(ScrollRegionTopLeave);
+
+            m_ScrollBoundaryBottom = m_MainContainer.Q(name: "scrollBoundaryBottom");
+            m_ScrollBoundaryBottom.RegisterCallback<MouseEnterEvent>(ScrollRegionBottomEnter);
+            m_ScrollBoundaryBottom.RegisterCallback<MouseLeaveEvent>(ScrollRegionBottomLeave);
+
+
             isWindowScrollable = true;
+            isWindowResizable = true;
 
             RegisterCallback<ValidateCommandEvent>(OnValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(OnExecuteCommand);
 
             focusable = true;
+        }
+
+        void ScrollRegionTopEnter(MouseEnterEvent mouseEnterEvent)
+        {
+            Debug.Log("Top Enter!");
+            if (m_IsFieldBeingDragged)
+            {
+                m_scrollToTop = true;
+            }
+        }
+
+        void ScrollRegionTopLeave(MouseLeaveEvent mouseLeaveEvent)
+        {
+            Debug.Log("Top Exit!");
+            if (m_IsFieldBeingDragged)
+            {
+                m_scrollToTop = false;
+            }
+        }
+
+        void ScrollRegionBottomEnter(MouseEnterEvent mouseEnterEvent)
+        {
+            Debug.Log("Bottom Enter!");
+            if (m_IsFieldBeingDragged)
+            {
+                m_scrollToBottom = true;
+            }
+        }
+
+        void ScrollRegionBottomLeave(MouseLeaveEvent mouseLeaveEvent)
+        {
+            Debug.Log("Bottom Exit!");
+            if (m_IsFieldBeingDragged)
+            {
+                m_scrollToBottom = false;
+            }
+        }
+
+        public void OnFieldDragStart(DragEnterEvent dragStartEvent)
+        {
+            m_IsFieldBeingDragged = true;
+        }
+
+        public void OnFieldDragUpdate(DragUpdatedEvent dragUpdatedEvent)
+        {
+            if (m_scrollToTop)
+            {
+                m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp01(m_ScrollView.scrollOffset.y - 0.01f));
+            }
+            else if (m_scrollToBottom)
+            {
+                m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp01(m_ScrollView.scrollOffset.y + 0.01f));
+            }
+        }
+
+        public void OnFieldDragEnd(DragExitedEvent dragEndEvent)
+        {
+            m_IsFieldBeingDragged = false;
         }
 
         public virtual void AddToSelection(ISelectable selectable)
@@ -56,16 +131,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         private void OnValidateCommand(ValidateCommandEvent evt)
         {
-            int x = 0;
-            x++;
-
             //graphView?.OnValidateCommand(evt);
         }
 
         private void OnExecuteCommand(ExecuteCommandEvent evt)
         {
-            int x = 0;
-            x++;
             //graphView?.OnExecuteCommand(evt);
         }
     }

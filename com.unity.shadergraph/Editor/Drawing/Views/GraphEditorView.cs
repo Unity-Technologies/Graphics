@@ -29,13 +29,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             verticalOffset = 8,
             horizontalOffset = 8
         };
-        public WindowDockingLayout blackboardLayout = new WindowDockingLayout
-        {
-            dockingTop = true,
-            dockingLeft = true,
-            verticalOffset = 8,
-            horizontalOffset = 8
-        };
     }
 
     [Serializable]

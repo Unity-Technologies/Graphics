@@ -15,9 +15,17 @@ namespace UnityEditor.ShaderGraph.Drawing
     {}
     class ElementResizer : Manipulator
     {
+        bool m_IsEnabled = true;
+        public bool isEnabled
+        {
+            get => m_IsEnabled;
+            set => m_IsEnabled = value;
+        }
+
         public readonly ResizableElement.Resizer direction;
 
         public readonly VisualElement resizedElement;
+
 
         public ElementResizer(VisualElement resizedElement, ResizableElement.Resizer direction)
         {
@@ -49,6 +57,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseDown(MouseDownEvent e)
         {
+            if (!isEnabled)
+                return;
+
             if (e.button == 0 && e.clickCount == 1)
             {
                 VisualElement resizedTarget = resizedElement.parent;
@@ -83,6 +94,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseMove(MouseMoveEvent e)
         {
+            if (!isEnabled)
+                return;
+
             VisualElement resizedTarget = resizedElement.parent;
             VisualElement resizedBase = resizedTarget.parent;
             Vector2 mousePos = resizedBase.WorldToLocal(e.mousePosition);
@@ -140,6 +154,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnMouseUp(MouseUpEvent e)
         {
+            if (!isEnabled)
+                return;
+
             if (e.button == 0)
             {
                 VisualElement resizedTarget = resizedElement.parent;
@@ -162,9 +179,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         Dictionary<Resizer, VisualElement> m_Resizers = new Dictionary<Resizer, VisualElement>();
 
         List<Manipulator> m_Manipulators = new List<Manipulator>();
-
-        public Dictionary<Resizer, EventCallback<MouseUpEvent>> m_resizeCallbacks;
-
         public ResizableElement() : this("uxml/Resizable")
         {
             pickingMode = PickingMode.Ignore;
@@ -214,19 +228,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // If resizer direction is not in list of allowed directions, disable the callbacks on it
                 if ((resizeElement.direction & allowedResizeDirections) == 0)
                 {
-                    DisableResizingInDirection(resizeElement.direction, manipulator);
+                    resizeElement.isEnabled = false;
+                }
+                else if ((resizeElement.direction & allowedResizeDirections) != 0)
+                {
+                    resizeElement.isEnabled = true;
                 }
             }
         }
 
-        void DisableResizingInDirection(Resizer resizeDirection, Manipulator manipulator)
-        {
-            manipulator.target = null;
-            return;
-            /*var resizeCallback = m_resizeCallbacks[resizeDirection];
-            manipulator.target.UnregisterCallback(resizeCallback);
-            m_resizeCallbacks.Remove(resizeDirection);*/
-        }
 
         public enum Resizer
         {
@@ -244,8 +254,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (manipulator == null)
                     return;
-                var resizeElement = manipulator as ElementResizer;
-                m_resizeCallbacks.Add(resizeElement.direction, mouseUpEvent);
                 manipulator.target.RegisterCallback(mouseUpEvent);
             }
         }
