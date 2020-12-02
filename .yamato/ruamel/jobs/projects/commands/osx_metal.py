@@ -77,9 +77,9 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/{project_folder}/signing-scripts',
-        f'cd ~/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && ./sign.sh bokken bokken',
-        f'cd ~/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && chmod +x import_certificate_into_new_keychain.sh',
-        f'cd ~/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken',
+        f'cd ~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && ./sign.sh bokken bokken',
+        f'cd ~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && chmod +x import_certificate_into_new_keychain.sh',
+        f'cd ~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"],cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
     ]
