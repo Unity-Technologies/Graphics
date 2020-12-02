@@ -217,8 +217,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cloudTextureWidth = (int)cloudLayer.resolution.value;
                 cloudTextureHeight = cloudLayer.upperHemisphereOnly.value ? cloudTextureWidth / 2 : cloudTextureWidth;
-                if (!cloudTextureCache.TryGet(cloudTextureHeight, cloudTextureHeight, ref cloudTextureRT))
-                    cloudTextureRT = RTHandles.Alloc(cloudTextureHeight, cloudTextureHeight,
+                if (!cloudTextureCache.TryGet(cloudTextureWidth, cloudTextureHeight, ref cloudTextureRT))
+                    cloudTextureRT = RTHandles.Alloc(cloudTextureWidth, cloudTextureHeight,
                         cloudLayer.NumLayers, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureDimension.Tex2DArray,
                         enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: "Cloud Texture");
 
