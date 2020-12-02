@@ -10,48 +10,63 @@ editor_versions:
   trunk_latest_internal:
     android:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     ios:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     linux:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     macos:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     windows:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
   trunk_latest_public:
     android:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     ios:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     linux:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     macos:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     windows:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
   trunk_staging:
     android:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     ios:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     linux:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     macos:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
     windows:
       revision: 18321e85013a2feb8f3cf64b1e4b278f5153476e
+      updated_at: '2020-12-01 23:52:45.738607'
       version: ''
