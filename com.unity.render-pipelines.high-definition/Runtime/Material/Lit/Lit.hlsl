@@ -683,18 +683,28 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     }
 #endif
 
-    // When builtinData.bakeDiffuseLighting contain uninitializedGI sentinel value.
-    // it means probe volumes will be applied to this pixel in the light loop.
-    outGBuffer3 = float4(builtinData.bakeDiffuseLighting, 0.0);
-
     // RT3 - 11f:11f:10f
+    // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
+    // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
 #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
 
-    if (!IsUninitializedGI(builtinData.bakeDiffuseLighting)) // Don't change the value if it is unitialize
+    if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
+    {
+        // builtinData.bakeDiffuseLighting contain uninitializedGI sentinel value.
+
+        // This means probe volumes will not get applied to this pixel, only emissiveColor will.
+        // When length(emissiveColor) is much greater than length(probeVolumeOutgoingRadiance), this will visually look reasonable.
+        // Unfortunately this will break down when emissiveColor is faded out (result will pop).
+        // TODO: If evaluating probe volumes in lightloop, only write out sentinel value here, and re-render emissive surfaces.
+        // Pre-expose lighting buffer
+        outGBuffer3 = float4(all(builtinData.emissiveColor == 0.0) ? builtinData.bakeDiffuseLighting : builtinData.emissiveColor * GetCurrentExposureMultiplier(), 0.0);
+    }
+    else
 #endif
     {
-        // Apply ambient occlusion and Pre-expose lighting buffer
-        outGBuffer3.rgb *= surfaceData.ambientOcclusion * GetCurrentExposureMultiplier();
+        outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
+        // Pre-expose lighting buffer
+        outGBuffer3.rgb *= GetCurrentExposureMultiplier();
     }
 
 #ifdef LIGHT_LAYERS
@@ -734,7 +744,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D_X(_GBufferTexture2, positionSS);
 
     // BuiltinData
-    builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb; // This baked diffuse lighting is already multiply by baked AO during encoding
+    builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
 #if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
     if (!IsUninitializedGI(builtinData.bakeDiffuseLighting))
@@ -2018,7 +2028,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
-    // Note: Emissive color is render separately in a forward pass in case of deferred shader mode, so builtinData.emissiveColor is 0 in this case.
+    // Note: In deferred bakeDiffuseLighting also contain emissive and in this case emissiveColor is 0
     lightLoopOutput.diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
 
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
