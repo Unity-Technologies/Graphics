@@ -144,8 +144,12 @@ namespace UnityEngine.Rendering.Universal
         {
             SetSupportedRenderingFeatures();
 
+            // In QualitySettings.antiAliasing disabled state uses value 0, where in URP 1
+            int qualitySettingsMsaaSampleCount = QualitySettings.antiAliasing > 0 ? QualitySettings.antiAliasing : 1;
+            bool msaaSampleCountNeedsUpdate = qualitySettingsMsaaSampleCount != asset.msaaSampleCount;
+
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
-            if (QualitySettings.antiAliasing != asset.msaaSampleCount)
+            if (msaaSampleCountNeedsUpdate)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -967,6 +971,7 @@ namespace UnityEngine.Rendering.Universal
                 : ColorGradingMode.LowDynamicRange;
 
             postProcessingData.lutSize = settings.colorGradingLutSize;
+            postProcessingData.useFastSRGBLinearConversion = settings.useFastSRGBLinearConversion;
         }
 
         static void InitializeLightData(UniversalRenderPipelineAsset settings, NativeArray<VisibleLight> visibleLights, int mainLightIndex, out LightData lightData)

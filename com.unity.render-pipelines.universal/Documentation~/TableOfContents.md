@@ -1,7 +1,6 @@
 * [Universal Render Pipeline](index.md)
 * [Requirements](requirements)
-* [What's new](whats-new/urp-whats-new.md)
-  * [URP 10](whats-new/urp-whats-new-10.md)
+* [What's new in URP](whats-new/urp-whats-new.md)
 * [Features]()
   * [Feature Comparison with the Built-in Render Pipeline](universalrp-builtin-feature-comparison.md)
 * [Getting started](InstallingAndConfiguringURP.md)

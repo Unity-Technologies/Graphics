@@ -28,3 +28,65 @@ For this repository we have enabled:
 - check-shader-includes
 - file-extension-to-lowercase
 - check-branch-name
+
+### FAQ and Troubleshooting steps
+
+**How to make sure the hooks are correctly installed?**
+
+This is the output of a successful installation:
+```
+[INFO]   Running: git lfs install --force
+[INFO]   Running: git rev-parse --show-toplevel
+[INFO]   Running: pip3 install pre-commit
+[INFO]   Running: pre-commit install --allow-missing-config
+[INFO]   Running: pre-commit install --hook-type pre-push --allow-missing-config
+[INFO]   Running: git rev-parse --show-toplevel
+[INFO]   Running: where perl
+[INFO]   Running: git ls-remote git@github.cds.internal.unity3d.com:theo-penavaire/gfx-automation-tools.git HEAD
+Successfully installed the git hooks. Thank you!
+```
+
+Additionally, you can run the following commands to make sure the hooks are triggered on git operations:
+```
+echo "test" > test.txt
+git add test.txt
+git commit -m "test"
+// Some kind of output about the hooks being run
+// Do a reset to undo our test: git reset --soft HEAD~1 (This "undoes" the last commit and keep the committed files in your staging area so delete test.txt after)
+``` 
+
+
+
+**Permission denied (SSH) when installing the git hooks**
+
+Please, follow these steps: https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/connecting-to-github-with-ssh. Do not forget the ssh agent step.
+
+If that still doesn’t work, try running 
+```
+ssh -vT git@github.cds.internal.unity3d.com
+```
+Look for a line starting by “Offering public key...”. It will tell you which ssh key is being used by shh. This key must be the one you uploaded to [github.cds](https://github.cds.internal.unity3d.com/settings/keys).
+
+Last resort: [Troubleshooting SSH section in Github docs](https://docs.github.com/en/enterprise-server@2.21/github/authenticating-to-github/troubleshooting-ssh).
+
+
+
+
+**Python not found, even if python is installed, "/usr/bin/env: ‘python’: Permission denied"**
+
+Make sure Python (>=3.5) is in your PATH. Commands that can help:
+- On windows: `where python3`
+- On Unix: `which python3`
+- [How to add to the path on Windows10?](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/)
+
+When running the Python installer on Windows, make sure to check "Add Python to Path"!
+
+If python can't find the `pre-commit` package, make sure the Scripts folder outputted in the error is in the PATH too.
+
+A clean reinstall of Python solves most issues. Make sure to rerun the `hooks_setup.py` script after you reinstall Python.
+
+
+
+**Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Manage App Execution Aliases.**
+
+Run `python` instead of `python3`.
