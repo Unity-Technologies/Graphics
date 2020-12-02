@@ -177,7 +177,7 @@ HDRP uses ray tracing to replace some of its screen space effects, shadowing tec
 - [Ray-Traced Reflections](Ray-Traced-Reflections.md) is a replacement for [screen space reflection](Override-Screen-Space-Reflection.md) that uses a ray-traced reflection technique that can use off-screen data.
 - [Ray-Traced Shadows](Ray-Traced-Shadows.md) replace shadow maps for Directional, Point, and Area [Lights](Light-Component.md).
 - [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) replaces the rendering pipeline for Meshes. Meshes that use this feature cast refraction and reflection rays recursively.
-- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattero,g.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
+- [Ray-Traced Subsurface Scattering](Ray-Traced-Subsurface-Scattering.md) replaces [subsurface scattering](Subsurface-Scattering.md) with a more accurate, ray-traced, subsurface scattering technique that can use off screen data.
 
 ## Ray tracing mode
 
@@ -218,6 +218,7 @@ HDRP ray tracing in Unity 2020.2 has the following limitations:
 - Does not have accurate culling for shadows, you may experience missing shadows in the ray traced effects.
 - Does not support MSAA.
 - For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
+- Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 
 ## Unsupported features of path tracing
 
@@ -235,6 +236,7 @@ HDRP path tracing in Unity 2020.2 has the following limitations:
 - Does not support per-pixel displacement (parallax occlusion mapping, height map, depth offset).
 - Does not support MSAA.
 - For renderers that have [LODs](https://docs.unity3d.com/2019.3/Documentation/Manual/LevelOfDetail.html), the ray tracing acceleration structure only includes the highest level LOD and ignores the lower LODs.
+- Does not support [Graphics.DrawMesh](https://docs.unity3d.com/ScriptReference/Graphics.DrawMesh.html).
 
 ## Unsupported shader graph nodes for ray tracing
 
