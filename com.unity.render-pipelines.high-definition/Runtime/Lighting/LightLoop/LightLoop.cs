@@ -3996,38 +3996,39 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BuildGPULightListsCommon(HDCamera hdCamera, CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
+            var parameters = PrepareBuildGPULightListParameters(hdCamera, m_TileAndClusterData, ref m_ShaderVariablesLightListCB);
+            var resources = PrepareBuildGPULightListResources(
+                m_TileAndClusterData,
+                m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
+                m_SharedRTManager.GetStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
+                isGBufferNeeded: true
+            );
+
+            unsafe
             {
-                var parameters = PrepareBuildGPULightListParameters(hdCamera, m_TileAndClusterData, ref m_ShaderVariablesLightListCB);
-                var resources = PrepareBuildGPULightListResources(
-                    m_TileAndClusterData,
-                    m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
-                    m_SharedRTManager.GetStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
-                    isGBufferNeeded: true
-                );
+                int row, col;
 
-                unsafe
+                if (parameters.lightListCB.g_isOrthographic != 0)
                 {
-                    int row, col;
-
-                    if (parameters.lightListCB.g_isOrthographic != 0)
-                    {
-                        row = 4; col = 4;
-                    }
-                    else
-                    {
-                        row = 4; col = 3;
-                    }
-
-                    float flip = parameters.lightListCB.g_mProjectionArr[4 * (col - 1) + (row - 1)]; // Transposed
-
-                    Debug.Assert(flip == 1.0f, "View space with the z-axis pointing backwards is not supported!");
+                    row = 4; col = 4;
+                }
+                else
+                {
+                    row = 4; col = 3;
                 }
 
+                float flip = parameters.lightListCB.g_mProjectionArr[4 * (col - 1) + (row - 1)]; // Transposed
+
+                Debug.Assert(flip == 1.0f, "View space with the z-axis pointing backwards is not supported!");
+            }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
+            {
                 // The algorithm (below) works even if the bounded entity count is 0.
                 // That is fairly efficient, and allows us to avoid weird special cases.
                 ClearLightLists(parameters, resources, cmd);
                 GenerateLightsScreenSpaceAABBs(parameters, resources, cmd);
+
                 // Both Z-binning and tile filling can be executed concurrently.
                 // This should improve GPU utilization.
                 PerformZBinning(parameters, resources, cmd);
@@ -4036,10 +4037,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // BigTilePrepass(parameters, resources, cmd);
                 // BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
                 // VoxelLightListGeneration(parameters, resources, cmd);
-
-                PerformClassification(parameters, resources, cmd);
-                BuildDispatchIndirect(parameters, resources, cmd);
             }
+
+            // This is not a part of light list generation
+            // and should therefore be outside the 'BuildLightList' profiling scope.
+            // We should add it to the 'RenderDeferredLighting' profiling scope.
+            PerformClassification(parameters, resources, cmd);
+            BuildDispatchIndirect(parameters, resources, cmd);
         }
 
         void BuildGPULightLists(HDCamera hdCamera, CommandBuffer cmd)
