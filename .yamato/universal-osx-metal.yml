@@ -49,7 +49,7 @@ Build_Universal_OSX_Metal_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/gfx-sdet-tools
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
       -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
       -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -77,8 +77,8 @@ Universal_OSX_Metal_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/gfx-sdet-tools
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/gfx-sdet-tools/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/signing-scripts
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
@@ -110,8 +110,8 @@ Universal_OSX_Metal_playmode_XR_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/gfx-sdet-tools
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/gfx-sdet-tools/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/signing-scripts
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
@@ -177,7 +177,7 @@ Build_Universal_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/gfx-sdet-tools
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
       -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken
       -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~~/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -209,8 +209,8 @@ Universal_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/gfx-sdet-tools
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/gfx-sdet-tools/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/signing-scripts
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
@@ -246,8 +246,8 @@ Universal_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/UniversalGraphicsTest/utr
       -  chmod +x TestProjects/UniversalGraphicsTest/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/gfx-sdet-tools
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/gfx-sdet-tools/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/UniversalGraphicsTest/signing-scripts
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/UniversalGraphicsTest/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/UniversalGraphicsTest/signing-scripts
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./sign.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/UniversalGraphicsTest/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"

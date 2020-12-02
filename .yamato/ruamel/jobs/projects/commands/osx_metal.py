@@ -7,8 +7,8 @@ def _cmd_base(project_folder, platform, utr_calls, editor):
     base = [ 
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/{project_folder}/gfx-sdet-tools',
-        f'scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/{project_folder}/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/{project_folder}/gfx-sdet-tools/signing-scripts',
+        f'git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/{project_folder}/signing-scripts',
+        f'scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/{project_folder}/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/{project_folder}/signing-scripts',
         f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && ./sign.sh bokken bokken"',
         f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"',
         f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"',
@@ -76,7 +76,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     base = [
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
-        f'git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/{project_folder}/gfx-sdet-tools',
+        f'git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/{project_folder}/signing-scripts',
         f'cd ~~/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && ./sign.sh bokken bokken',
         f'cd ~~/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && chmod +x import_certificate_into_new_keychain.sh',
         f'cd ~~/{TEST_PROJECTS_DIR}/{project_folder}/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken',

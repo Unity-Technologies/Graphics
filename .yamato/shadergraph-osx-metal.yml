@@ -49,7 +49,7 @@ Build_ShaderGraph_OSX_Metal_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/gfx-sdet-tools
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/signing-scripts
       -  cd ~~/TestProjects/ShaderGraph/signing-scripts && ./sign.sh bokken bokken
       -  cd ~~/TestProjects/ShaderGraph/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~~/TestProjects/ShaderGraph/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -77,8 +77,8 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/gfx-sdet-tools
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/signing-scripts
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/signing-scripts
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && ./sign.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
@@ -144,7 +144,7 @@ Build_ShaderGraph_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/gfx-sdet-tools
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/signing-scripts
       -  cd ~~/TestProjects/ShaderGraph/signing-scripts && ./sign.sh bokken bokken
       -  cd ~~/TestProjects/ShaderGraph/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
       -  cd ~~/TestProjects/ShaderGraph/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
@@ -176,8 +176,8 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/gfx-sdet-tools
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/signing-scripts
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/signing-scripts
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && ./sign.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
