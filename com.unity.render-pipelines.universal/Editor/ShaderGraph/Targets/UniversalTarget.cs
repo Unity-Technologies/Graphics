@@ -184,9 +184,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
-            context.AddField(Fields.GraphVertex,            descs.Contains(BlockFields.VertexDescription.Position) ||
+            context.AddField(Fields.GraphVertex,
+                descs.Contains(BlockFields.VertexDescription.Position) ||
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
-                descs.Contains(BlockFields.VertexDescription.Tangent));
+                descs.Contains(BlockFields.VertexDescription.Tangent) ||
+                descs.Contains(BlockFields.VertexDescription.VertexColor));
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip,              alphaClip);
             context.AddField(Fields.DoubleSided,            twoSided);
@@ -201,6 +203,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.VertexDescription.Normal);
             context.AddBlock(BlockFields.VertexDescription.Tangent);
+            context.AddBlock(BlockFields.VertexDescription.VertexColor);
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
 
             // SubTarget blocks
@@ -396,6 +399,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             BlockFields.VertexDescription.Position,
             BlockFields.VertexDescription.Normal,
             BlockFields.VertexDescription.Tangent,
+            BlockFields.VertexDescription.VertexColor,
         };
 
         public static readonly BlockFieldDescriptor[] FragmentAlphaOnly = new BlockFieldDescriptor[]

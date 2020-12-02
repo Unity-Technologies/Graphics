@@ -15,6 +15,8 @@ namespace UnityEditor.ShaderGraph
                 new NormalControl(CoordinateSpace.Object), ShaderStage.Vertex);
             public static BlockFieldDescriptor Tangent       = new BlockFieldDescriptor(VertexDescription.name, "Tangent", "VERTEXDESCRIPTION_TANGENT",
                 new TangentControl(CoordinateSpace.Object), ShaderStage.Vertex);
+            public static BlockFieldDescriptor VertexColor   = new BlockFieldDescriptor(VertexDescription.name, "VertexColor", "Vertex Color", "VERTEXDESCRIPTION_VERTEXCOLOR",
+                new VertexColorControl(UnityEngine.Color.white), ShaderStage.Vertex);
         }
 
         [GenerateBlocks]
