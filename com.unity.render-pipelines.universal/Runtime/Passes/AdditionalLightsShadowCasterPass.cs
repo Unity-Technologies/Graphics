@@ -67,13 +67,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
             const int maxMainLights = 1;
             int maxVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + maxMainLights;
+            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? maxVisibleLights : Math.Min(maxVisibleLights, UniversalRenderPipeline.maxVisibleAdditionalLights);
 
             // These array sizes should be as big as ScriptableCullingParameters.maximumVisibleLights (that is defined during ScriptableRenderer.SetupCullingParameters).
             // We initialize these array sizes with the number of visible lights allowed by the ForwardRenderer.
             // The number of visible lights can become much higher when using the Deferred rendering path, we resize the arrays during Setup() if required.
             m_AdditionalLightIndexToVisibleLightIndex = new int[maxVisibleLights];
             m_VisibleLightIndexToAdditionalLightIndex = new int[maxVisibleLights];
-            m_AdditionalLightIndexToShadowParams = new Vector4[maxVisibleLights];
+            m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
 
             if (!m_UseStructuredBuffer)
             {
@@ -265,14 +266,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // When using Deferred rendering, it is possible to specify a very high number of visible lights.
                 m_AdditionalLightIndexToVisibleLightIndex = new int[visibleLights.Length];
                 m_VisibleLightIndexToAdditionalLightIndex = new int[visibleLights.Length];
-                m_AdditionalLightIndexToShadowParams = new Vector4[visibleLights.Length];
             }
+
+            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? visibleLights.Length : Math.Min(visibleLights.Length, UniversalRenderPipeline.maxVisibleAdditionalLights);
+            if (m_AdditionalLightIndexToVisibleLightIndex.Length < maxAdditionalLightShadowParams)
+                m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
 
             // initialize _AdditionalShadowParams
             Vector4 defaultShadowParams = new Vector4(0 /*shadowStrength*/, 0, 0, -1 /*perLightFirstShadowSliceIndex*/);
             // shadowParams.x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights
             // shadowParams.w is used in Lighting shader to find if Additional light casts shadows
-            for (int i = 0; i < visibleLights.Length; ++i)
+            for (int i = 0; i < maxAdditionalLightShadowParams; ++i)
                 m_AdditionalLightIndexToShadowParams[i] = defaultShadowParams;
 
             int validShadowCastingLightsCount = 0;
