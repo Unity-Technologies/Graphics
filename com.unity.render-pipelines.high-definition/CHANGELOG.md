@@ -19,8 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.3.0] - 2020-12-01
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Rename HDRP sub menu in Assets/Create/Shader to HD Render Pipeline for consistency.
 
 ## [10.2.1] - 2020-11-30
 
