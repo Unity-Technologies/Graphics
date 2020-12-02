@@ -7,6 +7,11 @@ def _cmd_base(project_folder, platform, utr_calls, editor):
     base = [ 
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
+        f'git clone https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools.git TestProjects/{project_folder}',
+        f'scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/{project_folder}/gfx-sdet-tools/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/{project_folder}/gfx-sdet-tools/signing-scripts',
+        f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/gfx-sdet-tools/signing-scripts && ./sign.sh bokken bokken"',
+        f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/gfx-sdet-tools/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"',
+        f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/gfx-sdet-tools/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"',
         f'ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc \'pip3 install unity-downloader-cli --user --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade\'"',
         f'scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/{REPOSITORY_NAME}',
         f'scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini',
@@ -54,6 +59,7 @@ def cmd_standalone(project_folder, platform, api, test_platform, editor, build_c
     for utr_args in utr_calls:
         base.append(pss(f'''
         ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY={VAR_UPM_REGISTRY}; echo \$UPM_REGISTRY; cd ~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder} && ~/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/utr {" ".join(utr_args)}"
+        ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "codesign -fs unity-player /Users/bokken/{REPOSITORY_NAME}/players/{project_folder}/PlayerWithTests.app"',
         UTR_RESULT=$? 
         mkdir -p {TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}/
         scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/{REPOSITORY_NAME}/{TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}/ {TEST_PROJECTS_DIR}/{project_folder}/{PATH_TEST_RESULTS}/

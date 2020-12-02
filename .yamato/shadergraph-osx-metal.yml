@@ -24,6 +24,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_Linear_trunk:
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/ShaderGraph && ~/Graphics/TestProjects/ShaderGraph/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=2400"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "codesign -fs unity-player /Users/bokken/Graphics/players/ShaderGraph/PlayerWithTests.app"',
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/ShaderGraph/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
@@ -71,6 +72,11 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
+      -  git clone https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools.git TestProjects/ShaderGraph
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./sign.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
@@ -105,6 +111,7 @@ ShaderGraph_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  |5-
 
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "export UPM_REGISTRY=https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates; echo \$UPM_REGISTRY; cd ~/Graphics/TestProjects/ShaderGraph && ~/Graphics/TestProjects/ShaderGraph/utr --artifacts_path=/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results --platform=StandaloneOSX --player-connection-ip=auto --player-load-path=../../players --reruncount=2 --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --timeout=2400"
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "codesign -fs unity-player /Users/bokken/Graphics/players/ShaderGraph/PlayerWithTests.app"',
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/ShaderGraph/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/ShaderGraph/test-results/ TestProjects/ShaderGraph/test-results/
@@ -159,6 +166,11 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
+      -  git clone https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools.git TestProjects/ShaderGraph
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./sign.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
