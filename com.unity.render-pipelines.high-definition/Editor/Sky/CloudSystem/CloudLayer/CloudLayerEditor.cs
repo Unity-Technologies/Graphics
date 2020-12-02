@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     class CloudLayerEditor : VolumeComponentEditor
     {
         readonly GUIContent sunLabel        = new GUIContent("Sun light", "The main directional light, used for lighting and shadow casting.");
-        readonly GUIContent shadowTiling    = new GUIContent("Shadow Tiling", "Sun light cookie size. Represents the tiling of the cloud shadows texture.");
+        readonly GUIContent shadowTiling    = new GUIContent("Shadow Tiling", "The tiling of the cloud shadows texture. Controlled by the cookie size parameter on the sun light.");
 
         public override bool hasAdvancedMode => true;
 
@@ -146,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_LayerCount.value.intValue == (int)CloudMapMode.Double)
                 PropertyField(m_Layers[1], "Layer B");
 
-            var sun = HDRenderPipeline.currentPipeline.GetCurrentSunLight();
+            Light sun = HDRenderPipeline.currentPipeline?.GetCurrentSunLight();
             if (sun != null && sun.TryGetComponent(out HDAdditionalLightData hdSun))
             {
                 EditorGUILayout.Space();
@@ -181,8 +181,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.Vector2Field(shadowTiling, size);
                     }
                 }
-                if (shadows)
-                    EditorGUILayout.HelpBox("Cloud shadows are projected in the sun light cookie space.", MessageType.Info);
             }
         }
     }

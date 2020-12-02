@@ -179,6 +179,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PrecomputationData
         {
+            struct TextureCache
+            {
+                int width, height;
+                RTHandle rt;
+                public bool TryGet(int textureWidth, int textureHeight, ref RTHandle texture)
+                {
+                    if (rt == null || textureWidth != width || textureHeight != height)
+                        return false;
+
+                    texture = rt;
+                    rt = null;
+                    return true;
+                }
+
+                public void Cache(int textureWidth, int textureHeight, RTHandle texture)
+                {
+                    if (texture == null)
+                        return;
+                    if (rt != null)
+                        RTHandles.Release(rt);
+                    width = textureWidth;
+                    height = textureHeight;
+                    rt = texture;
+                }
+            }
+            static TextureCache cloudTextureCache;
+            static TextureCache cloudShadowsCache;
+
+            int cloudTextureWidth, cloudTextureHeight, cloudShadowsResolution;
             public RTHandle cloudTextureRT = null;
             public RTHandle cloudShadowsRT = null;
 
@@ -186,14 +215,16 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var cloudLayer = builtinParams.cloudSettings as CloudLayer;
 
-                int cloudResolution = (int)cloudLayer.resolution.value;
-                int cloudShadowsResolution = (int)cloudLayer.shadowResolution.value;
+                cloudTextureWidth = (int)cloudLayer.resolution.value;
+                cloudTextureHeight = cloudLayer.upperHemisphereOnly.value ? cloudTextureWidth / 2 : cloudTextureWidth;
+                if (!cloudTextureCache.TryGet(cloudTextureHeight, cloudTextureHeight, ref cloudTextureRT))
+                    cloudTextureRT = RTHandles.Alloc(cloudTextureHeight, cloudTextureHeight,
+                        cloudLayer.NumLayers, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureDimension.Tex2DArray,
+                        enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: "Cloud Texture");
 
-                cloudTextureRT = RTHandles.Alloc(cloudResolution, cloudLayer.upperHemisphereOnly.value ? cloudResolution / 2 : cloudResolution,
-                    cloudLayer.NumLayers, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureDimension.Tex2DArray,
-                    enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: "Cloud Texture");
-
-                if (cloudLayer.CastShadows)
+                cloudShadowsRT = null;
+                cloudShadowsResolution = (int)cloudLayer.shadowResolution.value;
+                if (cloudLayer.CastShadows && !cloudShadowsCache.TryGet(cloudShadowsResolution, cloudShadowsResolution, ref cloudShadowsRT))
                     cloudShadowsRT = RTHandles.Alloc(cloudShadowsResolution, cloudShadowsResolution,
                         colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, dimension: TextureDimension.Tex2D,
                         enableRandomWrite: true, useMipMap: false, filterMode: FilterMode.Bilinear, name: "Cloud Shadows");
@@ -203,15 +234,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Release()
             {
-                RTHandles.Release(cloudTextureRT);
-                RTHandles.Release(cloudShadowsRT);
+                cloudTextureCache.Cache(cloudTextureHeight, cloudTextureHeight, cloudTextureRT);
+                cloudShadowsCache.Cache(cloudShadowsResolution, cloudShadowsResolution, cloudShadowsRT);
             }
 
             void BakeCloudTexture(BuiltinSkyParameters builtinParams)
             {
                 var cmd = builtinParams.commandBuffer;
                 var cloudLayer = builtinParams.cloudSettings as CloudLayer;
-                int cloudResolution = (int)cloudLayer.resolution.value;
 
                 Vector4 params1 = builtinParams.sunLight == null ? Vector3.zero : builtinParams.sunLight.transform.forward;
                 params1.w = (cloudLayer.upperHemisphereOnly.value ? 1.0f : 0.0f);
@@ -221,7 +251,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetComputeTextureParam(s_BakeCloudTextureCS, s_BakeCloudTextureKernel, _CloudMapA, cloudLayer.layerA.cloudMap.value);
                 var paramsA = cloudLayer.layerA.GetBakingParameters();
-                paramsA.Item2.w = 1.0f / cloudResolution;
+                paramsA.Item2.w = 1.0f / cloudTextureWidth;
 
                 if (cloudLayer.NumLayers == 1)
                 {
@@ -243,8 +273,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 const int groupSizeX = 8;
                 const int groupSizeY = 8;
-                int threadGroupX = (cloudResolution + (groupSizeX - 1)) / groupSizeX;
-                int threadGroupY = (cloudResolution / 2 + (groupSizeY - 1)) / groupSizeY;
+                int threadGroupX = (cloudTextureWidth + (groupSizeX - 1)) / groupSizeX;
+                int threadGroupY = (cloudTextureHeight + (groupSizeY - 1)) / groupSizeY;
 
                 cmd.DispatchCompute(s_BakeCloudTextureCS, s_BakeCloudTextureKernel, threadGroupX, threadGroupY, 1);
             }
@@ -253,13 +283,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var cmd = builtinParams.commandBuffer;
                 var cloudLayer = builtinParams.cloudSettings as CloudLayer;
-                int cloudShadowsResolution = (int)cloudLayer.shadowResolution.value;
 
                 Vector4 _Params = builtinParams.sunLight.transform.forward;
                 Vector4 _Params1 = builtinParams.sunLight.transform.right;
                 Vector4 _Params2 = builtinParams.sunLight.transform.up;
                 Vector4 _Params3 = cloudLayer.shadowTint.value;
-                _Params.w = 1.0f / (float)cloudShadowsResolution;
+                _Params.w = 1.0f / cloudShadowsResolution;
                 _Params3.w = cloudLayer.shadowMultiplier.value;
 
                 cmd.SetComputeVectorParam(s_BakeCloudShadowsCS, HDShaderIDs._Params, _Params);

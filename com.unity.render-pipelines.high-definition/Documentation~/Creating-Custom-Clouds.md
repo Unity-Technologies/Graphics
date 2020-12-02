@@ -1,6 +1,6 @@
 # Creating custom clouds
 
-The High Definition Render Pipeline (HDRP) includes the cloud layer system which allows you to create your own custom clouds with their own properties and Shaders, while still keeping the clouds consistent with HDRP's lighting pipeline.
+The High Definition Render Pipeline (HDRP) includes a cloud system which allows you to create your own custom clouds with their own properties and Shaders, while still keeping the clouds consistent with HDRP's lighting pipeline.
 
 To create custom clouds using this system, you need to:
 
@@ -134,7 +134,7 @@ Note that HDRP creates one instance of the renderer per camera. This means that 
 
 Finally, create the Shader for your clouds. The content of this Shader depends on the effects you want to include.
 
-For example, the following code sample is the [HDRI sky's](Override-HDRI-Cloud.md) cloud shader implementation.
+For example, the following code sample is the [NewCloudRenderer's](Override-HDRI-Cloud.md) shader implementation.
 ```
 Shader "Hidden/HDRP/Sky/NewCloud"
 {

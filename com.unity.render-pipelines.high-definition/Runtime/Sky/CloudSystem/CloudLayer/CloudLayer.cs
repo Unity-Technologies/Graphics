@@ -124,31 +124,31 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Texture used to render the clouds.</summary>
             [Tooltip("Specify the texture HDRP uses to render the clouds (in LatLong layout).")]
             public TextureParameter cloudMap = new TextureParameter(CloudMap.s_DefaultTexture);
-            /// <summary>Opacity of the red layer.</summary>
-            [Tooltip("Opacity of the red layer.")]
+            /// <summary>Opacity multiplier for the red channel.</summary>
+            [Tooltip("Opacity multiplier for the red channel.")]
             public ClampedFloatParameter opacityR = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
-            /// <summary>Opacity of the green layer.</summary>
-            [Tooltip("Opacity of the green layer.")]
+            /// <summary>Opacity multiplier for the green channel.</summary>
+            [Tooltip("Opacity multiplier for the green channel.")]
             public ClampedFloatParameter opacityG = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
-            /// <summary>Opacity of the blue layer.</summary>
-            [Tooltip("Opacity of the blue layer.")]
+            /// <summary>Opacity multiplier for the blue channel.</summary>
+            [Tooltip("Opacity multiplier for the blue channel.")]
             public ClampedFloatParameter opacityB = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
-            /// <summary>Opacity of the alpha layer.</summary>
-            [Tooltip("Opacity of the alpha layer.")]
+            /// <summary>Opacity multiplier for the alpha channel.</summary>
+            [Tooltip("Opacity multiplier for the alpha channel.")]
             public ClampedFloatParameter opacityA = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
             /// <summary>Rotation of the clouds.</summary>
-            [Tooltip("Sets the rotation of the clouds.")]
+            [Tooltip("Sets the rotation of the clouds (in degrees).")]
             public ClampedFloatParameter rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
             /// <summary>Color multiplier of the clouds.</summary>
-            [Tooltip("Specifies the color that HDRP uses to tint the clouds.")]
+            [Tooltip("Specifies the color HDRP uses to tint the clouds.")]
             public ColorParameter tint = new ColorParameter(Color.white, false, false, true);
             /// <summary>Relative exposure of the clouds.</summary>
             [Tooltip("Sets the exposure of the clouds in EV relative to the sun light intensity.")]
             public FloatParameter exposure = new FloatParameter(0.0f);
 
             /// <summary>Distortion mode.</summary>
-            [Tooltip("Distortion mode.")]
+            [Tooltip("Distortion mode used to simulate cloud movement.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
             /// <summary>Direction of the distortion.</summary>
             [Tooltip("Sets the rotation of the distortion (in degrees).")]
@@ -160,7 +160,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Specify the flowmap HDRP uses for cloud distortion (in LatLong layout).")]
             public TextureParameter flowmap = new TextureParameter(null);
 
-            /// <summary>Enable lighting.</summary>
+            /// <summary>Simulates cloud self-shadowing using raymarching.</summary>
             [Tooltip("Simulates cloud self-shadowing using raymarching.")]
             public BoolParameter lighting = new BoolParameter(false);
             /// <summary>Number of raymarching steps.</summary>
@@ -171,7 +171,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ClampedFloatParameter thickness = new ClampedFloatParameter(0.5f, 0, 1);
 
             /// <summary>Enable to cast shadows.</summary>
-            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows.")]
+            [Tooltip("Projects a portion of the clouds around the sun light to simulate cloud shadows.\nRotating the light around the z-axis also rotates the shadow cookie.")]
             public BoolParameter castShadows = new BoolParameter(false);
 
 

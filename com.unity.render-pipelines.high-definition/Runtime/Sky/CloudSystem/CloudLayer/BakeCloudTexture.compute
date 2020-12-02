@@ -105,7 +105,9 @@ float2 ComputeCloudLighting(TEXTURE2D(_CloudMap), SAMPLER(sampler_CloudMap), flo
 [numthreads(8, 8, NUM_LAYERS)]
 void KERNEL_NAME(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    float2 uv = float2(dispatchThreadId.x * _Resolution, dispatchThreadId.y * _Resolution * 2.0f);
+    float2 uv = float2(dispatchThreadId.x * _Resolution, dispatchThreadId.y * _Resolution);
+    if (_UpperHemisphere)
+        uv.y *= 2.0f;
 
 #ifndef USE_SECOND_CLOUD_LAYER
     float2 cloudLayerColor = ComputeCloudLighting(_CloudMapA, sampler_CloudMapA, uv, dispatchThreadId);
