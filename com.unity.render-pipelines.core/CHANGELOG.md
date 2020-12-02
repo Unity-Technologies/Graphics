@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+- Fix loading race condition for thumbnails of LookDev's Environment
+
 ## [7.5.1] - 2020-09-02
 
 ### Fixed
