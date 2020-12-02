@@ -136,6 +136,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
                     newValue =>
                     {
+                        graphData.owner.RegisterCompleteObjectUndo("Change Preview Mode");
                         graphData.previewMode = (PreviewMode) newValue;
                     },
                     graphData.previewMode,

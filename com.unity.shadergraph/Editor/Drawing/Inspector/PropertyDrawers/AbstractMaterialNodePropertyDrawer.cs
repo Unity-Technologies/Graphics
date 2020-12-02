@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
-    public interface IGetNodePropertyDrawerPropertyData
+    internal interface IGetNodePropertyDrawerPropertyData
     {
         void GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback);
     }

@@ -1537,6 +1537,7 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
             concretePrecision = other.concretePrecision;
+            m_PreviewMode = other.m_PreviewMode;
             m_OutputNode = other.m_OutputNode;
 
             if ((this.vertexContext.position != other.vertexContext.position) ||
