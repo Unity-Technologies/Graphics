@@ -25,7 +25,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         Action m_setNodesAsDirtyCallback;
         Action m_updateNodeViewsCallback;
 
-        void IGetNodePropertyDrawerPropertyData.GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
+        public void GetPropertyData(Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
         {
             m_setNodesAsDirtyCallback = setNodesAsDirtyCallback;
             m_updateNodeViewsCallback = updateNodeViewsCallback;
