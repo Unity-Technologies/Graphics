@@ -181,14 +181,14 @@ namespace UnityEditor.Rendering.HighDefinition
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Custom FullScreen Pass")]
         static void MenuCreateCustomFullScreenPassShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassFullScreenShader.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New FullScreen CustomPass.shader");
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Custom Renderers Pass")]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Custom Renderers Pass")]
         static void MenuCreateCustomRenderersPassShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassRenderersShader.template";
@@ -209,7 +209,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
         static void MenuCreatePostProcessShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";
