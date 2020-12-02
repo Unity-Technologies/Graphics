@@ -21,7 +21,7 @@ The Mesh Index Count Operator allows you to retrieve the number of indices in th
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| **Count**  | UInt     | Return the number of indices of the geometry. If the topology uses a default triangle list, you can divide this value by three to get the number of triangles. |
+| **Count**  | UInt     | The number of indices in the geometry. If the topology uses a default triangle list, you can divide this value by three to get the number of triangles. |
 
 #### Limitations
 

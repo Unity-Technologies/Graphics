@@ -19,12 +19,12 @@ The Sample Mesh or Skinned Mesh Renderer Index Operator allows you to fetch inde
 | **Input**                 | **Type**              | **Description**                                              |
 | ------------------------- | --------------------- | ------------------------------------------------------------ |
 | **Mesh**                  | Mesh                  | The source mesh asset to sample.<br/>This property only appears if you set **Source** to **Mesh** |
-| **Skinned Mesh Renderer** | Skinned Mesh Renderer | The source skinned mesh renderer to sample, a reference to a component within the scene, has to be an exposed entry.<br/>This property only appears if you set **Source** to **Skinned Mesh Renderer** |
+| **Skinned Mesh Renderer** | Skinned Mesh Renderer | The source Skinned Mesh Renderer component to sample. This is a reference to a component within the scene. To assign a Skinned Mesh Renderer to this port, create a Skinned Mesh Renderer property in the [Blackboard](Blackboard.md) and expose it.<br/>This property only appears if you set **Source** to **Skinned Mesh Renderer** |
 | **Index**                 | uint                  | The index offset to sample the current index buffer.         |
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| **index**  | UInt     | Returns the sampled index or zero if input **Index** is out of bounds. |
+| **Index**  | UInt     | The sampled index, or zero if input **Index** is out of bounds. |
 
 #### Limitations
 
@@ -32,4 +32,4 @@ The Mesh index sampling feature has the following limitations:
 
 - If a Mesh is not [readable](https://docs.unity3d.com/ScriptReference/Mesh-isReadable.html), the **Position (Mesh)** Block and **Sample Mesh Index** Operator return zeros values when they attempt to sample it. For information on how to make a Mesh readable, see [Model import settings](https://docs.unity3d.com/Manual/FBXImporter-Model.html)
 
-<img src="Images/ReadWrite.png" alt="image-20200320154843722" style="zoom:78%;" />
+![](Images/ReadWrite.png)
