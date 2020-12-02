@@ -539,25 +539,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 validPixelBlocks = supportLighting ?
                     new BlockFieldDescriptor[]
-                    {
-                        BlockFields.SurfaceDescription.Alpha,
-                        HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
-                        BlockFields.SurfaceDescription.AlphaClipThreshold,
-                        HDBlockFields.SurfaceDescription.DepthOffset,
-                        BlockFields.SurfaceDescription.NormalTS,
-                        BlockFields.SurfaceDescription.NormalWS,
-                        BlockFields.SurfaceDescription.NormalOS,
-                        BlockFields.SurfaceDescription.Smoothness,
-                        HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
-                    } :
-                    new BlockFieldDescriptor[]
-                    {
-                        BlockFields.SurfaceDescription.Alpha,
-                        HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
-                        BlockFields.SurfaceDescription.AlphaClipThreshold,
-                        HDBlockFields.SurfaceDescription.DepthOffset,
-                        HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
-                    },
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                    BlockFields.SurfaceDescription.NormalTS,
+                    BlockFields.SurfaceDescription.NormalWS,
+                    BlockFields.SurfaceDescription.NormalOS,
+                    BlockFields.SurfaceDescription.Smoothness,
+                    HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
+                } :
+                new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                    HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
+                },
 
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
