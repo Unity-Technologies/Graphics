@@ -45,7 +45,7 @@ A flowmap only uses the red and green channels and they represent horizontal and
 
 ### Per-layer
 
-The Inspector shows the following list depending on the number of **Layers** you specify.
+The Inspector shows the following properties for each cloud layer. The **Layers** property determines the number of cloud layers to render.
 
 | Property               | Description                                                  |
 | ---------------------- | ------------------------------------------------------------ |

@@ -134,7 +134,7 @@ Note that HDRP creates one instance of the renderer per camera. This means that 
 
 Finally, create the Shader for your clouds. The content of this Shader depends on the effects you want to include.
 
-For example, the following code sample is the [NewCloudRenderer's](Override-HDRI-Cloud.md) shader implementation.
+For example, the following code sample is the NewCloudRenderer's shader implementation.
 ```
 Shader "Hidden/HDRP/Sky/NewCloud"
 {
