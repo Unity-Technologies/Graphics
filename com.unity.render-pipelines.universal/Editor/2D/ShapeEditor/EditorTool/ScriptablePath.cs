@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         public IUndoObject undoObject
         {
             get { return this; }
-            set { }
+            set {}
         }
 
         public ISelection<int> selection

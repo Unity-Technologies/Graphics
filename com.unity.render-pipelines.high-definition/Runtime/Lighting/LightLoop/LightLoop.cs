@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
         EnvironmentAndArea = 6,
         /// <summary>All lights.</summary>
         EnvironmentAndAreaAndPunctual = 7,
-		/// <summary>Probe Volumes.</summary>
+        /// <summary>Probe Volumes.</summary>
         ProbeVolumes = 8,
         /// <summary>Decals.</summary>
         Decal = 16,
@@ -340,7 +340,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // For regular reflection probes, we need to convolve with all the BSDF functions
                 GraphicsFormat probeCacheFormat = lightLoopSettings.reflectionProbeFormat == ReflectionAndPlanarProbeFormat.R11G11B10 ?
-                                                  GraphicsFormat.B10G11R11_UFloatPack32 : GraphicsFormat.R16G16B16A16_SFloat;
+                    GraphicsFormat.B10G11R11_UFloatPack32 : GraphicsFormat.R16G16B16A16_SFloat;
 
                 // BC6H requires CPP feature not yet available
                 //if (lightLoopSettings.reflectionCacheCompressed)
@@ -490,7 +490,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 listsAreClear = false;
             }
 
-
             public void AllocateResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxLightOnScreen, bool renderGraphEnabled)
             {
                 convexBoundsBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
@@ -571,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateSortKeysArray(int count)
         {
-            if (m_SortKeys == null ||count > m_SortKeys.Length)
+            if (m_SortKeys == null || count > m_SortKeys.Length)
             {
                 m_SortKeys = new uint[count];
             }
@@ -830,7 +829,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void DeinitShadowSystem()
         {
-            if(m_ShadowManager != null)
+            if (m_ShadowManager != null)
             {
                 m_ShadowManager.Dispose();
                 m_ShadowManager = null;
@@ -981,7 +980,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
-            var shadowKeywords = new[]{"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
+            var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
             Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
@@ -1171,26 +1170,26 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2 Z = R * rcpH;
 
             float cosHoriz = ComputeCosineOfHorizonAngle(r, R);
-	        float sinTheta = Mathf.Sqrt(Saturate(1 - cosTheta * cosTheta));
+            float sinTheta = Mathf.Sqrt(Saturate(1 - cosTheta * cosTheta));
 
             Vector2 ch;
             ch.x = ChapmanUpperApprox(z.x, Mathf.Abs(cosTheta)) * Mathf.Exp(Z.x - z.x); // Rescaling adds 'exp'
             ch.y = ChapmanUpperApprox(z.y, Mathf.Abs(cosTheta)) * Mathf.Exp(Z.y - z.y); // Rescaling adds 'exp'
 
             if ((!alwaysAboveHorizon) && (cosTheta < cosHoriz)) // Below horizon, intersect sphere
-	        {
-		        float sinGamma = (r / R) * sinTheta;
-		        float cosGamma = Mathf.Sqrt(Saturate(1 - sinGamma * sinGamma));
+            {
+                float sinGamma = (r / R) * sinTheta;
+                float cosGamma = Mathf.Sqrt(Saturate(1 - sinGamma * sinGamma));
 
-		        Vector2 ch_2;
+                Vector2 ch_2;
                 ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
                 ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
 
-		        ch = ch_2 - ch;
+                ch = ch_2 - ch;
             }
             else if (cosTheta < 0)   // Above horizon, lower hemisphere
             {
-    	        // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
+                // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
                 // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
                 Vector2 z_0  = z * sinTheta;
                 Vector2 b    = new Vector2(Mathf.Exp(Z.x - z_0.x), Mathf.Exp(Z.x - z_0.x)); // Rescaling cancels out 'z' and adds 'Z'
@@ -1208,8 +1207,8 @@ namespace UnityEngine.Rendering.HighDefinition
             float   aerosolExtinction = skySettings.GetAerosolExtinctionCoefficient();
 
             return new Vector3(optDepth.x * airExtinction.x + optDepth.y * aerosolExtinction,
-                               optDepth.x * airExtinction.y + optDepth.y * aerosolExtinction,
-                               optDepth.x * airExtinction.z + optDepth.y * aerosolExtinction);
+                optDepth.x * airExtinction.y + optDepth.y * aerosolExtinction,
+                optDepth.x * airExtinction.z + optDepth.y * aerosolExtinction);
         }
 
         // Computes transmittance along the light path segment.
@@ -1292,7 +1291,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.shadowDimmer           = additionalLightData.shadowDimmer;
             lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
-            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, isRasterization: true, ref lightData.contactShadowMask,ref lightData.isRayTracedContactShadow);
+            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, isRasterization: true, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
 
             // We want to have a colored penumbra if the flag is on and the color is not gray
             bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
@@ -1327,7 +1326,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
             }
             //Value of max smoothness is derived from AngularDiameter. Formula results from eyeballing. Angular diameter of 0 results in 1 and angular diameter of 80 results in 0.
-            float maxSmoothness = Mathf.Clamp01(1.35f / (1.0f + Mathf.Pow(1.15f * (0.0315f * additionalLightData.angularDiameter + 0.4f),2f)) - 0.11f);
+            float maxSmoothness = Mathf.Clamp01(1.35f / (1.0f + Mathf.Pow(1.15f * (0.0315f * additionalLightData.angularDiameter + 0.4f), 2f)) - 0.11f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
             lightData.minRoughness = (1.0f - maxSmoothness) * (1.0f - maxSmoothness);
 
@@ -1358,7 +1357,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var skySettings = hdCamera.volumeStack.GetComponent<PhysicallyBasedSky>();
 
                     // Ignores distance (at infinity).
-                    Vector3 transm = EvaluateAtmosphericAttenuation(skySettings, - lightData.forward, hdCamera.camera.transform.position);
+                    Vector3 transm = EvaluateAtmosphericAttenuation(skySettings, -lightData.forward, hdCamera.camera.transform.position);
                     lightData.color.x *= transm.x;
                     lightData.color.y *= transm.y;
                     lightData.color.z *= transm.z;
@@ -1380,7 +1379,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This function evaluates if there is currently enough screen space sahdow slots of a given light based on its light type
         bool EnoughScreenSpaceShadowSlots(GPULightType gpuLightType, int screenSpaceChannelSlot)
         {
-            if(gpuLightType == GPULightType.Rectangle)
+            if (gpuLightType == GPULightType.Rectangle)
             {
                 // Area lights require two shadow slots
                 return (screenSpaceChannelSlot + 1) < m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots;
@@ -1545,7 +1544,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     (lightType == HDLightType.Spot && (lightComponent.cookie != null || additionalLightData.IESPoint != null)) ||
                     ((lightType == HDLightType.Area && lightData.lightType == GPULightType.Rectangle) && (lightComponent.cookie != null || additionalLightData.IESSpot != null)) ||
                     (lightType == HDLightType.Point && (lightComponent.cookie != null || additionalLightData.IESPoint != null))
-                ))
+                )
+            )
             {
                 switch (lightType)
                 {
@@ -1876,89 +1876,89 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (probe)
             {
                 case PlanarReflectionProbe planarProbe:
+                {
+                    if (probe.mode == ProbeSettings.Mode.Realtime
+                        && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
+                        break;
+
+                    // Grab the render data that was used to render the probe
+                    var renderData = planarProbe.renderData;
+                    // Grab the world to camera matrix of the capture camera
+                    var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
+                    // Grab the projection matrix that was used to render
+                    var projectionMatrix = renderData.projectionMatrix;
+                    // Build an alternative matrix for projection that is not oblique
+                    var projectionMatrixNonOblique = Matrix4x4.Perspective(renderData.fieldOfView, probe.texture.width / probe.texture.height, probe.settings.cameraSettings.frustum.nearClipPlaneRaw, probe.settings.cameraSettings.frustum.farClipPlane);
+
+                    // Convert the projection matrices to their GPU version
+                    var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
+                    var gpuProjNonOblique = GL.GetGPUProjectionMatrix(projectionMatrixNonOblique, true);
+
+                    // Build the oblique and non oblique view projection matrices
+                    var vp = gpuProj * worldToCameraRHSMatrix;
+                    var vpNonOblique = gpuProjNonOblique * worldToCameraRHSMatrix;
+
+                    // We need to collect the set of parameters required for the filtering
+                    IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters = new IBLFilterBSDF.PlanarTextureFilteringParameters();
+                    planarTextureFilteringParameters.smoothPlanarReflection = !probe.settings.roughReflections;
+                    planarTextureFilteringParameters.probeNormal = Vector3.Normalize(hdCamera.camera.transform.position - renderData.capturePosition);
+                    planarTextureFilteringParameters.probePosition = probe.gameObject.transform.position;
+                    planarTextureFilteringParameters.captureCameraDepthBuffer = planarProbe.realtimeDepthTexture;
+                    planarTextureFilteringParameters.captureCameraScreenSize = new Vector4(probe.texture.width, probe.texture.height, 1.0f / probe.texture.width, 1.0f / probe.texture.height);
+                    planarTextureFilteringParameters.captureCameraIVP = vp.inverse;
+                    planarTextureFilteringParameters.captureCameraIVP_NonOblique = vpNonOblique.inverse;
+                    planarTextureFilteringParameters.captureCameraVP_NonOblique = vpNonOblique;
+                    planarTextureFilteringParameters.captureCameraPosition = renderData.capturePosition;
+                    planarTextureFilteringParameters.captureFOV = renderData.fieldOfView;
+                    planarTextureFilteringParameters.captureNearPlane = probe.settings.cameraSettings.frustum.nearClipPlaneRaw;
+                    planarTextureFilteringParameters.captureFarPlane = probe.settings.cameraSettings.frustum.farClipPlane;
+
+                    // Fetch the slice and do the filtering
+                    var scaleOffset = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture, ref planarTextureFilteringParameters, out int fetchIndex);
+
+                    // We don't need to provide the capture position
+                    // It is already encoded in the 'worldToCameraRHSMatrix'
+                    capturePosition = Vector3.zero;
+
+                    // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
+                    envIndex = scaleOffset == Vector4.zero ? int.MinValue : -(fetchIndex + 1);
+
+                    // If the max number of planar on screen is reached
+                    if (fetchIndex >= m_MaxPlanarReflectionOnScreen)
                     {
-                        if (probe.mode == ProbeSettings.Mode.Realtime
-                            && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
-                            break;
-
-                        // Grab the render data that was used to render the probe
-                        var renderData = planarProbe.renderData;
-                        // Grab the world to camera matrix of the capture camera
-                        var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
-                        // Grab the projection matrix that was used to render
-                        var projectionMatrix = renderData.projectionMatrix;
-                        // Build an alternative matrix for projection that is not oblique
-                        var projectionMatrixNonOblique = Matrix4x4.Perspective(renderData.fieldOfView, probe.texture.width / probe.texture.height, probe.settings.cameraSettings.frustum.nearClipPlaneRaw, probe.settings.cameraSettings.frustum.farClipPlane);
-
-                        // Convert the projection matrices to their GPU version
-                        var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
-                        var gpuProjNonOblique = GL.GetGPUProjectionMatrix(projectionMatrixNonOblique, true);
-
-                        // Build the oblique and non oblique view projection matrices
-                        var vp = gpuProj * worldToCameraRHSMatrix;
-                        var vpNonOblique = gpuProjNonOblique * worldToCameraRHSMatrix;
-
-                        // We need to collect the set of parameters required for the filtering
-                        IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters = new IBLFilterBSDF.PlanarTextureFilteringParameters();
-                        planarTextureFilteringParameters.smoothPlanarReflection = !probe.settings.roughReflections;
-                        planarTextureFilteringParameters.probeNormal = Vector3.Normalize(hdCamera.camera.transform.position - renderData.capturePosition);
-                        planarTextureFilteringParameters.probePosition = probe.gameObject.transform.position;
-                        planarTextureFilteringParameters.captureCameraDepthBuffer = planarProbe.realtimeDepthTexture;
-                        planarTextureFilteringParameters.captureCameraScreenSize = new Vector4(probe.texture.width, probe.texture.height, 1.0f / probe.texture.width, 1.0f / probe.texture.height);
-                        planarTextureFilteringParameters.captureCameraIVP = vp.inverse;
-                        planarTextureFilteringParameters.captureCameraIVP_NonOblique = vpNonOblique.inverse;
-                        planarTextureFilteringParameters.captureCameraVP_NonOblique = vpNonOblique;
-                        planarTextureFilteringParameters.captureCameraPosition = renderData.capturePosition;
-                        planarTextureFilteringParameters.captureFOV = renderData.fieldOfView;
-                        planarTextureFilteringParameters.captureNearPlane = probe.settings.cameraSettings.frustum.nearClipPlaneRaw;
-                        planarTextureFilteringParameters.captureFarPlane = probe.settings.cameraSettings.frustum.farClipPlane;
-
-                        // Fetch the slice and do the filtering
-                        var scaleOffset = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture, ref planarTextureFilteringParameters, out int fetchIndex);
-
-                        // We don't need to provide the capture position
-                        // It is already encoded in the 'worldToCameraRHSMatrix'
-                        capturePosition = Vector3.zero;
-
-                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                        envIndex = scaleOffset == Vector4.zero ? int.MinValue : -(fetchIndex + 1);
-
-                        // If the max number of planar on screen is reached
-                        if (fetchIndex >= m_MaxPlanarReflectionOnScreen)
-                        {
-                            Debug.LogWarning("Maximum planar reflection probe on screen reached. To fix this error, increase the maximum number of planar reflections on screen in the HDRP asset.");
-                            break;
-                        }
-
-                        atlasScaleOffset = scaleOffset;
-
-                        m_TextureCaches.env2DAtlasScaleOffset[fetchIndex] = scaleOffset;
-                        m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
-
-                        // Propagate the smoothness information to the env light data
-                        envLightData.roughReflections = probe.settings.roughReflections ? 1.0f : 0.0f;
-
-                        var capturedForwardWS = renderData.captureRotation * Vector3.forward;
-                        //capturedForwardWS.z *= -1; // Transform to RHS standard
-                        m_TextureCaches.env2DCaptureForward[fetchIndex] = new Vector4(capturedForwardWS.x, capturedForwardWS.y, capturedForwardWS.z, 0.0f);
+                        Debug.LogWarning("Maximum planar reflection probe on screen reached. To fix this error, increase the maximum number of planar reflections on screen in the HDRP asset.");
                         break;
                     }
+
+                    atlasScaleOffset = scaleOffset;
+
+                    m_TextureCaches.env2DAtlasScaleOffset[fetchIndex] = scaleOffset;
+                    m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
+
+                    // Propagate the smoothness information to the env light data
+                    envLightData.roughReflections = probe.settings.roughReflections ? 1.0f : 0.0f;
+
+                    var capturedForwardWS = renderData.captureRotation * Vector3.forward;
+                    //capturedForwardWS.z *= -1; // Transform to RHS standard
+                    m_TextureCaches.env2DCaptureForward[fetchIndex] = new Vector4(capturedForwardWS.x, capturedForwardWS.y, capturedForwardWS.z, 0.0f);
+                    break;
+                }
                 case HDAdditionalReflectionData _:
-                    {
-                        envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture);
-                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                        envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
+                {
+                    envIndex = m_TextureCaches.reflectionProbeCache.FetchSlice(cmd, probe.texture);
+                    // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
+                    envIndex = envIndex == -1 ? int.MinValue : (envIndex + 1);
 
-                        // Calculate settings to use for the probe
-                        var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
-                        HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
-                            probe.settings, probePositionSettings,
-                            out _, out var cameraPositionSettings, 0
-                        );
-                        capturePosition = cameraPositionSettings.position;
+                    // Calculate settings to use for the probe
+                    var probePositionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, camera.transform);
+                    HDRenderUtilities.ComputeCameraSettingsFromProbeSettings(
+                        probe.settings, probePositionSettings,
+                        out _, out var cameraPositionSettings, 0
+                    );
+                    capturePosition = cameraPositionSettings.position;
 
-                        break;
-                    }
+                    break;
+                }
             }
             // int.MinValue means that the texture is not ready yet (ie not convolved/compressed yet)
             if (envIndex == int.MinValue)
@@ -2262,7 +2262,7 @@ namespace UnityEngine.Rendering.HighDefinition
             processedData.gpuLightType = GPULightType.Point;
             processedData.lightVolumeType = LightVolumeType.Count;
             HDRenderPipeline.EvaluateGPULightType(processedData.lightType, processedData.additionalLightData.spotLightShape, processedData.additionalLightData.areaLightShape,
-                                                    ref processedData.lightCategory, ref processedData.gpuLightType, ref processedData.lightVolumeType);
+                ref processedData.lightCategory, ref processedData.gpuLightType, ref processedData.lightVolumeType);
 
             processedData.lightDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
             processedData.volumetricDistanceFade = processedData.gpuLightType == GPULightType.Directional ? 1.0f : HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.volumetricFadeDistance);
@@ -2431,7 +2431,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
                     if ((m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection
-                            || m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
+                         || m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugMode == ShadowMapDebugMode.SingleShadow)
                         && UnityEditor.Selection.activeGameObject == lightComponent.gameObject)
                     {
                         m_DebugSelectedLightShadowIndex = shadowIndex;
@@ -2577,10 +2577,10 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateSortKeysArray(maxProbeCount);
 
             var enableReflectionProbes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReflectionProbe) &&
-                                            (!hasDebugLightFilter || debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.ReflectionProbe));
+                (!hasDebugLightFilter || debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.ReflectionProbe));
 
             var enablePlanarProbes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe) &&
-                                        (!hasDebugLightFilter || debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.PlanarProbe));
+                (!hasDebugLightFilter || debugLightFilter.IsEnabledFor(ProbeSettings.ProbeType.PlanarProbe));
 
             if (enableReflectionProbes)
             {
@@ -2691,7 +2691,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Return true if BakedShadowMask are enabled
         bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-        HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, ProbeVolumeList probeVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2909,8 +2909,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // - 1+ term is to prevent having negative values in the log result
             // - 1000* is too keep 3 digit after the dot while we truncate the result later
             // - 1048575 is 2^20-1 as we pack the result on 20bit later
-            float boxVolume = 8f* bounds.extents.x * bounds.extents.y * bounds.extents.z;
-            float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f)*1000, 0, 1048575);
+            float boxVolume = 8f * bounds.extents.x * bounds.extents.y * bounds.extents.z;
+            float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f) * 1000, 0, 1048575);
             return logVolume;
         }
 
@@ -3039,9 +3039,9 @@ namespace UnityEngine.Rendering.HighDefinition
             const int maxAllowedGroups = 65535;
             // On higher resolutions we might end up with more than 65535 group which is not allowed, so we need to to have multiple dispatches.
             int i = 0;
-            while(totalNumberOfGroupsNeeded > 0)
+            while (totalNumberOfGroupsNeeded > 0)
             {
-                countAndOffset.y = maxAllowedGroups * i;                
+                countAndOffset.y = maxAllowedGroups * i;
                 cmd.SetComputeVectorParam(parameters.clearLightListCS, HDShaderIDs._LightListEntriesAndOffset, countAndOffset);
 
                 int currGroupCount = Math.Min(maxAllowedGroups, totalNumberOfGroupsNeeded);
@@ -3053,9 +3053,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void ClearLightLists(    in BuildGPULightListParameters parameters,
-                                        in BuildGPULightListResources resources,
-                                        CommandBuffer cmd)
+        static void ClearLightLists(in BuildGPULightListParameters parameters,
+            in BuildGPULightListResources resources,
+            CommandBuffer cmd)
         {
             if (parameters.clearLightLists)
             {
@@ -3162,6 +3162,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(parameters.buildPerTileLightListShader, parameters.buildPerTileLightListKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
             }
         }
+
         static void VoxelLightListGeneration(in BuildGPULightListParameters parameters, in BuildGPULightListResources resources, CommandBuffer cmd)
         {
             if (parameters.runLightList)
@@ -3267,7 +3268,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
                     cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
                     cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
-
                 }
                 else
                 {
@@ -3291,10 +3291,10 @@ namespace UnityEngine.Rendering.HighDefinition
             return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || k_PreferFragment);
         }
 
-        unsafe BuildGPULightListParameters PrepareBuildGPULightListParameters(  HDCamera                        hdCamera,
-                                                                                TileAndClusterData              tileAndClusterData,
-                                                                                ref ShaderVariablesLightList    constantBuffer,
-                                                                                int                             totalLightCount)
+        unsafe BuildGPULightListParameters PrepareBuildGPULightListParameters(HDCamera                        hdCamera,
+            TileAndClusterData              tileAndClusterData,
+            ref ShaderVariablesLightList    constantBuffer,
+            int                             totalLightCount)
         {
             BuildGPULightListParameters parameters = new BuildGPULightListParameters();
 
@@ -3357,8 +3357,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
 
             int probeVolumeIndexShift = (ShaderConfig.s_EnableProbeVolumes == 1)
-                    ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
-                    : 0;
+                ? (m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount)
+                : 0;
             cb._ProbeVolumeIndexShift = (uint)probeVolumeIndexShift;
 
             // Copy the constant buffer into the parameter struct.
@@ -3576,7 +3576,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Tile/Cluster
             cb._NumTileFtplX = (uint)GetNumTileFtplX(hdCamera);
             cb._NumTileFtplY = (uint)GetNumTileFtplY(hdCamera);
-            cb.g_fClustScale = (float)(geomSeries / (hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane)); ;
+            cb.g_fClustScale = (float)(geomSeries / (hdCamera.camera.farClipPlane - hdCamera.camera.nearClipPlane));;
             cb.g_fClustBase = k_ClustLogBase;
             cb.g_fNearPlane = hdCamera.camera.nearClipPlane;
             cb.g_fFarPlane = hdCamera.camera.farClipPlane;
@@ -3635,7 +3635,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-
 
         void RenderShadowMaps(ScriptableRenderContext renderContext, CommandBuffer cmd, in ShaderVariablesGlobal globalCB, CullingResults cullResults, HDCamera hdCamera)
         {
@@ -3710,7 +3709,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.contactShadowsCS = contactShadowComputeShader;
             parameters.contactShadowsCS.shaderKeywords = null;
-            if(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
             {
                 parameters.contactShadowsCS.EnableKeyword("ENABLE_MSAA");
             }
@@ -3749,14 +3748,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderContactShadows(   in ContactShadowsParameters parameters,
-                                            RTHandle                    contactShadowRT,
-                                            RTHandle                    depthTexture,
-                                            LightLoopLightData          lightLoopLightData,
-                                            ComputeBuffer               lightList,
-                                            CommandBuffer               cmd)
+        static void RenderContactShadows(in ContactShadowsParameters parameters,
+            RTHandle                    contactShadowRT,
+            RTHandle                    depthTexture,
+            LightLoopLightData          lightLoopLightData,
+            ComputeBuffer               lightList,
+            CommandBuffer               cmd)
         {
-
             cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
             cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters2, parameters.params2);
             cmd.SetComputeVectorParam(parameters.contactShadowsCS, HDShaderIDs._ContactShadowParamsParameters3, parameters.params3);
@@ -4102,12 +4100,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static void RenderLightLoopDebugOverlay(in DebugParameters  debugParameters,
-                                                CommandBuffer       cmd,
-                                                ComputeBuffer       tileBuffer,
-                                                ComputeBuffer       lightListBuffer,
-                                                ComputeBuffer       perVoxelLightListBuffer,
-                                                ComputeBuffer       dispatchIndirectBuffer,
-                                                RTHandle            depthTexture)
+            CommandBuffer       cmd,
+            ComputeBuffer       tileBuffer,
+            ComputeBuffer       lightListBuffer,
+            ComputeBuffer       perVoxelLightListBuffer,
+            ComputeBuffer       dispatchIndirectBuffer,
+            RTHandle            depthTexture)
         {
             var hdCamera = debugParameters.hdCamera;
             var parameters = debugParameters.lightingOverlayParameters;
@@ -4116,7 +4114,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.TileClusterLightingDebug)))
                 {
-
                     int w = hdCamera.actualWidth;
                     int h = hdCamera.actualHeight;
                     int numTilesX = (w + 15) / 16;

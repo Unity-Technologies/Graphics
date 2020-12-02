@@ -67,7 +67,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             protected RenderGraphResource()
             {
-
             }
 
             public override void Reset()
@@ -159,7 +158,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #region Internal Interface
         private RenderGraphResourceRegistry()
         {
-
         }
 
         internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
@@ -364,15 +362,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     {
                         case TextureSizeMode.Explicit:
                             resource.resource = RTHandles.Alloc(desc.width, desc.height, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                            desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                                desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.msaaSamples, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
                             break;
                         case TextureSizeMode.Scale:
                             resource.resource = RTHandles.Alloc(desc.scale, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                            desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                                desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
                             break;
                         case TextureSizeMode.Functor:
                             resource.resource = RTHandles.Alloc(desc.func, desc.slices, desc.depthBufferBits, desc.colorFormat, desc.filterMode, desc.wrapMode, desc.dimension, desc.enableRandomWrite,
-                            desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
+                                desc.useMipMap, desc.autoGenerateMips, desc.isShadowMap, desc.anisoLevel, desc.mipMapBias, desc.enableMSAA, desc.bindTextureMS, desc.useDynamicScale, desc.memoryless, name);
                             break;
                     }
                 }
@@ -381,7 +379,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
 #if UNITY_2020_2_OR_NEWER
                 var fastMemDesc = resource.desc.fastMemoryDesc;
-                if(fastMemDesc.inFastMemory)
+                if (fastMemDesc.inFastMemory)
                 {
                     resource.resource.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
                 }

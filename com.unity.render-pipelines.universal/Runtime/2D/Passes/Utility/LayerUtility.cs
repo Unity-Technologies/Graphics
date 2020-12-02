@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     internal struct LayerBatch
     {
         public int startLayerID;
-		public int endLayerValue;
+        public int endLayerValue;
         public SortingLayerRange layerRange;
         public LightStats lightStats;
         private unsafe fixed int renderTargetIds[4];
@@ -78,19 +78,22 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static int FindUpperBoundInBatch(int startLayerIndex, SortingLayer[] sortingLayers, ILight2DCullResult lightCullResult)
         {
             // start checking at the next layer
-            for (var i = startLayerIndex+1; i < sortingLayers.Length; i++)
+            for (var i = startLayerIndex + 1; i < sortingLayers.Length; i++)
             {
-                if(!CompareLightsInLayer(startLayerIndex, i, sortingLayers, lightCullResult))
-                    return i-1;
+                if (!CompareLightsInLayer(startLayerIndex, i, sortingLayers, lightCullResult))
+                    return i - 1;
             }
-            return sortingLayers.Length-1;
+            return sortingLayers.Length - 1;
         }
 
         private static void InitializeBatchInfos(SortingLayer[] cachedSortingLayers)
         {
             var count = cachedSortingLayers.Length;
             var needInit = s_LayerBatches == null;
-            s_LayerBatches ??= new LayerBatch[count];
+            if (s_LayerBatches is null)
+            {
+                s_LayerBatches = new LayerBatch[count];
+            }
 
 #if UNITY_EDITOR
             // we should fix. Make a non allocating version of this
@@ -128,9 +131,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // Some renderers override their sorting layer value with short.MinValue or short.MaxValue.
                 // When drawing the first sorting layer, we should include the range from short.MinValue to layerValue.
                 // Similarly, when drawing the last sorting layer, include the range from layerValue to short.MaxValue.
-                var startLayerValue = (short) cachedSortingLayers[i].value;
+                var startLayerValue = (short)cachedSortingLayers[i].value;
                 var lowerBound = (i == 0) ? short.MinValue : startLayerValue;
-                var endLayerValue = (short) cachedSortingLayers[upperLayerInBatch].value;
+                var endLayerValue = (short)cachedSortingLayers[upperLayerInBatch].value;
                 var upperBound = (upperLayerInBatch == cachedSortingLayers.Length - 1) ? short.MaxValue : endLayerValue;
 
                 // Renderer within this range share the same set of lights so they should be rendered together.

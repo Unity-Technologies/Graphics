@@ -210,8 +210,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         void DenoisePunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera,
-                                                HDAdditionalLightData additionalLightData, in LightData lightData,
-                                                RTHandle velocityBuffer, RTHandle distanceBufferI, RTHandle shadowBuffer)
+            HDAdditionalLightData additionalLightData, in LightData lightData,
+            RTHandle velocityBuffer, RTHandle distanceBufferI, RTHandle shadowBuffer)
         {
             // Request the additional temporary buffers we shall be using
             RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 distanceBuffer = distanceBufferI;
                 shadowHistoryDistanceArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity)
-                        ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity, ShadowHistoryDistanceBufferAllocatorFunction, 1); ;
+                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity, ShadowHistoryDistanceBufferAllocatorFunction, 1);;
                 denoisedDistanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG1);
             }
 
@@ -244,12 +244,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Apply the temporal denoiser
             temporalFilter.DenoiseBuffer(cmd, hdCamera, shadowBuffer, shadowHistoryArray,
-                                shadowHistoryValidityArray,
-                                velocityBuffer,
-                                intermediateBuffer1,
-                                lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0,
-                                distanceBuffer, shadowHistoryDistanceArray, denoisedDistanceBuffer, m_ShadowChannelMask0,
-                                additionalLightData.distanceBasedFiltering, singleChannel: true, historyValidity: historyValidity);
+                shadowHistoryValidityArray,
+                velocityBuffer,
+                intermediateBuffer1,
+                lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0,
+                distanceBuffer, shadowHistoryDistanceArray, denoisedDistanceBuffer, m_ShadowChannelMask0,
+                additionalLightData.distanceBasedFiltering, singleChannel: true, historyValidity: historyValidity);
 
 
             if (additionalLightData.distanceBasedFiltering)

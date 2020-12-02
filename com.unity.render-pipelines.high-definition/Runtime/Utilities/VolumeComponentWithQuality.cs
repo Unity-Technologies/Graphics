@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal GlobalPostProcessingQualitySettings GetPostProcessingQualitySettings()
         {
             var pipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
-            if(pipeline != null)
+            if (pipeline != null)
             {
                 return pipeline.currentPlatformRenderPipelineSettings.postProcessQualitySettings;
             }
@@ -41,6 +41,5 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return !quality.levelAndOverride.useOverride && (HDRenderPipeline)RenderPipelineManager.currentPipeline != null;
         }
-
     }
 }

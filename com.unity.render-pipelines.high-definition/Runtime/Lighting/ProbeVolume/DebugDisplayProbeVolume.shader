@@ -104,7 +104,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
             #endif
 
                 float valueValidity = saturate((ProbeVolumeSampleValidity(uvw) - _ValidRange.x) * _ValidRange.y);
-                
+
             #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
                 float2 valueOctahedralDepthMeanAndVariance = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord * _AtlasTextureOctahedralDepthScaleBias.xy + _AtlasTextureOctahedralDepthScaleBias.zw, 0).xy - _ValidRange.x) * _ValidRange.y);
             #endif
