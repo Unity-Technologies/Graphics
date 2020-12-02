@@ -9,18 +9,12 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class DecalSortingInputsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents the sorting inputs for decal materials.
+    /// </summary>
+    public class DecalSortingInputsUIBlock : MaterialUIBlock
     {
-        [Flags]
-        public enum Features
-        {
-            None        = 0,
-            Distortion  = 1 << 0,
-            Refraction  = 1 << 1,
-            All         = ~0
-        }
-
-        public class Styles
+        internal class Styles
         {
             public const string header = "Sorting Inputs";
 
@@ -30,27 +24,32 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent drawOrderText = new GUIContent("Draw Order", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
         }
 
-        Expandable  m_ExpandableBit;
-        Features    m_Features;
+        ExpandableBit  m_ExpandableBit;
+ 
+		MaterialProperty decalMeshBiasType = new MaterialProperty();
+        const string kDecalMeshBiasType = "_DecalMeshBiasType";
 
-        protected MaterialProperty decalMeshBiasType = new MaterialProperty();
-        protected const string kDecalMeshBiasType = "_DecalMeshBiasType";
+        MaterialProperty decalMeshDepthBias = new MaterialProperty();
+        const string kDecalMeshDepthBias = "_DecalMeshDepthBias";
 
-        protected MaterialProperty decalMeshDepthBias = new MaterialProperty();
-        protected const string kDecalMeshDepthBias = "_DecalMeshDepthBias";
+        MaterialProperty decalMeshViewBias = new MaterialProperty();
+        const string kDecalViewDepthBias = "_DecalMeshViewBias";
 
-        protected MaterialProperty decalMeshViewBias = new MaterialProperty();
-        protected const string kDecalViewDepthBias = "_DecalMeshViewBias";
+        MaterialProperty drawOrder = new MaterialProperty();
+        const string kDrawOrder = "_DrawOrder";
 
-        protected MaterialProperty drawOrder = new MaterialProperty();
-        protected const string kDrawOrder = "_DrawOrder";
-
-        public DecalSortingInputsUIBlock(Expandable expandableBit, Features features = Features.All)
+        /// <summary>
+        /// Constructs the DecalSortingInputsUIBlock.
+        /// </summary>
+        /// <param name="expandableBit">Bit used for the foldout state.</param>
+        public DecalSortingInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
-            m_Features = features;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             decalMeshBiasType = FindProperty(kDecalMeshBiasType);
@@ -59,6 +58,9 @@ namespace UnityEditor.Rendering.HighDefinition
             drawOrder = FindProperty(kDrawOrder);
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))

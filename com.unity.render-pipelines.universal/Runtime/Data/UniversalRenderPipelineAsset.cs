@@ -102,8 +102,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 5;
-        [SerializeField] int k_AssetPreviousVersion = 5;
+        [SerializeField] int k_AssetVersion = 7;
+        [SerializeField] int k_AssetPreviousVersion = 7;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
-        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._512;
+        [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
 
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
@@ -157,8 +157,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseAdaptivePerformance = true;
 
         // Post-processing settings
+        [SerializeField] PostProcessData m_PostProcessData = null;
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
+        [SerializeField] bool m_UseFastSRGBLinearConversion = false;
 
         // Deprecated settings
         [SerializeField] ShadowQuality m_ShadowType = ShadowQuality.HardShadows;
@@ -196,6 +198,9 @@ namespace UnityEngine.Rendering.Universal
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
+
+            // Set default post process data
+            instance.m_PostProcessData = PostProcessData.GetDefaultPostProcessData();
 
             return instance;
         }
@@ -285,8 +290,8 @@ namespace UnityEngine.Rendering.Universal
             if (m_RendererDataList == null)
                 m_RendererDataList = new ScriptableRendererData[1];
 
-            // If no data we can't create pipeline instance
-            if (m_RendererDataList[0] == null)
+            // If no default data we can't create pipeline instance
+            if (m_RendererDataList[m_DefaultRendererIndex] == null)
             {
                 // If previous version and current version are miss-matched then we are waiting for the upgrader to kick in
                 if (k_AssetPreviousVersion != k_AssetVersion)
@@ -671,6 +676,15 @@ namespace UnityEngine.Rendering.Universal
             set { m_UseSRPBatcher = value; }
         }
 
+        /// <summary>
+        /// Contains resources used by post processing pass.
+        /// </summary>
+        public PostProcessData postProcessData
+        {
+            get { return m_PostProcessData; }
+            set { m_PostProcessData = value; }
+        }
+
         public ColorGradingMode colorGradingMode
         {
             get { return m_ColorGradingMode; }
@@ -681,6 +695,14 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_ColorGradingLutSize; }
             set { m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize); }
+        }
+
+        /// <summary>
+        /// Returns true if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
+        /// </summary>
+        public bool useFastSRGBLinearConversion
+        {
+            get { return m_UseFastSRGBLinearConversion; }
         }
 
         /// <summary>
@@ -857,6 +879,11 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618 // Obsolete warning
             }
 
+            if (k_AssetVersion < 7)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 7;
+            }
 
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
@@ -887,6 +914,14 @@ namespace UnityEngine.Rendering.Universal
 
                 asset.k_AssetPreviousVersion = 5;
             }
+
+            if (asset.k_AssetPreviousVersion < 7)
+            {
+                asset.postProcessData = PostProcessData.GetDefaultPostProcessData();
+                asset.k_AssetPreviousVersion = 7;
+            }
+
+            EditorUtility.SetDirty(asset);
         }
 
 #endif
@@ -907,7 +942,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Check to see if the RendererData list contains valide RendererData references.
+        /// Check to see if the RendererData list contains valid RendererData references.
         /// </summary>
         /// <param name="partial">This bool controls whether to test against all or any, if false then there has to be no invalid RendererData</param>
         /// <returns></returns>
