@@ -49,10 +49,10 @@ Build_ShaderGraph_OSX_Metal_Standalone_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  git clone https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools.git TestProjects/ShaderGraph/gfx-sdet-tools
-      -  cd ~~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./sign.sh bokken bokken
-      -  cd ~~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
-      -  cd ~~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/gfx-sdet-tools
+      -  cd ~~/TestProjects/ShaderGraph/signing-scripts && ./sign.sh bokken bokken
+      -  cd ~~/TestProjects/ShaderGraph/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
+      -  cd ~~/TestProjects/ShaderGraph/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200
@@ -77,11 +77,11 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_trunk:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  git clone https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools.git TestProjects/ShaderGraph/gfx-sdet-tools
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./sign.sh bokken bokken"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/gfx-sdet-tools
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && ./sign.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
@@ -144,10 +144,10 @@ Build_ShaderGraph_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  git clone https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools.git TestProjects/ShaderGraph/gfx-sdet-tools
-      -  cd ~~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./sign.sh bokken bokken
-      -  cd ~~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
-      -  cd ~~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/gfx-sdet-tools
+      -  cd ~~/TestProjects/ShaderGraph/signing-scripts && ./sign.sh bokken bokken
+      -  cd ~~/TestProjects/ShaderGraph/signing-scripts && chmod +x import_certificate_into_new_keychain.sh
+      -  cd ~~/TestProjects/ShaderGraph/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200
@@ -176,11 +176,11 @@ ShaderGraph_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output TestProjects/ShaderGraph/utr
       -  chmod +x TestProjects/ShaderGraph/utr
-      -  git clone https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools.git TestProjects/ShaderGraph/gfx-sdet-tools
-      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./sign.sh bokken bokken"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
-      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
+      -  git clone https://github.cds.internal.unity3d.com/sophia/signing-scripts TestProjects/ShaderGraph/gfx-sdet-tools
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/TestProjects/ShaderGraph/signing-scripts bokken@$BOKKEN_DEVICE_IP:~/TestProjects/ShaderGraph/gfx-sdet-tools/signing-scripts
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && ./sign.sh bokken bokken"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && chmod +x import_certificate_into_new_keychain.sh"
+      -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "cd ~~/Graphics/TestProjects/ShaderGraph/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken"
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
       -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
