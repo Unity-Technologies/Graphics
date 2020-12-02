@@ -45,6 +45,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed NullReference Exception when setting Max Shadows On Screen to 0 in the HDRP asset.
 - Fixed path tracing accumulation not being reset when changing to a different frame of an animation.
 - Fixed issue with saving some quality settings in volume overrides  (case 1293747)
+- Fixed issue where some ShaderGraph generated shaders were not SRP compatible because of UnityPerMaterial cbuffer layout mismatches [1292501] (https://issuetracker.unity3d.com/issues/a2-some-translucent-plus-alphaclipping-shadergraphs-are-not-srp-batcher-compatible)
 
 ### Changed
 - Volume Manager now always tests scene culling masks. This was required to fix hybrid workflow.
