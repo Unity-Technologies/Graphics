@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.Universal
 #pragma warning restore 618 // Obsolete warning
             if (postProcessData != null)
             {
-                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, postProcessData);
+                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, postProcessData);
                 m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, postProcessData, m_BlitMaterial);
                 m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, postProcessData, m_BlitMaterial);
                 m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
