@@ -5,6 +5,10 @@ def _cmd_base(project_folder, platform, utr_calls, editor):
     base = [
         f'curl -s {UTR_INSTALL_URL} --output {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'chmod +x {TEST_PROJECTS_DIR}/{project_folder}/utr',
+        f'git clone https://github.cds.internal.unity3d.com/unity/gfx-sdet-tools.git TestProjects/{project_folder}',
+        f'cd ~~/{TEST_PROJECTS_DIR}/{project_folder}/gfx-sdet-tools/signing-scripts && ./sign.sh bokken bokken',
+        f'cd ~~/{TEST_PROJECTS_DIR}/{project_folder}/gfx-sdet-tools/signing-scripts && chmod +x import_certificate_into_new_keychain.sh',
+        f'cd ~~/{TEST_PROJECTS_DIR}/{project_folder}/gfx-sdet-tools/signing-scripts && ./import_certificate_into_new_keychain.sh bokken bokken',
         f'pip install unity-downloader-cli --index-url {UNITY_DOWNLOADER_CLI_URL} --upgrade',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli { get_unity_downloader_cli_cmd(editor, platform["os"],cd=True) } {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
     ]
@@ -46,5 +50,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     
     if project_folder.lower() == "BoatAttack".lower():
         base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
+    
+    base.append(f'codesign -fs unity-player ~/players/{project_folder}/PlayerWithTests.app')
 
     return base
