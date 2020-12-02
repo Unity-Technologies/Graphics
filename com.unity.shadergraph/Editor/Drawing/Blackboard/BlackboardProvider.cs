@@ -409,8 +409,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             field.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
             field.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
             field.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            // These callbacks are used for the property dragging scroll behavior
             field.RegisterCallback<DragEnterEvent>(blackboard.OnFieldDragStart);
-            field.RegisterCallback<DragUpdatedEvent>(blackboard.OnFieldDragUpdate);
             field.RegisterCallback<DragExitedEvent>(blackboard.OnFieldDragEnd);
 
             // Removing the expand button from the blackboard, its added by default

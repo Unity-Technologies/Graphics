@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         // This needs to be something that each subclass defines for itself at creation time
         // if they all use the same they'll be stacked on top of each other at SG window creation
-        protected WindowDockingLayout windowDockingLayout { get; set; } = new WindowDockingLayout
+        protected WindowDockingLayout windowDockingLayout { get; private set; } = new WindowDockingLayout
         {
             dockingTop = true,
             dockingLeft = false,
@@ -162,7 +162,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             else
             {
                 // Remove the sections container from the scrollview and add it to the content item
-                //m_ScrollView.RemoveFromHierarchy();
                 m_ContentContainer.RemoveFromHierarchy();
                 m_Root.Add(m_ContentContainer);
 

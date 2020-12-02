@@ -78,14 +78,12 @@
 {
     align-content: flex-start;
     min-height: 10;
-    color: aqua;
 }
 
 #SGBlackboard.scrollable > .mainContainer > #content > #scrollBoundaryBottom
 {
     align-content: flex-end;
-    min-height: 10;
-    color: crimson;
+    min-height: 15;
 }
 
 #SGBlackboard > .mainContainer > #content > ScrollView {
