@@ -153,12 +153,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // 2 by default: Static sky + one dynamic. Will grow if needed.
         DynamicArray<CachedSkyContext> m_CachedSkyContexts = new DynamicArray<CachedSkyContext>(2);
-        
-        public SkyManager()	
-        {}	
 
-        ~SkyManager()	
-        {}        
+        public SkyManager()
+        {}
+
+        ~SkyManager()
+        {}
 
         internal static SkySettings GetSkySetting(VolumeStack stack)
         {
