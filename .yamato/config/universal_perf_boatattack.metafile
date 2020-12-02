@@ -179,6 +179,13 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+  - name: Linux
+    apis:
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
 all:
   dependencies:
     - platform: Win
