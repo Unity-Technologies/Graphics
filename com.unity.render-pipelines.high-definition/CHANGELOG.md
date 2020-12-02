@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed volumetric fog with XR single-pass rendering.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
