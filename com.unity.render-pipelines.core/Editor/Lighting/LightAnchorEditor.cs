@@ -496,14 +496,14 @@ namespace UnityEditor
         static void DrawAngleWidget(Vector2 center, float radius, float angleDegrees, float offset, Color sectionColor, bool enabled)
         {
             Vector2 originPosition = center + new Vector2(
-                    Mathf.Cos(offset * Mathf.Deg2Rad),
-                    Mathf.Sin(offset * Mathf.Deg2Rad)) * radius;
+                Mathf.Cos(offset * Mathf.Deg2Rad),
+                Mathf.Sin(offset * Mathf.Deg2Rad)) * radius;
 
             Vector2 toOrigin = originPosition - center;
 
             Vector2 handlePosition = center + new Vector2(
-                    Mathf.Cos((angleDegrees + offset) * Mathf.Deg2Rad),
-                    Mathf.Sin((angleDegrees + offset) * Mathf.Deg2Rad)) * radius;
+                Mathf.Cos((angleDegrees + offset) * Mathf.Deg2Rad),
+                Mathf.Sin((angleDegrees + offset) * Mathf.Deg2Rad)) * radius;
 
             Color backupColor = Handles.color;
             Handles.color = LightAnchorStyles.DiskBackgroundAngleColor();
@@ -610,11 +610,11 @@ namespace UnityEditor
         static public GUIContent distanceProperty = new GUIContent("Distance", "How far 'back' in camera space is the light from its anchor");
         static public GUIContent upDirectionProperty = new GUIContent("Up direction", "The space that the up direction of the anchor is defined in");
         static public GUIContent[] angleSubContent = new[]
-            {
-                EditorGUIUtility.TrTextContent("Yaw"),
-                EditorGUIUtility.TrTextContent("Pitch"),
-                EditorGUIUtility.TrTextContent("Roll")
-            };
+        {
+            EditorGUIUtility.TrTextContent("Yaw"),
+            EditorGUIUtility.TrTextContent("Pitch"),
+            EditorGUIUtility.TrTextContent("Roll")
+        };
         static public Color totalTransparentColor = new Color(0, 0, 0, 0);
         static public Color hoverColor = new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f);
 

@@ -1,6 +1,6 @@
 ## View Lighting tool
 
-The View Lighting tool allows you to set up lighting in camera space. It uses the main Camera (the one that renders to the Game view) to set the orientation of the Light using spherical coordinates, and it uses a target and distance to set the position of the Light. 
+The View Lighting tool allows you to set up lighting in camera space. It uses the main Camera (the one that renders to the Game view) to set the orientation of the Light using spherical coordinates, and it uses a target and distance to set the position of the Light.
 
 Since the View Lighting tool uses camera-space, it is especially useful when setting up lighting for cinematics.
 
