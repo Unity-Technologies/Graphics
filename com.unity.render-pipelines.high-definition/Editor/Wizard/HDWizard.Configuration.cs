@@ -914,7 +914,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
         UsedPackageRetriever m_UsedPackageRetriever = new UsedPackageRetriever();
-        
+
         class PackageInstaller
         {
             PackageManager.Requests.AddRequest m_CurrentRequest;
