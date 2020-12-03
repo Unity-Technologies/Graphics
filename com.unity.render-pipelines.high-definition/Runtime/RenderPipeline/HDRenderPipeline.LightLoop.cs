@@ -641,12 +641,14 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public VolumeVoxelizationParameters parameters;
             public TextureHandle                densityBuffer;
-            public ComputeBufferHandle          bigTileLightListBuffer;
+            public ComputeBufferHandle          coarseTileBuffer;
+            public ComputeBufferHandle          zBinBuffer;
         }
 
         TextureHandle VolumeVoxelizationPass(RenderGraph         renderGraph,
             HDCamera            hdCamera,
-            ComputeBufferHandle bigTileLightList,
+            ComputeBufferHandle coarseTileBuffer,
+            ComputeBufferHandle zBinBuffer,
             int                 frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
@@ -656,8 +658,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.EnableAsyncCompute(hdCamera.frameSettings.VolumeVoxelizationRunsAsync());
 
                     passData.parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
+
                     if (passData.parameters.tiledLighting)
-                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
+                    {
+                        passData.coarseTileBuffer = builder.ReadComputeBuffer(coarseTileBuffer);
+                        passData.zBinBuffer       = builder.ReadComputeBuffer(zBinBuffer);
+                    }
 
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
@@ -669,7 +675,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             VolumeVoxelizationPass(data.parameters,
                                 data.densityBuffer,
-                                data.bigTileLightListBuffer,
+                                data.coarseTileBuffer,
+                                data.zBinBuffer,
                                 ctx.cmd);
                         });
 

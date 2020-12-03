@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
-                var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, gpuLightListOutput.bigTileLightList, m_FrameCount);
+                var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, gpuLightListOutput.coarseTileBuffer, gpuLightListOutput.zBinBuffer, m_FrameCount);
 
                 RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
 

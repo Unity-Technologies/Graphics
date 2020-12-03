@@ -879,11 +879,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void VolumeVoxelizationPass(in VolumeVoxelizationParameters parameters,
             RTHandle                        densityBuffer,
-            ComputeBuffer                   bigTileLightList,
+            ComputeBuffer                   coarseTileBuffer,
+            ComputeBuffer                   zBinBuffer,
             CommandBuffer                   cmd)
         {
             if (parameters.tiledLighting)
-                cmd.SetComputeBufferParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs.g_vBigTileLightList, bigTileLightList);
+            {
+                cmd.SetComputeBufferParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._CoarseTileBuffer, coarseTileBuffer);
+                cmd.SetComputeBufferParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._zBinBuffer,       zBinBuffer);
+            }
 
             cmd.SetComputeTextureParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._VBufferDensity,  densityBuffer);
             cmd.SetComputeTextureParam(parameters.voxelizationCS, parameters.voxelizationKernel, HDShaderIDs._VolumeMaskAtlas, parameters.volumeAtlas);
@@ -903,7 +907,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.VolumeVoxelization)))
             {
                 var parameters = PrepareVolumeVoxelizationParameters(hdCamera, frameIndex);
-                VolumeVoxelizationPass(parameters, m_DensityBuffer, m_TileAndClusterData.bigTileLightList, cmd);
+                VolumeVoxelizationPass(parameters, m_DensityBuffer, m_TileAndClusterData.coarseTileBuffer, m_TileAndClusterData.zBinBuffer, cmd);
             }
         }
 
