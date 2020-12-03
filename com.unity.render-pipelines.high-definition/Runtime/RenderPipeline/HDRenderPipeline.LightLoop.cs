@@ -162,8 +162,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 //passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
 
                 //passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
-                passData.xyBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * tileAndClusterData.maxLightCount, 4 * sizeof(float)) { name = "xyBoundsBuffer" });
-                passData.wBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * tileAndClusterData.maxLightCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });
 
                 var nrTilesX = (m_MaxCameraWidth + TiledLightingConstants.s_TileSizeFptl - 1) / TiledLightingConstants.s_TileSizeFptl;
                 var nrTilesY = (m_MaxCameraHeight + TiledLightingConstants.s_TileSizeFptl - 1) / TiledLightingConstants.s_TileSizeFptl;
@@ -176,16 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // note that nrTiles include the viewCount in allocation below
                     // Tile buffers
                     passData.output.lightList = builder.WriteComputeBuffer(
-                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(/*(int)LightCategory.Count*/ 0 * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
-                    passData.output.tileListBuffer = builder.WriteComputeBuffer(
-                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
-                    passData.output.tileFeatureFlagsBuffer = builder.WriteComputeBuffer(
-                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrTiles, sizeof(uint)) { name = "TileFeatureFlags" }));
-                    // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
-                    // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
-                    // Use use max size of 4 unit for allocation
-                    passData.output.dispatchIndirectBuffer = builder.WriteComputeBuffer(
-                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * TiledLightingConstants.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "DispatchIndirectBuffer" }));
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(/*(int)LightCategory.Count*/ 1 * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
                 }
 
                 // Big Tile buffer
@@ -214,21 +203,73 @@ namespace UnityEngine.Rendering.HighDefinition
                         renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrClusterTiles, sizeof(float)) { name = "PerTileLogBaseTweak" }));
                 }
 
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BinnedLighting))
+                {
+                    int viewCount             = m_MaxViewCount;
+                    int maxBoundedEntityCount = tileAndClusterData.maxBoundedEntityCount;
+
+                    passData.xyBoundsBuffer    = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 4 * sizeof(float)) { name = "xyBoundsBuffer" }); // {x_min, x_max, y_min, y_max}
+                    passData.wBoundsBuffer     = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(maxBoundedEntityCount * viewCount, 2 * sizeof(float)) { name = "wBoundsBuffer" });  // {w_min, w_max}
+                    passData.output.zBinBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_zBinCount * (int)BoundedEntityCategory.Count * viewCount, sizeof(uint)) { name = "zBinBuffer" }));  // {last << 16 | first}
+
+                    Vector2Int coarseTileBufferDimensions = GetCoarseTileBufferDimensions(hdCamera);
+
+                    // The tile buffer is composed of two parts:
+                    // the header (containing index ranges, 2 * sizeof(uint16)) and
+                    // the body (containing index lists, TiledLightingConstants.s_CoarseTileEntryLimit * sizeof(uint16)).
+                    int coarseTileBufferElementCount = coarseTileBufferDimensions.x * coarseTileBufferDimensions.y
+                        * (int)BoundedEntityCategory.Count * viewCount
+                        * (2 + TiledLightingConstants.s_CoarseTileEntryLimit) / 2;
+
+                    passData.output.coarseTileBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(coarseTileBufferElementCount, sizeof(uint)) { name = "CoarseTileBuffer" })); // Index range + index list
+
+                    Vector2Int fineTileBufferDimensions = GetFineTileBufferDimensions(hdCamera);
+
+                    // The tile buffer is composed of two parts:
+                    // the header (containing index ranges, 2 * sizeof(uint16)) and
+                    // the body (containing index lists, TiledLightingConstants.s_FineTileEntryLimit * sizeof(uint16)).
+                    int fineTileBufferElementCount = fineTileBufferDimensions.x * fineTileBufferDimensions.y
+                        * (int)BoundedEntityCategory.Count * viewCount
+                        * (2 + TiledLightingConstants.s_FineTileEntryLimit) / 2;
+
+                    passData.output.fineTileBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(fineTileBufferElementCount, sizeof(uint)) { name = "FineTileBuffer" })); // Index range + index list
+
+                    // Assume the deferred lighting CS uses fine tiles.
+                    int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
+
+                    /* We may want to allocate the 3 buffers below conditionally. */
+                    passData.output.tileFeatureFlagsBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(numTiles * viewCount, sizeof(uint)) { name = "TileFeatureFlagsBuffer" }));
+                    passData.output.tileListBuffer         = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(numTiles * viewCount * TiledLightingConstants.s_NumFeatureVariants, sizeof(uint)) { name = "TileListBuffer" }));
+
+                    // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
+                    // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
+                    // Use use max size of 4 unit for allocation
+                    passData.output.dispatchIndirectBuffer = builder.WriteComputeBuffer(renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_NumFeatureVariants * viewCount, 4 * sizeof(uint), ComputeBufferType.IndirectArguments) { name = "DispatchIndirectBuffer" }));
+                }
+
                 builder.SetRenderFunc(
                     (BuildGPULightListPassData data, RenderGraphContext context) =>
                     {
-                        // TODO...
-                        //bool tileFlagsWritten = false;
-
                         var buildLightListResources = PrepareBuildGPULightListResources(context, data);
 
-                        ClearLightLists(data.buildGPULightListParameters, buildLightListResources, context.cmd);
-                        GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
-                        //BigTilePrepass(data.buildGPULightListParameters, buildLightListResources, context.cmd);
-                        //BuildPerTileLightList(data.buildGPULightListParameters, buildLightListResources, ref tileFlagsWritten, context.cmd);
-                        //VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                        using (new ProfilingScope(context.cmd, ProfilingSampler.Get(HDProfileId.BuildLightList)))
+                        {
+                            // The algorithm (below) works even if the bounded entity count is 0.
+                            // That is fairly efficient, and allows us to avoid weird special cases.
+                            ClearLightLists(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                            GenerateLightsScreenSpaceAABBs(data.buildGPULightListParameters, buildLightListResources, context.cmd);
 
-                        //BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
+                            // Both Z-binning and tile filling can be executed concurrently.
+                            // This should improve GPU utilization.
+                            PerformZBinning(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                            FillScreenTiles(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                        }
+
+                        // This is not a part of light list generation
+                        // and should therefore be outside the 'BuildLightList' profiling scope.
+                        // We should add it to the 'RenderDeferredLighting' profiling scope.
+                        PerformClassification(data.buildGPULightListParameters, buildLightListResources, context.cmd);
+                        BuildDispatchIndirect(data.buildGPULightListParameters, buildLightListResources, context.cmd);
                     });
 
                 return passData.output;

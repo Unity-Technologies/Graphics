@@ -733,12 +733,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool clusterNeedsDepth { get; private set; }
             public bool hasTileBuffers { get; private set; }
             public int maxLightCount { get; private set; }
+            public int maxBoundedEntityCount { get; private set; }
 
-            public void Initialize(bool allocateTileBuffers, bool clusterNeedsDepth, int maxLightCount)
+            public void Initialize(bool allocateTileBuffers, bool clusterNeedsDepth, int maxLightCount, int maxBoundedEntityCount)
             {
                 hasTileBuffers = allocateTileBuffers;
                 this.clusterNeedsDepth = clusterNeedsDepth;
                 this.maxLightCount = maxLightCount;
+                this.maxBoundedEntityCount = maxBoundedEntityCount;
                 //globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
@@ -801,7 +803,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // The tile buffer is composed of two parts:
                     // the header (containing index ranges, 2 * sizeof(uint16)) and
-                    // the body (containing index lists, TiledLightingConstants.s_CoarseTileEntryLimit * sizeof(uint16)).
+                    // the body (containing index lists, TiledLightingConstants.s_FineTileEntryLimit * sizeof(uint16)).
                     int fineTileBufferElementCount = fineTileBufferDimensions.x * fineTileBufferDimensions.y
                         * (int)BoundedEntityCategory.Count * viewCount
                         * (2 + TiledLightingConstants.s_FineTileEntryLimit) / 2;
@@ -811,14 +813,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Assume the deferred lighting CS uses fine tiles.
                     int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
 
+                    /* We may want to allocate the 3 buffers below conditionally. */
                     tileFeatureFlagsBuffer = new ComputeBuffer(numTiles * viewCount, sizeof(uint));
+                    tileListBuffer         = new ComputeBuffer(numTiles * viewCount * TiledLightingConstants.s_NumFeatureVariants, sizeof(uint));
 
                     // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
                     // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
                     // Use use max size of 4 unit for allocation
+                    /* Also not resolution-dependent at all, but the old code allocated it here... */
                     dispatchIndirectBuffer = new ComputeBuffer(TiledLightingConstants.s_NumFeatureVariants * viewCount, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
-
-                    tileListBuffer = new ComputeBuffer(numTiles * viewCount * TiledLightingConstants.s_NumFeatureVariants, sizeof(uint));
                 }
 
                 // Make sure to invalidate the content of the buffers
@@ -1221,9 +1224,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_TextureCaches.Initialize(asset, defaultResources, iBLFilterBSDFArray);
-            // All the allocation of the compute buffers need to happened after the kernel finding in order to avoid the leak loop when a shader does not compile or is not available
-
-            m_TileAndClusterData.Initialize(allocateTileBuffers: true, clusterNeedsDepth: k_UseDepthBuffer, maxLightCount: m_MaxLightsOnScreen);
 
             int xrViewCount = TextureXR.slices;
 
@@ -1238,6 +1238,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DirectionalLightIndices    = new List<int>();
             m_DirectionalLightDataBuffer = new ComputeBuffer(m_MaxDirectionalLightsOnScreen, Marshal.SizeOf(typeof(DirectionalLightData)));
             m_BoundedEntityCollection    = new BoundedEntityCollection(xrViewCount, maxBoundedEntityCounts);
+
+            // All the allocation of the compute buffers need to happened after the kernel finding in order to avoid the leak loop when a shader does not compile or is not available
+            m_TileAndClusterData.Initialize(allocateTileBuffers: true, clusterNeedsDepth: k_UseDepthBuffer, maxLightCount: m_MaxLightsOnScreen, maxBoundedEntityCount: m_BoundedEntityCollection.GetMaxEntityCount());
 
             // OUTPUT_SPLIT_LIGHTING - SHADOWS_SHADOWMASK - DEBUG_DISPLAY
             m_deferredLightingMaterial = new Material[8];
@@ -4043,10 +4046,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This should improve GPU utilization.
                 PerformZBinning(parameters, resources, cmd);
                 FillScreenTiles(parameters, resources, cmd);
-
-                // BigTilePrepass(parameters, resources, cmd);
-                // BuildPerTileLightList(parameters, resources, ref tileFlagsWritten, cmd);
-                // VoxelLightListGeneration(parameters, resources, cmd);
             }
 
             // This is not a part of light list generation
