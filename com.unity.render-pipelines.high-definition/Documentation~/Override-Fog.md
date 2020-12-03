@@ -62,7 +62,7 @@ The **Fog** override of the active Volume controls the appearance of the global 
 | - - - **Resolution Depth Ratio** | The ratio HDRP uses to share resources between the screen (x-axis and y-axis) and the depth (z-axis) resolutions.<br/>This property only appears if you set **Fog Control Mode** to **Balance**. |
 | - - - **Screen Resolution Percentage** | The resolution of the volumetric buffer (3D texture) along the x-axis and y-axis relative to the resolution of the screen.<br/>This property only appears if you set **Fog Control Mode** to **Manual**. |
 | - - - **Volume Slice Count** | The number of slices to use for the volumetric buffer (3D texture) along the camera's focal axis.<br/>This property only appears if you set **Fog Control Mode** to **Manual**. |
-| - **Directional Lights Only** | Indicates whether HDRP only process volumetric fog for directional [Lights](Light-Component.md) or for all Lights. |
+| - **Directional Lights Only** | Indicates whether HDRP only process volumetric fog for directional [Lights](Light-Component.md) or for all Lights. Including non-directional Lights increases the resource intensity of the effect. |
 | - **Anisotropy** | Controls the angular distribution of scattered light. 0 is isotropic, 1 is forward scattering, and -1 is backward scattering. Note that non-zero values have a moderate performance impact. High values may have compatibility issues with the **Enable Reprojection for Volumetrics** Frame Setting. This is an experimental property that HDRP applies to both global and local fog. |
 
 
