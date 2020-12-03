@@ -114,7 +114,7 @@ namespace UnityEditor.Rendering
                         guard = "_" + guard;
 
             await writer.WriteLineAsync("//");
-            await writer.WriteLineAsync("// This file was automatically generated. Please don't edit by hand.");
+            await writer.WriteLineAsync("// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead");
             await writer.WriteLineAsync("//");
             await writer.WriteLineAsync();
             await writer.WriteLineAsync("#ifndef " + guard);
