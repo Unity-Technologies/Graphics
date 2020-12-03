@@ -65,6 +65,8 @@ namespace UnityEditor.ShaderGraph
         Boolean = ConcreteSlotValueType.Boolean,
         VirtualTexture = ConcreteSlotValueType.VirtualTexture,
 
+        // These allow the user to choose 'bare' types for custom function nodes
+        // they are treated specially in the conversion functions below
         BareSamplerState = 1000 + ConcreteSlotValueType.SamplerState,
         BareTexture2D = 1000 + ConcreteSlotValueType.Texture2D,
         BareTexture2DArray = 1000 + ConcreteSlotValueType.Texture2DArray,
