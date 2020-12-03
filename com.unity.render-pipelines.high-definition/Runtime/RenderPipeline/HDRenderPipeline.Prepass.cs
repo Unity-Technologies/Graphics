@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDUtils.PackedMipChainInfo GetDepthBufferMipChainInfo()
         {
-            // Initialize the MipChainInfo if nececcary. This will be necessary when rendering the first frame.
+            // Initialize the MipChainInfo if necessary. This will be necessary when rendering the first frame.
             if (m_DepthBufferMipChainInfo.textureSize == Vector2Int.zero)
             {
                 m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight));
