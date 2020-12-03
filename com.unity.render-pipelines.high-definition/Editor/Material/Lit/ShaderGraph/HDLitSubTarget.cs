@@ -223,7 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.CollectPassKeywords(ref pass);
             pass.keywords.Add(RefractionKeyword);
-            pass.keywords.Add(CoreKeywordDescriptors.AddForceForwardEmissive);
+            pass.keywords.Add(CoreKeywordDescriptors.ForceForwardEmissive);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)

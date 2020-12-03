@@ -1322,7 +1322,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
-        public static KeywordDescriptor AddForceForwardEmissive = new KeywordDescriptor
+        public static KeywordDescriptor ForceForwardEmissive = new KeywordDescriptor
         {
             displayName = "Add Force Forward Emissive",
             referenceName = "_FORCE_FORWARD_EMISSIVE",
