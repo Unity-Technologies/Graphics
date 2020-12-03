@@ -481,7 +481,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 displayName = "ForwardEmissiveForDeferred",
                 referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
                 lightMode = "ForwardEmissiveForDeferred",
-                useInPreview = true,
+                useInPreview = false,
 
                 // Collections
                 requiredFields = GenerateRequiredFields(),
@@ -504,10 +504,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes.Add(CoreIncludes.CorePregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassForwardEmissive, IncludeLocation.Postgraph);
+                includes.Add(CoreIncludes.kPassForwardEmissiveForDeferred, IncludeLocation.Postgraph);
                 return includes;
             }
         }

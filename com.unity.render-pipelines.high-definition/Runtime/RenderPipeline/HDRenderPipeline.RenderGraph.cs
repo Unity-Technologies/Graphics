@@ -148,8 +148,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
 
-                RenderForwardEmissiveOpaque(m_RenderGraph, hdCamera, colorBuffer, gpuLightListOutput, prepassOutput.depthBuffer, vtFeedbackBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
-
                 // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph culling to avoid doing the rest of the frame for nothing
                 if (aovRequest.isValid)
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Normals, hdCamera, prepassOutput.resolvedNormalBuffer, aovBuffers);
@@ -170,8 +168,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                     RenderSubsurfaceScattering(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, ref prepassOutput);
-
-                RenderForwardEmissive(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, cullingResults);
 
                 RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, msaa ? prepassOutput.depthAsColor : prepassOutput.depthPyramidTexture);
 
@@ -455,6 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public DBufferOutput    dbuffer;
             public LightingBuffers  lightingBuffers;
+            public bool             enableDecals;
         }
 
         class ForwardEmissiveOpaquePassData : ForwardPassData
@@ -525,12 +522,12 @@ namespace UnityEngine.Rendering.HighDefinition
             DBufferOutput               dbuffer,
             CullingResults              cullResults)
         {
-            bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
-
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
                 return;
 
-            using (var builder = renderGraph.AddRenderPass<ForwardOpaquePassData>(debugDisplay ? "Forward Opaque Debug" : "Forward Opaque",
+            bool debugDisplay = m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled();
+
+            using (var builder = renderGraph.AddRenderPass<ForwardOpaquePassData>(debugDisplay ? "Forward (+ Emissive) Opaque  Debug" : "Forward (+ Emissive) Opaque",
                 out var passData,
                 debugDisplay ? ProfilingSampler.Get(HDProfileId.ForwardOpaqueDebug) : ProfilingSampler.Get(HDProfileId.ForwardOpaque)))
             {
@@ -558,6 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.renderTargetCount = index;
                 }
 
+                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
                 passData.dbuffer = ReadDBuffer(dbuffer, builder);
                 passData.lightingBuffers = ReadLightingBuffers(lightingBuffers, builder);
 
@@ -574,46 +572,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
                         RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, context.renderContext, context.cmd);
+
+                        if (data.enableDecals)
+                            DecalSystem.instance.RenderForwardEmissive(context.cmd);
                     });
-            }
-        }
-
-        void RenderForwardEmissiveOpaque(RenderGraph        renderGraph,
-            HDCamera                    hdCamera,
-            TextureHandle               colorBuffer,
-            in BuildGPULightListOutput  lightLists,
-            TextureHandle               depthBuffer,
-            TextureHandle               vtFeedbackBuffer,
-            ShadowResult                shadowResult,
-            DBufferOutput               dbuffer,
-            CullingResults              cullResults)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
-                return;
-
-            if (m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.EmissiveLighting && m_CurrentDebugDisplaySettings.GetDebugLightingMode() != DebugLightingMode.None)
-                return;
-
-            using (var builder = renderGraph.AddRenderPass<ForwardEmissiveOpaquePassData>("Forward Opaque Emissive", out var passData, ProfilingSampler.Get(HDProfileId.ForwardEmissive)))
-            {
-                PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, PrepareForwardEmissiveOpaqueRendererList(cullResults, hdCamera), lightLists, depthBuffer, shadowResult);
-                passData.renderTarget[0] = builder.WriteTexture(colorBuffer);
-                passData.renderTargetCount = 1;
-                passData.dbuffer = ReadDBuffer(dbuffer, builder);
-
-                builder.SetRenderFunc(
-                (ForwardEmissiveOpaquePassData data, RenderGraphContext context) =>
-                {
-                    // TODO RENDERGRAPH: replace with UseColorBuffer when removing old rendering (SetRenderTarget is called inside RenderForwardRendererList because of that).
-                    var mrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.renderTargetCount);
-                    for (int i = 0; i < data.renderTargetCount; ++i)
-                        mrt[i] = data.renderTarget[i];
-
-                    BindGlobalLightListBuffers(data, context);
-                    BindDBufferGlobalData(data.dbuffer, context);
-
-                    RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, context.renderContext, context.cmd);
-                });
             }
         }
 
@@ -981,42 +943,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTransparentDepthPostpass(renderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, cullingResults);
 
             return colorBuffer;
-        }
-
-        class RenderForwardEmissivePassData
-        {
-            public bool enableDecals;
-            public RendererListHandle rendererList;
-        }
-
-        void RenderForwardEmissive(RenderGraph     renderGraph,
-            HDCamera        hdCamera,
-            TextureHandle   colorBuffer,
-            TextureHandle   depthStencilBuffer,
-            CullingResults  cullingResults)
-        {
-            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentObjects) &&
-                !hdCamera.frameSettings.IsEnabled(FrameSettingsField.OpaqueObjects))
-            {
-                return;
-            }
-
-            using (var builder = renderGraph.AddRenderPass<RenderForwardEmissivePassData>("ForwardEmissive", out var passData, ProfilingSampler.Get(HDProfileId.ForwardEmissive)))
-            {
-                builder.UseColorBuffer(colorBuffer, 0);
-                builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.ReadWrite);
-
-                passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
-                passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(PrepareForwardEmissiveRendererList(cullingResults, hdCamera)));
-
-                builder.SetRenderFunc(
-                    (RenderForwardEmissivePassData data, RenderGraphContext context) =>
-                    {
-                        CoreUtils.DrawRendererList(context.renderContext, context.cmd, data.rendererList);
-                        if (data.enableDecals)
-                            DecalSystem.instance.RenderForwardEmissive(context.cmd);
-                    });
-            }
         }
 
         // This is use to Display legacy shader with an error shader

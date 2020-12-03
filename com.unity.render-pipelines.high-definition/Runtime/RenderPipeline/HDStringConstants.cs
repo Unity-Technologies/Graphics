@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>RayTracing Prepass pass name.</summary>
         public static readonly string s_RayTracingPrepassStr = "RayTracingPrepass";
         /// <summary>Forward emissive pass name.</summary>
-        public static readonly string s_ForwardEmissiveStr = "ForwardEmissive";
+        public static readonly string s_ForwardEmissiveForDeferredStr = "ForwardEmissiveForDeferred";
         /// <summary>Visibility DXR pass name.</summary>
         public static readonly string s_RayTracingVisibilityStr = "VisibilityDXR";
         /// <summary>PathTracing DXR pass name.</summary>
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Forward Only shader tag id.</summary>
         public static readonly ShaderTagId s_ForwardOnlyName = new ShaderTagId(s_ForwardOnlyStr);
         /// <summary>Forward Emissive shader tag id.</summary>
-        public static readonly ShaderTagId s_ForwardEmissiveName = new ShaderTagId(s_ForwardEmissiveStr);
+        public static readonly ShaderTagId s_ForwardEmissiveForDeferredName = new ShaderTagId(s_ForwardEmissiveForDeferredStr);
         /// <summary>GBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
         /// <summary>GBufferWithPrepass shader tag id.</summary>
@@ -1061,13 +1061,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Emission
         internal const string kForceForwardEmissiveEnable = "_ForceForwardEmissiveEnable";
-        internal const string kEmissiveColorLDR = "_EmissiveColorLDR";
-        internal const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
-        internal const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
-        internal const string kEmissiveIntensityUnit = "_EmissiveIntensityUnit";
-        internal const string kEmissiveIntensity = "_EmissiveIntensity";
-        internal const string kEmissiveColor = "_EmissiveColor";
         internal const string kEmissiveColorMap = "_EmissiveColorMap";
-        internal const string kUVEmissive = "_UVEmissive";
     }
 }

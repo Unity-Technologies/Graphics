@@ -223,6 +223,7 @@ Shader "HDRP/Lit"
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _ReceivesSSRTransparent("Receives SSR Transparent", Float) = 0.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
+        [ToggleUI] _ForceForwardEmissiveEnable("ForceForwardEmissiveEnable", Float) = 0.0    
 
         // Ray Tracing
         [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
