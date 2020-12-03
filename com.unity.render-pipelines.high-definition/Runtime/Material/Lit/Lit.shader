@@ -907,14 +907,6 @@ Shader "HDRP/Lit"
             Name "ForwardEmissiveForDeferred"
             Tags{ "LightMode" = "ForwardEmissiveForDeferred" } // This pass is solely used with deferred opaque Material that have emissive
 
-            Stencil
-            {
-                WriteMask [_StencilWriteMask]
-                Ref [_StencilRef]
-                Comp Always
-                Pass Replace
-            }
-
             Blend One One
             // In case of forward we want to have depth equal for opaque mesh
             ZTest [_ZTestDepthEqualForOpaque]
@@ -926,13 +918,18 @@ Shader "HDRP/Lit"
             #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
-            #pragma instancing_options renderinglayer
             #pragma multi_compile _ DOTS_INSTANCING_ON
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE
-            #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile _ DEBUG_DISPLAY // This pass is only for opaque
+
+            #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED
+            // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+            #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
+                #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+            #endif 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
             #ifdef DEBUG_DISPLAY
@@ -942,7 +939,7 @@ Shader "HDRP/Lit"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardEmissive.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardEmissiveForDeferred.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag

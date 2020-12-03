@@ -74,5 +74,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_ClearCoat;
             set => m_ClearCoat = value;
         }
+
+        [SerializeField]
+        bool m_EmissionOverriden;
+        public bool emissionOverriden
+        {
+            get => m_EmissionOverriden;
+            set => m_EmissionOverriden = value;
+        }
     }
 }

@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         GBuffer,
         Forward,
-        ForwardEmissive,
+        ForwardEmissiveForDeferred,
         ForwardUnlit,
         DeferredLighting,
         DepthOnly,

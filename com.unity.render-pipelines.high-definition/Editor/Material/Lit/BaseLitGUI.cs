@@ -190,38 +190,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             material.SetupBaseUnlitPass();
 
-            bool emissiveIsActive = false;
-            bool emissionPassCanBeDisabled = false;
-            if (material.HasProperty(kUseEmissiveIntensity))
+            if (material.HasProperty(kForceForwardEmissiveEnable))
             {
-                emissionPassCanBeDisabled = true;
-                var useIntensity = material.GetInt(kUseEmissiveIntensity);
-                if (useIntensity == 0)
-                {
-                    if (material.HasProperty(kEmissiveColor))
-                    {
-                        var emissionColor = material.GetColor(kEmissiveColor);
-                        if (emissionColor.r > 0.0 || emissionColor.g > 0.0 || emissionColor.b > 0.0)
-                        {
-                            emissiveIsActive = true;
-                        }
-                    }
-                }
-                else
-                {
-                    if (material.HasProperty(kEmissiveIntensity))
-                    {
-                        var intensityValue = material.GetFloat(kEmissiveIntensity);
-                        if (intensityValue > 0.0)
-                        {
-                            emissiveIsActive = true;
-                        }
-                    }
-                }
+                bool forceForwardEmissiveEnable = (material.GetFloat(kForceForwardEmissiveEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissiveEnable);
             }
-
-            if (emissionPassCanBeDisabled)
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveStr, emissiveIsActive);
         }
-    }
 } // namespace UnityEditor

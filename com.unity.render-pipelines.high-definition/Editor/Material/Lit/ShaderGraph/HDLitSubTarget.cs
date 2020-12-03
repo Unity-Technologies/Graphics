@@ -63,8 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly());
             descriptor.passes.Add(HDShaderPasses.GenerateGBuffer());
             descriptor.passes.Add(HDShaderPasses.GenerateLitForward());
+            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(), new FieldCondition(HDFields.EmissionOverriden, true));
             descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
-            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissivePass(), new FieldCondition(HDFields.EmissionOverriden, true));
 
             return descriptor;
         }
@@ -135,6 +135,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(SpecularAA, lightingData.specularAA &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
+
+            // We need to grab the emission block to check if it is connected, or the default value is non null.
+            // If it is connected then we will generate an ForwardEmissiveForDeferred pass
+            bool emissionEnabled = false;
+            if (!context.connectedBlocks.Contains(BlockFields.SurfaceDescription.Emission))
+                emissionEnabled = !context.blocks.Contains((BlockFields.SurfaceDescription.Emission, true));
+            else
+                emissionEnabled = true;
+
+            litData.emissionOverriden = emissionEnabled;
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -222,6 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
                 hash = hash * 23 + subsurfaceScattering.GetHashCode();
+                hash = hash * 23 + litData.emissionOverriden.GetHashCode();
             }
 
             return hash;
