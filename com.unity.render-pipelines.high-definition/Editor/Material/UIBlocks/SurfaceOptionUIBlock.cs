@@ -136,6 +136,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent opaqueCullModeText = new GUIContent("Cull Mode", "For opaque objects, change the cull mode of the object.");
 
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
+
+            public static GUIContent overrideVertexColorText = new GUIContent("Override Vertex Color", "Exposes a vertex color interpolator.");
         }
 
         // Properties common to Unlit and Lit

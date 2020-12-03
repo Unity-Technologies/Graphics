@@ -137,6 +137,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         [SerializeField]
         internal int inspectorFoldoutMask;
+
+        [SerializeField]
+        internal bool m_overrideVertexColor = false;
+        public bool overrideVertexColor
+        {
+            get => m_overrideVertexColor;
+            set => m_overrideVertexColor = value;
+        }
+
     }
 
     static class HDSystemDataExtensions

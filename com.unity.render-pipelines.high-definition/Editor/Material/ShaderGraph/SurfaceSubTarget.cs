@@ -43,14 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual bool supportDistortion => false;
         protected override bool supportRaytracing => true;
 
-        [SerializeField]
-        bool m_overrideColorInterpolator = true;
-        public bool overrideColorInterpolator
-        {
-            get => m_overrideColorInterpolator;
-            set => m_overrideColorInterpolator = value;
-        }
-
         protected override int ComputeMaterialNeedsUpdateHash()
         {
             // Alpha test is currently the only property in buitin data to trigger the material upgrade script.
@@ -187,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.GetFields(ref context);
 
-            context.AddField(Fields.GraphColorInterp, overrideColorInterpolator);
+            context.AddField(Fields.GraphColorInterp, systemData.overrideVertexColor);
 
             if (supportDistortion)
                 AddDistortionFields(ref context);
@@ -255,7 +247,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.VertexDescription.Normal);
             context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.VertexDescription.VertexColor, m_overrideColorInterpolator);
+            context.AddBlock(BlockFields.VertexDescription.VertexColor, systemData.overrideVertexColor);
 
             // Surface
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);

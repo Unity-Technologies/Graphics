@@ -40,6 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
+            AddProperty(overrideVertexColorText, () => systemData.overrideVertexColor, (newValue) => systemData.overrideVertexColor = newValue);
+
             AddProperty(surfaceTypeText, () => systemData.surfaceType, (newValue) => {
                 systemData.surfaceType = newValue;
                 systemData.TryChangeRenderingPass(systemData.renderQueueType);
