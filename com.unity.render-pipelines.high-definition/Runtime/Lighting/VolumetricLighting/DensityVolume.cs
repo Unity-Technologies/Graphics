@@ -132,7 +132,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.atlasOffset.y /= (float)atlas.height;
             data.atlasOffset.z /= (float)atlas.volumeDepth;
             data.useVolumeMask  = volumeMask != null ? 1 : 0;
-            data.maskSize = volumeMask != null ? volumeMask.width : 0;
+            float volumeMaskSize = volumeMask != null ? (float)volumeMask.width : 0.0f; // Volume Mask Textures are always cubic
+            data.maskSize = new Vector4(volumeMaskSize / atlas.width, volumeMaskSize / atlas.height, volumeMaskSize / atlas.volumeDepth, volumeMaskSize);
             data.textureScroll  = textureOffset;
             data.textureTiling  = textureTiling;
 

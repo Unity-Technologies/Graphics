@@ -25,8 +25,8 @@ struct DensityVolumeEngineData
     float3 rcpNegFaceFade;
     int useVolumeMask;
     float3 atlasOffset;
-    int maskSize;
     int falloffMode;
+    float4 maskSize;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesVolumetric
@@ -102,13 +102,13 @@ float3 GetAtlasOffset(DensityVolumeEngineData value)
 {
     return value.atlasOffset;
 }
-int GetMaskSize(DensityVolumeEngineData value)
-{
-    return value.maskSize;
-}
 int GetFalloffMode(DensityVolumeEngineData value)
 {
     return value.falloffMode;
+}
+float4 GetMaskSize(DensityVolumeEngineData value)
+{
+    return value.maskSize;
 }
 
 #endif

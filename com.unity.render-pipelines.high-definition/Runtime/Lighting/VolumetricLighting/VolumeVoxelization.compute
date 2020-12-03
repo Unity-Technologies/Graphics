@@ -84,9 +84,9 @@ float ComputeFadeFactor(float3 coordNDC, float dist,
 
 float4 SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
 {
-    float maxLod         = log2(volumeData.maskSize);
+    float maxLod         = log2(volumeData.maskSize.w);
     // TODO: expose the LoD bias parameter.
-    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, volumeData.maskSize);
+    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, volumeData.maskSize.w);
     lod = clamp(lod, 0, maxLod);
 
     // TODO: bugfix.
@@ -97,7 +97,7 @@ float4 SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterND
     // If you use ceil(lod), the upper LoD effectively loses a texel at the border, which may break tileable textures.
     // For now, we choose the second option.
     // We support texture filtering across the wrap in Z in neither case.
-    int   textureSize   = (int)volumeData.maskSize;
+    int   textureSize   = (int)volumeData.maskSize.w;
     int   mipSize       = textureSize >> (int)ceil(lod);
     float halfTexelSize = 0.5f * rcp(mipSize);
 
@@ -107,8 +107,7 @@ float4 SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterND
 
     // And then a scale depending on the atlas resolution.
     // Note that the z coordinate is never scaled or offseted because we don't store textures in thsi direction.
-    voxelCenterUVW /= _VolumeMaskDimensions.xyz / volumeData.maskSize;
-    voxelCenterUVW += volumeData.atlasOffset;
+    voxelCenterUVW = voxelCenterUVW * volumeData.maskSize.xyz + volumeData.atlasOffset;
 
     // Reminder: still no filtering across the the wrap in Z.
     return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod);
