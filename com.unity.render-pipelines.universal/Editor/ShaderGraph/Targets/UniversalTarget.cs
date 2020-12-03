@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_AlphaClip = false;
 
         [SerializeField]
-        bool m_overrideColorInterpolator = false;
+        bool m_overrideVertexColor = false;
 
         [SerializeField]
         string m_CustomEditorGUI;
@@ -141,10 +141,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AlphaClip = value;
         }
 
-        public bool overrideColorInterpolator
+        public bool overrideVertexColor
         {
-            get => m_overrideColorInterpolator;
-            set => m_overrideColorInterpolator = value;
+            get => m_overrideVertexColor;
+            set => m_overrideVertexColor = value;
         }
 
         public string customEditorGUI
@@ -200,7 +200,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 descs.Contains(BlockFields.VertexDescription.VertexColor));
             context.AddField(Fields.GraphColorInterp,
                 descs.Contains(BlockFields.VertexDescription.VertexColor) &&
-                overrideColorInterpolator);
+                overrideVertexColor);
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip,              alphaClip);
             context.AddField(Fields.DoubleSided,            twoSided);
@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.VertexDescription.Normal);
             context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.VertexDescription.VertexColor, m_overrideColorInterpolator);
+            context.AddBlock(BlockFields.VertexDescription.VertexColor, overrideVertexColor);
 
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
 
@@ -246,12 +246,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Override Color Interpolator", new Toggle() { value = overrideColorInterpolator }, (evt) =>
+            context.AddProperty("Override Vertex Color", new Toggle() { value = overrideColorInterpolator }, (evt) =>
             {
                 if (Equals(overrideColorInterpolator, evt.newValue))
                     return;
 
-                registerUndo("Change Override Color Interpolator");
+                registerUndo("Change Override Vertex Color");
                 overrideColorInterpolator = evt.newValue;
                 onChange();
             });
