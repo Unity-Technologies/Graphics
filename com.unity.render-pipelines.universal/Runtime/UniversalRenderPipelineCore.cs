@@ -287,6 +287,10 @@ namespace UnityEngine.Rendering.Universal
 
     public struct PostProcessingData
     {
+        /// <summary>
+        /// Post process data used.
+        /// </summary>
+        public PostProcessData resources;
         public ColorGradingMode gradingMode;
         public int lutSize;
         /// <summary>
