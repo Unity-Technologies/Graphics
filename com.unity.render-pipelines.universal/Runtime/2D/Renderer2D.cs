@@ -6,11 +6,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal class Renderer2D : ScriptableRenderer
     {
-        ColorGradingLutPass m_ColorGradingLutPass;
         Render2DLightingPass m_Render2DLightingPass;
-        PostProcessPass m_PostProcessPass;
         FinalBlitPass m_FinalBlitPass;
-        PostProcessPass m_FinalPostProcessPass;
         Light2DCullResult m_LightCullResult;
 
         private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Create Camera Textures");
@@ -21,19 +18,21 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         readonly RenderTargetHandle k_ColorTextureHandle;
         readonly RenderTargetHandle k_DepthTextureHandle;
-        readonly RenderTargetHandle k_AfterPostProcessColorHandle;
-        readonly RenderTargetHandle k_ColorGradingLutHandle;
 
         Material m_BlitMaterial;
         Material m_SamplingMaterial;
 
         Renderer2DData m_Renderer2DData;
 
-        PostProcessData m_RendererPostProcessData;
-        PostProcessData m_CurrentPostProcessData;
-
         internal bool createColorTexture => m_CreateColorTexture;
         internal bool createDepthTexture => m_CreateDepthTexture;
+
+        PostProcessPasses m_PostProcessPasses;
+        internal ColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
+        internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
+        internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
+        internal RenderTargetHandle afterPostProcessColorHandle { get => m_PostProcessPasses.afterPostProcessColor; }
+        internal RenderTargetHandle colorGradingLutHandle { get => m_PostProcessPasses.colorGradingLut; }
 
         public Renderer2D(Renderer2DData data) : base(data)
         {
@@ -44,10 +43,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
 #pragma warning disable 618 // Obsolete warning
-            m_RendererPostProcessData = data.postProcessData;
+            m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
 #pragma warning restore 618 // Obsolete warning
-            k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
-            k_ColorGradingLutHandle.Init("_InternalGradingLut");
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
@@ -69,10 +66,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
-            // always dispose unmanaged resources
-            m_ColorGradingLutPass?.Cleanup();
-            m_PostProcessPass?.Cleanup();
-            m_FinalPostProcessPass?.Cleanup();
+            m_PostProcessPasses.Dispose();
         }
 
         public Renderer2DData GetRenderer2DData()
@@ -184,10 +178,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
-            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_ColorGradingLutPass != null)
+            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)
             {
-                m_ColorGradingLutPass.Setup(k_ColorGradingLutHandle);
-                EnqueuePass(m_ColorGradingLutPass);
+                colorGradingLutPass.Setup(colorGradingLutHandle);
+                EnqueuePass(colorGradingLutPass);
             }
 
             var hasValidDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
@@ -195,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 
-            RecreatePostProcessPasses(m_RendererPostProcessData ? m_RendererPostProcessData : renderingData.postProcessingData.resources);
+            m_PostProcessPasses.Recreate(renderingData.postProcessingData.resources);
 
             // When using Upscale Render Texture on a Pixel Perfect Camera, we want all post-processing effects done with a low-res RT,
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
@@ -203,28 +197,28 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool requireFinalPostProcessPass =
                 lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
-            if (stackHasPostProcess && m_PostProcessPass != null)
+            if (stackHasPostProcess && m_PostProcessPasses.isCreated)
             {
                 RenderTargetHandle postProcessDestHandle =
-                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : k_AfterPostProcessColorHandle;
+                    lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : afterPostProcessColorHandle;
 
-                m_PostProcessPass.Setup(
+                postProcessPass.Setup(
                     cameraTargetDescriptor,
                     colorTargetHandle,
                     postProcessDestHandle,
                     depthTargetHandle,
-                    k_ColorGradingLutHandle,
+                    colorGradingLutHandle,
                     requireFinalPostProcessPass,
                     postProcessDestHandle == RenderTargetHandle.CameraTarget);
 
-                EnqueuePass(m_PostProcessPass);
+                EnqueuePass(postProcessPass);
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (requireFinalPostProcessPass && m_FinalPostProcessPass != null)
+            if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
             {
-                m_FinalPostProcessPass.SetupFinalPass(colorTargetHandle);
-                EnqueuePass(m_FinalPostProcessPass);
+                finalPostProcessPass.SetupFinalPass(colorTargetHandle);
+                EnqueuePass(finalPostProcessPass);
             }
             else if (lastCameraInStack && colorTargetHandle != RenderTargetHandle.CameraTarget)
             {
@@ -248,37 +242,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             if (m_CreateDepthTexture)
                 cmd.ReleaseTemporaryRT(k_DepthTextureHandle.id);
-        }
-
-        /// <summary>
-        /// Recreate post process passes. If renderer already contains valid post process passes, they will be replaced by new ones.
-        /// </summary>
-        /// <param name="data">Resources used for creating passes. In case of the null, no passes will be created.</param>
-        private void RecreatePostProcessPasses(PostProcessData data)
-        {
-            if (data == m_CurrentPostProcessData)
-                return;
-
-            if (m_CurrentPostProcessData != null)
-            {
-                m_ColorGradingLutPass?.Cleanup();
-                m_PostProcessPass?.Cleanup();
-                m_FinalPostProcessPass?.Cleanup();
-
-                // We need to null post process passes to avoid using them
-                m_ColorGradingLutPass = null;
-                m_PostProcessPass = null;
-                m_FinalPostProcessPass = null;
-                m_CurrentPostProcessData = null;
-            }
-
-            if (data != null)
-            {
-                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data);
-                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data, m_BlitMaterial);
-                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data, m_BlitMaterial);
-                m_CurrentPostProcessData = data;
-            }
         }
     }
 }

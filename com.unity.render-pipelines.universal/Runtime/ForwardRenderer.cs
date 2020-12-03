@@ -34,7 +34,6 @@ namespace UnityEngine.Rendering.Universal
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
         internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame()  ? RenderingMode.Forward : this.renderingMode; } }
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } }
-        ColorGradingLutPass m_ColorGradingLutPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -52,8 +51,6 @@ namespace UnityEngine.Rendering.Universal
         TransparentSettingsPass m_TransparentSettingsPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
-        PostProcessPass m_PostProcessPass;
-        PostProcessPass m_FinalPostProcessPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -72,8 +69,6 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_NormalsTexture;
         RenderTargetHandle[] m_GBufferHandles;
         RenderTargetHandle m_OpaqueColor;
-        RenderTargetHandle m_AfterPostProcessColor;
-        RenderTargetHandle m_ColorGradingLut;
         // For tiled-deferred shading.
         RenderTargetHandle m_DepthInfoTexture;
         RenderTargetHandle m_TileDepthInfoTexture;
@@ -82,8 +77,6 @@ namespace UnityEngine.Rendering.Universal
         DeferredLights m_DeferredLights;
         RenderingMode m_RenderingMode;
         StencilState m_DefaultStencilState;
-        PostProcessData m_RendererPostProcessData;
-        PostProcessData m_CurrentPostProcessData;
 
         // Materials used in URP Scriptable Render Passes
         Material m_BlitMaterial = null;
@@ -92,6 +85,13 @@ namespace UnityEngine.Rendering.Universal
         Material m_TileDepthInfoMaterial = null;
         Material m_TileDeferredMaterial = null;
         Material m_StencilDeferredMaterial = null;
+
+        PostProcessPasses m_PostProcessPasses;
+        internal ColorGradingLutPass colorGradingLutPass { get => m_PostProcessPasses.colorGradingLutPass; }
+        internal PostProcessPass postProcessPass { get => m_PostProcessPasses.postProcessPass; }
+        internal PostProcessPass finalPostProcessPass { get => m_PostProcessPasses.finalPostProcessPass; }
+        internal RenderTargetHandle afterPostProcessColor { get => m_PostProcessPasses.afterPostProcessColor; }
+        internal RenderTargetHandle colorGradingLut { get => m_PostProcessPasses.colorGradingLut; }
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
@@ -177,10 +177,8 @@ namespace UnityEngine.Rendering.Universal
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
 
 #pragma warning disable 618 // Obsolete warning
-            m_RendererPostProcessData = data.postProcessData;
+            m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
 #pragma warning restore 618 // Obsolete warning
-            m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
-            m_ColorGradingLut.Init("_InternalGradingLut");
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
@@ -232,10 +230,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
-            // always dispose unmanaged resources
-            m_ColorGradingLutPass?.Cleanup();
-            m_PostProcessPass?.Cleanup();
-            m_FinalPostProcessPass?.Cleanup();
+            m_PostProcessPasses.Dispose();
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
@@ -295,16 +290,16 @@ namespace UnityEngine.Rendering.Universal
             isCameraColorTargetValid = false;
             RenderPassInputSummary renderPassInputs = GetRenderPassInputs(ref renderingData);
 
-            RecreatePostProcessPasses(m_RendererPostProcessData ? m_RendererPostProcessData : renderingData.postProcessingData.resources);
+            m_PostProcessPasses.Recreate(renderingData.postProcessingData.resources);
 
             // Should apply post-processing after rendering this camera?
-            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPass != null;
+            bool applyPostProcessing = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
 
             // There's at least a camera in the camera stack that applies post-processing
-            bool anyPostProcessing = renderingData.postProcessingEnabled && m_FinalPostProcessPass != null;
+            bool anyPostProcessing = renderingData.postProcessingEnabled && m_PostProcessPasses.isCreated;
 
             // TODO: We could cache and generate the LUT before rendering the stack
-            bool generateColorGradingLUT = cameraData.postProcessEnabled && m_ColorGradingLutPass != null;
+            bool generateColorGradingLUT = cameraData.postProcessEnabled && m_PostProcessPasses.isCreated;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture || renderPassInputs.requiresDepthTexture || this.actualRenderingMode == RenderingMode.Deferred;
 
@@ -416,8 +411,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (generateColorGradingLUT)
             {
-                m_ColorGradingLutPass.Setup(m_ColorGradingLut);
-                EnqueuePass(m_ColorGradingLutPass);
+                colorGradingLutPass.Setup(colorGradingLut);
+                EnqueuePass(colorGradingLutPass);
             }
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -489,23 +484,23 @@ namespace UnityEngine.Rendering.Universal
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
-                    var destination = resolvePostProcessingToCameraTarget ? RenderTargetHandle.CameraTarget : m_AfterPostProcessColor;
+                    var destination = resolvePostProcessingToCameraTarget ? RenderTargetHandle.CameraTarget : afterPostProcessColor;
 
                     // if resolving to screen we need to be able to perform sRGBConvertion in post-processing if necessary
                     bool doSRGBConvertion = resolvePostProcessingToCameraTarget;
-                    m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, m_ColorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
-                    EnqueuePass(m_PostProcessPass);
+                    postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
+                    EnqueuePass(postProcessPass);
                 }
 
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
-                var sourceForFinalPass = (applyPostProcessing) ? m_AfterPostProcessColor : m_ActiveCameraColorAttachment;
+                var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : m_ActiveCameraColorAttachment;
 
                 // Do FXAA or any other final post-processing effect that might need to run after AA.
                 if (applyFinalPostProcessing)
                 {
-                    m_FinalPostProcessPass.SetupFinalPass(sourceForFinalPass);
-                    EnqueuePass(m_FinalPostProcessPass);
+                    finalPostProcessPass.SetupFinalPass(sourceForFinalPass);
+                    EnqueuePass(finalPostProcessPass);
                 }
 
                 if (renderingData.cameraData.captureActions != null)
@@ -546,8 +541,8 @@ namespace UnityEngine.Rendering.Universal
             // stay in RT so we resume rendering on stack after post-processing
             else if (applyPostProcessing)
             {
-                m_PostProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, m_AfterPostProcessColor, m_ActiveCameraDepthAttachment, m_ColorGradingLut, false, false);
-                EnqueuePass(m_PostProcessPass);
+                postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
+                EnqueuePass(postProcessPass);
             }
 
 #if UNITY_EDITOR
@@ -801,37 +796,6 @@ namespace UnityEngine.Rendering.Universal
             //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
             bool msaaDepthResolve = false;
             return supportsDepthCopy || msaaDepthResolve;
-        }
-
-        /// <summary>
-        /// Recreate post process passes. If renderer already contains valid post process passes, they will be replaced by new ones.
-        /// </summary>
-        /// <param name="data">Resources used for creating passes. In case of the null, no passes will be created.</param>
-        private void RecreatePostProcessPasses(PostProcessData data)
-        {
-            if (data == m_CurrentPostProcessData)
-                return;
-
-            if (m_CurrentPostProcessData != null)
-            {
-                m_ColorGradingLutPass?.Cleanup();
-                m_PostProcessPass?.Cleanup();
-                m_FinalPostProcessPass?.Cleanup();
-
-                // We need to null post process passes to avoid using them
-                m_ColorGradingLutPass = null;
-                m_PostProcessPass = null;
-                m_FinalPostProcessPass = null;
-                m_CurrentPostProcessData = null;
-            }
-
-            if (data != null)
-            {
-                m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrePasses, data);
-                m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data, m_BlitMaterial);
-                m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data, m_BlitMaterial);
-                m_CurrentPostProcessData = data;
-            }
         }
     }
 }

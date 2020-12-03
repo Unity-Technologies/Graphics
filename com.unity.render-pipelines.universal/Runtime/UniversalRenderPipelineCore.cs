@@ -287,16 +287,16 @@ namespace UnityEngine.Rendering.Universal
 
     public struct PostProcessingData
     {
-        /// <summary>
-        /// Post process data used.
-        /// </summary>
-        public PostProcessData resources;
         public ColorGradingMode gradingMode;
         public int lutSize;
         /// <summary>
         /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
         /// </summary>
         public bool useFastSRGBLinearConversion;
+        /// <summary>
+        /// Post process data materials and texture.
+        /// </summary>
+        internal PostProcessData resources;
     }
 
     public static class ShaderKeywordStrings
