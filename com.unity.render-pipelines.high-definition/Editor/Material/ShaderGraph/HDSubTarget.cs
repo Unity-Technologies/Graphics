@@ -161,6 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Replace valid pixel blocks by automatic thing so we don't have to write them
                 var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
                 GetActiveBlocks(ref tmpCtx);
+                //GetActiveBlocks(ref tmpCtx);
                 if (passDescriptor.validPixelBlocks == null)
                     passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
                 if (passDescriptor.validVertexBlocks == null)

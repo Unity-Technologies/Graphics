@@ -53,6 +53,7 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescription.Position: input.positionOS = vertexDescription.Position;
     $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
+    $VertexDescription.VertexColor: input.color = vertexDescription.VertexColor;
 
     return input;
 }

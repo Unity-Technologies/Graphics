@@ -53,6 +53,7 @@ Pass
     $VaryingsMeshToPS.vertexID:         #define VARYINGS_NEED_VERTEXID
 
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
+    $features.graphColorInterp:         #define FEATURES_GRAPH_COLOR_INTERP
 
     $SurfaceDescriptionInputs.FaceSign:     // Define when IsFontFaceNode is included in ShaderGraph
     $SurfaceDescriptionInputs.FaceSign:     #define VARYINGS_NEED_CULLFACE
