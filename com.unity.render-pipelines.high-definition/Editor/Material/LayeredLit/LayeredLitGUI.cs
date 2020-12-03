@@ -165,12 +165,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 : (material.HasProperty(kReceivesSSRTransparent) ? material.GetInt(kReceivesSSRTransparent) != 0 : false);
             BaseLitGUI.SetupStencil(material, receiveSSR, material.GetMaterialId() == MaterialId.LitSSS);
 
-            if (material.HasProperty(kAddPrecomputedVelocity))
-            {
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
-            }
-
-
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 NormalMapSpace normalMapSpace = ((NormalMapSpace)material.GetFloat(kNormalMapSpace + i));

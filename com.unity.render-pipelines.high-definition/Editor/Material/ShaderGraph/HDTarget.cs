@@ -1322,6 +1322,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Local,
         };
 
+        public static KeywordDescriptor AddForceForwardEmissive = new KeywordDescriptor
+        {
+            displayName = "Add Force Forward Emissive",
+            referenceName = "_FORCE_FORWARD_EMISSIVE",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
         public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor
         {
             displayName = "Transparent Writes Motion Vector",

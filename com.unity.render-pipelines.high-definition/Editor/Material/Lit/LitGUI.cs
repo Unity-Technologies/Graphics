@@ -190,11 +190,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 var canHaveRefraction = material.GetSurfaceType() == SurfaceType.Transparent && !HDRenderQueue.k_RenderQueue_PreRefraction.Contains(material.renderQueue);
                 CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
             }
-
-            if (material.HasProperty(kAddPrecomputedVelocity))
-            {
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
-            }
         }
     }
 } // namespace UnityEditor

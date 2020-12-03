@@ -103,6 +103,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
             }
+
+            if (material.HasProperty(kAddForceForwardEmissive))
+            {
+                CoreUtils.SetKeyword(material, "_FORCE_FORWARD_EMISSIVE", material.GetInt(kAddForceForwardEmissive) != 0);
+            }
         }
 
         static public void SetupStencil(Material material, bool receivesSSR, bool useSplitLighting)
@@ -190,10 +195,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             material.SetupBaseUnlitPass();
 
-            if (material.HasProperty(kForceForwardEmissiveEnable))
+            if (material.HasProperty(kForceForwardEmissive))
             {
-                bool forceForwardEmissiveEnable = (material.GetFloat(kForceForwardEmissiveEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissiveEnable);
+                bool forceForwardEmissive = (material.GetFloat(kForceForwardEmissive) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissive);
             }
         }
 } // namespace UnityEditor

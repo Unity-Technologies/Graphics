@@ -32,8 +32,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EmissionGI              = 1 << 4,
             /// <summary>Display the motion vector field.</summary>
             MotionVector            = 1 << 5,
-            /// <summary>Display the fields for Lit shaders.</summary>
-            StandardLit             = Instancing | SpecularOcclusion | AddPrecomputedVelocity,
+            /// <summary>Display the ForceForwardEmissive for the shaders.</summary>
+            ForceForwardEmissive    = 1 << 6,
+            /// <summary>Display the fields for the shaders.</summary>
+            StandardLit             = Instancing | SpecularOcclusion | AddPrecomputedVelocity | ForceForwardEmissive,
             /// <summary>Display all the field.</summary>
             All                     = ~0
         }
@@ -45,13 +47,16 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent addPrecomputedVelocityText = new GUIContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
             public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
             public static readonly GUIContent motionVectorForVertexAnimationText = new GUIContent("Motion Vector For Vertex Animation", "When enabled, HDRP will correctly handle velocity for vertex animated object. Only enable if there is vertex animation in the ShaderGraph.");
+            public static GUIContent forceForwardEmissiveText = new GUIContent("Force Forward Emissive", "When in Lit shader mode: Deferred. It force the emissive part of the material to be render into an additional forward pass. This can improve quality and solve artifact with effects (SSGI) but have additional CPU and GPU cost.");            
         }
 
         MaterialProperty specularOcclusionMode = null;
         MaterialProperty addPrecomputedVelocity = null;
+        MaterialProperty forceForwardEmissive = null;
 
         const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
         const string kAddPrecomputedVelocity = HDMaterialProperties.kAddPrecomputedVelocity;
+        const string kForceForwardEmissive = HDMaterialProperties.kForceForwardEmissive;
 
         ExpandableBit  m_ExpandableBit;
         Features    m_Features;
@@ -85,6 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             addPrecomputedVelocity = FindProperty(kAddPrecomputedVelocity);
+            forceForwardEmissive = FindProperty(kForceForwardEmissive);            
         }
 
         /// <summary>
@@ -123,6 +129,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (addPrecomputedVelocity != null)
                     materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
+            }
+            if ((m_Features & Features.ForceForwardEmissive) != 0)
+            {
+                if (forceForwardEmissive != null)
+                    materialEditor.ShaderProperty(forceForwardEmissive, Styles.forceForwardEmissiveText);
             }
         }
 

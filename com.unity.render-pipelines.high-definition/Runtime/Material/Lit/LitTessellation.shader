@@ -234,7 +234,7 @@ Shader "HDRP/LitTessellation"
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
-        [ToggleUI] _ForceForwardEmissiveEnable("ForceForwardEmissiveEnable", Float) = 0.0
+        [ToggleUI] _ForceForwardEmissive("ForceForwardEmissive", Float) = 0.0
 
 
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
@@ -295,6 +295,8 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
+    // not local as it is use in shader stripper to discard the pass if not needed
+    #pragma shader_feature      _FORCE_FORWARD_EMISSIVE
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent

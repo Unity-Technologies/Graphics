@@ -376,7 +376,7 @@ Shader "HDRP/LayeredLit"
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
-        [ToggleUI] _ForceForwardEmissiveEnable("ForceForwardEmissiveEnable", Float) = 0.0
+        [ToggleUI] _ForceForwardEmissive("ForceForwardEmissive", Float) = 0.0
 
         // Ray Tracing
         [ToggleUI] _RayTracing("Ray Tracing (Preview)", Float) = 0
@@ -466,6 +466,8 @@ Shader "HDRP/LayeredLit"
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
+    // not local as it is use in shader stripper to discard the pass if not needed
+    #pragma shader_feature      _FORCE_FORWARD_EMISSIVE
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

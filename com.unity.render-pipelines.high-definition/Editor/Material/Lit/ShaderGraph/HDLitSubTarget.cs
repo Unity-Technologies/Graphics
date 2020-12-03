@@ -208,12 +208,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 enumNames = Enum.GetNames(typeof(ScreenSpaceRefraction.RefractionModel)).ToList(),
                 overrideReferenceName = kRefractionModel,
             });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.forceForwardEmissive,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                overrideReferenceName = kForceForwardEmissive,
+            });
         }
 
         protected override void CollectPassKeywords(ref PassDescriptor pass)
         {
             base.CollectPassKeywords(ref pass);
             pass.keywords.Add(RefractionKeyword);
+            pass.keywords.Add(CoreKeywordDescriptors.AddForceForwardEmissive);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
