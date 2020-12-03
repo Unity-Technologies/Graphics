@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Operator
                 if (source == SampleMesh.SourceType.Mesh)
                     return "Mesh Vertex Count";
                 else
-                    return "Skinned Mesh Renderer Vertex Count";
+                    return "Skinned Mesh Vertex Count";
             }
         }
 
