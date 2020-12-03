@@ -8,8 +8,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-    #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
     #pragma multi_compile_local _ SKY_MOTION
     #pragma multi_compile_local _ USE_FLOWMAP
 
