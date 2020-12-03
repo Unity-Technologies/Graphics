@@ -1,10 +1,10 @@
 # Exposure
 
-To work with physically-based lighting and Materials, you need to set up the Scene exposure correctly. The High Definition Render Pipeline (HDRP) includes several methods for calculating exposure to suit most use cases. HDRP expresses all exposure values that it uses in [EV<sub>100</sub>](Physical-Light-Units.html#EV).
+To work with physically-based lighting and Materials, you need to set up the Scene exposure correctly. The High Definition Render Pipeline (HDRP) includes several methods for calculating exposure to suit most use cases. HDRP expresses all exposure values that it uses in [EV<sub>100</sub>](Physical-Light-Units.md#EV).
 
 ## Using Exposure
 
-**Exposure** uses the [Volume](Volumes.html) framework, so to enable and modify **Exposure** properties, you must add an **Exposure** override to a [Volume](Volumes.html) in your Scene. To add **Exposure** to a Volume:
+**Exposure** uses the [Volume](Volumes.md) framework, so to enable and modify **Exposure** properties, you must add an **Exposure** override to a [Volume](Volumes.md) in your Scene. To add **Exposure** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, go to **Add Override** and click on **Exposure**. HDRP now applies **Exposure** correction to any Camera this Volume affects.
@@ -12,6 +12,8 @@ To work with physically-based lighting and Materials, you need to set up the Sce
 ## Properties
 
 ![](Images/Override-Exposure1.png)
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
@@ -21,7 +23,7 @@ To work with physically-based lighting and Materials, you need to set up the Sce
 
 ### Fixed
 
-This is the simplest, and least flexible, method for calculating exposure but it is very useful when you have a Scene with a relatively uniform exposure or when you want to take images of static areas. You can also use local [Volumes](Volumes.html) to blend between various fixed exposure values in your Scenes.
+This is the simplest, and least flexible, method for calculating exposure but it is very useful when you have a Scene with a relatively uniform exposure or when you want to take images of static areas. You can also use local [Volumes](Volumes.md) to blend between various fixed exposure values in your Scenes.
 
 #### Properties
 
@@ -87,7 +89,7 @@ To configure **Automatic Mode**, select the **Metering Mode**. This tells the Ca
   
   | **Property**                      | **Description**                                              |
   | --------------------------------- | ------------------------------------------------------------ |
-  | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the [Camera](HDRP-Camera.html). |
+  | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the [Camera](HDRP-Camera.md). |
   | **Center**                        | Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen). Available only when **Center Around Exposure target**  is disabled. |
   | **Offset**                        | Sets an offset to where mask is centered . Available only when **Center Around Exposure target**  is enabled. |
   | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions). |

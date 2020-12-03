@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Polygon";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Polygon", BindingFlags.Static | BindingFlags.NonPublic);
@@ -25,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(4, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     $precision pi = 3.14159265359;
     $precision aWidth = Width * cos(pi / Sides);

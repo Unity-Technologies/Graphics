@@ -33,18 +33,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         Mesh m_PreviousMesh;
 
-        bool m_Expanded = true;
-
-        public bool expanded
-        {
-            get { return m_Expanded; }
-        }
-
         bool m_RecalculateLayout;
 
-        Vector2 m_ExpandedPreviewSize;
-
-        VisualElement m_CollapsePreviewContainer;
         ResizeBorderFrame m_PreviewResizeBorderFrame;
 
         public ResizeBorderFrame previewResizeBorderFrame
@@ -89,12 +79,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 m_Title = new Label() { name = "title" };
                 m_Title.text = "Main Preview";
-                // Add preview collapse button on top of preview
-                m_CollapsePreviewContainer = new VisualElement { name = "collapse-container" };
-                m_CollapsePreviewContainer.AddToClassList("collapse-container");
 
                 topContainer.Add(m_Title);
-                topContainer.Add(m_CollapsePreviewContainer);
             }
             Add(topContainer);
 
@@ -111,7 +97,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewResizeBorderFrame.maintainAspectRatio = true;
             Add(m_PreviewResizeBorderFrame);
 
-            m_ExpandedPreviewSize = new Vector2(256f, 256f);
             m_RecalculateLayout = false;
             this.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
@@ -204,9 +189,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 dockingLayout.ApplyPosition(this);
                 m_RecalculateLayout = false;
             }
-
-            if (!expanded)
-                return;
 
             var currentWidth = m_PreviewRenderHandle?.texture != null ? m_PreviewRenderHandle.texture.width : -1;
             var currentHeight = m_PreviewRenderHandle?.texture != null ? m_PreviewRenderHandle.texture.height : -1;

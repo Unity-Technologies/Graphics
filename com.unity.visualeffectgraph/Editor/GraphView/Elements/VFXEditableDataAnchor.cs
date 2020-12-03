@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXEditableDataAnchor.Create");
 
             var anchor = new VFXEditableDataAnchor(controller.orientation, controller.direction, controller.portType, node);
-            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
+            anchor.m_EdgeConnector = new VFXEdgeConnector(anchor);
             anchor.controller = controller;
             anchor.AddManipulator(anchor.m_EdgeConnector);
             Profiler.EndSample();

@@ -1,6 +1,6 @@
 # Custom Post Process
 
-The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volume](Volumes.html). A custom effect needs two files. A **C# Custom Post Process**(C# file) and an associated **FullScreen Shader** (HLSL file). You can generate a template of each:
+The High Definition Render Pipeline (HDRP) allows you to write your own post-processing effects that automatically integrate into [Volume](Volumes.md). A custom effect needs two files. A **C# Custom Post Process**(C# file) and an associated **FullScreen Shader** (HLSL file). You can generate a template of each:
 
 * **C# Custom Post Process**: Right click in the Assets folder and select **Create > Rendering > C# Post Process Volume**.
 
@@ -31,23 +31,16 @@ This example shows you how to create a **grayscale** effect. To get started:
 ### GrayScale C# script
 
 This is the C# Custom Post Process file. Custom post-process effects store both configuration data and logic in the same class. To create the settings for the effect, you can either use a pre-existing class that inherits from [VolumeParameter<T>](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.VolumeParameter-1.html), or, if you want to use a property that the pre-existing classes do not include, create a new class that inherits from VolumeParameter<T>.
-```
+```CSharp
 using UnityEngine;
-
 using UnityEngine.Rendering;
-
 using UnityEngine.Rendering.HighDefinition;
-
 using System;
 
 [Serializable, VolumeComponentMenu("Post-processing/Custom/GrayScale")]
-
 public sealed class GrayScale : CustomPostProcessVolumeComponent, IPostProcessComponent
-
 {
-
     [Tooltip("Controls the intensity of the effect.")]
-    
     public ClampedFloatParameter intensity = new ClampedFloatParameter(0f, 0f, 1f);
     
     Material m_Material;
@@ -57,29 +50,19 @@ public sealed class GrayScale : CustomPostProcessVolumeComponent, IPostProcessCo
     public override CustomPostProcessInjectionPoint injectionPoint => CustomPostProcessInjectionPoint.AfterPostProcess;
     
     public override void Setup()
-    
     {
-    
         if (Shader.Find("Hidden/Shader/GrayScale") != null)
-    
             m_Material = new Material(Shader.Find("Hidden/Shader/GrayScale"));
-    
     }
     
     public override void Render(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination)
-    
     {
-    
         if (m_Material == null)
-    
             return;
     
         m_Material.SetFloat("_Intensity", intensity.value);
-    
         m_Material.SetTexture("_InputTexture", source);
-    
         HDUtils.DrawFullScreen(cmd, m_Material, destination);
-    
     }
     
     public override void Cleanup() => CoreUtils.Destroy(m_Material);
@@ -116,127 +99,90 @@ Now there are the **Setup**, **Render**, and **Cleanup** functions. These are he
 ### GrayScale Shader
 
 HDRP gives you total control over the vertex and fragment Shader so you can edit both of them to suit your needs. Note that there are a number of utility functions in [Common.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl) and [Color.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl) that the Shader includes by default. This means that you have access to these utility functions in your effect. For example, the GrayScale Shader uses the Luminance() function to convert a linear RGB value to its luminance equivalent.
-```
+```glsl
 Shader "Hidden/Shader/GrayScale"
-
 {
-
     HLSLINCLUDE
     
     #pragma target 4.5
-    
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
     
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-    
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-    
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-    
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/FXAA.hlsl"
-    
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/RTUpscale.hlsl"
     
     struct Attributes
-    
     {
-    
         uint vertexID : SV_VertexID;
-    
         UNITY_VERTEX_INPUT_INSTANCE_ID
-    
     };
     
     struct Varyings
-    
     {
-    
         float4 positionCS : SV_POSITION;
-    
         float2 texcoord   : TEXCOORD0;
-    
         UNITY_VERTEX_OUTPUT_STEREO
     
     };
     
     Varyings Vert(Attributes input)
-    
     {
-    
         Varyings output;
     
         UNITY_SETUP_INSTANCE_ID(input);
-    
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-    
         output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
     
         return output;
-    
     }
     
     // List of properties to control your post process effect
-    
     float _Intensity;
-    
     TEXTURE2D_X(_InputTexture);
     
     float4 CustomPostProcess(Varyings input) : SV_Target
-    
     {
-    
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
-    
         float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
-    
+
+        // We do the blending manually instead of relying on the hardware blend
+        // It's necessary because the color buffer contains garbage from the previous post process effect.
         return float4(lerp(outColor, Luminance(outColor).xxx, _Intensity), 1);
-    
     }
     
     ENDHLSL
     
     SubShader
-    
     {
-    
         Pass
-    
         {
-    
             Name "GrayScale"
     
             ZWrite Off
-    
             ZTest Always
-    
             Blend Off
-    
             Cull Off
     
             HLSLPROGRAM
-    
                 #pragma fragment CustomPostProcess
-    
                 #pragma vertex Vert
-    
             ENDHLSL
-    
         }
-    
     }
     
     Fallback Off
-
 }
 ```
 
 If none of your Scenes reference the Shader, Unity does not build the Shader and the effect does not work when you run your application outside of the Editor. To resolve this, either add the Shader to a [Resources folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html), or go to **Edit > Project Settings > Graphics** and add the Shader to the **Always Included Shaders** list.
 
-Note that, if you use the clip() instruction in your Shader, your effect breaks.
+:warning: Note that, when HDRP executes your post-process effect, it uses a render target pooling system. It means that you don't know what the current color buffer contains, which is why you should never use any instructions that could show this color buffer. Do not use transparency, blend modes, or the **clip()** instruction in your Shader, otherwise your effect breaks.
 
 #### Shader inputs
 
@@ -269,9 +215,11 @@ HDRP processes effects from the top of the list to the bottom and the order of e
 
 1. Before Transparent.
 
-2. Before Post Process.
+2. Before TAA
 
-3. After Post Process.
+3. Before Post Process.
+
+4. After Post Process.
 
 <a name="CustomEditor"></a>
 
@@ -322,7 +270,7 @@ sealed class GrayScaleEditor : VolumeComponentEditor
 
 }
 ```
-This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support a [more options button](More-Options.html). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
+This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support a [more options button](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
 
 ## TroubleShooting
 
@@ -333,3 +281,9 @@ If your effect does not display correctly:
 * Check that your effect's Shader compiles and that the reference to the Material in your post process Volume is not null.
 
 * In the Volume that contains your post process, make sure that it has a high enough priority and that your Camera is inside its bounds.
+
+* Check that your shader doesn't contain any **clip()** instructions, that the blend mode is set to Off and the output alpha is always 1.
+
+## Known issues and Limitations
+
+* Renaming a custom post process class name and file will remove it from the list in HDRP Project Settings causing the effect to not be rendered anymore.

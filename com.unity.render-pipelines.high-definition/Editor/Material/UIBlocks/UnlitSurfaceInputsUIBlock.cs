@@ -5,33 +5,46 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class UnlitSurfaceInputsUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents surface inputs for unlit materials.
+    /// </summary>
+    public class UnlitSurfaceInputsUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
             public const string header = "Surface Inputs";
 
             public static GUIContent colorText = new GUIContent("Color", " Albedo (RGB) and Transparency (A).");
         }
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
 
-        protected MaterialProperty color = null;
-        protected const string kColor = "_UnlitColor";
-        protected MaterialProperty colorMap = null;
-        protected const string kColorMap = "_UnlitColorMap";
+        MaterialProperty color = null;
+        const string kColor = "_UnlitColor";
+        MaterialProperty colorMap = null;
+        const string kColorMap = "_UnlitColorMap";
 
-        public UnlitSurfaceInputsUIBlock(Expandable expandableBit)
+        /// <summary>
+        /// Constructs an UnlitSurfaceInputsUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        public UnlitSurfaceInputsUIBlock(ExpandableBit expandableBit)
         {
             m_ExpandableBit = expandableBit;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             color = FindProperty(kColor);
             colorMap = FindProperty(kColorMap);
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))

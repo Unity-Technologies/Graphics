@@ -1,8 +1,10 @@
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.ShaderGraph
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Eye", "IrisOutOfBoundColorClamp (Preview)")]
     class IrisOutOfBoundColorClamp : CodeFunctionNode
     {
@@ -29,7 +31,7 @@ namespace UnityEditor.ShaderGraph
         {
             OutputColor = Vector3.zero;
             return
-                @"
+@"
                 {
                     OutputColor = (IrisUV.x < 0.0 || IrisUV.y < 0.0 || IrisUV.x > 1.0 || IrisUV.y > 1.0) ? ClampColor : IrisColor;
                 }

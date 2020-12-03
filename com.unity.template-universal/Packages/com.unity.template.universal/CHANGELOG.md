@@ -4,7 +4,20 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - XXXX-XX-XX
+### Changed 
+- Update SRP package to 11.0.0
+
+## [10.2.0] - 2020-10-19
+
+### Changed 
+- Update SRP package to 10.2.0
+
+## [10.1.0] - 2020-10-12
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.0.0] - 2020-08-03
 
 ### Changed
 - Updated version to Universal RP version 10.0.0
@@ -13,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed camera from always rendering into a RenderTexture, this caused un-needed performance slowdown
 
-## [7.1.7] - 2019-12-3
+## [7.1.7] - 2019-12-03
 - Editor will force text serialization to occur on one line
 
 ## [7.1.6] - 2019-11-22
@@ -137,14 +150,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Physics.autoSyncTransforms property now defaults to false.
 - Physics2D.autoSyncTransforms property now defaults to false.
 
-## [1.1.0] - 2018-24-10
+## [1.1.0] - 2018-10-24
 
 ### Changed
 - Updating LW Version 
 - AndroidTVCompatibility to false
 
 
-## [1.0.6] - 2018-24-09
+## [1.0.6] - 2018-09-24
 
 ### Changed
 - Oculus XR settings default to dash support and depth export enabled.
@@ -182,7 +195,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed Vertex Lighting from all lightweight assets
 - Added soft shadows to Lightweight high quality and medium quality assets
 
-## [1.0.0] - 2018-2-25
+## [1.0.0] - 2018-02-25
 
 ### Added
 - Sample static meshes to show best practices
@@ -195,17 +208,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Additional setting and lighting polish
 - Removing basic content (red cube)
 
-## [0.0.5] - 2018-1-29
+## [0.0.5] - 2018-01-29
 
 ### Added
 - cinemachine and text mesh pro packages
 
-## [0.0.4] - 2018-1-29
+## [0.0.4] - 2018-01-29
 
 ### Added
 - cinemachine and text mesh pro packages
 
-## [0.0.3] - 2018-1-26 
+## [0.0.3] - 2018-01-26 
 
 ### Changed 
 - Updating Shadergraph and lightweight to new version

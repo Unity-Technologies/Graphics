@@ -44,14 +44,21 @@ namespace UnityEditor.Rendering.Universal
             m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
             m_RendererFeaturesMap = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatureMap));
             var editorObj = new SerializedObject(this);
-            m_FalseBool =  editorObj.FindProperty(nameof(falseBool));
+            m_FalseBool = editorObj.FindProperty(nameof(falseBool));
             UpdateEditorList();
+        }
+
+        private void OnDisable()
+        {
+            ClearEditorsList();
         }
 
         public override void OnInspectorGUI()
         {
-            if(m_RendererFeatures == null)
+            if (m_RendererFeatures == null)
                 OnEnable();
+            else if (m_RendererFeatures.arraySize != m_Editors.Count)
+                UpdateEditorList();
 
             serializedObject.Update();
             DrawRendererFeatureList();
@@ -111,7 +118,17 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUI.BeginChangeCheck();
                     SerializedProperty nameProperty = serializedRendererFeaturesEditor.FindProperty("m_Name");
                     nameProperty.stringValue = ValidateName(EditorGUILayout.DelayedTextField(Styles.PassNameField, nameProperty.stringValue));
-                    hasChangedProperties |= EditorGUI.EndChangeCheck();
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        hasChangedProperties = true;
+
+                        // We need to update sub-asset name
+                        rendererFeatureObjRef.name = nameProperty.stringValue;
+                        AssetDatabase.SaveAssets();
+
+                        // Triggers update for sub-asset name change
+                        ProjectWindowUtil.ShowCreatedAsset(target);
+                    }
 
                     EditorGUI.BeginChangeCheck();
                     rendererFeatureEditor.OnInspectorGUI();
@@ -130,7 +147,7 @@ namespace UnityEditor.Rendering.Universal
             }
             else
             {
-                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature,renderFeatureProperty, m_FalseBool,pos => OnContextClick(pos, index));
+                CoreEditorUtils.DrawHeaderToggle(Styles.MissingFeature, renderFeatureProperty, m_FalseBool, pos => OnContextClick(pos, index));
                 m_FalseBool.boolValue = false; // always make sure false bool is false
                 EditorGUILayout.HelpBox(Styles.MissingFeature.tooltip, MessageType.Error);
                 if (GUILayout.Button("Attempt Fix", EditorStyles.miniButton))
@@ -276,17 +293,26 @@ namespace UnityEditor.Rendering.Universal
 
         private void UpdateEditorList()
         {
-            m_Editors.Clear();
+            ClearEditorsList();
             for (int i = 0; i < m_RendererFeatures.arraySize; i++)
             {
                 m_Editors.Add(CreateEditor(m_RendererFeatures.GetArrayElementAtIndex(i).objectReferenceValue));
             }
         }
 
+        //To avoid leaking memory we destroy editors when we clear editors list
+        private void ClearEditorsList()
+        {
+            for (int i = m_Editors.Count - 1; i >= 0; --i)
+            {
+                DestroyImmediate(m_Editors[i]);
+            }
+            m_Editors.Clear();
+        }
+
         private void ForceSave()
         {
             EditorUtility.SetDirty(target);
-            AssetDatabase.SaveAssets();
         }
     }
 }

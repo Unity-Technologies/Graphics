@@ -33,40 +33,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class DecalSystem
     {
-        // Relies on the order shader passes are declared in Decal.shader and DecalSubshader.cs
+        // Relies on the order shader passes are declared in Decal.shader and DecalSubTarget.cs
+        // Caution: Enum num must match pass name for s_MaterialDecalPassNames array
         public enum MaterialDecalPass
         {
-            DBufferMesh_3RT = 0,
-            DBufferProjector_M = 1,
-            DBufferProjector_AO = 2,
-            DBufferProjector_MAO = 3,
-            DBufferProjector_S = 4,
-            DBufferProjector_MS = 5,
-            DBufferProjector_AOS = 6,
-            DBufferProjector_MAOS = 7,
-            DBufferMesh_M = 8,
-            DBufferMesh_AO = 9,
-            DBufferMesh_MAO = 10,
-            DBufferMesh_S = 11,
-            DBufferMesh_MS = 12,
-            DBufferMesh_AOS = 13,
-            DBufferMesh_MAOS = 14,
-            Projector_Emissive = 15,
-            Mesh_Emissive = 16
-        };
-
-        public enum MaterialSGDecalPass
-        {
-            ShaderGraph_DBufferProjector3RT = 0,
-            ShaderGraph_DBufferProjector4RT = 1,
-            ShaderGraph_ProjectorEmissive = 2,
-            ShaderGraph_DBufferMesh3RT = 3,
-            ShaderGraph_DBufferMesh4RT = 4,
-            ShaderGraph_MeshEmissive = 5
+            DBufferProjector = 0,
+            DecalProjectorForwardEmissive = 1,
+            DBufferMesh = 2,
+            DecalMeshForwardEmissive = 3,
         };
 
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
-        public static readonly string[] s_MaterialSGDecalPassNames = Enum.GetNames(typeof(MaterialSGDecalPass));
 
         public class CullResult : IDisposable
         {
@@ -375,10 +352,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return shader.name == "HDRP/Decal";
         }
 
+        const string kIdentifyHDRPDecal = "_Unity_Identify_HDRP_Decal";
+
         // Non alloc version of IsHDRenderPipelineDecal (Slower but does not generate garbage)
         static public bool IsHDRenderPipelineDecal(Material material)
         {
-            // Check if the material has at least one pass from the decal.shader (shader stripping can remove one or more passes)
+            // Check if the material has a marker _Unity_Identify_HDRP_Decal
+            return material.HasProperty(kIdentifyHDRPDecal);
+        }
+
+        static public bool IsDecalMaterial(Material material)
+        {
+            // Check if the material has at least one pass from the decal.shader / Shader Graph (shader stripping can remove one or more passes)
             foreach (var passName in s_MaterialDecalPassNames)
             {
                 if (material.FindPass(passName) != -1)
@@ -395,8 +380,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_Material == null)
                     return;
 
-                bool perChannelMask = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
-
+                // TODO: this test is ambiguous, it should say, I am decal or not.
+                // We should have 2 function: I am decal or not and I am a SG or not...
                 m_IsHDRenderPipelineDecal = IsHDRenderPipelineDecal(m_Material);
 
                 if (m_IsHDRenderPipelineDecal)
@@ -405,26 +390,51 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_Normal.Initialize(m_Material.GetTexture("_NormalMap"), Vector4.zero);
                     m_Mask.Initialize(m_Material.GetTexture("_MaskMap"), Vector4.zero);
                     m_Blend = m_Material.GetFloat("_DecalBlend");
-                    m_AlbedoContribution = m_Material.GetFloat("_AlbedoMode");
                     m_BaseColor = m_Material.GetVector("_BaseColor");
-                    m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));
-                    m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
-                    m_ScalingMAB = new Vector4(m_Material.GetFloat("_MetallicScale"), 0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f);
+                    m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), 0.0f);
+                    int affectFlags =
+                        (m_Material.GetFloat("_AffectAlbedo") != 0.0f ? (1 << 0) : 0) |
+                        (m_Material.GetFloat("_AffectNormal") != 0.0f ? (1 << 1) : 0) |
+                        (m_Material.GetFloat("_AffectMetal") != 0.0f ? (1 << 2) : 0) |
+                        (m_Material.GetFloat("_AffectAO") != 0.0f ? (1 << 3) : 0) |
+                        (m_Material.GetFloat("_AffectSmoothness") != 0.0f ? (1 << 4) : 0);
 
-                    // For HDRP/Decal, all projector pass are always present and always enabled. We can't do emissive only decal but can discard the emissive pass
-                    int initialPassIndex = perChannelMask ? MaskBlendMode : (int)Decal.MaskBlendFlags.Smoothness;
-                    m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[initialPassIndex]);
+                    // convert to float
+                    m_BlendParams.z = (float)affectFlags;
 
-                    m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.Projector_Emissive]);
-                    if (m_Material.GetFloat("_Emissive") != 1.0f) // Emissive is disabled, discard
-                        m_cachedProjectorEmissivePassValue = -1;
+                    m_ScalingBAndRemappingM = new Vector4(0.0f, m_Material.GetFloat("_DecalMaskMapBlueScale"), 0.0f, 0.0f);
+                    // If we have a texture, we use the remapping parameter, otherwise we use the regular one and the default texture is white
+                    if (m_Material.GetTexture("_MaskMap"))
+                    {
+                        m_RemappingAOS = new Vector4(m_Material.GetFloat("_AORemapMin"), m_Material.GetFloat("_AORemapMax"), m_Material.GetFloat("_SmoothnessRemapMin"), m_Material.GetFloat("_SmoothnessRemapMax"));
+                        m_ScalingBAndRemappingM.z = m_Material.GetFloat("_MetallicRemapMin");
+                        m_ScalingBAndRemappingM.w = m_Material.GetFloat("_MetallicRemapMax");
+                    }
+                    else
+                    {
+                        m_RemappingAOS = new Vector4(m_Material.GetFloat("_AO"), m_Material.GetFloat("_AO"), m_Material.GetFloat("_Smoothness"), m_Material.GetFloat("_Smoothness"));
+                        m_ScalingBAndRemappingM.z = m_Material.GetFloat("_Metallic");
+                    }
+
+                    // For HDRP/Decal, pass are always present but can be enabled/disabled
+                    m_cachedProjectorPassValue = -1;
+                    if (m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]))
+                        m_cachedProjectorPassValue = (int)MaterialDecalPass.DBufferProjector;
+
+                    m_cachedProjectorEmissivePassValue = -1;
+                    if (m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]))
+                        m_cachedProjectorEmissivePassValue = (int)MaterialDecalPass.DecalProjectorForwardEmissive;
                 }
                 else
                 {
                     m_Blend = 1.0f;
-                    // With ShaderGraph m_cachedProjectorPassValue is setup to -1 if the pass isn't generated, thus we can create emissive only decal if required
-                    m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)(perChannelMask ? MaterialSGDecalPass.ShaderGraph_DBufferProjector4RT : MaterialSGDecalPass.ShaderGraph_DBufferProjector3RT)]);
-                    m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialSGDecalPassNames[(int)MaterialSGDecalPass.ShaderGraph_ProjectorEmissive]);
+                    // With ShaderGraph it is possible that the pass isn't generated. But if it is, it can be disabled.
+                    m_cachedProjectorPassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]);
+                    if (m_cachedProjectorPassValue != -1 && m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DBufferProjector]) == false)
+                        m_cachedProjectorPassValue = -1;
+                    m_cachedProjectorEmissivePassValue = m_Material.FindPass(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]);
+                    if (m_cachedProjectorEmissivePassValue != -1 && m_Material.GetShaderPassEnabled(s_MaterialDecalPassNames[(int)MaterialDecalPass.DecalProjectorForwardEmissive]) == false)
+                        m_cachedProjectorEmissivePassValue = -1;
                 }
             }
 
@@ -433,7 +443,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Material = material;
                 InitializeMaterialValues();
             }
-
 
             private BoundingSphere GetDecalProjectBoundingSphere(Matrix4x4 decalToWorld)
             {
@@ -447,13 +456,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return res;
             }
 
-            public void UpdateCachedData(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
-                float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
+            public void UpdateCachedData(DecalHandle handle, in DecalProjector.CachedDecalData data)
             {
                 int index = handle.m_Index;
-                m_CachedDecalToWorld[index] = localToWorld * sizeOffset;
-                Matrix4x4 decalRotation = Matrix4x4.Rotate(rotation);
+                m_CachedDecalToWorld[index] = data.localToWorld * data.sizeOffset;
+                Matrix4x4 decalRotation = Matrix4x4.Rotate(data.rotation);
 
                 // z/y axis swap for normal to decal space, Unity is column major
                 float y0 = decalRotation.m01;
@@ -468,34 +475,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_CachedNormalToWorld[index] = decalRotation;
                 // draw distance can't be more than global draw distance
-                m_CachedDrawDistances[index].x = drawDistance < instance.DrawDistance
-                    ? drawDistance
+                m_CachedDrawDistances[index].x = data.drawDistance < instance.DrawDistance
+                    ? data.drawDistance
                     : instance.DrawDistance;
-                m_CachedDrawDistances[index].y = fadeScale;
-                m_CachedUVScaleBias[index] = uvScaleBias;
-                m_CachedAffectsTransparency[index] = affectsTransparency;
-                m_CachedLayerMask[index] = layerMask;
-                m_CachedSceneLayerMask[index] = sceneLayerMask;
-                m_CachedFadeFactor[index] = fadeFactor;
-                m_CachedDecalLayerMask[index] = decalLayerMask;
+                m_CachedDrawDistances[index].y = data.fadeScale;
+                // In the shader to remap from cosine -1 to 1 to new range 0..1  (with 0 - 0 degree and 1 - 180 degree)
+                // we do 1.0 - (dot() * 0.5 + 0.5) => 0.5 * (1 - dot())
+                // we actually square that to get smoother result => x = (0.5 - 0.5 * dot())^2
+                // Do a remap in the shader. 1.0 - saturate((x - start) / (end - start))
+                // After simplification => saturate(a + b * dot() * (dot() - 2.0))
+                // a = 1.0 - (0.25 - start) / (end - start), y = - 0.25 / (end - start)
+                if (data.startAngleFade == 180.0f) // angle fade is disabled
+                {
+                    m_CachedAngleFade[index].x = 0.0f;
+                    m_CachedAngleFade[index].y = 0.0f;
+                }
+                else
+                {
+                    float angleStart = data.startAngleFade / 180.0f;
+                    float angleEnd = data.endAngleFade / 180.0f;
+                    var range = Mathf.Max(0.0001f, angleEnd - angleStart);
+                    m_CachedAngleFade[index].x = 1.0f - (0.25f - angleStart) / range;
+                    m_CachedAngleFade[index].y = -0.25f / range;
+                }
+                m_CachedUVScaleBias[index] = data.uvScaleBias;
+                m_CachedAffectsTransparency[index] = data.affectsTransparency;
+                m_CachedLayerMask[index] = data.layerMask;
+                m_CachedSceneLayerMask[index] = data.sceneLayerMask;
+                m_CachedFadeFactor[index] = data.fadeFactor;
+                m_CachedDecalLayerMask[index] = data.decalLayerMask;
 
                 m_BoundingSpheres[index] = GetDecalProjectBoundingSphere(m_CachedDecalToWorld[index]);
             }
 
-            public void UpdateCachedData(Transform transform, Matrix4x4 sizeOffset, float drawDistance,
-                float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
-            {
-                if (m_Material == null)
-                    return;
-                UpdateCachedData(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance,
-                    fadeScale, uvScaleBias, affectsTransparency, handle,
-                    layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
-            }
-
-            public DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
-                float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, int materialID,
-                int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
+            // Update memory allocation and assign decal handle, then update cached data
+            public DecalHandle AddDecal(int materialID, in DecalProjector.CachedDecalData data)
             {
                 // increase array size if no space left
                 if (m_DecalsCount == m_Handles.Length)
@@ -505,10 +519,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     Matrix4x4[] newCachedTransforms = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
                     Matrix4x4[] newCachedNormalToWorld = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
                     Vector2[] newCachedDrawDistances = new Vector2[m_DecalsCount + kDecalBlockSize];
+                    Vector2[] newCachedAngleFade = new Vector2[m_DecalsCount + kDecalBlockSize];
                     Vector4[] newCachedUVScaleBias = new Vector4[m_DecalsCount + kDecalBlockSize];
                     bool[] newCachedAffectsTransparency = new bool[m_DecalsCount + kDecalBlockSize];
                     int[] newCachedLayerMask = new int[m_DecalsCount + kDecalBlockSize];
                     ulong[] newCachedSceneLayerMask = new ulong[m_DecalsCount + kDecalBlockSize];
+                    var cachedDecalLayerMask = new DecalLayerEnum[m_DecalsCount + kDecalBlockSize];
                     float[] newCachedFadeFactor = new float[m_DecalsCount + kDecalBlockSize];
                     m_ResultIndices = new int[m_DecalsCount + kDecalBlockSize];
 
@@ -517,10 +533,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CachedDecalToWorld.CopyTo(newCachedTransforms, 0);
                     m_CachedNormalToWorld.CopyTo(newCachedNormalToWorld, 0);
                     m_CachedDrawDistances.CopyTo(newCachedDrawDistances, 0);
+                    m_CachedAngleFade.CopyTo(newCachedAngleFade, 0);
                     m_CachedUVScaleBias.CopyTo(newCachedUVScaleBias, 0);
                     m_CachedAffectsTransparency.CopyTo(newCachedAffectsTransparency, 0);
                     m_CachedLayerMask.CopyTo(newCachedLayerMask, 0);
                     m_CachedSceneLayerMask.CopyTo(newCachedSceneLayerMask, 0);
+                    m_CachedDecalLayerMask.CopyTo(cachedDecalLayerMask, 0);
                     m_CachedFadeFactor.CopyTo(newCachedFadeFactor, 0);
 
                     m_Handles = newHandles;
@@ -528,18 +546,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_CachedDecalToWorld = newCachedTransforms;
                     m_CachedNormalToWorld = newCachedNormalToWorld;
                     m_CachedDrawDistances = newCachedDrawDistances;
+                    m_CachedAngleFade = newCachedAngleFade;
                     m_CachedUVScaleBias = newCachedUVScaleBias;
                     m_CachedAffectsTransparency = newCachedAffectsTransparency;
                     m_CachedLayerMask = newCachedLayerMask;
                     m_CachedSceneLayerMask = newCachedSceneLayerMask;
+                    m_CachedDecalLayerMask = cachedDecalLayerMask;
                     m_CachedFadeFactor = newCachedFadeFactor;
                 }
 
                 DecalHandle decalHandle = new DecalHandle(m_DecalsCount, materialID);
                 m_Handles[m_DecalsCount] = decalHandle;
-                UpdateCachedData(localToWorld, rotation, sizeOffset, drawDistance,
-                    fadeScale, uvScaleBias, affectsTransparency, decalHandle,
-                    layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
+                UpdateCachedData(decalHandle, data);
                 m_DecalsCount++;
                 return decalHandle;
             }
@@ -557,6 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CachedDecalToWorld[removeAtIndex] = m_CachedDecalToWorld[m_DecalsCount - 1];
                 m_CachedNormalToWorld[removeAtIndex] = m_CachedNormalToWorld[m_DecalsCount - 1];
                 m_CachedDrawDistances[removeAtIndex] = m_CachedDrawDistances[m_DecalsCount - 1];
+                m_CachedAngleFade[removeAtIndex] = m_CachedAngleFade[m_DecalsCount - 1];
                 m_CachedUVScaleBias[removeAtIndex] = m_CachedUVScaleBias[m_DecalsCount - 1];
                 m_CachedAffectsTransparency[removeAtIndex] = m_CachedAffectsTransparency[m_DecalsCount - 1];
                 m_CachedLayerMask[removeAtIndex] = m_CachedLayerMask[m_DecalsCount - 1];
@@ -615,12 +634,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 var influenceForwardVS = worldToView.MultiplyVector(influenceZ / influenceExtents.z);
                 var influencePositionVS = worldToView.MultiplyPoint(pos); // place the mesh pivot in the center
 
-                m_Bounds[m_DecalDatasCount].center = influencePositionVS;
+                m_Bounds[m_DecalDatasCount].center   = influencePositionVS;
                 m_Bounds[m_DecalDatasCount].boxAxisX = influenceRightVS * influenceExtents.x;
                 m_Bounds[m_DecalDatasCount].boxAxisY = influenceUpVS * influenceExtents.y;
                 m_Bounds[m_DecalDatasCount].boxAxisZ = influenceForwardVS * influenceExtents.z;
-                m_Bounds[m_DecalDatasCount].scaleXY.Set(1.0f, 1.0f);
-                m_Bounds[m_DecalDatasCount].radius = influenceExtents.magnitude;
+                m_Bounds[m_DecalDatasCount].scaleXY  = 1.0f;
+                m_Bounds[m_DecalDatasCount].radius   = influenceExtents.magnitude;
 
                 // The culling system culls pixels that are further
                 //   than a threshold to the box influence extents.
@@ -675,7 +694,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 var camera = instance.CurrentCamera;
                 Matrix4x4 worldToView = HDRenderPipeline.WorldToCamera(camera);
-                bool perChannelMask = instance.perChannelMask;
                 int cullingMask = camera.cullingMask;
                 ulong sceneCullingMask = HDUtils.GetSceneCullingMaskFromCamera(camera);
 
@@ -700,8 +718,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             decalToWorldBatch[instanceCount] = m_CachedDecalToWorld[decalIndex];
                             normalToWorldBatch[instanceCount] = m_CachedNormalToWorld[decalIndex];
                             float fadeFactor = m_CachedFadeFactor[decalIndex] * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y)), 0.0f, 1.0f);
-                            normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;   // vector3 rotation matrix so bottom row and last column can be used for other data to save space
-                            normalToWorldBatch[instanceCount].m13 = m_AlbedoContribution;
+                            // NormalToWorldBatchis a Matrix4x4x but is a Rotation matrix so bottom row and last column can be used for other data to save space
+                            normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;
+                            normalToWorldBatch[instanceCount].m13 = m_CachedAngleFade[decalIndex].x;
+                            normalToWorldBatch[instanceCount].m23 = m_CachedAngleFade[decalIndex].y;
                             normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
                             decalLayerMaskBatch[instanceCount] = (int)m_CachedDecalLayerMask[decalIndex];
 
@@ -713,12 +733,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                                 m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
                                 m_DecalDatas[m_DecalDatasCount].remappingAOS = m_RemappingAOS;
-                                m_DecalDatas[m_DecalDatasCount].scalingMAB = m_ScalingMAB;
+                                m_DecalDatas[m_DecalDatasCount].scalingBAndRemappingM = m_ScalingBAndRemappingM;
                                 m_DecalDatas[m_DecalDatasCount].decalLayerMask = (uint)m_CachedDecalLayerMask[decalIndex];
-                                if (!perChannelMask)
-                                {
-                                    m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness;
-                                }
 
                                 // we have not allocated the textures in atlas yet, so only store references to them
                                 m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
@@ -854,21 +870,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
-            public int MaskBlendMode
-            {
-                get
-                {
-                    if (m_IsHDRenderPipelineDecal)
-                    {
-                        return (int)this.m_Material.GetFloat("_MaskBlendMode");
-                    }
-                    else
-                    {
-                        return 0;
-                    }
-                }
-            }
-
             private List<Matrix4x4[]> m_DecalToWorld = new List<Matrix4x4[]>();
             private List<Matrix4x4[]> m_NormalToWorld = new List<Matrix4x4[]>();
             private List<float[]> m_DecalLayerMasks = new List<float[]>();
@@ -882,6 +883,7 @@ namespace UnityEngine.Rendering.HighDefinition
             private Matrix4x4[] m_CachedDecalToWorld = new Matrix4x4[kDecalBlockSize];
             private Matrix4x4[] m_CachedNormalToWorld = new Matrix4x4[kDecalBlockSize];
             private Vector2[] m_CachedDrawDistances = new Vector2[kDecalBlockSize]; // x - draw distance, y - fade scale
+            private Vector2[] m_CachedAngleFade = new Vector2[kDecalBlockSize]; // x - scale fade, y - bias fade
             private Vector4[] m_CachedUVScaleBias = new Vector4[kDecalBlockSize]; // xy - scale, zw bias
             private bool[] m_CachedAffectsTransparency = new bool[kDecalBlockSize];
             private int[] m_CachedLayerMask = new int[kDecalBlockSize];
@@ -890,11 +892,10 @@ namespace UnityEngine.Rendering.HighDefinition
             private float[] m_CachedFadeFactor = new float[kDecalBlockSize];
             private Material m_Material;
             private MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
-            private float m_Blend = 0;
-            private float m_AlbedoContribution = 0;
+            private float m_Blend = 0.0f;
             private Vector4 m_BaseColor;
             private Vector4 m_RemappingAOS;
-            private Vector4 m_ScalingMAB; // metal, base color alpha, mask map blue
+            private Vector4 m_ScalingBAndRemappingM; // mask map blue, metal remap
             private Vector3 m_BlendParams;
 
             private bool m_IsHDRenderPipelineDecal;
@@ -917,13 +918,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-		void SetupMipStreamingSettings(Texture texture, bool allMips)
-		{
-			if (texture)
-			{
-				if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
-				{
-					Texture2D tex2D = (texture as Texture2D);
+        void SetupMipStreamingSettings(Texture texture, bool allMips)
+        {
+            if (texture)
+            {
+                if (texture.dimension == UnityEngine.Rendering.TextureDimension.Tex2D)
+                {
+                    Texture2D tex2D = (texture as Texture2D);
                     if (tex2D)
                     {
                         if (allMips)
@@ -931,9 +932,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             tex2D.ClearRequestedMipmapLevel();
                     }
-				}
-			}
-		}
+                }
+            }
+        }
 
         void SetupMipStreamingSettings(Material material, bool allMips)
         {
@@ -948,9 +949,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        DecalHandle AddDecal(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
+        // Add a decal material to the decal set
+        public DecalHandle AddDecal(Material material, DecalProjector.CachedDecalData data)
         {
             SetupMipStreamingSettings(material, true);
 
@@ -961,28 +961,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 decalSet = new DecalSet(material);
                 m_DecalSets.Add(key, decalSet);
             }
-            return decalSet.AddDecal(localToWorld, rotation, sizeOffset, drawDistance,
-                fadeScale, uvScaleBias, affectsTransparency, key,
-                layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
-        }
-
-
-        public DecalHandle AddDecal(Vector3 position, Quaternion rotation, Vector3 scale, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
-        {
-            return AddDecal(Matrix4x4.TRS(position, rotation, scale), rotation, sizeOffset, drawDistance,
-                fadeScale, uvScaleBias, affectsTransparency, material,
-                layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
-        }
-
-        public DecalHandle AddDecal(Transform transform, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, Material material,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
-        {
-            return AddDecal(transform.localToWorldMatrix, transform.rotation, sizeOffset, drawDistance,
-                fadeScale, uvScaleBias, affectsTransparency, material,
-                layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
+            return decalSet.AddDecal(key, data);
         }
 
         public void RemoveDecal(DecalHandle handle)
@@ -1004,9 +983,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void UpdateCachedData(Matrix4x4 localToWorld, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
+        public void UpdateCachedData(DecalHandle handle, DecalProjector.CachedDecalData data)
         {
             if (!DecalHandle.IsValid(handle))
                 return;
@@ -1015,29 +992,10 @@ namespace UnityEngine.Rendering.HighDefinition
             int key = handle.m_MaterialID;
             if (m_DecalSets.TryGetValue(key, out decalSet))
             {
-                decalSet.UpdateCachedData(localToWorld, rotation, sizeOffset, drawDistance,
-                    fadeScale, uvScaleBias, affectsTransparency, handle,
-                    layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
+                decalSet.UpdateCachedData(handle, data);
             }
         }
 
-        public void UpdateCachedData(Vector3 position, Quaternion rotation, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
-        {
-             UpdateCachedData(Matrix4x4.TRS(position,  rotation, Vector3.one), rotation, sizeOffset, drawDistance,
-                 fadeScale, uvScaleBias, affectsTransparency, handle,
-                 layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
-        }
-
-        public void UpdateCachedData(Transform transform, Matrix4x4 sizeOffset, float drawDistance,
-            float fadeScale, Vector4 uvScaleBias, bool affectsTransparency, DecalHandle handle,
-            int layerMask, ulong sceneLayerMask, float fadeFactor, DecalLayerEnum decalLayerMask)
-        {
-            UpdateCachedData(Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one)/*transform.localToWorldMatrix*/, transform.rotation, sizeOffset, drawDistance,
-                fadeScale, uvScaleBias, affectsTransparency, handle,
-                layerMask, sceneLayerMask, fadeFactor, decalLayerMask);
-        }
         public void BeginCull(CullRequest request)
         {
             Assert.IsNotNull(request);
@@ -1093,7 +1051,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (textureScaleBias.m_Texture != null)
             {
-                if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
+                if (Atlas.IsCached(out textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
+                {
+                    Atlas.UpdateTexture(cmd, textureScaleBias.m_Texture, ref textureScaleBias.m_ScaleBias);
+                }
+                else if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
                 {
                     m_AllocationSuccess = false;
                 }
@@ -1153,7 +1115,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateDecalDatasWithAtlasInfo();
         }
 
-
         public void CreateDrawData()
         {
             m_DecalDatasCount = 0;
@@ -1187,7 +1148,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (var decalSet in m_DecalSetsRenderList)
                 decalSet.CreateDrawData();
-            }
+        }
 
         public void Cleanup()
         {
@@ -1199,15 +1160,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Atlas = null;
         }
 
-        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, DebugOverlay debugOverlay)
         {
             if (debugDisplaySettings.data.decalsDebugSettings.displayAtlas)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayDebugDecalsAtlas)))
                 {
-                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    debugOverlay.SetViewport(cmd);
                     HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.data.decalsDebugSettings.mipLevel, true);
-                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                    debugOverlay.Next();
                 }
             }
         }

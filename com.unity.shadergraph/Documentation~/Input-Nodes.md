@@ -8,13 +8,13 @@
 | Defines a constant Boolean value in the shader. | Defines a constant Vector 4 value in the shader using a Color field. |
 |[**Constant**](Constant-Node.md)|[**Integer**](Integer-Node.md)|
 |![Image](images/ConstantNodeThumb.png)|![Image](images/IntegerNodeThumb.png)|
-|Defines a Vector 1 of a mathematical constant value in the shader.|Defines a constant Vector 1 value in the shader using an Integer field.|
+|Defines a Float of a mathematical constant value in the shader.|Defines a constant Float value in the shader using an Integer field.|
 |[**Slider**](Slider-Node.md)|[**Time**](Time-Node.md)|
 |![Image](images/SliderNodeThumb.png)|![Image](images/TimeNodeThumb.png)|
-|Defines a constant Vector 1 value in the shader using a Slider field.|Provides access to various Time parameters in the shader.|
-|[**Vector 1**](Vector-1-Node.md)|[**Vector 2**](Vector-2-Node.md)|
+|Defines a constant Float value in the shader using a Slider field.|Provides access to various Time parameters in the shader.|
+|[**Float**](Float.md)|[**Vector 2**](Vector-2-Node.md)|
 |![Image](images/Vector1NodeThumb.png)|![Image](images/Vector2NodeThumb.png)|
-|Defines a Vector 1 value in the shader.|Defines a Vector 2 value in the shader.|
+|Defines a Float value in the shader.|Defines a Vector 2 value in the shader.|
 |[**Vector 3**](Vector-3-Node.md)|[**Vector 4**](Vector-4-Node.md)|
 |![Image](images/Vector3NodeThumb.png)|![Image](images/Vector4NodeThumb.png)|
 |Defines a Vector 3 value in the shader.|Defines a Vector 4 value in the shader.|
@@ -55,7 +55,11 @@
 |![Image](images/Matrix4x4NodeThumb.png)|![Image](images/TransformationMatrixNodeThumb.png)|
 |Defines a constant Matrix 4x4 value in the shader.|Defines a constant Matrix 4x4 value for a default Unity Transformation Matrix in the shader.|
 
-
+## Mesh Deformation
+| [Compute Deformation Node](Compute-Deformation-Node)         | [Linear Blend Skinning Node](Linear-Blend-Skinning-Node)     |
+| :----------------------------------------------------------- | :----------------------------------------------------------- |
+| ![Image](images/ComputeDeformationNodeThumb.png)             | ![Image](images/LinearBlendSkinningNodeThumb.png)            |
+| Passes compute deformed vertex data to a vertex shader. Only works with the [DOTS Hybrid Renderer](https://docs.unity3d.com/Packages/com.unity.rendering.hybrid@latest/). | Applies Linear Blend Vertex Skinning. Only works with the [DOTS Hybrid Renderer](https://docs.unity3d.com/Packages/com.unity.rendering.hybrid@latest/). |
 
 ## PBR
 
@@ -86,22 +90,25 @@
 
 ## Texture
 
-|[Cubemap Asset](Cubemap-Asset-Node.md)|[Sample Cubemap](Sample-Cubemap-Node.md)|
+|[**Cubemap Asset**](Cubemap-Asset-Node.md)|[**Sample Cubemap**](Sample-Cubemap-Node.md)|
 |:--------:|:------:|
 |[![Image](images/CubemapAssetNodeThumb.png)](Combine-Node)|![](images/SampleCubemapNodeThumb.png)|
 | Defines a constant Cubemap Asset for use in the shader. | Samples a Cubemap and returns a Vector 4 color value for use in the shader. |
-|[**Sample Texture 2D**](Sample-Texture-2D-Node.md)|[**Sample Texture 2D Array**](Sample-Texture-2D-Array-Node.md)|
-|![Image](images/SampleTexture2DNodeThumb.png)|![Image](images/SampleTexture2DArrayNodeThumb.png)|
-|Samples a Texture 2D and returns a color value for use in the shader.|Samples a Texture 2D Array at an Index and returns a color value for use in the shader.|
-|[**Sample Texture 2D LOD**](Sample-Texture-2D-LOD-Node.md)|[**Sample Texture 3D**](Sample-Texture-3D-Node.md)|
-|![Image](images/SampleTexture2DLODNodeThumb.png)|![Image](images/SampleTexture3DNodeThumb.png)|
-|Samples a Texture 2D at a specific LOD and returns a color value for use in the shader.|Samples a Texture 3D and returns a color value for use in the shader.|
+|[**Sample Reflected Cubemap Node**](Sample-Reflected-Cubemap-Node.md)|[**Sample Texture 2D**](Sample-Texture-2D-Node.md)|
+|![Image](images/SampleReflectedCubemapThumb.png)|![Image](images/SampleTexture2DNodeThumb.png)|
+|Samples a Cubemap with reflected vector and returns a Vector 4 color value for use in the shader.|Samples a Texture 2D and returns a color value for use in the shader.|
+|[**Sample Texture 2D Array**](Sample-Texture-2D-Array-Node.md)|[**Sample Texture 2D LOD**](Sample-Texture-2D-LOD-Node.md)|
+|![Image](images/SampleTexture2DArrayNodeThumb.png)|![Image](images/SampleTexture2DLODNodeThumb.png)|
+|Samples a Texture 2D Array at an Index and returns a color value for use in the shader.|Samples a Texture 2D at a specific LOD and returns a color value for use in the shader.|
+|[**Sample Texture 3D**](Sample-Texture-3D-Node.md)| [**Sample Virtual Texture**](Sample-Virtual-Texture-Node.md) |
+|![Image](images/SampleTexture3DNodeThumb.png)| ![image](images/SampleVirtualTextureNodeThumb.png) |
+|Samples a Texture 3D and returns a color value for use in the shader.| Samples a Virtual Texture and returns color values for use in the shader.|
 |[**Sampler State**](Sampler-State-Node.md)|[**Texel Size**](Texel-Size-Node.md)|
 |![Image](images/SamplerStateNodeThumb.png)|![Image](images/TexelSizeNodeThumb.png)|
 |Defines a Sampler State for sampling textures.|Returns the Width and Height of the texel size of Texture 2D input.|
 |[**Texture 2D Array Asset**](Texture-2D-Array-Asset-Node.md)|[**Texture 2D Asset**](Texture-2D-Asset-Node.md)|
 |![Image](images/Texture2DArrayAssetNodeThumb.png)|![Image](images/Texture2DAssetNodeThumb.png)|
 |Defines a constant Texture 2D Array Asset for use in the shader.|Defines a constant Texture 2D Asset for use in the shader.|
-|[**Texture 3D Asset**](Texture-3D-Asset-Node.md)|
-|![Image](images/Texture3DAssetNodeThumb.png)|
-|Defines a constant Texture 3D Asset for use in the shader.|
+|[**Texture 3D Asset**](Texture-3D-Asset-Node.md)| |
+|![Image](images/Texture3DAssetNodeThumb.png)| |
+|Defines a constant Texture 3D Asset for use in the shader.| |

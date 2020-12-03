@@ -28,10 +28,18 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Enables the override of the camera culling. This increases the validity area of animated skinned mesh that are outside of the frustum.")]
         public BoolParameter extendCameraCulling = new BoolParameter(false);
 
-        RayTracingSettings()
+        /// <summary>
+        /// Controls the maximal ray length for ray traced shadows.
+        /// </summary>
+        [Tooltip("Controls the maximal ray length for ray traced directional shadows.")]
+        public MinFloatParameter directionalShadowRayLength = new MinFloatParameter(1000.0f, 0.01f);
+
+        /// <summary>
+        /// Default constructor for the ray tracing settings volume component.
+        /// </summary>
+        public RayTracingSettings()
         {
             displayName = "Ray Tracing Settings (Preview)";
         }
     }
 }
-

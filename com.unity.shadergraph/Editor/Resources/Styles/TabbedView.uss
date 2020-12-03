@@ -3,13 +3,13 @@ unity-tabbed-view {
 }
 
 .unity-tabbed-view__tabs-container {
-	display: flex;
-	background-color: #252525;
-	flex-direction: row;
+    display: flex;
+    background-color: #252525;
+    flex-direction: row;
 }
 
 .unity-tabbed-view__content-container {
-	flex-grow: 1;
-	padding-left: 4;
-	padding-top: 4;
+    flex-grow: 1;
+    padding-left: 4;
+    padding-top: 4;
 }

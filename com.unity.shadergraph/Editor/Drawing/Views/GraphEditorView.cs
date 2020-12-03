@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Drawing.Inspector;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -139,76 +138,78 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var colorProviders = m_ColorManager.providerNames.ToArray();
             var toolbar = new IMGUIContainer(() =>
+            {
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
                 {
-                    GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                    if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
-                    {
-                        if (saveRequested != null)
-                            saveRequested();
-                    }
-                    GUILayout.Space(6);
-                    if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
-                    {
-                        saveAsRequested();
-                    }
-                    GUILayout.Space(6);
-                    if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
-                    {
-                        if (showInProjectRequested != null)
-                            showInProjectRequested();
-                    }
+                    if (saveRequested != null)
+                        saveRequested();
+                }
+                GUILayout.Space(6);
+                if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
+                {
+                    saveAsRequested();
+                }
+                GUILayout.Space(6);
+                if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
+                {
+                    if (showInProjectRequested != null)
+                        showInProjectRequested();
+                }
 
-                    if (isCheckedOut != null)
+                if (isCheckedOut != null)
+                {
+                    if (!isCheckedOut() && Provider.enabled && Provider.isActive)
                     {
-                        if (!isCheckedOut() && Provider.enabled && Provider.isActive)
+                        if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
                         {
-                            if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
-                            {
-                                if (checkOut != null)
-                                    checkOut();
-                            }
-                        }
-                        else
-                        {
-                            EditorGUI.BeginDisabledGroup(true);
-                            GUILayout.Button("Check Out", EditorStyles.toolbarButton);
-                            EditorGUI.EndDisabledGroup();
+                            if (checkOut != null)
+                                checkOut();
                         }
                     }
-
-                    GUILayout.FlexibleSpace();
-
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Label("Color Mode");
-                    var newColorIndex = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
-                    GUILayout.Space(4);
-                    m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
-
-                    GUILayout.Space(6);
-
-                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Graph Inspector", EditorStyles.toolbarButton);
-
-                    GUILayout.Space(6);
-
-                    m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
-                    if (EditorGUI.EndChangeCheck())
+                    else
                     {
-                        UserViewSettingsChangeCheck(newColorIndex);
+                        EditorGUI.BeginDisabledGroup(true);
+                        GUILayout.Button("Check Out", EditorStyles.toolbarButton);
+                        EditorGUI.EndDisabledGroup();
                     }
-                    GUILayout.EndHorizontal();
-                });
+                }
+
+                GUILayout.FlexibleSpace();
+
+                EditorGUI.BeginChangeCheck();
+                GUILayout.Label("Color Mode");
+                var newColorIndex = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+                GUILayout.Space(4);
+                m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
+
+                GUILayout.Space(6);
+
+                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Graph Inspector", EditorStyles.toolbarButton);
+
+                GUILayout.Space(6);
+
+                m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UserViewSettingsChangeCheck(newColorIndex);
+                }
+                GUILayout.EndHorizontal();
+            });
             Add(toolbar);
 
             var content = new VisualElement { name = "content" };
             {
                 m_GraphView = new MaterialGraphView(graph, () => m_PreviewManager.UpdateMasterPreview(ModificationScope.Topological))
-                    { name = "GraphView", viewDataKey = "MaterialGraphView" };
+                { name = "GraphView", viewDataKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, 8);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
+                m_GraphView.RegisterCallback<MouseUpEvent>(evt => { m_GraphView.ResetSelectedBlockNodes(); });
+
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
 
@@ -238,11 +239,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = NodeCreationRequest;
             //regenerate entries when graph view is refocused, to propogate subgraph changes
-            m_GraphView.RegisterCallback<FocusInEvent>( evt => { m_SearchWindowProvider.regenerateEntries = true; });
+            m_GraphView.RegisterCallback<FocusInEvent>(evt => { m_SearchWindowProvider.regenerateEntries = true; });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
-            if(!m_Graph.isSubGraph)
+            if (!m_Graph.isSubGraph)
             {
                 AddContexts();
             }
@@ -268,7 +269,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Do this here to as we cant do this inside GraphData
             // This is due to targets not being deserialized yet
             var context = new TargetSetupContext();
-            foreach(var target in m_Graph.activeTargets)
+            foreach (var target in m_Graph.activeTargets)
             {
                 target.Setup(ref context);
             }
@@ -333,14 +334,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void NodeCreationRequest(NodeCreationContext c)
         {
-            m_SearchWindowProvider.connectedPort = null;
-            m_SearchWindowProvider.target = c.target;
-            SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
-                item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
-                c.screenMousePosition - m_EditorWindow.position.position, null);
-
+            if (EditorWindow.focusedWindow == m_EditorWindow) //only display the search window when current graph view is focused
+            {
+                m_SearchWindowProvider.connectedPort = null;
+                m_SearchWindowProvider.target = c.target;
+                SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
+                    item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
+                    c.screenMousePosition - m_EditorWindow.position.position, null);
+            }
         }
-
 
         // Master Preview, Inspector and Blackboard all need to keep their layouts when hidden in order to restore user preferences.
         // Because of their differences we do this is different ways, for now.
@@ -348,7 +350,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Blackboard needs to be effectively removed when hidden to avoid bugs.
             if (m_UserViewSettings.isBlackboardVisible)
-                 m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
+                m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
             else
                 m_BlackboardProvider.blackboard.RemoveFromHierarchy();
 
@@ -465,7 +467,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     SetGroupPosition(groupNode);
                 }
 
-                if(nodesInsideGroup.Any())
+                if (nodesInsideGroup.Any())
                     graphViewChange.movedElements.AddRange(nodesInsideGroup);
 
                 foreach (var element in graphViewChange.movedElements)
@@ -478,14 +480,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                         // BlockNode moved outside a Context
                         // This isnt allowed but there is no way to disallow it on the GraphView
-                        if(node is BlockNode blockNode &&
+                        if (node is BlockNode blockNode &&
                             element.GetFirstAncestorOfType<ContextView>() == null)
                         {
                             var context = graphView.GetContext(blockNode.contextData);
 
                             // isDragging ensures we arent calling this when moving
                             // the BlockNode into the GraphView during dragging
-                            if(context.isDragging)
+                            if (context.isDragging)
                                 continue;
 
                             // Remove from GraphView and add back to Context
@@ -656,7 +658,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             previewManager.RenderPreviews();
             m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
-            if(wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
+            if (wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
                 m_InspectorView.Update();
             m_GroupHashSet.Clear();
 
@@ -669,10 +671,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     nodeView.Dispose();
 
-                    if(node is BlockNode blockNode)
+                    if (node is BlockNode blockNode)
                     {
                         var context = m_GraphView.GetContext(blockNode.contextData);
-                        context.RemoveElement(nodeView as Node);
+                        // blocknode may be floating and not actually in the stacknode's visual hierarchy.
+                        if (context.Contains(nodeView as Node))
+                        {
+                            context.RemoveElement(nodeView as Node);
+                        }
+                        else
+                        {
+                            m_GraphView.RemoveElement((Node)nodeView);
+                        }
                     }
                     else
                     {
@@ -846,7 +856,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = m_Graph.GetNodeFromId(messageData.Key);
 
-                if (!(m_GraphView.GetNodeByGuid(node.objectId) is IShaderNodeView nodeView))
+                if (node == null || !(m_GraphView.GetNodeByGuid(node.objectId) is IShaderNodeView nodeView))
                     continue;
 
                 if (messageData.Value.Count == 0)
@@ -873,7 +883,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddElement(tokenNode);
                 nodeView = tokenNode;
             }
-            else if(node is BlockNode blockNode)
+            else if (node is BlockNode blockNode)
             {
                 var blockNodeView = new MaterialNodeView { userData = blockNode };
                 blockNodeView.Initialize(blockNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
@@ -949,6 +959,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 visualGroupMap.Add(sg.userData, sg);
             }
         }
+
         private static Action<GraphElement> AddToVisualGroupMapAction = AddToVisualGroupMap;
         void BuildVisualGroupMap()
         {
@@ -965,7 +976,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var node in nodes)
                 {
                     // Skip BlockNodes as we need to order them
-                    if(node is BlockNode)
+                    if (node is BlockNode)
                         continue;
 
                     AddNode(node, true);
@@ -1057,6 +1068,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (snv != null)
                 visualNodeMap.Add(snv.node, snv);
         }
+
         private static Action<Node> AddToVisualNodeMapAction = AddToVisualNodeMap;
         void BuildVisualNodeMap()
         {
@@ -1184,7 +1196,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (var edgeView in anchorView.connections)
                     {
                         //update edges based on the active state of any modified nodes
-                        if(edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
+                        if (edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
                         {
                             //force redraw on update to prevent visual lag in the graph
                             //Now has to be delayed a frame because setting port styles wont update colors till next frame
@@ -1212,7 +1224,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     foreach (var edgeView in anchorView.connections)
                     {
                         //update edges based on the active state of any modified nodes
-                        if(edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
+                        if (edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
                         {
                             //force redraw on update to prevent visual lag in the graph
                             //Now has to be delayed a frame because setting port styles wont update colors till next frame
@@ -1321,9 +1333,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_InspectorView.ClampToParentLayout(m_GraphView.layout);
 
-            if (m_MasterPreviewView.expanded)
+            if (m_MasterPreviewView.visible)
             {
-                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.previewTextureView.layout.size;
+                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.layout.size;
             }
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);

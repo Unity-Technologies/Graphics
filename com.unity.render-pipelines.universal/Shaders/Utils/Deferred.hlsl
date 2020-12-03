@@ -1,23 +1,28 @@
-#ifndef UNIVERSAL_DEFERRED_INCLUDED
+﻿#ifndef UNIVERSAL_DEFERRED_INCLUDED
 #define UNIVERSAL_DEFERRED_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
+// This structure is used in StructuredBuffer.
+// TODO move some of the properties to half storage (color, attenuation, spotDirection, flag to 16bits, occlusionProbeInfo)
 struct PunctualLightData
 {
     float3 posWS;
-    float radius2;           // squared radius
+    float radius2;              // squared radius
     float4 color;
-    float4 attenuation;      // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
-    float3 spotDirection;    // spotLights support
-    int shadowLightIndex;
+    float4 attenuation;         // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation (for SpotLights)
+    float3 spotDirection;       // spotLights support
+    int flags;                  // Light flags (enum kLightFlags and LightFlag in C# code)
+    float4 occlusionProbeInfo;
 };
 
-Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, bool materialFlagReceiveShadowsOff)
+Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff)
 {
     // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
+
+    half4 probesOcclusion = shadowMask;
 
     Light light;
 
@@ -30,11 +35,15 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
 
     light.direction = lightDirection;
     light.color = punctualLightData.color.rgb;
+
     light.distanceAttenuation = attenuation;
+
     [branch] if (materialFlagReceiveShadowsOff)
         light.shadowAttenuation = 1.0;
     else
-        light.shadowAttenuation = AdditionalLightRealtimeShadow(punctualLightData.shadowLightIndex, positionWS);
+    {
+        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo);
+    }
     return light;
 }
 

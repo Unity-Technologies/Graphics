@@ -1,8 +1,10 @@
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.ShaderGraph
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Eye", "ScleraIrisBlend (Preview)")]
     class ScleraIrisBlend : CodeFunctionNode
     {
@@ -46,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             EyeSmoothness = new Vector1();
             SurfaceDiffusionProfile = new Vector1();
             return
-                @"
+@"
                 {
                     $precision osRadius = length(PositionOS.xy);
                     $precision innerBlendRegionRadius = IrisRadius - 0.02;

@@ -18,14 +18,24 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </code>
     /// </example>
     /// </summary>
-    internal struct MaterialHeaderScope : IDisposable
+    public struct MaterialHeaderScope : IDisposable
     {
+        /// <summary>Indicates whether the header is expanded or not. Is true if the header is expanded, false otherwise.</summary>
         public readonly bool expanded;
         bool spaceAtEnd;
 #if !UNITY_2020_1_OR_NEWER
         int oldIndentLevel;
 #endif
 
+        /// <summary>
+        /// Creates a material header scope to display the foldout in the material UI.
+        /// </summary>
+        /// <param name="title">Title of the header.</param>
+        /// <param name="bitExpanded">Bit index which specifies the state of the header (whether it is open or collapsed) inside Editor Prefs.</param>
+        /// <param name="materialEditor">The current material editor.</param>
+        /// <param name="spaceAtEnd">Set this to true to make the block include space at the bottom of its UI. Set to false to not include any space.</param>
+        /// <param name="colorDot">Specify a color to display a dot, like in the layered UI.</param>
+        /// <param name="subHeader">Set to true to make this into a sub-header. This affects the style of the header. Set to false to make this use the standard style.</param>
         public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default(Color), bool subHeader = false)
         {
             bool beforeExpended = materialEditor.GetExpandedAreas(bitExpanded);
@@ -66,6 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ++EditorGUI.indentLevel;
         }
 
+        /// <summary>Disposes of the material scope header and cleans up any resources it used.</summary>
         void IDisposable.Dispose()
         {
             if (expanded)

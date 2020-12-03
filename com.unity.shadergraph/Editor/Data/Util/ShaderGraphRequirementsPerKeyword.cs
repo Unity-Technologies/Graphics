@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Internal;
 
-namespace Data.Util
+namespace UnityEditor.ShaderGraph.Internal
 {
-    sealed class ShaderGraphRequirementsPerKeyword: KeywordDependentCollection<
+    sealed class ShaderGraphRequirementsPerKeyword : KeywordDependentCollection<
         ShaderGraphRequirements,
         ShaderGraphRequirementsPerKeyword.All,
         ShaderGraphRequirementsPerKeyword.AllPermutations,
@@ -15,18 +14,18 @@ namespace Data.Util
         ShaderGraphRequirementsPerKeyword.IRequirementsSet
     >
     {
-        public interface IRequirements: KeywordDependentCollection.IInstance, KeywordDependentCollection.ISet<IRequirements>
+        public interface IRequirements : KeywordDependentCollection.IInstance, KeywordDependentCollection.ISet<IRequirements>
         {
             void SetRequirements(ShaderGraphRequirements value);
 
             ShaderGraphRequirements requirements { get; set;  }
         }
 
-        public interface IRequirementsSet: KeywordDependentCollection.ISet<IRequirements>
+        public interface IRequirementsSet : KeywordDependentCollection.ISet<IRequirements>
         {
         }
 
-        public struct ForPermutationIndex: IRequirements, IRequirementsSet
+        public struct ForPermutationIndex : IRequirements, IRequirementsSet
         {
             private ShaderGraphRequirementsPerKeyword m_Source;
             private int m_PermutationIndex;
@@ -56,7 +55,7 @@ namespace Data.Util
             private ShaderGraphRequirementsPerKeyword m_Source;
 
             public int instanceCount => 1;
-            public int permutationIndex => -1;
+            public int permutationIndex => - 1;
             public KeywordDependentCollection.KeywordPermutationInstanceType type => KeywordDependentCollection.KeywordPermutationInstanceType.Base;
             public IEnumerable<IRequirements> instances => Enumerable.Repeat<IRequirements>(this, 1);
 

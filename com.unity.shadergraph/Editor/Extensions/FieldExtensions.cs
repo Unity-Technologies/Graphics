@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph
 
         public static string ToFieldString(this FieldDescriptor descriptor)
         {
-            if(!string.IsNullOrEmpty(descriptor.tag))
+            if (!string.IsNullOrEmpty(descriptor.tag))
                 return $"{descriptor.tag}.{descriptor.name}";
             else
                 return descriptor.name;

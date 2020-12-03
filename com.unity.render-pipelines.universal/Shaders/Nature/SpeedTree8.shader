@@ -36,6 +36,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             "RenderType"="TransparentCutout"
             "DisableBatching"="LODFading"
             "RenderPipeline" = "UniversalPipeline"
+            "UniversalMaterialType" = "Lit"
         }
         LOD 400
         Cull [_TwoSided]
@@ -50,8 +51,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
@@ -84,8 +84,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Name "SceneSelectionPass"
             Tags{"LightMode" = "SceneSelectionPass"}
 
-            ColorMask 0
-
             HLSLPROGRAM
 
             #pragma vertex SpeedTree8VertDepth
@@ -114,24 +112,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a Lit material.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
-
+            #pragma exclude_renderers gles
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
@@ -164,6 +150,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
+            ColorMask 0
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree8VertDepth
@@ -180,6 +168,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #define ENABLE_WIND
             #define DEPTH_ONLY
             #define SHADOW_CASTER
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
@@ -225,7 +219,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             ZWrite On
 
             HLSLPROGRAM
-
             #pragma vertex SpeedTree8VertDepthNormal
             #pragma fragment SpeedTree8FragDepthNormal
 

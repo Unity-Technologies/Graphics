@@ -9,6 +9,11 @@ float3 _LightDirection;
 #ifdef VFX_VARYING_PS_INPUTS
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
 
+float4 VFXApplyPreExposure(float4 color, float exposureWeight)
+{
+    return color;
+}
+
 float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 {
     return color;

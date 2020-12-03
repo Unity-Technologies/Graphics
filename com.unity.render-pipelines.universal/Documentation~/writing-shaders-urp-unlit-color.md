@@ -42,7 +42,7 @@ Use the Unity shader source file from section [URP unlit basic shader](writing-s
 
 Now you can select the color in the **Base Color** field in the Inspector window. The fragment shader fills the mesh with the color you select.
 
-![Base Color field on a Material](Images/shader-examples/unlit-shader-tutorial-color-field-with-scene.jpg)
+![Base Color field on a Material](Images/shader-examples/unlit-shader-tutorial-color-field-with-scene.png)
 
 Below is the complete ShaderLab code for this example.
 
@@ -61,7 +61,7 @@ Shader "Example/URPUnlitShaderColor"
     
     SubShader
     {        
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
                 
         Pass
         {            

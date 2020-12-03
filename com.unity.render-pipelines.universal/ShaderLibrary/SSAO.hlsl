@@ -3,7 +3,7 @@
 
 // Includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
@@ -17,8 +17,7 @@ SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 // Params
 float4 _BlurOffset;
 float4 _SSAOParams;
-float4 _BaseMap_TexelSize;
-float4 _CameraDepthTexture_TexelSize;
+float4 _SourceSize;
 
 // SSAO Settings
 #define INTENSITY _SSAOParams.x
@@ -152,7 +151,7 @@ float3 ReconstructNormal(float2 uv, float depth, float3 vpos, float2 p11_22, flo
     #if defined(_RECONSTRUCT_NORMAL_LOW)
         return normalize(cross(ddy(vpos), ddx(vpos)));
     #else
-        float2 delta = _CameraDepthTexture_TexelSize.xy * 2.0;
+        float2 delta = _SourceSize.zw * 2.0;
 
         // Sample the neighbour fragments
         float2 lUV = float2(-delta.x, 0.0);
@@ -225,10 +224,6 @@ void SampleDepthNormalView(float2 uv, float2 p11_22, float2 p13_31, out float de
 float3x3 GetCoordinateConversionParameters(out float2 p11_22, out float2 p13_31)
 {
     float3x3 camProj = (float3x3)unity_CameraProjection;
-    #ifdef UNITY_STEREO_INSTANCING_ENABLED
-        camProj._22 *= _ScaleBiasRt.x;
-        camProj._23 *= _ScaleBiasRt.x;
-    #endif
 
     p11_22 = rcp(float2(camProj._11, camProj._22));
     p13_31 = float2(camProj._13, camProj._23);
@@ -381,7 +376,7 @@ half4 HorizontalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = float2(_BaseMap_TexelSize.x * 2.0, 0.0);
+    float2 delta = float2(_SourceSize.z * rcp(DOWNSAMPLE) * 2.0, 0.0);
     return Blur(uv, delta);
 }
 
@@ -390,7 +385,7 @@ half4 VerticalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = float2(0.0, _BaseMap_TexelSize.y * rcp(DOWNSAMPLE) * 2.0);
+    float2 delta = float2(0.0, _SourceSize.w * rcp(DOWNSAMPLE) * 2.0);
     return Blur(uv, delta);
 }
 
@@ -399,7 +394,7 @@ half4 FinalBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     float2 uv = input.uv;
-    float2 delta = _BaseMap_TexelSize.xy * rcp(DOWNSAMPLE);
+    float2 delta = _SourceSize.zw * rcp(DOWNSAMPLE);
     return 1.0 - BlurSmall(uv, delta );
 }
 

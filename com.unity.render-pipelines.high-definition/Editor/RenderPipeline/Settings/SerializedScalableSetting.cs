@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </param>
         /// <returns><c>true</c> when the value was evaluated, <c>false</c> when the value could not be evaluated.</returns>
         public bool TryGetLevelValue<T>(int level, out T value)
-            where T: struct
+            where T : struct
         {
             if (level < values.arraySize && level >= 0)
             {
@@ -91,7 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 LevelValuesFieldGUI<int>(contentRect, self, count, schema);
             else if (typeof(T) == typeof(float))
                 LevelValuesFieldGUI<float>(contentRect, self, count, schema);
-
+            else if (typeof(T).IsEnum)
+                LevelValuesFieldGUI<T>(contentRect, self, count, schema);
             EditorGUI.showMixedValue = false;
         }
 
@@ -134,17 +135,20 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="subLabels">The labels for each sub value field.</param>
         /// <param name="values">The current values of the fields.</param>
         static void MultiField<T>(Rect position, GUIContent[] subLabels, T[] values)
-            where T: struct
+            where T : struct
         {
             // The number of slots we need to fit into this rectangle
             var length = values.Length;
 
             // Let's compute the space allocated for every field including the label
-            var num = position.width / (float) length;
+            var num = position.width / (float)length;
 
             // Reset the indentation
             var indentLevel = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
+
+            // Save labelWidth
+            float labelWidth = EditorGUIUtility.labelWidth;
 
             // Variable to keep track of the current pixel shift in the rectangle we were assigned for this whole section.
             float pixelShift = 0;
@@ -153,38 +157,28 @@ namespace UnityEditor.Rendering.HighDefinition
             for (var index = 0; index < values.Length; ++index)
             {
                 // Let's first compute what is the width of the label of this scalable setting level
-				// We make sure that the label doesn't go beyond the space available for this scalable setting level
-                var labelWidth = Mathf.Clamp(CalcPrefixLabelWidth(subLabels[index], (GUIStyle)null), 0, num);
+                // We make sure that the label doesn't go beyond the space available for this scalable setting level
+                EditorGUIUtility.labelWidth = Mathf.Clamp(CalcPrefixLabelWidth(subLabels[index], (GUIStyle)null), 0, num);
 
-                // Draw the Label at the expected position
-                EditorGUI.LabelField(new Rect(position.x + pixelShift, position.y, labelWidth, position.height), subLabels[index]);
+                // Define the rectangle for the field
+                var fieldSlot = new Rect(position.x + pixelShift, position.y, num, position.height);
 
-                // We need to remove from the position the label size that we've just drawn and shift by it's length
-                pixelShift += labelWidth;
+                // Draw the right field depending on its type.
+                if (typeof(T) == typeof(int))
+                    values[index] = (T)(object)EditorGUI.DelayedIntField(fieldSlot, subLabels[index], (int)(object)values[index]);
+                else if (typeof(T) == typeof(bool))
+                    values[index] = (T)(object)EditorGUI.Toggle(fieldSlot, subLabels[index], (bool)(object)values[index]);
+                else if (typeof(T) == typeof(float))
+                    values[index] = (T)(object)EditorGUI.FloatField(fieldSlot, subLabels[index], (float)(object)values[index]);
+                else if (typeof(T).IsEnum)
+                    values[index] = (T)(object)EditorGUI.EnumPopup(fieldSlot, subLabels[index], (Enum)(object)values[index]);
+                else
+                    throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
 
-                // The amount of space left for the field
-                float spaceLeft = num - labelWidth;
-
-                // If at least two pixels are left to draw this field, draw it, otherwise, skip
-                if (spaceLeft > 2)
-                {
-                    // Define the rectangle for the field
-                    var fieldSlot = new Rect(position.x + pixelShift, position.y, num - labelWidth, position.height);
-
-                    // Draw the right field depending on its type.
-                    if (typeof(T) == typeof(int))
-                        values[index] = (T)(object)EditorGUI.DelayedIntField(fieldSlot, (int)(object)values[index]);
-                    else if (typeof(T) == typeof(bool))
-                        values[index] = (T)(object)EditorGUI.Toggle(fieldSlot, (bool)(object)values[index]);
-                    else if (typeof(T) == typeof(float))
-                        values[index] = (T)(object)EditorGUI.FloatField(fieldSlot, (float)(object)values[index]);
-                    else
-                        throw new ArgumentOutOfRangeException($"<{typeof(T)}> is not a supported type for multi field");
-                }
-
-                // Shift by the slot that was left for the field
-                pixelShift += spaceLeft;
+                // Shift by the slot that was used for the field
+                pixelShift += num;
             }
+            EditorGUIUtility.labelWidth = labelWidth;
             EditorGUI.indentLevel = indentLevel;
         }
 

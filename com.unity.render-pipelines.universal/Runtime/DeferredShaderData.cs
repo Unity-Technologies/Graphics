@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using UnityEngine.Rendering.Universal.Internal;
@@ -214,6 +214,21 @@ namespace UnityEngine.Rendering.Universal
             m_CachedBufferIndex = m_BufferCount;
             bufferId = m_BufferCount++;
             return m_Buffers[bufferId++];
+        }
+
+        void DisposeBuffers(ComputeBuffer[,] buffers)
+        {
+            for (int i = 0; i < buffers.GetLength(0); ++i)
+            {
+                for (int j = 0; j < buffers.GetLength(1); ++j)
+                {
+                    if (buffers[i, j] != null)
+                    {
+                        buffers[i, j].Dispose();
+                        buffers[i, j] = null;
+                    }
+                }
+            }
         }
 
         static bool IsLessCircular(uint a, uint b)

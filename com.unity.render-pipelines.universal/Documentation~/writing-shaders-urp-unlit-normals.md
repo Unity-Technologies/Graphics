@@ -41,7 +41,7 @@ Use the Unity shader source file from section [URP unlit basic shader](writing-s
 
 4. Unity renders the normal vector values on the mesh:
 
-    ![Rendering normals without compression](Images/shader-examples/unlit-shader-tutorial-normals-uncompressed.jpg)
+    ![Rendering normals without compression](Images/shader-examples/unlit-shader-tutorial-normals-uncompressed.png)
 
     A part of the capsule is black. This is because in those points, all three components of the normal vector are negative. The next step shows how to render values in those areas as well.
 
@@ -59,7 +59,7 @@ Use the Unity shader source file from section [URP unlit basic shader](writing-s
 
 Now Unity renders the normal vector values as colors on the mesh.
 
-![Rendering normals with compression](Images/shader-examples/unlit-shader-tutorial-normals.jpg)
+![Rendering normals with compression](Images/shader-examples/unlit-shader-tutorial-normals.png)
 
 Below is the complete ShaderLab code for this example.
 
@@ -72,7 +72,7 @@ Shader "Example/URPUnlitShaderNormal"
     
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
                 
         Pass
         {            

@@ -8,12 +8,12 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         [Reload(new[]
         {
-            "Runtime/RenderPipelineResources/Skin Diffusion Profile.asset",
-            "Runtime/RenderPipelineResources/Foliage Diffusion Profile.asset"
+            "Runtime/RenderPipelineResources/SkinDiffusionProfile.asset",
+            "Runtime/RenderPipelineResources/FoliageDiffusionProfile.asset"
         })]
         [SerializeField]
         internal DiffusionProfileSettings[] defaultDiffusionProfileSettingsList;
-        
+
         [Reload("Editor/RenderPipelineResources/DefaultSettingsVolumeProfile.asset")]
         public VolumeProfile defaultSettingsVolumeProfile;
 
@@ -72,7 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ShaderGraphResources shaderGraphs;
         public LookDevResources lookDev;
     }
-    
+
     [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]
     class HDRenderPipelineEditorResourcesEditor : UnityEditor.Editor
     {
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (UnityEditor.EditorPrefs.GetBool("DeveloperMode")
                 && GUILayout.Button("Reload All"))
             {
-                foreach(var field in typeof(HDRenderPipelineEditorResources).GetFields())
+                foreach (var field in typeof(HDRenderPipelineEditorResources).GetFields())
                     field.SetValue(target, null);
 
                 ResourceReloader.ReloadAllNullIn(target, HDUtils.GetHDRenderPipelinePath());

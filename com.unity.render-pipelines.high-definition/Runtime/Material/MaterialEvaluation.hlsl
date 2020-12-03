@@ -70,6 +70,12 @@ float GetScreenSpaceDiffuseOcclusion(float2 positionSS)
     return indirectAmbientOcclusion;
 }
 
+float3 GetScreenSpaceAmbientOcclusion(float2 positionSS)
+{
+    float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS);
+    return lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), indirectAmbientOcclusion);
+}
+
 void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
 {
     float indirectAmbientOcclusion = GetScreenSpaceDiffuseOcclusion(positionSS);
@@ -116,7 +122,7 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
     lighting.direct.specular *= aoFactor.directSpecularOcclusion;
 }
 
-#ifdef DEBUG_DISPLAY
+#if defined(DEBUG_DISPLAY) && defined(HAS_LIGHTLOOP)
 // mipmapColor is color use to store texture streaming information in XXXData.hlsl (look for DEBUGMIPMAPMODE_NONE)
 void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData builtinData, AggregateLighting lighting, float3 mipmapColor,
                                     inout LightLoopOutput lightLoopOutput)

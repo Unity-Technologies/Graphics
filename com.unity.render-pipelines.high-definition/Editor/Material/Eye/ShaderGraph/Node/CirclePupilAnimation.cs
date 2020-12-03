@@ -1,8 +1,10 @@
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.ShaderGraph
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Eye", "CirclePupilAnimation (Preview)")]
     class CirclePupilAnimation : CodeFunctionNode
     {
@@ -31,7 +33,7 @@ namespace UnityEditor.ShaderGraph
         {
             AnimatedIrisUV = Vector2.zero;
             return
-                @"
+@"
                 {
                     // Compute the normalized iris position
                     $precision2 irisUVCentered = (IrisUV - 0.5f) * 2.0f;

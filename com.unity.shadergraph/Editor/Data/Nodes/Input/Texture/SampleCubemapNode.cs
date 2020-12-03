@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [FormerName("UnityEditor.ShaderGraph.CubemapNode")]
-    [Title("Input", "Texture", "Sample Cubemap")]
+    [Title("Input", "Texture", "Sample Reflected Cubemap")]
     class SampleCubemapNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireViewDirection, IMayRequireNormal
     {
         public const int OutputSlotId = 0;
@@ -26,10 +26,9 @@ namespace UnityEditor.ShaderGraph
 
         public SampleCubemapNode()
         {
-            name = "Sample Cubemap";
+            name = "Sample Reflected Cubemap";
             UpdateNodeAfterDeserialization();
         }
-
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
@@ -56,12 +55,12 @@ namespace UnityEditor.ShaderGraph
 
             var id = GetSlotValue(CubemapInputId, generationMode);
             string result = string.Format("$precision4 {0} = SAMPLE_TEXTURECUBE_LOD({1}, {2}, reflect(-{3}, {4}), {5});"
-                    , GetVariableNameForSlot(OutputSlotId)
-                    , id
-                    , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id
-                    , GetSlotValue(ViewDirInputId, generationMode)
-                    , GetSlotValue(NormalInputId, generationMode)
-                    , GetSlotValue(LODInputId, generationMode));
+                , GetVariableNameForSlot(OutputSlotId)
+                , id
+                , edgesSampler.Any() ? GetSlotValue(SamplerInputId, generationMode) : "sampler" + id
+                , GetSlotValue(ViewDirInputId, generationMode)
+                , GetSlotValue(NormalInputId, generationMode)
+                , GetSlotValue(LODInputId, generationMode));
 
             sb.AppendLine(result);
         }
@@ -84,6 +83,13 @@ namespace UnityEditor.ShaderGraph
                 return CoordinateSpace.Object.ToNeededCoordinateSpace();
             else
                 return NeededCoordinateSpace.None;
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+
+            name = "Sample Reflected Cubemap";
         }
     }
 }

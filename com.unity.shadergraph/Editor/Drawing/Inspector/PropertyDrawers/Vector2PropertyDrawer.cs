@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.UIElements;
@@ -53,7 +52,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 // Reset UndoGroup when done editing input field
                 mUndoGroup = -1;
             });
-
         }
 
         internal VisualElement CreateGUI(
@@ -98,7 +96,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
                 newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (Vector2) propertyInfo.GetValue(actualObject),
+                (Vector2)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }

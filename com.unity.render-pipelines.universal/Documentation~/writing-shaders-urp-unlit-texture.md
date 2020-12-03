@@ -64,7 +64,7 @@ Use the Unity shader source file from section [URP unlit shader with color input
 
 Now you can select a texture in the __Base Map__ field in the Inspector window. The shader draws that texture on the mesh.
 
-![Base Map texture on a Material](Images/shader-examples/unlit-shader-tutorial-texture-with-scene.jpg)
+![Base Map texture on a Material](Images/shader-examples/unlit-shader-tutorial-texture-with-scene.png)
 
 Below is the complete ShaderLab code for this example.
 
@@ -81,7 +81,7 @@ Shader "Example/URPUnlitShaderTexture"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
                 
         Pass
         {

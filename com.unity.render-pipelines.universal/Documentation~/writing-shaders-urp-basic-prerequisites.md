@@ -6,7 +6,7 @@ To follow the examples in this section:
 
 2. In the sample Scene, create a GameObject to test the shaders on; for example, a capsule.
     
-    ![Sample GameObject](Images/shader-examples/urp-template-sample-object.jpg)
+    ![Sample GameObject](Images/shader-examples/urp-template-sample-object.png)
 
 3. Create a new Material and assign it to the capsule.
 

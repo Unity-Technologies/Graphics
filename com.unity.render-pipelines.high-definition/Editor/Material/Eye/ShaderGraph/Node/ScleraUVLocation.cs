@@ -1,8 +1,10 @@
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.ShaderGraph
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Utility", "High Definition Render Pipeline", "Eye", "ScleraUVLocation (Preview)")]
     class ScleraUVLocation : CodeFunctionNode
     {
@@ -27,7 +29,7 @@ namespace UnityEditor.ShaderGraph
         {
             ScleraUV = Vector2.zero;
             return
-                @"
+@"
                 {
                     ScleraUV =  PositionOS.xy + $precision2(0.5, 0.5);
                 }

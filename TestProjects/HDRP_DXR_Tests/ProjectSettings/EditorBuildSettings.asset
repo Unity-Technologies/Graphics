@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/100_NoRayTracingEffects.unity
+    guid: 4951b574dff43c34d93926b58d153f35
+  - enabled: 1
     path: Assets/Scenes/101_ReflectionsPerfFullRes.unity
     guid: 7370a32694f72f146851c3347ef04385
   - enabled: 1
@@ -24,6 +27,12 @@ EditorBuildSettings:
     path: Assets/Scenes/105_ReflectionsDenoised2.unity
     guid: a2f4b7b418d52794aa591bc7a751de61
   - enabled: 1
+    path: Assets/Scenes/105_ReflectionsAndGlobalIlluminationCollision.unity
+    guid: 1531a86794539a5409d036038ffbcbad
+  - enabled: 1
+    path: Assets/Scenes/106_ReflectionsMultiBounceRough.unity
+    guid: 6ea352d11ef71204089ff0b18223c824
+  - enabled: 1
     path: Assets/Scenes/201_LargeAmbientOcclusion.unity
     guid: 41a04a0db6c8e4e4eb54296e4521c3e5
   - enabled: 1
@@ -38,6 +47,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/301_GlobalIlluminationPerfFull.unity
     guid: c54ecbf7af984ec4093589a91febdb7b
+  - enabled: 1
+    path: Assets/Scenes/301_GlobalIlluminationPerfFullLightLayers.unity
+    guid: 2fc58ab7827101349bf564221bd93f53
   - enabled: 1
     path: Assets/Scenes/302_GlobalIlluminationPerfHalf.unity
     guid: 0bac4262f1a14eb42acc13ccf10599c7
@@ -56,9 +68,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/307_GlobalIlluminationFog.unity
     guid: 8a5a48512a640734394f6427d94fd0f8
-  - enabled: 0
-    path: Assets/Scenes/308_ScreenSpaceGlobalIllumination.unity
-    guid: ccf33fc5169d0624c91b9116ebf44c7f
   - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe
@@ -93,6 +102,12 @@ EditorBuildSettings:
     path: Assets/Scenes/702_DirectionalShadow.unity
     guid: fef4168c8e3f3bd47b3edad8d968de9f
   - enabled: 1
+    path: Assets/Scenes/702_DirectionalShadowNoRT.unity
+    guid: 5206942a24e5b5b47b2be18848df8833
+  - enabled: 1
+    path: Assets/Scenes/702_DirectionalShadowFilteringHard.unity
+    guid: d225329e29569f144b7586ef55ff34e3
+  - enabled: 1
     path: Assets/Scenes/702_DirectionalShadowSG.unity
     guid: 97247f075d9ed4c4ab30894abe19320e
   - enabled: 1
@@ -104,6 +119,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/703_PointShadow.unity
     guid: 85d29280c924e314aa9bbe4130570252
+  - enabled: 1
+    path: Assets/Scenes/703_PointShadowFilteredHard.unity
+    guid: de74437b209eaba45b45ea21ee38cd2b
   - enabled: 1
     path: Assets/Scenes/704_SpotShadow.unity
     guid: 5a4c020917912884cae832c1a77f6703
@@ -122,6 +140,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/709_CameraExtendedCulling.unity
     guid: ae8985d60efd64a4eabcad184745808a
+  - enabled: 1
+    path: Assets/Scenes/710_ShadowAlphaCutoff.unity
+    guid: 0021b6bb38593db4da5f85503dca6957
   - enabled: 1
     path: Assets/Scenes/801_SubSurfaceScatteringDeferred.unity
     guid: c939ce56b901d264baab16d584624b30
@@ -153,8 +174,20 @@ EditorBuildSettings:
     path: Assets/Scenes/902_Materials_SG_Variants_Unlit.unity
     guid: 5b672860fdf88f84fa93bf94214514f1
   - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_Eye.unity
+    guid: ba2ecd3677bebe946837edbb7490ba97
+  - enabled: 1
     path: Assets/Scenes/905_Materials_SG_TransparentRTR.unity
     guid: cc33ef2ea5450204ab4fab18d90afaec
+  - enabled: 1
+    path: Assets/Scenes/1000_RaytracingQualityKeyword_MaterialQuality_Indirect.unity
+    guid: f2a5323c1c8df664cb7dd65071c61ab0
+  - enabled: 1
+    path: Assets/Scenes/1000_RaytracingQualityKeyword_RR_Default.unity
+    guid: caca4b7ac8b85534ebac9100ef8f9c7c
+  - enabled: 1
+    path: Assets/Scenes/1000_RaytracingQualityKeyword_PathTracer_Default.unity
+    guid: e94f1768c0fea4843a93cf691ba136fd
   - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
@@ -191,4 +224,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5007_PathTracing_Materials_SG_Unlit.unity
     guid: a8836a288e8e4ae49abdf5d23fedb3c8
+  - enabled: 1
+    path: Assets/Scenes/5008_PathTracing_NormalMapping.unity
+    guid: 7c5e1446f931c184aaa07d7dd2f03616
+  - enabled: 1
+    path: Assets/Scenes/6000_VertexFormats.unity
+    guid: 6788ab4459664394f96537c7ad864afb
+  - enabled: 1
+    path: Assets/Scenes/6001_Alembic.unity
+    guid: 163e04c0245b93648808a42b7f45ce0d
+  - enabled: 1
+    path: Assets/Scenes/7000_QuadChannelTexCoord.unity
+    guid: 93bf762e6d528a640b338bfa061dfffb
   m_configObjects: {}

@@ -6,14 +6,18 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework;
+
 using UnityObject = UnityEngine.Object;
+#if !UNITY_2020_2_OR_NEWER
+using ToolManager = UnityEditor.EditorTools.EditorTools;
+#endif
 
 namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 {
     internal static class PathEditorToolContents
     {
-        internal static readonly GUIContent shapeToolIcon = IconContent("ShapeTool", "Start editing the Shape in the Scene View.");
-        internal static readonly GUIContent shapeToolPro = IconContent("ShapeToolPro", "Start editing the Shape in the Scene View.");
+        internal static readonly GUIContent shapeToolIcon = IconContent("ShapeTool", "Unlocks the shape to allow editing in the Scene View.");
+        internal static readonly GUIContent shapeToolPro = IconContent("ShapeToolPro", "Unlocks the shape to allow editing in the Scene View.");
 
         internal static GUIContent IconContent(string name, string tooltip = null)
         {
@@ -77,7 +81,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         internal static T GetEditorTool<T>() where T : EditorTool
         {
-            foreach(var tool in m_Tools)
+            foreach (var tool in m_Tools)
             {
                 if (tool.GetType().Equals(typeof(T)))
                     return tool as T;
@@ -141,7 +145,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
             var undoName = Undo.GetCurrentGroupName();
             var serializedObject = GetSerializedObject(target);
-            
+
             serializedObject.UpdateIfRequiredOrScript();
 
             SetShape(path, serializedObject);
@@ -267,7 +271,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         private void ForEachTarget(Action<UnityObject> action)
         {
-            foreach(var target in targets)
+            foreach (var target in targets)
             {
                 if (target == null)
                     continue;
@@ -376,11 +380,11 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             if (m_GUIState.eventType == EventType.Layout)
                 m_Controller.ClearClosestPath();
-                
+
             m_RectSelector.OnGUI();
 
             bool changed = false;
-            
+
             ForEachTarget((target) =>
             {
                 var path = GetPath(target);
@@ -485,11 +489,11 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         }
 
         protected abstract IShape GetShape(UnityObject target);
-        protected virtual void Initialize(T path, SerializedObject serializedObject) { }
+        protected virtual void Initialize(T path, SerializedObject serializedObject) {}
         protected abstract void SetShape(T path, SerializedObject serializedObject);
-        protected virtual void OnActivate() { }
-        protected virtual void OnDeactivate() { }
-        protected virtual void OnCustomGUI(T path) { }
+        protected virtual void OnActivate() {}
+        protected virtual void OnDeactivate() {}
+        protected virtual void OnCustomGUI(T path) {}
     }
 }
 #pragma warning restore 0618

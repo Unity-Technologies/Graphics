@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 #if UNITY_EDITOR
-    using UnityEditor;
+using UnityEditor;
 #endif // UNITY_EDITOR
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -84,15 +84,18 @@ namespace UnityEngine.Rendering.HighDefinition
             camData.ResetIteration();
             SetCameraData(camID, camData);
         }
+
         internal void Reset()
         {
             foreach (int camID in m_CameraCache.Keys.ToList())
                 Reset(camID);
         }
+
         internal void Clear()
         {
             m_CameraCache.Clear();
         }
+
         internal void SelectiveReset(uint maxSamples)
         {
             foreach (int camID in m_CameraCache.Keys.ToList())
@@ -221,7 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CameraData camData = GetCameraData(camID);
 
             float totalWeight = camData.accumulatedWeight;
-            float time = m_AccumulationSamples > 0 ? (float) camData.currentIteration / m_AccumulationSamples : 0.0f;
+            float time = m_AccumulationSamples > 0 ? (float)camData.currentIteration / m_AccumulationSamples : 0.0f;
 
             float weight = isRecording ? ShutterProfile(time) : 1.0f;
 
@@ -291,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera         hdCamera;
         }
 
-        RenderAccumulationParameters PrepareRenderAccumulationParameters(HDCamera hdCamera, bool needExposure)
+        RenderAccumulationParameters PrepareRenderAccumulationParameters(HDCamera hdCamera, bool needExposure, bool inputFromRadianceTexture)
         {
             var parameters = new RenderAccumulationParameters();
 
@@ -301,17 +304,12 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.needExposure = needExposure;
             parameters.hdCamera = hdCamera;
 
+            parameters.accumulationCS.shaderKeywords = null;
+            if (inputFromRadianceTexture)
+            {
+                parameters.accumulationCS.EnableKeyword("INPUT_FROM_RADIANCE_TEXTURE");
+            }
             return parameters;
-        }
-
-        void RenderAccumulation(HDCamera hdCamera, RTHandle inputTexture, RTHandle outputTexture, bool needExposure, CommandBuffer cmd)
-        {
-            // Grab the history buffer (hijack the reflections one)
-            RTHandle history = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1);
-
-            var parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure);
-            RenderAccumulation(parameters, inputTexture, outputTexture, history, cmd);
         }
 
         static void RenderAccumulation(in RenderAccumulationParameters parameters, RTHandle inputTexture, RTHandle outputTexture, RTHandle historyTexture, CommandBuffer cmd)
@@ -332,7 +330,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNumSamples, (int)parameters.subFrameManager.subFrameCount);
             cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._AccumulatedFrameTexture, historyTexture);
             cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._CameraColorTextureRW, outputTexture);
-            cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._RadianceTexture, inputTexture);
+            if (!inputTexture.Equals(outputTexture))
+            {
+                cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._RadianceTexture, inputTexture);
+            }
             cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
             cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, parameters.needExposure ? 1 : 0);
             cmd.DispatchCompute(accumulationShader, parameters.accumulationKernel, (parameters.hdCamera.actualWidth + 7) / 8, (parameters.hdCamera.actualHeight + 7) / 8, parameters.hdCamera.viewCount);
@@ -345,5 +346,4 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
     }
-
 }

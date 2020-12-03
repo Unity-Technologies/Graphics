@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (width > height) // logic to decide which way to split
                     {
-                                                                                //  +--------+------+
+                        //  +--------+------+
                         m_RightChild.m_Rect.z = m_Rect.z + width;               //  |        |      |
                         m_RightChild.m_Rect.w = m_Rect.w;                       //  +--------+------+
                         m_RightChild.m_Rect.x = m_Rect.x - width;               //  |               |
@@ -141,7 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
         protected GraphicsFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<int, Vector4> m_AllocationCache = new Dictionary<int, Vector4>();
-        private Dictionary<int, uint> m_IsGPUTextureUpToDate = new Dictionary<int, uint>();
+        private Dictionary<int, int> m_IsGPUTextureUpToDate = new Dictionary<int, int>();
         private Dictionary<int, int> m_TextureHashes = new Dictionary<int, int>();
 
         static readonly Vector4 fullScaleOffset = new Vector4(1, 1, 0, 0);
@@ -173,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoGenerateMips: false,
                 name: name
             );
-			m_IsAtlasTextureOwner = true;
+            m_IsAtlasTextureOwner = true;
 
             // We clear on create to avoid garbage data to be present in the atlas
             int mipCount = useMipMap ? GetTextureMipmapCount(m_Width, m_Height) : 1;
@@ -245,7 +245,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false) => m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? 2u : 1u;
+        protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false)
+        {
+            m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? 2 : 1;
+        }
 
         protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = 0;
 
@@ -277,7 +280,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public bool AllocateTextureWithoutBlit(Texture texture, int width, int height, ref Vector4 scaleOffset)
-            => AllocateTextureWithoutBlit(GetTextureID(texture), width, height, ref scaleOffset);
+            => AllocateTextureWithoutBlit(texture.GetInstanceID(), width, height, ref scaleOffset);
 
         public virtual bool AllocateTextureWithoutBlit(int instanceId, int width, int height, ref Vector4 scaleOffset)
         {
@@ -303,27 +306,36 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
-                hash = 23*hash + texture.GetInstanceID().GetHashCode();
-                hash = 23*hash + texture.graphicsFormat.GetHashCode();
-                hash = 23*hash + texture.wrapMode.GetHashCode();
-                hash = 23*hash + texture.width.GetHashCode();
-                hash = 23*hash + texture.height.GetHashCode();
-                hash = 23*hash + texture.filterMode.GetHashCode();
-                hash = 23*hash + texture.anisoLevel.GetHashCode();
-                hash = 23*hash + texture.mipmapCount.GetHashCode();
+#if UNITY_EDITOR
+                hash = 23 * hash + texture.imageContentsHash.GetHashCode();
+#endif
+                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
+                hash = 23 * hash + texture.graphicsFormat.GetHashCode();
+                hash = 23 * hash + texture.wrapMode.GetHashCode();
+                hash = 23 * hash + texture.width.GetHashCode();
+                hash = 23 * hash + texture.height.GetHashCode();
+                hash = 23 * hash + texture.filterMode.GetHashCode();
+                hash = 23 * hash + texture.anisoLevel.GetHashCode();
+                hash = 23 * hash + texture.mipmapCount.GetHashCode();
             }
 
             return hash;
         }
 
+        protected int GetTextureHash(Texture textureA, Texture textureB)
+        {
+            int hash = GetTextureHash(textureA) + 23 * GetTextureHash(textureB);
+            return hash;
+        }
+
         public int GetTextureID(Texture texture)
         {
-            return GetTextureHash(texture);
+            return texture.GetInstanceID();
         }
 
         public int GetTextureID(Texture textureA, Texture textureB)
         {
-            return GetTextureHash(textureA) + 23*GetTextureHash(textureB);
+            return GetTextureID(textureA) + 23 * GetTextureID(textureB);
         }
 
         public bool IsCached(out Vector4 scaleOffset, Texture textureA, Texture textureB)
@@ -339,27 +351,29 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTexture   rt = texture as RenderTexture;
             int             key = GetTextureID(texture);
-            uint            textureHash = (uint)key;
+            int             textureHash = GetTextureHash(texture);
 
             // Update the render texture if needed
             if (rt != null)
             {
-                uint updateCount;
+                int updateCount;
                 if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = updateCount;
                     if (rt.updateCount != updateCount)
+                    {
+                        m_IsGPUTextureUpToDate[key] = (int)rt.updateCount;
                         return true;
+                    }
                 }
                 else
                 {
-                    m_IsGPUTextureUpToDate[key] = rt.updateCount;
+                    m_IsGPUTextureUpToDate[key] = (int)rt.updateCount;
                 }
             }
             // In case the texture settings/import settings have changed, we need to update it
             else if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
             {
-                m_TextureHashes[key] = key;
+                m_TextureHashes[key] = textureHash;
                 return true;
             }
             // For regular textures, values == 0 means that their GPU data needs to be updated (either because
@@ -376,21 +390,29 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderTexture rtA = textureA as RenderTexture;
             RenderTexture rtB = textureB as RenderTexture;
             int key = GetTextureID(textureA, textureB);
-            uint textureHash = (uint)key;
+            int textureHash = GetTextureHash(textureA, textureB);
 
             // Update the render texture if needed
             if (rtA != null || rtB != null)
             {
-                uint updateCount;
+                int updateCount;
                 if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = updateCount;
                     if (rtA != null && rtB != null && Math.Min(rtA.updateCount, rtB.updateCount) != updateCount)
+                    {
+                        m_IsGPUTextureUpToDate[key] = (int)Math.Min(rtA.updateCount, rtB.updateCount);
                         return true;
+                    }
                     else if (rtA != null && rtA.updateCount != updateCount)
+                    {
+                        m_IsGPUTextureUpToDate[key] = (int)rtA.updateCount;
                         return true;
+                    }
                     else if (rtB.updateCount != updateCount) // implicitly rtB != null
+                    {
+                        m_IsGPUTextureUpToDate[key] = (int)rtB.updateCount;
                         return true;
+                    }
                 }
                 else
                 {

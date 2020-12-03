@@ -27,6 +27,13 @@ namespace UnityEngine.Rendering.Universal
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreatePostProcessDataAsset>(), "CustomPostProcessData.asset", null, null);
         }
+
+        internal static PostProcessData GetDefaultPostProcessData()
+        {
+            var path = System.IO.Path.Combine(UniversalRenderPipelineAsset.packagePath, "Runtime/Data/PostProcessData.asset");
+            return AssetDatabase.LoadAssetAtPath<PostProcessData>(path);
+        }
+
 #endif
 
         [Serializable, ReloadGroup]
