@@ -19,39 +19,38 @@ namespace UnityEditor.Rendering
         {
             Dictionary<string, List<ShaderTypeGenerator>> sourceGenerators = null;
             try
-        {
+            {
                 // Store per source file path the generator definitions
                 sourceGenerators = DictionaryPool<string, List<ShaderTypeGenerator>>.Get();
 
                 // Extract all types with the GenerateHLSL tag
                 foreach (var type in TypeCache.GetTypesWithAttribute<GenerateHLSL>())
-            {
+                {
                     var attr = type.GetCustomAttributes(typeof(GenerateHLSL), false).First() as GenerateHLSL;
                     if (!sourceGenerators.TryGetValue(attr.sourcePath, out var generators))
-            {
+                    {
                         generators = ListPool<ShaderTypeGenerator>.Get();
                         sourceGenerators.Add(attr.sourcePath, generators);
-            }
+                    }
 
                     generators.Add(new ShaderTypeGenerator(type, attr));
-        }
+                }
 
                 // Generate all files
                 await Task.WhenAll(sourceGenerators.Select(async it =>
                     await GenerateAsync($"{it.Key}.hlsl", $"{Path.ChangeExtension(it.Key, "custom")}.hlsl", it.Value)));
             }
             finally
-        {
+            {
                 // Make sure we always release pooled resources
                 if (sourceGenerators != null)
-            {
+                {
                     foreach (var pair in sourceGenerators)
                         ListPool<ShaderTypeGenerator>.Release(pair.Value);
                     DictionaryPool<string, List<ShaderTypeGenerator>>.Release(sourceGenerators);
                 }
-                }
             }
-
+        }
 
         /// <summary>
         ///     Generate all shader code from <paramref name="generators" /> into <paramref name="targetFilename" />.
@@ -62,17 +61,17 @@ namespace UnityEditor.Rendering
         /// <returns>Awaitable task.</returns>
         private static async Task GenerateAsync(string targetFilename, string targetCustomFilename,
             List<ShaderTypeGenerator> generators)
-            {
+        {
             var skipFile = false;
 
             // Emit atomic element for all generators
             foreach (var gen in generators.Where(gen => !gen.Generate()))
             {
-                        // Error reporting will be done by the generator.  Skip this file.
-                        gen.PrintErrors();
-                        skipFile = true;
-                        break;
-                    }
+                // Error reporting will be done by the generator.  Skip this file.
+                gen.PrintErrors();
+                skipFile = true;
+                break;
+            }
 
             // If an error occured during generation, we abort this file
             if (skipFile)
@@ -80,38 +79,38 @@ namespace UnityEditor.Rendering
 
             // Check access to the file
             if (File.Exists(targetFilename))
+            {
+                FileInfo info = null;
+                try
                 {
-                    FileInfo info = null;
-                    try
-                    {
                     info = new FileInfo(targetFilename);
-                    }
-                    catch (UnauthorizedAccessException )
-                    {
+                }
+                catch (UnauthorizedAccessException)
+                {
                     Debug.Log("Access to " + targetFilename + " is denied. Skipping it.");
                     return;
-                    }
-                    catch (SecurityException)
-                    {
+                }
+                catch (SecurityException)
+                {
                     Debug.Log("You do not have permission to access " + targetFilename + ". Skipping it.");
                     return;
-                    }
+                }
 
-                    if (info?.IsReadOnly ?? false)
-                    {
+                if (info?.IsReadOnly ?? false)
+                {
                     Debug.Log(targetFilename + " is ReadOnly. Skipping it.");
                     return;
-                    }
                 }
+            }
 
             // Generate content
             using var writer = File.CreateText(targetFilename);
-                    writer.NewLine = Environment.NewLine;
+            writer.NewLine = Environment.NewLine;
 
             // Include guard name
             var guard = Path.GetFileName(targetFilename).Replace(".", "_").ToUpper();
-                    if (!char.IsLetter(guard[0]))
-                        guard = "_" + guard;
+            if (!char.IsLetter(guard[0]))
+                guard = "_" + guard;
 
             await writer.WriteLineAsync("//");
             await writer.WriteLineAsync("// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead");
@@ -127,12 +126,12 @@ namespace UnityEditor.Rendering
                 await writer.WriteLineAsync(gen.EmitTypeDecl().Replace("\n", writer.NewLine));
 
             foreach (var gen in generators.Where(gen => gen.hasFields && gen.needAccessors && !gen.hasPackedInfo))
-                    {
+            {
                 await writer.WriteAsync(gen.EmitAccessors().Replace("\n", writer.NewLine));
                 await writer.WriteAsync(gen.EmitSetters().Replace("\n", writer.NewLine));
-                            const bool emitInitters = true;
+                const bool emitInitters = true;
                 await writer.WriteAsync(gen.EmitSetters(emitInitters).Replace("\n", writer.NewLine));
-                        }
+            }
 
             foreach (var gen in generators.Where(gen =>
                 gen.hasStatics && gen.hasFields && gen.needParamDebug && !gen.hasPackedInfo))

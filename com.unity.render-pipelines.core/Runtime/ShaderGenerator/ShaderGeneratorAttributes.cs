@@ -122,8 +122,8 @@ namespace UnityEngine.Rendering
         /// <param name="constantRegister">When generating a constant buffer, specify the optional constant register.</param>
         /// <param name="sourcePath">Location of the source file defining the C# type. (Automatically filled by compiler)</param>
         public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1,
-                                bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false, int constantRegister = -1,
-                                [CallerFilePath]string sourcePath = null)
+                            bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false, int constantRegister = -1,
+                            [CallerFilePath] string sourcePath = null)
         {
             this.sourcePath = sourcePath;
             packingRules = rules;
