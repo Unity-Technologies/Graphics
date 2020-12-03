@@ -56,7 +56,7 @@ Build_ShaderGraph_OSX_Metal_Standalone_mono_Linear_trunk:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli -u {{editor_versions.trunk_latest_internal.macos.revision}} -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200
-      -  codesign --force --deep --sign ~/players/ShaderGraph/PlayerWithTests.app
+      -  codesign --force --deep --sign /Users/bokken/build/output/Unity-Technologies/Graphics/players/ShaderGraph/PlayerWithTests.app
     artifacts:
         logs:
             paths:
@@ -151,7 +151,7 @@ Build_ShaderGraph_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  cd TestProjects/ShaderGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/ShaderGraph && ./utr --artifacts_path=test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=StandaloneOSX --player-save-path=../../players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=. --timeout=1200
-      -  codesign --force --deep --sign ~/players/ShaderGraph/PlayerWithTests.app
+      -  codesign --force --deep --sign /Users/bokken/build/output/Unity-Technologies/Graphics/players/ShaderGraph/PlayerWithTests.app
     artifacts:
         logs:
             paths:
