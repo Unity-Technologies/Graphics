@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed probe volumes debug views.
+- Fixed issues with first frame rendering when RenderGraph is used (auto exposure, AO)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
