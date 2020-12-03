@@ -737,10 +737,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle                maxZBuffer;
             public TextureHandle                historyBuffer;
             public TextureHandle                feedbackBuffer;
-            public ComputeBufferHandle          bigTileLightListBuffer;
+            public ComputeBufferHandle          coarseTileBuffer;
+            public ComputeBufferHandle          zBinBuffer;
         }
 
-        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, ComputeBufferHandle bigTileLightListBuffer, ShadowResult shadowResult, int frameIndex)
+        TextureHandle VolumetricLightingPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle densityBuffer, TextureHandle maxZBuffer, ComputeBufferHandle coarseTileBuffer, ComputeBufferHandle zBinBuffer, ShadowResult shadowResult, int frameIndex)
         {
             if (Fog.IsVolumetricFogEnabled(hdCamera))
             {
@@ -752,8 +753,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     //builder.EnableAsyncCompute(hdCamera.frameSettings.VolumetricLightingRunsAsync());
 
                     passData.parameters = parameters;
+
                     if (passData.parameters.tiledLighting)
-                        passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
+                    {
+                        passData.coarseTileBuffer = builder.ReadComputeBuffer(coarseTileBuffer);
+                        passData.zBinBuffer       = builder.ReadComputeBuffer(zBinBuffer);
+                    }
+
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
@@ -785,7 +791,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.maxZBuffer,
                                 data.parameters.enableReprojection ? data.historyBuffer  : (RTHandle)null,
                                 data.parameters.enableReprojection ? data.feedbackBuffer : (RTHandle)null,
-                                data.bigTileLightListBuffer,
+                                data.coarseTileBuffer,
+                                data.zBinBuffer,
                                 ctx.cmd);
 
                             if (data.parameters.filterVolume)

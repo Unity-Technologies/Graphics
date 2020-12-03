@@ -1016,11 +1016,15 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle                        maxZTexture,
             RTHandle                        historyRT,
             RTHandle                        feedbackRT,
-            ComputeBuffer                   bigTileLightList,
+            ComputeBuffer                   coarseTileBuffer,
+            ComputeBuffer                   zBinBuffer,
             CommandBuffer                   cmd)
         {
             if (parameters.tiledLighting)
-                cmd.SetComputeBufferParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs.g_vBigTileLightList, bigTileLightList);
+            {
+                cmd.SetComputeBufferParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._CoarseTileBuffer, coarseTileBuffer);
+                cmd.SetComputeBufferParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._zBinBuffer,       zBinBuffer);
+            }
 
             cmd.SetComputeTextureParam(parameters.volumetricLightingCS, parameters.volumetricLightingKernel, HDShaderIDs._MaxZMaskTexture, maxZTexture);  // Read
 
@@ -1078,7 +1082,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     historyRT  = hdCamera.volumetricHistoryBuffers[prevIdx];
                 }
 
-                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, m_DilatedMaxZMask, historyRT, feedbackRT, m_TileAndClusterData.bigTileLightList, cmd);
+                VolumetricLightingPass(parameters, m_SharedRTManager.GetDepthTexture(), m_DensityBuffer, m_LightingBuffer, m_DilatedMaxZMask, historyRT, feedbackRT, m_TileAndClusterData.coarseTileBuffer, m_TileAndClusterData.zBinBuffer, cmd);
 
                 if (parameters.enableReprojection)
                     hdCamera.volumetricHistoryIsValid = true; // For the next frame...
