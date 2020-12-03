@@ -116,11 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         RenderData m_CustomRenderData;
 
-        // Only used in editor, but this data needs to be probe instance specific
-        // (Contains: UI section states)
-        [SerializeField]
-        uint m_EditorOnlyData;
-
         // Runtime Data
         RTHandle m_RealtimeTexture;
         RTHandle m_RealtimeDepthBuffer;

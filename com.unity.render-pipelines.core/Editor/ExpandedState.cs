@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering
         /// <param name="prefix">[Optional] Prefix scope of the key (Default is CoreRP)</param>
         public ExpandedState(TState defaultValue, string prefix = "CoreRP")
         {
-            String Key = string.Format("{0}:{1}:UI_State", prefix, typeof(TTarget).Name);
+            String Key = string.Format("{0}:{1}:{2}:UI_State", prefix, typeof(TTarget).Name, typeof(TState).Name);
             m_State = new EditorPrefBoolFlags<TState>(Key);
 
             //register key if not already there

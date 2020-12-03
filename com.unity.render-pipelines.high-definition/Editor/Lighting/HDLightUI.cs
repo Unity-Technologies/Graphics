@@ -57,64 +57,22 @@ namespace UnityEditor.Rendering.HighDefinition
         const float k_MinLightSize = 0.01f; // Provide a small size of 1cm for line light
 
         readonly static ExpandedState<Expandable, Light> k_ExpandedState = new ExpandedState<Expandable, Light>(~(-1), "HDRP");
+        readonly static ExpandedState<AdditionalProperties, Light> k_AdditionalPropertiesState = new ExpandedState<AdditionalProperties, Light>(0, "HDRP");
 
         readonly static LightUnitSliderUIDrawer k_LightUnitSliderUIDrawer = new LightUnitSliderUIDrawer();
 
         public static readonly CED.IDrawer Inspector;
-
-        static bool IsShowingAdditionalProperties(AdditionalProperties mask, SerializedHDLight serialized, Editor owner)
-        {
-            return (serialized.showAdditionalSettings.intValue & (int)mask) != 0;
-        }
-
-        static void ShowAdditionalProperties(AdditionalProperties mask, bool value, SerializedHDLight serialized, Editor owner)
-        {
-            if (value)
-            {
-                serialized.showAdditionalSettings.intValue |= (int)mask;
-            }
-            else
-            {
-                serialized.showAdditionalSettings.intValue &= ~(int)mask;
-            }
-
-            serialized.serializedObject.ApplyModifiedProperties();
-        }
-
-        static void SwitchAdditionalProperties(AdditionalProperties mask, SerializedHDLight serialized, Editor owner)
-        {
-            if ((serialized.showAdditionalSettings.intValue & (int)mask) != 0)
-            {
-                serialized.showAdditionalSettings.intValue &= ~(int)mask;
-            }
-            else
-            {
-                serialized.showAdditionalSettings.intValue |= (int)mask;
-            }
-
-            serialized.serializedObject.ApplyModifiedProperties();
-        }
 
         static Action<GUIContent, SerializedProperty, LightEditor.Settings> SliderWithTexture;
 
         static HDLightUI()
         {
             Inspector = CED.Group(
-                CED.AdditionalPropertiesFoldoutGroup(s_Styles.generalHeader, Expandable.General, k_ExpandedState,
-                    (serialized, owner) => IsShowingAdditionalProperties(AdditionalProperties.General, serialized, owner),
-                    (serialized, owner) => SwitchAdditionalProperties(AdditionalProperties.General, serialized, owner),
-                    DrawGeneralContent,
-                    DrawGeneralAdditionalContent
-                    ),
+                CED.AdditionalPropertiesFoldoutGroup(s_Styles.generalHeader, Expandable.General, k_ExpandedState, AdditionalProperties.General, k_AdditionalPropertiesState, DrawGeneralContent, DrawGeneralAdditionalContent),
                 CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
                 CED.Conditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
                     CED.FoldoutGroup(s_Styles.celestialBodyHeader, Expandable.CelestialBody, k_ExpandedState, DrawCelestialBodyContent)),
-                CED.AdditionalPropertiesFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
-                    (serialized, owner) => IsShowingAdditionalProperties(AdditionalProperties.Emission, serialized, owner),
-                    (serialized, owner) => SwitchAdditionalProperties(AdditionalProperties.Emission, serialized, owner),
-                    DrawEmissionContent,
-                    DrawEmissionAdditionalContent
-                    ),
+                CED.AdditionalPropertiesFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState, AdditionalProperties.Emission, k_AdditionalPropertiesState, DrawEmissionContent, DrawEmissionAdditionalContent),
                 CED.Conditional((serialized, owner) => serialized.type != HDLightType.Area && !serialized.settings.isCompletelyBaked,
                     CED.FoldoutGroup(s_Styles.volumetricHeader, Expandable.Volumetric, k_ExpandedState, DrawVolumetric)),
                 CED.Conditional((serialized, owner) =>
@@ -123,15 +81,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     return type != HDLightType.Area || type == HDLightType.Area && serialized.areaLightShape != AreaLightShape.Tube;
                 },
                     CED.TernaryConditional((serialized, owner) => !serialized.settings.isCompletelyBaked,
-                        CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState,
-                            (serialized, owner) => IsShowingAdditionalProperties(AdditionalProperties.Shadow, serialized, owner),
-                            (serialized, owner) => SwitchAdditionalProperties(AdditionalProperties.Shadow, serialized, owner),
+                        CED.AdditionalPropertiesFoldoutGroup(s_Styles.shadowHeader, Expandable.Shadows, k_ExpandedState, AdditionalProperties.Shadow, k_AdditionalPropertiesState,
                             CED.Group(
                                 CED.FoldoutGroup(s_Styles.shadowMapSubHeader, Expandable.ShadowMap, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, DrawShadowMapContent),
-                                CED.Conditional((serialized, owner) => IsShowingAdditionalProperties(AdditionalProperties.Shadow, serialized, owner) && k_ExpandedState[Expandable.ShadowMap],
+                                CED.Conditional((serialized, owner) => k_AdditionalPropertiesState[AdditionalProperties.Shadow] && k_ExpandedState[Expandable.ShadowMap],
                                     CED.Group(GroupOption.Indent, DrawShadowMapAdditionalContent)),
                                 CED.space,
-                                CED.Conditional((serialized, owner) => IsShowingAdditionalProperties(AdditionalProperties.Shadow, serialized, owner) && HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
+                                CED.Conditional((serialized, owner) => k_AdditionalPropertiesState[AdditionalProperties.Shadow] && HasShadowQualitySettingsUI(HDShadowFilteringQuality.High, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.highShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawHighShadowSettingsContent)),
                                 CED.Conditional((serialized, owner) => HasShadowQualitySettingsUI(HDShadowFilteringQuality.Medium, serialized, owner),
                                     CED.FoldoutGroup(s_Styles.mediumShadowQualitySubHeader, Expandable.ShadowQuality, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawMediumShadowSettingsContent)),
@@ -719,7 +675,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (lightType == HDLightType.Spot
                 && (spotLightShape == SpotLightShape.Cone || spotLightShape == SpotLightShape.Pyramid)
                 // Display reflector only when showing additional properties.
-                && (lightUnit == (int)PunctualLightUnit.Lumen && IsShowingAdditionalProperties(AdditionalProperties.Emission, serialized, owner)))
+                && (lightUnit == (int)PunctualLightUnit.Lumen && k_AdditionalPropertiesState[AdditionalProperties.Emission]))
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(serialized.enableSpotReflector, s_Styles.enableSpotReflector);
