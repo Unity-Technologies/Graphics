@@ -681,20 +681,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }) },
         };
 
-        public static RenderStateCollection ForwardEmissive = new RenderStateCollection
+        public static RenderStateCollection ForwardEmissiveForDeferred = new RenderStateCollection
         {
             { RenderState.Blend(Blend.One, Blend.One) },
             { RenderState.Cull(Uniforms.cullModeForward) },
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.ZTest(Uniforms.zTestDepthEqualForOpaque) },
-            { RenderState.ColorMask("ColorMask 0 1") },
-            { RenderState.Stencil(new StencilDescriptor()
-            {
-                WriteMask = Uniforms.stencilWriteMask,
-                Ref = Uniforms.stencilRef,
-                Comp = "Always",
-                Pass = "Replace",
-            }) },
         };
     }
     #endregion
@@ -864,7 +856,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
-        public static DefineCollection ForwardEmissive = new DefineCollection
+        public static DefineCollection ForwardEmissiveForDeferred = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 0 },
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },

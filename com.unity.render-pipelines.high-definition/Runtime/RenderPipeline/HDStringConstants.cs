@@ -1060,6 +1060,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kRefractionModel = "_RefractionModel";
 
         // Emission
+        internal const string kForceForwardEmissiveEnable = "_ForceForwardEmissiveEnable";
         internal const string kEmissiveColorLDR = "_EmissiveColorLDR";
         internal const string kEmissiveExposureWeight = "_EmissiveExposureWeight";
         internal const string kUseEmissiveIntensity = "_UseEmissiveIntensity";

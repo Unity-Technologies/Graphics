@@ -471,23 +471,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #endregion
 
-        #region Forward Emissive
+        #region Forward Emissive For Deferred
 
-        public static PassDescriptor GenerateForwardEmissivePass()
+        public static PassDescriptor GenerateForwardEmissiveForDeferredPass()
         {
             return new PassDescriptor
             { 
                 // Definition
-                displayName = "ForwardEmissive",
-                referenceName = "SHADERPASS_FORWARD_EMISSIVE",
-                lightMode = "ForwardEmissive",
+                displayName = "ForwardEmissiveForDeferred",
+                referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
+                lightMode = "ForwardEmissiveForDeferred",
                 useInPreview = true,
 
                 // Collections
                 requiredFields = GenerateRequiredFields(),
-                renderStates = CoreRenderStates.ForwardEmissive,
+                renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = CoreDefines.ForwardEmissive,
+                defines = CoreDefines.ForwardEmissiveForDeferred,
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
