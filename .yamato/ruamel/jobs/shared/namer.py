@@ -17,6 +17,9 @@ def editor_job_id_test_min_editor(platform_os):
 def editor_job_id_update():
     return 'editor-pinning-update'
 
+def editor_job_id_store_green():
+    return 'editor-pinning-store-green'
+
 def editor_job_id_target_to_ci():
     return 'editor-pinning-target-to-ci'
 
