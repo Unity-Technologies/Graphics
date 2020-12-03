@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Operator
                 if (source == SampleMesh.SourceType.Mesh)
                     return "Mesh Index Count";
                 else
-                    return "Skinned Mesh Renderer Index Count";
+                    return "Skinned Mesh Index Count";
             }
         }
 

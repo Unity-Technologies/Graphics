@@ -1,3 +1,5 @@
+<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Experimental:</b> This Feature is currently experimental and is subject to change in later major versions.</div>
+
 # Set Position (Mesh)
 
 Menu Path : **Position > Set Position (Mesh)**
@@ -9,7 +11,7 @@ The **Set Position (Mesh)** block calculates a position based on mesh vertex dat
 
 This Block also calculates a direction vector based on the mesh normal, and stores it to the [direction attribute](Reference-Attributes.md), based on composition.
 
-Note: [Velocity from Direction and Speed](Block-VelocityFromDirectionAndSpeed.md) Blocks can then process the direction attribute.
+Note: [Velocity from Direction and Speed](Block-VelocityFromDirection&Speed(NewDirection).md) Blocks can then process the direction attribute.
 
 
 

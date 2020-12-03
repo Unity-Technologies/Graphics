@@ -4,6 +4,8 @@
 
 **Menu Path : Operator > Sampling > Mesh Index Count**
 
+**Menu Path : Operator > Sampling > Skinned Mesh Index Count**
+
 The Mesh Index Count Operator allows you to retrieve the number of indices in the geometry of a mesh or skinned mesh renderer.
 
 ## Operator settings

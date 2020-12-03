@@ -20,7 +20,7 @@ The Sample Mesh or Skinned Mesh Renderer Index Operator allows you to fetch inde
 | ------------------------- | --------------------- | ------------------------------------------------------------ |
 | **Mesh**                  | Mesh                  | The source mesh asset to sample.<br/>This property only appears if you set **Source** to **Mesh** |
 | **Skinned Mesh Renderer** | Skinned Mesh Renderer | The source Skinned Mesh Renderer component to sample. This is a reference to a component within the scene. To assign a Skinned Mesh Renderer to this port, create a Skinned Mesh Renderer property in the [Blackboard](Blackboard.md) and expose it.<br/>This property only appears if you set **Source** to **Skinned Mesh Renderer** |
-| **Index**                 | uint                  | The index offset to sample the current index buffer.         |
+| **Index**                 | Uint                  | The index offset to sample the current index buffer.         |
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |

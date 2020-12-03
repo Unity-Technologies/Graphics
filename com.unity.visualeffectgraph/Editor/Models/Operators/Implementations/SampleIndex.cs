@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Operator
                 if (source == SampleMesh.SourceType.Mesh)
                     return "Sample Mesh Index";
                 else
-                    return "Sample Skinned Mesh Renderer Index";
+                    return "Sample Skinned Mesh Index";
             }
         }
 

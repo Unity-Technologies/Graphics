@@ -3,6 +3,7 @@
 # Mesh Vertex Count
 
 **Menu Path : Operator > Sampling > Mesh Vertex Count**
+**Menu Path : Operator > Sampling > Skinned Mesh Vertex Count**
 
 The Mesh Vertex Count Operator allows you to retrieve the number of vertices in the geometry of a mesh or skinned mesh renderer.
 
