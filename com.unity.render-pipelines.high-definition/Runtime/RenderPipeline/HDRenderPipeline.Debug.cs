@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (lightingDebug.tileClusterDebug != TileClusterDebug.None)
                 {
                     passData.depthPyramidTexture = builder.ReadTexture(depthPyramidTexture);
-                    passData.tileList = builder.ReadComputeBuffer(lightLists.tileList);
+                    passData.tileList = builder.ReadComputeBuffer(lightLists.tileListBuffer);
                     passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
                     passData.perVoxelLightList = builder.ReadComputeBuffer(lightLists.perVoxelLightLists);
                     passData.dispatchIndirect = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);

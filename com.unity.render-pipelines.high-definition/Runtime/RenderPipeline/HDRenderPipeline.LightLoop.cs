@@ -60,30 +60,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle          wBoundsBuffer;
 
             public BuildGPULightListOutput      output = new BuildGPULightListOutput();
-
-            //public ComputeBufferHandle          globalLightListAtomic;
-            //public ComputeBufferHandle          lightVolumeDataBuffer;
-
         }
 
         struct BuildGPULightListOutput
         {
-            /* THIS IS ALL WE NEED
+            public ComputeBufferHandle coarseTileBuffer;
+            public ComputeBufferHandle fineTileBuffer;
+            public ComputeBufferHandle zBinBuffer;
+            public ComputeBufferHandle tileFeatureFlagsBuffer; // Deferred
+            public ComputeBufferHandle tileListBuffer;         // Deferred
+            public ComputeBufferHandle dispatchIndirectBuffer; // Deferred
 
-            public ComputeBuffer coarseTileBuffer;
-            public ComputeBuffer fineTileBuffer;
-            public ComputeBuffer zBinBuffer;
-            public ComputeBuffer tileFeatureFlagsBuffer;
-            public ComputeBuffer dispatchIndirectBuffer;
-            public ComputeBuffer tileListBuffer;
-
-            EVERYTHING ELSE IS OLD JUNK AND NEEDS TO GO */
+            /* Old junk below. */
 
             // Tile
             public ComputeBufferHandle lightList;
-            public ComputeBufferHandle tileList;
-            public ComputeBufferHandle tileFeatureFlags;
-            public ComputeBufferHandle dispatchIndirectBuffer;
 
             // Big Tile
             public ComputeBufferHandle bigTileLightList;
@@ -119,20 +110,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildLightListResources.gBuffer[i] = data.gBuffer[i];
             }
 
-            //buildLightListResources.lightVolumeDataBuffer = data.lightVolumeDataBuffer;
-            buildLightListResources.convexBoundsBuffer = data.convexBoundsBuffer;
-            buildLightListResources.xyBoundsBuffer = data.xyBoundsBuffer;
-            buildLightListResources.wBoundsBuffer  = data.wBoundsBuffer;
-            //buildLightListResources.globalLightListAtomic = data.globalLightListAtomic;
+            buildLightListResources.convexBoundsBuffer     = data.convexBoundsBuffer;
+            buildLightListResources.xyBoundsBuffer         = data.xyBoundsBuffer;
+            buildLightListResources.wBoundsBuffer          = data.wBoundsBuffer;
 
-            buildLightListResources.tileFeatureFlags = data.output.tileFeatureFlags;
+            buildLightListResources.coarseTileBuffer       = data.output.coarseTileBuffer;
+            buildLightListResources.fineTileBuffer         = data.output.fineTileBuffer;
+            buildLightListResources.zBinBuffer             = data.output.zBinBuffer;
+            buildLightListResources.tileFeatureFlagsBuffer = data.output.tileFeatureFlagsBuffer;
+            buildLightListResources.tileListBuffer         = data.output.tileListBuffer;
             buildLightListResources.dispatchIndirectBuffer = data.output.dispatchIndirectBuffer;
-            buildLightListResources.perVoxelOffset = data.output.perVoxelOffset;
-            buildLightListResources.perTileLogBaseTweak = data.output.perTileLogBaseTweak;
-            buildLightListResources.tileList = data.output.tileList;
-            buildLightListResources.bigTileLightList = data.output.bigTileLightList;
-            buildLightListResources.perVoxelLightLists = data.output.perVoxelLightLists;
+
+            /* Old junk below. */
+
             buildLightListResources.lightList = data.output.lightList;
+            buildLightListResources.bigTileLightList = data.output.bigTileLightList;
+            buildLightListResources.perVoxelOffset = data.output.perVoxelOffset;
+            buildLightListResources.perVoxelLightLists = data.output.perVoxelLightLists;
+            buildLightListResources.perTileLogBaseTweak = data.output.perTileLogBaseTweak;
 
             return buildLightListResources;
         }
@@ -182,9 +177,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Tile buffers
                     passData.output.lightList = builder.WriteComputeBuffer(
                         renderGraph.CreateComputeBuffer(new ComputeBufferDesc(/*(int)LightCategory.Count*/ 0 * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
-                    passData.output.tileList = builder.WriteComputeBuffer(
+                    passData.output.tileListBuffer = builder.WriteComputeBuffer(
                         renderGraph.CreateComputeBuffer(new ComputeBufferDesc(TiledLightingConstants.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
-                    passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
+                    passData.output.tileFeatureFlagsBuffer = builder.WriteComputeBuffer(
                         renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrTiles, sizeof(uint)) { name = "TileFeatureFlags" }));
                     // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
                     // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
@@ -356,8 +351,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDShadowManager.ReadShadowResult(shadowResult, builder);
 
                 passData.lightListBuffer = builder.ReadComputeBuffer(lightLists.lightList);
-                passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(lightLists.tileFeatureFlags);
-                passData.tileListBuffer = builder.ReadComputeBuffer(lightLists.tileList);
+                passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(lightLists.tileFeatureFlagsBuffer);
+                passData.tileListBuffer = builder.ReadComputeBuffer(lightLists.tileListBuffer);
                 passData.dispatchIndirectBuffer = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);
 
                 var output = new LightingOutput();

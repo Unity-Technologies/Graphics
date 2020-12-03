@@ -3524,22 +3524,27 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle stencilTexture;
             public RTHandle[] gBuffer;
 
-            // Internal to light list building
-            //public ComputeBuffer lightVolumeDataBuffer;
+            // Buffers filled with the CPU outside of render graph.
             public ComputeBuffer convexBoundsBuffer;
+
+            // Transient buffers that are not used outside of BuildGPULight list so they don't need to go outside the pass.
             public ComputeBuffer xyBoundsBuffer;
             public ComputeBuffer wBoundsBuffer;
-            public ComputeBuffer coarseTileBuffer;
-            public ComputeBuffer fineTileBuffer;
-            public ComputeBuffer zBinBuffer;
+
             //public ComputeBuffer globalLightListAtomic;
 
             // Output
-            public ComputeBuffer tileFeatureFlags; // Deferred
+            public ComputeBuffer coarseTileBuffer;
+            public ComputeBuffer fineTileBuffer;
+            public ComputeBuffer zBinBuffer;
+            public ComputeBuffer tileFeatureFlagsBuffer; // Deferred
+            public ComputeBuffer tileListBuffer;         // Deferred
             public ComputeBuffer dispatchIndirectBuffer; // Deferred
+
+            /* Old junk below. */
+
             public ComputeBuffer perVoxelOffset; // Cluster
             public ComputeBuffer perTileLogBaseTweak; // Cluster
-            public ComputeBuffer tileList; // Deferred
             // used for pre-pass coarse culling on 64x64 tiles
             public ComputeBuffer bigTileLightList; // Volumetrics
             public ComputeBuffer perVoxelLightLists; // Cluster
@@ -3564,12 +3569,12 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.fineTileBuffer = tileAndClusterData.fineTileBuffer;
             resources.zBinBuffer = tileAndClusterData.zBinBuffer;
             //resources.lightVolumeDataBuffer = tileAndClusterData.lightVolumeDataBuffer;
-            resources.tileFeatureFlags = tileAndClusterData.tileFeatureFlags;
+            resources.tileFeatureFlagsBuffer = tileAndClusterData.tileFeatureFlags;
             //resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
             resources.perVoxelLightLists = tileAndClusterData.perVoxelLightLists;
             resources.perTileLogBaseTweak = tileAndClusterData.perTileLogBaseTweak;
             resources.dispatchIndirectBuffer = tileAndClusterData.dispatchIndirectBuffer;
-            resources.tileList = tileAndClusterData.tileList;
+            resources.tileListBuffer = tileAndClusterData.tileList;
 
             return resources;
         }
@@ -3758,7 +3763,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Note that all material feature flag bellow are in the same GBuffer (inGBuffer2) and thus material classification only sample one Gbuffer
                 cmd.SetComputeTextureParam(parameters.classificationShader, 0, HDShaderIDs._GBufferTexture[2], resources.gBuffer[2]);
-                cmd.SetComputeBufferParam(parameters.classificationShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
+                cmd.SetComputeBufferParam( parameters.classificationShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
 
                 if (resources.stencilTexture.rt == null ||
                     resources.stencilTexture.rt.stencilFormat == GraphicsFormat.None) // We are accessing MSAA resolved version and not the depth stencil buffer directly.
@@ -3800,8 +3805,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // add tiles to indirect buffer
                 cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
-                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileList, resources.tileList);
-                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileList,               resources.tileListBuffer);
+                cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, 0, HDShaderIDs.g_TileFeatureFlags,       resources.tileFeatureFlagsBuffer);
 
                 int groupCount = HDUtils.DivRoundUp(numTiles, k_ThreadGroupOptimalSize);
 

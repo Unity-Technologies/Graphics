@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
-  m_Version: 4
   shaders:
     defaultPS: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
     debugDisplayLatlongPS: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba,
@@ -47,10 +46,16 @@ MonoBehaviour:
       type: 3}
     buildScreenAABBCS: {fileID: 7200000, guid: 728dce960f8a9c44bbc3abb3b851d8f6, type: 3}
     zBinCS: {fileID: 7200000, guid: 313c8dc48c577184997e1c10638c6499, type: 3}
-    xyTileCS: {fileID: 7200000, guid: ecd07937befe9614d90276f5d8609b3e, type: 3}
-    buildPerVoxelLightListCS: {fileID: 7200000, guid: 0bb1b7e0ddcd5c44baf3ddc7456eb196, type: 3}
-    lightListClusterClearAtomicIndexCS: {fileID: 7200000, guid: 1e3472a94b14a334a93230bbc700d7b2, type: 3}
-    buildMaterialFlagsCS: {fileID: 7200000, guid: fb3eda953cd6e634e877fb777be2cd08, type: 3}
+    tileCS: {fileID: 7200000, guid: 3a8709910066b4d4186b56721cdc36aa, type: 3}
+    buildPerTileLightListCS: {fileID: 7200000, guid: 65af3444cbf4b3747a4dead7ee00cfee,
+      type: 3}
+    buildPerBigTileLightListCS: {fileID: 7200000, guid: 5ee1f9d6e09abe045b2f5e0b784b9072,
+      type: 3}
+    buildPerVoxelLightListCS: {fileID: 7200000, guid: 0bb1b7e0ddcd5c44baf3ddc7456eb196,
+      type: 3}
+    lightListClusterClearAtomicIndexCS: {fileID: 7200000, guid: 1e3472a94b14a334a93230bbc700d7b2,
+      type: 3}
+    classificationCS: {fileID: 7200000, guid: 2f62649560ae64f4da8e8234a88ba2e2, type: 3}
     deferredCS: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
     contactShadowCS: {fileID: 7200000, guid: 3e6900e06dc185a4380af4dacb4db0a4, type: 3}
     volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a,
@@ -137,13 +142,9 @@ MonoBehaviour:
     debugHDShadowMapPS: {fileID: 4800000, guid: 93d40cc9a6e13994f86f576a624efa18,
       type: 3}
     momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
-    decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a, type: 3}
-    decalClearPropertyMaskBufferCS: {fileID: 7200000, guid: 1076a08965d4a91479b72599724f7fd6, type: 3}
+    shadowBlitPS: {fileID: 4800000, guid: ca059f1af4587a24b9a9eed3b66cff0f, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a,
       type: 3}
-    shadowBlitPS: {fileID: 4800000, guid: ca059f1af4587a24b9a9eed3b66cff0f, type: 3}
-    decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a, type: 3}
-    decalClearPropertyMaskBufferCS: {fileID: 7200000, guid: 1076a08965d4a91479b72599724f7fd6, type: 3}
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
     GTAOSpatialDenoiseCS: {fileID: 7200000, guid: 2cb33c21587d12b4388d7866ab6c65f6,
       type: 3}
@@ -215,8 +216,6 @@ MonoBehaviour:
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
     DoFCoCPyramidCS: {fileID: 7200000, guid: df41a69211c03fe479b63a8bed3bfbb4, type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6,
-      type: 3}
-    VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a,
       type: 3}
     accumulationCS: {fileID: 7200000, guid: ed80add7a217efa468d137d6f7c668f3, type: 3}
     alphaInjectionPS: {fileID: 4800000, guid: 4edd96259a5e8b44c90479928f0cd11e, type: 3}
@@ -329,3 +328,4 @@ MonoBehaviour:
     emissiveCylinderMesh: {fileID: 2534964839176971238, guid: accb6d90f0d50fe4ca0f68159b4323de,
       type: 3}
     emissiveQuadMesh: {fileID: 4300000, guid: 1d5a8595286f94f4bb54171d49f473c3, type: 3}
+  m_Version: 4
