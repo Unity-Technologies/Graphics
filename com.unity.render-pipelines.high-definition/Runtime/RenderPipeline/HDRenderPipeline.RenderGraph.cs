@@ -454,11 +454,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             enableDecals;
         }
 
-        class ForwardEmissiveOpaquePassData : ForwardPassData
-        {
-            public DBufferOutput dbuffer;
-        }
-
         class ForwardTransparentPassData : ForwardPassData
         {
             public bool             decalsEnabled;
@@ -533,27 +528,18 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 PrepareCommonForwardPassData(renderGraph, builder, passData, true, hdCamera.frameSettings, PrepareForwardOpaqueRendererList(cullResults, hdCamera), lightLists, depthBuffer, shadowResult);
 
+                int index = 0;
+                passData.renderTarget[index++] = builder.WriteTexture(colorBuffer); // Store the specular color
+#if ENABLE_VIRTUALTEXTURES
+                passData.renderTarget[index++] = builder.WriteTexture(vtFeedbackBuffer);
+#endif
                 // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering))
                 {
-                    int index = 0;
-                    passData.renderTarget[index++] = builder.WriteTexture(colorBuffer); // Store the specular color
-#if ENABLE_VIRTUALTEXTURES
-                    passData.renderTarget[index++] = builder.WriteTexture(vtFeedbackBuffer);
-#endif
                     passData.renderTarget[index++] = builder.WriteTexture(lightingBuffers.diffuseLightingBuffer);
                     passData.renderTarget[index++] = builder.WriteTexture(lightingBuffers.sssBuffer);
-                    passData.renderTargetCount = index;
                 }
-                else
-                {
-                    int index = 0;
-                    passData.renderTarget[index++] = builder.WriteTexture(colorBuffer);
-#if ENABLE_VIRTUALTEXTURES
-                    passData.renderTarget[index++] = builder.WriteTexture(vtFeedbackBuffer);
-#endif
-                    passData.renderTargetCount = index;
-                }
+                passData.renderTargetCount = index;
 
                 passData.enableDecals = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals);
                 passData.dbuffer = ReadDBuffer(dbuffer, builder);
@@ -573,6 +559,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, context.renderContext, context.cmd);
 
+                        // TODO : what will happen with render list? maybe we will not be able to skip this pass because of decal emissive projector, in this case
+                        // we may need to move this part out?
                         if (data.enableDecals)
                             DecalSystem.instance.RenderForwardEmissive(context.cmd);
                     });
