@@ -4443,7 +4443,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle depthStencilBuffer;
             public RTHandle depthTexture;
 
-            public ComputeBuffer lightListBuffer;
+            public ComputeBuffer fineTileBuffer;
+            public ComputeBuffer zBinBuffer;
             public ComputeBuffer tileFeatureFlagsBuffer;
             public ComputeBuffer tileListBuffer;
             public ComputeBuffer dispatchIndirectBuffer;
@@ -4458,7 +4459,8 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.colorBuffers[1] = m_CameraSssDiffuseLightingBuffer;
             resources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             resources.depthTexture = m_SharedRTManager.GetDepthTexture();
-            resources.lightListBuffer = m_TileAndClusterData.lightList;
+            resources.fineTileBuffer = m_TileAndClusterData.fineTileBuffer;
+            resources.zBinBuffer = m_TileAndClusterData.zBinBuffer;
             resources.tileFeatureFlagsBuffer = m_TileAndClusterData.tileFeatureFlagsBuffer;
             resources.tileListBuffer = m_TileAndClusterData.tileListBuffer;
             resources.dispatchIndirectBuffer = m_TileAndClusterData.dispatchIndirectBuffer;
@@ -4492,7 +4494,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute)))
             {
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
                 parameters.deferredComputeShader.shaderKeywords = null;
 
                 switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
@@ -4593,7 +4596,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderDeferredLightingComputeAsPixel)))
             {
-                cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
+                cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
 
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, resources.depthTexture);
                 cmd.SetGlobalBuffer(HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlagsBuffer);
@@ -4615,7 +4619,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderPixelDeferredLighting(in DeferredLightingParameters parameters, in DeferredLightingResources resources, CommandBuffer cmd)
         {
-            cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, resources.lightListBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, resources.fineTileBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     resources.zBinBuffer);
 
             // First, render split lighting.
             if (parameters.outputSplitLighting)

@@ -335,7 +335,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          shadowMaskTextureIndex;
             public TextureHandle[]              gbuffer = new TextureHandle[8];
 
-            public ComputeBufferHandle          lightListBuffer;
+            public ComputeBufferHandle          fineTileBuffer;
+            public ComputeBufferHandle          zBinBuffer;
             public ComputeBufferHandle          tileFeatureFlagsBuffer;
             public ComputeBufferHandle          tileListBuffer;
             public ComputeBufferHandle          dispatchIndirectBuffer;
@@ -391,7 +392,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 HDShadowManager.ReadShadowResult(shadowResult, builder);
 
-                passData.lightListBuffer = builder.ReadComputeBuffer(lightLists.lightList);
+                /* TODO: we shouldn't be reading these buffers if tiled lighting or classification are disabled... */
+                passData.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
+                passData.zBinBuffer = builder.ReadComputeBuffer(lightLists.zBinBuffer);
                 passData.tileFeatureFlagsBuffer = builder.ReadComputeBuffer(lightLists.tileFeatureFlagsBuffer);
                 passData.tileListBuffer = builder.ReadComputeBuffer(lightLists.tileListBuffer);
                 passData.dispatchIndirectBuffer = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);
@@ -410,7 +413,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         resources.depthStencilBuffer = data.depthBuffer;
                         resources.depthTexture = data.depthTexture;
 
-                        resources.lightListBuffer = data.lightListBuffer;
+                        resources.fineTileBuffer = data.fineTileBuffer;
+                        resources.zBinBuffer = data.zBinBuffer;
                         resources.tileFeatureFlagsBuffer = data.tileFeatureFlagsBuffer;
                         resources.tileListBuffer = data.tileListBuffer;
                         resources.dispatchIndirectBuffer = data.dispatchIndirectBuffer;
