@@ -17,6 +17,7 @@ struct FragInputs
     float4 texCoord2;
     float4 texCoord3;
     float4 color; // vertex color
+    uint vertexID;
 
     // TODO: confirm with Morten following statement
     // Our TBN is orthogonal but is maybe not orthonormal in order to be compliant with external bakers (Like xnormal that use mikktspace).

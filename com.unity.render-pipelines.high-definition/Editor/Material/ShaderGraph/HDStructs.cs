@@ -41,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.VaryingsMeshToPS.texCoord3,
                 HDStructFields.VaryingsMeshToPS.color,
                 HDStructFields.VaryingsMeshToPS.instanceID,
+                HDStructFields.VaryingsMeshToPS.vertexID,
             }
         };
 
@@ -59,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.VaryingsMeshToDS.texCoord3,
                 HDStructFields.VaryingsMeshToDS.color,
                 HDStructFields.VaryingsMeshToDS.instanceID,
+                HDStructFields.VaryingsMeshToDS.vertexID,
             }
         };
     }

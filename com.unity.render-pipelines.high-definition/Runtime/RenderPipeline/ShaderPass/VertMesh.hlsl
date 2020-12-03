@@ -192,7 +192,9 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
     output.color = input.color;
 #endif
-
+#if defined(VARYINGS_NEED_VERTEXID)
+    output.vertexID = input.vertexID;
+#endif
     return output;
 }
 
@@ -235,6 +237,9 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
 #endif
 #ifdef VARYINGS_NEED_COLOR
     output.color = input.color;
+#endif
+#if defined(VARYINGS_NEED_VERTEXID)
+    output.vertexID = input.vertexID;
 #endif
 
     return output;

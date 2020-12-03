@@ -16,6 +16,7 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.texCoord2:          output.texCoord2 = input.texCoord2;
     $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
     $FragInputs.color:              output.color = input.color;
+    $FragInputs.vertexID:           output.vertexID = input.vertexID;
 
     return output;
 }
@@ -59,7 +60,7 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
     $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
     $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
-
+    $SurfaceDescriptionInputs.VertexID:                  output.VertexID =                    input.vertexID;
     return output;
 }
 

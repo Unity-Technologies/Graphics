@@ -371,6 +371,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord3,                           HDStructFields.AttributesMesh.uv3),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                               HDStructFields.AttributesMesh.color),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                          HDStructFields.AttributesMesh.instanceID),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.vertexID,                            HDStructFields.AttributesMesh.vertexID),
         };
 
         public static DependencyCollection Tessellation = new DependencyCollection
@@ -385,6 +386,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.VaryingsMeshToPS.texCoord3,                           HDStructFields.VaryingsMeshToDS.texCoord3),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.color,                               HDStructFields.VaryingsMeshToDS.color),
             new FieldDependency(HDStructFields.VaryingsMeshToPS.instanceID,                          HDStructFields.VaryingsMeshToDS.instanceID),
+            new FieldDependency(HDStructFields.VaryingsMeshToPS.vertexID,                            HDStructFields.VaryingsMeshToDS.vertexID),
+
 
             //Tessellation Varying Dependencies, TODO: Why is this loop created?
             new FieldDependency(HDStructFields.VaryingsMeshToDS.tangentWS,                           HDStructFields.VaryingsMeshToPS.tangentWS),
@@ -394,6 +397,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.VaryingsMeshToDS.texCoord3,                           HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.VaryingsMeshToDS.color,                               HDStructFields.VaryingsMeshToPS.color),
             new FieldDependency(HDStructFields.VaryingsMeshToDS.instanceID,                          HDStructFields.VaryingsMeshToPS.instanceID),
+            new FieldDependency(HDStructFields.VaryingsMeshToDS.vertexID,                            HDStructFields.VaryingsMeshToPS.vertexID),
         };
 
         public static DependencyCollection FragInput = new DependencyCollection
@@ -407,6 +411,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(HDStructFields.FragInputs.texCoord2,                                 HDStructFields.VaryingsMeshToPS.texCoord2),
             new FieldDependency(HDStructFields.FragInputs.texCoord3,                                 HDStructFields.VaryingsMeshToPS.texCoord3),
             new FieldDependency(HDStructFields.FragInputs.color,                                     HDStructFields.VaryingsMeshToPS.color),
+            new FieldDependency(HDStructFields.FragInputs.vertexID,                                  HDStructFields.VaryingsMeshToPS.vertexID),
         };
 
         public static DependencyCollection VertexDescription = new DependencyCollection
@@ -485,6 +490,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv3,                           HDStructFields.FragInputs.texCoord3),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexColor,                   HDStructFields.FragInputs.color),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                      HDStructFields.FragInputs.IsFrontFace),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexID,                      HDStructFields.FragInputs.vertexID),
         };
 
         public static DependencyCollection Default = new DependencyCollection
@@ -509,6 +515,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.AttributesMesh.uv1,
             HDStructFields.AttributesMesh.color,
             HDStructFields.AttributesMesh.uv2,
+            HDStructFields.AttributesMesh.vertexID,
         };
 
         public static FieldCollection PositionRWS = new FieldCollection()
@@ -522,6 +529,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.positionRWS,
             HDStructFields.FragInputs.texCoord1,
             HDStructFields.FragInputs.texCoord2,
+            HDStructFields.FragInputs.vertexID,
         };
 
         public static FieldCollection LitFull = new FieldCollection()
@@ -533,12 +541,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.AttributesMesh.color,
             HDStructFields.AttributesMesh.uv2,
             HDStructFields.AttributesMesh.uv3,
+            HDStructFields.AttributesMesh.vertexID,
             HDStructFields.FragInputs.tangentToWorld,
             HDStructFields.FragInputs.positionRWS,
             HDStructFields.FragInputs.texCoord1,
             HDStructFields.FragInputs.texCoord2,
             HDStructFields.FragInputs.texCoord3,
             HDStructFields.FragInputs.color,
+            HDStructFields.FragInputs.vertexID,
         };
     }
     #endregion

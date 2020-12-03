@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor instanceID = new FieldDescriptor(AttributesMesh.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor vertexID = new FieldDescriptor(AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
-                "SV_VertexID", subscriptOptions: StructFieldOptions.Optional);
+                "VERTEXID_SEMANTIC", subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct VaryingsMeshToPS
@@ -54,6 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToPS.name, "instanceID", "", ShaderValueType.Uint,
                 "CUSTOM_INSTANCE_ID", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor vertexID = new FieldDescriptor(VaryingsMeshToPS.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
+                "CUSTOM_VERTEX_ID", subscriptOptions: StructFieldOptions.Optional);
             // Note: we don't generate cullFace here as it is always present in VertMesh.hlsl
         }
 
@@ -74,8 +76,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "", ShaderValueType.Uint,
+            public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
+            public static FieldDescriptor vertexID = new FieldDescriptor(VaryingsMeshToDS.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
+                "CUSTOM_VERTEX_ID", subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct FragInputs
@@ -98,6 +102,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor primitiveID = new FieldDescriptor(FragInputs.name, "primitiveID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor IsFrontFace = new FieldDescriptor(FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean,
+                subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor vertexID = new FieldDescriptor(FragInputs.name, "vertexID", "", ShaderValueType.Uint,
                 subscriptOptions: StructFieldOptions.Optional);
         }
     }
