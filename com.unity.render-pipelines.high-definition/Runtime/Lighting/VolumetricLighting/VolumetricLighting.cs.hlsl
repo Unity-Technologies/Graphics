@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef VOLUMETRICLIGHTING_CS_HLSL
@@ -25,7 +25,7 @@ struct DensityVolumeEngineData
     float3 rcpNegFaceFade;
     int useVolumeMask;
     float3 atlasOffset;
-    int maskResolution;
+    int maskSize;
     int falloffMode;
 };
 
@@ -102,9 +102,9 @@ float3 GetAtlasOffset(DensityVolumeEngineData value)
 {
     return value.atlasOffset;
 }
-int GetMaskResolution(DensityVolumeEngineData value)
+int GetMaskSize(DensityVolumeEngineData value)
 {
-    return value.maskResolution;
+    return value.maskSize;
 }
 int GetFalloffMode(DensityVolumeEngineData value)
 {

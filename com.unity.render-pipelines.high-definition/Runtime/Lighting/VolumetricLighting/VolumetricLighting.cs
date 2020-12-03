@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 rcpNegFaceFade;
         public int     useVolumeMask; // bool
         public Vector3 atlasOffset;   // coordinates in the atlas in pixels
-        public int     maskResolution;
+        public int     maskSize;
         public DensityVolumeFalloffMode falloffMode;
 
         public static DensityVolumeEngineData GetNeutralValues()
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.rcpDistFadeLen         = 0;
             data.endTimesRcpDistFadeLen = 1;
             data.useVolumeMask          = 0;
-            data.maskResolution         = 0;
+            data.maskSize         = 0;
             data.falloffMode            = DensityVolumeFalloffMode.Linear;
 
             return data;

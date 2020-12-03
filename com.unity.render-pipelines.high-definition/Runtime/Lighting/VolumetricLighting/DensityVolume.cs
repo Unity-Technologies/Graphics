@@ -54,6 +54,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.</summary>
         public DensityVolumeFalloffMode falloffMode;
 
+        /// <summary>Minimum fog distance you can set in the meanFreePath parameter</summary>
+        internal const float kMinFogDistance = 0.05f;
+
         /// <summary>Constructor.</summary>
         /// <param name="color">Single scattering albedo.</param>
         /// <param name="_meanFreePath">Mean free path.</param>
@@ -106,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             albedo.b = Mathf.Clamp01(albedo.b);
             albedo.a = 1.0f;
 
-            meanFreePath = Mathf.Clamp(meanFreePath, 0.05f, float.MaxValue);
+            meanFreePath = Mathf.Clamp(meanFreePath, kMinFogDistance, float.MaxValue);
 
             anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
 
@@ -123,9 +126,13 @@ namespace UnityEngine.Rendering.HighDefinition
             data.extinction     = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector4)albedo);
 
+            var atlas = DensityVolumeManager.manager.volumeAtlas.GetAtlas();
             data.atlasOffset    = DensityVolumeManager.manager.volumeAtlas.GetTextureOffset(volumeMask);
+            data.atlasOffset.x /= (float)atlas.width;
+            data.atlasOffset.y /= (float)atlas.height;
+            data.atlasOffset.z /= (float)atlas.volumeDepth;
             data.useVolumeMask  = volumeMask != null ? 1 : 0;
-            data.maskResolution = volumeMask != null ? volumeMask.width : 0;
+            data.maskSize = volumeMask != null ? volumeMask.width : 0;
             data.textureScroll  = textureOffset;
             data.textureTiling  = textureTiling;
 
