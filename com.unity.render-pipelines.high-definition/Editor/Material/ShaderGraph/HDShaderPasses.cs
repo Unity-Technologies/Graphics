@@ -169,6 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     BlockFields.SurfaceDescription.AlphaClipThreshold,
                     HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
                     HDBlockFields.SurfaceDescription.DepthOffset,
+                    HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
                 },
 
                 // Collections
@@ -588,6 +589,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     BlockFields.SurfaceDescription.NormalWS,
                     BlockFields.SurfaceDescription.NormalOS,
                     BlockFields.SurfaceDescription.Smoothness,
+                    HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
                 } :
                 new BlockFieldDescriptor[]
                 {
@@ -595,6 +597,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
                     BlockFields.SurfaceDescription.AlphaClipThreshold,
                     HDBlockFields.SurfaceDescription.DepthOffset,
+                    HDBlockFields.SurfaceDescription.DiffusionProfileHash   // not used, but keeps the UnityPerMaterial cbuffer identical
                 },
 
                 // Collections
