@@ -95,7 +95,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             yield return null;
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>().enabledInHierarchy, Is.True, "Blackboard is not visible when it should be. (3rd pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>().enabledInHierarchy, Is.True, "Blackboard is not visible when it should be. (3rd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView remained visible when it should not be. (3rd pass)");
 
             // Preview Only

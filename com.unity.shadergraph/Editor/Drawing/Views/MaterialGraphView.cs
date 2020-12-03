@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Editor.Drawing.Blackboard;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -928,7 +929,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (selectedBlackboardField != null)
                 {
                     BlackboardRow row = selectedBlackboardField.GetFirstAncestorOfType<BlackboardRow>();
-                    BlackboardSection section = selectedBlackboardField.GetFirstAncestorOfType<BlackboardSection>();
+                    SGBlackboardSection section = selectedBlackboardField.GetFirstAncestorOfType<SGBlackboardSection>();
                     if (row == null || section == null)
                         continue;
                     VisualElement sectionContainer = section.parent;

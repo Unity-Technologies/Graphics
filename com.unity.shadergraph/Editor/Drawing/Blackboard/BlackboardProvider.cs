@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Editor.Drawing.Blackboard;
 using UnityEditor.Graphing;
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
-using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Drawing.Views;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -16,8 +16,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly GraphData m_Graph;
         public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
         readonly Dictionary<ShaderInput, BlackboardRow> m_InputRows;
-        readonly BlackboardSection m_PropertySection;
-        readonly BlackboardSection m_KeywordSection;
+        readonly SGBlackboardSection m_PropertySection;
+        readonly SGBlackboardSection m_KeywordSection;
 
         public const int k_PropertySectionIndex = 0;
         public const int k_KeywordSectionIndex = 1;
@@ -59,12 +59,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
             blackboard.hierarchy.Add(m_PathLabelTextField);
 
-            m_PropertySection = new BlackboardSection { title = "Properties" };
+            m_PropertySection = new SGBlackboardSection { title = "Properties" };
             foreach (var property in graph.properties)
                 AddInputRow(property);
             blackboard.Add(m_PropertySection);
 
-            m_KeywordSection = new BlackboardSection { title = "Keywords" };
+            m_KeywordSection = new SGBlackboardSection { title = "Keywords" };
             foreach (var keyword in graph.keywords)
                 AddInputRow(keyword);
             blackboard.Add(m_KeywordSection);

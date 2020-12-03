@@ -18,11 +18,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         const int k_DraggedPropertyScrollSpeed = 6;
 
-        protected override string windowTitle => "Blackboard";
-        protected override string elementName => "SGBlackboard";
-        protected override string styleName => "Blackboard";
-        protected override string UxmlName => "GraphView/Blackboard";
-        protected override string layoutKey => "UnityEditor.ShaderGraph.Blackboard";
+        public override string windowTitle => "Blackboard";
+        public override string elementName => "SGBlackboard";
+        public override string styleName => "Blackboard";
+        public override string UxmlName => "GraphView/Blackboard";
+        public override string layoutKey => "UnityEditor.ShaderGraph.Blackboard";
 
         public Action<SGBlackboard> addItemRequested { get; set; }
         public Action<SGBlackboard, int, VisualElement> moveItemRequested { get; set; }
