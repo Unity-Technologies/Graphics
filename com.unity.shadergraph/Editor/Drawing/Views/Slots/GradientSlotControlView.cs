@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                 m_GradientObject.gradient.SetKeys(evt.newValue.colorKeys, evt.newValue.alphaKeys);
                 m_GradientObject.gradient.mode = evt.newValue.mode;
                 m_SerializedObject.ApplyModifiedProperties();
-                
+
                 m_Slot.value = m_GradientObject.gradient;
                 m_Slot.owner.Dirty(ModificationScope.Node);
             }

@@ -1,16 +1,9 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef SHADERCONFIG_CS_HLSL
 #define SHADERCONFIG_CS_HLSL
-//
-// UnityEngine.Rendering.HighDefinition.ProbeVolumesEvaluationModes:  static fields
-//
-#define PROBEVOLUMESEVALUATIONMODES_DISABLED (0)
-#define PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP (1)
-#define PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS (2)
-
 //
 // UnityEngine.Rendering.HighDefinition.ProbeVolumesEncodingModes:  static fields
 //
@@ -33,7 +26,7 @@
 #define SHADEROPTIONS_PRE_EXPOSITION (1)
 #define SHADEROPTIONS_PRECOMPUTED_ATMOSPHERIC_ATTENUATION (0)
 #define SHADEROPTIONS_XR_MAX_VIEWS (2)
-#define SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE (0)
+#define SHADEROPTIONS_ENABLE_PROBE_VOLUMES (0)
 #define SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING (1)
 #define SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING_MODE (1)
 #define SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE (1)

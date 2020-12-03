@@ -939,7 +939,7 @@ MonoBehaviour:
     enumValues: []
     descendantCount: 0
   m_ImportDependencies: []
-  m_GraphVersion: 4
+  m_GraphVersion: 6
   m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
@@ -1554,6 +1554,8 @@ MonoBehaviour:
   - {fileID: 8926484042661614539}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
   positionMode: 0
   spawnMode: 1
 --- !u!114 &8926484042661614531
@@ -2719,6 +2721,8 @@ MonoBehaviour:
   - {fileID: 8926484042661616108}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
   positionMode: 0
   spawnMode: 0
 --- !u!114 &8926484042661614597
@@ -7679,6 +7683,9 @@ MonoBehaviour:
   - {fileID: 8926484042661614880}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
+  compositionTargetPosition: 1
   shape: 0
   index: 0
   writePosition: 1
@@ -8574,6 +8581,8 @@ MonoBehaviour:
   - {fileID: 8926484042661614938}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
   positionMode: 0
   spawnMode: 0
 --- !u!114 &8926484042661614938
@@ -13054,6 +13063,9 @@ MonoBehaviour:
   - {fileID: 8926484042661615195}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
+  compositionTargetPosition: 1
   shape: 0
   index: 0
   writePosition: 1
@@ -20023,6 +20035,8 @@ MonoBehaviour:
   - {fileID: 8926484042661615546}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
   positionMode: 0
   spawnMode: 0
 --- !u!114 &8926484042661615546
@@ -27483,6 +27497,8 @@ MonoBehaviour:
   - {fileID: 8926484042661615941}
   m_OutputSlots: []
   m_Disabled: 0
+  compositionPosition: 1
+  compositionDirection: 0
   positionMode: 0
   spawnMode: 0
 --- !u!114 &8926484042661615941

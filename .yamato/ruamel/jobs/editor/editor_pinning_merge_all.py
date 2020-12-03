@@ -6,54 +6,39 @@ from ..shared.yml_job import YMLJob
 
 class Editor_PinningMergeAllJob():
     
-    def __init__(self, editors, agent, target_branch, target_branch_editor_ci, abv):
-        self.job_id = editor_job_id_merge_all(abv)
-        self.yml_job = self.get_job_definition(editors, agent, target_branch, target_branch_editor_ci, abv)
+    def __init__(self, editors, agent, target_branch, target_branch_editor_ci, ci):
+        self.job_id = editor_job_id_merge_all(ci)
+        self.yml_job = self.get_job_definition(editors, agent, target_branch, target_branch_editor_ci, ci)
         self.yml = self.yml_job.get_yml()
 
 
-    def get_job_definition(self, editors, agent, target_branch, target_branch_editor_ci, abv):
+    def get_job_definition(self, editors, agent, target_branch, target_branch_editor_ci, ci):
     
         
+        abv_markers = []
         dependencies = []
         for editor in editors:
             if not editor['editor_pinning']:
                 continue
+            
+            if ci: # for ci workflows use the abv dependency (true/false) marked in metafile
+                abv_markers.append(f'[{editor["track"]} ABV]' if editor['editor_pinning_use_abv'] else f'[{editor["track"]} no ABV]')
+                dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], editor["editor_pinning_use_abv"])}')
+            else: # for manual workflow always disable ABV dependency, since the manual job is a 'force update' 
+                abv_markers.append(f'[{editor["track"]} no ABV]')
+                dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], False)}')
 
-            dependencies.append(f'{editor_pinning_filepath()}#{editor_job_id_merge_revisions(editor["name"], abv)}')
-        
-        commands = [
-            f'sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple',# Remove when the image has this preinstalled.
-            f'python3 -m pipenv install --dev', 
-            f'curl -L https://artifactory.prd.it.unity3d.com/artifactory/api/gpg/key/public | sudo apt-key add -',
-            f'sudo sh -c "echo \'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main\' > /etc/apt/sources.list.d/unity.list"',
-            f'sudo apt-get update',
-            pss(f'''
-            if [[ "$GIT_BRANCH" != "{target_branch_editor_ci }" ]]; then
-                echo "Should run on '{ target_branch_editor_ci }' but is running on '$GIT_BRANCH'"
-                exit 1
-            fi'''),# This should never run on anything other than stable. If you try it then it will fail
-            f'git config --global user.name "noreply@unity3d.com"', # TODO
-            f'git config --global user.email "noreply@unity3d.com"', # TODO
-            f'git checkout {target_branch}',
-            f'git pull',
-            f'pipenv run python3 .yamato/ruamel/build.py',
-            f'git add .yamato/*.yml',
-            f'git commit -m "[CI] Updated .ymls to new revision" --allow-empty',
-            f'git push'
-        ]
+        job_name = 'Merge all'
+        job_name += ' [CI]' if ci else ' [no CI]'
+        job_name += ' '.join(abv_markers)
 
         # construct job
         job = YMLJob()
-        
-        if abv:
-            job.set_name(f'Merge all [ABV] [CI]')
+        job.set_name(job_name)
+        if ci:
             job.set_trigger_on_expression(f'push.branch eq "{target_branch_editor_ci}" AND push.changes.any match "**/_latest_editor_versions*.metafile"')
-        else:
-            job.set_name(f'Merge all [no ABV] [no CI]')
         
-        job.set_agent(agent)
+        
         job.add_var_custom('CI', True)
         job.add_dependencies(dependencies)
-        job.add_commands(commands)
         return job

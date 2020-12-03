@@ -24,7 +24,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public Action<VFXObject,bool> onModified;
+        public Action<VFXObject, bool> onModified;
         void OnValidate()
         {
             Modified(false);
@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
         public void Modified(bool uiChange)
         {
             if (onModified != null)
-                onModified(this,uiChange);
+                onModified(this, uiChange);
         }
     }
 
@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
             kExpressionGraphChanged,// Expression graph must be recomputed
             kUIChanged,             // UI stuff has changed
-            kUIChangedTransient,    // UI stuff has been changed be does not require serialization 
+            kUIChangedTransient,    // UI stuff has been changed be does not require serialization
         }
 
         public new virtual string name  { get { return string.Empty; } }
@@ -117,7 +117,6 @@ namespace UnityEditor.VFX
                 try
                 {
                     onInvalidateDelegate(model, cause);
-
                 }
                 finally
                 {
@@ -133,7 +132,14 @@ namespace UnityEditor.VFX
                 graph.errorManager.ClearAllErrors(this, VFXErrorOrigin.Invalidate);
                 using (var reporter = new VFXInvalidateErrorReporter(graph.errorManager, this))
                 {
-                    GenerateErrors(reporter);
+                    try
+                    {
+                        GenerateErrors(reporter);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
             }
         }
@@ -332,7 +338,7 @@ namespace UnityEditor.VFX
 
         // Override this method to update other settings based on a setting modification
         // Use OnIvalidate with KSettingChanged and not this method to handle other side effects
-        protected virtual void OnSettingModified(VFXSetting setting) { }
+        public virtual void OnSettingModified(VFXSetting setting) {}
         public virtual IEnumerable<int> GetFilteredOutEnumerators(string name) { return null; }
 
         public virtual VFXSetting GetSetting(string name)

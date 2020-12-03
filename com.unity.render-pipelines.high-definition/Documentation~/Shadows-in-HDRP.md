@@ -57,7 +57,7 @@ Using high shadow bias values may result in light "leaking" through Meshes. This
 After HDRP captures a shadow map, it processes filtering on the map in order to decrease the aliasing effect that occurs on low resolution shadow maps. Different filters affect the perceived sharpness of shadows.
 
 To change which shadow filter quality to use, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.md). Higher quality have impact on GPU performance.
-There are currently three filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.md#FilteringQualities).
+There are currently three filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.md#filtering-qualities).
 
 ## Shadowmasks
 
@@ -136,6 +136,16 @@ Note that this causes HDRP to mark all the shadow maps in the atlas as dirty whi
 
 If you disable the Light or change its **Update Mode** to **Every Frame**, the cached shadow manager unreserves the Light's shadow map's space in the cached shadow atlas and HDRP begins to render the Light's shadow map to the normal shadow atlases every frame. If the cached shadow manager needs to allocate space on the atlas for another Light, it can overwrite the space currently taken up by the original Light's shadow map.
 If you plan to only temporarily set a Light's **Update Mode** to **Every Frame** and want to set it back to **On Enable** or **On Demand** later, you can preserve the Light's shadow map placement in its atlas. This is useful, for example, if you want HDRP to cache a far away Light's shadow map, but update it every frame when it gets close to the [Camera](HDRP-Camera.md). To do this, access the Light's **HDAdditionalLightData** component and enable the **preserveCachedShadow** property. If this property is set to `true`, HDRP preserves the Light's shadow map's space in its shadow atlas. Note that even if this property is enabled, if you destroy the Light, it loses its placement in the shadow atlas.
+
+### Mixed Cached Shadow Maps
+
+For non-directional lights It is possible to cache only a portion of the shadow map. To do this, enable the **Always draw dynamic** option in the [Light's](Light-Component.md) shadow settings and then enable the **Static Shadow Caster** option for all Renderers to cache shadows for. 
+With this setup, HDRP renders static shadow casters into the shadow map depending on the Light's Update Mode, but it renders dynamic shadow casters into their respective shadow maps each frame. If the Update Mode is set to OnEnable, HDRP only renders static shadow casters when you enable the Light component. If the Update Mode is to OnDemand, HDRP only renders static shadow casters when you explicitly request an update.
+This setup is particularly useful if your environment consists of mostly static GameObjects and the lights do not move, but there are few dynamic GameObjects that you want the static lights to cast shadows for. In such scenarios, setting the light to have a mixed cached shadow map greatly improves performance both on the CPU and GPU.
+
+Note that, due to implementation details, if you set up a shadow to be mixed cached, HDRP performs a blit from the cached shadow map to the dynamic atlas. This is important to keep in mind both for the extra runtime cost of the blit in itself, but also to understand that, in terms of memory, a single shadow map requires space in both atlases.
+
+Another important note, also due to implementation details, if a Light with mixed cached shadows moves and you do not update the cached counterpart, the result looks wrong. In such cases either enable the Light's **Update on light movement** option or set the Light's update mode to **OnDemand** and make sure to trigger an update when you move the Light.
 
 ### Notes
 

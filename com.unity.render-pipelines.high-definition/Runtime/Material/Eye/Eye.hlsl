@@ -228,13 +228,13 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
             float3 vsDiffuseNormal = TransformWorldToViewDir(bsdfData.diffuseNormalWS);
             result = IsNormalized(vsDiffuseNormal) ?  vsDiffuseNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
-        } 
+        }
     case DEBUGVIEW_EYE_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
         {
             float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
             result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
-        } 
+        }
     case DEBUGVIEW_EYE_BSDFDATA_IOR:
         result = saturate((bsdfData.IOR - 1.0) / 1.5).xxx;
         break;
@@ -769,11 +769,11 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 R = preLightData.iblR;
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
-    EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
+    float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
 
     float3 F = preLightData.specularFGD;
 
-    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness) * lightData.roughReflections, lightData.rangeCompressionFactorCompensation, posInput.positionNDC);
+    float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R, preLightData.iblPerceptualRoughness, intersectionDistance);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
     envLighting = F * preLD.rgb;

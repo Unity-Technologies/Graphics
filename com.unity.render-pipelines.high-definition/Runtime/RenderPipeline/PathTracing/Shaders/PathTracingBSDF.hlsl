@@ -1,47 +1,12 @@
 #ifndef UNITY_PATH_TRACING_BSDF_INCLUDED
 #define UNITY_PATH_TRACING_BSDF_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface.hlsl"
 
 #define DELTA_PDF 1000000.0
 #define MIN_GGX_ROUGHNESS 0.00001
 #define MAX_GGX_ROUGHNESS 0.99999
-
-// Adapted from: "Sampling the GGX Distribution of Visible Normals", by E. Heitz
-// http://jcgt.org/published/0007/04/01/paper.pdf
-void SampleAnisoGGXVisibleNormal(float2 u,
-                                 float3 V,
-                                 float3x3 localToWorld,
-                                 float roughnessX,
-                                 float roughnessY,
-                             out float3 localV,
-                             out float3 localH,
-                             out float  VdotH)
-{
-    localV = mul(V, transpose(localToWorld));
-
-    // Construct an orthonormal basis around the stretched view direction
-    float3x3 viewToLocal;
-    viewToLocal[2] = normalize(float3(roughnessX * localV.x, roughnessY * localV.y, localV.z));
-    viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(float3(0, 0, 1), viewToLocal[2])) : float3(1, 0, 0);
-    viewToLocal[1] = cross(viewToLocal[2], viewToLocal[0]);
-
-    // Compute a sample point with polar coordinates (r, phi)
-    float r   = sqrt(u.x);
-    float phi = 2.0 * PI * u.y;
-    float t1  = r * cos(phi);
-    float t2  = r * sin(phi);
-    float s  = 0.5 * (1.0 + viewToLocal[2].z);
-    t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
-
-    // Reproject onto hemisphere
-    localH = t1 * viewToLocal[0] + t2 * viewToLocal[1] + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * viewToLocal[2];
-
-    // Transform the normal back to the ellipsoid configuration
-    localH = normalize(float3(roughnessX * localH.x, roughnessY * localH.y, max(0.0, localH.z)));
-
-    VdotH = saturate(dot(localV, localH));
-}
 
 float Lambda_AnisoGGX(float roughnessX,
                       float roughnessY,
