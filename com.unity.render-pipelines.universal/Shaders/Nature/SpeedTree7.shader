@@ -108,6 +108,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #define DEPTH_ONLY
             #define SHADOW_CASTER
 
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
             ENDHLSL

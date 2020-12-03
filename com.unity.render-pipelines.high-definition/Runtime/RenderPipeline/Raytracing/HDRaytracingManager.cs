@@ -91,9 +91,10 @@ namespace UnityEngine.Rendering.HighDefinition
         ReflectionProbe reflectionProbe = new ReflectionProbe();
         List<Material> materialArray = new List<Material>(maxNumSubMeshes);
 
-        // Used to detect material changes for Path Tracing
+        // Used to detect material and transform changes for Path Tracing
         Dictionary<int, int> m_MaterialCRCs = new Dictionary<int, int>();
         bool m_MaterialsDirty = false;
+        bool m_TransformDirty = false;
 
         // Ray Direction/Distance buffers
         RTHandle m_RayTracingDirectionBuffer;
@@ -340,7 +341,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (instanceFlag == 0) return AccelerationStructureStatus.Added;
 
             // Add it to the acceleration structure
+            m_TransformDirty |= currentRenderer.transform.hasChanged;
             m_CurrentRAS.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided, mask: instanceFlag);
+            currentRenderer.transform.hasChanged = false;
 
             // return the status
             return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;

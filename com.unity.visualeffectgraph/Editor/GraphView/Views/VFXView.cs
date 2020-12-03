@@ -631,15 +631,19 @@ namespace UnityEditor.VFX.UI
                         return;
                     targetParent = targetContext.parent;
                 }
+                else
+                {
+                    targetParent = target.parent;
+                }
                 target = (target as VFXNodeUI).titleContainer;
                 alignement = SpriteAlignment.LeftCenter;
             }
-            if (target != null)
+
+            if (target != null && targetParent != null)
             {
                 var badge = type == VFXErrorType.Error ? IconBadge.CreateError(description) : IconBadge.CreateComment(description);
                 targetParent.Add(badge);
                 badge.AttachTo(target, alignement);
-
 
                 if (errorOrigin == VFXErrorOrigin.Compilation)
                 {

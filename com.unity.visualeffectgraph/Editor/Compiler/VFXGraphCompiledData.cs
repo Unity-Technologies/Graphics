@@ -542,21 +542,7 @@ namespace UnityEditor.VFX
 
                 Object processor = null;
                 if (spawnerBlock.customBehavior != null)
-                {
-                    var assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name);
-                    if (assets.Length != 1)
-                    {
-                        // AssetDatabase.FindAssets will not search in package by default. Search in our package explicitly
-                        assets = AssetDatabase.FindAssets("t:TextAsset " + spawnerBlock.customBehavior.Name, new string[] { VisualEffectGraphPackageInfo.assetPackagePath });
-                        if (assets.Length != 1)
-                        {
-                            throw new InvalidOperationException("Unable to find the definition .cs file for " + spawnerBlock.customBehavior + " Make sure that the class name and file name match");
-                        }
-                    }
-
-                    var assetPath = AssetDatabase.GUIDToAssetPath(assets[0]);
-                    processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
-                }
+                    processor = spawnerBlock.customBehavior;
 
                 taskDescList.Add(new VFXEditorTaskDesc
                 {
