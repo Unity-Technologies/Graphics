@@ -89,7 +89,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     if project_folder.lower() == "BoatAttack".lower():
         base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
 
-    base.append(f'codesign -fs unity-player ~/players/{project_folder}/PlayerWithTests.app')
+    base.append(f'codesign --force --deep --sign ~/players/{project_folder}/PlayerWithTests.app')
 
     return base
 
