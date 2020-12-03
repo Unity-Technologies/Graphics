@@ -89,6 +89,7 @@ def cmd_standalone_build(project_folder, platform, api, test_platform, editor, b
     if project_folder.lower() == "BoatAttack".lower():
         base = extra_perf_cmd(project_folder) + install_unity_config(project_folder) + base
 
+    base.append(f'security find-identity -v -p codesigning')
     base.append(f'codesign --force --deep --sign /Users/bokken/build/output/players/{project_folder}/PlayerWithTests.app')
 
     return base
