@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Buffers filled with the CPU outside of render graph.
             public ComputeBufferHandle          convexBoundsBuffer;
 
-            // Transient buffers that are not used outside of BuildGPULight list so they don't need to go outside the pass.
+            // Transient buffers that are not used outside of BuildGPULightList so they don't need to go outside the pass.
             public ComputeBufferHandle          xyBoundsBuffer;
             public ComputeBufferHandle          wBoundsBuffer;
 

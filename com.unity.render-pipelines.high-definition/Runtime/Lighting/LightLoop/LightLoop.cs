@@ -697,22 +697,27 @@ namespace UnityEngine.Rendering.HighDefinition
         // With render graph it's only useful for 2 buffers and a boolean value.
         class TileAndClusterData
         {
-            // Internal to light list building
-            // public ComputeBuffer lightVolumeDataBuffer { get; private set; }
-            public ComputeBuffer convexBoundsBuffer { get; /*private*/ set; }
-            public ComputeBuffer xyBoundsBuffer { get; private set; }
-            public ComputeBuffer wBoundsBuffer { get; private set; }
-            public ComputeBuffer globalLightListAtomic { get; private set; }
+            // Buffers filled with the CPU outside of render graph.
+            public ComputeBuffer convexBoundsBuffer     { get; /*private*/ set; }
 
-            // Binned lighting
-            public ComputeBuffer coarseTileBuffer { get; private set; }
-            public ComputeBuffer fineTileBuffer   { get; private set; }
-            public ComputeBuffer zBinBuffer       { get; private set; }
+            // Transient buffers that are not used outside of BuildGPULightList so they don't need to go outside the pass.
+            public ComputeBuffer xyBoundsBuffer         { get; private set; }
+            public ComputeBuffer wBoundsBuffer          { get; private set; }
+
+            // Output
+            public ComputeBuffer coarseTileBuffer       { get; private set; }
+            public ComputeBuffer fineTileBuffer         { get; private set; }
+            public ComputeBuffer zBinBuffer             { get; private set; }
+            public ComputeBuffer tileFeatureFlagsBuffer { get; private set; } // Deferred
+            public ComputeBuffer tileListBuffer         { get; private set; } // Deferred
+            public ComputeBuffer dispatchIndirectBuffer { get; private set; } // Deferred
+
+            /* Old junk below. */
+
+            // public ComputeBuffer lightVolumeDataBuffer { get; private set; }
+            //public ComputeBuffer globalLightListAtomic { get; private set; }
 
             // Tile Output
-            public ComputeBuffer tileFeatureFlags { get; private set; } // Deferred
-            public ComputeBuffer dispatchIndirectBuffer { get; private set; } // Deferred
-            public ComputeBuffer tileList { get; private set; } // Deferred
             public ComputeBuffer lightList { get; private set; } // ContactShadows, Deferred, Forward w/ fptl
 
             // Cluster Output
@@ -734,7 +739,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hasTileBuffers = allocateTileBuffers;
                 this.clusterNeedsDepth = clusterNeedsDepth;
                 this.maxLightCount = maxLightCount;
-                globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
+                //globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
             public void AllocateNonRenderGraphResolutionDependentBuffers(HDCamera hdCamera, int width, int height, int viewCount, int maxBoundedEntityCount)
@@ -806,14 +811,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Assume the deferred lighting CS uses fine tiles.
                     int numTiles = fineTileBufferDimensions.x * fineTileBufferDimensions.y;
 
-                    tileFeatureFlags = new ComputeBuffer(numTiles * viewCount, sizeof(uint));
+                    tileFeatureFlagsBuffer = new ComputeBuffer(numTiles * viewCount, sizeof(uint));
 
                     // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
                     // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
                     // Use use max size of 4 unit for allocation
                     dispatchIndirectBuffer = new ComputeBuffer(TiledLightingConstants.s_NumFeatureVariants * viewCount, 4 * sizeof(uint), ComputeBufferType.IndirectArguments);
 
-                    tileList = new ComputeBuffer(numTiles * viewCount * TiledLightingConstants.s_NumFeatureVariants, sizeof(uint));
+                    tileListBuffer = new ComputeBuffer(numTiles * viewCount * TiledLightingConstants.s_NumFeatureVariants, sizeof(uint));
                 }
 
                 // Make sure to invalidate the content of the buffers
@@ -835,11 +840,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public void ReleaseNonRenderGraphResolutionDependentBuffers()
             {
                 CoreUtils.SafeRelease(lightList);
-                CoreUtils.SafeRelease(tileList);
-                CoreUtils.SafeRelease(tileFeatureFlags);
+                CoreUtils.SafeRelease(tileListBuffer);
+                CoreUtils.SafeRelease(tileFeatureFlagsBuffer);
                 lightList = null;
-                tileList = null;
-                tileFeatureFlags = null;
+                tileListBuffer = null;
+                tileFeatureFlagsBuffer = null;
 
                 // enableClustered
                 CoreUtils.SafeRelease(perVoxelLightLists);
@@ -880,7 +885,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public void Cleanup()
             {
-                CoreUtils.SafeRelease(globalLightListAtomic);
+                //CoreUtils.SafeRelease(globalLightListAtomic);
 
                 ReleaseResolutionDependentBuffers();
             }
@@ -3527,7 +3532,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Buffers filled with the CPU outside of render graph.
             public ComputeBuffer convexBoundsBuffer;
 
-            // Transient buffers that are not used outside of BuildGPULight list so they don't need to go outside the pass.
+            // Transient buffers that are not used outside of BuildGPULightList so they don't need to go outside the pass.
             public ComputeBuffer xyBoundsBuffer;
             public ComputeBuffer wBoundsBuffer;
 
@@ -3569,12 +3574,12 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.fineTileBuffer = tileAndClusterData.fineTileBuffer;
             resources.zBinBuffer = tileAndClusterData.zBinBuffer;
             //resources.lightVolumeDataBuffer = tileAndClusterData.lightVolumeDataBuffer;
-            resources.tileFeatureFlagsBuffer = tileAndClusterData.tileFeatureFlags;
+            resources.tileFeatureFlagsBuffer = tileAndClusterData.tileFeatureFlagsBuffer;
             //resources.globalLightListAtomic = tileAndClusterData.globalLightListAtomic;
             resources.perVoxelLightLists = tileAndClusterData.perVoxelLightLists;
             resources.perTileLogBaseTweak = tileAndClusterData.perTileLogBaseTweak;
             resources.dispatchIndirectBuffer = tileAndClusterData.dispatchIndirectBuffer;
-            resources.tileListBuffer = tileAndClusterData.tileList;
+            resources.tileListBuffer = tileAndClusterData.tileListBuffer;
 
             return resources;
         }
@@ -4455,8 +4460,8 @@ namespace UnityEngine.Rendering.HighDefinition
             resources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
             resources.depthTexture = m_SharedRTManager.GetDepthTexture();
             resources.lightListBuffer = m_TileAndClusterData.lightList;
-            resources.tileFeatureFlagsBuffer = m_TileAndClusterData.tileFeatureFlags;
-            resources.tileListBuffer = m_TileAndClusterData.tileList;
+            resources.tileFeatureFlagsBuffer = m_TileAndClusterData.tileFeatureFlagsBuffer;
+            resources.tileListBuffer = m_TileAndClusterData.tileListBuffer;
             resources.dispatchIndirectBuffer = m_TileAndClusterData.dispatchIndirectBuffer;
 
             return resources;

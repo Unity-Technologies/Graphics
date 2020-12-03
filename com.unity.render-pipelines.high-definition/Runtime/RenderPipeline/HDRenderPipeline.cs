@@ -5490,7 +5490,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderSkyReflectionOverlay(debugParams, cmd, m_SharedPropertyBlock);
                 if (debugParams.rayTracingSupported)
                     RenderRayCountOverlay(debugParams, cmd);
-                RenderLightLoopDebugOverlay(debugParams, cmd, m_TileAndClusterData.tileList, m_TileAndClusterData.lightList, m_TileAndClusterData.perVoxelLightLists, m_TileAndClusterData.dispatchIndirectBuffer, m_SharedRTManager.GetDepthTexture());
+                RenderLightLoopDebugOverlay(debugParams, cmd, m_TileAndClusterData.tileListBuffer, m_TileAndClusterData.lightList, m_TileAndClusterData.perVoxelLightLists, m_TileAndClusterData.dispatchIndirectBuffer, m_SharedRTManager.GetDepthTexture());
                 RenderProbeVolumeDebugOverlay(debugParams, cmd); // TODO(Nicholas): renders as a black square in the upper right.
 
                 HDShadowManager.ShadowDebugAtlasTextures atlases = debugParams.lightingOverlayParameters.shadowManager.GetDebugAtlasTextures();
