@@ -52,6 +52,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDUtils.PackedMipChainInfo GetDepthBufferMipChainInfo()
         {
+            // Initialize if nececcary
+            if (m_DepthBufferMipChainInfo.textureSize == Vector2Int.zero)
+            {
+                m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(new Vector2Int(RTHandles.maxWidth, RTHandles.maxHeight));
+            }
+
             return m_DepthBufferMipChainInfo;
         }
 

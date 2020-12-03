@@ -317,9 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         passData.source = builder.ReadTexture(source);
                         passData.parameters = PrepareApplyExposureParameters(hdCamera);
-                        RTHandle prevExp;
-                        GrabExposureHistoryTextures(hdCamera, out prevExp, out _);
-                        passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(prevExp));
+                        passData.prevExposure = renderGraph.ImportTexture(GetPreviousExposureTexture(hdCamera));
 
                         TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Apply Exposure Destination");
                         passData.destination = builder.WriteTexture(dest);;
