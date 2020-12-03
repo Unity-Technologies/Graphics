@@ -31,7 +31,7 @@ def install_git_lfs():
 
 def replace_shebangs():
     repo_root = run_cmd('git rev-parse --show-toplevel')
-    hooks_folder = os.path.join(repo_root, '.git/hooks')
+    hooks_folder = os.path.join(repo_root, '.git', 'hooks')
     current_shebang = "#!/bin/sh"
     replacement = "#!/usr/bin/env sh"
     for dname, dirs, files in os.walk(hooks_folder):
@@ -57,8 +57,9 @@ def install_hooks():
     run_cmd('pre-commit install --hook-type pre-push --allow-missing-config')
 
 
-# Check perl installation
-# (used for code formatting)
+# Check perl installation (used for code formatting)
+# We explictly store the Strawberry perl binary's path because we don't want
+# the hooks to use git's own perl on Windows (unsupported by the formatter)
 def config_perl(config):
     try:
         if sys.platform == "win32" or sys.platform == "cygwin":
@@ -73,11 +74,10 @@ def config_perl(config):
         exit(1)
 
 
-# Fetch unity-meta
-# (used for code formatting)
+# Fetch unity-meta (used for code formatting)
 def config_unity_meta(config):
     home = str(Path.home())
-    default_unity_meta_path = os.path.join(home, 'unity-meta/')
+    default_unity_meta_path = os.path.join(home, 'unity-meta')
     if os.path.exists(default_unity_meta_path):
         config['unity-meta'] = default_unity_meta_path
         return config
@@ -88,7 +88,7 @@ def config_unity_meta(config):
 
 def config_hooks():
     repo_root = run_cmd('git rev-parse --show-toplevel')
-    config_path = os.path.join(repo_root, ".git/hooks/hooks-config.json")
+    config_path = os.path.join(repo_root, ".git", "hooks", "hooks-config.json")
     config = {}
     if os.path.exists(config_path):
         with open(config_path, 'r') as config_file_r:
