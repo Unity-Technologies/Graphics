@@ -74,6 +74,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_AlphaClip = false;
 
         [SerializeField]
+        bool m_overrideColorInterpolator = false;
+
+        [SerializeField]
         string m_CustomEditorGUI;
 
         public UniversalTarget()
@@ -138,6 +141,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AlphaClip = value;
         }
 
+        public bool overrideColorInterpolator
+        {
+            get => m_overrideColorInterpolator;
+            set => m_overrideColorInterpolator = value;
+        }
+
         public string customEditorGUI
         {
             get => m_CustomEditorGUI;
@@ -189,6 +198,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent) ||
                 descs.Contains(BlockFields.VertexDescription.VertexColor));
+            context.AddField(Fields.GraphColorInterp,
+                descs.Contains(BlockFields.VertexDescription.VertexColor) &&
+                overrideColorInterpolator);
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip,              alphaClip);
             context.AddField(Fields.DoubleSided,            twoSided);
@@ -203,7 +215,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.VertexDescription.Position);
             context.AddBlock(BlockFields.VertexDescription.Normal);
             context.AddBlock(BlockFields.VertexDescription.Tangent);
-            context.AddBlock(BlockFields.VertexDescription.VertexColor);
+            context.AddBlock(BlockFields.VertexDescription.VertexColor, m_overrideColorInterpolator);
+
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
 
             // SubTarget blocks
@@ -230,6 +243,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Material");
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
+                onChange();
+            });
+
+            context.AddProperty("Override Color Interpolator", new Toggle() { value = overrideColorInterpolator }, (evt) =>
+            {
+                if (Equals(overrideColorInterpolator, evt.newValue))
+                    return;
+
+                registerUndo("Change Override Color Interpolator");
+                overrideColorInterpolator = evt.newValue;
                 onChange();
             });
 

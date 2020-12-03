@@ -27,7 +27,7 @@ Varyings BuildVaryings(Attributes input)
     #if defined(VARYINGS_NEED_TANGENT_WS)
         input.tangentOS.xyz = vertexDescription.Tangent.xyz;
     #endif //FEATURES GRAPH TANGENT
-    #if defined(VARYINGS_NEED_COLOR)
+    #if defined(FEATURES_GRAPH_COLOR_INTERP) && defined(VARYINGS_NEED_COLOR)
         input.color = vertexDescription.VertexColor;
     #endif
 #endif //FEATURES_GRAPH_VERTEX

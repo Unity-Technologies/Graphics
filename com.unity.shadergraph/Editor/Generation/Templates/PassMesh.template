@@ -60,6 +60,7 @@ Pass
     $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     $Varyings.cullFace:                 #define VARYINGS_NEED_CULLFACE
     $features.graphVertex:              #define FEATURES_GRAPH_VERTEX
+    $features.graphColorInterp:         #define FEATURES_GRAPH_COLOR_INTERP
     $Universal.UseLegacySpriteBlocks:   #define UNIVERSAL_USELEGACYSPRITEBLOCKS
     $splice(PassInstancing)
     $splice(GraphDefines)
