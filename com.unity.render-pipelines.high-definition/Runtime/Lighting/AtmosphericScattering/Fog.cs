@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_FogControlMode.value = value; }
         }
         [SerializeField, FormerlySerializedAs("fogControlMode")]
-        [Tooltip("Specifies which method to use to control the performance and quality of the volumetric fog. ")]
+        [Tooltip("Specifies which method to use to control the performance and quality of the volumetric fog.")]
         private FogControlParameter m_FogControlMode = new FogControlParameter(FogControl.Balance);
 
         /// <summary>Stores the resolution of the volumetric buffer (3D texture) along the x-axis and y-axis relative to the resolution of the screen.</summary>
