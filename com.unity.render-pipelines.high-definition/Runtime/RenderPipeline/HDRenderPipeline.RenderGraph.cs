@@ -34,6 +34,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RenderGraph.Begin(renderGraphParams);
 
+            // We need to initalize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
+            m_DepthBufferMipChainInfo.ComputePackedMipChainInfo(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight));
+
 #if UNITY_EDITOR
             var showGizmos = camera.cameraType == CameraType.Game
                 || camera.cameraType == CameraType.SceneView;
