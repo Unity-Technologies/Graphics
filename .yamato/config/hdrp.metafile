@@ -17,7 +17,7 @@ test_platforms:
     utr_flags:
       - [OSX_Metal]: --timeout=2400
 expression_trigger:
-  - expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "TestProjects/HDRP_Tests/**/*"]'
+  expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "TestProjects/HDRP_Tests/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -119,4 +119,6 @@ all:
         #- playmode_XR
         #- playmode_NonRenderGraph
     - project: HDRP_Hybrid
+      all: true
+    - project: VFX_HDRP
       all: true

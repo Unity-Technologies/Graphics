@@ -12,6 +12,8 @@ test_platforms:
     name: playmode_NonRenderGraph
     utr_flags:
       - [all]: --extra-editor-arg="-non-rendergraph-tests"
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:

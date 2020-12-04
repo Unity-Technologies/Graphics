@@ -12,6 +12,8 @@ test_platforms:
   - type: playmode
     utr_flags:
       - [all]: --compilation-errors-as-warnings
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:

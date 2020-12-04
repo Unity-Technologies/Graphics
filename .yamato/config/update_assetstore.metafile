@@ -4,6 +4,8 @@ project:
 test_platforms:
   - type: playmode
   - type: editmode
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:

@@ -13,6 +13,8 @@ platforms:
       - name: mono
     color_spaces:
       - Linear
+expression_trigger: 
+  expression: ""     
 all:
   dependencies:
     - platform: Win

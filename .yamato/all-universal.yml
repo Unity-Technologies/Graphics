@@ -8,9 +8,11 @@
 ---
 
 All_Universal_trunk:
-    name: All Universal CI - trunk
+    name: Universal PR Job - trunk
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_mono_Linear_trunk
          rerun: on-new-revision
@@ -32,10 +34,18 @@ All_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_trunk
+         rerun: on-new-revision
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_trunk
+         rerun: on-new-revision
+    triggers:
+        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
 All_Universal_CUSTOM-REVISION:
-    name: All Universal CI - CUSTOM-REVISION
+    name: Universal PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -57,5 +67,11 @@ All_Universal_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+    triggers:
+        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set

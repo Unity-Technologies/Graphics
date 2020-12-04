@@ -7,6 +7,8 @@ test_platforms:
       - [all]: compilation-errors-as-warnings
  # - type: playmode
   - type: editmode
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis: 

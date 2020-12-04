@@ -8,18 +8,18 @@
 ---
 
 All_VFX_URP_trunk:
-    name: All VFX_URP CI - trunk
+    name: VFX_URP PR Job - trunk
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_trunk
-         rerun: on-new-revision
+    triggers:
+        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]
 All_VFX_URP_CUSTOM-REVISION:
-    name: All VFX_URP CI - CUSTOM-REVISION
+    name: VFX_URP PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+    triggers:
+        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_URP/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set

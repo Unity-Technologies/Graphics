@@ -8,7 +8,7 @@ test_platforms:
   - type: playmode
   - type: editmode
 expression_trigger: 
-  - expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]'
+  expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -56,6 +56,19 @@ all:
       color_space: Linear
       test_platforms:
         - editmode 
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        # - Standalone
+        - playmode
     - project: ShaderGraph_Stereo
-      all: true  
+      all: true
 

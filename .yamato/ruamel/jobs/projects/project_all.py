@@ -35,7 +35,8 @@ class Project_AllJob():
         job = YMLJob()
         job.set_name(f'{project} PR Job - {editor["name"]}')
         job.add_dependencies(dependencies)
-        job.set_trigger_on_expression(expression_trigger)
+        if expression_trigger != "":
+            job.set_trigger_on_expression(expression_trigger)
         job.add_var_custom_revision(editor["track"])
         if project == "URP_Performance_BoatAttack":
             job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')

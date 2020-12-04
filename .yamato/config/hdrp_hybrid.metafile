@@ -19,7 +19,8 @@ test_platforms:
       - [OSX_Metal]: --timeout=2400
     utr_flags_build:
       - [all]: --compilation-errors-as-warnings
-
+expression_trigger: 
+  expression: ""
 platforms:
   - name: Win
     apis:

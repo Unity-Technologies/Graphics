@@ -8,7 +8,7 @@
 ---
 
 All_HDRP_trunk:
-    name: All HDRP CI - trunk
+    name: HDRP PR Job - trunk
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
@@ -17,8 +17,6 @@ All_HDRP_trunk:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_Linear_trunk
          rerun: on-new-revision
@@ -30,8 +28,12 @@ All_HDRP_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_trunk
+         rerun: on-new-revision
+    triggers:
+        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "TestProjects/HDRP_Tests/**/*"]
 All_HDRP_CUSTOM-REVISION:
-    name: All HDRP CI - CUSTOM-REVISION
+    name: HDRP PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -40,8 +42,6 @@ All_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_NonRenderGraph_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -53,5 +53,9 @@ All_HDRP_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_CUSTOM-REVISION
+         rerun: always
+    triggers:
+        expression: pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.high-definition/**/*", "TestProjects/HDRP_Tests/**/*"]
     variables:
         CUSTOM_REVISION: custom_revision_not_set
