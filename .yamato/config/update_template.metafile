@@ -36,3 +36,7 @@ all:
 #      all: true
     - project: URPUpdate_Top_Asset_Store
       all: true  
+nightly:
+  dependencies:
+    - project: URPUpdate
+      all: true

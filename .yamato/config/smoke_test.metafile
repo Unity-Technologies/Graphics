@@ -25,4 +25,7 @@ all:
         - playmode
         - editmode
         - Standalone
-        
+nightly:
+  dependencies:
+    - project: Smoke_Test
+      all: true        

@@ -24,3 +24,7 @@ all:
         - Standalone
         - editmode
         # - playmode
+nightly:
+  dependencies:
+    - project: ShaderGraph_Stereo
+      all: true

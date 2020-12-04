@@ -167,3 +167,7 @@ all:
       test_platforms:
         - performance_playmode_runtime
         - performance_build_editmode
+nightly:
+  dependencies:
+    - project: URP_Performance_BoatAttack
+      all: true

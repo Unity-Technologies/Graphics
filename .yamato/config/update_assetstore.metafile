@@ -32,3 +32,7 @@ all:
       test_platforms:
         - editmode
         - playmode
+nightly:
+  dependencies:
+    - project: URPUpdate_Top_Asset_Store
+      all: true

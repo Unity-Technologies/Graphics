@@ -52,3 +52,7 @@ all:
         #- editmode
         #- playmode
         - playmode_XR
+nightly:
+  dependencies:
+    - project: VFX_HDRP
+      all: true

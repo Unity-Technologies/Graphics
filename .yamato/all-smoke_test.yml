@@ -7,7 +7,7 @@
 
 ---
 
-All_Smoke_Test_trunk:
+PR_Smoke_Test_trunk:
     name: Smoke_Test PR Job - trunk
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_trunk
@@ -16,7 +16,7 @@ All_Smoke_Test_trunk:
          rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-All_Smoke_Test_CUSTOM-REVISION:
+PR_Smoke_Test_CUSTOM-REVISION:
     name: Smoke_Test PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION

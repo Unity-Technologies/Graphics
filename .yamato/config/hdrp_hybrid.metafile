@@ -63,3 +63,7 @@ all:
         - playmode
         - playmode_XR
        # - Standalone
+nightly:
+  dependencies:
+    - project: HDRP_Hybrid
+      all: true

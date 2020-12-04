@@ -2,8 +2,9 @@ from .project_not_standalone import Project_NotStandaloneJob
 from .project_standalone import Project_StandaloneJob
 from ..shared.namer import project_filepath_specific
 from .project_all import Project_AllJob
+from .project_nightly import Project_NightlyJob
 from ..shared.namer import project_filepath_all
-
+from ..shared.namer import project_filepath_nightly
 
 def create_project_ymls(metafile):
 
@@ -20,6 +21,15 @@ def create_project_ymls(metafile):
 
     yml_file = project_filepath_all(metafile["project"]["name"])
     yml_files[yml_file] = yml
+
+        # project_all yml file
+    nightly_yml = {}
+    for editor in metafile['editors']:
+        job = Project_NightlyJob(metafile["project"]["name"], editor, metafile["nightly"]["dependencies"])
+        nightly_yml[job.job_id] = job.nightly_yml
+
+    yml_file = project_filepath_nightly(metafile["project"]["name"])
+    yml_files[yml_file] = nightly_yml
 
     # project platform_api specific yml files
     project = metafile["project"]

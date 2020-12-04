@@ -73,3 +73,7 @@ all:
       color_space: Linear
       test_platforms:
         - playmode 
+nightly:
+  dependencies:
+    - project: Universal_Hybrid
+      all: true

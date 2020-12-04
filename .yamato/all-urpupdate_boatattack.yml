@@ -7,14 +7,14 @@
 
 ---
 
-All_URPUpdate_BoatAttack_trunk:
+PR_URPUpdate_BoatAttack_trunk:
     name: URPUpdate_BoatAttack PR Job - trunk
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
-All_URPUpdate_BoatAttack_CUSTOM-REVISION:
+PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION

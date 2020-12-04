@@ -4,22 +4,22 @@ from ..shared.yml_job import YMLJob
 
 class Project_NightlyJob():
     
-    def __init__(self, project, editor, expression_trigger, dependencies_in_nightly):
+    def __init__(self, project, editor, dependencies_in_nightly):
         self.project = project
         self.job_id = project_job_id_nightly(project, editor["name"])
-        self.yml = self.get_job_definition(project, editor, expression_trigger, dependencies_in_nightly).get_yml()
+        self.nightly_yml = self.get_job_definition(project, editor, dependencies_in_nightly).get_yml()
 
     
-    def get_job_definition(self, project, editor, expression_trigger, dependencies_in_nightly):
+    def get_job_definition(self, project, editor, dependencies_in_nightly):
     
         # define dependencies
         dependencies = []
         for dep in dependencies_in_nightly:
             project_dep = dep.get('project', project)
             
-            if dep.get("nightly"):
+            if dep.get("all"):
                 dependencies.append({
-                    'path': f'{project_filepath_nightly(project_dep)}#{project_job_id_nightly(project_dep, editor["name"])}',
+                    'path': f'{project_filepath_all(project_dep)}#{project_job_id_all(project_dep, editor["name"])}',
                     'rerun': editor["rerun_strategy"]})
             else:
                 for test_platform in dep["test_platforms"]:

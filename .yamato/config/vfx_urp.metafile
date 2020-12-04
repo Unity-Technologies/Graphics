@@ -69,3 +69,7 @@ all:
       test_platforms:
         - Standalone
         #- playmode
+nightly:
+  dependencies:
+    - project: VFX_URP
+      all: true

@@ -71,4 +71,7 @@ all:
         - playmode
     - project: ShaderGraph_Stereo
       all: true
-
+nightly:
+  dependencies:
+    - project: ShaderGraph
+      all: true
