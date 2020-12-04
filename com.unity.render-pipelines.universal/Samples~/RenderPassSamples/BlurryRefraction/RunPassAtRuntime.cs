@@ -17,18 +17,24 @@ public class RunPassAtRuntime : MonoBehaviour
         renderPass = new KawaseBlur("KawaseBlur", setting);
     }
 
+    void EnqueRenderPass(ScriptableRenderContext context, Camera camera)
+    {
+        camera.GetRenderer().EnqueuePass(renderPass);
+    }
+
     void Update()
     {
         renderPass.renderPassEvent = setting.renderPassEvent;
-        if(Input.GetKeyDown(KeyCode.C))
+        if (Input.GetKeyDown(KeyCode.C))
         {
             useRenderPass = !useRenderPass;
+            if (useRenderPass)
+                RenderPipelineManager.beginCameraRendering += EnqueRenderPass;
+            else
+                RenderPipelineManager.beginCameraRendering -= EnqueRenderPass;
+
             refactiveGlass.SetFloat("IsUsingRenderFeature", useRenderPass ? 1.0f : 0.0f);
 
-        }
-        if(useRenderPass)
-        {
-            ((UniversalRenderPipelineAsset)GraphicsSettings.currentRenderPipeline).scriptableRenderer.EnqueuePass(renderPass);
         }
     }
 }

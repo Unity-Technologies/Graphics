@@ -93,6 +93,24 @@ namespace UnityEngine.Rendering.Universal
 
             return cameraData;
         }
+
+        /// <summary>
+        /// Universal Render Pipeline exposes additional rendering data in a separate component.
+        /// This method returns the scriptable renderer for the additional data component for the given camera.
+        /// If the additional camera component doesn't exist create a new additional camera component.
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <returns>The <c>ScriptableRenderer</c> for this camera's additional camera data.</returns>
+        /// <see cref="UniversalAdditionalCameraData"/>
+        public static ScriptableRenderer GetRenderer(this Camera camera)
+        {
+            var gameObject = camera.gameObject;
+            bool componentExists = gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var cameraData);
+            if (!componentExists)
+                cameraData = gameObject.AddComponent<UniversalAdditionalCameraData>();
+
+            return cameraData.scriptableRenderer;
+        }
     }
 
     static class CameraTypeUtility

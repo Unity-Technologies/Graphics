@@ -16,8 +16,6 @@ Shader "Custom/RenderFeature/KawaseBlur"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
 
             #include "UnityCG.cginc"
 
@@ -30,7 +28,6 @@ Shader "Custom/RenderFeature/KawaseBlur"
             struct v2f
             {
                 float2 uv : TEXCOORD0;
-                UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
             };
 
