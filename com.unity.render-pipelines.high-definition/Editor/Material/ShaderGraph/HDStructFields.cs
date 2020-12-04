@@ -76,7 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor color = new FieldDescriptor(VaryingsMeshToDS.name, "color", "VARYINGS_NEED_COLOR", ShaderValueType.Float4,
                 subscriptOptions: StructFieldOptions.Optional);
-            public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
+            public static FieldDescriptor instanceID = new FieldDescriptor(VaryingsMeshToDS.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor vertexID = new FieldDescriptor(VaryingsMeshToDS.name, "vertexID", "VARYINGS_NEED_VERTEXID", ShaderValueType.Uint,
                 "CUSTOM_VERTEX_ID", subscriptOptions: StructFieldOptions.Optional);
