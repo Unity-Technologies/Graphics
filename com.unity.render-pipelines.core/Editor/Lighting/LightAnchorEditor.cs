@@ -145,7 +145,7 @@ namespace UnityEditor
                 }
                 frameChanged = yawChanged || pitchChanged || rollChanged || distanceChanged;
 
-                if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Presets"))
+                if (m_FoldoutPreset = EditorGUILayout.Foldout(m_FoldoutPreset, "Common"))
                 {
                     Color cachedColor = GUI.backgroundColor;
                     GUI.backgroundColor = LightAnchorStyles.BackgroundIconColor();
@@ -618,12 +618,12 @@ namespace UnityEditor
         static public Color totalTransparentColor = new Color(0, 0, 0, 0);
         static public Color hoverColor = new Color(0.22745098039215686f, 0.4745098039215686f, 0.7333333333333333f, 1.0f);
 
-        static public Color darkBackgroundIconColor = new Color(43f / 255f, 41f / 255f, 43f / 255f, 1.0f);
-        static public Color lightBackgroundIconColor = new Color(229f / 255f, 229f / 255f, 229f / 255f);
+        static public Color darkBackgroundIconColor = new Color(50f / 255f, 50f / 255f, 50f / 255f, 128f / 255f);
+        static public Color lightBackgroundIconColor = new Color(1f, 1f, 1f);
 
-        static public Color angleDiskBorderColor = new Color(33f / 255f, 33f / 255f, 33f / 255f);
+        static public Color angleDiskBorderColor = new Color(12f / 255f, 12f / 255f, 12f / 255f);
 
-        static public Color darkDiskBackgroundAngleColor = new Color(50f / 255f, 50f / 255f, 50f / 255f);
+        static public Color darkDiskBackgroundAngleColor = new Color(42f / 255f, 42f / 255f, 42f / 255f);
         static public Color lightDiskBackgroundAngleColor = new Color(229f / 255f, 229f / 255f, 229f / 255f);
 
         static public Color darkWireDiskAngleColor = new Color(196f / 255f, 196f / 255f, 196f / 255f);
