@@ -209,6 +209,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void InvalidateOutputIfNeeded()
         {
+            // Since we now store the output TextureHandle (because we only want to create the texture once depending on the control flow and because of shared textures),
+            // we need to be careful not to keep a "valid" handle when it's not a shared resource.
+            // Indeed, if for example we don't render with the atlas for a few frames, this handle will "look" valid (with a valid index internally) but its index will not match any valid resource.
+            // To avoid that, we invalidate it explicitly at the start of every frame if it's not a shared resource.
             if (!m_UseSharedTexture)
             {
                 m_Output = TextureHandle.nullHandle;
