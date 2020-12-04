@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.3.0] - 2020-11-03
 
 ### Added
+- Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
 
