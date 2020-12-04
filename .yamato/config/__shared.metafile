@@ -7,6 +7,7 @@ editors: # applied for all yml files
     rerun_strategy: on-new-revision
     editor_pinning: True
     # fast: True
+    editor_pinning_use_abv: False
     nightly: True
     abv_pr: False
   - track: CUSTOM-REVISION
