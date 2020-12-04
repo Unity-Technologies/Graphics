@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -37,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             m_Mode = mode;
             m_Name = name;
 
-            m_Builder = new ShaderStringBuilder();
+            m_Builder = new ShaderStringBuilder(8192);
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_assetCollection = assetCollection;
 
@@ -135,7 +136,6 @@ namespace UnityEditor.ShaderGraph
             using (m_Builder.BlockScope())
             {
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
-
                 for (int i = 0; i < m_Targets.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext(m_assetCollection);
@@ -200,6 +200,8 @@ namespace UnityEditor.ShaderGraph
             if (m_Mode == GenerationMode.Preview && !pass.useInPreview)
                 return;
 
+            Profiler.BeginSample("GenerateShaderPass");
+
             // --------------------------------------------------
             // Debug
 
@@ -213,9 +215,11 @@ namespace UnityEditor.ShaderGraph
             // Setup
 
             // Initiailize Collectors
+            Profiler.BeginSample("CollectShaderKeywords");
             var propertyCollector = new PropertyCollector();
             var keywordCollector = new KeywordCollector();
             m_GraphData.CollectShaderKeywords(keywordCollector, m_Mode);
+            Profiler.EndSample();
 
             // Get upstream nodes from ShaderPass port mask
             List<AbstractMaterialNode> vertexNodes;
@@ -228,15 +232,21 @@ namespace UnityEditor.ShaderGraph
             if (m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
+                Profiler.BeginSample("GetCurrentTargetActiveBlocks");
                 var activeBlockContext = new TargetActiveBlockContext(currentBlockDescriptors, pass);
                 m_Targets[targetIndex].GetActiveBlocks(ref activeBlockContext);
+                Profiler.EndSample();
 
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
                     List<AbstractMaterialNode> nodeList, List<MaterialSlot> slotList)
                 {
                     if (passBlockMask == null)
+                    {
+                        Profiler.EndSample();
                         return;
+                    }
 
+                    Profiler.BeginSample("ProcessStackForPass");
                     foreach (var blockFieldDescriptor in passBlockMask)
                     {
                         // Mask blocks on active state
@@ -270,6 +280,7 @@ namespace UnityEditor.ShaderGraph
                         slotList.Add(block.FindSlot<MaterialSlot>(0));
                         activeFields.baseInstance.Add(block.descriptor);
                     }
+                    Profiler.EndSample();
                 }
 
                 // Mask blocks per pass
@@ -308,14 +319,18 @@ namespace UnityEditor.ShaderGraph
             List<int>[] pixelNodePermutations = new List<int>[pixelNodes.Count];
 
             // Get active fields from upstream Node requirements
+            Profiler.BeginSample("GetActiveFieldsFromUpstreamNodes");
             ShaderGraphRequirementsPerKeyword graphRequirements;
             GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes,
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
+            Profiler.EndSample();
 
             // GET CUSTOM ACTIVE FIELDS HERE!
 
             // Get active fields from ShaderPass
+            Profiler.BeginSample("GetActiveFieldsFromPass");
             GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
+            Profiler.EndSample();
 
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
@@ -331,10 +346,12 @@ namespace UnityEditor.ShaderGraph
 
             // Propagate active field requirements using dependencies
             // Must be executed before types are built
+            Profiler.BeginSample("PropagateActiveFieldReqs");
             foreach (var instance in activeFields.all.instances)
             {
                 GenerationUtils.ApplyFieldDependencies(instance, pass.fieldDependencies);
             }
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Pass Setup
@@ -363,6 +380,7 @@ namespace UnityEditor.ShaderGraph
             // Pass Code
 
             // Render State
+            Profiler.BeginSample("RenderState");
             using (var renderStateBuilder = new ShaderStringBuilder())
             {
                 // Render states need to be separated by RenderState.Type
@@ -390,8 +408,9 @@ namespace UnityEditor.ShaderGraph
                 string command = GenerationUtils.GetSpliceCommand(renderStateBuilder.ToCodeBlock(), "RenderState");
                 spliceCommands.Add("RenderState", command);
             }
-
+            Profiler.EndSample();
             // Pragmas
+            Profiler.BeginSample("Pragmas");
             using (var passPragmaBuilder = new ShaderStringBuilder())
             {
                 if (pass.pragmas != null)
@@ -406,8 +425,9 @@ namespace UnityEditor.ShaderGraph
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);
             }
-
+            Profiler.EndSample();
             // Includes
+            Profiler.BeginSample("Includes");
             using (var preGraphIncludeBuilder = new ShaderStringBuilder())
             {
                 if (pass.includes != null)
@@ -436,8 +456,9 @@ namespace UnityEditor.ShaderGraph
                 string command = GenerationUtils.GetSpliceCommand(postGraphIncludeBuilder.ToCodeBlock(), "PostGraphIncludes");
                 spliceCommands.Add("PostGraphIncludes", command);
             }
-
+            Profiler.EndSample();
             // Keywords
+            Profiler.BeginSample("Keywords");
             using (var passKeywordBuilder = new ShaderStringBuilder())
             {
                 if (pass.keywords != null)
@@ -452,9 +473,10 @@ namespace UnityEditor.ShaderGraph
                 string command = GenerationUtils.GetSpliceCommand(passKeywordBuilder.ToCodeBlock(), "PassKeywords");
                 spliceCommands.Add("PassKeywords", command);
             }
-
+            Profiler.EndSample();
             // -----------------------------
             // Generated structs and Packing code
+            Profiler.BeginSample("StructsAndPacking");
             var interpolatorBuilder = new ShaderStringBuilder();
             var passStructs = new List<StructDescriptor>();
 
@@ -516,8 +538,10 @@ namespace UnityEditor.ShaderGraph
             else
                 interpolatorBuilder.AppendLine("//Interpolator Packs: <None>");
             spliceCommands.Add("InterpolatorPack", interpolatorBuilder.ToCodeBlock());
+            Profiler.EndSample();
 
             // Generated String Builders for all struct types
+            Profiler.BeginSample("StructTypes");
             var passStructBuilder = new ShaderStringBuilder();
             if (passStructs != null)
             {
@@ -532,10 +556,12 @@ namespace UnityEditor.ShaderGraph
             if (passStructBuilder.length == 0)
                 passStructBuilder.AppendLine("//Pass Structs: <None>");
             spliceCommands.Add("PassStructs", passStructBuilder.ToCodeBlock());
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Graph Vertex
 
+            Profiler.BeginSample("GraphVertex");
             var vertexBuilder = new ShaderStringBuilder();
 
             // If vertex modification enabled
@@ -578,10 +604,11 @@ namespace UnityEditor.ShaderGraph
             if (vertexBuilder.length == 0)
                 vertexBuilder.AppendLine("// GraphVertex: <None>");
             spliceCommands.Add("GraphVertex", vertexBuilder.ToCodeBlock());
-
+            Profiler.EndSample();
             // --------------------------------------------------
             // Graph Pixel
 
+            Profiler.BeginSample("GraphPixel");
             // Setup
             string pixelGraphInputName = "SurfaceDescriptionInputs";
             string pixelGraphOutputName = "SurfaceDescription";
@@ -623,17 +650,18 @@ namespace UnityEditor.ShaderGraph
                     pixelBuilder.AppendLine("// GraphPixel: <None>");
                 spliceCommands.Add("GraphPixel", pixelBuilder.ToCodeBlock());
             }
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Graph Functions
-
+            Profiler.BeginSample("GraphFunctions");
             if (functionBuilder.length == 0)
                 functionBuilder.AppendLine("// GraphFunctions: <None>");
             spliceCommands.Add("GraphFunctions", functionBuilder.ToCodeBlock());
-
+            Profiler.EndSample();
             // --------------------------------------------------
             // Graph Keywords
-
+            Profiler.BeginSample("GraphKeywords");
             using (var keywordBuilder = new ShaderStringBuilder())
             {
                 keywordCollector.GetKeywordsDeclaration(keywordBuilder, m_Mode);
@@ -641,10 +669,11 @@ namespace UnityEditor.ShaderGraph
                     keywordBuilder.AppendLine("// GraphKeywords: <None>");
                 spliceCommands.Add("GraphKeywords", keywordBuilder.ToCodeBlock());
             }
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Graph Properties
-
+            Profiler.BeginSample("GraphProperties");
             using (var propertyBuilder = new ShaderStringBuilder())
             {
                 propertyCollector.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.concretePrecision);
@@ -652,6 +681,7 @@ namespace UnityEditor.ShaderGraph
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
             }
+            Profiler.EndSample();
 
             // --------------------------------------------------
             // Dots Instanced Graph Properties
@@ -699,7 +729,7 @@ namespace UnityEditor.ShaderGraph
 
             // --------------------------------------------------
             // Graph Defines
-
+            Profiler.BeginSample("GraphDefines");
             using (var graphDefines = new ShaderStringBuilder())
             {
                 graphDefines.AppendLine("#define SHADERPASS {0}", pass.referenceName);
@@ -755,7 +785,7 @@ namespace UnityEditor.ShaderGraph
                 // Add to splice commands
                 spliceCommands.Add("GraphDefines", graphDefines.ToCodeBlock());
             }
-
+            Profiler.EndSample();
             // --------------------------------------------------
             // Debug
 
@@ -789,13 +819,20 @@ namespace UnityEditor.ShaderGraph
             string[] sharedTemplateDirectories = pass.sharedTemplateDirectories;
 
             if (!File.Exists(passTemplatePath))
+            {
+                Profiler.EndSample();
                 return;
+            }
 
             // Process Template
+            Profiler.BeginSample("ProcessTemplate");
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
                 isDebug, sharedTemplateDirectories, m_assetCollection);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
+            Profiler.EndSample();
+
+            Profiler.EndSample();
         }
     }
 }

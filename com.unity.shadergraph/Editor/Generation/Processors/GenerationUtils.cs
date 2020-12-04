@@ -165,8 +165,9 @@ namespace UnityEditor.ShaderGraph
                             firstChannel = packedCounts[interpIndex];
                             packedCounts[interpIndex] += vectorCount;
                         }
-                        var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + interpIndex, "", subscript.type,
-                            "TEXCOORD" + interpIndex, subscript.preprocessor, StructFieldOptions.Static);
+                        string index = interpIndex.ToString();
+                        var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + index, "", subscript.type,
+                            "TEXCOORD" + index, subscript.preprocessor, StructFieldOptions.Static);
                         packedSubscripts.Add(packedSubscript);
                     }
                 }
@@ -230,8 +231,9 @@ namespace UnityEditor.ShaderGraph
                         }
                         // add code to packer and unpacker -- add subscript to packedstruct
                         string packedChannels = ShaderSpliceUtil.GetChannelSwizzle(firstChannel, vectorCount);
-                        packBuilder.AppendLine($"output.interp{interpIndex}.{packedChannels} =  input.{subscript.name};");
-                        unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{interpIndex}.{packedChannels};");
+                        string index = interpIndex.ToString();
+                        packBuilder.AppendLine($"output.interp{index}.{packedChannels} =  input.{subscript.name};");
+                        unpackBuilder.AppendLine($"output.{subscript.name} = input.interp{index}.{packedChannels};");
                     }
 
                     if (subscript.HasPreprocessor())

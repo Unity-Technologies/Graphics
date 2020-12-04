@@ -173,7 +173,6 @@ namespace UnityEditor.ShaderGraph
         static NodeClassCache()
         {
             ReCacheKnownNodeTypes();
-            Debug.Log("blah");
             //DebugPrintKnownNodes();
         }
     }

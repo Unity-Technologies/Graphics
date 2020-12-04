@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
             get { return m_Mappings; }
         }
 
-        public ShaderStringBuilder()
+        public ShaderStringBuilder(int stringBuilderSize = 8192)
         {
             m_StringBuilder = new StringBuilder();
             m_ScopeStack = new Stack<ScopeType>();
@@ -60,8 +60,8 @@ namespace UnityEditor.ShaderGraph
             m_CurrentMapping = new ShaderStringMapping();
         }
 
-        public ShaderStringBuilder(int indentationLevel)
-            : this()
+        public ShaderStringBuilder(int indentationLevel, int stringBuilderSize = 8192)
+            : this(stringBuilderSize)
         {
             IncreaseIndent(indentationLevel);
         }
@@ -69,6 +69,16 @@ namespace UnityEditor.ShaderGraph
         public void AppendNewLine()
         {
             m_StringBuilder.Append(k_NewLineString);
+        }
+
+        private void AppendLine(string value, int startIndex, int count)
+        {
+            if(value.Length > 0)
+            {
+                AppendIndentation();
+                m_StringBuilder.Append(value, startIndex, count);
+            }
+            AppendNewLine();
         }
 
         public void AppendLine(string value)
@@ -93,13 +103,29 @@ namespace UnityEditor.ShaderGraph
         {
             if (string.IsNullOrEmpty(lines))
                 return;
-            var splitLines = lines.Split('\n');
-            var lineCount = splitLines.Length;
-            var lastLine = splitLines[lineCount - 1];
-            if (string.IsNullOrEmpty(lastLine) || lastLine == "\r")
-                lineCount--;
-            for (var i = 0; i < lineCount; i++)
-                AppendLine(splitLines[i].Trim('\r'));
+
+            int startSearchIndex = 0;
+            int indexOfNextBreak = lines.IndexOf('\n');
+            //int indexOfNextCarriageReturn = lines.IndexOf('\r');
+
+            while (indexOfNextBreak >= 0)
+            {
+                //if(indexOfNextCarriageReturn >= 0 && indexOfNextCarriageReturn < indexOfNextBreak)
+                //{
+                //    AppendLine(lines, startSearchIndex, indexOfNextCarriageReturn);
+                //    Append(lines, indexOfNextCarriageReturn + 1, indexOfNextBreak);
+                //    startSearchIndex = indexOfNextBreak+
+                //}
+
+                AppendLine(lines, startSearchIndex, indexOfNextBreak-startSearchIndex);
+                startSearchIndex = indexOfNextBreak + 1;
+                indexOfNextBreak = lines.IndexOf('\n', startSearchIndex);
+            }
+
+            if(startSearchIndex < lines.Length)
+            {
+                AppendLine(lines, startSearchIndex, lines.Length - startSearchIndex);
+            }
         }
 
         public void Append(string value)
