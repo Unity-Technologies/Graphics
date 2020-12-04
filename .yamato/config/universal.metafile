@@ -89,6 +89,7 @@ all:
       test_platforms:
         - Standalone
         - playmode_XR
+        - editmode
     - platform: Win
       api: DX12
       build_config: mono
@@ -146,3 +147,31 @@ all:
       all: true
     - project: ShaderGraph
       all: true
+nightly:
+  dependencies:
+    - project: Universal
+      all: true
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
