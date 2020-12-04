@@ -63,7 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly());
             descriptor.passes.Add(HDShaderPasses.GenerateGBuffer());
             descriptor.passes.Add(HDShaderPasses.GenerateLitForward());
-            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(), new FieldCondition(HDFields.EmissionOverriden, true));
+            if (litData.emissionOverriden)
+                descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass());
             descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
             return descriptor;
