@@ -11,6 +11,8 @@ test_platforms:
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests" 
   - type: editmode
+expression_trigger: 
+  - expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -47,6 +49,6 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
-        - editmode
-        - playmode
+        #- editmode
+        #- playmode
         - playmode_XR

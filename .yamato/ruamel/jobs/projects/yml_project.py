@@ -12,7 +12,7 @@ def create_project_ymls(metafile):
     # project_all yml file
     yml = {}
     for editor in metafile['editors']:
-        job = Project_AllJob(metafile["project"]["name"], editor, metafile["all"]["dependencies"])
+        job = Project_AllJob(metafile["project"]["name"], editor, metafile["expression_trigger"]["expression"], metafile["all"]["dependencies"])
         yml[job.job_id] = job.yml
 
     yml_file = project_filepath_all(metafile["project"]["name"])

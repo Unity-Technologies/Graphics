@@ -7,6 +7,8 @@ test_platforms:
       - [OSX_Metal]: --timeout=2400
   - type: playmode
   - type: editmode
+expression_trigger: 
+  - expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -46,8 +48,8 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
-        - editmode
-        - playmode
+        #- editmode
+        #- playmode
     - platform: OSX
       api: OpenGLCore
       build_config: mono

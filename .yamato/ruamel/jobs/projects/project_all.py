@@ -4,13 +4,13 @@ from ..shared.yml_job import YMLJob
 
 class Project_AllJob():
     
-    def __init__(self, project, editor, dependencies_in_all):
+    def __init__(self, project, editor, expression_trigger, dependencies_in_all):
         self.project = project
         self.job_id = project_job_id_all(project, editor["name"])
-        self.yml = self.get_job_definition(project, editor, dependencies_in_all).get_yml()
+        self.yml = self.get_job_definition(project, editor, expression_trigger, dependencies_in_all).get_yml()
 
     
-    def get_job_definition(self, project, editor, dependencies_in_all):
+    def get_job_definition(self, project, editor, expression_trigger, dependencies_in_all):
     
         # define dependencies
         dependencies = []
@@ -33,8 +33,9 @@ class Project_AllJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'All {project} CI - {editor["name"]}')
+        job.set_name(f'{project} PR Job - {editor["name"]}')
         job.add_dependencies(dependencies)
+        job.set_trigger_on_expression(expression_trigger)
         job.add_var_custom_revision(editor["track"])
         if project == "URP_Performance_BoatAttack":
             job.add_var_custom('BOAT_ATTACK_BRANCH', 'master')

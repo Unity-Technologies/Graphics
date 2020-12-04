@@ -15,6 +15,8 @@ test_platforms:
     name: playmode_XR
     utr_flags:
       - [all]: --extra-editor-arg="-xr-tests"
+expression_trigger: 
+  - expression: 'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND pull_request.push.changes.all match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -86,6 +88,7 @@ all:
       color_space: Linear
       test_platforms:
         - Standalone
+        - playmode_XR
     - platform: Win
       api: DX12
       build_config: mono
@@ -138,4 +141,8 @@ all:
     - project: Universal_Stereo
       all: true
     - project: Universal_Hybrid
+      all: true
+    - project: VFX_URP
+      all: true
+    - project: ShaderGraph
       all: true
