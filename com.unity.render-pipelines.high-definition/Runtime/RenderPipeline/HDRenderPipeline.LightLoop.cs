@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var nrClusterTiles = nrClustersX * nrClustersY * m_MaxViewCount;
 
                 passData.output.perVoxelOffset = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(/*(int)LightCategory.Count*/ 0 * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(/*(int)LightCategory.Count*/ 1 * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
                 passData.output.perVoxelLightLists = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint)) { name = "PerVoxelLightList" }));
                 if (tileAndClusterData.clusterNeedsDepth)
