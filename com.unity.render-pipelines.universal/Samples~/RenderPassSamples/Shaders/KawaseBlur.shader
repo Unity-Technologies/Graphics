@@ -6,18 +6,16 @@ Shader "Custom/RenderFeature/KawaseBlur"
     //   _offset ("Offset", float) = 0.5
     }
 
-        SubShader
+    SubShader
     {
         Tags { "RenderType" = "Opaque" }
-        LOD 100
 
         Pass
         {
-            CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             struct appdata
             {
