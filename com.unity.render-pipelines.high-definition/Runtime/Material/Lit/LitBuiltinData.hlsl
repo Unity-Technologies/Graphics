@@ -48,6 +48,8 @@ float3 GetEmissiveColor(SurfaceData surfaceData, UVMapping emissiveMapMapping)
     emissiveColor *= SAMPLE_UVMAPPING_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, emissiveMapMapping).rgb;
     return emissiveColor;
 }
+#endif // _EMISSIVE_COLOR_MAP
+
 #endif // _FORCE_FORWARD_EMISSIVE
 
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
