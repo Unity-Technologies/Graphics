@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
@@ -13,11 +14,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override int Priority => 50;
 
-        protected ShaderKeyword m_ForceForwardEmissive;
+        protected UnityEngine.Rendering.ShaderKeyword m_ForceForwardEmissive;
 
         public LitShaderPreprocessor()
         {
-            m_ForceForwardEmissive = new ShaderKeyword("_FORCE_FORWARD_EMISSIVE");
+            m_ForceForwardEmissive = new UnityEngine.Rendering.ShaderKeyword("_FORCE_FORWARD_EMISSIVE");
         }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)

@@ -39,14 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_ForceForwardEmissive = false;
-        public bool forceForwardEmissive
-        {
-            get => m_ForceForwardEmissive;
-            set => m_ForceForwardEmissive = value;
-        }
-
-        [SerializeField]
         bool m_TransparentWritesMotionVec;
         public bool transparentWritesMotionVec
         {

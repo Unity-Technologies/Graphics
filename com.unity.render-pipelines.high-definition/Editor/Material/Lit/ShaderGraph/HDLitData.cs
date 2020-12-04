@@ -75,12 +75,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_ClearCoat = value;
         }
 
+        // Allow to track if something is connected to emissive input
         [SerializeField]
         bool m_EmissionOverriden;
         public bool emissionOverriden
         {
             get => m_EmissionOverriden;
             set => m_EmissionOverriden = value;
+        }
+
+        [SerializeField]
+        bool m_ForceForwardEmissive = false;
+        public bool forceForwardEmissive
+        {
+            get => m_ForceForwardEmissive;
+            set => m_ForceForwardEmissive = value;
         }
     }
 }

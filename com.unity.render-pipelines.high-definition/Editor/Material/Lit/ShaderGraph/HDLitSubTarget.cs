@@ -211,7 +211,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             collector.AddShaderProperty(new BooleanShaderProperty
             {
-                value = builtinData.forceForwardEmissive,
+                value = litData.forceForwardEmissive,
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
@@ -228,10 +228,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, litData));
+            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(litData));
             if (systemData.surfaceType == SurfaceType.Transparent)
                 blockList.AddPropertyBlock(new DistortionPropertyBlock());
-            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
+            blockList.AddPropertyBlock(new LitAdvancedOptionsPropertyBlock(litData));
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
