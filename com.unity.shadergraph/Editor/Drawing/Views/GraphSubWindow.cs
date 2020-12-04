@@ -150,6 +150,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             }
         }
 
+        protected float scrollableWidth
+        {
+            get { return m_ScrollView.contentContainer.layout.width - m_ScrollView.contentViewport.layout.width; }
+        }
+
+        protected float scrollableHeight
+        {
+            get { return contentContainer.layout.height -  m_ScrollView.contentViewport.layout.height; }
+        }
+
         void HandleScrollingBehavior(bool scrollable)
         {
             if (scrollable)

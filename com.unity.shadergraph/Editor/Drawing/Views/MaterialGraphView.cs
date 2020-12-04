@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Editor.Drawing.Blackboard;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
 using Object = UnityEngine.Object;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
-using UnityEditor.ShaderGraph.Drawing.Views;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
@@ -1011,6 +1009,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         CreateNode(field, localPos);
                     }
+
+                    // todo: replace this with a delegate
+                    SGBlackboard blackboard = this.GetFirstAncestorOfType<GraphEditorView>().blackboardProvider.blackboard;
+                    blackboard.OnFieldDragEnd(new DragExitedEvent());
                 }
             }
             else

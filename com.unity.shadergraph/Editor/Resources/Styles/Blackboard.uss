@@ -77,13 +77,25 @@
 #SGBlackboard.scrollable > .mainContainer > #content > #scrollBoundaryTop
 {
     align-content: flex-start;
-    min-height: 10;
+    opacity: 0.1;
+    min-height: 15;
+    -unity-background-image-tint-color: aqua;
+    background-color: lightgrey;
+    border-bottom-right-radius: 15px;
+    border-bottom-left-radius: 15px;
+    padding-bottom: 15px;
 }
 
 #SGBlackboard.scrollable > .mainContainer > #content > #scrollBoundaryBottom
 {
     align-content: flex-end;
-    min-height: 15;
+    min-height: 20;
+    opacity: 0.1;
+    -unity-background-image-tint-color: aqua;
+    background-color: lightgrey;
+    border-top-right-radius: 15px;
+    border-top-left-radius: 15px;
+    padding-top: 15px;
 }
 
 #SGBlackboard > .mainContainer > #content > ScrollView {
@@ -160,25 +172,26 @@
     color: #606060;
 }
 
-#BlackboardSection {
+.blackboardSection {
     padding-left: 0;
     padding-right: 0;
     padding-bottom: 0;
     padding-top: 0;
 }
 
-#BlackboardSection  > .mainContainer > #sectionHeader {
+.blackboardSection  > .mainContainer > #sectionHeader {
     flex-direction: row;
     align-items: stretch;
 }
 
-#BlackboardSection > .mainContainer > #sectionHeader > #sectionTitleLabel {
+.blackboardSection > .mainContainer > #sectionHeader > #sectionTitleLabel {
     color: #606060;
     font-size: 11px;
 }
 
-#BlackboardSection > #dragIndicator {
+.blackboardSection > #dragIndicator {
     background-color: #44C0FF;
+    position: absolute;
     min-height: 2px;
 }
 

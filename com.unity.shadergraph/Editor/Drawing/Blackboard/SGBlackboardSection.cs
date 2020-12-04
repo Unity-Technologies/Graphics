@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Editor.Drawing.Blackboard
+namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 {
     public class SGBlackboardSection : GraphElement
     {
-        private VisualElement m_DragIndicator;
-        private VisualElement m_MainContainer;
-        private VisualElement m_Header;
-        private Label m_TitleLabel;
-        private VisualElement m_RowsContainer;
-        private int m_InsertIndex;
+        VisualElement m_DragIndicator;
+        VisualElement m_MainContainer;
+        VisualElement m_Header;
+        Label m_TitleLabel;
+        VisualElement m_RowsContainer;
+        int m_InsertIndex;
 
         SGBlackboard m_Blackboard;
         SGBlackboard blackboard
@@ -74,7 +72,7 @@ namespace Editor.Drawing.Blackboard
         public SGBlackboardSection()
         {
             // Setup VisualElement from Stylesheet and UXML file
-            var tpl = Resources.Load("UXML/GraphView/BlackboardSection.uxml") as VisualTreeAsset;
+            var tpl = Resources.Load("UXML/GraphView/BlackboardSection") as VisualTreeAsset;
             m_MainContainer = tpl.Instantiate();
             m_MainContainer.AddToClassList("mainContainer");
 
@@ -84,10 +82,8 @@ namespace Editor.Drawing.Blackboard
 
             hierarchy.Add(m_MainContainer);
 
-            m_DragIndicator = new VisualElement();
-
-            m_DragIndicator.name = "dragIndicator";
-            m_DragIndicator.style.position = Position.Absolute;
+            m_DragIndicator = m_MainContainer.Q("dragIndicator");
+            m_DragIndicator.visible = false;
             hierarchy.Add(m_DragIndicator);
 
             ClearClassList();
@@ -97,7 +93,7 @@ namespace Editor.Drawing.Blackboard
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
 
-            var styleSheet = Resources.Load<StyleSheet>($"Styles/{blackboard.styleName}");
+            var styleSheet = Resources.Load<StyleSheet>($"Styles/Blackboard");
             styleSheets.Add(styleSheet);
 
             m_InsertIndex = -1;
@@ -132,15 +128,7 @@ namespace Editor.Drawing.Blackboard
 
         private void SetDragIndicatorVisible(bool visible)
         {
-            if (visible && (m_DragIndicator.parent == null))
-            {
-                hierarchy.Add(m_DragIndicator);
-                m_DragIndicator.visible = true;
-            }
-            else if ((visible == false) && (m_DragIndicator.parent != null))
-            {
-                hierarchy.Remove(m_DragIndicator);
-            }
+            m_DragIndicator.visible = visible;
         }
 
         public bool CanAcceptDrop(List<ISelectable> selection)
@@ -212,7 +200,9 @@ namespace Editor.Drawing.Blackboard
 
                 SetDragIndicatorVisible(true);
 
-                //m_DragIndicator.layout = new Rect(0, indicatorY - m_DragIndicator.layout.height / 2, layout.width, m_DragIndicator.layout.height);
+                m_DragIndicator.style.width = layout.width;
+                var newPosition = indicatorY - m_DragIndicator.layout.height / 2;
+                m_DragIndicator.style.top = newPosition;
             }
             else
             {
