@@ -44,14 +44,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var thisLabel = new Label(label);
             container.Add(thisLabel);
             m_Value = GetValue();
-            var field = new TextField { maxLength = 4, value = m_Value };
+            var field = new TextField { value = m_Value };
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.RegisterValueChangedCallback(evt =>
             {
                 m_Node.owner.owner.RegisterCompleteObjectUndo("MatrixSwizzle Change");
                 string value = GetValue();
-                Assert.IsTrue(evt.newValue.Length <= 4);
                 value = evt.newValue;
                 m_PropertyInfo.SetValue(m_Node, value, null);
                 field.SetValueWithoutNotify(value);

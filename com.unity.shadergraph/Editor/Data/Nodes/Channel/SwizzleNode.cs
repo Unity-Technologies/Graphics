@@ -31,16 +31,25 @@ namespace UnityEditor.ShaderGraph
         public string maskInput
         {
             get { return _maskInput; }
-            set { _maskInput = value;  }
+            set {
+                if (_maskInput.Equals(value))
+                    return;
+                _maskInput = value;
+                UpdateNodeAfterDeserialization();
+                owner.ValidateGraph();
+                Dirty(ModificationScope.Topological);
+
+            }
 
         }
 
+        //1.mask(xyzw) 0< length <=4
+        //2.mask cant be character other than "xyzw"
+        //3.If the input is not valid, wont genetate shader code and give errors
         public bool ValidateMaskInput(int InputValueSize)
         {
-            //mask(xyzw) 0< length <=4
-            //mask cant be character other than "xyzw"
-            //wont genetate shader code and give errors
-            bool MaskInoutIsValid = true;
+
+            bool MaskInputIsValid = true;
             char[] MaskChars = _maskInput.ToCharArray();
             char[] AllChars  = {'x', 'y' ,'z','w'};
             List<char> CurrentChars = new List<char>();
@@ -53,136 +62,73 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!CurrentChars.Contains(c))
                 {
-                    MaskInoutIsValid = false;
-                }
+                    MaskInputIsValid = false;
+                  }
             }
-            if (MaskChars.Length == 0)
+            if (MaskChars.Length == 0 || MaskChars.Length > 4)
             {
-                MaskInoutIsValid = false;
+                MaskInputIsValid = false;
             }
-
-            return MaskInoutIsValid;
+            return MaskInputIsValid;
 
         }
 
-        //TODO:
-        //1.Get input mask from textControl
-        //2.Validate input mask, if not legit set back to xyzw
-        //3.Check on length of input mask which decides output vector size
-        //4.Do swizzle according to the validated mask
-        //5.Output
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new DynamicVectorMaterialSlot(InputSlotId, kInputSlotName, kInputSlotName, SlotType.Input, Vector4.zero));
-            //TODO: Not sure if the output size on UI will auto update
-            AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            switch(_maskInput.Length){
+                default:
+                    AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+                    break;
+                case 3:
+                    AddSlot(new Vector3MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector3.zero));
+                    break;
+                case 2:
+                    AddSlot(new Vector2MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector2.zero));
+                    break;
+                case 1:
+                    AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output,0));
+                    break;
+            }
             RemoveSlotsNameNotMatching(new[] { InputSlotId, OutputSlotId });
         }
 
-        //public override void ValidateNode()
-        //{
-        //    base.ValidateNode();
-
-        //    if (!AreIndicesValid)
-        //    {
-        //        owner.AddValidationError(objectId, "Invalid index!", ShaderCompilerMessageSeverity.Error);
-        //    }
-        //}
-
-
+        //1.Get vector input value
+        //2.Get validated mask input
+        //3.Swizzle: Remap the vector according to mask
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            //Get origin vector input
-            //Get mask
-            //Swizzle: Remapping the vector according to mask's order
-
-            Debug.Log(_maskInput);
-            //_maskInput = 
-            //ValidateChannelCount();
             var outputSlotType = FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString();
             var outputName = GetVariableNameForSlot(OutputSlotId);
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             var inputValueType = FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType;
-
             var InputValueSize = SlotValueHelper.GetChannelCount(inputValueType);
-            //TODO: edge case: input vect3, output xxxx.(Need to check valid mask input)
+
             if (!ValidateMaskInput(InputValueSize))
             {
                 owner.AddValidationError(objectId, "Invalid mask!", ShaderCompilerMessageSeverity.Error);
                 sb.AppendLine(string.Format("{0} {1} = float4 (0, 0, 0, 0);", outputSlotType, outputName));
             }
             else {
-                if (_maskInput.Length == 4)
-                {
-                    sb.AppendLine("{0} {1} = {2}.{3};",
-                        outputSlotType,
-                        outputName,
-                        inputValue, _maskInput);
+                string outputValue = "";
+                for(int i = 0; i < 4; i++){
+
+                    if(i !=0 )
+                    outputValue += ",";
+
+                    if (i< _maskInput.Length)
+                    outputValue += inputValue+"."+_maskInput[i];
+
+                    if(i>= _maskInput.Length)
+                    outputValue += "0";
+
                 }
-                else if (_maskInput.Length == 3)
-                {
-                    sb.AppendLine("{0} {1} = float4 ({2}.{3}, {2}.{4}, {2}.{5}, 0);",
-                    outputSlotType,
-                    outputName,
-                    inputValue, _maskInput[0], _maskInput[1], _maskInput[2]);
-                }
-                else if (_maskInput.Length == 2)
-                {
-                    sb.AppendLine("{0} {1} = float4 ({2}.{3}, {2}.{4}, 0, 0);",
-                    outputSlotType,
-                    outputName,
-                    inputValue, _maskInput[0], _maskInput[1]);
-                }
-                else if (_maskInput.Length == 1)
-                {
-                    sb.AppendLine("{0} {1} = float4 ({2}.{3}, 0, 0, 0);",
-                    outputSlotType,
-                    outputName,
-                    inputValue, _maskInput[0]);
-                }
+                sb.AppendLine("{0} {1} = float4 ({2});", outputSlotType, outputName, outputValue);
+
+
             }
 
-
-
-
-
-            //if (inputValueType == ConcreteSlotValueType.Vector1)
-            //    sb.AppendLine(string.Format("{0} {1} = {2};", outputSlotType, outputName, inputValue));
-            //else if (generationMode == GenerationMode.ForReals)
-            //    sb.AppendLine("{0} {1} = {2}.{3}{4}{5}{6};",
-            //        outputSlotType,
-            //        outputName,
-            //        inputValue,
-            //        s_ComponentList[m_RedChannel].ToString(CultureInfo.InvariantCulture),
-            //        s_ComponentList[m_GreenChannel].ToString(CultureInfo.InvariantCulture),
-            //        s_ComponentList[m_BlueChannel].ToString(CultureInfo.InvariantCulture),
-            //        s_ComponentList[m_AlphaChannel].ToString(CultureInfo.InvariantCulture));
-            //else
-            //    sb.AppendLine("{0} {1} = {0}({3}[((int){2} >> 0) & 3], {3}[((int){2} >> 2) & 3], {3}[((int){2} >> 4) & 3], {3}[((int){2} >> 6) & 3]);", outputSlotType, outputName, GetVariableNameForNode(), inputValue);
         }
 
-        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
-        {
-            base.CollectShaderProperties(properties, generationMode);
-            if (generationMode != GenerationMode.Preview)
-                return;
-            properties.AddShaderProperty(new Vector1ShaderProperty
-            {
-                overrideReferenceName = GetVariableNameForNode(),
-                generatePropertyBlock = false
-            });
-        }
-
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
-        {
-            base.CollectPreviewMaterialProperties(properties);
-            // Encode swizzle values into an integer
-            //var value = ((int)redChannel) | ((int)greenChannel << 2) | ((int)blueChannel << 4) | ((int)alphaChannel << 6);
-            //properties.Add(new PreviewProperty(PropertyType.Float)
-            //{
-            //    name = GetVariableNameForNode(),
-            //    floatValue = value
-            //});
-        }
     }
 }
