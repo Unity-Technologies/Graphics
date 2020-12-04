@@ -63,8 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             descriptor.passes.Add(HDShaderPasses.GenerateLitDepthOnly());
             descriptor.passes.Add(HDShaderPasses.GenerateGBuffer());
             descriptor.passes.Add(HDShaderPasses.GenerateLitForward());
-            if (litData.emissionOverriden)
-                descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass());
+            descriptor.passes.Add(HDShaderPasses.GenerateForwardEmissiveForDeferredPass(), new FieldCondition(HDFields.EmissionOverriden, true));
             descriptor.passes.Add(HDShaderPasses.GenerateLitRaytracingPrepass());
 
             return descriptor;
@@ -145,7 +144,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             else
                 emissionEnabled = true;
 
+            // Note: both case are required to be compliant with the ShaderGraph framework
             litData.emissionOverriden = emissionEnabled;
+            context.AddField(HDFields.EmissionOverriden, emissionEnabled);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
