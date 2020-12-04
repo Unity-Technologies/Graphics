@@ -1,7 +1,7 @@
 from .project_not_standalone import Project_NotStandaloneJob
 from .project_standalone import Project_StandaloneJob
 from ..shared.namer import project_filepath_specific
-from .project_all import Project_AllJob
+from .project_pr import Project_PRJob
 from .project_nightly import Project_NightlyJob
 from ..shared.namer import project_filepath_all
 from ..shared.namer import project_filepath_nightly
@@ -16,7 +16,7 @@ def create_project_ymls(metafile):
         expression = ""
         if metafile["expression_trigger"]["expression"] != "":
             expression = metafile["expression_trigger"]["expression"]
-        job = Project_AllJob(metafile["project"]["name"], editor, expression, metafile["all"]["dependencies"])
+        job = Project_PRJob(metafile["project"]["name"], editor, expression, metafile["all"]["dependencies"])
         yml[job.job_id] = job.yml
 
         job = Project_NightlyJob(metafile["project"]["name"], editor, metafile["nightly"]["dependencies"])

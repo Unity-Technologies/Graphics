@@ -19,7 +19,7 @@ class Project_NightlyJob():
             
             if dep.get("all"):
                 dependencies.append({
-                    'path': f'{project_filepath_all(project_dep)}#{project_job_id_all(project_dep, editor["name"])}',
+                    'path': f'{project_filepath_all(project_dep)}#{project_job_id_pr(project_dep, editor["name"])}',
                     'rerun': editor["rerun_strategy"]})
             else:
                 for test_platform in dep["test_platforms"]:

@@ -2,11 +2,11 @@ from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from ..shared.namer import *
 from ..shared.yml_job import YMLJob
 
-class Project_AllJob():
+class Project_PRJob():
     
     def __init__(self, project, editor, expression_trigger, dependencies_in_all):
         self.project = project
-        self.job_id = project_job_id_all(project, editor["name"])
+        self.job_id = project_job_id_pr(project, editor["name"])
         self.yml = self.get_job_definition(project, editor, expression_trigger, dependencies_in_all).get_yml()
 
     
@@ -19,7 +19,7 @@ class Project_AllJob():
             
             if dep.get("all"):
                 dependencies.append({
-                    'path': f'{project_filepath_all(project_dep)}#{project_job_id_all(project_dep, editor["name"])}',
+                    'path': f'{project_filepath_all(project_dep)}#{project_job_id_pr(project_dep, editor["name"])}',
                     'rerun': editor["rerun_strategy"]})
             else:
                 for test_platform in dep["test_platforms"]:

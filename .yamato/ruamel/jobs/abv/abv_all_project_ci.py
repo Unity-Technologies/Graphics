@@ -19,7 +19,7 @@ class ABV_AllProjectCiJob():
 
         for project in projects:
             dependencies.append({
-                'path': f'{project_filepath_all(project["name"])}#{project_job_id_all(project["name"], editor["name"])}',
+                'path': f'{project_filepath_all(project["name"])}#{project_job_id_pr(project["name"], editor["name"])}',
                 'rerun': editor["rerun_strategy"]})
 
         # construct job
